@@ -6,8 +6,8 @@
  */
 package topics;
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 

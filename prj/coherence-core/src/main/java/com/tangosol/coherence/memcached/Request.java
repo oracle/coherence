@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.memcached;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.net.cache.KeyAssociation;
 

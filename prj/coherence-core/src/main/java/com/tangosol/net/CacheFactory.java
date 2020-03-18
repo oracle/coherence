@@ -8,7 +8,7 @@
 package com.tangosol.net;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.net.cache.TypeAssertion;
 import com.tangosol.net.security.LocalPermission;

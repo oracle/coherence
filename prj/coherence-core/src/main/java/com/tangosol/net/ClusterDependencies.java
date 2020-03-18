@@ -21,7 +21,7 @@ import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Filter;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import java.net.InetAddress;
 import java.net.SocketOptions;

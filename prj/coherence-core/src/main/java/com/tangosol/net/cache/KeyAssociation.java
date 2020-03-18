@@ -8,7 +8,7 @@
 package com.tangosol.net.cache;
 
 
-import com.oracle.common.base.Associated;
+import com.oracle.coherence.common.base.Associated;
 
 
 /**

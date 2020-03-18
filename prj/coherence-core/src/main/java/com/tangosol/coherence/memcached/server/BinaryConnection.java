@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.memcached.server;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.oracle.coherence.common.internal.net.socketbus.SharedBuffer;
 import com.oracle.coherence.common.internal.net.socketbus.SharedBuffer.Disposer;

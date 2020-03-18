@@ -7,7 +7,7 @@
 package com.tangosol.util.fsm;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Timeout;
 
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 

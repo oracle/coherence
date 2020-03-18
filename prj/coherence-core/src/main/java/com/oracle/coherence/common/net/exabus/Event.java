@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.net.exabus;
 
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 import com.oracle.coherence.common.io.BufferSequence;
 
 

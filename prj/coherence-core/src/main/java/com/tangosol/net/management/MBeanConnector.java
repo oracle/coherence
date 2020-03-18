@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import javax.management.MBeanServer;
 
 import javax.management.remote.JMXAuthenticator;

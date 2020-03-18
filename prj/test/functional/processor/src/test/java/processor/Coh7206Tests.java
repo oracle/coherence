@@ -22,7 +22,7 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.filter.ContainsAnyFilter;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import common.AbstractFunctionalTest;
 
 import org.junit.BeforeClass;

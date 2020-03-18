@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.dslquery.statement.persistence;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.StatementResult;

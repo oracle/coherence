@@ -8,7 +8,7 @@
 package com.tangosol.util;
 
 
-import com.oracle.common.base.NaturalHasher;
+import com.oracle.coherence.common.base.NaturalHasher;
 
 
 /**

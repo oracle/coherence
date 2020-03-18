@@ -6,7 +6,7 @@
  */
 package com.tangosol.net.events.internal;
 
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 
 import com.tangosol.net.Member;
 import com.tangosol.net.PartitionedService;

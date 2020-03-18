@@ -6,7 +6,7 @@
  */
 package com.tangosol.net.events.internal;
 
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.events.EventDispatcher;

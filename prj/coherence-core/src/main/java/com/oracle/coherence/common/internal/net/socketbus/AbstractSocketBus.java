@@ -6,10 +6,10 @@
  */
 package com.oracle.coherence.common.internal.net.socketbus;
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Collector;
-import com.oracle.common.base.Continuation;
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Collector;
+import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Disposable;
 import com.oracle.coherence.common.collections.Arrays;
 import com.oracle.coherence.common.internal.continuations.AbstractContinuationFrame;
 import com.oracle.coherence.common.internal.continuations.Continuations;

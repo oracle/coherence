@@ -8,7 +8,7 @@
 package com.tangosol.io;
 
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;

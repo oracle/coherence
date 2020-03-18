@@ -6,7 +6,7 @@
  */
 package com.tangosol.internal.util.invoke.lambda;
 
-import com.oracle.common.base.CanonicallyNamed;
+import com.oracle.coherence.common.base.CanonicallyNamed;
 
 import com.oracle.coherence.common.internal.util.CanonicalNames;
 

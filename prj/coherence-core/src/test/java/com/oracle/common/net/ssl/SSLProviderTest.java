@@ -7,7 +7,7 @@
 package com.oracle.common.net.ssl;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.net.SocketProvider;
 import com.oracle.coherence.common.net.SSLSocketProvider;
 

@@ -7,7 +7,7 @@
 package processor;
 
 
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;

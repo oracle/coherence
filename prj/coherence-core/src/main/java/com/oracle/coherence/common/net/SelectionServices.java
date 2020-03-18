@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.net;
 
 
-import com.oracle.common.base.Factory;
+import com.oracle.coherence.common.base.Factory;
 import com.oracle.coherence.common.internal.Platform;
 import com.oracle.coherence.common.internal.net.MultiProviderSelectionService;
 import com.oracle.coherence.common.internal.net.ResumableSelectionService;

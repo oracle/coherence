@@ -6,7 +6,7 @@
  */
 package persistence;
 
-import com.oracle.common.base.SimpleHolder;
+import com.oracle.coherence.common.base.SimpleHolder;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.coherence.component.util.SafeService;

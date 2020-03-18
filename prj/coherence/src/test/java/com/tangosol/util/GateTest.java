@@ -7,7 +7,7 @@
 
 package com.tangosol.util;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.*;
 import org.junit.Test;

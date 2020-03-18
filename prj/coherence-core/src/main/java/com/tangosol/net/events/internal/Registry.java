@@ -6,7 +6,7 @@
  */
 package com.tangosol.net.events.internal;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventDispatcher;

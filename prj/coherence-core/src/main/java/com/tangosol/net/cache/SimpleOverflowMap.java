@@ -7,7 +7,7 @@
 package com.tangosol.net.cache;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.io.nio.BinaryMap;
 import com.tangosol.net.NamedCache;

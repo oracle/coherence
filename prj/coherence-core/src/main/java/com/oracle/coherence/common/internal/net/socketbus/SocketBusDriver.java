@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.common.internal.net.socketbus;
 
-import com.oracle.common.base.Hasher;
+import com.oracle.coherence.common.base.Hasher;
 import com.oracle.coherence.common.net.SelectionService;
 import com.oracle.coherence.common.net.SocketProvider;
 import com.oracle.coherence.common.net.SelectionServices;

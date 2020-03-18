@@ -8,7 +8,7 @@
 package net;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.internal.net.DemultiplexedSocketProvider;
 import com.oracle.coherence.common.internal.net.MultiplexedSocketProvider;
 import com.oracle.coherence.common.net.SocketProvider;

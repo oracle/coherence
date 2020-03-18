@@ -6,8 +6,8 @@
  */
 package com.oracle.coherence.common.net.exabus.util;
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Hasher;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Hasher;
 
 import com.oracle.coherence.common.net.exabus.Bus;
 import com.oracle.coherence.common.net.exabus.Depot;
@@ -22,12 +22,12 @@ import com.oracle.coherence.common.internal.util.ScaledHistogram;
 
 import com.oracle.coherence.common.net.SSLSettings;
 
-import com.oracle.common.base.Collector;
-import com.oracle.common.base.Disposable;
-import com.oracle.common.base.Factory;
-import com.oracle.common.base.Notifier;
-import com.oracle.common.base.Pollable;
-import com.oracle.common.base.SingleWaiterCooperativeNotifier;
+import com.oracle.coherence.common.base.Collector;
+import com.oracle.coherence.common.base.Disposable;
+import com.oracle.coherence.common.base.Factory;
+import com.oracle.coherence.common.base.Notifier;
+import com.oracle.coherence.common.base.Pollable;
+import com.oracle.coherence.common.base.SingleWaiterCooperativeNotifier;
 
 import com.oracle.coherence.common.collections.SingleConsumerBlockingQueue;
 

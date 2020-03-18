@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.config.builder;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 /**
  * A registry of strongly typed and possibly named {@link ParameterizedBuilder}s.

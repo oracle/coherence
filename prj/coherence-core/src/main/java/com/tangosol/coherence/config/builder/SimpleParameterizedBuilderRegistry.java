@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.config.builder;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.net.security.LocalPermission;
 

@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.config.builder;
 
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceManager;

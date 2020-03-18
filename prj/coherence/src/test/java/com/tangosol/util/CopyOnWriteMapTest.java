@@ -7,7 +7,7 @@
 package com.tangosol.util;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import org.junit.Test;
 
 import java.util.ArrayList;

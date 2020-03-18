@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.internal.net;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.collections.UnmodifiableSetCollection;
 import com.oracle.coherence.common.io.Buffers;
 import com.oracle.coherence.common.net.InetAddressComparator;

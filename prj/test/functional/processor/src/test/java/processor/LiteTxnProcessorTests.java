@@ -8,7 +8,7 @@
 package processor;
 
 
-import com.oracle.common.base.Converter;
+import com.oracle.coherence.common.base.Converter;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;

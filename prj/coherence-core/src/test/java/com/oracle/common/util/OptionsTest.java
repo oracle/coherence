@@ -7,7 +7,7 @@
 package com.oracle.common.util;
 
 import com.oracle.coherence.common.util.Options;
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Timeout;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;

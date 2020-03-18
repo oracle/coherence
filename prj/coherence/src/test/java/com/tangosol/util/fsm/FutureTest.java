@@ -6,7 +6,7 @@
  */
 package com.tangosol.util.fsm;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 import com.tangosol.util.fsm.annotations.OnEnterState;
 import com.tangosol.util.fsm.annotations.Transition;

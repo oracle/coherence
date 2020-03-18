@@ -6,7 +6,7 @@
  */
 package com.tangosol.internal.util.stream.collectors;
 
-import com.oracle.common.base.Holder;
+import com.oracle.coherence.common.base.Holder;
 
 import com.tangosol.io.ExternalizableLite;
 

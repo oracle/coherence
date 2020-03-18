@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.internal.net.socketbus;
 
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 import com.oracle.coherence.common.internal.net.ProtocolIdentifiers;
 import com.oracle.coherence.common.internal.util.HeapDump;
 import com.oracle.coherence.common.io.Buffers;

@@ -12,7 +12,7 @@ import com.tangosol.net.Guardian;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.net.Guardian.GuardContext;
 
 import com.tangosol.net.cache.KeyAssociation;

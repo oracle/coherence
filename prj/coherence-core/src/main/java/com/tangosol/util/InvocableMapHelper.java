@@ -8,7 +8,7 @@
 package com.tangosol.util;
 
 
-import com.oracle.common.base.NonBlocking;
+import com.oracle.coherence.common.base.NonBlocking;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 

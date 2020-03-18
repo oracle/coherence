@@ -12,7 +12,7 @@ import com.tangosol.net.cache.AbstractBundler;
 import com.tangosol.net.cache.BundlingNamedCache;
 import com.tangosol.net.cache.ReadWriteBackingMap;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import common.AbstractFunctionalTest;
 import common.TestBinaryCacheStore;
 import common.TestHelper;

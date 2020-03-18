@@ -10,10 +10,10 @@ package processor;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.oracle.common.base.Continuation;
-import com.oracle.common.base.NonBlocking;
-import com.oracle.common.base.Notifier;
-import com.oracle.common.base.SingleWaiterMultiNotifier;
+import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.NonBlocking;
+import com.oracle.coherence.common.base.Notifier;
+import com.oracle.coherence.common.base.SingleWaiterMultiNotifier;
 
 import com.tangosol.coherence.config.Config;
 

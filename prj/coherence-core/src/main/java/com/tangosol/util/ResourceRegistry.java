@@ -6,7 +6,7 @@
  */
 package com.tangosol.util;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 /**
  * A {@link ResourceRegistry} is a registry and owner of strongly typed and

@@ -7,7 +7,7 @@
 package com.tangosol.net.partition;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.net.Action;
 import com.tangosol.net.ActionPolicy;

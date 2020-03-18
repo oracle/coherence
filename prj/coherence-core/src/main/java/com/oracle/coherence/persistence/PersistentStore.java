@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.persistence;
 
-import com.oracle.common.base.Collector;
+import com.oracle.coherence.common.base.Collector;
 
 /**
  * PersistentStore represents a persistence facility to store and recover

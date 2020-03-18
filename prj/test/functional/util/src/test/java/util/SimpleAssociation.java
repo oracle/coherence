@@ -6,7 +6,7 @@
  */
 package util;
 
-import com.oracle.common.base.Associated;
+import com.oracle.coherence.common.base.Associated;
 
 import com.oracle.coherence.common.util.AssociationPile;
 import com.tangosol.net.cache.KeyAssociation;

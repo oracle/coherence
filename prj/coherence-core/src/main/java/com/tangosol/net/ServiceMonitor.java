@@ -9,7 +9,7 @@ package com.tangosol.net;
 import java.util.Map;
 import java.util.Set;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 /**
  * The {@link ServiceMonitor} is a facility that keeps registered services

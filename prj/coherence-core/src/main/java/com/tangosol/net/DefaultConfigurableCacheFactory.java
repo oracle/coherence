@@ -6,7 +6,7 @@
  */
 package com.tangosol.net;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.coherence.config.CacheConfig;
 import com.tangosol.coherence.config.ResolvableParameterList;

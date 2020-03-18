@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.common.net.exabus.util;
 
-import com.oracle.common.base.Collector;
+import com.oracle.coherence.common.base.Collector;
 import com.oracle.coherence.common.net.exabus.Event;
 
 import java.util.concurrent.TimeUnit;

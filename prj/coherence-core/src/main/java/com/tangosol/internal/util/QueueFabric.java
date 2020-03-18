@@ -10,7 +10,7 @@ package com.tangosol.internal.util;
 import com.tangosol.util.Gate;
 import com.tangosol.util.ThreadGateLite;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.locks.Lock;

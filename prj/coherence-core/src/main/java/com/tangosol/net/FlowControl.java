@@ -7,8 +7,8 @@
 package com.tangosol.net;
 
 
-import com.oracle.common.base.Continuation;
-import com.oracle.common.base.NonBlocking;
+import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.NonBlocking;
 
 
 /**

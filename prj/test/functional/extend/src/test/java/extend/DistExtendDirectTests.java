@@ -13,7 +13,7 @@ import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.oracle.coherence.common.util.Threads;
 import com.sun.management.OperatingSystemMXBean;

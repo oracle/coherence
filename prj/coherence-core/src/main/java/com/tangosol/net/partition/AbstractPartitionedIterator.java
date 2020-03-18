@@ -7,7 +7,7 @@
 package com.tangosol.net.partition;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.collections.AbstractStableIterator;
 
 import com.tangosol.net.Member;

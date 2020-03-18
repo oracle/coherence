@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.common.internal.util;
 
-import com.oracle.common.base.Converter;
+import com.oracle.coherence.common.base.Converter;
 
 import java.io.DataInput;
 import java.io.DataOutput;

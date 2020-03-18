@@ -6,8 +6,8 @@
  */
 package com.tangosol.net.events.internal;
 
-import com.oracle.common.base.Continuation;
-import com.oracle.common.base.Predicate;
+import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Predicate;
 
 import com.tangosol.net.CacheFactory;
 

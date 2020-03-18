@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.dslquery;
 
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.coherence.common.util.Duration;
 

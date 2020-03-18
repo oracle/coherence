@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.common.util;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 import com.oracle.coherence.common.internal.util.Timer;
 import com.oracle.coherence.common.internal.util.TimerTask;
 

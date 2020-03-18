@@ -8,7 +8,7 @@ package com.tangosol.net;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.io.SerializerFactory;
 import com.tangosol.io.WrapperStreamFactory;

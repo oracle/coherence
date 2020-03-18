@@ -6,8 +6,8 @@
  */
 package com.tangosol.internal.net;
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Continuation;
 import com.oracle.coherence.common.collections.ConcurrentLinkedQueue;
 
 import com.tangosol.net.FlowControl;

@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.internal.io;
 
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 import com.oracle.coherence.common.collections.ConcurrentLinkedStack;
 import com.oracle.coherence.common.collections.Stack;
 import com.oracle.coherence.common.io.BufferManager;

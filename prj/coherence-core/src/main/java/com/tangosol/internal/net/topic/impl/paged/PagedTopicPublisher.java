@@ -6,7 +6,7 @@
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
-import com.oracle.common.base.Converter;
+import com.oracle.coherence.common.base.Converter;
 
 import com.oracle.coherence.common.util.MemorySize;
 import com.oracle.coherence.common.util.Options;

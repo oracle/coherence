@@ -6,7 +6,7 @@
  */
 package dslquery;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.QueryPlus;

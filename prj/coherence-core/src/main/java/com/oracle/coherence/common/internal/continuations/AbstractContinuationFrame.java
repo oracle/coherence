@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.common.internal.continuations;
 
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 
 
 /**

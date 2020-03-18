@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.common.util;
 
-import com.oracle.common.base.Associated;
+import com.oracle.coherence.common.base.Associated;
 
 /**
  * The AssociationPile defines an abstract data structure holding elements in a

@@ -10,7 +10,7 @@ import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Base;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import org.junit.Test;
 
 import java.util.Arrays;

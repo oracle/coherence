@@ -7,9 +7,9 @@
 package com.oracle.coherence.common.util;
 
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.IdentityHolder;
-import com.oracle.common.base.MutableLong;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.IdentityHolder;
+import com.oracle.coherence.common.base.MutableLong;
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.common.collections.InflatableMap;
 import java.util.concurrent.atomic.AtomicLong;

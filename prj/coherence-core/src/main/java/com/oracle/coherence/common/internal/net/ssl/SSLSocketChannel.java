@@ -8,8 +8,8 @@
 package com.oracle.coherence.common.internal.net.ssl;
 
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.common.internal.net.WrapperSocket;
 import com.oracle.coherence.common.internal.net.WrapperSelector;
 import com.oracle.coherence.common.internal.net.WrapperSocketChannel;

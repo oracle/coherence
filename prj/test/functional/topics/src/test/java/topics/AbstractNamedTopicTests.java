@@ -10,7 +10,7 @@ package topics;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
-import com.oracle.common.base.NonBlocking;
+import com.oracle.coherence.common.base.NonBlocking;
 
 import com.tangosol.coherence.component.util.SafeService;
 

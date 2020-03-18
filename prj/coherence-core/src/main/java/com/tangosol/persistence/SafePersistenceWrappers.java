@@ -6,8 +6,8 @@
  */
 package com.tangosol.persistence;
 
-import com.oracle.common.base.Collector;
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Collector;
+import com.oracle.coherence.common.base.Continuation;
 
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceManager;

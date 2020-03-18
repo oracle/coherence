@@ -7,8 +7,8 @@
 package com.oracle.coherence.common.internal.net.socketbus;
 
 
-import com.oracle.common.base.Disposable;
-import com.oracle.common.base.Holder;
+import com.oracle.coherence.common.base.Disposable;
+import com.oracle.coherence.common.base.Holder;
 
 import com.oracle.coherence.common.io.BufferSequence;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;

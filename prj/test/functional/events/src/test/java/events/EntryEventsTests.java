@@ -12,7 +12,7 @@ import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.MapEventFilter;
 import common.AbstractFunctionalTest;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;

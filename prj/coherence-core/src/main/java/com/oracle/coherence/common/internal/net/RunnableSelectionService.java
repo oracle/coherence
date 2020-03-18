@@ -7,8 +7,8 @@
 package com.oracle.coherence.common.internal.net;
 
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.NonBlocking;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.NonBlocking;
 import com.oracle.coherence.common.collections.ConcurrentLinkedQueue;
 import com.oracle.coherence.common.net.SelectionService;
 import com.oracle.coherence.common.util.Timers;

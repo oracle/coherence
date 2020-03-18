@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.common.util;
 
-import com.oracle.common.base.Associated;
+import com.oracle.coherence.common.base.Associated;
 
 import java.util.HashSet;
 import java.util.Iterator;

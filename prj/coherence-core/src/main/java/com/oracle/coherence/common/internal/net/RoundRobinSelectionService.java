@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.internal.net;
 
 
-import com.oracle.common.base.Factory;
+import com.oracle.coherence.common.base.Factory;
 import com.oracle.coherence.common.net.SelectionService;
 
 import java.nio.channels.SelectableChannel;

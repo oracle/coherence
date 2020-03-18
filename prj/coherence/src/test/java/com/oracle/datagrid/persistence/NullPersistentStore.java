@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.persistence;
 
-import com.oracle.common.base.Collector;
+import com.oracle.coherence.common.base.Collector;
 
 /**
  * NO-OP implementation of PersistentStore.

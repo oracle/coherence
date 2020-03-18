@@ -14,7 +14,7 @@ import static org.junit.Assert.assertTrue;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.NamedCache;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.util.InvocableMap.Entry;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.filter.EqualsFilter;

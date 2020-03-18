@@ -6,7 +6,7 @@
  */
 package persistence;
 
-import com.oracle.common.base.Collector;
+import com.oracle.coherence.common.base.Collector;
 
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceException;

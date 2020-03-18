@@ -6,8 +6,8 @@
  */
 package com.oracle.coherence.common.util;
 
-import com.oracle.common.base.Associated;
-import com.oracle.common.base.ConcurrentNotifier;
+import com.oracle.coherence.common.base.Associated;
+import com.oracle.coherence.common.base.ConcurrentNotifier;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 

@@ -6,8 +6,8 @@
  */
 package persistence;
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistentStore;

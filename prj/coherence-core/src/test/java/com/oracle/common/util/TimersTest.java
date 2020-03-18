@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.coherence.common.util.Timers;
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;

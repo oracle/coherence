@@ -15,7 +15,7 @@ import com.tangosol.util.ValueUpdater;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.processor.UpdaterProcessor;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import org.junit.Test;
 
 import java.io.Serializable;

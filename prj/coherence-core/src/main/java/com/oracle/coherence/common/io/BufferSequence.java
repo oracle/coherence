@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.io;
 
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import java.nio.ByteBuffer;
 

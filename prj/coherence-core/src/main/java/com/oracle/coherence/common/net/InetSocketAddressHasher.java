@@ -7,8 +7,8 @@
 package com.oracle.coherence.common.net;
 
 
-import com.oracle.common.base.Hasher;
-import com.oracle.common.base.NaturalHasher;
+import com.oracle.coherence.common.base.Hasher;
+import com.oracle.coherence.common.base.NaturalHasher;
 
 import java.net.InetAddress;
 import java.net.SocketAddress;

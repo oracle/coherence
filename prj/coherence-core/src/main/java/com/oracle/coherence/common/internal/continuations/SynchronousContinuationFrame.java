@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.internal.continuations;
 
 import com.oracle.coherence.common.internal.continuations.AbstractContinuationFrame;
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 
 import java.util.concurrent.Callable;
 

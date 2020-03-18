@@ -6,10 +6,10 @@
  */
 package com.tangosol.util;
 
-import com.oracle.common.base.Continuation;
-import com.oracle.common.base.Notifier;
-import com.oracle.common.base.SingleWaiterMultiNotifier;
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Notifier;
+import com.oracle.coherence.common.base.SingleWaiterMultiNotifier;
+import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.coherence.common.util.Duration;
 

@@ -9,7 +9,7 @@ package com.oracle.coherence.common.internal.util;
 import java.util.Arrays;
 import java.util.Date;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.util.SafeClock;
 
 import java.util.concurrent.atomic.AtomicInteger;

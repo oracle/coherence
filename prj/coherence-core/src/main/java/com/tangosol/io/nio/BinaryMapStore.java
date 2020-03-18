@@ -8,7 +8,7 @@
 package com.tangosol.io.nio;
 
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.io.BinaryStore;
 

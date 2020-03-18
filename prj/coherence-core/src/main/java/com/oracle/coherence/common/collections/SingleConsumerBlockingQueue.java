@@ -6,9 +6,9 @@
  */
 package com.oracle.coherence.common.collections;
 
-import com.oracle.common.base.Collector;
-import com.oracle.common.base.Notifier;
-import com.oracle.common.base.SingleWaiterCooperativeNotifier;
+import com.oracle.coherence.common.base.Collector;
+import com.oracle.coherence.common.base.Notifier;
+import com.oracle.coherence.common.base.SingleWaiterCooperativeNotifier;
 
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;

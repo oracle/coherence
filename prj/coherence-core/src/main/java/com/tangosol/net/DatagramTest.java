@@ -49,7 +49,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLSocketFactory;

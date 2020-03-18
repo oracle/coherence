@@ -12,7 +12,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;

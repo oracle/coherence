@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.coherence.component.util.Daemon;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;

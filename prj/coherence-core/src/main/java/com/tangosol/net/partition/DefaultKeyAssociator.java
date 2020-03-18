@@ -8,7 +8,7 @@
 package com.tangosol.net.partition;
 
 
-import com.oracle.common.base.NaturalAssociator;
+import com.oracle.coherence.common.base.NaturalAssociator;
 
 import com.tangosol.net.PartitionedService;
 

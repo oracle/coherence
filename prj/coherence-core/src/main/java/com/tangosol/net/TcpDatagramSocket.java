@@ -43,7 +43,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 

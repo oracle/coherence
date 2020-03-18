@@ -6,7 +6,7 @@
  */
 package common;
 
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Timeout;
 
 import com.tangosol.net.NamedCache;
 

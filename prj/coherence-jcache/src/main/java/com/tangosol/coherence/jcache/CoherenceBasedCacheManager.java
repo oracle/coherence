@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.jcache;
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.coherence.jcache.common.JCacheIdentifier;
 import com.tangosol.coherence.jcache.localcache.LocalCache;

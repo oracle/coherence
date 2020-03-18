@@ -7,10 +7,10 @@
 package com.oracle.common.util;
 
 import com.oracle.coherence.common.util.MemorySize;
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Collector;
-import com.oracle.common.base.Holder;
-import com.oracle.common.base.SimpleHolder;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Collector;
+import com.oracle.coherence.common.base.Holder;
+import com.oracle.coherence.common.base.SimpleHolder;
 import com.oracle.coherence.common.io.BufferManager;
 import com.oracle.coherence.common.io.BufferManagers;
 import com.oracle.coherence.common.io.BufferSequence;

@@ -9,7 +9,7 @@ package com.tangosol.util;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.io.BinaryStore;
 import com.tangosol.io.BinaryStoreManager;

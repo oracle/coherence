@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.collections;
 
 
-import com.oracle.common.base.Predicate;
+import com.oracle.coherence.common.base.Predicate;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

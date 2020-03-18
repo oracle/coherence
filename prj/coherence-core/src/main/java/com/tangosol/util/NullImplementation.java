@@ -8,8 +8,8 @@
 package com.tangosol.util;
 
 
-import com.oracle.common.base.Collector;
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Collector;
+import com.oracle.coherence.common.base.Continuation;
 
 import com.oracle.coherence.persistence.AsyncPersistenceException;
 import com.oracle.coherence.persistence.OfflinePersistenceInfo;

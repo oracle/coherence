@@ -6,7 +6,7 @@
  */
 package config;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.coherence.component.util.SafeNamedCache;
 import com.tangosol.coherence.config.CacheConfig;

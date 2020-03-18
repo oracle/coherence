@@ -7,8 +7,8 @@
 
 package com.tangosol.util;
 
-import com.oracle.common.base.Holder;
-import com.oracle.common.base.NaturalHasher;
+import com.oracle.coherence.common.base.Holder;
+import com.oracle.coherence.common.base.NaturalHasher;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.io.Serializer;

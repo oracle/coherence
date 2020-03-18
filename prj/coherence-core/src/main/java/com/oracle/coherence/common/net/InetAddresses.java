@@ -7,9 +7,9 @@
 package com.oracle.coherence.common.net;
 
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Predicate;
-import com.oracle.common.base.Timeout;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Predicate;
+import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.common.internal.net.MultiplexedSocketProvider;
 import com.oracle.coherence.common.util.Duration;

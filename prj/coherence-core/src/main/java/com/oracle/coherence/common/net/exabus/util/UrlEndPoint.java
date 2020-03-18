@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.net.exabus.util;
 
 
-import com.oracle.common.base.Hasher;
+import com.oracle.coherence.common.base.Hasher;
 import com.oracle.coherence.common.net.SocketProvider;
 import com.oracle.coherence.common.net.exabus.EndPoint;
 

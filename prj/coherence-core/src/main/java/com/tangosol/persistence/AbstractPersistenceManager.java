@@ -6,9 +6,9 @@
  */
 package com.tangosol.persistence;
 
-import com.oracle.common.base.Collector;
+import com.oracle.coherence.common.base.Collector;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.persistence.AsyncPersistenceException;
 import com.oracle.coherence.persistence.ConcurrentAccessException;
 import com.oracle.coherence.persistence.FatalAccessException;

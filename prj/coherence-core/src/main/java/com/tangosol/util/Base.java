@@ -8,8 +8,8 @@
 package com.tangosol.util;
 
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.Hasher;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Hasher;
 import com.oracle.coherence.common.util.CommonMonitor;
 
 import com.tangosol.coherence.config.Config;

@@ -11,7 +11,7 @@ package com.tangosol.util;
 import com.tangosol.net.Guardable;
 import com.tangosol.net.Guardian;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.net.Guardian.GuardContext;
 import com.tangosol.net.GuardSupport;
 

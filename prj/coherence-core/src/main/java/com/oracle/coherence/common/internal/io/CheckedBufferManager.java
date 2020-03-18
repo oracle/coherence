@@ -7,7 +7,7 @@
 package com.oracle.coherence.common.internal.io;
 
 
-import com.oracle.common.base.InverseComparator;
+import com.oracle.coherence.common.base.InverseComparator;
 import com.oracle.coherence.common.internal.util.HeapDump;
 import com.oracle.coherence.common.io.BufferManager;
 import com.oracle.coherence.common.io.BufferManagers;

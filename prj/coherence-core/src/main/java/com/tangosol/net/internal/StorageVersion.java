@@ -11,7 +11,7 @@ import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.util.CopyOnWriteLongArray;
 import com.tangosol.util.LongArray;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.util.LongArray.Iterator;
 
 import java.util.concurrent.atomic.AtomicLong;

@@ -6,7 +6,7 @@
  */
 package com.tangosol.config.expression;
 
-import com.oracle.common.base.Converter;
+import com.oracle.coherence.common.base.Converter;
 
 import com.tangosol.run.xml.XmlValue;
 

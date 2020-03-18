@@ -6,8 +6,8 @@
  */
 package com.tangosol.internal.net;
 
-import com.oracle.common.base.Converter;
-import com.oracle.common.base.NonBlocking;
+import com.oracle.coherence.common.base.Converter;
+import com.oracle.coherence.common.base.NonBlocking;
 
 import java.util.concurrent.atomic.AtomicLong;
 

@@ -8,9 +8,9 @@
 package processor;
 
 
-import com.oracle.common.base.Converter;
+import com.oracle.coherence.common.base.Converter;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 

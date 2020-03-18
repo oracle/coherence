@@ -8,7 +8,7 @@
 package com.tangosol.util;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 /**
 * Various tests of Daemon and TaskDaemon.

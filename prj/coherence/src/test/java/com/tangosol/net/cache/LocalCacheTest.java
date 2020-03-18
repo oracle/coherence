@@ -12,7 +12,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Daemon;
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 import org.junit.Ignore;
 import org.junit.Test;
 

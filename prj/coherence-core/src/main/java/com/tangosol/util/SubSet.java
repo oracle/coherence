@@ -8,7 +8,7 @@
 package com.tangosol.util;
 
 
-import com.oracle.common.base.Predicate;
+import com.oracle.coherence.common.base.Predicate;
 import com.oracle.coherence.common.collections.PredicateIterator;
 
 import java.lang.reflect.Array;

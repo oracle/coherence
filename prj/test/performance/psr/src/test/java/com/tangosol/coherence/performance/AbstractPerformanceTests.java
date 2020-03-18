@@ -13,6 +13,7 @@ import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.util.Pair;
+import com.oracle.coherence.common.base.Timeout;
 import com.tangosol.coherence.performance.psr.Console;
 import com.tangosol.coherence.performance.psr.ConsoleExtended;
 import com.tangosol.coherence.performance.psr.TestResult;

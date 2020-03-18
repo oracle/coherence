@@ -8,7 +8,7 @@ package util;
 
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.common.base.Associated;
+import com.oracle.coherence.common.base.Associated;
 
 import com.tangosol.coherence.component.util.DaemonPool;
 import com.tangosol.coherence.component.util.SafeService;

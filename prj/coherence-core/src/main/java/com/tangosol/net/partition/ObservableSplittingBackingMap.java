@@ -8,7 +8,7 @@
 package com.tangosol.net.partition;
 
 
-import com.oracle.common.base.Disposable;
+import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.BackingMapManagerContext;

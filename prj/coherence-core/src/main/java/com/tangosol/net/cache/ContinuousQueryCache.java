@@ -6,7 +6,7 @@
  */
 package com.tangosol.net.cache;
 
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 

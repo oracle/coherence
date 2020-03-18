@@ -8,7 +8,7 @@ package com.oracle.coherence.common.io;
 
 
 import com.oracle.coherence.common.net.exabus.MemoryBus;
-import com.oracle.common.base.Collector;
+import com.oracle.coherence.common.base.Collector;
 
 
 import java.nio.ByteBuffer;

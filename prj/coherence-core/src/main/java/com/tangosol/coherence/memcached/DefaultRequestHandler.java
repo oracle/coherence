@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.memcached;
 
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 
 import com.tangosol.coherence.memcached.Response.ResponseCode;
 

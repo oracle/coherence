@@ -9,7 +9,7 @@ package com.tangosol.net;
 
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.dev.tools.CommandLineTool;
 

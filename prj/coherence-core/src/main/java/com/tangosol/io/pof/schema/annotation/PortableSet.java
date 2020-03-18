@@ -8,7 +8,7 @@
 package com.tangosol.io.pof.schema.annotation;
 
 
-import com.oracle.common.base.Factory;
+import com.oracle.coherence.common.base.Factory;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

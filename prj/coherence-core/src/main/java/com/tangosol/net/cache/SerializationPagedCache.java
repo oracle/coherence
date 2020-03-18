@@ -8,7 +8,7 @@
 package com.tangosol.net.cache;
 
 
-import com.oracle.common.base.Blocking;
+import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.io.BinaryStore;
 import com.tangosol.io.BinaryStoreManager;

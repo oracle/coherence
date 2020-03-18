@@ -6,7 +6,7 @@
  */
 package cache;
 
-import com.oracle.common.base.Converter;
+import com.oracle.coherence.common.base.Converter;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.testsupport.deferred.Eventually;

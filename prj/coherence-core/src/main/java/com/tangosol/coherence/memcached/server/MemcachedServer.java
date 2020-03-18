@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.memcached.server;
 
-import com.oracle.common.base.Continuation;
+import com.oracle.coherence.common.base.Continuation;
 import com.oracle.coherence.common.io.BufferManager;
 import com.oracle.coherence.common.io.BufferManagers;
 
