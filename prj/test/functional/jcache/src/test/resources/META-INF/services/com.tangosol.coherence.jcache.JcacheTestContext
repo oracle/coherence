@@ -1,0 +1,3 @@
+com.tangosol.coherence.jcache.PofJcacheTestContext
+com.tangosol.coherence.jcache.JavaSerializationJcacheTestContext
+

@@ -1,0 +1,23 @@
+
+Trace
+Filter Name                                 Index   Effectiveness          Duration  
+======================================================================================
+AllFilter                                 \| ----  \| 100\|0\(100%\)          \| [0-9]+[\s]*
+  LikeFilter\(filter\.nestinglevel1\.\.\.\. \(0\) \| 0     \| 100\|0\(100%\)          \| [0-9]+[\s]*
+
+
+Index Lookups
+Index Description                             Extractor                        Ordered
+======================================================================================
+0   \| Simple: Footprint=[0-9]+[\.[0-9]+]*[K\\|M]*B, Size=50     \| filter\.nestinglevel1\.nes\.\.\. \(1\) \| true  
+
+
+Complete filter and index descriptions
+N     Full Name
+======================================================================================
+0   \| LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPers
+    \| onKeyExtractor\( Person\.Key \), 9\&%\)
+
+1   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPersonKeyExtrac
+    \| tor\( Person\.Key \)
+

@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+    xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <!--
+    This report is for use by the Coherence JVisualVM plugin only.
+     -->
+    <report>
+        <file-name>{date}-federation-origin-stats.txt</file-name>
+        <delim>{tab}</delim>
+
+        <query>
+            <pattern>Coherence:type=Federation,subType=Origin,*</pattern>
+        </query>
+
+        <row>
+            <column id ="Service">
+                <type>key</type>
+                <name>service</name>
+                <header>Service</header>
+                <group-by>true</group-by>
+            </column>
+
+            <column id="Participant">
+               <type>key</type>
+               <name>name</name>
+               <header>Participant</header>
+                <group-by>true</group-by>
+            </column>
+
+            <column id="BytesReceived">
+                <name>BytesReceivedSecs</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TotalBytesReceivedSecs">
+                <type>function</type>
+                <header>TotalBytesReceivedSecs</header>
+                <column-ref>BytesReceived</column-ref>
+                <function-name>sum</function-name>
+            </column>
+
+            <column id="MsgsReceivedSecs">
+                <name>MsgsReceivedSecs</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TotalMsgReceivedSecs">
+                <type>function</type>
+                <header>TotalMsgReceivedSecs</header>
+                <column-ref>MsgsReceivedSecs</column-ref>
+                <function-name>sum</function-name>
+            </column>
+        </row>
+    </report>
+</report-config>

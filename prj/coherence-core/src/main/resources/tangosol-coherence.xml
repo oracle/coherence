@@ -1,0 +1,927 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="/tangosol-coherence-override-{mode}.xml">
+
+<!--
+Note: This XML is set up for a development mode; search for "Note:"
+to find specific notes on changes suggested for production use.
+-->
+
+  <cluster-config>
+    <member-identity>
+      <!--
+      Note: All members of the cluster must specify the same cluster name in
+      order to be allowed to join the cluster.
+      -->
+      <cluster-name system-property="coherence.cluster"></cluster-name>
+      <site-name    system-property="coherence.site"></site-name>
+      <rack-name    system-property="coherence.rack"></rack-name>
+      <machine-name system-property="coherence.machine"></machine-name>
+      <process-name system-property="coherence.process"></process-name>
+      <member-name  system-property="coherence.member"></member-name>
+      <role-name    system-property="coherence.role"></role-name>
+      <priority     system-property="coherence.priority"></priority>
+    </member-identity>
+
+    <unicast-listener>
+      <!--
+      Note: This value specifies the socket-provider to use for all cluster
+      based (TCMP) communications.
+
+      Valid values include full socket-provider definitions, as well as named
+      references to providers defined within the socket-providers element.
+
+      This setting only specifies the default socket-provider for Coherence
+      TCMP services, Extend's default socket-provider is specified within the
+      defaults element of the cache configuration.
+
+      Example values include: system, tcp, ssl. Default value is system.
+      -->
+      <socket-provider system-property="coherence.socketprovider"/>
+
+      <reliable-transport system-property="coherence.transport.reliable"/>
+
+      <!--
+      Note: Specifying one or more "well known" addresses (WKA) will disable
+      all multicast communication. In this case, for a member to join the cluster
+      it will either have to be a WKA or there will have to be at least one WKA
+      member running.
+      -->
+      <well-known-addresses>
+        <address system-property="coherence.wka"></address>
+      </well-known-addresses>
+
+      <address system-property="coherence.localhost"></address>
+
+      <!--
+      Note: Specifying a port of zero will result in system assigned ephemeral port being used.
+      -->
+      <port system-property="coherence.localport">0</port>
+      <port-auto-adjust system-property="coherence.localport.adjust">true</port-auto-adjust>
+      <priority>10</priority>
+    </unicast-listener>
+
+    <multicast-listener>
+      <!--
+      All members of a multicast based cluster must be configured with the same cluster address.
+      As of 12.2.1 the cluster address may be safely shared by multiple Coherence clusters.
+      For details on selecting a multicast address see RFC-2365 http://www.ietf.org/rfc/rfc2365
+      -->
+      <address system-property="coherence.clusteraddress">239.192.0.0</address>
+
+      <!--
+      As of 12.2.1 the cluster port applies to both multicast and WKA based clusters.  All members
+      of a cluster must be configured with the same cluster port, and it is also allowable for
+      multiple clusters to share the same port even if they run concurrently on the same unicast
+      or multicast address.  Cluster's are hence distinguishable via their cluster name.
+      -->
+      <port system-property="coherence.clusterport">7574</port>
+
+      <!--
+      Note: For production use, this value should be set to the lowest integer
+      value that works. On a single server cluster, it should work at "0"; on
+      a simple switched backbone, it should work at "1"; on an advanced backbone
+      with intelligent switching, it may require a value of "2" or more. Setting
+      the value too high can utilize unnecessary bandwidth on other LAN segments
+      and can even cause the OS or network devices to disable multicast traffic.
+      -->
+      <time-to-live system-property="coherence.ttl">4</time-to-live>
+
+      <priority>10</priority>
+
+      <!--
+      Note: This value applies to WKA clusters as well.
+      -->
+      <join-timeout-milliseconds>3000</join-timeout-milliseconds>
+    </multicast-listener>
+
+    <tcp-ring-listener>
+      <ip-timeout system-property="coherence.ipmonitor.pingtimeout"/>
+      <ip-attempts system-property="coherence.ipmonitor.pingtattempts"/>
+    </tcp-ring-listener>
+
+    <shutdown-listener>
+      <!--
+      Note: For production use, the suggested value is "none" (or "false")
+      unless testing has verified that the behavior on external shutdown is
+      exactly what is desired.
+      -->
+      <enabled system-property="coherence.shutdownhook">force</enabled>
+    </shutdown-listener>
+
+    <service-guardian>
+      <service-failure-policy>exit-cluster</service-failure-policy>
+
+      <!--
+      Note: For production use, the recommended value is equal to or greater than
+      the packet-delivery timeout.
+      -->
+      <timeout-milliseconds system-property="coherence.guard.timeout">305000</timeout-milliseconds>
+    </service-guardian>
+
+    <packet-speaker>
+      <enabled system-property="coherence.speaker.enabled"></enabled>
+      <priority>10</priority>
+    </packet-speaker>
+
+    <packet-publisher>
+      <packet-delivery>
+        <resend-milliseconds>200</resend-milliseconds>
+
+        <!--
+        Note: For production use, the recommended value is the greater of 300000
+        and two times the maximum expected full GC duration.
+        -->
+        <timeout-milliseconds>300000</timeout-milliseconds>
+
+        <flow-control>
+          <enabled>true</enabled>
+          <pause-detection>
+            <maximum-packets>16</maximum-packets>
+          </pause-detection>
+          <outstanding-packets>
+            <maximum-packets>4096</maximum-packets>
+            <minimum-packets>64</minimum-packets>
+          </outstanding-packets>
+        </flow-control>
+        <packet-bundling>
+          <maximum-deferral-time>1us</maximum-deferral-time>
+          <aggression-factor>0</aggression-factor>
+        </packet-bundling>
+      </packet-delivery>
+      <notification-queueing>
+        <ack-delay-milliseconds>16</ack-delay-milliseconds>
+        <nack-delay-milliseconds>1</nack-delay-milliseconds>
+      </notification-queueing>
+      <traffic-jam>
+        <maximum-packets>8192</maximum-packets>
+        <pause-milliseconds>10</pause-milliseconds>
+      </traffic-jam>
+      <priority>10</priority>
+
+      <!--
+      Note: Disabling the Publisher is used only by Java Real-Time Clients to
+      restrict their ability to use the cluster protocol (TCMP). When disabled,
+      a client is only be able to access clustered services via Extend proxies.
+      -->
+      <enabled system-property="coherence.tcmp.enabled">true</enabled>
+    </packet-publisher>
+
+    <incoming-message-handler>
+      <maximum-time-variance>16</maximum-time-variance>
+      <use-nack-packets>true</use-nack-packets>
+      <priority>10</priority>
+    </incoming-message-handler>
+
+    <outgoing-message-handler>
+      <!--
+      Note: Uncomment the following section to activate gzip compression
+      for all network messages, which can help substantially with WAN
+      and low-bandwidth networks; for more information, see:
+        http://docs.oracle.com/middleware/1221/coherence/develop-applications/cluster_tcmp.htm
+      -->
+      <use-filters>
+        <!-- <filter-name>gzip</filter-name> -->
+      </use-filters>
+    </outgoing-message-handler>
+
+    <authorized-hosts>
+      <host-address></host-address>
+      <host-range>
+        <from-address></from-address>
+        <to-address></to-address>
+      </host-range>
+    </authorized-hosts>
+
+    <services>
+      <service id="1">
+        <service-type>ReplicatedCache</service-type>
+        <service-component>ReplicatedCache</service-component>
+        <use-filters>
+          <filter-name/>
+        </use-filters>
+        <init-params>
+          <init-param id="1">
+            <param-name>standard-lease-milliseconds</param-name>
+            <param-value>0</param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>lease-granularity</param-name>
+            <param-value>thread</param-value>
+          </init-param>
+          <init-param id="3">
+            <param-name>mobile-issues</param-name>
+            <param-value>false</param-value>
+          </init-param>
+          <init-param id="4">
+            <param-name>request-timeout</param-name>
+            <param-value system-property="coherence.replicated.request.timeout"></param-value>
+          </init-param>
+          <init-param id="5">
+            <param-name>serializer</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="6">
+            <param-name>guardian-timeout</param-name>
+            <param-value system-property="coherence.replicated.guard.timeout"></param-value>
+          </init-param>
+          <init-param id="7">
+            <param-name>service-failure-policy</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="8">
+            <param-name>member-listener</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="9">
+            <param-name>service-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="10">
+            <param-name>event-dispatcher-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="11">
+            <param-name>reliable-transport</param-name>
+            <param-value system-property="coherence.replicated.transport.reliable"></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="2">
+        <service-type>OptimisticCache</service-type>
+        <service-component>ReplicatedCache.Optimistic</service-component>
+        <use-filters>
+          <filter-name/>
+        </use-filters>
+        <init-params>
+          <init-param id="1">
+            <param-name>request-timeout</param-name>
+            <param-value system-property="coherence.optimistic.request.timeout"></param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>serializer</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="3">
+            <param-name>guardian-timeout</param-name>
+            <param-value system-property="coherence.optimistic.guard.timeout"></param-value>
+          </init-param>
+          <init-param id="4">
+            <param-name>service-failure-policy</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="5">
+            <param-name>member-listener</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="6">
+            <param-name>service-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="7">
+            <param-name>reliable-transport</param-name>
+            <param-value system-property="coherence.optimistic.transport.reliable"></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="3">
+        <service-type>DistributedCache</service-type>
+        <service-component>PartitionedService.PartitionedCache</service-component>
+        <use-filters>
+          <filter-name/>
+        </use-filters>
+        <init-params>
+          <!--
+          Note: standard-lease-milliseconds is not supported by Partitioned Cache Service.
+          -->
+          <init-param id="1">
+            <param-name>standard-lease-milliseconds</param-name>
+            <param-value>0</param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>lease-granularity</param-name>
+            <param-value>thread</param-value>
+          </init-param>
+          <init-param id="3">
+            <param-name>partition-count</param-name>
+            <param-value>257</param-value>
+          </init-param>
+          <init-param id="4">
+            <param-name>local-storage</param-name>
+            <param-value system-property="coherence.distributed.localstorage">true</param-value>
+          </init-param>
+          <init-param id="5">
+            <param-name>transfer-threshold</param-name>
+            <param-value system-property="coherence.distributed.transfer">512</param-value>
+          </init-param>
+          <init-param id="6">
+            <param-name>backup-count</param-name>
+            <param-value system-property="coherence.distributed.backupcount">1</param-value>
+          </init-param>
+          <init-param id="8">
+            <param-name>thread-count</param-name>
+            <param-value system-property="coherence.distributed.threads"></param-value>
+          </init-param>
+          <init-param id="9">
+            <param-name>key-associator</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="10">
+            <param-name>key-partitioning</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="11">
+            <param-name>partition-listener</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="12">
+            <param-name>task-hung-threshold</param-name>
+            <param-value system-property="coherence.distributed.task.hung"></param-value>
+          </init-param>
+          <init-param id="13">
+            <param-name>task-timeout</param-name>
+            <param-value system-property="coherence.distributed.task.timeout"></param-value>
+          </init-param>
+          <init-param id="14">
+            <param-name>request-timeout</param-name>
+            <param-value system-property="coherence.distributed.request.timeout"></param-value>
+          </init-param>
+          <init-param id="15">
+            <param-name>serializer</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="16">
+            <param-name>backup-count-after-writebehind</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="17">
+            <param-name>guardian-timeout</param-name>
+            <param-value system-property="coherence.distributed.guard.timeout"></param-value>
+          </init-param>
+          <init-param id="18">
+            <param-name>service-failure-policy</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="19">
+            <param-name>member-listener</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="20">
+            <param-name>partitioned-quorum-policy-scheme</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="21">
+            <param-name>partition-assignment-strategy</param-name>
+            <param-value system-property="coherence.distributed.assignmentstrategy">simple</param-value>
+          </init-param>
+          <init-param id="22">
+            <param-name>compressor</param-name>
+            <param-value system-property="coherence.distributed.compressor">none</param-value>
+          </init-param>
+          <init-param id="23">
+            <param-name>service-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="24">
+            <param-name>event-dispatcher-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="25">
+            <param-name>worker-priority</param-name>
+            <param-value>5</param-value>
+          </init-param>
+          <init-param id="26">
+            <param-name>reliable-transport</param-name>
+            <param-value system-property="coherence.distributed.transport.reliable"></param-value>
+          </init-param>
+          <init-param id="27">
+            <param-name>async-backup</param-name>
+            <param-value system-property="coherence.distributed.asyncbackup">false</param-value>
+          </init-param>
+          <init-param id="28">
+            <param-name>persistence</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="29">
+            <param-name>thread-count-max</param-name>
+            <param-value system-property="coherence.distributed.threads.max"></param-value>
+          </init-param>
+          <init-param id="30">
+            <param-name>thread-count-min</param-name>
+            <param-value system-property="coherence.distributed.threads.min"></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="4">
+        <service-type>Invocation</service-type>
+        <service-component>InvocationService</service-component>
+        <use-filters>
+          <filter-name/>
+        </use-filters>
+        <init-params>
+          <init-param id="1">
+            <param-name>thread-count</param-name>
+            <param-value system-property="coherence.invocation.threads"></param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>task-hung-threshold</param-name>
+            <param-value system-property="coherence.invocation.task.hung"></param-value>
+          </init-param>
+          <init-param id="3">
+            <param-name>task-timeout</param-name>
+            <param-value system-property="coherence.invocation.task.timeout"></param-value>
+          </init-param>
+          <init-param id="4">
+            <param-name>request-timeout</param-name>
+            <param-value system-property="coherence.invocation.request.timeout"></param-value>
+          </init-param>
+          <init-param id="5">
+            <param-name>serializer</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="6">
+            <param-name>guardian-timeout</param-name>
+            <param-value system-property="coherence.invocation.guard.timeout"></param-value>
+          </init-param>
+          <init-param id="7">
+            <param-name>service-failure-policy</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="8">
+            <param-name>member-listener</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="9">
+            <param-name>service-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="10">
+            <param-name>event-dispatcher-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="11">
+            <param-name>worker-priority</param-name>
+            <param-value>5</param-value>
+          </init-param>
+          <init-param id="12">
+            <param-name>reliable-transport</param-name>
+            <param-value system-property="coherence.invocation.transport.reliable"></param-value>
+          </init-param>
+          <init-param id="13">
+            <param-name>thread-count-max</param-name>
+            <param-value system-property="coherence.invocation.threads.max"></param-value>
+          </init-param>
+          <init-param id="14">
+            <param-name>thread-count-min</param-name>
+            <param-value system-property="coherence.invocation.threads.min"></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="5">
+        <service-type>LocalCache</service-type>
+        <service-component>LocalCache</service-component>
+        <init-params>
+          <init-param id="1">
+            <param-name>lock-enforce</param-name>
+            <param-value>false</param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>lock-wait</param-name>
+            <param-value>0</param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="6">
+        <service-type>SimpleCache</service-type>
+        <service-component>SimpleCache</service-component>
+      </service>
+
+      <service id="7">
+        <service-type>Proxy</service-type>
+        <service-component>ProxyService</service-component>
+        <use-filters>
+          <filter-name/>
+        </use-filters>
+        <init-params>
+          <init-param id="1">
+            <param-name>acceptor-config</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>proxy-config</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="3">
+            <param-name>thread-count</param-name>
+            <param-value system-property="coherence.proxy.threads"></param-value>
+          </init-param>
+          <init-param id="4">
+            <param-name>task-hung-threshold</param-name>
+            <param-value system-property="coherence.proxy.task.hung"></param-value>
+          </init-param>
+          <init-param id="5">
+            <param-name>task-timeout</param-name>
+            <param-value system-property="coherence.proxy.task.timeout"></param-value>
+          </init-param>
+          <init-param id="6">
+            <param-name>request-timeout</param-name>
+            <param-value system-property="coherence.proxy.request.timeout"></param-value>
+          </init-param>
+          <init-param id="7">
+            <param-name>serializer</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="8">
+            <param-name>guardian-timeout</param-name>
+            <param-value system-property="coherence.proxy.guard.timeout"></param-value>
+          </init-param>
+          <init-param id="9">
+            <param-name>service-failure-policy</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="10">
+            <param-name>member-listener</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="11">
+            <param-name>proxy-quorum-policy-scheme</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="12">
+            <param-name>load-balancer</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="13">
+            <param-name>service-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="14">
+            <param-name>worker-priority</param-name>
+            <param-value>5</param-value>
+          </init-param>
+          <init-param id="15">
+            <param-name>event-dispatcher-priority</param-name>
+            <param-value>10</param-value>
+          </init-param>
+          <init-param id="16">
+            <param-name>reliable-transport</param-name>
+            <param-value system-property="coherence.proxy.transport.reliable"></param-value>
+          </init-param>
+          <init-param id="17">
+            <param-name>thread-count-max</param-name>
+            <param-value system-property="coherence.proxy.threads.max"></param-value>
+          </init-param>
+          <init-param id="18">
+            <param-name>thread-count-min</param-name>
+            <param-value system-property="coherence.proxy.threads.min"></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="8">
+        <service-type>RemoteCache</service-type>
+        <service-component>RemoteCache</service-component>
+        <init-params>
+          <init-param id="1">
+            <param-name>initiator-config</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>serializer</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="3">
+            <param-name>defer-key-association-check</param-name>
+            <param-value></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="9">
+        <service-type>RemoteInvocation</service-type>
+        <service-component>RemoteInvocation</service-component>
+        <init-params>
+          <init-param id="1">
+            <param-name>initiator-config</param-name>
+            <param-value></param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>serializer</param-name>
+            <param-value></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="10">
+        <service-type>NameService</service-type>
+        <service-component>NameService</service-component>
+        <init-params>
+          <init-param id="1">
+            <param-name>acceptor-config/tcp-acceptor/socket-provider</param-name>
+            <param-value system-property="coherence.nameservice.socketprovider"></param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>acceptor-config/tcp-acceptor/address-provider</param-name>
+            <param-value system-property="coherence.nameservice.addressprovider"></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="11">
+        <service-type>RemoteNameService</service-type>
+        <service-component>RemoteNameService</service-component>
+        <init-params>
+          <init-param id="1">
+            <param-name>initiator-config/tcp-initiator</param-name>
+            <param-value></param-value>
+          </init-param>
+        </init-params>
+      </service>
+
+      <!-- Reserved service id=12 -->
+    </services>
+
+    <filters>
+      <filter id="1">
+        <filter-name>gzip</filter-name>
+        <filter-class>com.tangosol.net.CompressionFilter</filter-class>
+        <init-params>
+          <init-param id="1">
+            <param-name>strategy</param-name>
+            <param-value>gzip</param-value>
+          </init-param>
+          <init-param id="2">
+            <param-name>level</param-name>
+            <param-value>default</param-value>
+          </init-param>
+        </init-params>
+      </filter>
+    </filters>
+
+    <serializers>
+      <serializer id="java">
+       <class-name>com.tangosol.io.DefaultSerializer</class-name>
+     </serializer>
+
+     <serializer id="pof">
+       <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+       <init-params>
+         <init-param>
+           <param-type>String</param-type>
+           <param-value system-property="coherence.pof.config">pof-config.xml</param-value>
+         </init-param>
+       </init-params>
+     </serializer>
+    </serializers>
+
+    <persistence-environments>
+      <persistence-environment id="default-active">
+        <persistence-mode>active</persistence-mode>
+        <active-directory   system-property="coherence.distributed.persistence.active.dir"></active-directory>
+        <snapshot-directory system-property="coherence.distributed.persistence.snapshot.dir"></snapshot-directory>
+        <trash-directory    system-property="coherence.distributed.persistence.trash.dir"></trash-directory>
+      </persistence-environment>
+      <persistence-environment id="default-active-async">
+        <persistence-mode>active-async</persistence-mode>
+        <active-directory   system-property="coherence.distributed.persistence.active.dir"></active-directory>
+        <snapshot-directory system-property="coherence.distributed.persistence.snapshot.dir"></snapshot-directory>
+        <trash-directory    system-property="coherence.distributed.persistence.trash.dir"></trash-directory>
+      </persistence-environment>
+      <persistence-environment id="default-on-demand">
+        <persistence-mode>on-demand</persistence-mode>
+        <active-directory   system-property="coherence.distributed.persistence.active.dir"></active-directory>
+        <snapshot-directory system-property="coherence.distributed.persistence.snapshot.dir"></snapshot-directory>
+        <trash-directory    system-property="coherence.distributed.persistence.trash.dir"></trash-directory>
+      </persistence-environment>
+    </persistence-environments>
+
+    <socket-providers>
+      <!--
+      The system socket provider returns socket instances based upon the JVM's
+      default Socket implementations.
+      -->
+      <socket-provider id="system">
+        <system/>
+      </socket-provider>
+
+      <!--
+      The tcp socket provider is a socket provider which whenever possible
+      will produce TCP based sockets. Of specific interest is its ability to
+      create instances of DatagramSocket which are backed by TCP. When coupled
+      with well-known-address this allows Coherence TCMP to function entirely
+      over TCP without the need UDP.
+
+      Note: If used without well-known-addresses, TCP will be used for all
+      unicast communications while multicast will may be utilized for group
+      based communications.
+      -->
+      <socket-provider id="tcp">
+        <tcp/>
+      </socket-provider>
+
+      <!--
+       The ssl socket provider is a socket provider which only produces SSL
+       protected sockets. Just as with the tcp socket provider this includes
+       a SSL/TCP based DatagramSocket.
+
+       This basic configuration allows for easy configuration of two-way
+       SSL connections, based on peer trust where every trusted peer resides
+       within a single JKS keystore. More elaborate configuration can be
+       defined with alternate identity and trust managers to allow for CA
+       based trust validation.
+
+       Note: Unlike the TCP socket-provider, multicast sockets are not
+       supported, and thus well-known-addresses must be enabled for TCMP to
+       function with this provider.  Similarly if SSL is enabled then
+       the cluster will not support sharing of its cluster port with other
+       clusters running on the same machine.
+      -->
+      <socket-provider id="ssl">
+        <ssl>
+          <identity-manager>
+            <key-store>
+              <url system-property="coherence.security.keystore">file:keystore.jks</url>
+              <password system-property="coherence.security.password"/>
+            </key-store>
+            <password system-property="coherence.security.password"/>
+          </identity-manager>
+          <trust-manager>
+            <algorithm>PeerX509</algorithm>
+            <key-store>
+              <url system-property="coherence.security.keystore">file:keystore.jks</url>
+              <password system-property="coherence.security.password"/>
+            </key-store>
+          </trust-manager>
+          <protocol-versions usage="black-list">
+            <name>SSLv3</name>
+          </protocol-versions>
+          <socket-provider>tcp</socket-provider>
+        </ssl>
+      </socket-provider>
+
+      <!--
+      The sdp socket provider is a socket provider which will produce SDP based
+      sockets provided the JVM and underlying network stack supports SDP. Of specific
+      interest is its ability to create instances of DatagramSocket which are
+      backed by SDP. When coupled with well-known-address this allows Coherence
+      TCMP to function entirely over SDP without the need for UDP.
+
+      Note: If used without well-known-addresses, SDP will be used for all
+      unicast communications while multicast will may be utilized for group
+      based communications.
+      -->
+      <socket-provider id="sdp">
+        <sdp/>
+      </socket-provider>
+    </socket-providers>
+
+    <storage-authorizers>
+      <storage-authorizer id="auditing">
+        <class-name>com.tangosol.net.security.AuditingAuthorizer</class-name>
+      </storage-authorizer>
+    </storage-authorizers>
+  </cluster-config>
+
+  <logging-config>
+    <destination system-property="coherence.log">stderr</destination>
+    <logger-name system-property="coherence.log.logger"></logger-name>
+    <severity-level system-property="coherence.log.level">5</severity-level>
+    <message-format>{date}/{uptime} {product} {version} &lt;{level}&gt; (thread={thread}, member={member}): {text}</message-format>
+    <character-limit system-property="coherence.log.limit">1048576</character-limit>
+  </logging-config>
+
+  <tracing-config>
+    <sampling-ratio system-property="coherence.tracing.ratio">-1</sampling-ratio>
+  </tracing-config>
+
+  <configurable-cache-factory-config xml-override="cache-factory-config.xml">
+    <class-name system-property="coherence.cachefactory">com.tangosol.net.ExtensibleConfigurableCacheFactory</class-name>
+    <init-params>
+      <init-param>
+        <param-type>java.lang.String</param-type>
+        <param-value system-property="coherence.cacheconfig">coherence-cache-config.xml</param-value>
+      </init-param>
+    </init-params>
+  </configurable-cache-factory-config>
+
+  <cache-factory-builder-config xml-override="cache-factory-builder-config.xml">
+    <class-name system-property="coherence.cachefactorybuilder">com.tangosol.net.DefaultCacheFactoryBuilder</class-name>
+  </cache-factory-builder-config>
+
+  <management-config>
+    <managed-nodes system-property="coherence.management">dynamic</managed-nodes>
+    <http-managed-nodes system-property="coherence.management.http">none</http-managed-nodes>
+
+    <allow-remote-management system-property="coherence.management.remote">true</allow-remote-management>
+
+    <refresh-policy system-property="coherence.management.refresh.policy">refresh-ahead</refresh-policy>
+    <refresh-expiry system-property="coherence.management.refresh.expiry">1s</refresh-expiry>
+    <refresh-timeout system-property="coherence.management.refresh.timeout">250ms</refresh-timeout>
+
+    <read-only system-property="coherence.management.readonly">false</read-only>
+    <default-domain-name></default-domain-name>
+    <service-name>Management</service-name>
+    <server-factory>
+      <class-name system-property="coherence.management.serverfactory"></class-name>
+    </server-factory>
+
+    <mbeans xml-override="{coherence.mbeans /custom-mbeans.xml}">
+      <mbean id="1">
+        <mbean-query>java.lang:*</mbean-query>
+        <mbean-name>type=Platform</mbean-name>
+        <enabled system-property="coherence.management.jvm.all">true</enabled>
+      </mbean>
+
+      <mbean id="2">
+        <mbean-factory>com.tangosol.coherence.discovery.Discovery</mbean-factory>
+        <mbean-accessor>createMBean</mbean-accessor>
+        <mbean-name>EMDomain:name=oracle.sysman.emas.CoherenceDiscovery,type=EMDiscoveryIntegration</mbean-name>
+        <local-only>true</local-only>
+        <enabled system-property="coherence.fmw.discovery">true</enabled>
+        <extend-lifecycle>true</extend-lifecycle>
+      </mbean>
+
+      <mbean id="3">
+        <mbean-query>com.sun.management:*</mbean-query>
+        <mbean-name>type=DiagnosticCommand</mbean-name>
+        <enabled system-property="coherence.management.jvm.all">true</enabled>
+      </mbean>
+    </mbeans>
+
+    <mbean-filter>
+      <class-name>com.tangosol.net.management.ObjectNameExcludeFilter</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value system-property="coherence.management.exclude">
+              .*type=Service,name=Management,.*
+              .*type=Platform,Domain=java.lang,subType=ClassLoading,.*
+              .*type=Platform,Domain=java.lang,subType=Compilation,.*
+              .*type=Platform,Domain=java.lang,subType=MemoryManager,.*
+              .*type=Platform,Domain=java.lang,subType=Threading,.*
+              .*type=DiagnosticCommand,Domain=com.sun.management,subType=HotSpotDiagnostic,.*
+              .*type=Cache,.*,name=\$meta\$.*
+              .*type=StorageManager,.*,cache=\$meta\$.*
+            </param-value>
+          </init-param>
+        </init-params>
+    </mbean-filter>
+
+    <reporter>
+       <configuration system-property="coherence.management.report.configuration">reports/report-group.xml</configuration>
+       <autostart system-property="coherence.management.report.autostart">false</autostart>
+       <distributed system-property="coherence.management.report.distributed">false</distributed>
+       <timezone system-property="coherence.management.report.timezone"></timezone>
+       <timeformat system-property="coherence.management.report.timeformat"></timeformat>
+    </reporter>
+
+    <extended-mbean-name system-property="coherence.management.extendedmbeanname">false</extended-mbean-name>
+  </management-config>
+
+  <security-config>
+    <enabled system-property="coherence.security">false</enabled>
+    <login-module-name>Coherence</login-module-name>
+    <access-controller>
+      <class-name>com.tangosol.net.security.DefaultController</class-name>
+      <init-params>
+        <init-param id="1">
+          <param-type>java.io.File</param-type>
+          <param-value system-property="coherence.security.keystore"></param-value>
+        </init-param>
+        <init-param id="2">
+          <param-type>java.io.File</param-type>
+          <param-value system-property="coherence.security.permissions"></param-value>
+        </init-param>
+        <init-param id="3">
+          <param-type>boolean</param-type>
+          <param-value system-property="coherence.security.log">false</param-value>
+        </init-param>
+        <init-param id="4">
+          <param-type>String</param-type>
+          <param-value system-property="coherence.security.keystore.password"></param-value>
+        </init-param>
+      </init-params>
+    </access-controller>
+    <callback-handler>
+      <class-name/>
+    </callback-handler>
+  </security-config>
+
+  <license-config>
+    <edition-name system-property="coherence.edition">CE</edition-name>
+    <license-mode system-property="coherence.mode">dev</license-mode>
+  </license-config>
+</coherence>

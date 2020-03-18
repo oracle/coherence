@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build script for the ssl test project.                            -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant help                                                  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<project name="ssl" default="help" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project imports                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <import file="../test-import.xml"/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Utility targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <target name="create.keystores"
+          description="Generate the various keystore files used by the SSL tests.">
+    <delete>
+      <fileset dir="." includes="*.jks"/>
+    </delete>
+
+    <!-- Create the client keystore -->
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg RSA -keysize 1024 -sigalg MD5withRSA -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keypass private -keystore src/test/resources/client.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the server keystore -->
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg RSA -keysize 1024 -sigalg MD5withRSA -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore src/test/resources/server.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the guest keystore -->
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg RSA -keysize 1024 -sigalg MD5withRSA -validity 3650 -dname 'CN=guest, O=Oracle, L=Burlington, ST=MA, C=US' -alias guest -keypass private -keystore src/test/resources/guest.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the rogue keystore -->
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg RSA -keysize 1024 -sigalg MD5withRSA -validity 3650 -dname 'CN=rogue, O=Evil, L=Eviland, ST=EV, C=US' -alias rogue -keypass private -keystore src/test/resources/rogue.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the trust keystore -->
+    <exec executable="keytool">
+      <arg line="-importcert -noprompt -alias CA -file ca/cacert.pem -keystore src/test/resources/trust.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the process keystore and certificate -->
+    <exec executable="keytool">
+      <arg line="-genkey -keyalg RSA -keysize 1024 -sigalg MD5withRSA -validity 3650 -dname 'CN=process, O=Oracle, L=Burlington, ST=MA, C=US' -alias process -keypass private -keystore src/test/resources/process.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-exportcert -alias process -file src/test/resources/process.pem -keystore src/test/resources/process.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the self-signed trust keystore -->
+    <exec executable="keytool">
+      <arg line="-importcert -noprompt -alias process -file src/test/resources/process.pem -keystore src/test/resources/trust-ss.jks -storepass password"/>
+    </exec>
+  </target>
+
+  <target name="create.csrs"
+          description="Generates CSRs for the client and server certificates.">
+    <delete>
+      <fileset dir="." includes="*.csr"/>
+    </delete>
+
+    <!-- Create the client CSR -->
+    <exec executable="keytool">
+      <arg line="-certreq -alias client -file src/test/resources/client.csr -keypass private -keystore src/test/resources/client.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the server CSR -->
+    <exec executable="keytool">
+      <arg line="-certreq -alias server -file src/test/resources/server.csr -keypass private -keystore src/test/resources/server.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the guest CSR -->
+    <exec executable="keytool">
+      <arg line="-certreq -alias guest -file src/test/resources/guest.csr -keypass private -keystore src/test/resources/guest.jks -storepass password"/>
+    </exec>
+  </target>
+
+  <target name="update.keystores"
+          description="Update the various keystore files with full certificate chains.">
+    <delete>
+      <fileset dir="." includes="*.pem"/>
+    </delete>
+
+    <!-- Update the client keystore -->
+    <exec executable="keytool">
+      <arg line="-import -alias client -noprompt -file src/test/resources/client.chain -keypass private -keystore src/test/resources/client.jks -storepass password"/>
+    </exec>
+
+    <!-- Update the server keystore -->
+    <exec executable="keytool">
+      <arg line="-import -alias server -noprompt -file src/test/resources/server.chain -keypass private -keystore src/test/resources/server.jks -storepass password"/>
+    </exec>
+
+    <!-- Update the guest keystore -->
+    <exec executable="keytool">
+      <arg line="-import -alias guest -noprompt -file src/test/resources/guest.chain -keypass private -keystore src/test/resources/guest.jks -storepass password"/>
+    </exec>
+
+    <!-- Export the client certificate -->
+    <exec executable="keytool">
+      <arg line="-exportcert -alias client -file src/test/resources/client.pem -keystore src/test/resources/client.jks -storepass password"/>
+    </exec>
+
+    <!-- Export the server certificate -->
+    <exec executable="keytool">
+      <arg line="-exportcert -alias server -file src/test/resources/server.pem -keystore src/test/resources/server.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the peer keystore -->
+    <exec executable="keytool">
+      <arg line="-importcert -noprompt -alias client -file src/test/resources/client.pem -keystore src/test/resources/peer.jks -storepass password"/>
+    </exec>
+    <exec executable="keytool">
+      <arg line="-importcert -noprompt -alias server -file src/test/resources/server.pem -keystore src/test/resources/peer.jks -storepass password"/>
+    </exec>
+  </target>
+</project>

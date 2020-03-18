@@ -1,0 +1,3 @@
+Description: A means to convert a runnable jar to a native OSX app.
+Version    : 1.0
+URL        : https://java.net/projects/appbundler

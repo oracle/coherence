@@ -1,0 +1,6 @@
+Bundle-Version: 1.16
+Bundle-Name: Jersey-JSON
+Bundle-SymbolicName: Jersey-JSON
+Bundle-Vendor: Oracle
+Export-Package: org.glassfish.jersey.jackson.*
+Import-Package: *;resolution:=optional

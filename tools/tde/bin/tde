@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+#
+#  Licensed under the Universal Permissive License v 1.0 as shown at
+#  http://oss.oracle.com/licenses/upl.
+#
+
+if [ -z "$DEV_ROOT" ]; then
+  cd $(dirname $0)/../../../bin
+  . ./cfglocal.sh
+  cd - > /dev/null
+fi
+
+case $(uname) in
+  CYGWIN*)
+    _CP_DELIM=";"
+    _DEV_ROOT=$(cygpath --windows $DEV_ROOT)
+     ;;
+  *)
+    _CP_DELIM=:
+    _DEV_ROOT=$DEV_ROOT
+     ;;
+esac
+
+case $(uname) in
+  Darwin*)
+  JOPTS="-Xdock:icon=$DEV_ROOT/tools/tde/bin/TDE.app/Contents/Resources/tde.icns -Xdock:name=TDE"
+   ;;
+  *)
+  JOPTS=""
+   ;;
+esac
+
+if [ -z "$MEM_OPTS" ]; then
+  MEM_OPTS="-Xms512m -Xmx512m"
+fi
+
+if [ -z "$OPTS" ]; then
+  OPTS="$MEM_OPTS -Dtangosol.taps.repos=file://$_DEV_ROOT/tde"
+fi
+
+_CLASSPATH=$TDE_HOME/lib/tde.jar${_CP_DELIM}$TDE_HOME/lib/coherence.jar${_CP_DELIM}$CLASSPATH
+
+cd $TDE_HOME
+
+$JAVA_HOME/bin/java $OPTS $JOPTS -cp $_CLASSPATH com.tangosol.tde.component.application.gUI.desktop.TDE &
+
+cd - > /dev/null

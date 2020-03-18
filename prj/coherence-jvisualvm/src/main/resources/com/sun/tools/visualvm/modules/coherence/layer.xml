@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+
+    <folder name="Toolbars">
+        <folder name="DataSource">
+            <file name="com-sun-tools-visualvm-modules-coherence-impl-AddCoherenceClusterAction-alwaysEnabled.shadow">
+                <attr name="originalFile" stringvalue="Actions/Other/om-sun-tools-visualvm-modules-coherence-impl-AddCoherenceClusterAction-alwaysEnabled.instance"/>
+                <attr name="position" intvalue="300"/>
+            </file>
+        </folder>
+    </folder>
+
+    <folder name="Actions">
+        <folder name="Other">
+            <file name="com-sun-tools-visualvm-modules-coherence-impl-AddCoherenceClusterAction-alwaysEnabled.instance">
+                <attr name="instanceCreate" methodvalue="com.sun.tools.visualvm.modules.coherence.impl.AddCoherenceClusterAction.alwaysEnabled"/>
+            </file>
+        </folder>
+    </folder>
+
+    <folder name="VisualVM">
+        <folder name="ExplorerPopupSelection">
+
+            <file name="com-sun-tools-visualvm-modules-coherence-impl-AddCoherenceClusterAction-selectionAware.instance">
+                <attr name="instanceCreate" methodvalue="com.sun.tools.visualvm.modules.coherence.impl.AddCoherenceClusterAction.selectionAware"/>
+                <attr name="position" intvalue="0"/>
+                <attr name="default" boolvalue="true"/>
+            </file>
+
+        </folder>
+
+        <folder name="ExplorerPopupNoSelection">
+
+            <file name="com-sun-tools-visualvm-modules-coherence-impl-AddCoherenceCoherenceAction-alwaysEnabled.shadow">
+                <attr name="originalFile" stringvalue="Actions/Other/com-sun-tools-visualvm-modules-coherence-impl-AddCoherenceClusterAction-alwaysEnabled.instance"/>
+                <attr name="position" intvalue="300"/>
+            </file>
+
+        </folder>
+    </folder>
+</filesystem>

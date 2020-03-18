@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<Project>
+  <Name>jee</Name>
+  <Description>Java Enterprise Edition</Description>
+  <DefaultTarget>1.3</DefaultTarget>
+  <StorageInfo>
+    <Location>./jee</Location>
+  </StorageInfo>
+  <TargetList>
+    <Target>
+      <Name>1.3</Name>
+      <Description>J2EE Reference Platform 1.3.x</Description>
+      <Version>1.3</Version>
+      <Customization/>
+      <Localization/>
+      <Locked>true</Locked>
+      <BaseTargets>
+        <TargetRef>jre</TargetRef>
+      </BaseTargets>
+      <StorageInfo/>
+      <Library>
+        <Name>j2ee.jar</Name>
+        <Description>Java 2 Enterprise Edition</Description>
+        <Customizable>false</Customizable>
+        <Visibility>advanced</Visibility>
+        <StorageInfo>
+          <Location>./1.3/lib/j2ee.jar</Location>
+          <UseCopy>false</UseCopy>
+        </StorageInfo>
+      </Library>
+    </Target>
+  </TargetList>
+  <VersionList>
+    <Version>
+      <Name>1.3</Name>
+      <Description/>
+      <BaseName/>
+    </Version>
+  </VersionList>
+  <CustomizationList/>
+  <LocalizationList/>
+</Project>

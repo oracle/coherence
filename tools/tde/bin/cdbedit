@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+#
+#  Licensed under the Universal Permissive License v 1.0 as shown at
+#  http://oss.oracle.com/licenses/upl.
+#
+
+export PATH=$PATH:/usr/bin:/usr/local/bin
+export P4CONFIG=$HOME/.p4config
+
+INPUT=$1
+
+FILE=$(basename $INPUT)
+RPATH=$(echo $INPUT | sed "s/$FILE//")
+APATH=$(cd $RPATH && pwd && cd - > /dev/null 2>&1)
+
+exec $(which p4) edit $APATH/$FILE
