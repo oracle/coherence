@@ -21,8 +21,8 @@ import java.io.IOException;
  * @param <V>  the type of contained value
  */
 public class SimpleHolder<V>
-        extends com.oracle.common.base.SimpleHolder<V>
-        implements com.tangosol.io.ExternalizableLite, PortableObject
+        extends com.oracle.coherence.common.base.SimpleHolder<V>
+        implements com.tangosol.io.ExternalizableLite, PortableObject, com.oracle.coherence.common.base.Holder<V>
     {
     // ----- constructors ---------------------------------------------------
 

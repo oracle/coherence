@@ -18,6 +18,6 @@ package com.tangosol.util;
 * @author Pat McNerthney
 */
 public interface Converter<F, T>
-        extends com.oracle.common.base.Converter<F, T>
+        extends com.oracle.coherence.common.base.Converter<F, T>
     {
     }

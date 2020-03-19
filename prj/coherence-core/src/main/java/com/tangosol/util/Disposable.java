@@ -11,10 +11,10 @@ package com.tangosol.util;
 * The Disposable interface is used for life-cycle management of resources.
 *
 * @author ch 2010-01-11
-* @deprecated As of Coherence 12.1.2, replaced by {@link com.oracle.common.base.Disposable}
+* @deprecated use {@link com.oracle.coherence.common.base.Disposable} instead
 */
 @Deprecated
 public interface Disposable
-        extends com.oracle.common.base.Disposable
+        extends com.oracle.coherence.common.base.Disposable
     {
     }
