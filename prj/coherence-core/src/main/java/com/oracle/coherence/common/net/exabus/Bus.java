@@ -24,7 +24,7 @@ import java.io.Closeable;
  * <p>
  * Bus operations taking receipts are asynchronous. Completion of asynchronous
  * operations is identified via a corresponding {@link Event.Type#RECEIPT
- * RECEIPT} event {@link #setEventCollector(com.oracle.common.base.Collector)
+ * RECEIPT} event {@link #setEventCollector(Collector)}
  * arriving locally} prior to any {@link Event.Type#DISCONNECT DISCONNECT}
  * event for the same peer. Any RECEIPT event arriving after the DISCONNECT
  * event indicates an operation which is not known to have completed.

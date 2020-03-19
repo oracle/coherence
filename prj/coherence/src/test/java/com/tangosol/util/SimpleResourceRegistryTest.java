@@ -163,12 +163,12 @@ public class SimpleResourceRegistryTest
         }
 
     /**
-     * {@link com.oracle.common.base.Disposable} implementation that may be
+     * {@link com.oracle.coherence.common.base.Disposable} implementation that may be
      * configured to throw a {@link RuntimeException} upon {@link #dispose()}
      * invocation.
      */
     public static final class Combustible
-            implements com.oracle.common.base.Disposable
+            implements com.oracle.coherence.common.base.Disposable
         {
         /**
          * Construct a Combustible.

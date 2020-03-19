@@ -28,7 +28,7 @@ import com.oracle.coherence.common.base.NonBlocking;
  * request flow.
  * <p>
  * Callers wishing to be exempt from automatic flow-control may declare themselves as
- * {@link com.oracle.common.base.NonBlocking non-blocking}, code directly interacting
+ * {@link com.oracle.coherence.common.base.NonBlocking non-blocking}, code directly interacting
  * with flow-control methods is expected to {@link NonBlocking#isNonBlockingCaller() check}
  * if the calling thread has been marked as non-blocking and bypass automatic flow-control
  * for such callers.

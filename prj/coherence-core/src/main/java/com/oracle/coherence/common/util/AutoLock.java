@@ -20,7 +20,7 @@ import java.util.concurrent.locks.Lock;
  * Example usage:
  * <p><code> try (Sentry&lt;Foo&gt; sentry = f_lock.acquire()) { Foo foo = sentry.getResource(); ... } </code></p>
  *
- * Note: the AutoLock is {@link com.oracle.common.base.Timeout Timeout} compatible.
+ * Note: the AutoLock is {@link com.oracle.coherence.common.base.Timeout Timeout} compatible.
  *
  * @author mf 2014.10.02
  */
