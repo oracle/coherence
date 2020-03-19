@@ -71,6 +71,7 @@ grant codeBase "file:${oracle.coherence.lib}/coherence-${test.project.version}.j
   permission java.util.PropertyPermission "user.dir", "read";
   permission java.util.PropertyPermission "user.home", "read";
   permission java.util.PropertyPermission "com.oracle.common.*", "read";
+  permission java.util.PropertyPermission "com.oracle.coherence.common.*", "read";
   permission javax.management.MBeanPermission "*", "queryMBeans";
   permission javax.management.MBeanPermission "*", "getMBeanInfo";
   permission javax.management.MBeanPermission "*", "invoke";

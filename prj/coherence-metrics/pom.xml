@@ -178,7 +178,7 @@
                 <Export-Package>!*.internal.*,com.tangosol.coherence.metrics.*</Export-Package>
                 <Private-Package>*.internal.*</Private-Package>
                 <Import-Package>
-                  !com.tangosol.application.*,!com.tangosol.coherence.*,!com.tangosol.injection.*,!com.oracle.common.net.exabus.*,com.tangosol.*;version="[${project.version.short},${project.version.next.short})",com.tangosol.io.*,com.tangosol.net.*,com.tangosol.run.xml.*,com.tangosol.util.*,com.oracle.common.net.*,!com.oracle.common.*,org.glassfish.jersey.*;version=${jersey.version},com.fasterxml.jackson.*;version=${jackson.version},org.glassfish.grizzly.*;version=${grizzly.version};resolution:=optional,org.simpleframework.*;version=${simpleframework.version};resolution:=optional,*;resolution:=optional
+                  !com.tangosol.application.*,!com.tangosol.coherence.*,!com.tangosol.injection.*,!com.oracle.common.net.exabus.*,com.tangosol.*;version="[${project.version.short},${project.version.next.short})",com.tangosol.io.*,com.tangosol.net.*,com.tangosol.run.xml.*,com.tangosol.util.*,com.oracle.common.net.*,!com.oracle.common.*,!com.oracle.coherence.common.*,org.glassfish.jersey.*;version=${jersey.version},com.fasterxml.jackson.*;version=${jackson.version},org.glassfish.grizzly.*;version=${grizzly.version};resolution:=optional,org.simpleframework.*;version=${simpleframework.version};resolution:=optional,*;resolution:=optional
                 </Import-Package>
               </instructions>
             </configuration>
