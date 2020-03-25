@@ -37,6 +37,7 @@ jobs:
     - name: Build
       shell: bash
       run: |
+        export DEV_ROOT=$(pwd)
         mvn --file prj/pom.xml -U --batch-mode -e -P -javadoc verify -pl coherence -am
 
 # If the build job runs successfully then run the verify stages in parallel
@@ -66,5 +67,6 @@ jobs:
       shell: bash
       run: |
         echo "Running verify ${{ matrix.stage }}"
+        export DEV_ROOT=$(pwd)
         mvn --file prj/pom.xml -U --batch-mode -e -P -javadoc verify -P ${{ matrix.stage }}
     
