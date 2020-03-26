@@ -227,9 +227,23 @@ public abstract class XmlHelper extends Base
     */
     public static void loadXml(String sXml, XmlDocument xmlRoot)
         {
+        loadXml(sXml, xmlRoot, true);
+        }
+
+    /**
+    * Load XML from a String into the specified XmlElement.
+    *
+    * @param sXml       the string containing an XML
+    * @param xmlRoot    the root XmlElement to parse the string into
+    * @param fValidate  whether to validate the loaded XML
+    *
+    * @since 14.1.1.0.0
+    */
+    public static void loadXml(String sXml, XmlDocument xmlRoot, boolean fValidate)
+        {
         try
             {
-            new SimpleParser().parseXml(sXml, xmlRoot);
+            new SimpleParser(fValidate).parseXml(sXml, xmlRoot);
             }
         catch (IOException e)
             {

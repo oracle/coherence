@@ -449,7 +449,8 @@ public class SimpleDocument
                 }
             }
 
-        XmlHelper.loadXml(new String(ach), this);
+        // Bug 31045382 - Do not validate the XML to prevent XXE (XML eXternal Entity) injection
+        XmlHelper.loadXml(new String(ach), this, /* fValidate */ false);
         }
 
 
