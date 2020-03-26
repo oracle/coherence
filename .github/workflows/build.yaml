@@ -48,9 +48,10 @@ jobs:
     strategy:
       matrix:
         stage:
-          - stage6
-#          - stage11 GOOD
-#          - stage12 # Fails due to needing JFR in Oracle Java
+#           - stage6 GOOD
+#           - stage11 GOOD
+#           - stage12 # Fails due to needing JFR in Oracle Java
+          - stage13
     steps:
     - name: Checkout
       uses: actions/checkout@v2
