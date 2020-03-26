@@ -48,11 +48,11 @@ jobs:
     strategy:
       matrix:
         stage:
-#          - stage1
+#          - stage1 # GOOD
 #          - stage2 # GOOD
 #          - stage3 # GOOD
-          - stage4
-#          - stage5
+#          - stage4 # RUNNING
+          - stage5
 #          - stage6 # GOOD
 #          - stage7 # GOOD
 #          - stage8 # GOOD
