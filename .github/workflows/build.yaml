@@ -68,5 +68,5 @@ jobs:
       run: |
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml -U --batch-mode -e -P -javadoc verify -P ${{ matrix.stage }}
+        mvn --file prj/pom.xml -U --batch-mode -e -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional verify
     
