@@ -49,12 +49,12 @@ jobs:
       matrix:
         stage:
 #          - stage1
-#          - stage2
+          - stage2
 #          - stage3
 #          - stage4
 #          - stage5
 #          - stage6 # GOOD
-          - stage7
+#          - stage7 # RUNNING
 #          - stage8 # GOOD
 #          - stage9 # Fails due to needing JFR in Oracle Java
 #          - stage10 # GOOD
