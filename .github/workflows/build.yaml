@@ -48,13 +48,13 @@ jobs:
     strategy:
       matrix:
         stage:
-          - stage1
+#          - stage1
 #          - stage2 # GOOD
-#          - stage3 # RUNNING
-#          - stage4
+#          - stage3 # GOOD
+          - stage4
 #          - stage5
 #          - stage6 # GOOD
-#          - stage7 # RUNNING
+#          - stage7 # GOOD
 #          - stage8 # GOOD
 #          - stage9 # Fails due to needing JFR in Oracle Java
 #          - stage10 # GOOD
