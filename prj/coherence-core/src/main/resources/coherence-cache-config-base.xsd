@@ -947,9 +947,11 @@
     <xsd:element name="reconnect-interval" type="coherence-time-type">
         <xsd:annotation>
             <xsd:documentation>
-                The reconnect-interval controls how often this view should attempt to
-                re-connect with the underlying [clustered] cache in case
-                the connection is severed.
+                The reconnect-interval indicates the period in which
+                re-synchronization with the underlying cache will be
+                delayed in the case the connection is severed.  During
+                this time period, local content can be accessed without
+                triggering re-synchronization of the local content.
 
                 The value of this element must be in the following
                 format:
@@ -971,8 +973,7 @@
                 milliseconds is assumed.
 
                 A value of zero means that the view cannot be used
-                when not connected. If the value is positive, the local content
-                can still be accessed (read-only) even if connection is severed.
+                when not connected.
 
                 If not configured, a value of zero is assumed.
 

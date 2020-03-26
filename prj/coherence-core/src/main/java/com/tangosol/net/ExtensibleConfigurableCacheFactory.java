@@ -324,7 +324,7 @@ public class ExtensibleConfigurableCacheFactory
 
             Base.checkNotNull(bldrCache, "NamedCacheBuilder");
 
-            resolver     = getParameterResolver(sCacheName, loader, null);
+            resolver     = getParameterResolver(sCacheName, CacheMapping.class, loader, null);
             dependencies = new MapBuilder.Dependencies(this, null, loader,
                                     sCacheName, scheme.getServiceType());
             cache        = bldrCache.realizeCache(resolver, dependencies);
@@ -492,7 +492,7 @@ public class ExtensibleConfigurableCacheFactory
                 throw new IllegalStateException(sMsg);
                 }
 
-            resolver      = getParameterResolver(sName, loader, null);
+            resolver      = getParameterResolver(sName, TopicMapping.class, loader, null);
             dependencies  = new MapBuilder.Dependencies(this, null, loader, sName,
                                                         serviceScheme.getServiceType());
 
@@ -908,13 +908,37 @@ public class ExtensibleConfigurableCacheFactory
     public ParameterResolver getParameterResolver(final String sCacheName, ClassLoader loader,
             BackingMapManagerContext ctxBMM)
         {
-        ResourceMapping         mapping  = f_cacheConfig.getMappingRegistry().findMapping(sCacheName, ResourceMapping.class);
+        return getParameterResolver(sCacheName, ResourceMapping.class, loader, ctxBMM);
+        }
+
+    /**
+     * Return the ParameterResolver that has been initialized with the built-in
+     * Coherence parameters. Schemes may use expressions (macros) and the resolver
+     * contains the parameters that are defined in the cache mapping needed to
+     * translate those expressions into values.
+     *
+     * @param sResourceName       the resource name
+     * @param clzResourceMapping  resource type
+     * @param loader              the ClassLoader
+     * @param ctxBMM              the BackingMapManagerContext
+     *
+     * @return the ParameterResolver
+     *
+     * @since 14.1.1.0.0
+     */
+    public <M extends ResourceMapping> ParameterResolver getParameterResolver(final String sResourceName, Class<M> clzResourceMapping, ClassLoader loader,
+                                                  BackingMapManagerContext ctxBMM)
+        {
+        ResourceMapping         mapping  = f_cacheConfig.getMappingRegistry().findMapping(sResourceName, clzResourceMapping);
         ScopedParameterResolver resolver = new ScopedParameterResolver(mapping == null
-                                               ? f_cacheConfig.getDefaultParameterResolver()
-                                               : mapping.getParameterResolver());
+            ? f_cacheConfig.getDefaultParameterResolver()
+            : mapping.getParameterResolver());
 
         // add the standard coherence parameters to the parameter provider
-        resolver.add(new Parameter(mapping.getConfigElementName(), sCacheName));
+        if (mapping != null)
+            {
+            resolver.add(new Parameter(mapping.getConfigElementName(), sResourceName));
+            }
         resolver.add(new Parameter("class-loader", loader));
         resolver.add(new Parameter("manager-context", ctxBMM));
 

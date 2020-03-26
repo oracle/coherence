@@ -8,6 +8,8 @@ package com.tangosol.net;
 
 import com.tangosol.coherence.component.util.SafeCluster;
 import com.tangosol.coherence.component.util.SafeService;
+
+import com.tangosol.coherence.config.ResourceMapping;
 import com.tangosol.coherence.config.scheme.ServiceScheme;
 
 import com.tangosol.io.pof.reflect.internal.InvocationStrategies.FieldInvocationStrategy;
@@ -47,6 +49,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Mockito.mock;
@@ -311,6 +314,26 @@ public class ExtensibleConfigurableCacheFactoryTest
 
         assertThat(eccf.isDisposed(), is(true));
         verify(serviceInner).shutdown();
+        }
+
+    // Regression test for bug 31070472: NPE thrown by ECCF#getParameterResolver when resource mapping not found.
+    @Test
+    public void testShouldNotThrowNPEWhenResourceNameNotInRegistry()
+        {
+        BackingMapManagerContext           ctxBMM       = mock(BackingMapManagerContext.class);
+        XmlElement                         xmlConfig    = XmlHelper.loadFileOrResource("net/one-cachemapping-cache-config.xml", "cache config");
+        Dependencies                       deps         = DependenciesHelper.newInstance(xmlConfig);
+        ExtensibleConfigurableCacheFactory eccf         = new ExtensibleConfigurableCacheFactory(deps);
+        try
+            {
+            // ensure no match in registry mapping. default coherence cache config returned a mapping due to wildcard.
+            assertNull(eccf.getCacheConfig().getMappingRegistry().findMapping("nonexistent", ResourceMapping.class));
+            eccf.getParameterResolver("nonexistent", ResourceMapping.class, this.getClass().getClassLoader(), ctxBMM);
+            }
+        finally
+            {
+            eccf.dispose();
+            }
         }
 
 

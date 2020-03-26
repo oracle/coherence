@@ -6,6 +6,7 @@
  */
 package com.tangosol.net.internal;
 
+import com.tangosol.coherence.config.CacheMapping;
 import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.scheme.CachingScheme;
@@ -365,7 +366,7 @@ public class ViewCacheService
             {
             ExtensibleConfigurableCacheFactory eccf = (ExtensibleConfigurableCacheFactory) ccf;
 
-            return eccf.getParameterResolver(sCacheName, loader, null);
+            return eccf.getParameterResolver(sCacheName, CacheMapping.class, loader, null);
             }
 
         ResolvableParameterList resolver = new ResolvableParameterList();

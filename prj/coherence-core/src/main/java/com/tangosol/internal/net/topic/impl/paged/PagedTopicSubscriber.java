@@ -862,7 +862,8 @@ public class PagedTopicSubscriber<V>
                         }
                     catch (Throwable t)
                         {
-                        CacheFactory.log(t);
+                        CacheFactory.log(this.getClass().getName() + ".close(): handled onClose exception: " +
+                            t.getClass().getCanonicalName() + ": " + t.getMessage(), Base.LOG_QUIET);
                         }
                     });
                     }
