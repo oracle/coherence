@@ -55,8 +55,8 @@ jobs:
 #          - stage5
 #          - stage6 GOOD
 #          - stage7
-          - stage8
-#          - stage9
+#          - stage8 GOOD
+          - stage9
 #          - stage10
 #          - stage11 GOOD
 #          - stage12 # Fails due to needing JFR in Oracle Java
