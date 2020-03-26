@@ -57,9 +57,9 @@ jobs:
 #          - stage7
 #          - stage8 # GOOD
 #          - stage9 # Fails due to needing JFR in Oracle Java
-#          - stage10
+          - stage10
 #          - stage11 # GOOD
-          - stage12
+#          - stage12 # Failed - unknown in utils test
 #          - stage13 # GOOD
     steps:
     - name: Checkout
