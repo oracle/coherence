@@ -53,14 +53,14 @@ jobs:
 #          - stage3
 #          - stage4
 #          - stage5
-#          - stage6 GOOD
+#          - stage6 # GOOD
 #          - stage7
-#          - stage8 GOOD
-          - stage9
+#          - stage8 # GOOD
+#          - stage9 # Fails due to needing JFR in Oracle Java
 #          - stage10
-#          - stage11 GOOD
-#          - stage12 # Fails due to needing JFR in Oracle Java
-#          - stage13 Good
+#          - stage11 # GOOD
+          - stage12
+#          - stage13 # GOOD
     steps:
     - name: Checkout
       uses: actions/checkout@v2
