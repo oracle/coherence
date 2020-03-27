@@ -66,6 +66,7 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <skip>true</skip>
+          <argLine>-Xms8g -Xms8g</argLine>
         </configuration>
       </plugin>
 

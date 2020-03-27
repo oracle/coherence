@@ -36,16 +36,4 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${maven.failsafe.plugin.version}</version>
-        <configuration>
-          <argLine>-Xms8g -Xms8g</argLine>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>
