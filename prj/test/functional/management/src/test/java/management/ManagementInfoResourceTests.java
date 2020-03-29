@@ -83,6 +83,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.junit.rules.TemporaryFolder;
+import test.CheckJDK;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
@@ -722,6 +723,9 @@ public class ManagementInfoResourceTests
     public void testJfrWithAllNodes()
             throws Exception
         {
+        // This test requires Flight Recorder and only runs on ORacle JVMs
+        CheckJDK.assumeOracleJDK();
+
         Response response = getBaseTarget().path(DIAGNOSTIC_CMD)
                 .path("jfrStart")
                 .queryParam(OPTIONS, encodeValue("name=all"))
@@ -781,6 +785,9 @@ public class ManagementInfoResourceTests
     public void testJfrWithRole()
             throws Exception
         {
+        // This test requires Flight Recorder and only runs on ORacle JVMs
+        CheckJDK.assumeOracleJDK();
+
         String  sFilePath = "target" + File.separator + "test-output"  + File.separator + "functional" + File.separator;
         String  sFileName = sFilePath + "testMemberJfr-myRecording.jfr";
 
