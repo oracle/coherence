@@ -607,7 +607,7 @@ public class OldLiteMap
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**

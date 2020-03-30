@@ -964,7 +964,7 @@ public class BinaryMap
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**
@@ -1210,7 +1210,7 @@ public class BinaryMap
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**
@@ -1329,7 +1329,7 @@ public class BinaryMap
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**

@@ -8,12 +8,17 @@
 package com.tangosol.net.ssl;
 
 
+import com.tangosol.util.Base;
+
+import javax.net.ssl.SSLContext;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.Provider;
 
 import java.util.Collection;
@@ -34,7 +39,15 @@ public class CustomProvider
     public CustomProvider(String sName)
         {
         super(sName, 1.0, "CustomProvider info.");
-        m_delegate = new com.sun.net.ssl.internal.ssl.Provider();
+        try
+            {
+            SSLContext instance = SSLContext.getInstance("TLS", "SunJSSE");
+            m_delegate = instance.getProvider();
+            }
+        catch (NoSuchAlgorithmException | NoSuchProviderException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
         }
 
     public void clear()

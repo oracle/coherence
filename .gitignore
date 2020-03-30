@@ -1,10 +1,10 @@
 # used by intellij
 # ignore these types of java files
-*.class 
+*.class
 *.jar
 *.war
 *.rar
-*.gar 
+*.gar
 
 # ignore these IntelliJ files
 .idea

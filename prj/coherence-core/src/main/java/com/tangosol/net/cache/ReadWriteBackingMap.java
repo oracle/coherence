@@ -1726,7 +1726,7 @@ public class ReadWriteBackingMap
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**

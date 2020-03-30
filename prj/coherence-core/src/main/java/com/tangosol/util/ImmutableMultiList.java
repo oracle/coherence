@@ -100,7 +100,7 @@ public class ImmutableMultiList
     @Override
     public Spliterator spliterator()
         {
-        return List.super.spliterator();
+        return super.spliterator();
         }
 
     /**
@@ -237,7 +237,7 @@ public class ImmutableMultiList
     */
     public Object[] toArray()
         {
-        return toArray(null);
+        return toArray((Object[]) null);
         }
 
     /**

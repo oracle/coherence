@@ -51,11 +51,12 @@ public class AbstractStreamTest
                : getPeopleMap().stream(filter).sequential();
         }
 
+    @SuppressWarnings("unchecked")
     protected <E> RemoteStream<E> getStream(Filter filter, ValueExtractor<? super Person, ? extends E> extractor)
         {
         return m_fParallel
-               ? getPeopleMap().stream(filter, extractor).parallel()
-               : getPeopleMap().stream(filter, extractor).sequential();
+               ? (RemoteStream<E>) getPeopleMap().stream(filter, extractor).parallel()
+                : (RemoteStream<E>) getPeopleMap().stream(filter, extractor).sequential();
         }
 
     protected Map<String, Person> populateMap(Map<String, Person> people)

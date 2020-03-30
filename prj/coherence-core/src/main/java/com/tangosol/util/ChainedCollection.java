@@ -150,7 +150,7 @@ public class ChainedCollection<E>
     @Override
     public Object[] toArray()
         {
-        return toArray(null);
+        return toArray((Object[]) null);
         }
 
     @Override

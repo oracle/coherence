@@ -1260,7 +1260,7 @@ public class SafeHashMap<K, V>
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**
@@ -1698,7 +1698,7 @@ public class SafeHashMap<K, V>
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**
@@ -1850,7 +1850,7 @@ public class SafeHashMap<K, V>
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**

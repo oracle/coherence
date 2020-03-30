@@ -3422,7 +3422,7 @@ public class OverflowMap
         @Override
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**

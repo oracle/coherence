@@ -546,7 +546,7 @@ public class SafeLinkedList
     */
     public Object[] toArray()
         {
-        return toArray(null);
+        return toArray((Object[]) null);
         }
 
     /**

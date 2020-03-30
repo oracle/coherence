@@ -523,7 +523,7 @@ public class InflatableMap<K, V>
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**

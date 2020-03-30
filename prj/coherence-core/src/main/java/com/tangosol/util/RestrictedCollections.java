@@ -1489,7 +1489,7 @@ public class RestrictedCollections
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**

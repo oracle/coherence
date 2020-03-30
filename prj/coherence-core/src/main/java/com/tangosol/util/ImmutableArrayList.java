@@ -150,7 +150,7 @@ public class ImmutableArrayList
     @Override
     public Spliterator spliterator()
         {
-        return List.super.spliterator();
+        return super.spliterator();
         }
 
     /**

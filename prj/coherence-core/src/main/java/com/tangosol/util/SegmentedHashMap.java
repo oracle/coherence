@@ -2387,7 +2387,7 @@ public class SegmentedHashMap
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**
@@ -2696,7 +2696,7 @@ public class SegmentedHashMap
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**
@@ -2822,7 +2822,7 @@ public class SegmentedHashMap
         */
         public Object[] toArray()
             {
-            return toArray(null);
+            return toArray((Object[]) null);
             }
 
         /**
