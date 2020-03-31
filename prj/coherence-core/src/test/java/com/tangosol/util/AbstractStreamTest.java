@@ -56,7 +56,7 @@ public class AbstractStreamTest
         {
         return m_fParallel
                ? (RemoteStream<E>) getPeopleMap().stream(filter, extractor).parallel()
-                : (RemoteStream<E>) getPeopleMap().stream(filter, extractor).sequential();
+               : (RemoteStream<E>) getPeopleMap().stream(filter, extractor).sequential();
         }
 
     protected Map<String, Person> populateMap(Map<String, Person> people)

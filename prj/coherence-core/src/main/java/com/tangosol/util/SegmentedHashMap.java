@@ -2839,10 +2839,10 @@ public class SegmentedHashMap
         * Collection <i>only</i> if the caller knows that the Collection does
         * not contain any <tt>null</tt> values.)
         *
-        * @param a  the array into which the elements of the Collection are
-        *           to be stored, if it is big enough; otherwise, a new
-        *           array of the same runtime type is allocated for this
-        *           purpose
+        * @param ao  the array into which the elements of the Collection are
+        *            to be stored, if it is big enough; otherwise, a new
+        *            array of the same runtime type is allocated for this
+        *            purpose
         *
         * @return an array containing the elements of the Collection
         *
@@ -2850,7 +2850,7 @@ public class SegmentedHashMap
         *         array is not a supertype of the runtime type of every
         *         element in this Collection of values
         */
-        public Object[] toArray(Object a[])
+        public Object[] toArray(Object ao[])
             {
             SegmentedHashMap    map         = SegmentedHashMap.this;
             IterableEntryAction actionEntry = new EntryActionAdapter()
@@ -2866,7 +2866,7 @@ public class SegmentedHashMap
                         return NO_VALUE;
                         }
                     };
-            return map.toArrayInternal(actionEntry, a);
+            return map.toArrayInternal(actionEntry, ao);
             }
         }
 
