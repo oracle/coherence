@@ -15,7 +15,7 @@
   <TargetList>
     <Target>
       <Name>1.3</Name>
-      <Description>J2EE Reference Platform 1.3.x</Description>
+      <Description>Java(TM) EE 5 Specification API</Description>
       <Version>1.3</Version>
       <Customization/>
       <Localization/>
@@ -25,12 +25,12 @@
       </BaseTargets>
       <StorageInfo/>
       <Library>
-        <Name>j2ee.jar</Name>
-        <Description>Java 2 Enterprise Edition</Description>
+        <Name>javaee-api-5.jar</Name>
+        <Description>Java(TM) EE 5 Specification APIs</Description>
         <Customizable>false</Customizable>
         <Visibility>advanced</Visibility>
         <StorageInfo>
-          <Location>./1.3/lib/j2ee.jar</Location>
+          <Location>./1.3/lib/javaee-api-5.jar</Location>
           <UseCopy>false</UseCopy>
         </StorageInfo>
       </Library>

@@ -8,6 +8,7 @@ package com.tangosol.run.xml;
 
 
 import com.tangosol.net.CacheFactory;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Resources;
@@ -25,10 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.XMLConstants;
+
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
+
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
+
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
@@ -273,6 +276,9 @@ public class SaxParser
             Validator         validator = schema.newValidator();
             ValidationHandler handler   = new ValidationHandler();
 
+            // Disable access during parsing to external resolution to avoid XXE vulnerabilities
+            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             validator.setErrorHandler(handler);
             validator.validate(source);
 
@@ -305,9 +311,10 @@ public class SaxParser
             URL url = Resources.findFileOrResource(
                     sUri, getClass().getClassLoader());
 
-            // do not load schemas over http; strip the URL down to
-            // the file name and load from classpath
-            if (url != null && "http".equalsIgnoreCase(url.getProtocol()))
+            // do not load schemas over http or https;
+            // strip the URL to just ending file name and load from classpath
+            if (url != null && ("http".equalsIgnoreCase(url.getProtocol()) ||
+                                "https".equalsIgnoreCase(url.getProtocol())))
                 {
                 url = Resources.findFileOrResource(
                         sUri.substring(sUri.lastIndexOf('/') + 1),
@@ -320,12 +327,19 @@ public class SaxParser
                         + sUri + " cannot be found.");
                 }
 
-            URLConnection con = url.openConnection();
-            con.setConnectTimeout(30000);
+            try
+                {
+                URLConnection con = url.openConnection();
+                con.setConnectTimeout(30000);
 
-            StreamSource source = new StreamSource(con.getInputStream());
-            source.setSystemId(url.toString());
-            listSources.add(source);
+                StreamSource source = new StreamSource(con.getInputStream());
+                source.setSystemId(url.toString());
+                listSources.add(source);
+                }
+            catch (Throwable t)
+                {
+                throw new IOException("Unexpected exception resolving schema uri: " + sUri, t);
+                }
             }
         return listSources.toArray(new Source[listUri.size()]);
         }

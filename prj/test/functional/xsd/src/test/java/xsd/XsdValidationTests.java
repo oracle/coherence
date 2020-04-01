@@ -6,9 +6,17 @@
  */
 package xsd;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.tangosol.run.xml.XmlElement;
+import com.tangosol.run.xml.XmlHelper;
+import com.tangosol.util.Resources;
+import common.SystemPropertyResource;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.net.URL;
 
 /**
 * A collection of funtional tests that validate the xml using the
@@ -157,5 +165,37 @@ public class XsdValidationTests
             throws Exception
         {
         XmlValidator.validate("tangosol-coherence-override-password-provider.xml");
+        }
+
+    @Test
+    public void testXmlValidationMustDenyAccessExternalDTD()
+        throws Exception
+        {
+        try
+            {
+            XmlValidator.validate("validation_denies_access_to_external_dtd.xml");
+            fail("must fail due to accessing external DTD entity");
+            }
+        catch (java.io.IOException e)
+            {
+            // expected exception
+            System.out.println("handled expected exception: " + e.getMessage());
+            }
+        }
+
+    @Test
+    public void testXmlValidationMustDenyAccessExternalSchema()
+        throws Exception
+        {
+        try
+            {
+            XmlValidator.validate("validation_denies_access_to_external_schema.xml");
+            fail("must fail due to accessing external schema");
+            }
+        catch (java.io.IOException e)
+            {
+            // expected exception
+            System.out.println("handled expected exception: " + e.getMessage());
+            }
         }
     }
