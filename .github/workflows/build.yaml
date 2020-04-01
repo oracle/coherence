@@ -33,11 +33,12 @@ jobs:
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
+        restore-keys: ${{ runner.os }}-m2-
     - name: Build
       shell: bash
       run: |
         export DEV_ROOT=$(pwd)
+        rm -rf ~/.m2/repository/com/oracle/coherence-ce/
         mvn --file prj/pom.xml -U --batch-mode -e -P -javadoc verify -pl coherence -am
 
 # If the build job runs successfully then run the verify stages in parallel
@@ -56,10 +57,10 @@ jobs:
          - stage6
          - stage7
          - stage8
-#          - stage9 # Fails due to needing JFR in Oracle Java
+         - stage9
          - stage10
          - stage11
-#          - stage12 # Failed - unknown in utils test
+         - stage12
          - stage13
     steps:
     - name: Checkout
@@ -79,5 +80,6 @@ jobs:
       run: |
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml -U --batch-mode -e -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional verify
+        rm -rf ~/.m2/repository/com/oracle/coherence-ce/
+        mvn --file prj/pom.xml -U --batch-mode -e -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
     
