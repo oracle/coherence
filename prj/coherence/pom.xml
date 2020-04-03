@@ -430,7 +430,7 @@
               <goal>exec</goal>
             </goals>
             <configuration>
-              <executable>jar</executable>
+              <executable>${jar.executable}</executable>
               <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}.jar -C ${artifact.classes.path} META-INF/MANIFEST.MF</commandlineArgs>
             </configuration>
           </execution>
