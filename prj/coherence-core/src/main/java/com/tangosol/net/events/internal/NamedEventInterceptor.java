@@ -575,7 +575,7 @@ public class NamedEventInterceptor<E extends Event<?>>
             if (types.length == 0)
                 {
                 // get all event types for a given annotation
-                types = (Enum[]) types.getClass().getComponentType().getMethod("values").invoke(null);
+                types = (Enum[]) types.getClass().getComponentType().getEnumConstants();
                 }
 
             return Arrays.asList(types);
