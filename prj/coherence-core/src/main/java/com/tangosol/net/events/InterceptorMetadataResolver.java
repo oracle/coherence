@@ -24,17 +24,4 @@ public interface InterceptorMetadataResolver
      * @return the actual interceptor class
      */
     Class<? extends EventInterceptor> getInterceptorClass(EventInterceptor interceptor);
-
-    /**
-     * Return interceptor identifier.
-     *
-     * @param interceptor an interceptor to get the identifier for
-     *
-     * @return the identifier for the specified interceptor, or {@code null}
-     *         if the default identifier should be created and used
-     */
-    default String getIdentifier(EventInterceptor interceptor)
-        {
-        return null;
-        }
     }

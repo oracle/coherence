@@ -135,21 +135,23 @@ public class AbstractEventDispatcher
                 setTypes.retainAll(setEventTypes);
                 }
 
-            final DispatcherInterceptorEvent<E> event = instantiateEvent(
-                    InterceptorRegistrationEvent.Type.INSERTING, incptrNamed, setTypes);
+            if (!setTypes.isEmpty())
+                {
+                final DispatcherInterceptorEvent<E> event = instantiateEvent(
+                        InterceptorRegistrationEvent.Type.INSERTING, incptrNamed, setTypes);
 
-            // dispatch an event informing listeners of the new interceptor
-            // both INSERTING and INSERTED; the pre-event provides an
-            // opportunity for an EventInterceptor to change the EventInterceptor
-            // being registered
-            dispatchEvent(event, new Continuation()
+                // dispatch an event informing listeners of the new interceptor
+                // both INSERTING and INSERTED; the pre-event provides an
+                // opportunity for an EventInterceptor to change the EventInterceptor
+                // being registered
+                dispatchEvent(event, new Continuation()
                     {
                     public void proceed(Object o)
                         {
                         if (o instanceof Throwable)
                             {
                             CacheFactory.log("An EventInterceptor veto'd the registration of " + event.getInterceptor()
-                                    + " for the event types " + event.getEventTypes());
+                                             + " for the event types " + event.getEventTypes());
                             throw Base.ensureRuntimeException((Throwable) o);
                             }
 
@@ -175,9 +177,10 @@ public class AbstractEventDispatcher
                             }
 
                         dispatchEvent(instantiateEvent(InterceptorRegistrationEvent.Type.INSERTED,
-                                          incptrNamed, setTypes), null);
+                                                       incptrNamed, setTypes), null);
                         }
                     });
+                }
             }
         }
 

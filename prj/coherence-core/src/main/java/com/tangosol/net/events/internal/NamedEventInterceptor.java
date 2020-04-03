@@ -356,7 +356,7 @@ public class NamedEventInterceptor<E extends Event<?>>
             {
             sName = (m_sCacheName   == null || m_sCacheName.isEmpty()   ? "" : m_sCacheName   + ":") +
                     (m_sServiceName == null || m_sServiceName.isEmpty() ? "" : m_sServiceName + ":") +
-                    m_interceptor.getClass().getName();
+                    INTERCEPTOR_METADATA_RESOLVER.getInterceptorClass(m_interceptor).getName();
             }
         else
             {
@@ -440,8 +440,8 @@ public class NamedEventInterceptor<E extends Event<?>>
         Order       order         = Order.LOW;
         Class<?>    clzIncptr     = INTERCEPTOR_METADATA_RESOLVER.getInterceptorClass(incptr);
         Interceptor anno          = clzIncptr.getAnnotation(Interceptor.class);
-        Set<Enum>   setEventTypes = new HashSet<Enum>(m_setEventTypes == null
-                        ? Collections.<Enum>emptySet() : m_setEventTypes);
+        Set<Enum>   setEventTypes = new HashSet<>(
+                m_setEventTypes == null ? Collections.emptySet() : m_setEventTypes);
 
         // process @Interceptor annotation, if present
         if (anno != null)
@@ -522,11 +522,6 @@ public class NamedEventInterceptor<E extends Event<?>>
             }
 
         // ensure the identifier, order and behavior are populated
-        if (sName == null || sName.isEmpty())
-            {
-            sName = INTERCEPTOR_METADATA_RESOLVER.getIdentifier(incptr);
-            }
-
         if (sName == null || sName.isEmpty())
             {
             generateName();
