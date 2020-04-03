@@ -20,6 +20,7 @@ import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventInterceptor;
 
 import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent.Type;
 
@@ -997,7 +998,7 @@ public class InterceptorRegistrationTests
     /**
      * Simple TestInterceptor class for the tests
      */
-    @Interceptor (entryEvents = { Type.INSERTING})
+    @EntryEvents(Type.INSERTING)
     public static class TestInterceptor<T extends Event<? extends Enum>> implements EventInterceptor<T>
         {
          public static int count;

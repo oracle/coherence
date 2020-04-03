@@ -10,6 +10,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
 
 import com.tangosol.net.events.partition.cache.EntryEvent;
@@ -25,7 +26,8 @@ import java.util.Set;
  * @author nsa 2011.08.13
  * @since 3.7.1
  */
-@Interceptor(identifier = "Reporter", entryEvents = {EntryEvent.Type.INSERTED, EntryEvent.Type.UPDATED, EntryEvent.Type.REMOVED})
+@Interceptor(identifier = "Reporter")
+@EntryEvents({EntryEvent.Type.INSERTED, EntryEvent.Type.UPDATED, EntryEvent.Type.REMOVED})
 public class NonMutatingInterceptor
         implements EventInterceptor<EntryEvent<?, ?>>, Serializable
     {

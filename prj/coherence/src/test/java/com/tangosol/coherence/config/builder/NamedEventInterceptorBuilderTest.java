@@ -17,6 +17,7 @@ import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.ServiceInfo;
+import com.tangosol.net.events.annotation.TransferEvents;
 import com.tangosol.net.events.internal.NamedEventInterceptor;
 import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
 import com.tangosol.net.events.partition.TransferEvent;
@@ -199,9 +200,9 @@ public class NamedEventInterceptorBuilderTest
     @Interceptor(
         identifier     = "sIdentifier",
         order          = Interceptor.Order.HIGH,
-        entryEvents    = {Type.INSERTING, Type.INSERTED},
-        transferEvents = {com.tangosol.net.events.partition.TransferEvent.Type.DEPARTING}
+        entryEvents    = {Type.INSERTING, Type.INSERTED}
         )
+    @TransferEvents(TransferEvent.Type.DEPARTING)
     public static class AnnotatedInterceptor
             implements EventInterceptor<EntryEvent<?, ?>>
         {

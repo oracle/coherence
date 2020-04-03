@@ -9,6 +9,7 @@ package com.tangosol.net;
 import com.tangosol.io.pof.reflect.internal.InvocationStrategies.FieldInvocationStrategy;
 import com.tangosol.io.pof.reflect.internal.InvocationStrategy;
 
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.internal.NamedEventInterceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent.Type;
@@ -29,11 +30,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import static org.junit.Assert.assertEquals;
@@ -70,6 +69,7 @@ public class DefaultConfigurableCacheFactoryTest
         assertEquals(sScopeName + ":" + sServiceName, actualServiceName);
         }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testInterceptorParsing()
             throws Exception
@@ -145,10 +145,11 @@ public class DefaultConfigurableCacheFactoryTest
         assertNotNull(sedgewick);
         assertNotNull(registry.getEventInterceptor("Algo"));
 
-        NamedEventInterceptor incptrNamed = mapIncptrsRaw.get("Sedgewick");
+        NamedEventInterceptor<EntryEvent<?, ?>> incptrNamed = mapIncptrsRaw.get("Sedgewick");
 
         assertThat("Service name should be either null (DCCF) or the default value of 'DistributedCache' (ECCF)",
                 incptrNamed.getServiceName(), anyOf(nullValue(), is("ear:DistributedCache")));
+        assertThat(incptrNamed.getEventTypes(), containsInAnyOrder(Type.INSERTED, Type.REMOVED, Type.UPDATED));
         assertThat(incptrNamed.getCacheName(), nullValue());
         assertTrue(incptrNamed.isAcceptable(bmd));
         }
@@ -210,7 +211,8 @@ public class DefaultConfigurableCacheFactoryTest
     // ----- inner class: AlgoInterceptor -----------------------------------
 
     @Interceptor(identifier = "Algo",
-            entryEvents = {Type.INSERTED, Type.REMOVED, Type.UPDATED})
+            entryEvents = {Type.INSERTED})
+    @EntryEvents({Type.REMOVED, Type.UPDATED})
     public static class AlgoInterceptor
             implements EventInterceptor<EntryEvent<?, ?>>
         {

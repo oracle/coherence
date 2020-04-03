@@ -6,8 +6,6 @@
  */
 package events.common;
 
-import com.tangosol.net.CacheFactory;
-
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
 import com.tangosol.net.events.partition.TransferEvent;
