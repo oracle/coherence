@@ -20,6 +20,7 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.annotation.Interceptor;
+import com.tangosol.net.events.annotation.TransactionEvents;
 import com.tangosol.net.events.partition.TransactionEvent;
 
 import com.tangosol.net.management.MBeanHelper;
@@ -1358,8 +1359,8 @@ public class JmxTests
      * An EventInterceptor implementation to hold off event processing.
      * (to cause event backlog)
      */
-    @Interceptor(identifier = "MyTransactionInterceptor",
-        transactionEvents = TransactionEvent.Type.COMMITTED)
+    @Interceptor(identifier = "MyTransactionInterceptor")
+    @TransactionEvents(TransactionEvent.Type.COMMITTED)
     public static class TransactionInterceptor implements EventInterceptor<TransactionEvent>
         {
         public void onEvent(TransactionEvent event)

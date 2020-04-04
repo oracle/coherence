@@ -6,27 +6,26 @@
  */
 package events;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
-
-import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.Dependencies;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.DependenciesHelper;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventInterceptor;
-
-import com.tangosol.net.events.InterceptorRegistry;
-import com.tangosol.net.events.annotation.Interceptor;
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.partition.cache.EntryEvent.Type;
 
 import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.XmlHelper;
 
 import common.AbstractFunctionalTest;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -34,8 +33,6 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Test interceptor registration from XML cache-configuration files.  Ensure that
@@ -997,7 +994,7 @@ public class InterceptorRegistrationTests
     /**
      * Simple TestInterceptor class for the tests
      */
-    @Interceptor (entryEvents = { Type.INSERTING})
+    @EntryEvents(Type.INSERTING)
     public static class TestInterceptor<T extends Event<? extends Enum>> implements EventInterceptor<T>
         {
          public static int count;

@@ -18,6 +18,7 @@ import com.tangosol.io.pof.reflect.internal.InvocationStrategy;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.Dependencies;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.DependenciesHelper;
 
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
 
 import com.tangosol.net.events.EventInterceptor;
@@ -42,6 +43,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -99,6 +101,7 @@ public class ExtensibleConfigurableCacheFactoryTest
         assertEquals(sScopeName + ":" + sServiceName, actualServiceName);
         }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testInterceptorParsing()
             throws Exception
@@ -183,10 +186,11 @@ public class ExtensibleConfigurableCacheFactoryTest
 
         assertThat(sedgewick, notNullValue());
 
-        NamedEventInterceptor incptrNamed = (NamedEventInterceptor) mapIncptrsRaw.get("Sedgewick");
+        NamedEventInterceptor<EntryEvent<?, ?>> incptrNamed = (NamedEventInterceptor) mapIncptrsRaw.get("Sedgewick");
 
         assertThat("Service name should be either null (DCCF) or the default value of 'DistributedCache' (ECCF)",
                    incptrNamed.getServiceName(), anyOf(nullValue(), is("ear:DistributedCache")));
+        assertThat(incptrNamed.getEventTypes(), containsInAnyOrder(Type.values()));
         assertThat(incptrNamed.getCacheName(), nullValue());
         assertTrue(incptrNamed.isAcceptable(bmd));
         }
@@ -351,10 +355,8 @@ public class ExtensibleConfigurableCacheFactoryTest
 
     // ----- inner class: AlgoInterceptor -----------------------------------
 
-    @Interceptor(
-        identifier  = "Algo",
-        entryEvents = {Type.INSERTED, Type.REMOVED, Type.UPDATED}
-        )
+    @Interceptor(identifier  = "Algo")
+    @EntryEvents
     public static class AlgoInterceptor
             implements EventInterceptor<EntryEvent<?, ?>>
         {

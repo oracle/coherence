@@ -11,6 +11,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
 
 import com.tangosol.net.events.partition.cache.EntryEvent;
@@ -23,7 +24,8 @@ import java.io.Serializable;
  * @author nsa 2011.08.13
  * @since 3.7.1
  */
-@Interceptor(identifier = "Mutator", entryEvents = {EntryEvent.Type.INSERTING, EntryEvent.Type.UPDATING, EntryEvent.Type.REMOVING})
+@Interceptor(identifier = "Mutator")
+@EntryEvents({EntryEvent.Type.INSERTING, EntryEvent.Type.UPDATING, EntryEvent.Type.REMOVING})
 public class MutatingInterceptor
         implements EventInterceptor<EntryEvent<?, ?>>, Serializable
     {

@@ -8,6 +8,8 @@ package events.common;
 
 import com.tangosol.net.events.EventHelper;
 import com.tangosol.net.events.annotation.Interceptor;
+import com.tangosol.net.events.annotation.TransactionEvents;
+import com.tangosol.net.events.annotation.UnsolicitedCommitEvents;
 import com.tangosol.net.events.partition.Event;
 import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransactionEvent.Type;
@@ -30,9 +32,9 @@ import static events.common.TxnAssertingInterceptor.IDENTIFIER;
  * @author hr  2012.08.07
  * @since Coherence 12.1.2
  */
-@Interceptor(identifier = IDENTIFIER,
-        transactionEvents = {Type.COMMITTING, Type.COMMITTED},
-        unsolicitedEvents = UnsolicitedCommitEvent.Type.COMMITTED)
+@Interceptor(identifier = IDENTIFIER)
+@TransactionEvents
+@UnsolicitedCommitEvents
 public class TxnAssertingInterceptor
         extends AbstractTestInterceptor<Event<? extends Enum>>
     {

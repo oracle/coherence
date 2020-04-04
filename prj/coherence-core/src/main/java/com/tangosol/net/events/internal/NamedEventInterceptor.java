@@ -10,6 +10,8 @@ import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
+import com.tangosol.net.events.InterceptorMetadataResolver;
+import com.tangosol.net.events.annotation.Events;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.annotation.Interceptor.Order;
 
@@ -26,13 +28,22 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.RegistrationBehavior;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.tangosol.util.Base.azzert;
 
@@ -42,8 +53,9 @@ import static com.tangosol.util.Base.azzert;
  * <p>
  * This implementation will derive defaults for the values it is concerned
  * with. These defaults are based on the presence of the {@link Interceptor}
- * annotation or a generic type defined on the EventInterceptor class file.
- * Once this class has been initialized, via constructors, it is immutable.
+ * annotation, one or more {@link Events} annotations, or a generic type
+ * defined on the EventInterceptor class file. Once this class has been
+ * initialized, via constructors, it is immutable.
  * <p>
  * There may be circumstances when the cost of deriving defaults may not be
  * required thus a {@link #NamedEventInterceptor(EventInterceptor) constructor}
@@ -156,13 +168,14 @@ public class NamedEventInterceptor<E extends Event<?>>
         {
         azzert(interceptor != null, "interceptor can not be null");
 
-        m_sName         = sName;
-        m_interceptor   = interceptor;
-        m_sCacheName    = sCacheName   != null && sCacheName.isEmpty()   ? null : sCacheName;
-        m_sServiceName  = sServiceName != null && sServiceName.isEmpty() ? null : sServiceName;
-        m_order         = order;
-        m_setEventTypes = setEventTypes == null || setEventTypes.isEmpty() ? null : setEventTypes;
-        m_behavior      = behavior;
+        m_sName          = sName;
+        m_interceptor    = interceptor;
+        m_clzInterceptor = findInterceptorMetadataResolver().getInterceptorClass(interceptor);
+        m_sCacheName     = sCacheName   != null && sCacheName.isEmpty()   ? null : sCacheName;
+        m_sServiceName   = sServiceName != null && sServiceName.isEmpty() ? null : sServiceName;
+        m_order          = order;
+        m_setEventTypes  = setEventTypes == null || setEventTypes.isEmpty() ? null : setEventTypes;
+        m_behavior       = behavior;
 
         ensureInitialized();
         }
@@ -345,7 +358,7 @@ public class NamedEventInterceptor<E extends Event<?>>
             {
             sName = (m_sCacheName   == null || m_sCacheName.isEmpty()   ? "" : m_sCacheName   + ":") +
                     (m_sServiceName == null || m_sServiceName.isEmpty() ? "" : m_sServiceName + ":") +
-                    m_interceptor.getClass().getName();
+                    m_clzInterceptor.getName();
             }
         else
             {
@@ -383,7 +396,7 @@ public class NamedEventInterceptor<E extends Event<?>>
      */
     public String toString()
         {
-        return "<" + m_sName + ", " + getInterceptor().getClass().getName() + ">";
+        return "<" + m_sName + ", " + m_clzInterceptor.getName() + ">";
         }
 
     /**
@@ -415,41 +428,29 @@ public class NamedEventInterceptor<E extends Event<?>>
      */
     protected final void ensureInitialized()
         {
-        EventInterceptor incptr = m_interceptor;
-
-        if (incptr == null)
-            {
-            throw new IllegalArgumentException("EventInterceptor can not be null");
-            }
-
-        // process annotation
-        String      sName         = m_sName;
-        Order       order         = Order.LOW;
-        Class<?>    clzIncptr     = incptr.getClass();
-        Interceptor anno          = clzIncptr.getAnnotation(Interceptor.class);
-        Set<Enum>   setEventTypes = new HashSet<Enum>(m_setEventTypes == null
-                        ? Collections.<Enum>emptySet() : m_setEventTypes);
+        // process @Interceptor annotation, if present
+        String      sName          = m_sName;
+        Order       order          = Order.LOW;
+        Class<?>    clzInterceptor = m_clzInterceptor;
+        Interceptor anno           = clzInterceptor.getAnnotation(Interceptor.class);
+        Set<Enum>   setEventTypes  = new HashSet<>(
+                m_setEventTypes == null ? Collections.emptySet() : m_setEventTypes);
 
         if (anno != null)
             {
             sName = m_sName = sName == null ? anno.identifier() : sName;
             order = anno.order();
-
-            if (setEventTypes.isEmpty())
-                {
-                setEventTypes.addAll(Arrays.asList(anno.entryEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.entryProcessorEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.transactionEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.transferEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.unsolicitedEvents()));
-                setEventTypes.addAll(Arrays.asList(anno.cacheLifecycleEvents()));
-                }
             }
 
-        // process generics iff there are no events specified in the annotation
+        // process @Events annotations
+        getAnnotations(clzInterceptor, Events.class)
+                .map(this::getEventTypes)
+                .forEach(setEventTypes::addAll);
+
+        // process generics iff there are no events specified via the annotations
         Map<String, Type[]> mapTypes = setEventTypes.isEmpty()
-                ? ClassHelper.getReifiedTypes(clzIncptr, EventInterceptor.class)
-                : Collections.<String, Type[]>emptyMap();
+                ? ClassHelper.getReifiedTypes(clzInterceptor, EventInterceptor.class)
+                : Collections.emptyMap();
 
         //Note: we could improve the interceptor acceptance by validating the
         //      generic bounds with the annotation event types at the cost of
@@ -458,9 +459,9 @@ public class NamedEventInterceptor<E extends Event<?>>
         if (mapTypes.containsKey("E"))
             {
             Type[] aTypes = mapTypes.get("E");
-            if (aTypes[0] instanceof Type)
+            if (aTypes[0] != null)
                 {
-                Class clzEvent = (Class) ClassHelper.getClass(aTypes[0]);
+                Class clzEvent = ClassHelper.getClass(aTypes[0]);
 
                 // there are special cases for event grouping interfaces as we
                 // explicitly reference the children and their associated event
@@ -516,12 +517,102 @@ public class NamedEventInterceptor<E extends Event<?>>
         m_order = m_order == null ? order : m_order;
         }
 
+    /**
+     * Return a stream of annotations on the specified annotated element that
+     * are themselves annotated with the specified meta annotation.
+     *
+     * @param annotatedElement   the annotated element to get the annotations from
+     * @param clzMetaAnnotation  meta annotation to filter on
+     *
+     * @return a stream of annotations on the specified annotated element that are
+     *         annotated with the specified meta annotation
+     */
+    private Stream<Annotation> getAnnotations(AnnotatedElement annotatedElement,
+                                              Class<? extends Annotation> clzMetaAnnotation) {
+        return Stream.of(annotatedElement.getAnnotations())
+                .filter(a -> a.annotationType().isAnnotationPresent(clzMetaAnnotation));
+    }
+
+    /**
+     * Return a set of event types the interceptor should handle
+     * based on the specified annotation.
+     *
+     * @param annotation  the annotation to get event types from
+     *
+     * @return a set of event types the interceptor should handle
+     */
+    private Collection<? extends Enum> getEventTypes(Annotation annotation)
+        {
+        try
+            {
+            // first try to get explicitly specified event types
+            Method methValue = annotation.annotationType().getMethod("value");
+            Enum[] aTypes    = (Enum[]) methValue.invoke(annotation);
+            if (aTypes.length == 0)
+                {
+                // get all event types for a given annotation
+                aTypes = (Enum[]) aTypes.getClass().getComponentType().getEnumConstants();
+                }
+
+            return Arrays.asList(aTypes);
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Find the {@link InterceptorMetadataResolver} to use.
+     * <p>
+     * This method will search for the resolver using {@code ServiceLoader}, and
+     * will either return an instance of a resolver discovered by the loader, or
+     * the default implementation which simply returns the actual class of the
+     * interceptor passed in.
+     * <p>
+     * If multiple resolvers are discovered by the service loader, this method
+     * will throw an exception.
+     *
+     * @return the {@link InterceptorMetadataResolver} to use
+     *
+     * @throws IllegalStateException  if multiple implementations of the
+     *         {@link InterceptorMetadataResolver} are discovered
+     */
+    private static InterceptorMetadataResolver findInterceptorMetadataResolver()
+        {
+        List<InterceptorMetadataResolver> resolvers = new ArrayList<>();
+
+        ServiceLoader.load(InterceptorMetadataResolver.class).forEach(resolvers::add);
+
+        if (resolvers.isEmpty())
+            {
+            // no custom resolvers discovered, use the default resolver
+            return interceptor -> interceptor == null ? null : interceptor.getClass();
+            }
+        else if (resolvers.size() > 1)
+            {
+            // ambiguous, throw an exception
+            String resolverNames = resolvers.stream()
+                    .map(resolver -> resolver.getClass().getName())
+                    .collect(Collectors.joining(", "));
+
+            throw new IllegalStateException("Found more than one InterceptorMetadataResolver: " + resolverNames);
+            }
+
+        return resolvers.get(0);
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
      * The event interceptor.
      */
     private final EventInterceptor<E> m_interceptor;
+
+    /**
+     * The resolved class of the event interceptor.
+     */
+    private final Class<? extends EventInterceptor> m_clzInterceptor;
 
     /**
      * The cache name this {@link EventInterceptor} is concerned with.

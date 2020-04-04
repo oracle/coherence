@@ -6,6 +6,7 @@
  */
 package events.common;
 
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 
@@ -18,7 +19,8 @@ import com.tangosol.util.BinaryEntry;
  * @author hr  2012.09.07
  * @since Coherence 12.1.2
  */
-@Interceptor(identifier = BinaryEntryAssertingInterceptor.IDENTIFIER, entryEvents = EntryEvent.Type.INSERTED)
+@Interceptor(identifier = BinaryEntryAssertingInterceptor.IDENTIFIER)
+@EntryEvents(EntryEvent.Type.INSERTED)
 public class BinaryEntryAssertingInterceptor
         extends AbstractTestInterceptor<EntryEvent<?, ?>>
     {

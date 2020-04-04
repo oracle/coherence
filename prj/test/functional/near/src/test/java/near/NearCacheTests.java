@@ -8,6 +8,7 @@
 package near;
 
 import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 
@@ -815,7 +816,8 @@ public class NearCacheTests
     /**
      * Test interceptor for COH-15130
      */
-    @Interceptor(identifier = "Mutator", entryEvents = {EntryEvent.Type.UPDATING})
+    @Interceptor(identifier = "Mutator")
+    @EntryEvents({EntryEvent.Type.UPDATING})
     public static class TestInterceptor
             implements EventInterceptor<EntryEvent<?, ?>>, Serializable
         {

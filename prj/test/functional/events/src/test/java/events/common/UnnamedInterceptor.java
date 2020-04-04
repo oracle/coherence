@@ -9,7 +9,7 @@ package events.common;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.EventInterceptor;
-import com.tangosol.net.events.annotation.Interceptor;
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.util.BinaryEntry;
 
@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author pfm 2012.11.05
  * @since 12.1.2
  */
-@Interceptor(entryEvents = {EntryEvent.Type.INSERTED, EntryEvent.Type.UPDATED, EntryEvent.Type.REMOVED})
+@EntryEvents({EntryEvent.Type.INSERTED, EntryEvent.Type.UPDATED, EntryEvent.Type.REMOVED})
 public class UnnamedInterceptor
         implements EventInterceptor<EntryEvent<?, ?>>, Serializable
     {

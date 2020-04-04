@@ -7,6 +7,7 @@
 package events.common;
 
 import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.annotation.CacheLifecycleEvents;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.net.CacheFactory;
@@ -23,8 +24,8 @@ import java.io.Serializable;
  * @author bbc 2015.09.15
  * @since 12.2.1.1
  */
-@Interceptor(identifier = "CacheLifecycle", cacheLifecycleEvents = {CacheLifecycleEvent.Type.CREATED,
-        CacheLifecycleEvent.Type.TRUNCATED, CacheLifecycleEvent.Type.DESTROYED})
+@Interceptor(identifier = "CacheLifecycle")
+@CacheLifecycleEvents
 public class CacheLifecycleInterceptor
         implements EventInterceptor<CacheLifecycleEvent>, Serializable
     {
