@@ -19,7 +19,7 @@ public interface InterceptorMetadataResolver
      * Return the actual interceptor class that the generic type arguments
      * can be reified from.
      *
-     * @param interceptor an interceptor to get the actual class from
+     * @param interceptor  an interceptor to get the actual class from
      *
      * @return the actual interceptor class
      */

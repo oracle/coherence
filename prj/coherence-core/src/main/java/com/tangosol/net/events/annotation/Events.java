@@ -4,7 +4,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.net.events.annotation;
 
 import java.lang.annotation.ElementType;
@@ -17,6 +16,15 @@ import java.lang.annotation.Target;
  * in order to make them discoverable.
  *
  * @author as  2020.04.02
+ * @since Coherence 14.1.1
+ *
+ * @see CacheLifecycleEvents
+ * @see EntryEvents
+ * @see EntryProcessorEvents
+ * @see LifecycleEvents
+ * @see TransactionEvents
+ * @see TransferEvents
+ * @see UnsolicitedCommitEvents
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)

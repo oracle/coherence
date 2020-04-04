@@ -210,9 +210,8 @@ public class DefaultConfigurableCacheFactoryTest
 
     // ----- inner class: AlgoInterceptor -----------------------------------
 
-    @Interceptor(identifier = "Algo",
-            entryEvents = {Type.INSERTED})
-    @EntryEvents({Type.REMOVED, Type.UPDATED})
+    @Interceptor(identifier = "Algo")
+    @EntryEvents({Type.INSERTED, Type.REMOVED, Type.UPDATED})
     public static class AlgoInterceptor
             implements EventInterceptor<EntryEvent<?, ?>>
         {

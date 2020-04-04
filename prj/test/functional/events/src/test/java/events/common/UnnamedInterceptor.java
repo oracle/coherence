@@ -10,7 +10,6 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.annotation.EntryEvents;
-import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.util.BinaryEntry;
 
