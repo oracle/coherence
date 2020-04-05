@@ -6,9 +6,7 @@
  */
 package com.tangosol.net.events.partition;
 
-
 import com.tangosol.net.PartitionedService;
-
 
 /**
  * A PartitionedServiceEvent captures information concerning an operation on
