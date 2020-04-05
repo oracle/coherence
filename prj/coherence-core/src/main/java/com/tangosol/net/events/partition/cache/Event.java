@@ -31,9 +31,9 @@ public interface Event<T extends Enum<T>>
     public PartitionedCacheDispatcher getDispatcher();
 
     /**
-     * Return the {@link CacheService} this event was raised from.
+     * Return the name of the cache this event was raised from.
      *
-     * @return the {@code CacheService} this event was raised from
+     * @return the name of the cache this event was raised from
      */
     public default String getCacheName()
         {
