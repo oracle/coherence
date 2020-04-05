@@ -203,10 +203,9 @@ public class StorageDispatcher
          */
         protected String getDescription()
             {
-            StorageDispatcher dispatcher = (StorageDispatcher) m_dispatcher;
-            BackingMapContext context    = dispatcher.getBackingMapContext();
-            return super.getDescription() + ", Service=" + context.getManagerContext().getCacheService().getInfo().getServiceName() +
-                    ", Cache=" + context.getCacheName();
+            return super.getDescription() +
+                   ", Service=" + getService().getInfo().getServiceName() +
+                   ", Cache=" + getCacheName();
             }
 
         // ----- EntryEvent interface ---------------------------------------
@@ -272,10 +271,9 @@ public class StorageDispatcher
          */
         protected String getDescription()
             {
-            StorageDispatcher dispatcher = (StorageDispatcher) m_dispatcher;
-            BackingMapContext context    = dispatcher.getBackingMapContext();
-            return super.getDescription() + ", Service=" + context.getManagerContext().getCacheService().getInfo().getServiceName() +
-                    ", Cache=" + context.getCacheName();
+            return super.getDescription() +
+                   ", Service=" + getService().getInfo().getServiceName() +
+                   ", Cache=" + getCacheName();
             }
 
         // ----- EntryProcessorEvent interface ------------------------------
@@ -351,11 +349,9 @@ public class StorageDispatcher
          */
         protected String getDescription()
             {
-            StorageDispatcher dispatcher = (StorageDispatcher) m_dispatcher;
-            BackingMapContext context    = dispatcher.getBackingMapContext();
-
-            return super.getDescription() + ", Service=" + context.getManagerContext().getCacheService().getInfo().getServiceName() +
-                    ", Cache=" + context.getCacheName();
+            return super.getDescription() +
+                   ", Service=" + getService().getInfo().getServiceName() +
+                   ", Cache=" + getCacheName();
             }
 
         @Override

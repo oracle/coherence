@@ -174,7 +174,7 @@ public class ServiceDispatcher
          */
         protected String getDescription()
             {
-            return super.getDescription() + ", Service=" + getDispatcher().getService().getInfo().getServiceName();
+            return super.getDescription() + ", Service=" + getService().getInfo().getServiceName();
             }
 
         // ----- PartitionEvent methods -------------------------------------

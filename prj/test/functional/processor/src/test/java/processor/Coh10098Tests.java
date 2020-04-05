@@ -421,7 +421,7 @@ public class Coh10098Tests
          */
         public void onEvent(TransferEvent event)
             {
-            int nPIDToKill = calculatePIDToKill(event.getDispatcher().getService());
+            int nPIDToKill = calculatePIDToKill(event.getService());
             if (event.getType() == TransferEvent.Type.ARRIVED &&
                 event.getPartitionId() == nPIDToKill)
                 {
