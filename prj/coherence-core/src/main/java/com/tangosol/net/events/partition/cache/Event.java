@@ -6,6 +6,10 @@
  */
 package com.tangosol.net.events.partition.cache;
 
+import com.tangosol.net.BackingMapContext;
+import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.CacheService;
+
 /**
  * An event dispatched by a {@link PartitionedCacheDispatcher}.
  *
@@ -18,7 +22,51 @@ public interface Event<T extends Enum<T>>
             extends com.tangosol.net.events.Event<T>
     {
     /**
-     * {@inheritDoc}
+     * Return the {@link PartitionedCacheDispatcher} this event was
+     * raised by.
+     *
+     * @return the {@code PartitionedCacheDispatcher} this event was raised by
      */
-    @Override public PartitionedCacheDispatcher getDispatcher();
+    @Override
+    public PartitionedCacheDispatcher getDispatcher();
+
+    /**
+     * Return the name of the cache this event was raised from.
+     *
+     * @return the name of the cache this event was raised from
+     */
+    public default String getCacheName()
+        {
+        return getBackingMapContext().getCacheName();
+        }
+
+    /**
+     * Return the {@link CacheService} this event was raised from.
+     *
+     * @return the {@code CacheService} this event was raised from
+     */
+    public default CacheService getService()
+        {
+        return getManagerContext().getCacheService();
+        }
+
+    /**
+     * Return the {@link BackingMapManagerContext} this event was raised from.
+     *
+     * @return the {@code BackingMapManagerContext} this event was raised from
+     */
+    public default BackingMapManagerContext getManagerContext()
+        {
+        return getBackingMapContext().getManagerContext();
+        }
+
+    /**
+     * Return the {@link BackingMapContext} this event was raised from.
+     *
+     * @return the {@code BackingMapContext} this event was raised from
+     */
+    public default BackingMapContext getBackingMapContext()
+        {
+        return getDispatcher().getBackingMapContext();
+        }
     }

@@ -6,6 +6,8 @@
  */
 package com.tangosol.net.events.partition;
 
+import com.tangosol.net.PartitionedService;
+
 /**
  * A PartitionedServiceEvent captures information concerning an operation on
  * a PartitionedService. Sub interfaces provide more context on the event.
@@ -21,7 +23,17 @@ public interface Event<T extends Enum<T>>
      * Return the {@link PartitionedServiceDispatcher} this event was
      * raised by.
      *
-     * @return the PartitionedServiceDispatcher this event was raised by
+     * @return the {@code PartitionedServiceDispatcher} this event was raised by
      */
     @Override public PartitionedServiceDispatcher getDispatcher();
+
+    /**
+     * Return the {@link PartitionedService} this event was raised from.
+     *
+     * @return the {@code PartitionedService} this event was raised from
+     */
+    default PartitionedService getService()
+        {
+        return getDispatcher().getService();
+        }
     }
