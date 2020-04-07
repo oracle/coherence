@@ -16,13 +16,13 @@
 
 ## Contents
 1. [Introduction](#intro)
-2. [How to Get Coherence Community Edition](#acquire)
-3. [Coherence Overview](#overview)
-4. [Hello Coherence](#started)
-5. [Building](#build)
-6. [Integrations](#integrations)
-7. [Documentation](https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/index.html)
-8. [Contributing](CONTRIBUTING.md)
+1. [How to Get Coherence Community Edition](#acquire)
+1. [Coherence Overview](#overview)
+1. [Hello Coherence](#started)
+1. [Building](#build)
+1. [Integrations](#integrations)
+1. [Documentation](https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/index.html)
+1. [Contributing](#contrib)
 
 ## <a name="intro"></a>Introduction
 
@@ -171,29 +171,86 @@ $> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1
 
 $> export COH_JAR=~/.m2/repository/com/oracle/coherence-ce/coherence/14.1.1-0-0/coherence-14.1.1-0-0.jar
 
-$> java -cp $COH_JAR com.tangosol.net.DefaultCacheServer &
+$> java -jar $COH_JAR &
 
-$> java -Dcoherence.distributed.localstorage=false -jar $COH_JAR
+$> java -Dcoherence.distributed.localstorage=false -cp $COH_JAR com.tangosol.net.CacheFactory
 
 $console> (?): cache welcomes
+
 $console> (welcomes): get english
 null
+
 $console> (welcomes): put english Hello
 null
+
 $console> (welcomes): put spanish Hola
 null
+
 $console> (welcomes): put french Bonjour
 null
+
 $console> (welcomes): get english
 Hello
+
 $console> (welcomes): list
-[english:Hello, spanish:Hola, french:Bonjour]
+french = Bonjour
+spanish = Hola
+english = Hello
+
 $console> (welcomes): bye
 
-$> java -Dcoherence.distributed.localstorage=false -jar $COH_JAR
+$> java -cp $COH_JAR com.tangosol.net.CacheFactory
+
 $console> (?): cache welcomes
+
 $console> (welcomes): list
-[english:Hello, spanish:Hola, french:Bonjour]
+french = Bonjour
+spanish = Hola
+english = Hello
+
+$console> (welcomes): bye
+
+$> kill %1
+
+```
+
+```shell
+
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-0 dependency:get
+
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence-ce/coherence/14.1.1-0-0/coherence-14.1.1-0-0.jar
+
+$> java -jar $COH_JAR &
+
+$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
+
+CohQL> select * from welcomes
+
+CohQL> insert into welcomes key 'english' value 'Hello'
+
+CohQL> insert into welcomes key 'spanish' value 'Hola'
+
+CohQL> insert into welcomes key 'french' value 'Bonjour'
+
+CohQL> select key(), value() from welcomes
+Results
+["french", "Bonjour"]
+["english", "Hello"]
+["spanish", "Hola"]
+
+CohQL> bye
+
+$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
+
+CohQL> select key(), value() from welcomes
+Results
+["french", "Bonjour"]
+["english", "Hello"]
+["spanish", "Hola"]
+
+CohQL> bye
+
+$> kill %1
 
 ```
 
@@ -208,3 +265,7 @@ $> mvn clean install
 ```
 
 ## <a name="integrations"></a>Integrations
+
+# <a name="contrib"></a>Contribute
+
+Interested in contributing?  Please see our contribution [guidelines](CONTRIBUTING.md) for details.
