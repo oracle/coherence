@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * in order to make them discoverable.
  *
  * @author as  2020.04.02
- * @since Coherence 14.1.1
+ * @since Coherence 14.1.2
  *
  * @see CacheLifecycleEvents
  * @see EntryEvents
