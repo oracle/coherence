@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+                             
+  <report>
+    <file-name>{date}-Management.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=Management</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>ReportTime</header>
+      </column>
+
+      <column id="RefreshPolicy">
+        <name>RefreshPolicy</name>
+      </column>
+
+      <column id="RefreshTime">
+        <name>RefreshTime</name>
+      </column>
+
+      <column id="RefreshExcessCount">
+        <name>RefreshExcessCount</name>
+      </column>
+
+      <column id="RefreshCount">
+        <name>RefreshCount</name>
+      </column>
+
+      <column id="RefreshPredictionCount">
+        <name>RefreshPredictionCount</name>
+      </column>
+
+      <column id="RefreshTimeoutCount">
+        <name>RefreshTimeoutCount</name>
+      </column>
+    </row>
+  </report>
+</report-config>

@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <!--
+    This report is for use by the Coherence JVisualVM plugin only.
+    -->
+    <report>
+        <file-name>{date}-http-stats.txt</file-name>
+        <delim>{tab}</delim>
+
+        <!-- Only include services where Protocol == 'http'
+             This attribute was introduced with 12.2.1.1. -->
+        <filters>
+            <filter id="equals">
+                <type>equals</type>
+                <params>
+                    <column-ref>Protocol</column-ref>
+                    <column-ref>ConstHTTP</column-ref>
+                </params>
+            </filter>
+        </filters>
+
+        <query>
+            <pattern>Coherence:type=ConnectionManager,*</pattern>
+            <filter-ref>equals</filter-ref>
+        </query>
+
+        <row>
+            <column id="Name">
+                <type>key</type>
+                <name>name</name>
+                <header>Service Name</header>
+                <group-by>true</group-by>
+            </column>
+
+            <column id="DomainPartition">
+                <type>key</type>
+                <name>domainPartition</name>
+                <header>Domain Partition</header>
+                <!-- <hidden>{non-MT}</hidden> -->
+                <group-by>true</group-by>
+            </column>
+
+            <column id="HttpServerType">
+                <name>HttpServerType</name>
+                <header>Http Server Type</header>
+                <group-by>true</group-by>
+            </column>
+
+            <column id="Members">
+                <type>function</type>
+                <header>Members</header>
+                <column-ref>counter</column-ref>
+                <function-name>sum</function-name>
+            </column>
+
+            <column id="TotalRequestCountValue">
+                <type>function</type>
+                <header>TotalRequestCountValue</header>
+                <column-ref>TotalRequestCount</column-ref>
+                <function-name>sum</function-name>
+            </column>
+
+            <column id="TotalErrorCountValue">
+                <type>function</type>
+                <header>TotalErrorCountValue</header>
+                <column-ref>TotalErrorCount</column-ref>
+                <function-name>sum</function-name>
+            </column>
+
+            <column id="AverageRequestsPerSecondValue">
+                <type>function</type>
+                <header>AverageRequestsPerSecondValue</header>
+                <column-ref>RequestsPerSecond</column-ref>
+                <function-name>avg</function-name>
+            </column>
+
+            <column id="AverageRequestTimeValue">
+                <type>function</type>
+                <header>AverageRequestTimeValue</header>
+                <column-ref>AverageRequestTime</column-ref>
+                <function-name>avg</function-name>
+            </column>
+
+            <column id="TotalRequestCount">
+                <name>TotalRequestCount</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TotalErrorCount">
+                <name>TotalErrorCount</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="AverageRequestTime">
+                <name>AverageRequestTime</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="RequestsPerSecond">
+                <name>RequestsPerSecond</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="Protocol">
+                <name>Protocol</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="ConstHTTP">
+                <type>constant</type>
+                <name>ConstHTTP</name>
+                <hidden>true</hidden>
+                <data-type>string</data-type>
+                <value>http</value>
+            </column>
+
+            <column id="counter">
+                <type>constant</type>
+                <name>counter</name>
+                <hidden>true</hidden>
+                <data-type>double</data-type>
+                <value>1</value>
+            </column>
+        </row>
+    </report>
+</report-config>
+

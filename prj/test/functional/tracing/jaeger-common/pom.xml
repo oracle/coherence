@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>tracing</artifactId>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <version>14.1.1-0-1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>tracing-jaeger-common</artifactId>
+  <name>Coherence Tracing Tests - Jaeger - Common</name>
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <!-- Coherence Dependencies -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Testing support -->
+    <dependency>
+      <groupId>${coherence.group.id}.tests</groupId>
+      <artifactId>tracing-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- OpenTracing Dependencies -->
+    <dependency>
+      <groupId>io.jaegertracing</groupId>
+      <artifactId>jaeger-client</artifactId>
+      <version>${opentracing.jaeger.version}</version>
+    </dependency>
+  </dependencies>
+</project>

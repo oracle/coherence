@@ -1,0 +1,1 @@
+This directory will hold distributions (created by the build process) of Coherence.

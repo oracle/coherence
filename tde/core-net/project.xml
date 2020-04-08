@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<Project>
+  <Name>core-net</Name>
+  <Description>Created on Thu Oct 18 13:32:15 EDT 2001</Description>
+  <DefaultTarget>3.0</DefaultTarget>
+  <StorageInfo>
+    <Location>./core-net</Location>
+  </StorageInfo>
+  <TargetList>
+    <Target>
+      <Name>3.0</Name>
+      <Description>Created on Tue Mar 18 12:00:48 EST 2003</Description>
+      <Version>3.0</Version>
+      <Customization/>
+      <Localization/>
+      <Locked>false</Locked>
+      <BaseTargets>
+        <TargetRef>core</TargetRef>
+      </BaseTargets>
+      <StorageInfo/>
+      <Library>
+        <Name>ant-extension</Name>
+        <Description/>
+        <Customizable>true</Customizable>
+        <Visibility>standard</Visibility>
+        <StorageInfo>
+          <Location>./3.0/ext/webInstallerAnt.jar</Location>
+        </StorageInfo>
+      </Library>
+      <Library>
+        <Name>log4j-1.2.17.jar</Name>
+        <Description/>
+        <Customizable>true</Customizable>
+        <Visibility>standard</Visibility>
+        <StorageInfo>
+          <Location>./3.0/lib/log4j-1.2.17.jar</Location>
+        </StorageInfo>
+      </Library>
+      <Library>
+        <Name>log4j-api-2.11.1.jar</Name>
+        <Description/>
+        <Customizable>true</Customizable>
+        <Visibility>standard</Visibility>
+        <StorageInfo>
+          <Location>./3.0/lib/log4j-api-2.11.1.jar</Location>
+        </StorageInfo>
+      </Library>
+      <Library>
+        <Name>slf4j-api-1.7.12.jar</Name>
+        <Description/>
+        <Customizable>true</Customizable>
+        <Visibility>standard</Visibility>
+        <StorageInfo>
+          <Location>./3.0/lib/slf4j-api-1.7.12.jar</Location>
+        </StorageInfo>
+      </Library>
+    </Target>
+    <Target>
+      <Name>2.5-full</Name>
+      <Description>Created on Tue Nov 16 12:01:24 EST 2004; Closure</Description>
+      <Version>2.5-full</Version>
+      <Customization/>
+      <Localization/>
+      <Locked>false</Locked>
+      <BaseTargets>
+        <TargetRef>core</TargetRef>
+      </BaseTargets>
+      <StorageInfo>
+        <Location>2_5.zip</Location>
+      </StorageInfo>
+    </Target>
+  </TargetList>
+  <VersionList>
+    <Version>
+      <Name>2.5-full</Name>
+      <Description>Created on Tue Nov 16 11:58:50 EST 2004; Closure</Description>
+      <BaseName/>
+    </Version>
+    <Version>
+      <Name>3.0</Name>
+      <Description>Created on Tue Mar 18 12:00:08 EST 2003</Description>
+      <BaseName>2.5-full</BaseName>
+    </Version>
+  </VersionList>
+  <CustomizationList/>
+  <LocalizationList/>
+</Project>

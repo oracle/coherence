@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<rest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://xmlns.oracle.com/coherence/coherence-rest-config"
+      xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-rest-config coherence-rest-config.xsd">
+  <resources>
+    <resource name="test-name">
+      <cache-name>test-cache</cache-name>
+      <alias>test-alias</alias>
+      <key-class>java.lang.String</key-class>
+      <value-class>java.lang.String</value-class>
+    </resource>
+    <resource>
+      <cache-name>test-cache-named-query</cache-name>
+      <key-class>java.lang.String</key-class>
+      <value-class>java.lang.String</value-class>
+      <query max-results="100">
+        <name>query-no-engine</name>
+        <expression>query-no-engine-expression</expression>
+      </query>
+      <query engine="DEFAULT">
+        <name>query-default-engine</name>
+        <expression>query-default-engine-expression</expression>
+      </query>
+      <query engine="null-engine">
+        <name>query-custom-engine</name>
+        <expression>query-custom-engine-expression</expression>
+      </query>
+    </resource>
+    <resource max-results="1000">
+      <cache-name>test-cache-direct-query1</cache-name>
+      <key-class>java.lang.String</key-class>
+      <value-class>java.lang.String</value-class>
+      <direct-query enabled="true" engine="null-engine" max-results="500"/>
+    </resource>
+    <resource>
+      <cache-name>test-cache-direct-query2</cache-name>
+      <key-class>java.lang.String</key-class>
+      <value-class>java.lang.String</value-class>
+      <direct-query enabled="true"/>
+    </resource>
+    <resource>
+      <cache-name>test-cache-direct-query3</cache-name>
+      <key-class>java.lang.String</key-class>
+      <value-class>java.lang.String</value-class>
+      <direct-query/>
+    </resource>
+  </resources>
+
+  <query-engines>
+    <engine>
+      <name>null-engine</name>
+      <class-name>com.tangosol.coherence.rest.query.QueryEngineRegistryTest$NullQueryEngine</class-name>
+    </engine>
+  </query-engines>
+</rest>

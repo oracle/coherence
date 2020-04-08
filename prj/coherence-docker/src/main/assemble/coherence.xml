@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>coherence</id>
+  <formats>
+    <format>dir</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <dependencySets>
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputDirectory>coherence/lib</outputDirectory>
+      <includes>
+        <include>com.sleepycat:je</include>
+        <include>jline:jline</include>
+        <include>javax.cache:cache-api</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+
+    <!-- added to image to support management and metrics endpoints running under jersey -->
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputDirectory>coherence/thirdparty/lib</outputDirectory>
+      <includes>
+        <include>org.glassfish.hk2*:*</include>
+        <include>org.glassfish.jersey.core:*</include>
+        <include>org.glassfish.jersey.bundles.repackaged:jersey-guava</include>
+        <include>org.glassfish.jersey.inject:jersey-hk2</include>
+        <include>org.glassfish.jersey.media:jersey-media-json-jackson</include>
+        <include>org.glassfish.jersey.ext:jersey-entity-filtering</include>
+        <include>com.fasterxml.jackson.*:*</include>
+        <include>jakarta.ws.rs:jakarta.ws.rs-api</include>
+        <include>jakarta.annotation:jakarta.annotation-api</include>
+        <include>javax.validation:*</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+      <fileMode>755</fileMode>
+    </dependencySet>
+  </dependencySets>
+  <fileSets>
+    <fileSet>
+      <directory>src/main/docker</directory>
+      <outputDirectory/>
+      <excludes>
+        <exclude>*.sh</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <filtered>false</filtered>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/docker</directory>
+      <outputDirectory/>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <filtered>false</filtered>
+    </fileSet>
+  </fileSets>
+  <moduleSets>
+    <moduleSet>
+      <useAllReactorProjects>true</useAllReactorProjects>
+      <includes>
+        <include>com.oracle.coherence:coherence</include>
+        <include>com.oracle.coherence:coherence-discovery</include>
+        <include>com.oracle.coherence:coherence-http-netty</include>
+        <include>com.oracle.coherence:coherence-jcache</include>
+        <include>com.oracle.coherence:coherence-loadbalancer</include>
+        <include>com.oracle.coherence:coherence-management</include>
+        <include>com.oracle.coherence:coherence-metrics</include>
+        <include>com.oracle.coherence:coherence-mock</include>
+        <include>com.oracle.coherence:coherence-rest</include>
+      </includes>
+      <binaries>
+        <outputDirectory>coherence/lib</outputDirectory>
+        <outputFileNameMapping>${module.artifactId}.${module.extension}</outputFileNameMapping>
+        <fileMode>755</fileMode>
+        <unpack>false</unpack>
+        <includeDependencies>false</includeDependencies>
+      </binaries>
+    </moduleSet>
+    <moduleSet>
+      <useAllReactorProjects>true</useAllReactorProjects>
+      <includes>
+        <include>com.oracle.coherence:coherence-login</include>
+      </includes>
+      <binaries>
+        <outputDirectory>coherence/lib/security</outputDirectory>
+        <outputFileNameMapping>${module.artifactId}.${module.extension}</outputFileNameMapping>
+        <unpack>false</unpack>
+        <includeDependencies>false</includeDependencies>
+      </binaries>
+    </moduleSet>
+  </moduleSets>
+
+</assembly>

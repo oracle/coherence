@@ -1,0 +1,260 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+  <report>
+    <file-name>{date}-service.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=Service,*</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>ReportTime</header>
+      </column>
+
+      <column id="Service">
+        <type>key</type>
+        <name>name</name>
+        <header>Service</header>
+      </column>
+
+      <column id="DomainPartition">
+        <type>key</type>
+        <name>domainPartition</name>
+        <header>Domain Partition</header>
+        <hidden>{non-MT}</hidden>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>Node Id</header>
+      </column>
+
+      <column id="NodeTimestamp">
+        <type>attribute</type>
+        <name>timestamp</name>
+        <query>
+          <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+        </query>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="RefreshTime">
+        <name>RefreshTime</name>
+      </column>
+
+      <column id="TotalRequestCount">
+        <name>RequestTotalCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="RequestCount">
+        <type>function</type>
+        <name>deltaRequestCount</name>
+        <header>Request Count</header>
+        <column-ref>TotalRequestCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="RequestPendingCount">
+        <name>RequestPendingCount</name>
+      </column>
+
+      <column id="RequestPendingDuration">
+        <name>RequestPendingDuration</name>
+      </column>
+
+      <column id="TotalRequestTimeoutCount">
+        <name>RequestTimeoutCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="RequestTimeoutCount">
+        <type>function</type>
+        <name>DeltaRequestTimeouCount</name>
+        <header>Request Timeout Count</header>
+        <column-ref>TotalRequestTimeoutCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="TotalTaskCount">
+        <name>TaskCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TaskCount">
+        <type>function</type>
+        <name>deltaTaskCount</name>
+        <header>Task Count</header>
+        <column-ref>TotalTaskCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="TaskBacklog">
+        <name>TaskBacklog</name>
+      </column>
+
+      <column id="TotalTaskTimeoutCount">
+        <name>TaskTimeoutCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TaskTimeoutCount">
+        <type>function</type>
+        <name>DeltaTaskTimeouCount</name>
+        <header>Task Timeout Count</header>
+        <column-ref>TotalTaskTimeoutCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="TaskHungCount">
+        <name>TaskHungCount</name>
+        <header>Task Hung Count</header>
+      </column>
+
+      <column id="TotalThreadAbandonedCount">
+        <name>ThreadAbandonedCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="ThreadAbandonedCount">
+        <type>function</type>
+        <name>deltaThreadAbandonedCount</name>
+        <header>Thread Abandoned Count</header>
+        <column-ref>TotalThreadAbandonedCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
+      <column id="OwnedPartitionsPrimary">
+        <name>OwnedPartitionsPrimary</name>
+        <header>Owned Partitions Primary</header>
+      </column>
+      
+      <column id="OwnedPartitionsBackup">
+        <name>OwnedPartitionsBackup</name>
+        <header>Owned Partitions Backups</header>
+      </column>
+
+      <column id="PartitionsEndangered">
+        <name>PartitionsEndangered</name>
+        <header>Partitions Endangered</header>
+      </column>
+      
+      <column id="PartitionsVulnerable">
+        <name>PartitionsVulnerable</name>
+        <header>Partitions Vulnerable</header>
+      </column>
+      
+      <column id="PartitionsUnbalanced">
+        <name>PartitionsUnbalanced</name>
+        <header>Partitions Unbalanced</header>
+      </column>
+
+      <column id="OutgoingTransferCount">
+        <name>OutgoingTransferCount</name>
+        <header>Outgoing Partition Count</header>
+      </column>
+
+      <column id="ThreadCount">
+        <name>ThreadCount</name>
+        <header>Thread Count</header>
+      </column>
+
+      <column id="ThreadIdleCount">
+        <name>ThreadIdleCount</name>
+        <header>Thread Idle Count</header>
+      </column>
+
+      <column id="ThreadCountUsed">
+        <type>function</type>
+        <name>ThreadCountUsed</name>
+        <header>ThreadCountUsed</header>
+        <hidden>true</hidden>
+        <function-name>subtract</function-name>
+        <params>
+          <column-ref>ThreadCount</column-ref>
+          <column-ref>ThreadIdleCount</column-ref>
+        </params>
+      </column>
+
+      <column id="Const100">
+        <type>constant</type>
+        <name>const100</name>
+        <header>Constant</header>
+        <hidden>true</hidden>
+        <data-type>double</data-type>
+        <value>100.0</value>
+      </column>
+
+      <column id="ThreadUtilRaw">
+        <type>function</type>
+        <name>ThreadUtilRaw</name>
+        <header>ThreadUtilRaw</header>
+        <hidden>true</hidden>
+        <function-name>divide</function-name>
+        <params>
+          <column-ref>ThreadCountUsed</column-ref>
+          <column-ref>ThreadCount</column-ref>
+        </params>
+      </column>
+
+      <column id="ThreadUtilPercent">
+        <type>function</type>
+        <name>ThreadUtilPercent</name>
+        <header>Thread Utilization %</header>
+        <hidden>false</hidden>
+        <function-name>multiply</function-name>
+        <params>
+          <column-ref>ThreadUtilRaw</column-ref>
+          <column-ref>Const100</column-ref>
+        </params>
+      </column>
+      
+    </row>
+  </report>
+</report-config>

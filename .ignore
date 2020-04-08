@@ -1,0 +1,30 @@
+# used by intellij
+# ignore these types of java files
+*.class 
+*.jar
+*.war
+*.rar
+*.gar 
+
+# ignore these IntelliJ files
+.idea
+*.iml
+*.ipr
+*.iws
+
+# ignore these hidden and build specific files
+.*
+~*
+
+# ignore these folders
+target
+dist
+_package
+
+#ignore these specific files
+dependency-reduced-pom.xml
+
+# however allow these files
+!.ignore
+!.github
+!.gitignore

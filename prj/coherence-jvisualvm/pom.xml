@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>14.1.1-0-1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-jvisualvm</artifactId>
+  <packaging>nbm</packaging>
+  <name>Coherence JVisualVM Plug-In</name>
+
+  <description>
+    Developer JVisualVM Plugin to provide a summarized view of Coherence
+    Cluster runtime JMX statistics.
+  </description>
+
+  <dependencies>
+    <!-- jvisualvm -->
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>com-sun-tools-visualvm-application</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>com-sun-tools-visualvm-application-views</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>com-sun-tools-visualvm-charts</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>com-sun-tools-visualvm-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>com-sun-tools-visualvm-tools</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>org-openide-modules</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>org-openide-util</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>org-openide-dialogs</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.tools.visualvm.api</groupId>
+      <artifactId>org-openide-windows</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sleepycat</groupId>
+      <artifactId>je</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- we deploy this module to a repository -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${maven.deploy.plugin.version}</version>
+        <configuration combine.self="override">
+          <skip>false</skip>
+        </configuration>
+      </plugin>
+
+      <!-- flatten POM to remove build-specific content -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>nbm-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>nbm</id>
+            <phase>package</phase>
+            <goals>
+              <goal>nbm</goal>
+            </goals>
+            <configuration>
+              <descriptor>src/main/nbm/module.xml</descriptor>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <executions>
+          <execution>
+            <id>replace</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <file>${project.basedir}/src/main/nbm/manifest.mf</file>
+          <regex>true</regex>
+          <replacements>
+            <replacement>
+              <token>%VERSION%</token>
+              <value>${project.version.official}</value>
+            </replacement>
+          </replacements>
+          <outputFile>${project.basedir}/target/manifest.mf</outputFile>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>copyright</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+          <plugins>
+            <plugin>
+              <groupId>com.mycila</groupId>
+              <artifactId>license-maven-plugin</artifactId>
+              <version>${maven.license.plugin.version}</version>
+              <configuration>
+                <excludes>
+                  <exclude>license.txt</exclude>
+                  <exclude>**/src/main/nbm/manifest.mf</exclude>
+                </excludes>
+              </configuration>
+            </plugin>
+          </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

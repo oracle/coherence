@@ -1,0 +1,15 @@
+@rem
+@rem %file%
+@rem
+@rem Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+@rem
+@rem Oracle is a registered trademarks of Oracle Corporation and/or its
+@rem affiliates.
+@rem
+@rem This software is the confidential and proprietary information of Oracle
+@rem Corporation. You shall not disclose such confidential and proprietary
+@rem information and shall use it only in accordance with the terms of the
+@rem license agreement you entered into with Oracle.
+@rem
+@rem This notice may not be removed or altered.
+@rem

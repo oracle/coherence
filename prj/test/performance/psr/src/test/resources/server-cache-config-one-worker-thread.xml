@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<cache-config
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+	xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config
+	http://xmlns.oracle.com/coherence/coherence-cache-config/1.1/coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>dist-default</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <local-scheme>
+      <scheme-name>local-default</scheme-name>
+      <service-name>LocalCache</service-name>
+    </local-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-default</scheme-name>
+      <service-name>DistributedCache</service-name>
+      <serializer>
+        <instance>
+          <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>pof-config.xml</param-value>
+            </init-param>
+          </init-params>
+        </instance>
+      </serializer>
+      <thread-count>1</thread-count>
+      <lease-granularity>member</lease-granularity>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <local-scheme>
+          <scheme-ref>local-default</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <scheme-name>proxy-default</scheme-name>
+      <service-name>Proxy</service-name>
+      <thread-count system-property="tangosol.coherence.proxy.threads">25</thread-count>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="tangosol.coherence.proxy.address">0.0.0.0</address>
+            <port system-property="tangosol.coherence.proxy.port">9099</port>
+          </local-address>
+
+          <!-- The following has a dramatic effect on send throughput (at least on Windows) -->
+          <send-buffer-size>128kb</send-buffer-size>
+          <!--<incoming-buffer-pool>-->
+            <!--<buffer-size>10k</buffer-size>-->
+          <!--</incoming-buffer-pool>-->
+          <!--<outgoing-buffer-pool>-->
+            <!--<buffer-size>10k</buffer-size>-->
+          <!--</outgoing-buffer-pool>-->
+        </tcp-acceptor>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+      </acceptor-config>
+      <load-balancer>client</load-balancer>
+      <autostart system-property="tangosol.coherence.proxy.autostart">false</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

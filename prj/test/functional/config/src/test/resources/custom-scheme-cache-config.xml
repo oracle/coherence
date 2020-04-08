@@ -1,0 +1,344 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">      
+
+  <caching-scheme-mapping> 
+    <cache-mapping> 
+      <cache-name>custom-named-cache*</cache-name> 
+      <scheme-name>custom-named-cache-scheme</scheme-name> 
+    </cache-mapping> 
+    <cache-mapping> 
+      <cache-name>dist-backing-custom*</cache-name> 
+      <scheme-name>dist-backing-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-external-async-custom*</cache-name> 
+      <scheme-name>dist-backing-external-async-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-external-custom*</cache-name> 
+      <scheme-name>dist-backing-external-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-overflow-custom*</cache-name> 
+      <scheme-name>dist-backing-overflow-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-overflow-back-custom*</cache-name> 
+      <scheme-name>dist-backing-overflow-back-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-overflow-front-custom*</cache-name> 
+      <scheme-name>dist-backing-overflow-front-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-paged-external-async-custom*</cache-name> 
+      <scheme-name>dist-backing-paged-external-async-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-paged-external-custom*</cache-name> 
+      <scheme-name>dist-backing-paged-external-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-rwbm-custom*</cache-name> 
+      <scheme-name>dist-backing-rwbm-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>dist-backing-rwbm-internal-custom*</cache-name> 
+      <scheme-name>dist-backing-rwbm-internal-custom-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>local-custom-store*</cache-name> 
+      <scheme-name>local-custom-store-scheme</scheme-name> 
+    </cache-mapping>
+    <cache-mapping> 
+      <cache-name>near-custom*</cache-name> 
+      <scheme-name>near-custom-scheme</scheme-name> 
+    </cache-mapping> 
+    <cache-mapping> 
+      <cache-name>near-back-custom*</cache-name> 
+      <scheme-name>near-back-custom-scheme</scheme-name> 
+    </cache-mapping>    
+    <cache-mapping> 
+      <cache-name>near-front-custom*</cache-name> 
+      <scheme-name>near-front-custom-scheme</scheme-name> 
+    </cache-mapping> 
+  </caching-scheme-mapping> 
+  
+  <caching-schemes> 
+       
+    <class-scheme>
+     <scheme-name>custom-named-cache-scheme</scheme-name>
+     <class-name>com.tangosol.coherence.config.CustomClasses$CustomNamedCache</class-name>
+       <init-params>            
+         <init-param>
+           <param-type>java.lang.String</param-type>
+           <param-value>{cache-name}</param-value>
+         </init-param>  
+       </init-params>
+    </class-scheme> 
+    
+   <distributed-scheme>
+     <scheme-name>dist-backing-custom-scheme</scheme-name>
+     <service-name>dist-backing-custom-service</service-name>
+     <backing-map-scheme>  
+       <class-scheme>
+           <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       </class-scheme> 
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-external-async-custom-scheme</scheme-name>
+     <service-name>dist-backing-external-async-custom-service</service-name>
+     <backing-map-scheme>  
+       <external-scheme>
+        <scheme-ref>external-async-custom-scheme</scheme-ref> 
+       </external-scheme> 
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-external-custom-scheme</scheme-name>
+     <service-name>dist-backing-external-custom-service</service-name>
+     <backing-map-scheme>  
+       <external-scheme>
+        <scheme-ref>external-store-manager-custom-scheme</scheme-ref> 
+       </external-scheme> 
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-overflow-custom-scheme</scheme-name>
+     <service-name>dist-backing-overflow-custom-service</service-name>
+     <backing-map-scheme>  
+       <overflow-scheme>
+        <scheme-ref>overflow-custom-scheme</scheme-ref> 
+       </overflow-scheme> 
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-overflow-front-custom-scheme</scheme-name>
+     <service-name>dist-backing-overflow-front-custom-service</service-name>
+     <backing-map-scheme>  
+       <overflow-scheme>
+        <scheme-ref>overflow-front-custom-scheme</scheme-ref> 
+       </overflow-scheme> 
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-overflow-back-custom-scheme</scheme-name>
+     <service-name>dist-backing-overflow-back-custom-service</service-name>
+     <backing-map-scheme>  
+       <overflow-scheme>
+        <scheme-ref>overflow-back-custom-scheme</scheme-ref> 
+       </overflow-scheme> 
+     </backing-map-scheme>
+   </distributed-scheme>
+   
+   <distributed-scheme>
+     <scheme-name>dist-backing-paged-external-async-custom-scheme</scheme-name>
+     <service-name>dist-backing-paged-external-async-custom-service</service-name>
+     <backing-map-scheme>  
+       <paged-external-scheme>
+        <scheme-ref>paged-external-async-custom-scheme</scheme-ref> 
+       </paged-external-scheme> 
+     </backing-map-scheme>
+   </distributed-scheme>
+       
+   <distributed-scheme>
+     <scheme-name>dist-backing-paged-external-custom-scheme</scheme-name>
+     <service-name>dist-backing-paged-external-custom-service</service-name>
+     <backing-map-scheme>  
+       <paged-external-scheme>
+        <scheme-ref>paged-external-custom-scheme</scheme-ref> 
+       </paged-external-scheme> 
+     </backing-map-scheme>
+   </distributed-scheme>
+           
+   <distributed-scheme>
+     <scheme-name>dist-backing-rwbm-custom-scheme</scheme-name>
+     <service-name>dist-backing-rwbm-custom-service</service-name>
+     <backing-map-scheme>  
+        <read-write-backing-map-scheme>
+          <class-name>com.tangosol.coherence.config.CustomClasses$CustomReadWriteBackingMap</class-name>
+          <internal-cache-scheme>
+              <local-scheme/>
+            </internal-cache-scheme>
+        </read-write-backing-map-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-rwbm-internal-custom-scheme</scheme-name>
+     <service-name>dist-backing-rwbm-internal-custom-service</service-name>
+     <backing-map-scheme>  
+        <read-write-backing-map-scheme>
+            <internal-cache-scheme>
+              <class-scheme>
+                <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+              </class-scheme> 
+            </internal-cache-scheme>
+        </read-write-backing-map-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+               
+   <external-scheme>
+     <scheme-name>external-async-custom-scheme</scheme-name>
+     <class-name>com.tangosol.coherence.config.CustomClasses$CustomSerializationCache</class-name>
+     <async-store-manager>
+       <class-name>com.tangosol.coherence.config.CustomClasses$CustomAsyncBinaryStoreManager</class-name>
+       <custom-store-manager>
+          <class-name>com.tangosol.coherence.config.CustomClasses$CustomBinaryStoreManager</class-name>
+       </custom-store-manager>
+     </async-store-manager>
+     <high-units>10000</high-units>     
+   </external-scheme>       
+  
+   <external-scheme>
+     <scheme-name>external-store-manager-custom-scheme</scheme-name>
+     <class-name>com.tangosol.coherence.config.CustomClasses$CustomSerializationCache</class-name>
+     <custom-store-manager>
+       <class-name>com.tangosol.coherence.config.CustomClasses$CustomBinaryStoreManager</class-name>
+     </custom-store-manager>
+     <high-units>10000</high-units>     
+   </external-scheme>
+            
+    <local-scheme>
+      <scheme-name>local-custom-store-scheme</scheme-name>
+       <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       <cachestore-scheme>
+            <class-scheme>
+              <class-name>com.tangosol.coherence.config.CustomClasses$CustomCacheStore</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>java.lang.String</param-type>
+                  <param-value>{cache-name}</param-value>
+                </init-param>
+                <init-param>
+                  <param-type>java.lang.String</param-type>
+                  <param-value>coherence-pu</param-value>
+                </init-param>
+              </init-params>
+            </class-scheme>
+        </cachestore-scheme>
+    </local-scheme> 
+
+    <near-scheme>
+     <scheme-name>near-custom-scheme</scheme-name>
+     <class-name>com.tangosol.coherence.config.CustomClasses$CustomNearCache</class-name>
+     <front-scheme> 
+       <local-scheme/> 
+     </front-scheme>
+     <back-scheme> 
+       <local-scheme/> 
+     </back-scheme>
+    </near-scheme>
+        
+    <near-scheme>
+     <scheme-name>near-front-custom-scheme</scheme-name>
+     <front-scheme> 
+       <class-scheme>
+           <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       </class-scheme> 
+     </front-scheme>
+     <back-scheme> 
+       <local-scheme/> 
+     </back-scheme>
+    </near-scheme>
+
+    <near-scheme>
+     <scheme-name>near-back-custom-scheme</scheme-name>
+     <front-scheme> 
+       <local-scheme/> 
+     </front-scheme>
+     <back-scheme> 
+       <class-scheme>
+         <class-name>com.tangosol.coherence.config.CustomClasses$CustomNamedCache</class-name>
+           <init-params>            
+             <init-param>
+               <param-type>java.lang.String</param-type>
+               <param-value>{cache-name}</param-value>
+             </init-param>  
+           </init-params>
+       </class-scheme> 
+     </back-scheme>
+    </near-scheme>
+    
+   <overflow-scheme>
+     <scheme-name>overflow-custom-scheme</scheme-name>
+     <class-name>com.tangosol.coherence.config.CustomClasses$CustomOverflowMap</class-name>
+     <front-scheme> 
+       <local-scheme/> 
+     </front-scheme>
+     <back-scheme> 
+       <local-scheme/> 
+     </back-scheme>
+   </overflow-scheme>
+    
+   <overflow-scheme>
+     <scheme-name>overflow-front-custom-scheme</scheme-name>
+     <front-scheme> 
+       <class-scheme>
+           <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       </class-scheme> 
+     </front-scheme>
+     <back-scheme> 
+       <local-scheme/> 
+     </back-scheme>
+   </overflow-scheme>
+
+   <overflow-scheme>
+     <scheme-name>overflow-back-custom-scheme</scheme-name>
+     <front-scheme> 
+       <local-scheme/> 
+     </front-scheme>
+     <back-scheme> 
+       <class-scheme>
+         <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       </class-scheme> 
+     </back-scheme>
+   </overflow-scheme>
+               
+   <paged-external-scheme>
+     <scheme-name>paged-external-custom-scheme</scheme-name>
+     <class-name>com.tangosol.coherence.config.CustomClasses$CustomSerializationPagedCache</class-name>
+     <custom-store-manager>
+       <class-name>com.tangosol.coherence.config.CustomClasses$CustomBinaryStoreManager</class-name>
+     </custom-store-manager>
+   <page-limit>2</page-limit>
+   </paged-external-scheme> 
+   
+   <paged-external-scheme>
+     <scheme-name>paged-external-async-custom-scheme</scheme-name>
+     <class-name>com.tangosol.coherence.config.CustomClasses$CustomSerializationPagedCache</class-name>
+     <async-store-manager>
+       <class-name>com.tangosol.coherence.config.CustomClasses$CustomAsyncBinaryStoreManager</class-name>
+       <custom-store-manager>
+          <class-name>com.tangosol.coherence.config.CustomClasses$CustomBinaryStoreManager</class-name>
+       </custom-store-manager>
+     </async-store-manager>     
+     <page-limit>2</page-limit>
+   </paged-external-scheme>
+
+   <read-write-backing-map-scheme>
+     <scheme-name>rwbm-internal-custom-scheme</scheme-name>
+     <internal-cache-scheme>  
+       <class-scheme>
+           <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       </class-scheme> 
+     </internal-cache-scheme>
+   </read-write-backing-map-scheme>
+   
+  </caching-schemes> 
+</cache-config>

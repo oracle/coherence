@@ -1,0 +1,566 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-ra</cache-name>
+      <scheme-name>distributed-rwbm-ra</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-ra-bin</cache-name>
+      <scheme-name>distributed-rwbm-ra</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestBinaryCacheStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wb</cache-name>
+      <scheme-name>distributed-rwbm-wb</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wb-bin</cache-name>
+      <scheme-name>distributed-rwbm-wb</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestBinaryCacheStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wb-bin-pof</cache-name>
+      <scheme-name>distributed-rwbm-wb-pof</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-ra-wb-timeout</cache-name>
+      <scheme-name>distributed-rwbm-ra-wb-timeout</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wt</cache-name>
+      <scheme-name>distributed-rwbm-wt</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wt-bin</cache-name>
+      <scheme-name>distributed-rwbm-wt</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestBinaryCacheStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wt-put</cache-name>
+      <scheme-name>distributed-rwbm-wt</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wt-put-bin</cache-name>
+      <scheme-name>distributed-rwbm-wt</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestBinaryCacheStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wt-putall</cache-name>
+      <scheme-name>distributed-rwbm-wt</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wt-putall-bin</cache-name>
+      <scheme-name>distributed-rwbm-wt</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestBinaryCacheStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wt-bin-pof</cache-name>
+      <scheme-name>distributed-rwbm-wt-pof</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>rwbm-bin-entry-expiry</cache-name>
+      <scheme-name>distributed-rwbm-bin-entry-expiry</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestBinaryCacheStore</param-value>
+        </init-param>
+        <init-param>
+          <param-name>bin-entry-expiry</param-name>
+          <param-value>2000</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-w-ramjournal</cache-name>
+      <scheme-name>distributed-rwbm-w-ramjournal</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+        <cache-name>dist-rwbm-wb-ea</cache-name>
+        <scheme-name>distributed-rwbm-wb-ea</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+        <cache-name>dist-rwbm-listener</cache-name>
+        <scheme-name>distributed-rwbm-listener</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+        <cache-name>dist-rwbm-listener-internal</cache-name>
+        <scheme-name>distributed-rwbm-listener-internal</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-config-defaults</cache-name>
+      <scheme-name>distributed-rwbm-config-defaults</scheme-name>
+    </cache-mapping>    
+    <cache-mapping>
+      <cache-name>dist-rwbm-config-readonly</cache-name>
+      <scheme-name>distributed-rwbm-config-readonly</scheme-name>
+    </cache-mapping>   
+    <cache-mapping>
+      <cache-name>dist-rwbm-config-wb</cache-name>
+      <scheme-name>distributed-rwbm-config-wb</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-coh10009</cache-name>
+      <scheme-name>distributed-rwbm-config-coh10009</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-expiry-on-store</cache-name>
+      <scheme-name>distributed-rwbm-expiry-on-store</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-ra</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 2}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+          <refresh-ahead-factor>{refresh-ahead-factor 0.5}</refresh-ahead-factor>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-wb</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+          <write-delay-seconds>{write-delay-seconds 4}</write-delay-seconds>
+          <write-batch-factor>{write-batch-factor 0.0}</write-batch-factor>
+          <write-requeue-threshold>1</write-requeue-threshold>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-wb-pof</scheme-name>
+      <service-name>PofDistributedCache</service-name>
+
+      <serializer>
+        <instance>
+          <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>test-pof-config.xml</param-value>
+            </init-param>
+          </init-params>
+        </instance>
+      </serializer>
+
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestBinaryCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+          <write-delay-seconds>{write-delay-seconds 2}</write-delay-seconds>
+          <write-requeue-threshold>1</write-requeue-threshold>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+    
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-wt</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <class-name>rwbm.EvictingRWBM</class-name>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-wt-pof</scheme-name>
+      <service-name>PofDistributedCache</service-name>
+
+      <serializer>
+        <instance>
+          <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>test-pof-config.xml</param-value>
+            </init-param>
+          </init-params>
+        </instance>
+      </serializer>
+
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestBinaryCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-ra-wb-timeout</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 2}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+          <write-delay-seconds>{write-delay-seconds 1}</write-delay-seconds>
+          <write-batch-factor>{write-batch-factor 0.0}</write-batch-factor>
+          <refresh-ahead-factor>{refresh-ahead-factor 0.5}</refresh-ahead-factor>
+          <cachestore-timeout>2000</cachestore-timeout>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-bin-entry-expiry</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+                <init-params>
+                  <init-param>
+                    <param-type>long</param-type>
+                    <param-value>{bin-entry-expiry}</param-value>
+                  </init-param>
+                </init-params>
+            </class-scheme>
+          </cachestore-scheme>
+          <write-delay-seconds>{write-delay-seconds 6}</write-delay-seconds>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-w-ramjournal</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+             <ramjournal-scheme/>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-wb-ea</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>100ms</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>rwbm.ConditionalDelayCacheStore</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+          <write-delay>95ms</write-delay>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-listener</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+          <listener>
+            <class-scheme>
+              <class-name>rwbm.ReadWriteBackingMapTests$Listener</class-name>
+            </class-scheme>
+          </listener>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-listener-internal</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <listener>
+                <class-scheme>
+                  <class-name>rwbm.ReadWriteBackingMapTests$Listener</class-name>
+                </class-scheme>
+              </listener>
+            </local-scheme>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-config-defaults</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+          
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+    
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-config-readonly</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+          <read-only>true</read-only>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+    
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-config-wb</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>100</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <write-max-batch-size>200</write-max-batch-size>
+          <miss-cache-scheme>
+            <local-scheme>
+                <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+            </local-scheme>
+          </miss-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+          
+          <write-delay>10S</write-delay>
+          <write-batch-factor>.6</write-batch-factor>
+          <write-requeue-threshold>100</write-requeue-threshold>
+          <refresh-ahead-factor>.5</refresh-ahead-factor>
+          <cachestore-timeout>20S</cachestore-timeout>
+          <rollback-cachestore-failures>false</rollback-cachestore-failures>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-config-coh10009</scheme-name>
+      <service-name>COH10009Service</service-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+             <unit-calculator>FIXED</unit-calculator>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>common.TestCacheStore</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-expiry-on-store</scheme-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 1}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+          <write-delay-seconds>{write-delay-seconds 1}</write-delay-seconds>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>

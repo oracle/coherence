@@ -1,0 +1,773 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+        xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>same</cache-name>
+      <scheme-name>dist-backing-external-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>custom-named-cache*</cache-name>
+      <scheme-name>custom-named-cache-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-backing-local*</cache-name>
+      <scheme-name>dist-backing-local-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-external*</cache-name>
+      <scheme-name>dist-backing-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-paged-external*</cache-name>
+      <scheme-name>dist-backing-paged-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-overflow*</cache-name>
+      <scheme-name>dist-backing-overflow-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-class*</cache-name>
+      <scheme-name>dist-backing-class-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-flash*</cache-name>
+      <scheme-name>dist-backing-flash-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-ram*</cache-name>
+      <scheme-name>dist-backing-ram-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-rwbm-class*</cache-name>
+      <scheme-name>dist-backing-rwbm-class-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-rwbm-external*</cache-name>
+      <scheme-name>dist-backing-rwbm-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-rwbm-local*</cache-name>
+      <scheme-name>dist-backing-rwbm-local-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-rwbm-paged-external*</cache-name>
+      <scheme-name>dist-backing-rwbm-paged-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>external-async-bdb*</cache-name>
+      <scheme-name>external-async-bdb-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>external-async-custom*</cache-name>
+      <scheme-name>external-async-custom-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>external-async-nio-file*</cache-name>
+      <scheme-name>external-async-nio-file-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>external-async-nio-memory*</cache-name>
+      <scheme-name>external-async-nio-memory-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>external-bdb*</cache-name>
+      <scheme-name>external-bdb-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>external-custom*</cache-name>
+      <scheme-name>external-custom-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>external-nio-file*</cache-name>
+      <scheme-name>external-nio-file-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>external-nio-memory*</cache-name>
+      <scheme-name>external-nio-memory-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>local-simple*</cache-name>
+      <scheme-name>local-simple-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>local-class*</cache-name>
+      <scheme-name>local-class-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near-local*</cache-name>
+      <scheme-name>near-local-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-front-class*</cache-name>
+      <scheme-name>near-front-class-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-front-external*</cache-name>
+      <scheme-name>near-front-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-back-class*</cache-name>
+      <scheme-name>near-back-class-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-back-external*</cache-name>
+      <scheme-name>near-back-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-back-paged-external*</cache-name>
+      <scheme-name>near-back-paged-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-back-dist*</cache-name>
+      <scheme-name>near-back-dist-backing-local</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-back-opt*</cache-name>
+      <scheme-name>near-back-opt-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-back-repl*</cache-name>
+      <scheme-name>near-back-repl-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>near-back-trans*</cache-name>
+      <scheme-name>near-back-trans-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>paged-external-async-bdb*</cache-name>
+      <scheme-name>paged-external-async-bdb-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>paged-external-async-custom*</cache-name>
+      <scheme-name>paged-external-async-custom-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>paged-external-async-nio-file*</cache-name>
+      <scheme-name>paged-external-async-nio-file-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>paged-external-async-nio-memory*</cache-name>
+      <scheme-name>paged-external-async-nio-memory-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>paged-external-bdb*</cache-name>
+      <scheme-name>paged-external-bdb-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>paged-external-custom*</cache-name>
+      <scheme-name>paged-external-custom-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>paged-external-nio-file*</cache-name>
+      <scheme-name>paged-external-nio-file-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>paged-external-nio-memory*</cache-name>
+      <scheme-name>paged-external-nio-memory-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>rwbm-internal-local*</cache-name>
+      <scheme-name>rwbm-internal-local-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>rwbm-internal-external*</cache-name>
+      <scheme-name>rwbm-internal-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>rwbm-internal-paged-external*</cache-name>
+      <scheme-name>rwbm-internal-paged-external-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>rwbm-internal-overflow*</cache-name>
+      <scheme-name>rwbm-internal-overflow-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>rwbm-internal-class*</cache-name>
+      <scheme-name>rwbm-internal-class-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>rwbm-internal-flash*</cache-name>
+      <scheme-name>rwbm-internal-flash-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>rwbm-internal-ram*</cache-name>
+      <scheme-name>rwbm-internal-ram-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>trans*</cache-name>
+      <scheme-name>trans-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>all-defaulted-cache</cache-name>
+      <scheme-name>cache-defaults-scheme</scheme-name>
+    </cache-mapping>
+
+  </caching-scheme-mapping>
+
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>topic-dist-backing-local*</topic-name>
+      <scheme-name>topic-dist-backing-local-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>topic-dist-defaults*</topic-name>
+      <scheme-name>topic-dist-defaults-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>topic-retain-dist-backing-local*</topic-name>
+      <scheme-name>topic-dist-backing-local-scheme</scheme-name>
+      <value-type>String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>expiry-delay</param-name>
+          <param-value>21</param-value>
+        </init-param>
+        <init-param>
+          <param-name>page-size</param-name>
+          <param-value>2KB</param-value>
+        </init-param>
+        <init-param>
+          <param-name>retain-consumed</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>topic-dist-backing-local-scheme</topic-name>
+      <scheme-name>topic-dist-backing-local-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>topic-override-dist-backing-local*</topic-name>
+      <scheme-name>topic-dist-backing-local-scheme</scheme-name>
+      <value-type>String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>page-size</param-name>
+          <param-value>20</param-value>
+        </init-param>
+      </init-params>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>same</topic-name>
+      <scheme-name>topic-dist-backing-local-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>topic-dist-backing-flash*</topic-name>
+      <scheme-name>topic-dist-backing-flash-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>topic-dist-backing-ram*</topic-name>
+      <scheme-name>topic-dist-backing-ram-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>topic-with-durable-subscriber*</topic-name>
+      <scheme-name>topic-dist-backing-local-scheme</scheme-name>
+      <value-type>String</value-type>
+      <subscriber-groups>
+        <subscriber-group>
+          <name>{topic-name}FirstGroup</name>
+        </subscriber-group>
+        <subscriber-group>
+          <name>SecondGroup{topic-name}</name>
+        </subscriber-group>
+      </subscriber-groups>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>topic-storage-authorizer-auditing</topic-name>
+      <scheme-name>topic-storage-authorizer-scheme</scheme-name>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>all-defaulted-topic</topic-name>
+      <scheme-name>topic-defaults-scheme</scheme-name>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
+  <caching-schemes>
+    <paged-topic-scheme>
+      <scheme-name>topic-dist-defaults-scheme</scheme-name>
+      <service-name>topic-dist-defaults-service</service-name>
+      <serializer>pof</serializer>
+      <autostart>true</autostart>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>topic-dist-backing-local-scheme</scheme-name>
+      <service-name>topic-dist-backing-local-service</service-name>
+      <serializer>pof</serializer>
+      <autostart>true</autostart>
+      <page-size system-property="page.size">{page-size 10}</page-size>
+      <expiry-delay>{expiry-delay 0}</expiry-delay>
+      <retain-consumed>{retain-consumed false}</retain-consumed>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>topic-defaults-scheme</scheme-name>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>topic-storage-authorizer-scheme</scheme-name>
+      <service-name>topic-storage-authorizer-service</service-name>
+      <storage-authorizer>auditing</storage-authorizer>
+      <autostart>true</autostart>
+      <high-units>21474836470</high-units>
+    </paged-topic-scheme>
+
+    <distributed-scheme>
+      <scheme-name>cache-defaults-scheme</scheme-name>
+    </distributed-scheme>
+    
+    <class-scheme>
+     <scheme-name>custom-named-cache-scheme</scheme-name>
+       <class-name>com.tangosol.coherence.config.CustomClasses$CustomNamedCache</class-name>
+       <init-params>
+         <init-param>
+           <param-type>java.lang.String</param-type>
+           <param-value>{cache-name}</param-value>
+         </init-param>
+       </init-params>
+    </class-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-class-scheme</scheme-name>
+     <service-name>dist-backing-class-service</service-name>
+     <backing-map-scheme>
+       <class-scheme>
+         <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       </class-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-local-scheme</scheme-name>
+     <service-name>dist-backing-local-service</service-name>
+     <backing-map-scheme>
+       <local-scheme/>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-external-scheme</scheme-name>
+     <service-name>dist-backing-external-service</service-name>
+     <backing-map-scheme>
+       <external-scheme>
+        <scheme-ref>external-custom-scheme</scheme-ref>
+       </external-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-overflow-scheme</scheme-name>
+     <service-name>dist-backing-overflow-service</service-name>
+     <backing-map-scheme>
+       <overflow-scheme>
+        <scheme-ref>overflow-front-local-scheme</scheme-ref>
+       </overflow-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-paged-external-scheme</scheme-name>
+     <service-name>dist-backing-paged-external-service</service-name>
+     <backing-map-scheme>
+       <paged-external-scheme>
+        <scheme-ref>paged-external-scheme</scheme-ref>
+       </paged-external-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-rwbm-local-scheme</scheme-name>
+     <service-name>dist-backing-rwbm-local-service</service-name>
+     <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+        </read-write-backing-map-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-rwbm-class-scheme</scheme-name>
+     <service-name>dist-backing-rwbm-class-service</service-name>
+     <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <class-scheme>
+              <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+            </class-scheme>
+          </internal-cache-scheme>
+        </read-write-backing-map-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-rwbm-external-scheme</scheme-name>
+     <service-name>dist-backing-rwbm-external-service</service-name>
+     <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <external-scheme>
+              <scheme-ref>external-nio-memory-scheme</scheme-ref>
+            </external-scheme>
+          </internal-cache-scheme>
+        </read-write-backing-map-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <distributed-scheme>
+     <scheme-name>dist-backing-rwbm-paged-external-scheme</scheme-name>
+     <service-name>dist-backing-rwbm-paged-external-service</service-name>
+     <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <paged-external-scheme>
+              <scheme-ref>paged-external-nio-memory-scheme</scheme-ref>
+            </paged-external-scheme>
+          </internal-cache-scheme>
+        </read-write-backing-map-scheme>
+     </backing-map-scheme>
+   </distributed-scheme>
+
+   <external-scheme>
+     <scheme-name>external-async-bdb-scheme</scheme-name>
+     <async-store-manager>
+       <bdb-store-manager/>
+     </async-store-manager>
+   </external-scheme>
+
+   <external-scheme>
+     <scheme-name>external-async-custom-scheme</scheme-name>
+     <async-store-manager>
+       <custom-store-manager>
+         <class-name>common.CustomStoreManager</class-name>
+       </custom-store-manager>
+     </async-store-manager>
+   </external-scheme>
+
+   <external-scheme>
+     <scheme-name>external-async-nio-file-scheme</scheme-name>
+     <async-store-manager>
+       <nio-file-manager/>
+     </async-store-manager>
+   </external-scheme>
+
+   <external-scheme>
+     <scheme-name>external-async-nio-memory-scheme</scheme-name>
+     <async-store-manager>
+       <nio-memory-manager/>
+     </async-store-manager>
+   </external-scheme>
+
+   <external-scheme>
+     <scheme-name>external-bdb-scheme</scheme-name>
+     <bdb-store-manager/>
+   </external-scheme>
+
+   <external-scheme>
+     <scheme-name>external-custom-scheme</scheme-name>
+     <custom-store-manager>
+       <class-name>common.CustomStoreManager</class-name>
+     </custom-store-manager>
+   </external-scheme>
+
+   <external-scheme>
+     <scheme-name>external-nio-file-scheme</scheme-name>
+     <nio-file-manager/>
+   </external-scheme>
+
+   <external-scheme>
+     <scheme-name>external-nio-memory-scheme</scheme-name>
+     <nio-memory-manager/>
+   </external-scheme>
+
+    <local-scheme>
+      <scheme-name>local-simple-scheme</scheme-name>
+    </local-scheme>
+
+    <local-scheme>
+      <scheme-name>local-class-scheme</scheme-name>
+      <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+    </local-scheme>
+
+    <near-scheme>
+     <scheme-name>near-local-scheme</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <local-scheme/>
+     </back-scheme>
+    </near-scheme>
+
+    <near-scheme>
+     <scheme-name>near-front-class-scheme</scheme-name>
+     <front-scheme>
+       <class-scheme>
+         <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       </class-scheme>
+     </front-scheme>
+     <back-scheme>
+       <local-scheme/>
+     </back-scheme>
+    </near-scheme>
+
+    <near-scheme>
+     <scheme-name>near-back-class-scheme</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <class-scheme>
+         <class-name>com.tangosol.coherence.config.CustomClasses$CustomNamedCache</class-name>
+         <init-params>
+           <init-param>
+             <param-type>java.lang.String</param-type>
+             <param-value>{cache-name}</param-value>
+           </init-param>
+         </init-params>
+       </class-scheme>
+     </back-scheme>
+    </near-scheme>
+
+    <near-scheme>
+     <scheme-name>near-back-external-scheme</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <external-scheme>
+         <scheme-ref>external-custom-scheme</scheme-ref>
+       </external-scheme>
+     </back-scheme>
+    </near-scheme>
+
+    <near-scheme>
+     <scheme-name>near-back-paged-external-scheme</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <paged-external-scheme>
+        <scheme-ref>paged-external-scheme</scheme-ref>
+       </paged-external-scheme>
+     </back-scheme>
+    </near-scheme>
+
+   <near-scheme>
+     <scheme-name>near-back-dist-backing-local</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <distributed-scheme>
+        <scheme-ref>dist-backing-local-scheme</scheme-ref>
+       </distributed-scheme>
+     </back-scheme>
+    </near-scheme>
+
+   <near-scheme>
+     <scheme-name>near-back-opt-scheme</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <optimistic-scheme>
+        <scheme-ref>opt-scheme</scheme-ref>
+       </optimistic-scheme>
+     </back-scheme>
+    </near-scheme>
+
+   <near-scheme>
+     <scheme-name>near-back-repl-scheme</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <replicated-scheme>
+        <scheme-ref>repl-scheme</scheme-ref>
+       </replicated-scheme>
+     </back-scheme>
+   </near-scheme>
+
+   <near-scheme>
+     <scheme-name>near-back-trans-scheme</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <transactional-scheme>
+        <scheme-ref>trans-scheme</scheme-ref>
+       </transactional-scheme>
+     </back-scheme>
+   </near-scheme>
+
+   <overflow-scheme>
+     <scheme-name>overflow-front-local-scheme</scheme-name>
+     <front-scheme>
+       <local-scheme/>
+     </front-scheme>
+     <back-scheme>
+       <local-scheme/>
+     </back-scheme>
+   </overflow-scheme>
+
+   <optimistic-scheme>
+     <scheme-name>opt-scheme</scheme-name>
+     <backing-map-scheme>
+       <local-scheme/>
+     </backing-map-scheme>
+   </optimistic-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-async-bdb-scheme</scheme-name>
+     <async-store-manager>
+       <bdb-store-manager/>
+     </async-store-manager>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-async-custom-scheme</scheme-name>
+     <async-store-manager>
+       <custom-store-manager>
+         <class-name>common.CustomStoreManager</class-name>
+       </custom-store-manager>
+     </async-store-manager>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-async-nio-file-scheme</scheme-name>
+     <async-store-manager>
+       <nio-file-manager/>
+     </async-store-manager>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-async-nio-memory-scheme</scheme-name>
+     <async-store-manager>
+       <nio-memory-manager/>
+     </async-store-manager>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-bdb-scheme</scheme-name>
+     <bdb-store-manager/>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-custom-scheme</scheme-name>
+     <custom-store-manager>
+       <class-name>common.CustomStoreManager</class-name>
+     </custom-store-manager>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-nio-file-scheme</scheme-name>
+     <nio-file-manager/>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-nio-memory-scheme</scheme-name>
+     <nio-memory-manager/>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <paged-external-scheme>
+     <scheme-name>paged-external-scheme</scheme-name>
+     <custom-store-manager>
+       <class-name>common.CustomStoreManager</class-name>
+     </custom-store-manager>
+     <page-limit>100</page-limit>
+   </paged-external-scheme>
+
+   <replicated-scheme>
+     <scheme-name>repl-scheme</scheme-name>
+     <backing-map-scheme>
+       <local-scheme/>
+     </backing-map-scheme>
+   </replicated-scheme>
+
+   <read-write-backing-map-scheme>
+     <scheme-name>rwbm-internal-class-scheme</scheme-name>
+     <internal-cache-scheme>
+       <class-scheme>
+         <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+       </class-scheme>
+     </internal-cache-scheme>
+   </read-write-backing-map-scheme>
+
+   <read-write-backing-map-scheme>
+     <scheme-name>rwbm-internal-external-scheme</scheme-name>
+     <internal-cache-scheme>
+       <external-scheme>
+        <scheme-ref>external-custom-scheme</scheme-ref>
+       </external-scheme>
+     </internal-cache-scheme>
+   </read-write-backing-map-scheme>
+
+   <read-write-backing-map-scheme>
+     <scheme-name>rwbm-internal-local-scheme</scheme-name>
+     <internal-cache-scheme>
+       <local-scheme/>
+     </internal-cache-scheme>
+   </read-write-backing-map-scheme>
+
+   <read-write-backing-map-scheme>
+     <scheme-name>rwbm-internal-overflow-scheme</scheme-name>
+     <internal-cache-scheme>
+       <overflow-scheme>
+        <scheme-ref>overflow-front-local-scheme</scheme-ref>
+       </overflow-scheme>
+     </internal-cache-scheme>
+   </read-write-backing-map-scheme>
+
+   <read-write-backing-map-scheme>
+     <scheme-name>rwbm-internal-paged-external-scheme</scheme-name>
+     <internal-cache-scheme>
+       <paged-external-scheme>
+        <scheme-ref>paged-external-scheme</scheme-ref>
+       </paged-external-scheme>
+     </internal-cache-scheme>
+   </read-write-backing-map-scheme>
+
+   <transactional-scheme>
+     <scheme-name>trans-scheme</scheme-name>
+     <service-name>TransService</service-name>
+   </transactional-scheme>
+
+
+  </caching-schemes>
+
+</cache-config>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!--
+Proxy scheme configuration descriptor for the REST Management used by Coherence.
+-->
+<proxy-scheme>
+  <service-name>ManagementHttpProxy</service-name>
+  <acceptor-config>
+    <http-acceptor>
+      <socket-provider system-property="coherence.management.http.provider"/>
+      <local-address>
+        <address system-property="coherence.management.http.address"/>
+        <port    system-property="coherence.management.http.port">30000</port>
+      </local-address>
+      <resource-config>
+        <instance>
+          <class-name>com.tangosol.coherence.management.internal.ManagementResourceConfig</class-name>
+        </instance>
+      </resource-config>
+      <auth-method system-property="coherence.management.http.auth"/>
+    </http-acceptor>
+  </acceptor-config>
+</proxy-scheme>
