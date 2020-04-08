@@ -74,7 +74,7 @@ rem
 rem Set the MAVEN_HOME environment variable if %DEV_ROOT%\tools\maven exists
 rem
 set _MAVEN_HOME=%MAVEN_HOME%
-if exists %DEV_ROOT%\tools\maven (
+if exist %DEV_ROOT%\tools\maven (
   set MAVEN_HOME=%DEV_ROOT%\tools\maven
   echo MAVEN_HOME = %MAVEN_HOME%
 )
