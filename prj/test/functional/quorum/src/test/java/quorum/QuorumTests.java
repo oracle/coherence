@@ -8,24 +8,30 @@
 package quorum;
 
 import com.oracle.bedrock.OptionsByType;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.oracle.bedrock.runtime.LocalPlatform;
+
 import com.oracle.bedrock.runtime.coherence.CoherenceCacheServer;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
+
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
+
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
+
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.ClusterDependencies;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.IsDefaultCacheServerRunning;
@@ -44,9 +50,11 @@ import com.tangosol.util.Base;
 
 import com.tangosol.coherence.component.util.SafeCluster;
 import com.tangosol.coherence.component.util.SafeService;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
 import com.tangosol.util.InvocableMap.EntryProcessor;
+
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.ValueExtractor;
@@ -64,6 +72,7 @@ import com.tangosol.util.processor.NumberIncrementor;
 import common.AbstractFunctionalTest;
 
 import common.TestInfrastructureHelper;
+
 import data.Trade;
 
 import org.junit.After;
@@ -87,12 +96,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+
 import static org.hamcrest.Matchers.is;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -111,6 +121,16 @@ public class QuorumTests
     public QuorumTests()
         {
         super(FILE_CFG_CACHE);
+        }
+
+    /**
+    * Constructor for subclassing.
+    *
+    * @param sCacheConfig  the cache config
+    */
+    protected QuorumTests(String sCacheConfig)
+        {
+        super(sCacheConfig);
         }
 
 
@@ -152,10 +172,12 @@ public class QuorumTests
         cacheEvents.put("DISTRIBUTION_ALLOWED", Boolean.valueOf(fDistribution));
         cacheEvents.put("BACKUP_ALLOWED", Boolean.valueOf(fBackup));
 
+        props.setProperty("tangosol.coherence.override", getOverrideConfig());
+
         PartitionedService svc      = (PartitionedService) CacheFactory.getService("PartitionedCacheWithQuorum");
         int                cServers = svc.getOwnershipEnabledMembers().size();
 
-        CoherenceClusterMember member = startCacheServer(sServer, "quorum", FILE_CFG_CACHE, props);
+        CoherenceClusterMember member = startCacheServer(sServer, "quorum", getCacheConfig(), props);
 
         // wait for the service used to be started on the new member
         Eventually.assertThat(invoking(svc).getOwnershipEnabledMembers().size(), is(cServers + 1));
@@ -617,7 +639,7 @@ public class QuorumTests
         {
         String                     hostName = LocalPlatform.get().getLoopbackAddress().getHostAddress();
         OptionsByType optionsByType   = createCacheServerOptions()
-                .add(CacheConfig.of("quorum-cache-config.xml"))
+                .add(CacheConfig.of(getCacheConfig()))
                 .add(SystemProperty.of("test.quorum.proxy", true))
                 .add(SystemProperty.of("tangosol.coherence.extend.address", hostName))
                 .add(SystemProperty.of("test.unicast.address", hostName))
@@ -836,13 +858,13 @@ public class QuorumTests
     /**
     * Helper struct.
     */
-    private static class ServerConfig
+    private class ServerConfig
         {
         public ServerConfig(String sName, String[] asProp)
             {
             Name  = sName;
             Props = new Properties();
-            Props.setProperty("tangosol.coherence.override", "quorum-coherence-override.xml");
+            Props.setProperty("tangosol.coherence.override", getOverrideConfig());
             Props.setProperty("test.log.level", "3");
             for (int i = 0; i < asProp.length; i+=2)
                 {
@@ -881,7 +903,7 @@ public class QuorumTests
 
             for (int i = 1; i < cMembers; i++)
                 {
-                aMember[i] = startCacheServer(aConfig[i].Name, "quorum", FILE_CFG_CACHE, aConfig[i].Props, false);
+                aMember[i] = startCacheServer(aConfig[i].Name, "quorum", getCacheConfig(), aConfig[i].Props, false);
                 }
 
             for (int i = 1; i < cMembers; i++)
@@ -947,7 +969,7 @@ public class QuorumTests
         OptionsByType optionsByType = OptionsByType.empty();
 
         optionsByType.add(ClassName.of(DefaultCacheServer.class));
-        optionsByType.add(OperationalOverride.of("quorum-coherence-override.xml"));
+        optionsByType.add(OperationalOverride.of(getOverrideConfig()));
         optionsByType.add(LocalHost.only());
         optionsByType.add(LocalStorage.enabled());
 
@@ -1876,6 +1898,20 @@ public class QuorumTests
             {
             azzert(!fAllowed, "Extend client connections are allowed, but an exception was thrown: "
                    + e + "\n" + printStackTrace(e));
+            Throwable cause = e.getCause();
+            while (cause != null)
+                {
+                if (cause instanceof RequestPolicyException)
+                    {
+                    break;
+                    }
+                cause = cause.getCause();
+                }
+            if (!fAllowed)
+                {
+                azzert(cause instanceof RequestPolicyException,
+                       "Expected cause to be instanceof RequestPolicyException, but was: " + e.getCause().toString());
+                }
             }
         }
 
@@ -2213,25 +2249,27 @@ public class QuorumTests
         protected String m_sServiceName;
         }
 
-    // ----- command line -------------------------------------------------
+
+    // ----- helper methods -------------------------------------------------
 
     /**
-    * Test driver
-    */
-    public static void main(String[] args)
-            throws Exception
+     * Return the cache configuration under test.
+     */
+    protected String getCacheConfig()
         {
-        QuorumTests test = new QuorumTests();
-        //test.testPartitionedCache0();
-        //test.testPartitionedCache1();
-        //test.testPartitionedCache2();
-        // test.testPartitionedCache3();
-        //test.testProxy0();
-        test.testMemberQuorum();
+        return FILE_CFG_CACHE;
+        }
+    /**
+     * Return the operational configuration under test.
+     *
+     * @return the operational configuration under test
+     */
+    protected String getOverrideConfig()
+        {
+        return FILE_OPERATIONAL_CONFIG;
         }
 
-
-    // ----- data members -------------------------------------------------
+    // ----- data members ---------------------------------------------------
 
     /**
     * The singleton address provider instance used to target extend connections
@@ -2247,6 +2285,11 @@ public class QuorumTests
     * The file name of the default cache configuration file used by this test.
     */
     public static final String FILE_CFG_CACHE  = "quorum-cache-config.xml";
+
+    /**
+    * Constant for the operational override under test.
+    */
+    public static final String FILE_OPERATIONAL_CONFIG = "quorum-coherence-override.xml";
 
     /*
      * A {@link TestInfrastructureHelper} instance that we can pass to Bedrock on an invoking().

@@ -8,22 +8,30 @@
 package com.tangosol.io.pof;
 
 
+import com.tangosol.io.SerializationSupport;
+
+import com.tangosol.util.Base;
+import com.tangosol.util.ClassHelper;
+
 import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+
+import java.lang.reflect.InvocationTargetException;
 
 import java.util.ArrayList;
 
 
 /**
-* A PortableException is an exception that allows information about a remote
-* exception or error to be serialized and deserialized to/from a POF stream.
+* A {@code PortableException} is an exception that allows information about a remote
+* exception or error to be serialized and deserialized to/from a {@code POF} stream.
 *
 * @author jh,mf  2006.08.04
 */
 public class PortableException
         extends RuntimeException
-        implements PortableObject
+        implements PortableObject, SerializationSupport
     {
     // ----- constructors -----------------------------------------------------
 
@@ -36,9 +44,9 @@ public class PortableException
         }
 
     /**
-    * Constructs a PortableException with the specified detail message.
+    * Constructs a {@code PortableException} with the specified detail message.
     *
-    * @param sMessage the String that contains a detailed message
+    * @param sMessage  the String that contains a detailed message
     */
     protected PortableException(String sMessage)
         {
@@ -49,9 +57,9 @@ public class PortableException
         }
 
     /**
-    * Construct a PortableException from a Throwable object.
+    * Construct a {@code PortableException} from a {@link Throwable} object.
     *
-    * @param e  the Throwable object
+    * @param e  the {@link Throwable} object
     */
     protected PortableException(Throwable e)
         {
@@ -61,11 +69,11 @@ public class PortableException
         }
 
     /**
-    * Construct a PortableException from a Throwable object and an additional
+    * Construct a {@code PortableException} from a {@link Throwable} object and an additional
     * description.
     *
     * @param sMessage  the additional description
-    * @param e         the Throwable object
+    * @param e         the {@link Throwable} object
     */
     protected PortableException(String sMessage, Throwable e)
         {
@@ -75,6 +83,46 @@ public class PortableException
         m_sMessage = sMessage;
         }
 
+    // ----- SerializationSupport methods -----------------------------------
+
+    /**
+    * Returns the original type, iff the type is a subclass of {@code PortableException},
+    * during deserialization opposed to a new {@code PortableException} with the metadata of the original exception.
+    *
+    * @return a reconstructed {@code PortableException} subclass, if possible, otherwise returns the current
+    *         instance
+    *
+    * @throws ObjectStreamException if an error occurs
+    */
+    @Override
+    public Object readResolve()
+            throws ObjectStreamException
+        {
+        Class<?> clzOriginalType;
+        try
+            {
+            clzOriginalType = Class.forName(m_sName, false, Base.getContextClassLoader());
+            }
+        catch (ClassNotFoundException e)
+            {
+            return this;
+            }
+
+        if (!PortableException.class.equals(clzOriginalType) &&
+                    PortableException.class.isAssignableFrom(clzOriginalType))
+                {
+                try
+                    {
+                    return ClassHelper.newInstance(clzOriginalType, new Object[] {m_sMessage, getCause()});
+                    }
+                catch (InstantiationException | InvocationTargetException e)
+                    {
+                    return this;
+                    }
+                }
+
+        return this;
+        }
 
     // ----- PortableException methods ----------------------------------------
 
@@ -85,7 +133,7 @@ public class PortableException
     */
     public String getName()
         {
-        Class  clazz = getClass();
+        Class<? extends PortableException> clazz = getClass();
         String sName = m_sName;
 
         if (sName != null && clazz == PortableException.class)
@@ -143,22 +191,18 @@ public class PortableException
 
     // ----- PortableObject methods -------------------------------------------
 
-    /**
-    * {@inheritDoc}
-    */
+    @Override
     public void readExternal(PofReader in)
             throws IOException
         {
         m_sName         = in.readString(0);
         m_sMessage      = in.readString(1);
-        m_asStackRemote = (String[]) in.readCollection(2, new ArrayList(64)).
+        m_asStackRemote = in.readCollection(2, new ArrayList<String>(64)).
                 toArray(new String[0]);
-        initCause((Throwable) in.readObject(3));
+        initCause(in.readObject(3));
         }
 
-    /**
-    * {@inheritDoc}
-    */
+    @Override
     public void writeExternal(PofWriter out)
             throws IOException
         {
@@ -171,7 +215,7 @@ public class PortableException
     /**
     * Return the detail message string of this PortableException.
     *
-    * @return  the detail message string (may be null)
+    * @return the detail message string (may be {@code null})
     */
     public String getMessage()
         {
@@ -179,9 +223,9 @@ public class PortableException
         }
 
     /**
-    * Print this PortableException and its stack trace to the specified stream.
+    * Print this {@code PortableException} and its stack trace to the specified stream.
     *
-    * @param stream the PrintStream to use for the output
+    * @param stream  the {@link PrintStream} to use for the output
     */
     public void printStackTrace(PrintStream stream)
         {
@@ -194,9 +238,9 @@ public class PortableException
         }
 
     /**
-    * Print this PortableException and its stack trace to the specified writer.
+    * Print this {@code PortableException} and its stack trace to the specified writer.
     *
-    * @param writer the PrintWriter to use for the output
+    * @param writer  the {@link PrintWriter} to use for the output
     */
     public void printStackTrace(PrintWriter writer)
         {

@@ -51,11 +51,6 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.net.RequestIncompleteException</class-name>
     </user-type>
 
-    <user-type>
-      <type-id>5</type-id>
-      <class-name>com.tangosol.net.RequestPolicyException</class-name>
-    </user-type>
-
     <!-- com.tangosol.util package (10-19) and (260-269) -->
 
     <user-type>

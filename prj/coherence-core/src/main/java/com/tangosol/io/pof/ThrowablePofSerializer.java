@@ -12,19 +12,17 @@ import com.tangosol.util.ImmutableArrayList;
 
 import java.io.IOException;
 
-import java.util.Collection;
-
 
 /**
-* PofSerializer implementation that can serialize and deserialize a
-* {@link Throwable} to/from a POF stream.
+* {@link PofSerializer} implementation that can serialize and deserialize a
+* {@link Throwable} to/from a {@code POF} stream.
 * <p>
-* This serializer is provides a catch-all mechanism for serializing exceptions.
+* This {@link PofSerializer serializer} provides a catch-all mechanism for serializing exceptions.
 * Any deserialized exception will loose type information, and simply be
-* represented as a PortableException.  The basic detail information of the
+* represented as a {@link PortableException}.  The basic detail information of the
 * exception is retained.
 * <p>
-* PortableException and this class work asymmetrically to provide the
+* {@link PortableException} and this class work asymmetrically to provide the
 * serialization routines for exceptions.
 *
 * @author mf  2008.08.25
@@ -44,9 +42,7 @@ public class ThrowablePofSerializer
 
     // ----- PofSerializer interface ------------------------------------------
 
-    /**
-    * {@inheritDoc}
-    */
+    @Override
     public void serialize(PofWriter out, Object o)
             throws IOException
         {
@@ -54,9 +50,7 @@ public class ThrowablePofSerializer
         out.writeRemainder(null);
         }
 
-    /**
-    * {@inheritDoc}
-    */
+    @Override
     public Object deserialize(PofReader in)
             throws IOException
         {
@@ -97,7 +91,7 @@ public class ThrowablePofSerializer
 
             for (int i = 0, c = aoTrace.length; i < c; ++i)
                 {
-                asTrace[i] = "at " + String.valueOf(aoTrace[i]);
+                asTrace[i] = "at " + aoTrace[i];
                 }
             }
 
