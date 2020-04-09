@@ -23,7 +23,7 @@
 
   <properties>
     <project.version.pom>${project.version.official}-b${project.build.number}</project.version.pom>
-    <docker.image.name>iad.ocir.io/odx-stateservice/test/coherence:${project.version.pom}</docker.image.name>
+    <docker.image.name>oracle/coherence-ce:${project.version.pom}</docker.image.name>
     <docker.skip.tests>false</docker.skip.tests>
   </properties>
 
@@ -66,6 +66,11 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-http-netty</artifactId>
       <version>${project.version}</version>
     </dependency>
 

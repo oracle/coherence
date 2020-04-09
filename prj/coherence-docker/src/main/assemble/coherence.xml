@@ -32,7 +32,6 @@
       <includes>
         <include>org.glassfish.hk2*:*</include>
         <include>org.glassfish.jersey.core:*</include>
-        <include>org.glassfish.jersey.bundles.repackaged:jersey-guava</include>
         <include>org.glassfish.jersey.inject:jersey-hk2</include>
         <include>org.glassfish.jersey.media:jersey-media-json-jackson</include>
         <include>org.glassfish.jersey.ext:jersey-entity-filtering</include>
@@ -69,15 +68,15 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>com.oracle.coherence:coherence</include>
-        <include>com.oracle.coherence:coherence-discovery</include>
-        <include>com.oracle.coherence:coherence-http-netty</include>
-        <include>com.oracle.coherence:coherence-jcache</include>
-        <include>com.oracle.coherence:coherence-loadbalancer</include>
-        <include>com.oracle.coherence:coherence-management</include>
-        <include>com.oracle.coherence:coherence-metrics</include>
-        <include>com.oracle.coherence:coherence-mock</include>
-        <include>com.oracle.coherence:coherence-rest</include>
+        <include>${coherence.group.id}:coherence</include>
+        <include>${coherence.group.id}:coherence-discovery</include>
+        <include>${coherence.group.id}:coherence-http-netty</include>
+        <include>${coherence.group.id}:coherence-jcache</include>
+        <include>${coherence.group.id}:coherence-loadbalancer</include>
+        <include>${coherence.group.id}:coherence-management</include>
+        <include>${coherence.group.id}:coherence-metrics</include>
+        <include>${coherence.group.id}:coherence-mock</include>
+        <include>${coherence.group.id}:coherence-rest</include>
       </includes>
       <binaries>
         <outputDirectory>coherence/lib</outputDirectory>
@@ -90,7 +89,7 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>com.oracle.coherence:coherence-login</include>
+        <include>${coherence.group.id}:coherence-login</include>
       </includes>
       <binaries>
         <outputDirectory>coherence/lib/security</outputDirectory>
