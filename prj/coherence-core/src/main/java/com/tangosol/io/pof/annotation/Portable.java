@@ -7,6 +7,7 @@
 package com.tangosol.io.pof.annotation;
 
 import com.tangosol.io.pof.PofAnnotationSerializer;
+import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,12 +38,15 @@ import java.lang.annotation.Target;
  *     }
  * </pre>
  *
+ * @deprecated Since Coherence 14.1.2. Use {@link PortableType} annotation instead.
+ *
  * @author hr
  * @since  3.7.1
  * @see  PortableProperty
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
 public @interface Portable
     {
     }

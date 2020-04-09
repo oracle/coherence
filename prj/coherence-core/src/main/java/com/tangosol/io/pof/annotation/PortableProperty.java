@@ -9,6 +9,7 @@ package com.tangosol.io.pof.annotation;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.reflect.Codec;
 import com.tangosol.io.pof.reflect.Codecs.DefaultCodec;
+import com.tangosol.io.pof.schema.annotation.Portable;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,11 +23,14 @@ import java.lang.annotation.Target;
  * determined by classes that use this annotation. Hence these attributes
  * serve as hints to the underlying parser.
  *
+ * @deprecated Since Coherence 14.1.2. Use {@link Portable} annotation instead.
+ *
  * @author hr
  * @since  3.7.1
  */
 @Target(value={ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
 public @interface PortableProperty
     {
     /**

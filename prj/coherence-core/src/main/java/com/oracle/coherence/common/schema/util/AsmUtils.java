@@ -25,6 +25,30 @@ import org.objectweb.asm.tree.FieldNode;
 public class AsmUtils
     {
     /**
+     * Convert internal class name to Java class name.
+     *
+     * @param sInternalName  internal name to convert
+     *
+     * @return Java class name
+     */
+    public static String javaName(String sInternalName)
+        {
+        return sInternalName.replace('/', '.');
+        }
+
+    /**
+     * Convert Java class name to internal class name.
+     *
+     * @param sJavaName  Java name to convert
+     *
+     * @return internal class name
+     */
+    public static String internalName(String sJavaName)
+        {
+        return sJavaName.replace('.', '/');
+        }
+
+    /**
      * Add specified annotation to the class.
      *
      * @param node        the {@code ClassNode} to add annotation to
@@ -95,21 +119,7 @@ public class AsmUtils
      */
     public static AnnotationNode getAnnotation(ClassNode node, Class... annotationClasses)
         {
-        if (node.visibleAnnotations != null)
-            {
-            for (Class annotationClass : annotationClasses)
-                {
-                String desc = Type.getDescriptor(annotationClass);
-                for (AnnotationNode an : (List<AnnotationNode>) node.visibleAnnotations)
-                    {
-                    if (desc.equals(an.desc))
-                        {
-                        return an;
-                        }
-                    }
-                }
-            }
-        return null;
+        return findAnnotationNode(node.visibleAnnotations, annotationClasses);
         }
 
     /**
@@ -125,12 +135,27 @@ public class AsmUtils
      */
     public static AnnotationNode getAnnotation(FieldNode node, Class... annotationClasses)
         {
-        if (node.visibleAnnotations != null)
+        return findAnnotationNode(node.visibleAnnotations, annotationClasses);
+        }
+
+    /**
+     * Find first of the specified annotation classes that is present in the
+     * list of annotation nodes.
+     *
+     * @param annotations        a list of annotation nodes
+     * @param annotationClasses  the annotations to search for, in order
+     *
+     * @return first of the specified annotation classes that is present in the
+     *         list of annotation nodes; {@code null} if none are present
+     */
+    private static AnnotationNode findAnnotationNode(List<AnnotationNode> annotations, Class[] annotationClasses)
+        {
+        if (annotations != null)
             {
             for (Class annotationClass : annotationClasses)
                 {
                 String desc = Type.getDescriptor(annotationClass);
-                for (AnnotationNode an : (List<AnnotationNode>) node.visibleAnnotations)
+                for (AnnotationNode an : annotations)
                     {
                     if (desc.equals(an.desc))
                         {

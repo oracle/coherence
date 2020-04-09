@@ -8,7 +8,8 @@
 package com.tangosol.io.pof.schema.annotation;
 
 
-//import com.tangosol.io.pof.DateMode;
+import com.tangosol.io.pof.DateMode;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -56,7 +57,7 @@ public @interface PortableDate
      *
      * @return serialization mode for date/time value
      */
-    //DateMode mode() default DateMode.DATE_TIME;
+    DateMode mode() default DateMode.DATE_TIME;
 
     /**
      * Flag specifying whether to include timezone information when serializing
