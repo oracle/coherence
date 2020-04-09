@@ -52,6 +52,12 @@
       <artifactId>je</artifactId>
     </dependency>
 
+    <!-- codemodel -->
+    <dependency>
+      <groupId>com.sun.codemodel</groupId>
+      <artifactId>codemodel</artifactId>
+    </dependency>
+
     <!-- graal -->
     <dependency>
       <groupId>org.graalvm.sdk</groupId>

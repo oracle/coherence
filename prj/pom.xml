@@ -95,6 +95,13 @@
         <version>${bnd.version}</version>
       </dependency>
 
+      <!-- codemodel -->
+      <dependency>
+        <groupId>com.sun.codemodel</groupId>
+        <artifactId>codemodel</artifactId>
+        <version>${codemodel.version}</version>
+      </dependency>
+
       <!-- opentracing -->
       <dependency>
         <groupId>io.opentracing</groupId>
@@ -611,6 +618,7 @@
     <asm.version>7.2</asm.version>
     <bdb.version>6.2.31</bdb.version>
     <bnd.version>4.3.0</bnd.version>
+    <codemodel.version>2.6</codemodel.version>
     <com.sun.xml.bind.version>2.3.0</com.sun.xml.bind.version>
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <felix.version>6.0.3</felix.version>
