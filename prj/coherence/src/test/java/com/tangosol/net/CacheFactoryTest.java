@@ -11,6 +11,8 @@ import com.tangosol.util.ClassHelper;
 
 import java.lang.reflect.Field;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.After;
 import org.junit.Test;
 
@@ -62,6 +64,31 @@ public class CacheFactoryTest
             {
             System.setProperty("tangosol.coherence.edition", sOldEdition == null ? "" : sOldEdition);
             }
+        }
+
+    @Test
+    public void testLogWithSupplier()
+        {
+        final AtomicBoolean fSupplerCalled = new AtomicBoolean();
+        CacheFactory.log(() ->
+                {
+                fSupplerCalled.compareAndSet(false, true);
+                return "";
+                },
+                CacheFactory.LOG_ERR);
+
+        assertThat(fSupplerCalled.get(), is(true));
+
+        fSupplerCalled.compareAndSet(true, false);
+
+        CacheFactory.log(() ->
+                {
+                fSupplerCalled.compareAndSet(false, true);
+                return "";
+                },
+                CacheFactory.LOG_MAX);
+
+        assertThat(fSupplerCalled.get(), is(false));
         }
 
     // ----- helpers --------------------------------------------------------
