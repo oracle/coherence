@@ -16,7 +16,6 @@ COPY start.sh                           /start.sh
 COPY extend-cache-config.xml            $COHERENCE_HOME/conf/extend-cache-config.xml
 COPY logging.properties                 $COHERENCE_HOME/conf/logging.properties
 COPY coherence/                         $COHERENCE_HOME/
-COPY coherence/thirdparty/lib/          $DEPENDENCY_MODULES/
 
 RUN mkdir -p /logs && \
     adduser oracle && \
