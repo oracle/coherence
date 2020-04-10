@@ -32,6 +32,7 @@ import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.bedrock.util.Capture;
 
 import com.tangosol.internal.net.management.HttpHelper;
@@ -314,60 +315,6 @@ public class DockerImageTests
             {
             Files.delete(pathSite);
             Files.delete(pathTempDir);
-            }
-        }
-
-    @Test
-    public void shouldHaveSiteUrl() throws Exception
-        {
-        verifyTestAssumptions();
-
-        LocalPlatform platform = LocalPlatform.get();
-        int           nPort    = platform.getAvailablePorts().next();
-        String        host     = NetworkHelper.getInetAddress(i -> !i.isLoopbackAddress() && i.isSiteLocalAddress()).getHostAddress();
-        System.out.println("host:port = " + host + ":" + nPort);
-
-        AtomicBoolean fRunning     = new AtomicBoolean(true);
-        ServerSocket  serverSocket = new ServerSocket(nPort);
-        serverSocket.setSoTimeout(600000);
-        Thread thread = new Thread(() ->
-            {
-            try
-                {
-                while (fRunning.get())
-                    {
-                    Socket socket = serverSocket.accept();
-                    System.out.println("Accepting ...");
-                    String response = "HTTP/1.1 200 OK\r\nHost: " + host + "\r\nContent-length: 6\r\n\r\nmysite";
-                    socket.getOutputStream().write(response.getBytes("UTF-8"));
-                    }
-                }
-            catch(Throwable t)
-                {
-                t.printStackTrace();
-                }
-            });
-
-        thread.start();
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME)
-                        .detached()
-                        .env("COH_SITE_INFO_LOCATION", "http://" + host + ":" + nPort + "/zone/mynode"),
-                ContainerCloseBehaviour.remove()))
-            {
-            DockerContainer container = app.get(DockerContainer.class);
-
-            Eventually.assertThat(invoking(this).tailLogs(platform, container, 50),
-                    hasItem(containsString("Started DefaultCacheServer")));
-
-            Collection<String> logLines = tailLogs(platform, container);
-
-            assertThat(logLines, hasItem(containsString("Location=site:mysite")));
-            }
-        finally
-            {
-            fRunning.set(false);
-            serverSocket.close();
             }
         }
 

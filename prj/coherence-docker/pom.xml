@@ -23,7 +23,7 @@
 
   <properties>
     <project.version.pom>${project.version.official}-b${project.build.number}</project.version.pom>
-    <docker.image.name>iad.ocir.io/odx-stateservice/test/coherence:${project.version.pom}</docker.image.name>
+    <docker.image.name>oracle/coherence-ce:${project.version}</docker.image.name>
     <docker.skip.tests>false</docker.skip.tests>
   </properties>
 
@@ -185,25 +185,6 @@
                     <optimise>true</optimise>
                   </build>
                 </image>
-                <image>
-                  <name>${docker.image.name}-jdk8</name>
-                  <build>
-                    <compression>bzip2</compression>
-                    <dockerFileDir>${project.build.directory}/docker-build</dockerFileDir>
-                    <nocache>true</nocache>
-                    <optimise>true</optimise>
-                  </build>
-                </image>
-                <image>
-                  <name>${docker.image.name}-jdk11</name>
-                  <build>
-                    <compression>bzip2</compression>
-                    <dockerFileDir>${project.build.directory}/docker-build</dockerFileDir>
-                    <dockerFile>Dockerfile.jdk11</dockerFile>
-                    <nocache>true</nocache>
-                    <optimise>true</optimise>
-                  </build>
-                </image>
               </images>
             </configuration>
             <executions>
@@ -216,13 +197,25 @@
               </execution>
             </executions>
           </plugin>
+        </plugins>
+      </build>
+    </profile>
 
+    <profile>
+      <id>docker-test</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>project.docker</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
               <skip>false</skip>
-              <skipTests>${docker.skip.tests}</skipTests>
               <systemProperties>
                 <project.version.dist>${project.version.dist}</project.version.dist>
                 <project.version.pom>${project.version.pom}</project.version.pom>
@@ -240,7 +233,6 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <skip>false</skip>
-              <skipTests>${docker.skip.tests}</skipTests>
               <systemProperties>
                 <project.version.dist>${project.version.dist}</project.version.dist>
                 <project.version.pom>${project.version.pom}</project.version.pom>

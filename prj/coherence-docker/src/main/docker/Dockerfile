@@ -5,7 +5,7 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-FROM oracle/graalvm-ce:19.0.0
+FROM openjdk:11.0.6-slim
 
 ENV PATH=$PATH:/usr/java/default/bin \
     CONFIG_JVM_ARGS="-Djava.security.egd=file:/dev/./urandom" \

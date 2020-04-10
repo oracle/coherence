@@ -120,23 +120,10 @@ start()
 
     if [ "${COH_SITE_INFO_LOCATION}" != "" ]
     then
-        case "${COH_SITE_INFO_LOCATION}" in
-            http://\$*)
-                SITE=""
-                break;;
-            http://*)
-                SITE=$(curl ${COH_SITE_INFO_LOCATION})
-                if [ $? != 0 ]
-                then
-                    SITE=""
-                fi
-                break;;
-            *)
-                if [ -f "${COH_SITE_INFO_LOCATION}" ]
-                then
-                    SITE=`cat ${COH_SITE_INFO_LOCATION}`
-                fi
-        esac
+        if [ -f "${COH_SITE_INFO_LOCATION}" ]
+        then
+            SITE=`cat ${COH_SITE_INFO_LOCATION}`
+        fi
 
         if [ -n "${SITE}" ]
         then
