@@ -1294,8 +1294,11 @@
         <module>coherence-tracing</module>
         <module>coherence-docker</module>
 
+        <module>plugins</module>
+
         <module>test/functional</module>
         <module>test/endurance</module>
+        <module>test/performance</module>
 
         <!-- distributed modules -->
         <module>coherence</module>
@@ -1308,7 +1311,6 @@
         <module>coherence-mock</module>
         <module>coherence-http-netty</module>
         <module>coherence-rest</module>
-        <module>test/performance</module>
       </modules>
     </profile>
 
