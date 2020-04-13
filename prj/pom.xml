@@ -573,7 +573,7 @@
     <!-- tool versions -->
     <ant-tangosol.version>1.0</ant-tangosol.version>
     <java.version>1.8</java.version>
-    <maven.version>3.6.1</maven.version>
+    <maven.version>3.6.0</maven.version>
     <java.version.seven>1.7</java.version.seven>
 
     <!--
