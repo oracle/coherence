@@ -111,8 +111,8 @@ to execute processing logic for the appropriate entries with exclusive access
 associating data (thus being on the same partition) and manipulating other entries
 on the same partition potentially across caches
 * **Non-blocking / async NamedCache API**
-* **C++ and .NET cliens** - access the same NamedCache API from either C++ or .NET
-* **Portable Object Format** - pptimized serialization format, with the ability to
+* **C++ and .NET clients** - access the same NamedCache API from either C++ or .NET
+* **Portable Object Format** - optimized serialization format, with the ability to
 navigate the serialized form for optimized queries, aggregations, or data processing
 * **Integration with Databases** - Database & third party data integration with
 CacheStores including both synchronous or asynchronous writes
