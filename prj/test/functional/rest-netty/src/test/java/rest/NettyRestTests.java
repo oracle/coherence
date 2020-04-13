@@ -10,8 +10,16 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
@@ -50,6 +58,37 @@ public class NettyRestTests
     public static void shutdown()
         {
         stopCacheServer("NettyRestTests");
+        }
+
+    /**
+     * Create a new HTTP client.
+     *
+     * @return a new HTTP client
+     */
+    @Override protected ClientBuilder createClient()
+        {
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.connectorProvider(new ApacheConnectorProvider());
+        return ClientBuilder.newBuilder()
+                .withConfig(clientConfig)
+                .register(JacksonMapperProvider.class)
+                .register(JacksonFeature.class);
+        }
+
+    /**
+     * Return the HTTP client.
+     *
+     * @return context path
+     */
+    @Override public Client getClient()
+        {
+        if (m_client == null)
+            {
+            m_client = createClient().build();
+            m_client.property(ClientProperties.READ_TIMEOUT, 1000);
+            }
+
+        return m_client;
         }
 
     // ----- constants ------------------------------------------------------
