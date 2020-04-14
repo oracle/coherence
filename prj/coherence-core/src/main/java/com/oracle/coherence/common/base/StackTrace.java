@@ -4,7 +4,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.common.base;
 
 import java.io.BufferedReader;
@@ -16,20 +15,20 @@ import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.Writer;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
 import java.util.ArrayList;
 
 import static com.oracle.coherence.common.base.Loggers.out;
-
 
 /**
  * Class for providing StackTrace functionality.
  *
  * @author cp  2000.08.02
- * @since Coherence 12.4.1
+ * @since Coherence 14.1.2
  */
-
 public abstract class StackTrace
     {
     // ----- stack trace support ----------------------------------------------
@@ -85,12 +84,11 @@ public abstract class StackTrace
         {
         String sStack = getStackTrace();
         LineNumberReader reader = new LineNumberReader(new StringReader(
-                                                                               sStack.substring(sStack.indexOf('\n', sStack.lastIndexOf(
-                                                                                       ".getStackFrames(")) + 1)));
+                sStack.substring(sStack.indexOf('\n', sStack.lastIndexOf(".getStackFrames(")) + 1)));
 
         try
             {
-            ArrayList list = new ArrayList();
+            ArrayList<StackFrame> list = new ArrayList<>();
             String sLine = reader.readLine();
             while (sLine != null && sLine.length() > 0)
                 {
@@ -99,14 +97,14 @@ public abstract class StackTrace
                     {
                     frame = new StackFrame(sLine);
                     }
-                catch (RuntimeException e)
+                catch (RuntimeException ignore)
                     {
                     }
 
                 list.add(frame);
                 sLine = reader.readLine();
                 }
-            return (StackFrame[]) list.toArray(new StackFrame[list.size()]);
+            return list.toArray(new StackFrame[0]);
             }
         catch (IOException e)
             {
@@ -207,9 +205,11 @@ public abstract class StackTrace
      */
     public static BigDecimal ensureBigDecimal(Number num)
         {
-        return num instanceof BigDecimal ? (BigDecimal) num :
-                       num instanceof BigInteger ? new BigDecimal((BigInteger) num) :
-                               new BigDecimal(num.doubleValue());
+        return num instanceof BigDecimal
+               ? (BigDecimal) num
+               : num instanceof BigInteger
+                 ? new BigDecimal((BigInteger) num)
+                 : BigDecimal.valueOf(num.doubleValue());
         }
 
     /**
@@ -223,7 +223,6 @@ public abstract class StackTrace
          *
          * @param sExcept a line of a stack trace in the format used by the
          *                reference implementation of the JVM
-         * @throws RuntimeException
          */
         public StackFrame(String sExcept)
             {
@@ -249,7 +248,7 @@ public abstract class StackTrace
                         {
                         nLine = Integer.parseInt(sRight.substring(of + 1));
                         }
-                    catch (RuntimeException e)
+                    catch (RuntimeException ignore)
                         {
                         }
                     }
@@ -372,7 +371,7 @@ public abstract class StackTrace
                         }
                     }
                 }
-            catch (Throwable t)
+            catch (Throwable ignore)
                 {
                 }
 
@@ -394,6 +393,7 @@ public abstract class StackTrace
         /**
          * @return a short String representation of the StackFrame
          */
+        @SuppressWarnings("unused")
         public String toShortString()
             {
             int nLine = getLineNumber();

@@ -210,16 +210,16 @@ public class MinusExpression extends UnaryExpression
         switch (chType)
             {
             case 'I':
-                return Integer.valueOf(-((Number) oVal).   intValue());
+                return -((Number) oVal).intValue();
 
             case 'J':
-                return makeLong   (-((Number) oVal).  longValue());
+                return -((Number) oVal).  longValue();
 
             case 'F':
-                return new Float  (-((Number) oVal). floatValue());
+                return -((Number) oVal).floatValue();
 
             case 'D':
-                return new Double (-((Number) oVal).doubleValue());
+                return -((Number) oVal).doubleValue();
 
             default:
                 // assert

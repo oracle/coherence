@@ -4,17 +4,15 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.common.base;
 
 import java.rmi.RemoteException;
-
 
 /**
  * Class for providing exception support.
  *
  * @author cp  2000.08.02
- * @since Coherence 12.4.1
+ * @since Coherence 14.1.2
  */
 
 public abstract class Exceptions

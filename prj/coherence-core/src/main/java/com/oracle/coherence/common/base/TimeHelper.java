@@ -4,26 +4,26 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.common.base;
 
+import com.oracle.coherence.common.util.SafeClock;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
 import java.util.Map;
 import java.util.TimeZone;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.oracle.coherence.common.base.Exceptions.ensureRuntimeException;
-
 
 /**
  * Class for providing time functionality.
  *
  * @author cp  2000.08.02
- * @since Coherence 12.4.1
+ * @since Coherence 14.1.2
  */
-
 public abstract class TimeHelper
     {
     // ----- time routines ----------------------------------------------
@@ -45,7 +45,7 @@ public abstract class TimeHelper
 
         try
             {
-            return ((Long) methodUptime.invoke(s_oRuntimeMXBean)).longValue();
+            return (Long) methodUptime.invoke(s_oRuntimeMXBean);
             }
         catch (Throwable e)
             {
@@ -105,7 +105,7 @@ public abstract class TimeHelper
      * Gets the {@link TimeZone} for the given ID.
      * <p>
      * This method will cache returned TimeZones to avoid the contention
-     * caused by the {@link TimeZone#getTimeZone} implementation.
+     * caused by the {@link TimeZone#getTimeZone(String)} implementation.
      *
      * @param sId the ID for a {@link TimeZone}
      * @return the specified {@link TimeZone}, or the GMT zone if the
@@ -115,7 +115,7 @@ public abstract class TimeHelper
      */
     public static TimeZone getTimeZone(String sId)
         {
-        TimeZone timeZone = (TimeZone) s_mapTimeZones.get(sId);
+        TimeZone timeZone = s_mapTimeZones.get(sId);
         if (timeZone == null)
             {
             timeZone = TimeZone.getTimeZone(sId);
@@ -130,7 +130,7 @@ public abstract class TimeHelper
     /**
      * The map of cached {@link TimeZone}s keyed by ID.
      */
-    private static Map s_mapTimeZones = new ConcurrentHashMap();
+    private static final Map<String, TimeZone> s_mapTimeZones = new ConcurrentHashMap<>();
 
     /**
      * The estimated JVM start time.
@@ -140,7 +140,7 @@ public abstract class TimeHelper
     /**
      * The shared SafeClock.
      */
-    private static SafeClock s_safeClock = new SafeClock(s_ldtStartTime);
+    private static final SafeClock s_safeClock = new SafeClock(s_ldtStartTime);
 
     /**
      * The java.lang.RuntimeMXBean or null if not available.
@@ -159,17 +159,15 @@ public abstract class TimeHelper
 
         try
             {
-            oRuntimeMXBean = Class.forName(
-                    "java.lang.management.ManagementFactory").
-                                                                     getMethod("getRuntimeMXBean").invoke(null);
+            oRuntimeMXBean = Class.forName("java.lang.management.ManagementFactory")
+                    .getMethod("getRuntimeMXBean").invoke(null);
             if (oRuntimeMXBean != null)
                 {
-                methodUptime = Class.forName(
-                        "java.lang.management.RuntimeMXBean").
-                                                                     getMethod("getUptime");
+                methodUptime = Class.forName("java.lang.management.RuntimeMXBean")
+                        .getMethod("getUptime");
                 }
             }
-        catch (Throwable eIgnore)
+        catch (Throwable ignore)
             {
             }
 

@@ -7,6 +7,7 @@
 package rwbm;
 
 
+import com.oracle.coherence.common.base.StackTrace;
 import common.TestCacheStore;
 
 import java.util.HashSet;
@@ -78,7 +79,7 @@ public class ConditionalDelayCacheStore extends TestCacheStore
         Set<String> setClzes = new HashSet<String>();
         Set<String> setMets = new HashSet<String>();
 
-        for (StackFrame fr : getStackFrames())
+        for (StackTrace.StackFrame fr : getStackFrames())
             {
             String sClzName = fr.getShortClassName();
             String sMetName = fr.getMethodName();

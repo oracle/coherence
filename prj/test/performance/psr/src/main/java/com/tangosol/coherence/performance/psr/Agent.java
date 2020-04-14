@@ -666,7 +666,7 @@ public class Agent
                 log(e);
                 }
 
-            setResult(makeInteger(cRunner));
+            setResult(cRunner);
             }
 
         // ----- ExternalizableLite interface ---------------------------
@@ -814,7 +814,7 @@ public class Agent
                     }
                 }
 
-            setResult(makeInteger(cRunner));
+            setResult(cRunner);
             }
 
         // ----- ExternalizableLite interface ---------------------------

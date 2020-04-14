@@ -4,7 +4,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.common.base;
 
 import java.io.ByteArrayOutputStream;
@@ -17,19 +16,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+
 import java.net.URL;
 import java.net.URLConnection;
 
 import static com.oracle.coherence.common.base.Assertions.azzert;
 
-
 /**
  * Class for providing read functionality.
  *
  * @author cp  2000.08.02
- * @since Coherence 12.4.1
+ * @since Coherence 14.1.2
  */
-
+@SuppressWarnings("DuplicatedCode")
 public abstract class Reads
     {
     // ----- read support ----------------------------------------------
@@ -45,7 +44,7 @@ public abstract class Reads
      * @return  the number of bytes read from the InputStream and stored into
      *          the passed byte array
      *
-     * @throws IOException
+     * @throws IOException  if an error occurs
      */
     public static int read(InputStream stream, byte[] ab)
             throws IOException
@@ -77,7 +76,7 @@ public abstract class Reads
      *
      * @return  a byte array containing the contents of the passed InputStream
      *
-     * @throws IOException
+     * @throws IOException  if an error occurs
      */
     public static byte[] read(InputStream stream)
             throws IOException
@@ -116,7 +115,7 @@ public abstract class Reads
      *
      * @return  a byte array containing the contents of the passed stream
      *
-     * @throws IOException
+     * @throws IOException  if an error occurs
      */
     public static byte[] read(DataInput stream)
             throws IOException
@@ -132,6 +131,7 @@ public abstract class Reads
         ByteArrayOutputStream streamBuf = null;
         try
             {
+            //noinspection InfiniteLoopStatement
             while (true)
                 {
                 ab[cb++] = stream.readByte();
@@ -146,7 +146,7 @@ public abstract class Reads
                     }
                 }
             }
-        catch (EOFException e)
+        catch (EOFException ignore)
             {
             // end of input reached; eat it
             }
@@ -182,7 +182,7 @@ public abstract class Reads
      *
      * @return  a byte array containing the contents of the passed InputStream
      *
-     * @throws IOException
+     * @throws IOException  if an error occurs
      */
     public static byte[] read(DataInputStream stream)
             throws IOException
@@ -200,7 +200,7 @@ public abstract class Reads
      *
      * @return  a String containing the contents of the passed Reader
      *
-     * @throws IOException
+     * @throws IOException  if an error occurs
      */
     public static String read(Reader reader)
             throws IOException
@@ -239,7 +239,7 @@ public abstract class Reads
      *
      * @return the contents of the specified File as a byte array
      *
-     * @throws IOException
+     * @throws IOException  if an error occurs
      */
     public static byte[] read(File file)
             throws IOException
@@ -255,19 +255,10 @@ public abstract class Reads
         int    cb = (int) cbFile;
         byte[] ab = new byte[cb];
 
-        InputStream in = new FileInputStream(file);
-        try
+        try (InputStream in = new FileInputStream(file))
             {
             int cbRead = read(in, ab);
             azzert(cb == cbRead);
-            }
-        finally
-            {
-            try
-                {
-                in.close();
-                }
-            catch (Exception e) {}
             }
 
         return ab;
@@ -281,8 +272,9 @@ public abstract class Reads
      *
      * @return the contents of the specified URL as a byte array
      *
-     * @throws IOException
+     * @throws IOException  if an error occurs
      */
+    @SuppressWarnings("UnusedAssignment")
     public static byte[] read(URL url)
             throws IOException
         {
@@ -294,8 +286,7 @@ public abstract class Reads
         URLConnection con = url.openConnection();
         int           cb  = con.getContentLength();
         byte[]        ab  = null;
-        InputStream   in  = con.getInputStream();
-        try
+        try (InputStream in = con.getInputStream())
             {
             if (cb == -1)
                 {
@@ -309,14 +300,6 @@ public abstract class Reads
                 int cbRead = read(in, ab);
                 azzert(cb == cbRead);
                 }
-            }
-        finally
-            {
-            try
-                {
-                in.close();
-                }
-            catch (Exception e) {}
             }
 
         return ab;

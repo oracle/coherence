@@ -4,19 +4,16 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.common.base;
 
 import java.util.Arrays;
-
 
 /**
  * Class for providing comparison functionality.
  *
  * @author cp  2000.08.02
- * @since Coherence 12.4.1
+ * @since Coherence 14.1.2
  */
-
 public abstract class Objects
     {
     // ----- comparison support ----------------------------------------------
@@ -24,8 +21,9 @@ public abstract class Objects
     /**
      * Compare two references for equality.
      *
-     * @param o1
-     * @param o2
+     * @param o1  the first object reference
+     * @param o2  the second object reference
+     *
      * @return true if equal, false otherwise
      */
     public static boolean equals(Object o1, Object o2)
@@ -54,8 +52,9 @@ public abstract class Objects
      * Deeply compare two references for equality. This dives down into
      * arrays, including nested arrays.
      *
-     * @param o1
-     * @param o2
+     * @param o1  the first object reference
+     * @param o2  the second object reference
+     *
      * @return true if deeply equal, false otherwise
      */
     public static boolean equalsDeep(Object o1, Object o2)

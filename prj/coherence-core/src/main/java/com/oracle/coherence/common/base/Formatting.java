@@ -4,26 +4,30 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.common.base;
 
-
+import com.tangosol.util.Base;
 import com.tangosol.util.ByteSequence;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
+import java.sql.Timestamp;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.tangosol.util.Base.*;
 
 /**
  * Class for providing formatting functionality for various types.
  *
  * @author cp  2000.08.02
- * @since Coherence 12.4.1
+ * @since Coherence 14.1.2
  */
-
+@SuppressWarnings({"UnnecessaryLocalVariable", "DuplicatedCode", "ForLoopReplaceableByForEach"})
 public abstract class Formatting
     {
     // ----- formatting support: character/String ---------------------------
@@ -51,6 +55,7 @@ public abstract class Formatting
         int cRemDigits = cMinDigits - cIntDigits;
         if (cDecDigits > cRemDigits)
             {
+            //noinspection deprecation
             decVal = decVal.setScale(cRemDigits, BigDecimal.ROUND_HALF_UP);
             }
 
@@ -337,11 +342,11 @@ public abstract class Formatting
                     {
                     case '\n':
                         // close quote, new line, re-open quote
-                        sb.append("\'\n\'");
+                        sb.append("'\n'");
                         break;
                     case '\'':
                         // escape single quote with a second single quote
-                        sb.append("\'\'");
+                        sb.append("''");
                         break;
                     }
 
@@ -403,7 +408,7 @@ public abstract class Formatting
                     sb.append(sIndent);
                     }
 
-                sb.append(sText.substring(ofPrev, of));
+                sb.append(sText, ofPrev, of);
                 ofPrev = of;
                 }
             }
@@ -477,6 +482,7 @@ public abstract class Formatting
                 {
                 fBreak = true;
 
+                //noinspection StatementWithEmptyBody
                 while (!Character.isWhitespace(ach[--ofBreak]) && ofBreak > ofPrev)
                     {
                     }
@@ -502,7 +508,7 @@ public abstract class Formatting
                     sb.append(sIndent);
                     }
 
-                sb.append(sText.substring(ofPrev, ofBreak));
+                sb.append(sText, ofPrev, ofBreak);
 
                 ofPrev = ofNext;
                 }
@@ -586,7 +592,7 @@ public abstract class Formatting
             int iPos = sText.indexOf(sFrom, iStart);
             if (iPos != -1)
                 {
-                sbTextNew.append(sText.substring(iStart, iPos));
+                sbTextNew.append(sText, iStart, iPos);
                 sbTextNew.append(sTo);
                 iStart = iPos + sFrom.length();
                 }
@@ -614,7 +620,7 @@ public abstract class Formatting
             return null;
             }
 
-        List list = new ArrayList();
+        List<String> list = new ArrayList<>();
         int ofPrev = -1;
         while (true)
             {
@@ -632,7 +638,7 @@ public abstract class Formatting
             ofPrev = ofNext;
             }
 
-        return (String[]) list.toArray(new String[list.size()]);
+        return list.toArray(new String[0]);
         }
 
     /**
@@ -715,9 +721,10 @@ public abstract class Formatting
      *
      * @param iter   the Iterator
      * @param sDelim the delimiter
+     *
      * @return the formatted string
      */
-    public static String toDelimitedString(Iterator iter, String sDelim)
+    public static String toDelimitedString(Iterator<?> iter, String sDelim)
         {
         StringBuilder sb = new StringBuilder();
         while (iter.hasNext())
@@ -763,7 +770,7 @@ public abstract class Formatting
      * @param cLimit expected character count
      * @return the truncated string representation of the provided collection
      */
-    public static String truncateString(Collection coll, int cLimit)
+    public static String truncateString(Collection<?> coll, int cLimit)
         {
         StringBuilder sb = new StringBuilder(Classes.getSimpleName(coll.getClass()))
                                    .append('[');
@@ -771,7 +778,7 @@ public abstract class Formatting
         cLimit += sb.length() + 1;
 
         int c = 1;
-        for (Iterator iter = coll.iterator(); iter.hasNext() && sb.length() < cLimit; ++c)
+        for (Iterator<?> iter = coll.iterator(); iter.hasNext() && sb.length() < cLimit; ++c)
             {
             if (c > 1)
                 {
@@ -1835,7 +1842,7 @@ public abstract class Formatting
             }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.valueOf(cb));
+        sb.append(cb);
         int cch = sb.length();
         if (cch < 3 && cbRem != 0)
             {
@@ -1843,11 +1850,340 @@ public abstract class Formatting
             // format the most significant two digits ".xx" as a string "1xx"
             String sDec = String.valueOf((int) (cbRem / 10.24 + 100));
             sb.append('.')
-                    .append(sDec.substring(1, 1 + 3 - cch));
+                    .append(sDec, 1, 1 + 3 - cch);
             }
         sb.append(MEM_SUFFIX[cDivs]);
 
         return sb.toString();
+        }
+
+    // ----- formatting support: time ---------------------------------------
+
+    /**
+    * Parse the given string representation of a time duration and return its
+    * value as a number of milliseconds. The supplied string must be in the
+    * format:
+    * <p>
+    * <tt>[\d]+[[.][\d]+]?[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?</tt>
+    * <p>
+    * where the first non-digits (from left to right) indicate the unit of
+    * time duration:
+    * <ul>
+    * <li><tt>NS</tt> or <tt>ns</tt> (nanoseconds)</li>
+    * <li><tt>US</tt> or <tt>us</tt> (microseconds)</li>
+    * <li><tt>MS</tt> or <tt>ms</tt> (milliseconds)</li>
+    * <li><tt>S</tt>  or <tt>s</tt>  (seconds)</li>
+    * <li><tt>M</tt>  or <tt>m</tt>  (minutes)</li>
+    * <li><tt>H</tt>  or <tt>h</tt>  (hours)</li>
+    * <li><tt>D</tt>  or <tt>d</tt>  (days)</li>
+    * </ul>
+    * <p>
+    * If the string value does not contain a unit, a unit of milliseconds is
+    * assumed.
+    *
+    * @param s  a string with the format
+    *           <tt>[\d]+[[.][\d]+]?[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?</tt>
+    *
+    * @return the number of milliseconds represented by the given string
+    *         rounded down to the nearest millisecond
+    *
+    * @see #parseTimeNanos(String)
+    */
+    public static long parseTime(String s)
+        {
+        return parseTime(s, UNIT_MS);
+        }
+
+    /**
+    * Parse the given string representation of a time duration and return its
+    * value as a number of milliseconds. The supplied string must be in the
+    * format:
+    * <p>
+    * <tt>[\d]+[[.][\d]+]?[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?</tt>
+    * <p>
+    * where the first non-digits (from left to right) indicate the unit of
+    * time duration:
+    * <ul>
+    * <li><tt>NS</tt> or <tt>ns</tt> (nanoseconds)</li>
+    * <li><tt>US</tt> or <tt>us</tt> (microseconds)</li>
+    * <li><tt>MS</tt> or <tt>ms</tt> (milliseconds)</li>
+    * <li><tt>S</tt>  or <tt>s</tt>  (seconds)</li>
+    * <li><tt>M</tt>  or <tt>m</tt>  (minutes)</li>
+    * <li><tt>H</tt>  or <tt>h</tt>  (hours)</li>
+    * <li><tt>D</tt>  or <tt>d</tt>  (days)</li>
+    * </ul>
+    * <p>
+    * If the string value does not contain a unit, the specified default unit
+    * is assumed. The default unit can be one of:
+    * <ul>
+    * <li>{@link Base#UNIT_NS}</li>
+    * <li>{@link Base#UNIT_US}</li>
+    * <li>{@link Base#UNIT_MS}</li>
+    * <li>{@link Base#UNIT_S}</li>
+    * <li>{@link Base#UNIT_M}</li>
+    * <li>{@link Base#UNIT_H}</li>
+    * <li>{@link Base#UNIT_D}</li>
+    * </ul>
+    *
+    * @param s             a string with the format
+    *                      <tt>[\d]+[[.][\d]+]?[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?</tt>
+    * @param nDefaultUnit  the unit to use in the conversion to milliseconds
+    *                      if one is not specified in the supplied string
+    *
+    * @return the number of milliseconds represented by the given string
+    *         rounded down to the nearest millisecond
+    *
+    * @see #parseTimeNanos(String, int)
+    */
+    public static long parseTime(String s, int nDefaultUnit)
+        {
+        return parseTimeNanos(s, nDefaultUnit) / 1000000L;
+        }
+
+    /**
+    * Parse the given string representation of a time duration and return its
+    * value as a number of nanoseconds. The supplied string must be in the
+    * format:
+    * <p>
+    * <tt>[\d]+[[.][\d]+]?[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?</tt>
+    * <p>
+    * where the first non-digits (from left to right) indicate the unit of
+    * time duration:
+    * <ul>
+    * <li><tt>NS</tt> or <tt>ns</tt> (nanoseconds)</li>
+    * <li><tt>US</tt> or <tt>us</tt> (microseconds)</li>
+    * <li><tt>MS</tt> or <tt>ms</tt> (milliseconds)</li>
+    * <li><tt>S</tt>  or <tt>s</tt>  (seconds)</li>
+    * <li><tt>M</tt>  or <tt>m</tt>  (minutes)</li>
+    * <li><tt>H</tt>  or <tt>h</tt>  (hours)</li>
+    * <li><tt>D</tt>  or <tt>d</tt>  (days)</li>
+    * </ul>
+    * <p>
+    * If the string value does not contain a unit, a unit of nanoseconds is
+    * assumed.
+    *
+    * @param s  a string with the format
+    *           <tt>[\d]+[[.][\d]+]?[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?</tt>
+    *
+    * @return the number of nanoseconds represented by the given string
+    *         rounded down to the nearest nanosecond
+    */
+    public static long parseTimeNanos(String s)
+        {
+        return parseTimeNanos(s, UNIT_NS);
+        }
+
+    /**
+    * Parse the given string representation of a time duration and return its
+    * value as a number of nanoseconds. The supplied string must be in the
+    * format:
+    * <p>
+    * <tt>[\d]+[[.][\d]+]?[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?</tt>
+    * <p>
+    * where the first non-digits (from left to right) indicate the unit of
+    * time duration:
+    * <ul>
+    * <li><tt>NS</tt> or <tt>ns</tt> (nanoseconds)</li>
+    * <li><tt>US</tt> or <tt>us</tt> (microseconds)</li>
+    * <li><tt>MS</tt> or <tt>ms</tt> (milliseconds)</li>
+    * <li><tt>S</tt>  or <tt>s</tt>  (seconds)</li>
+    * <li><tt>M</tt>  or <tt>m</tt>  (minutes)</li>
+    * <li><tt>H</tt>  or <tt>h</tt>  (hours)</li>
+    * <li><tt>D</tt>  or <tt>d</tt>  (days)</li>
+    * </ul>
+    * <p>
+    * If the string value does not contain a unit, the specified default unit
+    * is assumed. The default unit can be one of:
+    * <ul>
+    * <li>{@link Base#UNIT_NS}</li>
+    * <li>{@link Base#UNIT_US}</li>
+    * <li>{@link Base#UNIT_MS}</li>
+    * <li>{@link Base#UNIT_S}</li>
+    * <li>{@link Base#UNIT_M}</li>
+    * <li>{@link Base#UNIT_H}</li>
+    * <li>{@link Base#UNIT_D}</li>
+    * </ul>
+    *
+    * @param s             a string with the format
+    *                      <tt>[\d]+[[.][\d]+]?[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?</tt>
+    * @param nDefaultUnit  the unit to use in the conversion to nanoseconds
+    *                      if one is not specified in the supplied string
+    *
+    * @return the number of nanoseconds represented by the given string
+    *         rounded down to the nearest nanosecond
+    */
+    public static long parseTimeNanos(String s, int nDefaultUnit)
+        {
+        if (s == null)
+            {
+            throw new IllegalArgumentException("passed String must not be null");
+            }
+
+        switch (nDefaultUnit)
+            {
+            case UNIT_NS:
+            case UNIT_US:
+            case UNIT_MS:
+            case UNIT_S:
+            case UNIT_M:
+            case UNIT_H:
+            case UNIT_D:
+                break;
+            default:
+                throw new IllegalArgumentException("illegal default unit: "
+                        + nDefaultUnit);
+            }
+
+        // remove trailing "[NS|ns|US|us|MS|ms|S|s|M|m|H|h|D|d]?" and store it as a factor
+        long nMultiplier = nDefaultUnit;
+        int cch = s.length();
+        if (cch > 0)
+            {
+            switch (s.charAt(--cch))
+                {
+                case 'S': case 's':
+                    nMultiplier = UNIT_S;
+                    if (cch > 1)
+                        {
+                        char c = s.charAt(cch - 1);
+                        switch (c)
+                            {
+                            case 'N': case 'n':
+                                --cch;
+                                nMultiplier = UNIT_NS;
+                                break;
+                            case 'U': case 'u':
+                                --cch;
+                                nMultiplier = UNIT_US;
+                                break;
+                            case 'M': case 'm':
+                                --cch;
+                                nMultiplier = UNIT_MS;
+                                break;
+                            }
+                        }
+                    break;
+
+                case 'M': case 'm':
+                    nMultiplier = UNIT_M;
+                    break;
+
+                case 'H': case 'h':
+                    nMultiplier = UNIT_H;
+                    break;
+
+                case 'D': case 'd':
+                    nMultiplier = UNIT_D;
+                    break;
+
+                default:
+                    ++cch; // oops: shouldn't have chopped off the last char
+                    break;
+                }
+            }
+
+        // convert multiplier into nanos
+        nMultiplier = nMultiplier < 0 ? 1000000L / -nMultiplier
+                                      : 1000000L * nMultiplier;
+
+        // make sure that the string contains some digits
+        if (cch == 0)
+            {
+            throw new NumberFormatException("passed String (\"" + s
+                    + "\") must contain a number");
+            }
+
+        // extract the digits (decimal form) to assemble the base number
+        long    cNanos   = 0;
+        boolean fDecimal = false;
+        int     nDivisor = 1;
+        for (int of = 0; of < cch; ++of)
+            {
+            char ch = s.charAt(of);
+            switch (ch)
+                {
+                case '0': case '1': case '2': case '3': case '4':
+                case '5': case '6': case '7': case '8': case '9':
+                    cNanos = (cNanos * 10) + (ch - '0');
+                    if (fDecimal)
+                        {
+                        nDivisor *= 10;
+                        }
+                    break;
+
+                case '.':
+                    if (fDecimal)
+                        {
+                        throw new NumberFormatException("invalid time: \""
+                            + s + "\" (illegal second decimal point)");
+                        }
+                    fDecimal = true;
+                    break;
+
+                default:
+                    throw new NumberFormatException("invalid time: \""
+                            + s + "\" (illegal digit: \"" + ch + "\")");
+                }
+            }
+
+        cNanos *= nMultiplier;
+        if (fDecimal)
+            {
+            if (nDivisor == 1)
+                {
+                throw new NumberFormatException("invalid time: \""
+                    + s + "\" (illegal trailing decimal point)");
+                }
+            else
+                {
+                cNanos /= nDivisor;
+                }
+            }
+        return cNanos;
+        }
+
+    /**
+    * Format a long value into a human readable date/time string.
+    *
+    * @param ldt  a Java long containing a date/time value
+    *
+    * @return a human readable date/time string
+    */
+    public static String formatDateTime(long ldt)
+        {
+        return ldt == 0L ? "none" : new Timestamp(ldt).toString();
+        }
+
+
+    // ----- formatting support: percentage ---------------------------------
+
+    /**
+    * Parse the given string representation of a percentage value and return
+    * its value as a float in the inclusive range of 0.0 and 1.0. The supplied
+    * string must be in the format:
+    * <p>
+    * <tt>[\d]+[[.][\d]+]?[%]</tt>
+    * <p>
+    * where the digits are within the closed interval [0.0, 100.0].
+    *
+    * @param s  a string with the format <tt>[\d]+[[.][\d]+]?[%]</tt>
+    *
+    * @return a float representing the percentage value in the closed interval
+    *         [0.0, 1.0]
+    */
+    public static float parsePercentage(String s)
+        {
+        int ofPct = s.indexOf('%');
+        if (ofPct == -1)
+            {
+            throw new IllegalArgumentException("The parameter " + s + " does not contain a percentage value.");
+            }
+        int percent = Integer.parseInt(s.substring(0, ofPct));
+        if (percent > 100 || percent < 0)
+            {
+            throw new IllegalArgumentException("Not a percentage value between 0 - 100:" + s);
+            }
+        return percent / 100f;
         }
 
     // ----- CRC32 ----------------------------------------------------------

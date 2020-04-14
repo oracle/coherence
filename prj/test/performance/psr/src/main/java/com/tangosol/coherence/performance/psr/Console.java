@@ -994,7 +994,7 @@ public class Console
                 try
                     {
                     s = (String) ClassHelper.invoke(o, "toString",
-                                                    new Object[]{makeInteger(-1)});
+                                                    new Object[]{-1});
                     }
                 catch (Exception e)
                     {

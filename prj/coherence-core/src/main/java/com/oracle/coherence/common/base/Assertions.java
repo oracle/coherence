@@ -4,9 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.common.base;
-
 
 import com.tangosol.util.AssertionException;
 
@@ -14,12 +12,11 @@ import static com.oracle.coherence.common.base.Loggers.err;
 import static com.oracle.coherence.common.base.StackTrace.getExpression;
 import static com.oracle.coherence.common.base.StackTrace.getStackTrace;
 
-
 /**
  * Class for providing assertion functionality.
  *
  * @author cp  2000.08.02
- * @since Coherence 12.4.1
+ * @since Coherence 14.1.2
  */
 
 public abstract class Assertions

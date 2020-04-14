@@ -4,11 +4,10 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.common.base;
 
-
 import com.tangosol.util.NullImplementation;
+
 import java.io.PrintWriter;
 
 import static com.oracle.coherence.common.base.Formatting.toHexEscape;
@@ -16,14 +15,12 @@ import static com.oracle.coherence.common.base.Formatting.toQuotedStringEscape;
 import static com.oracle.coherence.common.base.StackTrace.getExpression;
 import static com.oracle.coherence.common.base.StackTrace.printStackTrace;
 
-
 /**
  * Class for providing printed output functionality.
  *
  * @author cp  2000.08.02
- * @since Coherence 12.4.1
+ * @since Coherence 14.1.2
  */
-
 public abstract class Loggers
     {
     // ----- printed output support ----------------------------------------------
@@ -61,7 +58,7 @@ public abstract class Loggers
      *
      * @param clz  the class object to print.
      */
-    public static void out(Class clz)
+    public static void out(Class<?> clz)
         {
         s_out.println(Classes.toString(clz));
         }
@@ -109,7 +106,7 @@ public abstract class Loggers
      *
      * @param clz  the class object to print.
      */
-    public static void err(Class clz)
+    public static void err(Class<?> clz)
         {
         s_err.println(Classes.toString(clz));
         }
@@ -165,7 +162,7 @@ public abstract class Loggers
      *
      * @param clz  the class object to print.
      */
-    public static void log(Class clz)
+    public static void log(Class<?> clz)
         {
         log(Classes.toString(clz));
         }
@@ -254,6 +251,25 @@ public abstract class Loggers
                         : writer;
         }
 
+    /**
+    * Determine if the log is echoed to the console.
+    *
+    * @return true if the log is echoed to the console
+    */
+    public static boolean isLogEcho()
+        {
+        return s_fEchoLog;
+        }
+
+    /**
+    * Specify whether the log should echo to the console.
+    *
+    * @param fEcho  true if the log should echo to the console
+    */
+    public static void setLogEcho(boolean fEcho)
+        {
+        s_fEchoLog = fEcho;
+        }
 
     // ----- debugging support:  expression evaluation ----------------------
 

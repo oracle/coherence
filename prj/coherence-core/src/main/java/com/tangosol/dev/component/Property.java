@@ -1126,28 +1126,28 @@ public class Property
         switch (nType)
             {
             case DT_BOOLEAN:
-                return new Boolean  (stream.readBoolean());
+                return stream.readBoolean();
 
             case DT_CHAR:
-                return new Character(stream.readChar   ());
+                return stream.readChar();
 
             case DT_BYTE:
-                return new Byte     (stream.readByte   ());
+                return stream.readByte();
 
             case DT_SHORT:
-                return new Short    (stream.readShort  ());
+                return stream.readShort();
 
             case DT_INT:
-                return makeInteger  (stream.readInt    ());
+                return stream.readInt();
 
             case DT_LONG:
-                return makeLong     (stream.readLong   ());
+                return stream.readLong();
 
             case DT_FLOAT:
-                return new Float    (stream.readFloat  ());
+                return stream.readFloat();
 
             case DT_DOUBLE:
-                return new Double   (stream.readDouble ());
+                return stream.readDouble();
 
             case DT_BINARY:
                 {
