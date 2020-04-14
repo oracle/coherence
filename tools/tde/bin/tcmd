@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+#
+#  Licensed under the Universal Permissive License v 1.0 as shown at
+#  http://oss.oracle.com/licenses/upl.
+#
+
+# *****************************************
+# Default project is "core-net" (Coherence)
+#
+# Useful commands:
+#    tcmd -dump Component...
+#    tcmd -rawdump Component...
+#    tcmd -depend -store Component
+# ****************************************
+
+if [ -z "$DEV_ROOT" ]; then
+  cd $(dirname $0)/../../../bin
+  . ./cfglocal.sh
+  cd - > /dev/null
+fi
+
+case $(uname) in
+  CYGWIN*)
+    _CP_DELIM=";"
+    _DEV_ROOT=$(cygpath --windows $DEV_ROOT)
+     ;;
+  *)
+    _CP_DELIM=:
+    _DEV_ROOT=$DEV_ROOT
+     ;;
+esac
+
+if [ -z "$PROJECT" ]; then
+  PROJECT=core-net
+fi
+
+if [ -z "$MEM_OPTS" ]; then
+  MEM_OPTS="-Xms800m -Xmx800m"
+fi
+
+if [ -z "$OPTS" ]; then
+  OPTS="-showversion $MEM_OPTS -Dtangosol.taps.repos=file:$_DEV_ROOT/tde -Dtangosol.taps.prj=$PROJECT"
+fi
+
+cd $TDE_HOME
+
+$JAVA_HOME/bin/java $OPTS -cp $TDE_HOME/lib/tde.jar${_CP_DELIM}$TDE_HOME/lib/coherence.jar${_CP_DELIM}$CLASSPATH com.tangosol.tde.component.application.console.Tcmd $*
+
+cd - > /dev/null

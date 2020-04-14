@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+    xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <!--
+    This report is for use by the Coherence JVisualVM plugin only.
+     -->
+    <report>
+        <file-name>{date}-federation-destination-stats.txt</file-name>
+        <delim>{tab}</delim>
+
+        <query>
+            <pattern>Coherence:type=Federation,subType=Destination,*</pattern>
+        </query>
+
+        <row>
+            <column id ="Service">
+                <type>key</type>
+                <name>service</name>
+                <header>Service</header>
+                <group-by>true</group-by>
+            </column>
+
+            <column id="Participant">
+               <type>key</type>
+               <name>name</name>
+               <header>Participant</header>
+                <group-by>true</group-by>
+            </column>
+
+            <column id ="ParticipantStatus">
+                <name>Status</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id ="Status">
+                <type>function</type>
+                <header>Status</header>
+                <column-ref>ParticipantStatus</column-ref>
+                <function-name>max</function-name>
+            </column>
+
+            <column id="BytesSent">
+                <name>BytesSentSecs</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TotalBytesSentSecs">
+                <type>function</type>
+                <header>TotalBytesSentSecs</header>
+                <column-ref>BytesSent</column-ref>
+                <function-name>sum</function-name>
+            </column>
+
+            <column id="MsgsSent">
+                <name>MsgsSentSecs</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TotalMsgsSentSecs">
+                <type>function</type>
+                <header>TotalMsgSentSecs</header>
+                <column-ref>MsgsSent</column-ref>
+                <function-name>sum</function-name>
+            </column>
+        </row>
+    </report>
+</report-config>

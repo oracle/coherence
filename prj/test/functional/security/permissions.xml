@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<permissions>
+  <grant>
+    <principal>
+      <name>CN=Manager,OU=MyUnit</name>
+    </principal>
+
+    <permission>
+      <target>*</target>
+      <action>all</action>
+    </permission>
+  </grant>
+
+  <grant>
+    <principal>
+      <name>CN=Worker,OU=MyUnit</name>
+    </principal>
+
+    <permission>
+      <target>cache=dist*</target>
+      <action>join</action>
+    </permission>
+    <permission>
+      <target>service=invocation</target>
+      <action>join</action>
+    </permission>
+  </grant>
+
+  <!--Administrator is used as the default role (Specified in operational override configuration as "admin").-->
+  <grant>
+    <principal>
+      <name>CN=Administrator,O=MyCompany,L=MyCity,ST=MyState</name>
+    </principal>
+
+    <permission>
+      <target>service=*</target>
+      <action>join</action>
+    </permission>
+  </grant>
+</permissions>

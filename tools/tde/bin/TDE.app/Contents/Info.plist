@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>JavaAppLauncher</string>
+	<key>CFBundleIconFile</key>
+	<string>tde.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.tangosol</string>
+	<key>CFBundleDisplayName</key>
+	<string>TDE</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>TDE</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.3</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>NSHumanReadableCopyright</key>
+	<string></string>
+	<key>JVMMainClassName</key>
+	<string>com.tangosol.tde.component.application.gUI.desktop.TDE</string>
+	<key>JVMOptions</key>
+	<array>
+		<string>-Xms512M</string>
+		<string>-Xmx1G</string>
+		<string>-Dapple.laf.useScreenMenuBar=true</string>
+		<string>-Xdock:icon=$APP_ROOT/Contents/Resources/tde.icns</string>
+		<string>-Dtangosol.taps.repos=file://$APP_ROOT/../../../../tde</string>
+	</array>
+	<key>JVMArguments</key>
+	<array/>
+</dict>
+</plist>

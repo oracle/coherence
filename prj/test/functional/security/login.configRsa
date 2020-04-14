@@ -1,0 +1,15 @@
+// LoginModule Configuration for Coherence(TM)
+
+Coherence {
+    com.tangosol.security.KeystoreLogin required
+      keyStorePath="keystoreRsa.p12"
+      keyStorePass="password"
+      keyStoreType="PKCS12";
+};
+
+CoherenceREST {
+    com.tangosol.security.KeystoreLogin required
+      keyStorePath="keystoreRsa.p12"
+      keyStorePass="password"
+      keyStoreType="PKCS12";
+};

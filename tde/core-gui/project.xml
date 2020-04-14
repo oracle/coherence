@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<Project>
+  <Name>core-gui</Name>
+  <Description>Core set of gui (swing based) components</Description>
+  <DefaultTarget>1.3</DefaultTarget>
+  <StorageInfo>
+    <Location>./core-gui</Location>
+  </StorageInfo>
+  <TargetList>
+    <Target>
+      <Name>1.2</Name>
+      <Description>Created on Wed Nov 28 13:00:04 EST 2001</Description>
+      <Version>1.2</Version>
+      <Customization/>
+      <Localization/>
+      <Locked>true</Locked>
+      <BaseTargets>
+        <TargetRef>core:1.2</TargetRef>
+      </BaseTargets>
+      <StorageInfo>
+        <Location>1_2.zip</Location>
+      </StorageInfo>
+    </Target>
+    <Target>
+      <Name>1.3</Name>
+      <Description>Created on Tue Nov 25 12:05:33 EST 2003</Description>
+      <Version>1.3</Version>
+      <Customization/>
+      <Localization/>
+      <Locked>false</Locked>
+      <BaseTargets>
+        <TargetRef>core</TargetRef>
+      </BaseTargets>
+      <StorageInfo/>
+    </Target>
+  </TargetList>
+  <VersionList>
+    <Version>
+      <Name>1.2</Name>
+      <Description>Created on Wed Nov 28 12:59:57 EST 2001; Base Version since Mon Dec 13 2004</Description>
+      <BaseName/>
+    </Version>
+    <Version>
+      <Name>1.3</Name>
+      <Description>Created on Tue Nov 25 12:04:44 EST 2003; Fix in compilation logic (tangosol.jar build 176) may cause class changes</Description>
+      <BaseName>1.2</BaseName>
+    </Version>
+  </VersionList>
+  <CustomizationList/>
+  <LocalizationList/>
+</Project>

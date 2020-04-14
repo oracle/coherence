@@ -1,0 +1,268 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+              
+  <report>
+    <file-name>{date}-network-health.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=Node,*</pattern>
+   </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="Time">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>Report Time</header>
+      </column>
+
+      <column id ="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>Node Id</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id ="NodeTS">
+        <name>Timestamp</name>
+        <header>Time Stamp</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="NodeTxSuccess">
+        <type>function</type>
+        <name>NodePubSuccessRate</name>
+        <header>Node Tx Success</header>
+        <hidden>true</hidden>
+        <function-name>subtract</function-name>
+        <params>
+          <column-ref>One</column-ref>
+          <column-ref>NodeResentDivSent</column-ref>
+        </params>
+      </column>
+
+      <column id="NodeRxSuccess">
+        <type>function</type>
+        <name>NodeRxSuccess</name>
+        <header>Node Rx Success</header>
+        <hidden>true</hidden>
+        <function-name>subtract</function-name>
+        <params>
+          <column-ref>One</column-ref>
+          <column-ref>NodeRepeatDivRec</column-ref>
+        </params>
+      </column>
+
+      <column id="MinNodeRxSuccess">
+        <type>function</type>
+        <name>MinNodeRxSuccess</name>
+        <header>Min Node Rx Success</header>
+        <column-ref>NodeRxSuccess</column-ref>
+        <function-name>min</function-name>
+      </column>
+
+      <column id="RxSuccess">
+        <type>function</type>
+        <name>RxSuccess</name>
+        <header>Grid Rx Success</header>
+        <function-name>subtract</function-name>
+        <params>
+          <column-ref>One</column-ref>
+          <column-ref>RepeatDivRec</column-ref>
+        </params>
+      </column>
+
+      <column id="MinNodeTxSuccess">
+        <type>function</type>
+        <name>MinNodeTxSuccess</name>
+        <header>Min Node Tx Success</header>
+        <column-ref>NodeTxSuccess</column-ref>
+        <function-name>min</function-name>
+      </column>
+
+      <column id="TxSuccess">
+        <type>function</type>
+        <name>PubSuccessRate</name>
+        <header>Grid Tx Success</header>
+        <function-name>subtract</function-name>
+        <params>
+          <column-ref>One</column-ref>
+          <column-ref>ResentDivSent</column-ref>
+        </params>
+      </column>
+
+      <!-- raw data -->
+      <column id="PacketsSent">
+        <name>PacketsSent</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="PacketsResent">
+        <name>PacketsResent</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="PacketsRepeated">
+        <name>PacketsRepeated</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="PacketsReceived">
+        <name>PacketsReceived</name>
+        <hidden>true</hidden>
+      </column>
+
+      <!-- intermediate calculations -->
+      <column id="DeltaPacketsSent">
+        <type>function</type>
+        <name>PacketsSent</name>
+        <header>Delta Sent</header>
+        <hidden>true</hidden>
+        <column-ref>PacketsSent</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+
+      <column id="DeltaPacketsResent">
+        <type>function</type>
+        <name>PacketsResent</name>
+        <header>Delta Sent</header>
+        <hidden>true</hidden>
+        <column-ref>PacketsResent</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+
+      <column id="DeltaPacketsRepeated">
+        <type>function</type>
+        <header>Delta Repeated</header>
+        <hidden>true</hidden>
+        <column-ref>PacketsRepeated</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+
+      <column id="DeltaPacketsReceived">
+        <type>function</type>
+        <header>Delta Received</header>
+        <hidden>true</hidden>
+        <column-ref>PacketsReceived</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+
+      <column id="NodeResentDivSent">
+        <type>function</type>
+        <header>Node Resent by Sent</header>
+        <hidden>true</hidden>
+        <function-name>divide</function-name>
+        <params>
+          <column-ref>DeltaPacketsResent</column-ref>
+          <column-ref>DeltaPacketsSent</column-ref>
+        </params>
+      </column>
+
+      <column id="NodeRepeatDivRec">
+        <type>function</type>
+        <header>NodeRepeated by Rec</header>
+        <hidden>true</hidden>
+        <function-name>divide</function-name>
+        <params>
+          <column-ref>DeltaPacketsRepeated</column-ref>
+          <column-ref>DeltaPacketsReceived</column-ref>
+        </params>
+      </column>
+
+      <column id ="SumDeltaPacketsSent">
+        <type>function</type>
+        <name>SumPacketsSent</name>
+        <header>Sum Delta Packets Sent</header>
+        <hidden>true</hidden>
+        <column-ref>DeltaPacketsSent</column-ref>
+        <function-name>sum</function-name>
+      </column>
+
+      <column id="SumDeltaPacketsResent">
+        <type>function</type>
+        <name>SumPacketsResentDelta</name>
+        <header>Sum Delta Packets Resent</header>
+        <hidden>true</hidden>
+        <column-ref>DeltaPacketsResent</column-ref>
+        <function-name>sum</function-name>
+      </column>
+
+      <column id="ResentDivSent">
+        <type>function</type>
+        <header>Resent by Sent</header>
+        <hidden>true</hidden>
+        <function-name>divide</function-name>
+        <params>
+          <column-ref>SumDeltaPacketsResent</column-ref>
+          <column-ref>SumDeltaPacketsSent</column-ref>
+        </params>
+      </column>
+
+      <column id ="SumDeltaPacketsRepeated">
+        <type>function</type>
+        <header>SumDelta</header>
+        <hidden>true</hidden>
+        <column-ref>DeltaPacketsRepeated</column-ref>
+        <function-name>sum</function-name>
+      </column>
+
+      <column id="SumDeltaPacketsReceived">
+        <type>function</type>
+        <hidden>true</hidden>
+        <column-ref>DeltaPacketsReceived</column-ref>
+        <function-name>sum</function-name>
+      </column>
+
+      <column id="RepeatDivRec">
+        <type>function</type>
+        <header>Repeated by Rec</header>
+        <hidden>true</hidden>
+        <function-name>divide</function-name>
+        <params>
+          <column-ref>SumDeltaPacketsRepeated</column-ref>
+          <column-ref>SumDeltaPacketsReceived</column-ref>
+        </params>
+      </column>
+
+      <!-- Constants -->
+      <column id ="One">
+        <type>constant</type>
+        <header>Constant1</header>
+        <hidden>true</hidden>
+        <data-type>double</data-type>
+        <value>1.0</value>
+      </column>
+    </row>
+  </report>
+</report-config>

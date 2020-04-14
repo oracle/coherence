@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <artifactId>coherence-distribution-tests</artifactId>
+    <version>14.1.2-0-0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>jcache-compliance</artifactId>
+  <name>Coherence JCache Compliance (TCK) Tests</name>
+
+  <properties>
+    <!--                                         -->
+    <!-- JCache Compliance (TCK) Test Properties -->
+    <!--                                         -->
+
+    <!-- the location of the test domain library -->
+    <domain-lib-dir>${project.build.directory}/domainlib</domain-lib-dir>
+    <domain-jar>domain.jar</domain-jar>
+
+    <!-- the annotation implementation that will be used for testing -->
+    <annotation-harness-groupId>javax.cache</annotation-harness-groupId>
+    <annotation-harness-artifactId>guice-annotations-test-harness</annotation-harness-artifactId>
+    <annotation-harness-version>${javax.cache.version}</annotation-harness-version>
+
+    <!-- the JMX properties (for JMX statistics testing) -->
+    <javax.management.builder.initial>com.tangosol.net.management.jmx.WrapperMBeanServerBuilder
+    </javax.management.builder.initial>
+    <org.jsr107.tck.management.agentId>Coherence WrapperMBeanServer</org.jsr107.tck.management.agentId>
+
+    <!-- the classes expected for the unwrap tests (leaving empty/blank to ignore) -->
+    <CacheManagerImpl>com.tangosol.coherence.jcache.CoherenceBasedCacheManager</CacheManagerImpl>
+    <CacheImpl>com.tangosol.coherence.jcache.CoherenceBasedCache</CacheImpl>
+    <CacheEntryImpl>com.tangosol.coherence.jcache.common.CoherenceCacheEntry</CacheEntryImpl>
+
+    <!--                                         -->
+    <!--       Coherence JCache Properties       -->
+    <!--                                         -->
+    <!-- valid values: local or partitioned. unspecified also defaults to local -->
+    <impl>local</impl>
+
+    <!-- alternative values: coherence-jcache-cache-config.xml.   To test java serialization.  The default test config uses SafePOF. -->
+    <cacheconfig>coherence-jcache-tck-cache-config.xml</cacheconfig>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>javax.cache</groupId>
+      <artifactId>cache-api</artifactId>
+      <version>${javax.cache.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-jcache</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.cache</groupId>
+      <artifactId>cache-tests</artifactId>
+      <version>${javax.cache.tck.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.cache</groupId>
+      <artifactId>cache-tests</artifactId>
+      <version>${javax.cache.tck.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <version>1.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.16</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>1.7.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>1.7.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+
+    <plugins>
+      <!-- disable the ant-based testing approach defined by the
+           parent pom as we're using normal maven for this module! -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-test-source</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- maven-failsafe-plugin runs integration tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven.failsafe.plugin.version}</version>
+        <configuration>
+
+          <!-- JSR 107 TCK test use *Test.class and that can not be changed.
+               Adapt by including JSR 107 TCK filename pattern for test.
+               Tests are integrated via a JSR 107 TCK jars and they are unpacked
+            -->
+          <includes>
+            <include>**/*Test.class</include>
+          </includes>
+
+          <useManifestOnlyJar>true</useManifestOnlyJar>
+          <reuseForks>false</reuseForks>
+
+          <systemPropertyVariables>
+            <!-- JCache TCK specific system properties -->
+            <domainJar>${domain-lib-dir}/${domain-jar}</domainJar>
+            <org.jsr107.tck.management.agentId>${org.jsr107.tck.management.agentId}</org.jsr107.tck.management.agentId>
+            <org.jsr107.tck.support.server.address>127.0.0.1</org.jsr107.tck.support.server.address>
+            <javax.management.builder.initial>${javax.management.builder.initial}</javax.management.builder.initial>
+
+            <javax.cache.CacheManager>${CacheManagerImpl}</javax.cache.CacheManager>
+            <javax.cache.Cache>${CacheImpl}</javax.cache.Cache>
+            <javax.cache.Cache.Entry>${CacheEntryImpl}</javax.cache.Cache.Entry>
+
+            <!-- Coherence specific system properties -->
+            <!-- will not pass cache statistics test against partitioned cache with multiple servers without this set to disable throttling client lookup of cache statistics across cluster -->
+            <tangosol.coherence.jcache.statistics.refreshtime>0s</tangosol.coherence.jcache.statistics.refreshtime>
+            <tangosol.coherence.cacheconfig>${cacheconfig}</tangosol.coherence.cacheconfig>
+            <tangosol.coherence.jcache.configuration.classname>${impl}
+            </tangosol.coherence.jcache.configuration.classname>
+
+            <!-- speed up testing for single member testing. -->
+            <tangosol.coherence.join.timeout>0</tangosol.coherence.join.timeout>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+
+      <!-- disable running unit test for **/*Test -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+
+        <configuration>
+          <excludes>
+            <exclude>**/*Test.class</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${maven.enforcer.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>enforce-plugin-versions</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>1.7.0</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven.dependency.plugin.version}</version>
+        <executions>
+          <!-- we must unpack the tests as junit can't find them in a jar -->
+          <execution>
+            <id>copy-cache-tests</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+              <includeArtifactIds>cache-tests</includeArtifactIds>
+              <includeScope>test</includeScope>
+              <excludes>**/unwrap.properties</excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

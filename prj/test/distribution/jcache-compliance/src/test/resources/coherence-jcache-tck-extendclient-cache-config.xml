@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:jcache="class://com.tangosol.coherence.jcache.JCacheExtendNamespace"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config
+                                  coherence-cache-config.xsd">
+    <defaults>
+        <serializer>
+            <instance>
+                <class-name>com.tangosol.io.pof.SafeConfigurablePofContext</class-name>
+                <init-params>
+                    <init-param>
+                        <param-type>String</param-type>
+                        <param-value>coherence-jcache-tck-pof-config.xml</param-value>
+                    </init-param>
+                </init-params>
+            </instance>
+        </serializer>
+    </defaults>
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>jcache-partitioned-*</cache-name>
+            <scheme-name>jcache-extend-tcp</scheme-name>
+        </cache-mapping>
+        <cache-mapping>
+            <cache-name>jcache-configurations</cache-name>
+            <scheme-name>jcache-extend-tcp</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+    <caching-schemes>
+        <remote-cache-scheme>
+            <scheme-name>jcache-extend-tcp</scheme-name>
+           <!--  <scope-name>jcache-extend</scope-name>  -->
+            <service-name>JCacheTCPProxyService</service-name>
+            <proxy-service-name>TCPProxyService</proxy-service-name>
+            <initiator-config>
+                <tcp-initiator>
+                    <name-service-addresses>
+                        <socket-address>
+                            <address system-property="tangosol.coherence.remote.address">127.0.0.1</address>
+                            <port system-property="tangosol.coherence.clusterport">7574</port>
+                        </socket-address>
+                    </name-service-addresses>
+                </tcp-initiator>
+            </initiator-config>
+        </remote-cache-scheme>
+    </caching-schemes>
+</cache-config>

