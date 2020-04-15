@@ -63,18 +63,18 @@ public class MapEvent<K, V>
     * @param map         the ObservableMap object that fired the event
     * @param nId         this event's id, one of {@link #ENTRY_INSERTED},
     *                    {@link #ENTRY_UPDATED} or {@link #ENTRY_DELETED}
-    * @param oKey        the key into the map
-    * @param oValueOld   the old value (for update and delete events)
-    * @param oValueNew   the new value (for insert and update events)
+    * @param key        the key into the map
+    * @param valueOld   the old value (for update and delete events)
+    * @param valueNew   the new value (for insert and update events)
     */
-    public MapEvent(ObservableMap<K, V> map, int nId, K oKey, V oValueOld, V oValueNew)
+    public MapEvent(ObservableMap<K, V> map, int nId, K key, V valueOld, V valueNew)
         {
         super(map);
 
         m_nId       = nId;
-        m_oKey      = oKey;
-        m_oValueOld = oValueOld;
-        m_oValueNew = oValueNew;
+        m_key = key;
+        m_valueOld = valueOld;
+        m_valueNew = valueNew;
         }
 
     /**
@@ -108,7 +108,7 @@ public class MapEvent<K, V>
     */
     public K getKey()
         {
-        return m_oKey;
+        return m_key;
         }
 
     /**
@@ -121,7 +121,7 @@ public class MapEvent<K, V>
     */
     public V getOldValue()
         {
-        return m_oValueOld;
+        return m_valueOld;
         }
 
     /**
@@ -134,7 +134,7 @@ public class MapEvent<K, V>
     */
     public V getNewValue()
         {
-        return m_oValueNew;
+        return m_valueNew;
         }
 
     /**
@@ -231,18 +231,18 @@ public class MapEvent<K, V>
     public void readExternal(PofReader in) throws IOException
         {
         m_nId       = in.readInt(0);
-        m_oKey      = in.readObject(1);
-        m_oValueOld = in.readObject(2);
-        m_oValueNew = in.readObject(3);
+        m_key = in.readObject(1);
+        m_valueOld = in.readObject(2);
+        m_valueNew = in.readObject(3);
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
         out.writeInt(0, m_nId);
-        out.writeObject(1, m_oKey);
-        out.writeObject(2, m_oValueOld);
-        out.writeObject(3, m_oValueNew);
+        out.writeObject(1, m_key);
+        out.writeObject(2, m_valueOld);
+        out.writeObject(3, m_valueNew);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -309,7 +309,7 @@ public class MapEvent<K, V>
 
             for (int i = targets.length; --i >= 0; )
                 {
-                MapListener target = (MapListener) targets[i];
+                MapListener<K, V> target = (MapListener<K, V>) targets[i];
                 try
                     {
                     if (shouldDispatch(target))
@@ -466,23 +466,23 @@ public class MapEvent<K, V>
     * The event's id.
     */
     @JsonbProperty("id")
-    protected int    m_nId;
+    protected int m_nId;
 
     /**
     * A key.
     */
     @JsonbProperty("key")
-    protected K m_oKey;
+    protected K m_key;
 
     /**
     * A previous value.  May be null if not known.
     */
     @JsonbProperty(value = "oldValue", nillable = true)
-    protected V m_oValueOld;
+    protected V m_valueOld;
 
     /**
     * A new value.  May be null if not known.
     */
     @JsonbProperty(value = "newValue", nillable = true)
-    protected V m_oValueNew;
+    protected V m_valueNew;
     }

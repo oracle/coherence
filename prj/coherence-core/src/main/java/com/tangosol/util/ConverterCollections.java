@@ -3876,8 +3876,8 @@ public abstract class ConverterCollections
     * value Converters.  This event may cache converted keys and/or values to
     * optimize out future conversions.
     */
-    public static class ConverterMapEvent
-            extends CacheEvent
+    public static class ConverterMapEvent<K, V>
+            extends CacheEvent<K, V>
         {
         // ----- constructors -----------------------------------------------
 
@@ -3889,7 +3889,7 @@ public abstract class ConverterCollections
         * @param convKey  the Converter to view the underlying MapEvent's key
         * @param convVal  the Converter to view the underlying MapEvent's values
         */
-        public ConverterMapEvent(ObservableMap map, MapEvent event, Converter convKey, Converter convVal)
+        public ConverterMapEvent(ObservableMap<K, V> map, MapEvent<K, V> event, Converter<K, K> convKey, Converter<V, V> convVal)
             {
             this(map, event, convKey, convVal, null);
             }
@@ -3904,13 +3904,13 @@ public abstract class ConverterCollections
         * @param context  the BackingMapManagerContext necessary to emulate
         *                 the BinaryEntry interface
         */
-        public ConverterMapEvent(ObservableMap map, MapEvent event,
-                Converter convKey, Converter convVal, BackingMapManagerContext context)
+        @SuppressWarnings("unchecked")
+        public ConverterMapEvent(ObservableMap<K, V> map, MapEvent<K, V> event, Converter<K, K> convKey, Converter<V, V> convVal, BackingMapManagerContext context)
             {
-            super(map, event.getId(), NO_VALUE, NO_VALUE, NO_VALUE,
-                  event instanceof CacheEvent && ((CacheEvent) event).isSynthetic(),
-                  event instanceof CacheEvent ? ((CacheEvent) event).getTransformationState() : TransformationState.TRANSFORMABLE,
-                  event instanceof CacheEvent && ((CacheEvent) event).isPriming());
+            super(map, event.getId(), (K) NO_VALUE, (V) NO_VALUE, (V) NO_VALUE,
+                  event instanceof CacheEvent && ((CacheEvent<K, V>) event).isSynthetic(),
+                  event instanceof CacheEvent ? ((CacheEvent<K, V>) event).getTransformationState() : TransformationState.TRANSFORMABLE,
+                  event instanceof CacheEvent && ((CacheEvent<K, V>) event).isPriming());
 
             m_event   = event;
             m_convKey = convKey;
@@ -3924,51 +3924,51 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Object getKey()
+        public K getKey()
             {
-            Object oKey = m_oKey;
-            if (oKey == NO_VALUE)
+            K key = m_key;
+            if (key == NO_VALUE)
                 {
-                setKey(oKey =
+                setKey(key =
                     getConverterKeyUp().convert(getMapEvent().getKey()));
                 }
-            return oKey;
+            return key;
             }
 
         /**
         * {@inheritDoc}
         */
-        public Object getOldValue()
+        public V getOldValue()
             {
-            Object oValueOld = m_oValueOld;
-            if (oValueOld == NO_VALUE)
+            V valueOld = m_valueOld;
+            if (valueOld == NO_VALUE)
                 {
-                setOldValue(oValueOld =
+                setOldValue(valueOld =
                     getConverterValueUp().convert(getMapEvent().getOldValue()));
                 }
-            return oValueOld;
+            return valueOld;
             }
 
         /**
         * {@inheritDoc}
         */
-        public Object getNewValue()
+        public V getNewValue()
             {
-            Object oValueNew = m_oValueNew;
-            if (oValueNew == NO_VALUE)
+            V valueNew = m_valueNew;
+            if (valueNew == NO_VALUE)
                 {
-                setNewValue(oValueNew =
+                setNewValue(valueNew =
                     getConverterValueUp().convert(getMapEvent().getNewValue()));
                 }
-            return oValueNew;
+            return valueNew;
             }
 
         /**
         * {@inheritDoc}
         */
-        public Map.Entry getOldEntry()
+        public Map.Entry<K, V> getOldEntry()
             {
-            Map.Entry entry = m_entryOld;
+            Map.Entry<K, V> entry = m_entryOld;
             if (entry == null)
                 {
                 entry = m_entryOld = getContext() == null
@@ -3981,9 +3981,9 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Map.Entry getNewEntry()
+        public Map.Entry<K, V> getNewEntry()
             {
-            Map.Entry entry = m_entryNew;
+            Map.Entry<K, V> entry = m_entryNew;
             if (entry == null)
                 {
                 entry = m_entryNew = getContext() == null
@@ -4001,7 +4001,7 @@ public abstract class ConverterCollections
         *
         * @return the underlying MapEvent
         */
-        public MapEvent getMapEvent()
+        public MapEvent<K, V> getMapEvent()
             {
             return m_event;
             }
@@ -4022,7 +4022,7 @@ public abstract class ConverterCollections
         *
         * @return the Converter from the underlying MapEvent's key
         */
-        public Converter getConverterKeyUp()
+        public Converter<K, K> getConverterKeyUp()
             {
             return m_convKey;
             }
@@ -4033,7 +4033,7 @@ public abstract class ConverterCollections
         *
         * @return the Converter from the underlying MapEvent's value
         */
-        public Converter getConverterValueUp()
+        public Converter<V, V> getConverterValueUp()
             {
             return m_convVal;
             }
@@ -4041,31 +4041,31 @@ public abstract class ConverterCollections
         /**
         * Set the cached converted old value associated with this event.
         *
-        * @param oKey the converted key value
+        * @param key  the converted key value
         */
-        public void setKey(Object oKey)
+        public void setKey(K key)
             {
-            m_oKey = oKey;
+            m_key = key;
             }
 
         /**
         * Set the cached converted old value associated with this event.
         *
-        * @param oValue the new converted "old" value
+        * @param value  the new converted "old" value
         */
-        public void setOldValue(Object oValue)
+        public void setOldValue(V value)
             {
-            m_oValueOld = oValue;
+            m_valueOld = value;
             }
 
         /**
         * Set the cached converted new value associated with this event.
         *
-        * @param oValue the new converted "new" value
+        * @param value  the new converted "new" value
         */
-        public void setNewValue(Object oValue)
+        public void setNewValue(V value)
             {
-            m_oValueNew = oValue;
+            m_valueNew = value;
             }
 
         /**
@@ -4075,7 +4075,7 @@ public abstract class ConverterCollections
         */
         public boolean isKeyConverted()
             {
-            return m_oKey != NO_VALUE;
+            return m_key != NO_VALUE;
             }
 
         /**
@@ -4085,7 +4085,7 @@ public abstract class ConverterCollections
         */
         public boolean isOldValueConverted()
             {
-            return m_oValueOld != NO_VALUE;
+            return m_valueOld != NO_VALUE;
             }
 
         /**
@@ -4095,17 +4095,18 @@ public abstract class ConverterCollections
         */
         public boolean isNewValueConverted()
             {
-            return m_oValueNew != NO_VALUE;
+            return m_valueNew != NO_VALUE;
             }
 
         /**
         * Remove any cached conversions of the key or values.
         */
+        @SuppressWarnings("unchecked")
         public void clearConverted()
             {
-            setKey     (NO_VALUE);
-            setOldValue(NO_VALUE);
-            setNewValue(NO_VALUE);
+            setKey     ((K) NO_VALUE);
+            setOldValue((V) NO_VALUE);
+            setNewValue((V) NO_VALUE);
 
             m_entryOld = null;
             m_entryNew = null;
@@ -4119,7 +4120,7 @@ public abstract class ConverterCollections
         * information encapsulated inside the ConverterMapEvent.
         */
         protected class ConverterMapEventEntry
-                implements Map.Entry
+                implements Map.Entry<K, V>
             {
             // ----- Constructors -------------------------------------------
 
@@ -4164,7 +4165,7 @@ public abstract class ConverterCollections
             /**
             * {@inheritDoc}
             */
-            public Object getKey()
+            public K getKey()
                 {
                 return ConverterMapEvent.this.getKey();
                 }
@@ -4172,7 +4173,7 @@ public abstract class ConverterCollections
             /**
             * {@inheritDoc}
             */
-            public Object getValue()
+            public V getValue()
                 {
                 return m_fNewValue
                         ? ConverterMapEvent.this.getNewValue()
@@ -4182,7 +4183,7 @@ public abstract class ConverterCollections
             /**
             * {@inheritDoc}
             */
-            public Object setValue(Object oValue)
+            public V setValue(V value)
                 {
                 throw new UnsupportedOperationException();
                 }
@@ -4205,7 +4206,7 @@ public abstract class ConverterCollections
         */
         protected class ConverterMapEventBinaryEntry
                 extends ConverterMapEventEntry
-                implements BinaryEntry
+                implements BinaryEntry<K, V>
             {
             // ----- constructors -------------------------------------------
 
@@ -4235,10 +4236,10 @@ public abstract class ConverterCollections
             */
             public boolean isSynthetic()
                 {
-                MapEvent event = getMapEvent();
+                MapEvent<K, V> event = getMapEvent();
 
                 return event instanceof CacheEvent &&
-                        ((CacheEvent) event).isSynthetic();
+                        ((CacheEvent<K, V>) event).isSynthetic();
                 }
 
             /**
@@ -4252,7 +4253,7 @@ public abstract class ConverterCollections
             /**
             * {@inheritDoc}
             */
-            public void setValue(Object oValue, boolean fSynthetic)
+            public void setValue(V value, boolean fSynthetic)
                 {
                 throw new UnsupportedOperationException();
                 }
@@ -4260,7 +4261,7 @@ public abstract class ConverterCollections
             /**
             * {@inheritDoc}
             */
-            public void update(ValueUpdater updater, Object oValue)
+            public <T> void update(ValueUpdater<V, T> updater, T value)
                 {
                 throw new UnsupportedOperationException();
                 }
@@ -4273,7 +4274,8 @@ public abstract class ConverterCollections
             *
             * @return the extracted value.
             */
-            public Object extract(ValueExtractor extractor)
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            public <T, E> E extract(ValueExtractor<T, E> extractor)
                 {
                 Map    mapExtracted = m_mapExtracted;
                 Object oValue;
@@ -4297,7 +4299,7 @@ public abstract class ConverterCollections
                     {
                     oValue = null;
                     }
-                return oValue;
+                return (E) oValue;
                 }
 
             // ----- BinaryEntry interface  ---------------------------------
@@ -4337,7 +4339,7 @@ public abstract class ConverterCollections
             /**
             * {@inheritDoc}
             */
-            public Object getOriginalValue()
+            public V getOriginalValue()
                 {
                 throw new UnsupportedOperationException();
                 }
@@ -4353,7 +4355,7 @@ public abstract class ConverterCollections
             /**
             * {@inheritDoc}
             */
-            public ObservableMap getBackingMap()
+            public ObservableMap<K, V> getBackingMap()
                 {
                 return m_event.getMap();
                 }
@@ -4409,17 +4411,17 @@ public abstract class ConverterCollections
         /**
         * The underlying MapEvent.
         */
-        protected MapEvent  m_event;
+        protected MapEvent<K, V>  m_event;
 
         /**
         * The Converter to view the underlying MapEvent's key.
         */
-        protected Converter m_convKey;
+        protected Converter<K, K> m_convKey;
 
         /**
         * The Converter to view the underlying MapEvent's value.
         */
-        protected Converter m_convVal;
+        protected Converter<V, V> m_convVal;
 
         /**
         * The BackingMapManagerContext to use for extracting binary values.
@@ -4429,12 +4431,12 @@ public abstract class ConverterCollections
         /**
         * Cached old entry.
         */
-        protected Map.Entry m_entryOld;
+        protected Map.Entry<K, V> m_entryOld;
 
         /**
         * Cached new entry.
         */
-        protected Map.Entry m_entryNew;
+        protected Map.Entry<K, V> m_entryNew;
         }
 
 
@@ -4444,8 +4446,8 @@ public abstract class ConverterCollections
     * A Converter CacheEvent views an underlying CacheEvent through a set of
     * key and value Converters.
     */
-    public static class ConverterCacheEvent
-            extends ConverterMapEvent
+    public static class ConverterCacheEvent<K, V>
+            extends ConverterMapEvent<K, V>
         {
         // ----- constructors -----------------------------------------------
 
@@ -4459,7 +4461,7 @@ public abstract class ConverterCollections
         * @param convVal  the Converter to view the underlying CacheEvent's
         *                 values
         */
-        public ConverterCacheEvent(ObservableMap map, CacheEvent event, Converter convKey, Converter convVal)
+        public ConverterCacheEvent(ObservableMap<K, V> map, CacheEvent<K, V> event, Converter<K, K> convKey, Converter<V, V> convVal)
             {
             this(map, event, convKey, convVal, null);
             }
@@ -4476,8 +4478,8 @@ public abstract class ConverterCollections
         * @param context  the BackingMapManagerContext necessary to emulate
         *                 the BinaryEntry interface
         */
-        public ConverterCacheEvent(ObservableMap map, CacheEvent event,
-                        Converter convKey, Converter convVal, BackingMapManagerContext context)
+        public ConverterCacheEvent(ObservableMap<K, V> map, CacheEvent<K, V> event,
+                        Converter<K, K> convKey, Converter<V, V> convVal, BackingMapManagerContext context)
             {
             super(map, event, convKey, convVal, context);
             }
@@ -4490,9 +4492,9 @@ public abstract class ConverterCollections
         *
         * @return the underlying CacheEvent
         */
-        public CacheEvent getCacheEvent()
+        public CacheEvent<K, V> getCacheEvent()
             {
-            return (CacheEvent) getMapEvent();
+            return (CacheEvent<K, V>) getMapEvent();
             }
         }
 
@@ -4503,9 +4505,9 @@ public abstract class ConverterCollections
     * A converter MapListener that converts events of the underlying
     * MapListener for the underlying map.
     */
-    public static class ConverterMapListener
-            extends WrapperListener
-            implements MapListener
+    public static class ConverterMapListener<K, V>
+            extends WrapperListener<K, V>
+            implements MapListener<K, V>
         {
         // ----- constructors -----------------------------------------------
 
@@ -4517,7 +4519,7 @@ public abstract class ConverterCollections
         * @param convKey   the Converter to view the underlying MapEvent's key
         * @param convVal   the Converter to view the underlying MapEvent's values
         */
-        public ConverterMapListener(ObservableMap map, MapListener listener, Converter convKey, Converter convVal)
+        public ConverterMapListener(ObservableMap<K, V> map, MapListener<K, V> listener, Converter<K, K> convKey, Converter<V, V> convVal)
             {
             super(listener);
 
@@ -4529,7 +4531,7 @@ public abstract class ConverterCollections
             }
 
         @Override
-        protected void onMapEvent(MapEvent evt)
+        protected void onMapEvent(MapEvent<K, V> evt)
             {
             super.onMapEvent(
                 ConverterCollections.getMapEvent(getObservableMap(), evt,
@@ -4546,6 +4548,7 @@ public abstract class ConverterCollections
         * @return true iff this ConverterMapListener and the passed
         *          object are equivalent listeners
         */
+        @SuppressWarnings("unchecked")
         public boolean equals(Object o)
             {
             if (o == this)
@@ -4555,7 +4558,7 @@ public abstract class ConverterCollections
 
             if (super.equals(o))
                 {
-                ConverterMapListener that = (ConverterMapListener) o;
+                ConverterMapListener<K, V> that = (ConverterMapListener<K, V>) o;
                 return this.getConverterKeyUp()  .equals(that.getConverterKeyUp())
                     && this.getConverterValueUp().equals(that.getConverterValueUp());
                 }
@@ -4570,7 +4573,7 @@ public abstract class ConverterCollections
         *
         * @return the underlying ObservableMap
         */
-        public ObservableMap getObservableMap()
+        public ObservableMap<K, V> getObservableMap()
             {
             return m_map;
             }
@@ -4581,7 +4584,7 @@ public abstract class ConverterCollections
         *
         * @return the Converter from an underlying CacheEvent's key
         */
-        public Converter getConverterKeyUp()
+        public Converter<K, K> getConverterKeyUp()
             {
             return m_convKey;
             }
@@ -4592,7 +4595,7 @@ public abstract class ConverterCollections
         *
         * @return the Converter from an underlying CacheEvent's value
         */
-        public Converter getConverterValueUp()
+        public Converter<V, V> getConverterValueUp()
             {
             return m_convVal;
             }
@@ -4603,17 +4606,17 @@ public abstract class ConverterCollections
         /**
         * The converting Map the will be the source of converted events.
         */
-        protected ObservableMap m_map;
+        protected ObservableMap<K, V> m_map;
 
         /**
         * The Converter to view an underlying CacheEvent's key.
         */
-        protected Converter m_convKey;
+        protected Converter<K, K> m_convKey;
 
         /**
         * The Converter to view an underlying CacheEvent's value.
         */
-        protected Converter m_convVal;
+        protected Converter<V, V> m_convVal;
         }
 
 
@@ -4623,9 +4626,9 @@ public abstract class ConverterCollections
     * A converter MapListener that converts events of the underlying
     * MapListener for the underlying NamedCache.
     */
-    public static class ConverterCacheListener
-            extends ConverterMapListener
-            implements MapListener
+    public static class ConverterCacheListener<K, V>
+            extends ConverterMapListener<K, V>
+            implements MapListener<K, V>
         {
         /**
          * Constructor.
@@ -4636,17 +4639,17 @@ public abstract class ConverterCollections
          * @param convVal  the Converter to view the underlying MapEvent's
          *                 values
          */
-        public ConverterCacheListener(NamedCache cache, MapListener listener,
-                Converter convKey, Converter convVal)
+        public ConverterCacheListener(NamedCache<K, V> cache, MapListener<K, V> listener,
+                Converter<K, K> convKey, Converter<V, V> convVal)
             {
             super(cache, listener, convKey, convVal);
             }
 
         @Override
-        protected void onMapEvent(MapEvent evt)
+        protected void onMapEvent(MapEvent<K, V> evt)
             {
             // skip events for an inactive NamedCache
-            if (((NamedCache) getObservableMap()).isActive())
+            if (((NamedCache<K, V>) getObservableMap()).isActive())
                 {
                 super.onMapEvent(evt);
                 }

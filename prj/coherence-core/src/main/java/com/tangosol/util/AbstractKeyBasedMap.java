@@ -528,13 +528,13 @@ public abstract class AbstractKeyBasedMap<K, V>
             // since m_oValueOld is not volatile we double read the volatile
             // m_fActive to ensure the event was not deactivated whilst we were
             // loading the old value
-            V oValueOld = m_oValueOld;
+            V oValueOld = m_valueOld;
             if (oValueOld == NO_VALUE && m_fActive)
                 {
                 oValueOld = readOldValue();
                 if (m_fActive)
                     {
-                    return m_oValueOld = oValueOld;
+                    return m_valueOld = oValueOld;
                     }
                 }
             return oValueOld == NO_VALUE ? null : oValueOld;
@@ -559,9 +559,9 @@ public abstract class AbstractKeyBasedMap<K, V>
         */
         public void deactivate()
             {
-            if (m_oValueOld == NO_VALUE)
+            if (m_valueOld == NO_VALUE)
                 {
-                m_oValueOld = null;
+                m_valueOld = null;
                 }
             m_fActive = false;
             }
