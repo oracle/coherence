@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -74,6 +75,19 @@ public class ClassFileSchemaSource
     /**
      * Add the directory on the file system to read the class files from.
      *
+     * @param directoryPath  the path of the directory on the file system to
+     *                       read the class files from
+     *
+     * @return this {@code ClassFileSchemaSource}
+     */
+    public ClassFileSchemaSource withClassesFromDirectory(Path directoryPath)
+        {
+        return withClassesFromDirectory(directoryPath.toFile());
+        }
+
+    /**
+     * Add the directory on the file system to read the class files from.
+     *
      * @param directory  the directory on the file system to read the class
      *                   files from
      *
@@ -101,6 +115,19 @@ public class ClassFileSchemaSource
     /**
      * Add the JAR file on the file system to read the class files from.
      *
+     * @param jarFilePath  the path of the JAR file on the file system to read
+     *                     the class files from
+     *
+     * @return this {@code ClassFileSchemaSource}
+     */
+    public ClassFileSchemaSource withClassesFromJarFile(Path jarFilePath)
+        {
+        return withClassesFromJarFile(jarFilePath.toFile());
+        }
+
+    /**
+     * Add the JAR file on the file system to read the class files from.
+     *
      * @param jarFile  the JAR file on the file system to read the class files
      *                 from
      *
@@ -122,6 +149,18 @@ public class ClassFileSchemaSource
     public ClassFileSchemaSource withClassFile(String fileName)
         {
         return withClassFile(new File(fileName));
+        }
+
+    /**
+     * Add the individual class file on the file system to import.
+     *
+     * @param filePath  the path of the class file on the file system to import
+     *
+     * @return this {@code ClassFileSchemaSource}
+     */
+    public ClassFileSchemaSource withClassFile(Path filePath)
+        {
+        return withClassFile(filePath.toFile());
         }
 
     /**

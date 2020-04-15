@@ -14,6 +14,8 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import java.io.InputStream;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,20 +35,20 @@ public class PortableTypeLoader
         {
         schema = new SchemaBuilder()
                 .addSchemaSource(new ClassFileSchemaSource()
-                                         .withClassFile("data/evolvable/v2/Animal.class")
-                                         .withClassFile("data/evolvable/v2/Dog.class")
-                                         .withClassFile("data/evolvable/v2/Pet.class")
-                                         .withClassFile("data/evolvable/v3/Animal.class")
-                                         .withClassFile("data/evolvable/v3/Dog.class")
-                                         .withClassFile("data/evolvable/v3/Terrier.class")
-                                         .withClassFile("data/evolvable/v3/Pet.class")
-                                         .withClassFile("data/evolvable/v3/Address.class")
-                                         .withClassFile("data/evolvable/v3/Zoo.class")
-                                         .withClassFile("data/evolvable/v3/NonPofType.class")
-                                         .withClassFile("data/evolvable/v4/Dog.class")
-                                         .withClassFile("data/evolvable/AllTypes.class")
-                                         .withClassFile("data/evolvable/EmptyClass.class")
-                                         .withClassFile("data/evolvable/Color.class")
+                                         .withClassFile(Paths.get("data", "evolvable", "v2", "Animal.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v2", "Dog.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v2", "Pet.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v3", "Animal.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v3", "Dog.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v3", "Terrier.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v3", "Pet.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v3", "Address.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v3", "Zoo.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v3", "NonPofType.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "v4", "Dog.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "AllTypes.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "EmptyClass.class"))
+                                         .withClassFile(Paths.get("data", "evolvable", "Color.class"))
                                          .withMissingPropertiesAsObject()
                 )
                 .build();
