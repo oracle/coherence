@@ -6,26 +6,76 @@
  */
 package xsd;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import com.tangosol.run.xml.XmlElement;
-import com.tangosol.run.xml.XmlHelper;
-import com.tangosol.util.Resources;
-import common.SystemPropertyResource;
+import com.tangosol.run.xml.SimpleParser;
+import org.junit.Assume;
 import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
-import java.io.IOException;
-import java.net.URL;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.validation.SchemaFactory;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
-* A collection of funtional tests that validate the xml using the
+* A collection of functional tests that validate the xml using the
 * scheme definition files.
 *
 * @author der 10/020/2011
 */
+@RunWith(Parameterized.class)
 public class XsdValidationTests
     {
+    // ----- constructor ----------------------------------------------------
+
+    /**
+     * Run tests using different XML parsers.
+     *
+     * @param sSaxParserFactoryImplName  canonical classname for SAX Parser Factory impl to test
+     * @param sSchemaFactoryImplName     canonical classname for SAX Schema Factory impl to test
+     */
+    public XsdValidationTests(String sSaxParserFactoryImplName, String sSchemaFactoryImplName)
+        {
+        System.setProperty("javax.xml.parsers.SAXParserFactory", sSaxParserFactoryImplName);
+        System.setProperty("javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema", sSchemaFactoryImplName);
+
+        // enables verifying which xml parser implementation is being loaded and from what jar.
+        System.setProperty("jaxp.debug", "true");
+
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        assertEquals(sSaxParserFactoryImplName, spf.getClass().getCanonicalName());
+
+        SchemaFactory sf = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
+        assertEquals(sSchemaFactoryImplName, sf.getClass().getCanonicalName());
+        }
+
+    // ----- test lifecycle methods -----------------------------------------
+
+    @Parameterized.Parameters(name = "SaxParserFactoryImpl={0} SchemaFactoryImpl={1}")
+    public static Collection<Object[]> parameters()
+        {
+        return Arrays.asList(new Object[][]
+            {
+                // default JDK 8 parser, need to explicitly specify to override the service provider-configuration file in test scoped xercesImpl.jar
+                {"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl", "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory"},
+
+                // a xerces implementation to verify that all tests run and tolerate of unrecognized/unsuppported features/properties.
+                // Depending on Xerces implementation, it only implements JAXP 1.4 or less
+                {"org.apache.xerces.jaxp.SAXParserFactoryImpl", "org.apache.xerces.jaxp.validation.XMLSchemaFactory"}
+            });
+        }
+
     // ----- test methods ---------------------------------------------------
 
    /**
@@ -171,6 +221,7 @@ public class XsdValidationTests
     public void testXmlValidationMustDenyAccessExternalDTD()
         throws Exception
         {
+        Assume.assumeThat(supportJAXP15Property(XMLConstants.ACCESS_EXTERNAL_DTD), is(true));
         try
             {
             XmlValidator.validate("validation_denies_access_to_external_dtd.xml");
@@ -187,6 +238,7 @@ public class XsdValidationTests
     public void testXmlValidationMustDenyAccessExternalSchema()
         throws Exception
         {
+        Assume.assumeThat(supportJAXP15Property(XMLConstants.ACCESS_EXTERNAL_SCHEMA), is(true));
         try
             {
             XmlValidator.validate("validation_denies_access_to_external_schema.xml");
@@ -197,5 +249,22 @@ public class XsdValidationTests
             // expected exception
             System.out.println("handled expected exception: " + e.getMessage());
             }
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    private static boolean supportJAXP15Property(String property)
+        {
+        SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        try
+            {
+            sf.setProperty(property, "");
+            }
+        catch (Exception e)
+            {
+            System.out.println("Skipping implementation: " + sf.getClass().getCanonicalName());
+            return false;
+            }
+        return true;
         }
     }

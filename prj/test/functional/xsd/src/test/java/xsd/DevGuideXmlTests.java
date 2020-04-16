@@ -7,6 +7,15 @@
 package xsd;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.validation.SchemaFactory;
+import java.util.Arrays;
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
 
 /**
 * A collection of funtional tests that validate the xml used in
@@ -14,8 +23,45 @@ import org.junit.Test;
 *
 * @author der 10/020/2011
 */
+@RunWith(Parameterized.class)
 public class DevGuideXmlTests
     {
+    // ----- constructor ----------------------------------------------------
+
+    /**
+     * Run tests using different XML parsers.
+     *
+     * @param sSaxParserFactoryImplName  canonical classname for SAX Parser Factory impl to test
+     * @param sSchemaFactoryImplName     canonical classname for SAX Schema Factory impl to test
+     */
+    public DevGuideXmlTests(String sSaxParserFactoryImplName, String sSchemaFactoryImplName)
+        {
+        System.setProperty("javax.xml.parsers.SAXParserFactory", sSaxParserFactoryImplName);
+        System.setProperty("javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema", sSchemaFactoryImplName);
+
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        assertEquals(sSaxParserFactoryImplName, spf.getClass().getCanonicalName());
+
+        SchemaFactory sf = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
+        assertEquals(sSchemaFactoryImplName, sf.getClass().getCanonicalName());
+        }
+
+    // ----- test lifecycle methods -----------------------------------------
+
+    @Parameterized.Parameters(name = "SaxParserFactoryImpl={0} SchemaFactoryImpl={1}")
+    public static Collection<Object[]> parameters()
+        {
+        return Arrays.asList(new Object[][]
+            {
+                // default JDK 8 parser, need to explicitly specify to override the service provider-configuration file in test scoped xercesImpl.jar
+                {"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl", "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory"},
+
+                // a xerces implementation to verify that all tests run and tolerate of unrecognized/unsuppported features/properties.
+                // Depending on Xerces implementation, it only implements JAXP 1.4 or less
+                {"org.apache.xerces.jaxp.SAXParserFactoryImpl", "org.apache.xerces.jaxp.validation.XMLSchemaFactory"}
+            });
+        }
+    
     // ----- test methods ---------------------------------------------------
 
     /**

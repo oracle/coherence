@@ -25,6 +25,8 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
+import  java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.xml.XMLConstants;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -270,15 +272,32 @@ public class SaxParser
 
             SchemaFactory schemaFactory = SchemaFactory
                     .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-
             Schema            schema    = schemaFactory.newSchema(resolveSchemaSources(listSchemaURIs));
             Source            source    = new StreamSource(new StringReader(sXml));
             Validator         validator = schema.newValidator();
             ValidationHandler handler   = new ValidationHandler();
 
-            // Disable access during parsing to external resolution to avoid XXE vulnerabilities
-            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+            if (ATTEMPT_RESTRICT_EXTERNAL.get())
+                {
+                try
+                    {
+                    // Disable access during parsing to external resolution to avoid XXE vulnerabilities
+
+                    validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                    validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+                    }
+                catch (Exception e)
+                    {
+                    // property not supported, warn once and don't attempt to set property again
+                    if (ATTEMPT_RESTRICT_EXTERNAL.compareAndSet(true, false))
+                        {
+                        CacheFactory.log("Validator does not support JAXP 1.5 properties to restrict access to external XML DTDs and Schemas." + System.lineSeparator() +
+                            "To guard against XXE vulnerabilities, ensure provided XML parser is secure." + System.lineSeparator() +
+                            "Validator: " + validator.getClass().getCanonicalName() + System.lineSeparator() +
+                            "Error: " + e.getLocalizedMessage(), Base.LOG_WARN);
+                        }
+                    }
+                }
             validator.setErrorHandler(handler);
             validator.validate(source);
 
@@ -729,4 +748,11 @@ public class SaxParser
         private XmlElement m_root;
         private XmlElement m_current;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Record if resolved SaxParser supports JAXP 1.5 {@link XMLConstants#ACCESS_EXTERNAL_DTD} and {@link XMLConstants#ACCESS_EXTERNAL_SCHEMA} properties. Only report warning once if does not.
+     */
+    private static final AtomicBoolean ATTEMPT_RESTRICT_EXTERNAL = new AtomicBoolean(true);
     }
