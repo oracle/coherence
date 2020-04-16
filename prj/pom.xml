@@ -34,12 +34,12 @@
 
   <distributionManagement>
     <snapshotRepository>
-      <id>sonatype</id>
+      <id>ossrh</id>
       <name>Coherence Snapshot Repository</name>
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </snapshotRepository>
     <repository>
-      <id>sonatype</id>
+      <id>ossrh</id>
       <name>Coherence Release Repository</name>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
@@ -600,6 +600,7 @@
     <maven.failsafe.plugin.version>2.19.1</maven.failsafe.plugin.version>
     <maven.gmaven.plugin.version>1.5</maven.gmaven.plugin.version>
     <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
+    <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
     <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
     <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
     <maven.javadoc.plugin.version>3.0.1</maven.javadoc.plugin.version>
@@ -613,6 +614,7 @@
     <maven.source.plugin.version>2.2.1</maven.source.plugin.version>
     <maven.surefire.plugin.version>2.19.1</maven.surefire.plugin.version>
     <maven.animalsniffer.plugin.version>1.7</maven.animalsniffer.plugin.version>
+    <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
 
     <!-- library dependency versions -->
     <asm.version>7.2</asm.version>
@@ -902,6 +904,32 @@
           <version>${maven.deploy.plugin.version}</version>
           <configuration>
             <skip>true</skip>
+          </configuration>
+        </plugin>
+
+        <!-- maven-gpg-plugin -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>${maven.gpg.plugin.version}</version>
+          <configuration>
+            <skip>true</skip>
+            <gpgArguments>
+              <arg>--pinentry-mode</arg>
+              <arg>loopback</arg>
+            </gpgArguments>
+          </configuration>
+        </plugin>
+
+        <!-- nexus-staging-maven-plugin -->
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>${nexus.staging.maven.plugin.version}</version>
+          <extensions>true</extensions>
+          <configuration>
+            <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+            <skipLocalStaging>true</skipLocalStaging>
           </configuration>
         </plugin>
 
@@ -1380,6 +1408,23 @@
       </modules>
     </profile>
 
+    <!-- this is purely to allow the versions plugin to pick up the tde module
+         and therefore bump the version during the release process -->
+    <profile>
+      <id>_tde</id>
+
+      <activation>
+        <property>
+          <name>_tde</name>
+        </property>
+      </activation>
+
+      <!-- the following additional modules are buildable by this profile -->
+      <modules>
+        <module>tde</module>
+      </modules>
+    </profile>
+
     <profile>
       <id>copyright</id>
       <activation>
@@ -1466,6 +1511,57 @@
               </dependencies>
             </plugin>
           </plugins>
+      </build>
+    </profile>
+    
+    <profile>
+      <id>release</id>
+      
+      <modules>
+        <!-- distributed modules -->
+        <module>coherence-discovery</module>
+        <module>coherence-core</module>
+        <module>coherence-testing-support</module>
+        <module>coherence-tracing</module>
+        <module>coherence</module>
+        <module>coherence-jcache</module>
+        <module>coherence-jvisualvm</module>
+        <module>coherence-loadbalancer</module>
+        <module>coherence-login</module>
+        <module>coherence-management</module>
+        <module>coherence-metrics</module>
+        <module>coherence-mock</module>
+        <module>coherence-http-netty</module>
+        <module>coherence-rest</module>
+      </modules>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
       </build>
     </profile>
 
