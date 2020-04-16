@@ -83,6 +83,7 @@ public class MapEvent<K, V>
     *
     * @return an ObservableMap object
     */
+    @SuppressWarnings("rawtypes")
     public ObservableMap getMap()
         {
         // IMPORTANT: The return type here must be raw as we transformers
@@ -230,8 +231,8 @@ public class MapEvent<K, V>
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        m_nId       = in.readInt(0);
-        m_key = in.readObject(1);
+        m_nId      = in.readInt(0);
+        m_key      = in.readObject(1);
         m_valueOld = in.readObject(2);
         m_valueNew = in.readObject(3);
         }
