@@ -111,6 +111,13 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- jakarta.activation -->
+    <dependency>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- jersey -->
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
