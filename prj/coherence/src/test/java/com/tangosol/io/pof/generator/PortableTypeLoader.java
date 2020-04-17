@@ -12,6 +12,7 @@ import com.oracle.coherence.common.schema.SchemaBuilder;
 
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
+import java.io.File;
 import java.io.InputStream;
 
 import java.nio.file.Path;
@@ -68,7 +69,7 @@ public class PortableTypeLoader
                     && !className.equals("data.evolvable.Color")
                     && schema.findTypeByJavaName(className) != null)
                 {
-                String sClassPathName = className.replace('.', '/') + ".class";
+                String sClassPathName = className.replace('.', File.separatorChar) + ".class";
 
                 InputStream in = getClass().getClassLoader().getResourceAsStream(sClassPathName);
 
