@@ -65,7 +65,7 @@ public class TermLanguage
     *
     * @return a TokenTable for the Term Language
     */
-     public static TokenTable tokenTable()
+     public static synchronized TokenTable tokenTable()
         {
         if (s_tokens == null)
             {
