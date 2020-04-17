@@ -914,10 +914,13 @@
           <version>${maven.gpg.plugin.version}</version>
           <configuration>
             <skip>true</skip>
+            <!-- Not supported in gpg 2.0.22 but may be useful in osx for
+                 non-interactive mode
             <gpgArguments>
-              <arg>--pinentry-mode</arg>
+              <arg>\-\-pinentry-mode</arg>
               <arg>loopback</arg>
             </gpgArguments>
+            -->
           </configuration>
         </plugin>
 
