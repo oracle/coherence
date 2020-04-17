@@ -221,7 +221,7 @@ class CdiNamespaceHandlerIT
             implements EventInterceptor<InterceptorRegistrationEvent<?>>
         {
         @Override
-        public void onEvent(InterceptorRegistrationEvent e)
+        public synchronized void onEvent(InterceptorRegistrationEvent e)
             {
             if (e.getType() == InterceptorRegistrationEvent.Type.INSERTED)
                 {
@@ -241,7 +241,7 @@ class CdiNamespaceHandlerIT
         @Inject
         private javax.enterprise.event.Event<LifecycleEvent> lifecycleEvent;
 
-        boolean isActivated()
+        synchronized boolean isActivated()
             {
             return activated;
             }
@@ -276,7 +276,7 @@ class CdiNamespaceHandlerIT
         @Inject
         private javax.enterprise.event.Event<CacheLifecycleEvent> cacheLifecycleEvent;
 
-        boolean hasCache(String cacheName)
+        synchronized boolean hasCache(String cacheName)
             {
             return caches.contains(cacheName);
             }
@@ -323,13 +323,13 @@ class CdiNamespaceHandlerIT
         {
         private volatile boolean fJoined;
 
-        public boolean hasJoined()
+        public synchronized boolean hasJoined()
             {
             return fJoined;
             }
 
         @Override
-        public void memberJoined(MemberEvent memberEvent)
+        public synchronized void memberJoined(MemberEvent memberEvent)
             {
             fJoined = true;
             System.out.println(memberEvent);
@@ -355,13 +355,13 @@ class CdiNamespaceHandlerIT
         {
         private int id;
 
-        public int getId()
+        public synchronized int getId()
             {
             return id;
             }
 
         @Override
-        public void onPartitionEvent(PartitionEvent partitionEvent)
+        public synchronized void onPartitionEvent(PartitionEvent partitionEvent)
             {
             id = partitionEvent.getId();
             System.out.println(partitionEvent);
@@ -375,43 +375,43 @@ class CdiNamespaceHandlerIT
         {
         private Map<Long, String> storeMap = new HashMap<>();
 
-        public Map<Long, String> getStoreMap()
+        public synchronized Map<Long, String> getStoreMap()
             {
             return storeMap;
             }
 
         @Override
-        public void store(Long key, String value)
+        public synchronized void store(Long key, String value)
             {
             storeMap.put(key, value);
             }
 
         @Override
-        public void storeAll(Map<? extends Long, ? extends String> map)
+        public synchronized void storeAll(Map<? extends Long, ? extends String> map)
             {
             storeMap.putAll(map);
             }
 
         @Override
-        public void erase(Long key)
+        public synchronized void erase(Long key)
             {
             storeMap.remove(key);
             }
 
         @Override
-        public void eraseAll(Collection<? extends Long> keys)
+        public synchronized void eraseAll(Collection<? extends Long> keys)
             {
             keys.forEach(storeMap::remove);
             }
 
         @Override
-        public String load(Long key)
+        public synchronized String load(Long key)
             {
             return key.toString();
             }
 
         @Override
-        public Map<Long, String> loadAll(Collection<? extends Long> keys)
+        public synchronized Map<Long, String> loadAll(Collection<? extends Long> keys)
             {
             return keys.stream().collect(Collectors.toMap(k -> k, Object::toString));
             }
