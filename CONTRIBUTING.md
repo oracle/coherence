@@ -47,10 +47,9 @@ the issue number as part of your branch name, e.g. `1234-fixes`
 1. Ensure that all changes comply to project coding conventions
 1. Ensure that there is at least one test that would fail without the fix and
 passes post fix
-1. Ensure that a full verify build passes without **any** test failures
+1. A full build including test execution is required for the PR
 1. Submit the pull request. *Do not leave the pull request blank*. Explain exactly
 what your changes are meant to do and provide simple steps on how to validate
 your changes, ideally referencing the test. Ensure that you reference the issue
 you created as well. We will assign the pull request to 2-3 people for review
-before it is merged.
-
+before it is submitted internally and the PR is closed.

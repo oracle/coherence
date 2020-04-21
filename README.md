@@ -165,17 +165,59 @@ retrieved to illustrate the permanence of the data.
 > **Note:** this example uses the OOTB cache configuration and therefore explicitly
 >          specifying the console is storage disabled is unnecessary.
 
+#### CohQL Console
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-0 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence-ce/coherence/14.1.1-0-0/coherence-14.1.1-0-0.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-0/coherence-14.1.1-0-1.jar
 
 $> java -jar $COH_JAR &
 
-$> java -Dcoherence.distributed.localstorage=false -cp $COH_JAR com.tangosol.net.CacheFactory
+$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
 
-$console> (?): cache welcomes
+CohQL> select * from welcomes
+
+CohQL> insert into welcomes key 'english' value 'Hello'
+
+CohQL> insert into welcomes key 'spanish' value 'Hola'
+
+CohQL> insert into welcomes key 'french' value 'Bonjour'
+
+CohQL> select key(), value() from welcomes
+Results
+["french", "Bonjour"]
+["english", "Hello"]
+["spanish", "Hola"]
+
+CohQL> bye
+
+$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
+
+CohQL> select key(), value() from welcomes
+Results
+["french", "Bonjour"]
+["english", "Hello"]
+["spanish", "Hola"]
+
+CohQL> bye
+
+$> kill %1
+
+```
+
+#### Coherence Console
+```shell
+
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
+
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-1/coherence-14.1.1-0-1.jar
+
+$> java -jar $COH_JAR &
+
+$> java -cp $COH_JAR com.tangosol.net.CacheFactory
+
+Map (?): cache welcomes
 
 $console> (welcomes): get english
 null
@@ -214,53 +256,27 @@ $> kill %1
 
 ```
 
-```shell
-
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-0 dependency:get
-
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence-ce/coherence/14.1.1-0-0/coherence-14.1.1-0-0.jar
-
-$> java -jar $COH_JAR &
-
-$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
-
-CohQL> select * from welcomes
-
-CohQL> insert into welcomes key 'english' value 'Hello'
-
-CohQL> insert into welcomes key 'spanish' value 'Hola'
-
-CohQL> insert into welcomes key 'french' value 'Bonjour'
-
-CohQL> select key(), value() from welcomes
-Results
-["french", "Bonjour"]
-["english", "Hello"]
-["spanish", "Hola"]
-
-CohQL> bye
-
-$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
-
-CohQL> select key(), value() from welcomes
-Results
-["french", "Bonjour"]
-["english", "Hello"]
-["spanish", "Hola"]
-
-CohQL> bye
-
-$> kill %1
-
-```
-
 ## <a name="build"></a>Building
 
 ```shell
 
 $> git clone git@github.com:oracle/coherence.git
 $> cd coherence/prj
+
+# build all modules
 $> mvn clean install
+
+# build all modules skipping tests
+$> mvn clean install -DskipTests
+
+# build a specific module, including all dependent modules and run tests
+$> mvn -am -pl test/functional/persistence clean verify
+
+# only build coherence.jar without running tests
+$> mvn -am -pl coherence clean install -DskipTests
+
+# only build coherence.jar and skip compilation of CDBs and tests
+$> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 
 ```
 
