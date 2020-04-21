@@ -737,6 +737,8 @@
               <configuration>
                 <providerSelection>${maven.gmaven.providerSelection.version}</providerSelection>
                 <source>
+
+                  import java.nio.file.Paths
                   import java.text.SimpleDateFormat
 
                   props = project.properties
@@ -770,35 +772,40 @@
 
                   // next version string (M.m.s-p-Pq)
                   props.setProperty("project.version.next",
-                  "${major}.${minor}.${next}-${patchset}-${patch}${qualifier}")
+                          "${major}.${minor}.${next}-${patchset}-${patch}${qualifier}")
 
                   // distribution version string (M.m.s.p.Pb[build #])
                   props.setProperty("project.version.dist",
-                  "${major}.${minor}.${service}.${patchset}.${patch}b${number}")
+                          "${major}.${minor}.${service}.${patchset}.${patch}b${number}")
 
                   // official version string (M.m.s.p.P)
                   props.setProperty("project.version.official",
-                  "${major}.${minor}.${service}.${patchset}.${patch}")
+                          "${major}.${minor}.${service}.${patchset}.${patch}")
 
                   // base release version string (M.m.s.p.0)
                   //  - used for generating post GA carbs and opatch files
                   props.setProperty("project.version.base.release",
-                  "${major}.${minor}.${service}.${patchset}.0")
+                          "${major}.${minor}.${service}.${patchset}.0")
 
                   // release version string (M.m.s-p-P)
-                  props.setProperty("project.version.release", "${major}.${minor}.${service}-${patchset}-${patch}")
+                  props.setProperty("project.version.release",
+                          "${major}.${minor}.${service}-${patchset}-${patch}")
 
                   // short version string (M.m.s)
-                  props.setProperty("project.version.short", "${major}.${minor}.${service}")
+                  props.setProperty("project.version.short",
+                          "${major}.${minor}.${service}")
 
                   // short next version string (M.m.s)
-                  props.setProperty("project.version.next.short", "${major}.${minor}.${next}")
+                  props.setProperty("project.version.next.short",
+                          "${major}.${minor}.${next}")
 
                   // 4 digit patchset version (M.m.s-p)
-                  props.setProperty("project.version.patchset.release", "${major}.${minor}.${service}-${patchset}")
+                  props.setProperty("project.version.patchset.release",
+                          "${major}.${minor}.${service}-${patchset}")
 
                   // 4 digit next patchset version (M.m.s-p)
-                  props.setProperty("project.version.patchset.next.release", "${major}.${minor}.${service}-${nextPatchSet}")
+                  props.setProperty("project.version.patchset.next.release",
+                          "${major}.${minor}.${service}-${nextPatchSet}")
 
                   // project metadata properties
                   if (!"true".equals(props.getProperty("project.official")))
@@ -819,6 +826,24 @@
                       {
                       props.setProperty("skip.docs", "false")
                       props.setProperty("skip.sources", "false")
+                      }
+
+                  // infer the java.home.path iff JAVA_HOME is undefined
+                  javaHomePath = props.get("java.home.path")
+                  if (javaHomePath == null || "".equals(javaHomePath))
+                      {
+                      javaHome = props.get("java.home");
+                      if (Paths.get(javaHome, "jar").toFile().exists())
+                          {
+                          props.setProperty("java.home.path", javaHome)
+                          }
+                      else if (Paths.get(javaHome, "..", "bin", "jar").toFile().exists())
+                          {
+                          // if the jar executable is not present it is likely/hopeful
+                          // that we have a JRE nested inside a JDK
+                          props.setProperty("java.home.path",
+                                  Paths.get(javaHome, "..").toFile().getCanonicalPath())
+                          }
                       }
                 </source>
               </configuration>
