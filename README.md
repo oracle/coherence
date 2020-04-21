@@ -18,7 +18,10 @@
 1. [Introduction](#intro)
 1. [How to Get Coherence Community Edition](#acquire)
 1. [Coherence Overview](#overview)
-1. [Hello Coherence](#started)
+1. [Hello Coherence](#get-started)
+  1. [CohQL Console](#cohql)
+  1. [Coherence Console](#coh-console)
+  1. [Code Example](#hello-coh)
 1. [Building](#build)
 1. [Integrations](#integrations)
 1. [Documentation](https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/index.html)
@@ -147,8 +150,7 @@ for distant (high latency) clients and for non-java languages such as C++ and .N
 * **Kubernetes friendly** - seamlessly and safely deploy applications to k8s with
 our own [operator](https://github.com/oracle/coherence-operator)
 
-
-## <a name="started"></a>Hello Coherence
+## <a name="get-started"></a>Hello Coherence
 
 ### Prerequisites
 
@@ -165,7 +167,13 @@ retrieved to illustrate the permanence of the data.
 > **Note:** this example uses the OOTB cache configuration and therefore explicitly
 >          specifying the console is storage disabled is unnecessary.
 
-#### CohQL Console
+> **Note:** Coherence cluster members discover each other via one of two mechanisms;
+>           multicast (default) or Well Known Addressing (deterministic broadcast).
+>           If your system does not support mutlicast, enable WKA by specifying
+>           `-Dcoherence.wka=localhost` for both processes started in the following
+>           console examples.
+
+#### <a name="cohql"></a>CohQL Console
 ```shell
 
 $> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
@@ -203,10 +211,9 @@ Results
 CohQL> bye
 
 $> kill %1
-
 ```
 
-#### Coherence Console
+#### <a name="coh-console"></a>Coherence Console
 ```shell
 
 $> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
@@ -253,7 +260,73 @@ english = Hello
 $console> (welcomes): bye
 
 $> kill %1
+```
 
+### <a name="hello-coh"></a>Programmatic Hello Coherence Example
+
+The following example illustrates starting a **storage enabled** Coherence server,
+followed by running the `HelloCoherence` application. The `HelloCoherence` application
+inserts and retrieves data from the Coherence server.
+
+#### Build `HelloCoherence`
+
+1. Create a maven project either manually or using an archetype such as maven-archetype-quickstart
+1. Add a dependency to the pom file:
+```xml
+<dependency>
+  <groupId>com.oracle.coherence.ce</groupId>
+  <artifactId>coherence</artifactId>
+  <version>14.1.1-0-1-SNAPSHOT</version>
+</dependency>
+```
+1. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
+```java
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.NamedCache;
+
+public class HelloCoherence
+    {
+    // ----- static methods -------------------------------------------------
+
+    public static void main(String[] asArgs)
+        {
+        NamedCache<String, String> cache = CacheFactory.getCache("welcomes");
+
+        System.out.printf("Accessing cache \"%s\" containing %d entries\n",
+                cache.getCacheName(),
+                cache.size());
+
+        cache.put("english", "Hello");
+        cache.put("spanish", "Hola");
+        cache.put("french" , "Bonjour");
+
+        // list
+        cache.entrySet().forEach(System.out::println);
+        }
+    }
+```
+1. Compile the maven project:
+```shell
+mvn package
+```
+1. Start a cache Server
+```shell
+mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
+```
+1. Run `HelloCoherence`
+```shell
+mvn exec:java -Dexec.mainClass="HelloCoherence"
+```
+1. Confirm you see output including the following:
+```shell
+Accessing cache "welcomes" containing 3 entries
+ConverterEntry{Key="french", Value="Bonjour"}
+ConverterEntry{Key="spanish", Value="Hola"}
+ConverterEntry{Key="english", Value="Hello"}
+```
+1. Kill the cache server started previously:
+```shell
+kill %1
 ```
 
 ## <a name="build"></a>Building
