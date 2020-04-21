@@ -269,41 +269,45 @@ public class ScopedCacheReferenceStore
 
         SegmentedConcurrentMap mapByName  = m_mapByName;
 
-        String                 sCacheName = cache.getCacheName();
-        Object                 oResult;
-
-        Map                    mapByLoader = (Map) mapByName.get(sCacheName);
-
-        if (mapByLoader == null)
+        String sCacheName  = cache.getCacheName();
+        Object oResult;
+        Map    mapByLoader;
+        do
             {
-            mapByLoader = new WeakHashMap();
+            mapByLoader = (Map) mapByName.get(sCacheName);
 
-            Map mapTmp = (Map) mapByName.putIfAbsent(sCacheName, mapByLoader);
-
-            if (mapTmp != null)
+            if (mapByLoader == null)
                 {
-                mapByLoader = mapTmp;
-                }
-            }
+                mapByLoader = new WeakHashMap();
 
-        if (ScopedServiceReferenceStore.isRemoteServiceType(cache.getCacheService().getInfo().getServiceType())
-            && Security.SUBJECT_SCOPED)
-            {
-            SubjectScopedReference scopedRef = new SubjectScopedReference();
+                Map mapTmp = (Map) mapByName.putIfAbsent(sCacheName, mapByLoader);
 
-            oResult = putLoaderIfAbsent(mapByLoader, loader, scopedRef);
-
-            if (oResult != null)
-                {
-                scopedRef = (SubjectScopedReference) oResult;
+                if (mapTmp != null)
+                    {
+                    mapByLoader = mapTmp;
+                    }
                 }
 
-            oResult = scopedRef.putIfAbsent(cache);
+            if (ScopedServiceReferenceStore.isRemoteServiceType(cache.getCacheService().getInfo().getServiceType())
+                    && Security.SUBJECT_SCOPED)
+                {
+                SubjectScopedReference scopedRef = new SubjectScopedReference();
+
+                oResult = putLoaderIfAbsent(mapByLoader, loader, scopedRef);
+
+                if (oResult != null)
+                    {
+                    scopedRef = (SubjectScopedReference) oResult;
+                    }
+
+                oResult = scopedRef.putIfAbsent(cache);
+                }
+            else
+                {
+                oResult = putLoaderIfAbsent(mapByLoader, loader, cache);
+                }
             }
-        else
-            {
-            oResult = putLoaderIfAbsent(mapByLoader, loader, cache);
-            }
+        while (mapByName.get(sCacheName) != mapByLoader);
 
         return oResult;
         }
