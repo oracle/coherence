@@ -1006,16 +1006,6 @@ public interface InvocableMap<K, V>
             return (characteristics() & PRESENT_ONLY) != 0;
             }
 
-        /**
-         * A convenience accessor to check if this streamer is {@link #ALLOW_INCONSISTENCIES}.
-         *
-         * @return <code>true</code> if this streamer is {@link #ALLOW_INCONSISTENCIES}, false otherwise
-         */
-        public default boolean isAllowInconsistencies()
-            {
-            return (characteristics() & ALLOW_INCONSISTENCIES) != 0;
-            }
-
         // ----- EntryAggregator interface ----------------------------------
 
         @Override
@@ -1105,18 +1095,6 @@ public interface InvocableMap<K, V>
          * should never be passed to the {@link StreamingAggregator#accumulate(Entry)} method.
          */
         public static int PRESENT_ONLY    = 0x00000020;
-
-        /**
-         * A flag specifying that this aggregator <b>may</b> provide {@link InvocableMap.Entry
-         * entries} that are <b>not</b> consistent with the provided {@link Filter}.
-         * <p>
-         * Note: Coherence will ensure <b>only</b> entries that match the provided
-         *       {@code Filter} are passed to the aggregator, which can result in
-         *       repeat query evaluations if targetted partitions are concurrently
-         *       modified during query evaluation. This option allows Coherence to
-         *       relax this contract.
-         */
-        public static int ALLOW_INCONSISTENCIES = 0x00000040;
         }
 
     // ----- ParallelAwareAggregator interface ------------------------------
