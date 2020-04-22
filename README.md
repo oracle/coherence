@@ -226,38 +226,38 @@ $> java -cp $COH_JAR com.tangosol.net.CacheFactory
 
 Map (?): cache welcomes
 
-$console> (welcomes): get english
+Map (welcomes): get english
 null
 
-$console> (welcomes): put english Hello
+Map (welcomes): put english Hello
 null
 
-$console> (welcomes): put spanish Hola
+Map (welcomes): put spanish Hola
 null
 
-$console> (welcomes): put french Bonjour
+Map (welcomes): put french Bonjour
 null
 
-$console> (welcomes): get english
+Map (welcomes): get english
 Hello
 
-$console> (welcomes): list
+Map (welcomes): list
 french = Bonjour
 spanish = Hola
 english = Hello
 
-$console> (welcomes): bye
+Map (welcomes): bye
 
 $> java -cp $COH_JAR com.tangosol.net.CacheFactory
 
-$console> (?): cache welcomes
+Map (?): cache welcomes
 
-$console> (welcomes): list
+Map (welcomes): list
 french = Bonjour
 spanish = Hola
 english = Hello
 
-$console> (welcomes): bye
+Map (welcomes): bye
 
 $> kill %1
 ```
