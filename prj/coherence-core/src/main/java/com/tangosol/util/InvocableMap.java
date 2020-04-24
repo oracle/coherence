@@ -927,7 +927,7 @@ public interface InvocableMap<K, V>
         /**
          * A bit mask representing the set of characteristics of this aggregator.
          * <p>
-         * Be default, characteristics are a combination of {@link #PARALLEL}
+         * By default, characteristics are a combination of {@link #PARALLEL}
          * and {@link #RETAINS_ENTRIES}, which is sub-optimal and should be
          * overridden by the aggregator implementation if the aggregator does not
          * need to retain entries (which is often the case).
