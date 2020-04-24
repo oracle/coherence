@@ -934,12 +934,13 @@ public interface InvocableMap<K, V>
          *
          * @return a bit mask representing the set of characteristics of this aggregator
          *
-         * @see #PARALLEL
-         * @see #SERIAL
+         * @see #ALLOW_INCONSISTENCIES
          * @see #BY_MEMBER
          * @see #BY_PARTITION
-         * @see #RETAINS_ENTRIES
+         * @see #PARALLEL
          * @see #PRESENT_ONLY
+         * @see #RETAINS_ENTRIES
+         * @see #SERIAL
          */
         public default int characteristics()
             {
@@ -1112,7 +1113,7 @@ public interface InvocableMap<K, V>
          * <p>
          * Note: Coherence will ensure <b>only</b> entries that match the provided
          *       {@code Filter} are passed to the aggregator, which can result in
-         *       repeat query evaluations if targetted partitions are concurrently
+         *       repeat query evaluations if targeted partitions are concurrently
          *       modified during query evaluation. This option allows Coherence to
          *       relax this contract.
          */
