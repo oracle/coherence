@@ -10,10 +10,18 @@ package com.tangosol.coherence.reporter.extractor;
 import com.tangosol.coherence.reporter.Constants;
 import com.tangosol.coherence.reporter.Reporter;
 
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+
 import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.ValueExtractor;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.io.NotSerializableException;
 
 import java.util.Iterator;
 import java.util.List;
@@ -124,7 +132,72 @@ public class JoinExtractor
         return null;
         }
 
-    // ----- data members ----------------------------------------------------
+     // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in)
+        throws IOException
+        {
+        throw new NotSerializableException(NOT_SERIALIZABLE_MSG);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out)
+        throws IOException
+        {
+        throw new NotSerializableException(NOT_SERIALIZABLE_MSG);
+        }
+
+    // ----- PortableObject interface ---------------------------------------
+
+    @Override
+    public void readExternal(PofReader in)
+        throws IOException
+        {
+        throw new NotSerializableException(NOT_SERIALIZABLE_MSG);
+        }
+
+    @Override
+    public void writeExternal(PofWriter out)
+        throws IOException
+        {
+        throw new NotSerializableException(NOT_SERIALIZABLE_MSG);
+        }
+
+    // ----- Java custom serialization methods ------------------------------
+
+    /**
+     * Disable Java serialization for this {@link ValueExtractor}.
+     *
+     * @param stream  output stream
+     *
+     * @throws IOException to indicate Java serialization is not supported
+     */
+    private void writeObject(java.io.ObjectOutputStream stream)
+        throws IOException
+        {
+        throw new NotSerializableException(NOT_SERIALIZABLE_MSG);
+        }
+
+    /**
+     * Disable Java deserialization for this {@link ValueExtractor}.
+     *
+     * @param stream  input stream
+     *
+     * @throws IOException to indicate Java deserialization is not supported
+     * @throws ClassNotFoundException
+     */
+    private void readObject(java.io.ObjectInputStream stream)
+        throws IOException, ClassNotFoundException
+        {
+        throw new NotSerializableException(NOT_SERIALIZABLE_MSG);
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    final static private String NOT_SERIALIZABLE_MSG = JoinExtractor.class.getCanonicalName() + " is not serializable";
+
+    // ----- data members ---------------------------------------------------
 
     /**
     * The {@link MBeanServer} this ValueExtractor operates against.

@@ -11,10 +11,15 @@ package com.tangosol.coherence.reporter.extractor;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.extractor.MultiExtractor;
+
 import com.tangosol.run.xml.XmlElement;
+
 import com.tangosol.coherence.reporter.Constants;
 import com.tangosol.coherence.reporter.JMXQueryHandler;
 import com.tangosol.coherence.reporter.Reporter;
+
+import java.io.IOException;
+import java.io.NotSerializableException;
 
 import java.util.Set;
 import java.util.Iterator;
@@ -106,6 +111,35 @@ public class SubQueryExtractor
         //  get the value of the inner query.  null is passed because inner
         // queries can only be aggregates.
         return inner.getValue(null, m_sColumnId);
+        }
+
+    // ----- Java custom serialization methods ------------------------------
+
+    /**
+     * Disable Java serialization for this {@link ValueExtractor}.
+     *
+     * @param stream  output stream
+     *
+     * @throws IOException to indicate Java serialization is not supported
+     */
+    private void writeObject(java.io.ObjectOutputStream stream)
+        throws IOException
+        {
+        throw new NotSerializableException(SubQueryExtractor.class.getCanonicalName() + " is not serializable");
+        }
+
+    /**
+     * Disable Java deserialization for this {@link ValueExtractor}.
+     *
+     * @param stream  input stream
+     *
+     * @throws IOException to indicate Java deserialization is not supported
+     * @throws ClassNotFoundException
+     */
+    private void readObject(java.io.ObjectInputStream stream)
+        throws IOException, ClassNotFoundException
+        {
+        throw new NotSerializableException(SubQueryExtractor.class.getCanonicalName() + " is not serializable");
         }
 
     // ----- data members ----------------------------------------------------
