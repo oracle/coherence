@@ -43,7 +43,7 @@ public class DefaultSSLRestTests
     public static void startup()
         {
         CoherenceClusterMember clusterMember = startCacheServer("DefaultSSLRestTests", "rest", FILE_SERVER_CFG_CACHE);
-        Eventually.assertThat(invoking(clusterMember).isServiceRunning("ExtendHttpProxyService"), is(true));
+        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("ExtendHttpProxyService"), is(true));
         }
 
     /**

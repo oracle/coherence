@@ -40,7 +40,7 @@ public class DefaultPofRestTests
     public static void startup()
         {
         CoherenceClusterMember clusterMember = startCacheServer("DefaultPofRestTests", "rest", FILE_SERVER_CFG_CACHE);
-        Eventually.assertThat(invoking(clusterMember).isServiceRunning("ExtendHttpProxyService"), is(true));
+        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("ExtendHttpProxyService"), is(true));
         }
 
     /**

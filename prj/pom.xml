@@ -128,6 +128,13 @@
         <scope>provided</scope>
       </dependency>
 
+      <!-- Jaeger Client -->
+      <dependency>
+        <groupId>io.jaegertracing</groupId>
+        <artifactId>jaeger-client</artifactId>
+        <version>${jaeger.version}</version>
+      </dependency>
+
       <!-- felix -->
       <dependency>
         <groupId>org.apache.felix</groupId>
@@ -238,11 +245,11 @@
         <version>${javax.cache.version}</version>
       </dependency>
 
-      <!-- jakarta.ws.rs -->
+      <!-- JAX-RS API -->
       <dependency>
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>
-        <version>${jakarta.ws.rs.version}</version>
+        <version>${jaxrs-api.version}</version>
       </dependency>
 
       <!-- jersey -->
@@ -327,11 +334,11 @@
         <version>${jettison.version}</version>
       </dependency>
 
-      <!-- javax Injection -->
+      <!-- Jakarta Inject API -->
       <dependency>
-        <groupId>javax.inject</groupId>
-        <artifactId>javax.inject</artifactId>
-        <version>${javax.inject.version}</version>
+          <groupId>jakarta.inject</groupId>
+          <artifactId>jakarta.inject-api</artifactId>
+          <version>${inject.version}</version>
       </dependency>
 
       <!-- jline -->
@@ -343,21 +350,21 @@
 
       <!-- JSON-B -->
       <dependency>
-        <groupId>javax.json.bind</groupId>
-        <artifactId>javax.json.bind-api</artifactId>
+        <groupId>jakarta.json.bind</groupId>
+        <artifactId>jakarta.json.bind-api</artifactId>
         <version>${jsonb.version}</version>
       </dependency>
 
       <!-- JSON-P -->
       <dependency>
-        <groupId>javax.json</groupId>
-        <artifactId>javax.json-api</artifactId>
+        <groupId>jakarta.json</groupId>
+        <artifactId>jakarta.json-api</artifactId>
         <version>${jsonp.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish</groupId>
-        <artifactId>javax.json</artifactId>
-        <version>${jsonp.version}</version>
+        <artifactId>jakarta.json</artifactId>
+        <version>${jsonp-impl.version}</version>
       </dependency>
 
       <!-- jvisualvm -->
@@ -457,15 +464,15 @@
       </dependency>
 
       <dependency>
-          <groupId>javax.annotation</groupId>
-          <artifactId>javax.annotation-api</artifactId>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
           <version>${annotation-api.version}</version>
       </dependency>
 
       <!-- CDI and Weld -->
       <dependency>
-          <groupId>javax.enterprise</groupId>
-          <artifactId>cdi-api</artifactId>
+          <groupId>jakarta.enterprise</groupId>
+          <artifactId>jakarta.enterprise.cdi-api</artifactId>
           <version>${cdi-api.version}</version>
       </dependency>
       <dependency>
@@ -573,27 +580,24 @@
 
       <!-- Used when building on Java 11+ -->
       <dependency>
+        <groupId>jakarta.activation</groupId>
+        <artifactId>jakarta.activation-api</artifactId>
+        <version>${activation-api.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-core</artifactId>
-        <version>${com.sun.xml.bind.version}</version>
+        <version>${jaxb-core.version}</version>
       </dependency>
-      <!-- Used when building on Java 11+ -->
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-impl</artifactId>
-        <version>${com.sun.xml.bind.version}</version>
+        <version>${jaxb-impl.version}</version>
       </dependency>
-      <!-- Used when building on Java 11+ -->
-      <dependency>
-        <groupId>jakarta.activation</groupId>
-        <artifactId>jakarta.activation-api</artifactId>
-        <version>${jakarta.activation-api.version}</version>
-      </dependency>
-      <!-- Used when building on Java 11+ -->
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
         <artifactId>jakarta.xml.bind-api</artifactId>
-        <version>${jakarta.xml.bind-api.version}</version>
+        <version>${jaxb-api.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -617,8 +621,8 @@
     <skip-sign-artifacts>true</skip-sign-artifacts>
     <skip-code-coverage>true</skip-code-coverage>
 
-    <surefire.argLine>-Xmx1g -Djava.net.preferIPv4Stack=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
-    <failsafe.argLine>-Xmx1g -Djava.net.preferIPv4Stack=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
+    <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --illegal-access=permit</surefire.argLine>
+    <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --illegal-access=permit</failsafe.argLine>
     <surefire.coverage.argline/>
     <failsafe.coverage.argline/>
 
@@ -671,44 +675,45 @@
     <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
 
     <!-- library dependency versions -->
-    <annotation-api.version>1.3.1</annotation-api.version>
+    <activation-api.version>1.2.2</activation-api.version>
+    <annotation-api.version>1.3.5</annotation-api.version>
     <asm.version>7.2</asm.version>
     <bdb.version>6.2.31</bdb.version>
-    <cdi-api.version>2.0</cdi-api.version>
     <bnd.version>4.3.0</bnd.version>
+    <cdi-api.version>2.0.2</cdi-api.version>
     <codemodel.version>2.6</codemodel.version>
-    <com.sun.xml.bind.version>2.3.0</com.sun.xml.bind.version>
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <felix.version>6.0.3</felix.version>
-    <graal.version>19.1.1</graal.version>
+    <graal.version>19.3.1</graal.version>
+    <inject.version>1.0</inject.version>
     <jackson.version>2.10.2</jackson.version>
     <jackson.databind.version>${jackson.version}</jackson.databind.version>
     <jacoco.version>0.8.5</jacoco.version>
-    <jakarta.activation-api.version>1.2.1</jakarta.activation-api.version>
-    <jakarta.annotation.version>1.3.3</jakarta.annotation.version>
-    <javax.inject.version>1</javax.inject.version>
-    <jakarta.ws.rs.version>2.1.5</jakarta.ws.rs.version>
-    <jakarta.xml.bind-api.version>2.3.3</jakarta.xml.bind-api.version>
+    <jaeger.version>1.1.0</jaeger.version>
     <javaee.version>5</javaee.version>
     <javax.cache.version>1.1.0</javax.cache.version>
     <javax.cache.tck.version>1.1.0</javax.cache.tck.version>
-    <jersey.version>2.29</jersey.version>
-    <jettison.version>1.1</jettison.version>
+    <jaxb-api.version>2.3.3</jaxb-api.version>
+    <jaxb-core.version>2.3.0.1</jaxb-core.version>
+    <jaxb-impl.version>2.3.2</jaxb-impl.version>
+    <jaxrs-api.version>2.1.6</jaxrs-api.version>
+    <jersey.version>2.30.1</jersey.version>
+    <jettison.version>1.4.1</jettison.version>
     <jline.version>2.14.6</jline.version>
-    <jsonb.version>1.0</jsonb.version>
-    <jsonp.version>1.1.2</jsonp.version>
+    <jsonb.version>1.0.2</jsonb.version>
+    <jsonp.version>1.1.6</jsonp.version>
+    <jsonp-impl.version>1.1.6</jsonp-impl.version>
     <jvisualvm.version>RELEASE138</jvisualvm.version>
     <log4j.version>1.2.17</log4j.version>
     <log4j2.version>2.11.1</log4j2.version>
     <mvel.version>2.4.3.Final</mvel.version>
     <netty.version>4.1.32.Final</netty.version>
     <opentracing.version>0.33.0</opentracing.version>
-    <opentracing.jaeger.version>1.0.0</opentracing.jaeger.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <servlet.version>3.1.0</servlet.version>
     <slf4j.version>1.7.26</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
-    <weld.version>3.1.2.Final</weld.version>
+    <weld.version>3.1.3.Final</weld.version>
     <weld-junit.version>2.0.1.Final</weld-junit.version>
 
     <!-- test dependency versions -->
@@ -718,7 +723,7 @@
     <junit.jupiter.version>5.6.1</junit.jupiter.version>
     <junit.vintage.version>5.6.1</junit.vintage.version>
     <mockito.version>3.3.3</mockito.version>
-    <oracle.bedrock.version>5.0.15</oracle.bedrock.version>
+    <oracle.bedrock.version>5.0.16</oracle.bedrock.version>
 
     <!-- ================================================================== -->
     <!--                      Path Configuration                            -->

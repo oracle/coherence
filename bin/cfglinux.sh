@@ -48,6 +48,10 @@ cd `dirname $SCRIPT_PATH`
 SCRIPTS_DIR=`pwd`
 cd - &>/dev/null
 
+if [ -f $SCRIPTS_DIR/../tools/internal/bin/cfglinux.sh ]; then
+  source $SCRIPTS_DIR/../tools/internal/bin/cfglinux.sh
+fi
+
 source $SCRIPTS_DIR/cfgcommon.sh
 
 unset SCRIPT_PATH

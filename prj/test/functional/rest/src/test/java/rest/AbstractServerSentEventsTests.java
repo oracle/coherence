@@ -69,10 +69,10 @@ public abstract class AbstractServerSentEventsTests
         cache.put(1, new Persona("Ivan", 36));
         cache.remove(3);
 
-        Eventually.assertThat(invoking(mapCounts).size(), is(3));
-        Eventually.assertThat(invoking(mapCounts).get("insert"), is(1));
-        Eventually.assertThat(invoking(mapCounts).get("update"), is(1));
-        Eventually.assertThat(invoking(mapCounts).get("delete"), is(2));
+        Eventually.assertDeferred(() -> mapCounts.size(), is(3));
+        Eventually.assertDeferred(() -> mapCounts.get("insert"), is(1));
+        Eventually.assertDeferred(() -> mapCounts.get("update"), is(1));
+        Eventually.assertDeferred(() -> mapCounts.get("delete"), is(2));
 
         source.close();
         }
@@ -103,10 +103,10 @@ public abstract class AbstractServerSentEventsTests
         cache.remove(2);
         cache.remove(3);
 
-        Eventually.assertThat(invoking(mapCounts).size(), is(3));
-        Eventually.assertThat(invoking(mapCounts).get("insert"), is(1));
-        Eventually.assertThat(invoking(mapCounts).get("update"), is(1));
-        Eventually.assertThat(invoking(mapCounts).get("delete"), is(2));
+        Eventually.assertDeferred(() -> mapCounts.size(), is(3));
+        Eventually.assertDeferred(() -> mapCounts.get("insert"), is(1));
+        Eventually.assertDeferred(() -> mapCounts.get("update"), is(1));
+        Eventually.assertDeferred(() -> mapCounts.get("delete"), is(2));
 
         source.close();
         }
@@ -137,10 +137,10 @@ public abstract class AbstractServerSentEventsTests
         cache.remove(2);
         cache.remove(3);
 
-        Eventually.assertThat(invoking(mapCounts).size(), is(3));
-        Eventually.assertThat(invoking(mapCounts).get("insert"), is(1));
-        Eventually.assertThat(invoking(mapCounts).get("update"), is(1));
-        Eventually.assertThat(invoking(mapCounts).get("delete"), is(2));
+        Eventually.assertDeferred(() -> mapCounts.size(), is(3));
+        Eventually.assertDeferred(() -> mapCounts.get("insert"), is(1));
+        Eventually.assertDeferred(() -> mapCounts.get("update"), is(1));
+        Eventually.assertDeferred(() -> mapCounts.get("delete"), is(2));
 
         source.close();
         }
@@ -173,10 +173,10 @@ public abstract class AbstractServerSentEventsTests
         cache.remove(3);
         cache.put(1, new Persona("Ivan", 37));
 
-        Eventually.assertThat(invoking(mapCounts).size(), is(3));
-        Eventually.assertThat(invoking(mapCounts).get("insert"), is(1));
-        Eventually.assertThat(invoking(mapCounts).get("update"), is(2));
-        Eventually.assertThat(invoking(mapCounts).get("delete"), is(1));
+        Eventually.assertDeferred(() -> mapCounts.size(), is(3));
+        Eventually.assertDeferred(() -> mapCounts.get("insert"), is(1));
+        Eventually.assertDeferred(() -> mapCounts.get("update"), is(2));
+        Eventually.assertDeferred(() -> mapCounts.get("delete"), is(1));
 
         source.close();
         }

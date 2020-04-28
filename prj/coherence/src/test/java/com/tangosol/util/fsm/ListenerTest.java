@@ -88,9 +88,9 @@ public class ListenerTest
 
         machine.process(MotorEvent.TURN_ON);
 
-        Eventually.assertThat(invoking(listener1).isMatch(), is(true), within(10,
+        Eventually.assertDeferred(listener1::isMatch, is(true), within(10,
                                                                               TimeUnit.SECONDS));
-        Eventually.assertThat(invoking(listener2).isMatch(), is(true), within(10,
+        Eventually.assertDeferred(listener2::isMatch, is(true), within(10,
                                                                               TimeUnit.SECONDS));
         listener1.reset();
         listener2.reset();
@@ -100,8 +100,8 @@ public class ListenerTest
         // test again after transition to original state
         machine.process(MotorEvent.TURN_ON);
 
-        Eventually.assertThat(invoking(listener1).isMatch(), is(true), within(10, TimeUnit.SECONDS));
-        Eventually.assertThat(invoking(listener2).isMatch(), is(true), within(10,
+        Eventually.assertDeferred(() -> listener1.isMatch(), is(true), within(10, TimeUnit.SECONDS));
+        Eventually.assertDeferred(() -> listener2.isMatch(), is(true), within(10,
                                                                               TimeUnit.SECONDS));
         listener1.reset();
         listener2.reset();
@@ -113,7 +113,7 @@ public class ListenerTest
 
         machine.process(MotorEvent.TURN_ON);
 
-        Eventually.assertThat(invoking(listener2).isMatch(), is(true));
+        Eventually.assertDeferred(() -> listener2.isMatch(), is(true));
 
         assertThat(listener1.isMatch(), is(false));
         }

@@ -101,7 +101,7 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
         m_memberStorageNode = startCacheServer(m_testName.getMethodName() + "-storage",
                                                "jaeger", f_sCacheConfig, propsMain);
 
-        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(EXPECTED_CLUSTER_SIZE));
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(EXPECTED_CLUSTER_SIZE));
         }
 
     // ----- methods from AbstractCacheOperationsTracingTest ----------------

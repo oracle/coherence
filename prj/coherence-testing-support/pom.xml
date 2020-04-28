@@ -55,6 +55,12 @@
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+    </dependency>
 
     <!--
       This dependency has a scope of provided as the
@@ -72,13 +78,6 @@
     </dependency>
 
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-core</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
-    </dependency>
-
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
     </dependency>
@@ -88,6 +87,7 @@
       <artifactId>jackson-core</artifactId>
     </dependency>
 
+    <!-- Bedrock -->
     <dependency>
       <groupId>com.oracle.bedrock.coherence</groupId>
       <artifactId>coherence-12.2.1-testing-support</artifactId>
@@ -97,22 +97,26 @@
       <artifactId>bedrock-runtime-jacoco</artifactId>
     </dependency>
 
+    <!-- JUnit 4 -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+    <!-- JaCoCo -->
     <dependency>
         <groupId>org.jacoco</groupId>
         <artifactId>org.jacoco.agent</artifactId>
         <classifier>runtime</classifier>
     </dependency>
 
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-
+    <!-- Hamcrest -->
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
     </dependency>
 
+    <!-- Mockito -->
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>

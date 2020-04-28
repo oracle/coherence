@@ -176,7 +176,7 @@ public class NonBlockingFiniteStateMachineTest
         machine.processLater(new SubsequentEvent<>(MotorEvent.TURN_ON), 1, TimeUnit.SECONDS);
 
         // ensure that a subsequent event is executed when there's no interleaving
-        Eventually.assertThat(invoking(machine).getTransitionCount(), is(1L));
+        Eventually.assertDeferred(() -> machine.getTransitionCount(), is(1L));
         assertThat(machine.getState(), is(Motor.RUNNING));
 
         // ensure that a subsequent event is not executed when there's interleaving
@@ -188,7 +188,7 @@ public class NonBlockingFiniteStateMachineTest
         machine.process(MotorEvent.TURN_ON);
         machine.process(MotorEvent.TURN_OFF);
 
-        Eventually.assertThat(invoking(machine).getTransitionCount(), is(4L));
+        Eventually.assertDeferred(() -> machine.getTransitionCount(), is(4L));
 
         assertThat(machine.getState(), is(Motor.STOPPED));
 
@@ -226,53 +226,53 @@ public class NonBlockingFiniteStateMachineTest
 
         // ensure that the first submitted coalesced event is processed
         // and the others are not
-        TrackingEvent<Motor> event1 = new TrackingEvent<>(MotorEvent.TURN_ON);
-        TrackingEvent<Motor> event2 = new TrackingEvent<>(MotorEvent.TURN_ON);
-        TrackingEvent<Motor> event3 = new TrackingEvent<>(MotorEvent.TURN_ON);
+        TrackingEvent<Motor> eventA = new TrackingEvent<>(MotorEvent.TURN_ON);
+        TrackingEvent<Motor> eventB = new TrackingEvent<>(MotorEvent.TURN_ON);
+        TrackingEvent<Motor> eventC = new TrackingEvent<>(MotorEvent.TURN_ON);
 
-        machine.processLater(new CoalescedEvent<>(event1, Process.FIRST), 3, TimeUnit.SECONDS);
-        machine.processLater(new CoalescedEvent<>(event2, Process.FIRST), 2, TimeUnit.SECONDS);
-        machine.processLater(new CoalescedEvent<>(event3, Process.FIRST),
+        machine.processLater(new CoalescedEvent<>(eventA, Process.FIRST), 3, TimeUnit.SECONDS);
+        machine.processLater(new CoalescedEvent<>(eventB, Process.FIRST), 2, TimeUnit.SECONDS);
+        machine.processLater(new CoalescedEvent<>(eventC, Process.FIRST),
                              1, TimeUnit.SECONDS);
 
-        Eventually.assertThat(invoking(machine).getTransitionCount(), is(1L));
+        Eventually.assertDeferred(() -> machine.getTransitionCount(), is(1L));
         assertThat(machine.getState(), is(Motor.RUNNING));
 
-        assertThat(event1.accepted(), is(true));
-        Eventually.assertThat(invoking(event1).evaluated(), is(true));
-        assertThat(event1.processed(), is(true));
+        assertThat(eventA.accepted(), is(true));
+        Eventually.assertDeferred(() -> eventA.evaluated(), is(true));
+        assertThat(eventA.processed(), is(true));
 
-        assertThat(event2.accepted(), is(true));
-        Eventually.assertThat(invoking(event2).evaluated(), is(false));
-        assertThat(event2.processed(), is(false));
+        assertThat(eventB.accepted(), is(true));
+        Eventually.assertDeferred(() -> eventB.evaluated(), is(false));
+        assertThat(eventB.processed(), is(false));
 
-        assertThat(event3.accepted(), is(true));
-        Eventually.assertThat(invoking(event3).evaluated(), is(false));
-        assertThat(event3.processed(), is(false));
+        assertThat(eventC.accepted(), is(true));
+        Eventually.assertDeferred(() -> eventC.evaluated(), is(false));
+        assertThat(eventC.processed(), is(false));
 
         // ensure that the most recently submitted coalesced event is processed
         // and the others are not
-        event1 = new TrackingEvent<>(MotorEvent.TURN_OFF);
-        event2 = new TrackingEvent<>(MotorEvent.TURN_OFF);
-        event3 = new TrackingEvent<>(MotorEvent.TURN_OFF);
+        TrackingEvent<Motor> event1 = new TrackingEvent<>(MotorEvent.TURN_OFF);
+        TrackingEvent<Motor> event2 = new TrackingEvent<>(MotorEvent.TURN_OFF);
+        TrackingEvent<Motor> event3 = new TrackingEvent<>(MotorEvent.TURN_OFF);
 
         machine.processLater(new CoalescedEvent<>(event1, Process.MOST_RECENT), 3, TimeUnit.SECONDS);
         machine.processLater(new CoalescedEvent<>(event2, Process.MOST_RECENT), 2, TimeUnit.SECONDS);
         machine.processLater(new CoalescedEvent<>(event3, Process.MOST_RECENT), 1, TimeUnit.SECONDS);
 
-        Eventually.assertThat(invoking(machine).getTransitionCount(), is(2L));
+        Eventually.assertDeferred(() -> machine.getTransitionCount(), is(2L));
         assertThat(machine.getState(), is(Motor.STOPPED));
 
         assertThat(event3.accepted(), is(true));
-        Eventually.assertThat(invoking(event3).evaluated(), is(true));
+        Eventually.assertDeferred(() -> event3.evaluated(), is(true));
         assertThat(event3.processed(), is(true));
 
         assertThat(event2.accepted(), is(true));
-        Eventually.assertThat(invoking(event2).evaluated(), is(false));
+        Eventually.assertDeferred(() -> event2.evaluated(), is(false));
         assertThat(event2.processed(), is(false));
 
         assertThat(event1.accepted(), is(true));
-        Eventually.assertThat(invoking(event1).evaluated(), is(false));
+        Eventually.assertDeferred(() -> event1.evaluated(), is(false));
         assertThat(event1.processed(), is(false));
 
         assertThat(machine.stop(), is(true));

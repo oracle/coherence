@@ -146,6 +146,18 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/json/target/j
 //   permission java.security.AllPermission;
 // };
 
+// Needed for persistence archiver test example
+grant codeBase "file:${oracle.coherence.lib}/../../-" {
+  permission java.io.FilePermission "${user.home}/.ssh/config", "read";
+  permission java.io.FilePermission "${java.io.tmpdir}/-", "read,write,delete";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.net.SocketPermission "*", "connect,resolve";
+  permission java.util.logging.LoggingPermission "control";
+  permission java.util.PropertyPermission "user.home", "read";
+  permission java.util.PropertyPermission "org.apache.sshd.security.registrars", "read";
+  permission java.util.PropertyPermission "*", "read,write";
+};
+
 // The following grant block is needed by Coherence REST.
 
 grant codeBase "file:${oracle.coherence.lib}/../../coherence-rest/-" {

@@ -242,7 +242,7 @@ public abstract class AbstractRollingRestartTest
         SafeService serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateVulnerable(true), is(0));
+        Eventually.assertDeferred(() -> serviceReal.calculateVulnerable(true), is(0));
         }
 
     // ----- inner class: WaitForNodeSafeRunnable --------------------------
@@ -284,7 +284,7 @@ public abstract class AbstractRollingRestartTest
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateEndangered(), is(0));
+        Eventually.assertDeferred(() -> serviceReal.calculateEndangered(), is(0));
         }
 
     // ----- inner class: WaitForNoOrphansRunnable ------------------------
@@ -327,7 +327,7 @@ public abstract class AbstractRollingRestartTest
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateOwnership(null, true), new IntArraySlotMatcher(0, 0));
+        Eventually.assertDeferred(() -> serviceReal.calculateOwnership(null, true), new IntArraySlotMatcher(0, 0));
         }
 
     /**
@@ -341,7 +341,7 @@ public abstract class AbstractRollingRestartTest
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateUnbalanced(), is(0));
+        Eventually.assertDeferred(() -> serviceReal.calculateUnbalanced(), is(0));
         }
 
     /**
@@ -543,7 +543,7 @@ public abstract class AbstractRollingRestartTest
             startCacheServer(sServerName, getProjectName(),
                              getCacheConfigPath(), propsAll, true);
 
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(nSize + 1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(nSize + 1));
 
             Set setMembers = cluster.getMemberSet();
             Member memberNew  = null;
@@ -626,7 +626,7 @@ public abstract class AbstractRollingRestartTest
                 }
 
             // wait for server death to be noticed
-            Eventually.assertThat(invoking(m_listServers).contains(memberKill), is(false));
+            Eventually.assertDeferred(() -> m_listServers.contains(memberKill), is(false));
             }
 
         /**

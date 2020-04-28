@@ -552,14 +552,14 @@ public class BaseMapTest
         observableMap.addMapListener(listenerRecord);
         observableMap.put("a", "b");
 
-        Eventually.assertThat(invoking(listenerRecord).getEventCount(), is(greaterThan(0)));
+        Eventually.assertDeferred(() -> listenerRecord.getEventCount(), is(greaterThan(0)));
         listenerRecord.reset();
 
         // verify listeners weren't triggered.
         if (observableMap instanceof ObservableHashMap)
             {
             ((ObservableHashMap) observableMap).truncate();
-            Eventually.assertThat(invoking(listenerRecord).getEventCount(), is(0));
+            Eventually.assertDeferred(() -> listenerRecord.getEventCount(), is(0));
             }
         }
 

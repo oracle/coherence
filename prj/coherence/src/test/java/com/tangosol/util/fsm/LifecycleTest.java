@@ -80,7 +80,7 @@ public class LifecycleTest
 
         machine.process(MotorEvent.TURN_ON);
 
-        Eventually.assertThat(invoking(machine).getState(), is(Motor.RUNNING));
+        Eventually.assertDeferred(machine::getState, is(Motor.RUNNING));
 
         assertThat(machine.start(), is(false));
         }

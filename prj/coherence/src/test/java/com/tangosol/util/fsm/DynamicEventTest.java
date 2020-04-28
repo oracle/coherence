@@ -78,7 +78,7 @@ public class DynamicEventTest
 
         machine.start();
 
-        Eventually.assertThat(invoking(machine).getState(),
+        Eventually.assertDeferred(machine::getState,
                               is(Brightness.OFF),
                               within(2, TimeUnit.SECONDS));
 

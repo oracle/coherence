@@ -108,7 +108,7 @@ public class PersistenceResourceTests
             propsServer2.setProperty("coherence.member", SERVER_PREFIX + "-2");
             CoherenceClusterMember member = startCacheServer(SERVER_PREFIX + "-2", "rest", CACHE_CONFIG, propsServer2);
 
-            Eventually.assertThat(invoking(member).getServiceStatus(SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
+            Eventually.assertDeferred(() -> member.getServiceStatus(SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
 
             // fill a cache
             NamedCache cache = findApplication(SERVER_PREFIX + "-1").getCache(CACHE_NAME);
@@ -159,7 +159,7 @@ public class PersistenceResourceTests
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
     private void testRecoverSnapshot()
@@ -169,7 +169,7 @@ public class PersistenceResourceTests
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
     private void testRetrieveSnapshot()
@@ -179,12 +179,12 @@ public class PersistenceResourceTests
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
     private void testDeleteSnapshot()
         {
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
 
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
                 .path("snapshots").path("test-snapshot").request().delete();
@@ -195,12 +195,12 @@ public class PersistenceResourceTests
 
         assertThat(listObjSnapshots, not(hasItem("test-snapshot")));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
     private void testDeleteArchive()
         {
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
 
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
                 .path("archives").request().get();
@@ -219,7 +219,7 @@ public class PersistenceResourceTests
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
     private void testSnapshotAllServices()
@@ -229,7 +229,7 @@ public class PersistenceResourceTests
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
     private void testArchive()
@@ -239,7 +239,7 @@ public class PersistenceResourceTests
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
 

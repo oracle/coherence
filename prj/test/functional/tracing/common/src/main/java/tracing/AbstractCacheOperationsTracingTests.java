@@ -19,7 +19,6 @@ import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import jdk.nashorn.internal.objects.Global;
 import org.junit.Ignore;
 import org.junit.Test;
 

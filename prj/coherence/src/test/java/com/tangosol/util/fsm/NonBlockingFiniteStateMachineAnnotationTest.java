@@ -58,7 +58,7 @@ public class NonBlockingFiniteStateMachineAnnotationTest
 
         machine.start();
 
-        Eventually.assertThat(invoking(machine).getState(), is(Light.OFF));
+        Eventually.assertDeferred(machine::getState, is(Light.OFF));
 
         machine.process(SwitchEvent.SWITCH_ON);
 

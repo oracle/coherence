@@ -33,8 +33,6 @@ import processors.HasIndexProcessor;
 import java.util.Date;
 import java.util.List;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.hasItem;
 
@@ -289,7 +287,7 @@ public class QueryPlusTests
 
         assertThat(out.get(0), is(""));
         assertThat(out.get(1), is(EMPTY_COHQL_PROMPT));
-        Eventually.assertThat(invoking(cache).invoke(null, processor), is(Boolean.TRUE));
+        Eventually.assertDeferred(() -> cache.invoke(null, processor), is(Boolean.TRUE));
         }
 
     @Test
@@ -320,7 +318,7 @@ public class QueryPlusTests
 
         assertThat(out.get(0), is(""));
         assertThat(out.get(1), is(EMPTY_COHQL_PROMPT));
-        Eventually.assertThat(invoking(cache).invoke(null, processor), is(Boolean.FALSE));
+        Eventually.assertDeferred(() -> cache.invoke(null, processor), is(Boolean.FALSE));
         }
 
     // ----- data members ---------------------------------------------------

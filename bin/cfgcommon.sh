@@ -18,9 +18,11 @@
 #     DEV_ROOT     e.g. /dev
 #     JAVA_HOME    e.g. /usr/java/jdk1.6
 #     MAVEN_HOME   e.g. /dev/tools/maven
+#     P4IGNORE     e.g. /dev/.p4ignore
 #     TDE_HOME     e.g. /dev/tools/tde
 #     CLASSPATH    e.g.
 #
+#     _P4IGNORE    saved P4IGNORE
 #     _TDE_HOME    saved TDE_HOME
 #     _CLASSPATH   saved CLASSPATH
 #     _PATH        saved PATH
@@ -48,6 +50,12 @@ function reset
     export MAVEN_HOME=$_MAVEN_HOME
   fi
 
+  if [ -z $_P4IGNORE ]; then
+    unset P4IGNORE
+  else
+    export P4IGNORE=$_P4IGNORE
+  fi
+
   if [ -z $_TDE_HOME ]; then
     unset TDE_HOME
   else
@@ -69,6 +77,7 @@ function reset
   unset DEV_ROOT
   unset _JAVA_HOME
   unset _MAVEN_HOME
+  unset _P4IGNORE
   unset _TDE_HOME
   unset _CLASSPATH
   unset _PATH
@@ -92,17 +101,19 @@ function setup
   # Ensure proper Java version, attempt selection if necessary
   #
   _JAVA_HOME=$JAVA_HOME
-  _VERSION_REQUIRED=1.8
+  _VERSION_REQUIRED=11
 
-  if [ -z $JAVA_HOME ] || [ "$($JAVA_HOME/bin/java -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1.\2/; 1q')" != "$_VERSION_REQUIRED" ]; then
+  if [ -z $JAVA_HOME ] || [ "$($JAVA_HOME/bin/java -version 2>&1 | sed 's/.*version "\([0-9]*\).*/\1/; 1q')" != "$_VERSION_REQUIRED" ]; then
     # Try to find the correct version
     JAVA_HOME=`eval $_JAVA_HOME_CMD`
+
+    unset _ERROR
 
     if [ ! -d "$JAVA_HOME" ]; then
       _ERROR="Set JAVA_HOME as Java version $_VERSION_REQUIRED could not be located using command: $_JAVA_HOME_CMD"
     else
       # Ensure that it has been found
-      _VERSION=$($JAVA_HOME/bin/java -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1.\2/; 1q')
+      _VERSION=$($JAVA_HOME/bin/java -version 2>&1 | sed 's/.*version "\([0-9]*\).*/\1/; 1q')
 
       if [ "$_VERSION" != "$_VERSION_REQUIRED" ]; then
         _ERROR="Incorrect JDK version $_VERSION at $JAVA_HOME; $_VERSION_REQUIRED is required, please export JAVA_HOME appropriately."
@@ -116,12 +127,15 @@ function setup
       else
         JAVA_HOME=$_JAVA_HOME
       fi
+
+      echo "$_ERROR"
+
+      unset _ERROR
       unset _JAVA_HOME
       unset _VERSION
       unset _VERSION_REQUIRED
       unset DEV_ROOT
 
-      echo "$_ERROR"
       return 1
 
     fi
@@ -149,6 +163,16 @@ function setup
     PATH=$MAVEN_HOME/bin:$PATH
     export MAVEN_HOME
     echo MAVEN_HOME = $MAVEN_HOME
+  fi
+
+  #
+  # Set the P4IGNORE environment variable
+  #
+  _P4IGNORE=$P4IGNORE
+  if [ -f $DEV_ROOT/.p4ignore ]; then
+    P4IGNORE=$DEV_ROOT/.p4ignore
+    export P4IGNORE
+    echo P4IGNORE = $P4IGNORE
   fi
 
   #
@@ -186,3 +210,4 @@ elif [ -z $DEV_ROOT ]; then
 else
     echo Build environment already set.
 fi
+

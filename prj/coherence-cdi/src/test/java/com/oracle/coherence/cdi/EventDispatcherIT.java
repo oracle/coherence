@@ -4,7 +4,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.cdi;
 
 import java.time.LocalDate;
@@ -48,6 +47,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -198,14 +198,14 @@ class EventDispatcherIT
         private void onExecuting(@Observes @Executing @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)
             {
             record(event);
-            assertThat(event.getProcessor().getClass(), is(Uppercase.class));
+            assertThat(event.getProcessor(), is(instanceOf(Uppercase.class)));
             assertThat(event.getEntrySet().size(), is(5));
             }
 
         private void onExecuted(@Observes @Executed @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)
             {
             record(event);
-            assertThat(event.getProcessor().getClass(), is(Uppercase.class));
+            assertThat(event.getProcessor(), is(instanceOf(Uppercase.class)));
             assertThat(event.getEntrySet().size(), is(0));
             }
         }

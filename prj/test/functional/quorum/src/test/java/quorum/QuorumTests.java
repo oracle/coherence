@@ -180,7 +180,7 @@ public class QuorumTests
         CoherenceClusterMember member = startCacheServer(sServer, "quorum", getCacheConfig(), props);
 
         // wait for the service used to be started on the new member
-        Eventually.assertThat(invoking(svc).getOwnershipEnabledMembers().size(), is(cServers + 1));
+        Eventually.assertDeferred(() -> svc.getOwnershipEnabledMembers().size(), is(cServers + 1));
 
         registerConfigListener(sServer, "PartitionedCacheWithQuorum");
         }
@@ -205,7 +205,7 @@ public class QuorumTests
         cacheEvents.put("BACKUP_ALLOWED", Boolean.valueOf(fBackup));
 
         // wait for death to be detected
-        Eventually.assertThat(invoking(svc).getOwnershipEnabledMembers().size(),
+        Eventually.assertDeferred(() -> svc.getOwnershipEnabledMembers().size(),
             is(cServers - 1));
         }
 
@@ -646,20 +646,20 @@ public class QuorumTests
                 .add(SystemProperty.of("tangosol.coherence.extend.port", LocalPlatform.get().getAvailablePorts()));
 
         CoherenceCacheServer proxy0 = startCoherenceClusterMember(optionsByType, "testProxy0-0");
-        Eventually.assertThat(invoking(proxy0).isServiceRunning("TcpProxyService"), is(true));
+        Eventually.assertDeferred(() -> proxy0.isServiceRunning("TcpProxyService"), is(true));
 
         // 1 proxy server is running
         testExtendConnect(proxy0, /*fAllowed*/false);
 
         CoherenceCacheServer proxy1 = startCoherenceClusterMember(optionsByType, "testProxy0-1");
-        Eventually.assertThat(invoking(proxy1).isServiceRunning("TcpProxyService"), is(true));
+        Eventually.assertDeferred(() -> proxy1.isServiceRunning("TcpProxyService"), is(true));
 
         // 2 proxy servers are running
         testExtendConnect(proxy0, /*fAllowed*/false);
         testExtendConnect(proxy1, /*fAllowed*/false);
 
         CoherenceCacheServer proxy2 = startCoherenceClusterMember(optionsByType, "testProxy0-2");
-        Eventually.assertThat(invoking(proxy2).isServiceRunning("TcpProxyService"), is(true));
+        Eventually.assertDeferred(() -> proxy2.isServiceRunning("TcpProxyService"), is(true));
 
         // 3 proxy servers are running
         testExtendConnect(proxy0, /*fAllowed*/true);
@@ -668,15 +668,15 @@ public class QuorumTests
 
         proxy0.close();  // 2 cache servers remaining
 
-        Eventually.assertThat(invoking(proxy1).getClusterSize(), is(2));
-        Eventually.assertThat(invoking(proxy1).invoke(new GetServiceMemberCount("TcpProxyService")), is(2));
+        Eventually.assertDeferred(() -> proxy1.getClusterSize(), is(2));
+        Eventually.assertDeferred(() -> proxy1.invoke(new GetServiceMemberCount("TcpProxyService")), is(2));
 
         // 2 proxy servers are running
         testExtendConnect(proxy1, /*fAllowed*/false);
         testExtendConnect(proxy2, /*fAllowed*/false);
 
         CoherenceClusterMember proxy3 = startCoherenceClusterMember(optionsByType, "testProxy0-3");
-        Eventually.assertThat(invoking(proxy3).isServiceRunning("TcpProxyService"), is(true));
+        Eventually.assertDeferred(() -> proxy3.isServiceRunning("TcpProxyService"), is(true));
 
         // 3 proxy servers are running
         testExtendConnect(proxy1, /*fAllowed*/true);
@@ -908,24 +908,24 @@ public class QuorumTests
 
             for (int i = 1; i < cMembers; i++)
                 {
-               // Eventually.assertThat(invoking(aMember[i]).submit(IsDefaultCacheServerRunning.INSTANCE), is(true));
-                Eventually.assertThat(invoking(m_helper).submitBool(aMember[i], IsDefaultCacheServerRunning.INSTANCE), is(true));
+                final CoherenceClusterMember member = aMember[i];
+                Eventually.assertDeferred(() -> m_helper.submitBool(member, IsDefaultCacheServerRunning.INSTANCE), is(true));
                 }
-            Eventually.assertThat(invoking(clusterSafe).getMemberSet().size(), is(cMembers));
+            Eventually.assertDeferred(() -> clusterSafe.getMemberSet().size(), is(cMembers));
 
             com.tangosol.coherence.component.net.Cluster clusterReal = clusterSafe.getCluster();
 
             // turn off the publisher over unicast
             clusterReal.getPublisher().getUdpSocketUnicast().setTxDebugDropRate(100000);
 
-            Eventually.assertThat(invoking(clusterReal).getClusterService().getQuorumControl().getConvictedMembers().isEmpty(), is(false));
+            Eventually.assertDeferred(() -> clusterReal.getClusterService().getQuorumControl().getConvictedMembers().isEmpty(), is(false));
 
             assertTrue("Quorum policy failed",
                     clusterReal.isRunning() && clusterSafe.getMemberSet().size() == cMembers);
 
             clusterReal.getPublisher().getUdpSocketUnicast().setTxDebugDropRate(0);
 
-            Eventually.assertThat(invoking(clusterReal).getClusterService().getQuorumControl().getConvictedMembers().isEmpty(), is(true));
+            Eventually.assertDeferred(() -> clusterReal.getClusterService().getQuorumControl().getConvictedMembers().isEmpty(), is(true));
 
             assertTrue("Quorum policy failed",
                     clusterReal.isRunning() && clusterSafe.getMemberSet().size() == cMembers);

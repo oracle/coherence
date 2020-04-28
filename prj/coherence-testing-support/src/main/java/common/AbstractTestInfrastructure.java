@@ -9,6 +9,9 @@ package common;
 
 
 import com.oracle.bedrock.OptionsByType;
+import com.oracle.bedrock.deferred.Deferred;
+import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
+import com.oracle.bedrock.deferred.TemporarilyUnavailableException;
 import com.oracle.bedrock.jacoco.Dump;
 import com.oracle.bedrock.runtime.java.options.JavaHome;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -48,7 +51,6 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.util.Base;
 import com.tangosol.util.Service;
 
-import java.util.Enumeration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -734,13 +736,13 @@ public abstract class AbstractTestInfrastructure
      */
     public static void waitForServer(CoherenceClusterMember server)
         {
-        Eventually.assertThat(invoking(server).isServiceRunning("Cluster"), is(true), within(2, TimeUnit.MINUTES));
+        Eventually.assertDeferred(() -> server.isServiceRunning("Cluster"), is(true), within(2, TimeUnit.MINUTES));
 
         Set<String> setServiceNames = server.invoke(new GetAutoStartServiceNames());
 
         for (String sServiceName : setServiceNames)
             {
-            Eventually.assertThat(invoking(server).isServiceRunning(sServiceName), is(true), within(2, TimeUnit.MINUTES));
+            Eventually.assertDeferred(() -> server.isServiceRunning(sServiceName), is(true), within(2, TimeUnit.MINUTES));
             }
         }
 
@@ -912,9 +914,9 @@ public abstract class AbstractTestInfrastructure
               int nId;
               if (fInCluster)
                   {
-                  Eventually.assertThat(invoking(m_helper).getLocalMemberId(member), Matchers.greaterThan(0));
+                  Eventually.assertDeferred(() -> m_helper.getLocalMemberId(member), Matchers.greaterThan(0));
                   nId = member.getLocalMemberId();
-                  Eventually.assertThat(invoking(m_helper).matchMemberId(cluster, nId), Is.is(true));
+                  Eventually.assertDeferred(() -> m_helper.matchMemberId(cluster, nId), Is.is(true));
                   }
               else
                   {
@@ -962,7 +964,7 @@ public abstract class AbstractTestInfrastructure
 
               if (fInCluster)
                   {
-                  Eventually.assertThat(invoking(cluster).getMemberSet().stream().mapToInt(m -> ((Member) m).getId())
+                  Eventually.assertDeferred(() -> cluster.getMemberSet().stream().mapToInt(m -> ((Member) m).getId())
                           .anyMatch(n -> n == nId), Is.is(false));
                   }
               }
@@ -1025,10 +1027,7 @@ public abstract class AbstractTestInfrastructure
     */
     public static void waitForBalanced(CacheService service)
         {
-        SafeService serviceSafe = (SafeService) service;
-        PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
-
-        Eventually.assertThat(invoking(serviceReal).calculateUnbalanced(), is(0));
+        Eventually.assertDeferred(new WaitForBalanced(service), is(0));
         }
 
     /**
@@ -1634,6 +1633,31 @@ public abstract class AbstractTestInfrastructure
             }
 
         return m_ports;
+        }
+
+    // ----- inner class: WaitForBalanced -----------------------------------
+
+    /**
+     * A Deferred that returns the unbalanced count for a
+     * partitioned cache service.
+     */
+    public static class WaitForBalanced
+            implements Deferred<Integer>
+        {
+        public WaitForBalanced(CacheService service)
+            {
+            f_service = service;
+            }
+
+        @Override
+        public Integer get() throws TemporarilyUnavailableException, PermanentlyUnavailableException
+            {
+            SafeService serviceSafe = (SafeService) f_service;
+            PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
+            return serviceReal.calculateUnbalanced();
+            }
+
+        private final CacheService f_service;
         }
 
     // ----- data members ---------------------------------------------------

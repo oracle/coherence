@@ -6,11 +6,17 @@
  */
 package com.tangosol.net;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
+
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Base;
 
 import com.oracle.coherence.common.base.Blocking;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -18,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -238,6 +246,43 @@ public class DefaultCacheServerTest
         t.interrupt();
 
         verify(eccf).activate();
+        }
+
+    /*
+     * Test startDaemon() monitors and restarts services.
+     */
+    @Test
+    public void testStartDaemonMonitorsServices()
+        {
+        ClassLoader              cl           = new ClassLoader(this.getClass().getClassLoader()) {};
+        ConfigurableCacheFactory cacheFactory =
+                CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory("coherence-cache-config.xml", cl);
+
+        // this will ensure the services are monitored
+        DefaultCacheServer cacheServer = new DefaultCacheServer(cacheFactory);
+        cacheServer.startDaemon(DefaultCacheServer.DEFAULT_WAIT_MILLIS);
+        Eventually.assertThat(invoking(cacheServer).isMonitorStopped(), is(false));
+
+        NamedCache cache = cacheFactory.ensureCache("dist-cache", cl);
+
+        cache.put("A", 1);
+        assertEquals(1, cache.get("A"));
+
+        SafeDistributedCacheService service        = (SafeDistributedCacheService) cache.getCacheService();
+        com.tangosol.util.Service   runningService = service.getRunningService();
+
+        runningService.stop();
+        Eventually.assertThat(invoking(service).isRunning(), is(false));
+
+        assertEquals(null, cache.get("A"));
+
+        Eventually.assertThat(invoking(service).getRunningService().isRunning(), is(true));
+        Service serviceAfterRestart = service.getRunningCacheService();
+        Assert.assertNotEquals(runningService, serviceAfterRestart);
+
+        cache = ((CacheService) serviceAfterRestart).ensureCache("dist-cache", cl);
+        cache.put("A", 1);
+        assertEquals(1, cache.get("A"));
         }
 
     // ----- helpers --------------------------------------------------------

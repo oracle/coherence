@@ -71,7 +71,7 @@ public class BasicAuthRestTests
         System.setProperty("java.security.auth.login.config", fileName);
 
         CoherenceClusterMember clusterMember = startCacheServer("BasicAuthRestTests", "rest", FILE_SERVER_CFG_CACHE);
-        Eventually.assertThat(invoking(clusterMember).isServiceRunning("ExtendHttpProxyService"), is(true));
+        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("ExtendHttpProxyService"), is(true));
         }
 
     @Before

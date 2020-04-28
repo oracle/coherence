@@ -19,6 +19,8 @@ import com.tangosol.net.Cluster;
 
 import com.tangosol.net.management.MBeanHelper;
 
+import com.tangosol.util.Base;
+
 import java.util.Properties;
 
 import java.util.concurrent.TimeUnit;
@@ -29,11 +31,9 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -248,7 +248,7 @@ public abstract class AbstractJmxConfigurationTests
      */
     protected void checkTracingStatusOnMember(CoherenceClusterMember member, boolean fExpectedStatus)
         {
-        Eventually.assertThat(invoking(member).invoke(
+        Eventually.assertDeferred(() -> member.invoke(
                 (RemoteCallable<Boolean>) TracingHelper::isEnabled),
                 is(fExpectedStatus),
                 within(10, TimeUnit.SECONDS));
@@ -266,7 +266,7 @@ public abstract class AbstractJmxConfigurationTests
     protected void checkTracingJMXAttribute(MBeanServer server, CoherenceClusterMember member, float fExpectedValue)
             throws Exception
         {
-        Eventually.assertThat(invoking(this).getTracingConfigurationForMember(server, member.getLocalMemberId()),
+        Eventually.assertDeferred(() -> getTracingConfigurationForMember(server, member.getLocalMemberId()),
                               is(fExpectedValue),
                               within(10, TimeUnit.SECONDS));
         }
@@ -317,7 +317,7 @@ public abstract class AbstractJmxConfigurationTests
         CoherenceClusterMember clusterMember =
                 startCacheServer(m_testName.getMethodName() + "-member" + nId, "jaeger", null, propsMain);
 
-        Eventually.assertThat(invoking(clusterMember).getClusterSize(), is(nId));
+        Eventually.assertDeferred(clusterMember::getClusterSize, is(nId));
 
         return clusterMember;
         }
@@ -334,11 +334,18 @@ public abstract class AbstractJmxConfigurationTests
      *
      * @throws Exception if an error occurs processing the test
      */
-    public Float getTracingConfigurationForMember(MBeanServer server, int memberId) throws Exception
+    public Float getTracingConfigurationForMember(MBeanServer server, int memberId)
         {
-        ObjectName  oBeanName = new ObjectName("Coherence:type=Node,nodeId=" + memberId);
+        try
+            {
+            ObjectName  oBeanName = new ObjectName("Coherence:type=Node,nodeId=" + memberId);
 
-        return (Float) server.getAttribute(oBeanName, TRACING_ATTRIBUTE);
+            return (Float) server.getAttribute(oBeanName, TRACING_ATTRIBUTE);
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
         }
 
     /**
