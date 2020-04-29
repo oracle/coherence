@@ -53,31 +53,4 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>test-jdk11</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun.xml.bind</groupId>
-          <artifactId>jaxb-core</artifactId>
-        </dependency>
-
-        <dependency>
-          <groupId>com.sun.xml.bind</groupId>
-          <artifactId>jaxb-impl</artifactId>
-        </dependency>
-
-        <dependency>
-          <groupId>jakarta.activation</groupId>
-          <artifactId>jakarta.activation-api</artifactId>
-        </dependency>
-
-        <dependency>
-          <groupId>jakarta.xml.bind</groupId>
-          <artifactId>jakarta.xml.bind-api</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
-
 </project>
