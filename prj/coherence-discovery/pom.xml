@@ -20,6 +20,11 @@
   <artifactId>coherence-discovery</artifactId>
   <name>Coherence Discovery</name>
 
+  <properties>
+    <!-- override java.version so that the javadoc plugin doesn't complain when it hits this module -->
+    <java.version>${java.version.eight}</java.version>
+  </properties>
+
   <dependencies/>
 
   <build>
@@ -70,17 +75,17 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <!-- maintain JDK 8 compatibility -->
         <configuration>
-          <!-- coherence-discovery need to run on JDK 7 VM as well, hence source is set as 1.7 -->
-          <source>${java.version.seven}</source>
-          <target>${java.version.seven}</target>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
           <includes>
             <include>com/tangosol/discovery/**/*.java</include>
           </includes>
         </configuration>
       </plugin>
 
-      <!-- make sure that only JDK 7 API's are used -->
+      <!-- make sure that only JDK 8 API's are used -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>

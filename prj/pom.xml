@@ -632,7 +632,7 @@
     <ant-tangosol.version>1.0</ant-tangosol.version>
     <java.version>1.8</java.version>
     <maven.version>3.6.0</maven.version>
-    <java.version.seven>1.7</java.version.seven>
+    <java.version.eight>1.8</java.version.eight>
 
     <!--
       Need to set the following to false because of the bug in 3.1 version of the
@@ -671,7 +671,7 @@
     <maven.site.plugin.version>3.4</maven.site.plugin.version>
     <maven.source.plugin.version>2.2.1</maven.source.plugin.version>
     <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
-    <maven.animalsniffer.plugin.version>1.7</maven.animalsniffer.plugin.version>
+    <maven.animalsniffer.plugin.version>1.16</maven.animalsniffer.plugin.version>
     <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
 
     <!-- library dependency versions -->
@@ -1283,7 +1283,7 @@
                 <skip>${skip.animal.sniffer.plugin}</skip>
                 <signature>
                   <groupId>org.codehaus.mojo.signature</groupId>
-                  <artifactId>java17</artifactId>
+                  <artifactId>java18</artifactId>
                   <version>1.0</version>
                 </signature>
               </configuration>
