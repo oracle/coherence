@@ -426,14 +426,14 @@ public class GUIDHelper
 
     /**
      * Return an array of {@link Map.Entry entries} based on the provided map
-     * ensuring the value ({@code Object[]}) is sorted.
+     * ensuring the value ({@code Object} array) is sorted.
      *
      * @param map  a map to base the Entry[] on
 
      * @param <K> - the key type
 
-     * @return an array of {@link Map.Entry entries} ensuring the value ({@code
-     *         Object[]}) is sorted
+     * @return an array of {@link Map.Entry entries} ensuring the value
+     *         ({@code Object} array) is sorted
      */
     protected static <K> Map.Entry<K, Object[]>[] createSortedEntries(Map<K, Object[]> map)
         {

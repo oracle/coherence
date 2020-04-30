@@ -475,13 +475,13 @@ public class ArchiverHelperTest
         }
 
     /**
-     * Create a new {@link String[]} with the given stores filled.
+     * Create a new {@link String array} with the given stores filled.
      *
      * @param nPartitionCount  the partition count
      * @param nStartPartition  start partition
      * @param nEndPartition    end partition
      *
-     * @return new newly created {@link String[]}
+     * @return new newly created {@link String} array
      */
     private static String[] createStoreArray(int nPartitionCount, int nStartPartition, int nEndPartition)
         {
@@ -493,7 +493,7 @@ public class ArchiverHelperTest
         }
 
     /**
-     * Fill selected partitions for a given {@link String[]}.
+     * Fill selected partitions for a given {@link String} array.
      *
      * @param asStores         the {@link String}[] to fill
      * @param nStartPartition  the start partition
@@ -597,7 +597,7 @@ public class ArchiverHelperTest
      *
      * @param cPartitions the number of stores to create
      *
-     * @return the {@link Object[]} of stores
+     * @return the {@link Object} array of stores
      */
     private Object[] generateStores(int cPartitions)
         {

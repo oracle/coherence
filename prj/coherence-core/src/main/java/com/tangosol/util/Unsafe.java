@@ -143,7 +143,7 @@ public class Unsafe
         }
 
     /**
-     * Return the offset into the {@link #getByteArray(Binary) underlying byte[]}
+     * Return the offset into the {@link #getByteArray(Binary) underlying byte array}
      * for the specified Binary.
      *
      * @param bin  the binary

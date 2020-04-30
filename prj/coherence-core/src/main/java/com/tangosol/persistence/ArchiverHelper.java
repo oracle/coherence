@@ -38,7 +38,7 @@ public class ArchiverHelper
      * members. Each member may see the same stores, as they may be on
      * shared disk or on the same machine.
      *
-     * @param mapStores    a {@link Map} of members and {@link Object[]}s
+     * @param mapStores    a {@link Map} of members and {@link Object} arrays
      *                     that need sorting and allocating
      * @param cPartitions  the number of partitions
      *
@@ -200,7 +200,7 @@ public class ArchiverHelper
      *
      * @param mapStores the {@link Map} of discovered partitions for members
      *
-     * @return a {@link String[]} of distinct stores
+     * @return a {@link String} array of distinct stores
      */
     private static String[] getDistinctStores(Map<Integer, Object[]> mapStores)
         {

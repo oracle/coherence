@@ -1796,7 +1796,7 @@ public final class Binary
 
         /**
          * Return the offset into the {@link #getByteArray(Binary) underlying
-         * byte[]} of the specified binary.
+         * byte array} of the specified binary.
          *
          * @param bin  the binary
          *

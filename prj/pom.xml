@@ -661,7 +661,7 @@
     <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
     <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
     <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
-    <maven.javadoc.plugin.version>3.0.1</maven.javadoc.plugin.version>
+    <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
     <maven.license.plugin.version>3.0</maven.license.plugin.version>
     <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
     <maven.release.plugin.version>2.4</maven.release.plugin.version>
@@ -1637,10 +1637,10 @@
           </plugins>
       </build>
     </profile>
-    
+
     <profile>
       <id>release</id>
-      
+
       <modules>
         <!-- distributed modules -->
         <module>coherence-discovery</module>
