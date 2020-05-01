@@ -66,6 +66,11 @@
 
     <dependency>
       <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-analysis</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
     </dependency>
 
@@ -154,6 +159,11 @@
           </dependency>
           <dependency>
             <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-analysis</artifactId>
+            <version>5.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
             <artifactId>asm-commons</artifactId>
             <version>5.1</version>
           </dependency>
@@ -182,10 +192,12 @@
               <artifactSet>
                 <includes>
                   <include>org.ow2.asm:asm</include>
+                  <include>org.ow2.asm:asm-analysis</include>
                   <include>org.ow2.asm:asm-commons</include>
                   <include>org.ow2.asm:asm-tree</include>
                   <include>org.ow2.asm:asm-util</include>
                   <include>com.sleepycat:je</include>
+                  <include>javax.json:javax.json-api</include>
                   <include>com.sun.codemodel:codemodel</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
                   <include>${coherence.group.id}:coherence-core</include>
@@ -231,6 +243,15 @@
                 <relocation>
                   <pattern>com.sun.codemodel</pattern>
                   <shadedPattern>com.tangosol.internal.codemodel</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>javax.json</pattern>
+                  <shadedPattern>com.tangosol.internal.json</shadedPattern>
+                  <includes>
+                    <include>javax.json.*.*</include>
+                    <include>javax.json.spi.*</include>
+                    <include>javax.json.stream.*</include>
+                  </includes>
                 </relocation>
               </relocations>
               <transformers>
