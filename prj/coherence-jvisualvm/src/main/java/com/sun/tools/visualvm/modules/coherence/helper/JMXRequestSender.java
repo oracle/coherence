@@ -122,7 +122,7 @@ public class JMXRequestSender
     public Set<ObjectName> getAllClusters()
             throws Exception
         {
-        return f_connection.queryNames(new ObjectName("Coherence:type=Cluster"), null);
+        return f_connection.queryNames(new ObjectName("Coherence:type=Cluster,*"), null);
         }
 
     @Override
