@@ -509,7 +509,9 @@ public class CacheProcessors
         @Override
         public Void process(InvocableMap.Entry<K, V> entry)
             {
-            entry.setValue(m_map.get(entry.getKey()));
+            // avoid returning the old value by using the synthetic variant
+            // of setValue.
+            entry.setValue(m_map.get(entry.getKey()), /*fSynthetic*/ false);
             return null;
             }
 
