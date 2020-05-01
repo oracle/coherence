@@ -268,7 +268,7 @@
             </goals>
             <configuration>
               <shadedArtifactAttached>false</shadedArtifactAttached>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
               <artifactSet>
                 <includes>
                   <include>org.mvel:mvel2</include>

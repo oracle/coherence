@@ -115,6 +115,7 @@
     <dependency>
       <groupId>org.glassfish</groupId>
       <artifactId>javax.json</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <!-- junit -->
