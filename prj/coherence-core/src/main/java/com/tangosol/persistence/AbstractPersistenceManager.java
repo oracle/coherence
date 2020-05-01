@@ -1370,7 +1370,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                     {
                     // guard against any unexpected throwable
                     CacheFactory.log("Caught an exception while aborting transaction for token \""
-                            + oToken + "\": " + printStackTrace(e), CacheFactory.LOG_ERR);
+                            + oToken + "\": " + printStackTrace(e), CacheFactory.LOG_QUIET);
                     }
                 }
             }
