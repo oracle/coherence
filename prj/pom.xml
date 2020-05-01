@@ -761,8 +761,6 @@
     <!--                       Javadoc Configuration                        -->
     <!-- ================================================================== -->
 
-    <javadoc.doclet.class>com.xtangosol.tools.javadoc.RemoveInheritedDoclet</javadoc.doclet.class>
-    <javadoc.doclet.path>${tools.path}/doclet/lib/doclet.jar</javadoc.doclet.path>
     <javadoc.copyright>
       Copyright &amp;copy; 2000, 2020, Oracle and/or its affiliates.
 
@@ -1362,6 +1360,7 @@
           <author>true</author>
           <version>true</version>
           <breakiterator>true</breakiterator>
+          <source>${java.version}</source>
 
           <doclint>none</doclint>
 

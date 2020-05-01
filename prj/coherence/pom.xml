@@ -332,27 +332,6 @@
               </target>
             </configuration>
           </execution>
-
-          <!-- copy base docs generated separately to the apidocs for other classes -->
-          <execution>
-            <id>replace-base-javadoc</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <copy preservelastmodified="true"
-                      todir="${project.build.directory}/apidocs"
-                      overwrite="true"
-                      failonerror="false"
-                      quiet="true">
-                  <fileset dir="${project.build.directory}/base/apidocs"
-                           includes="com/tangosol/util/Base*,com/tangosol/util/ExternalizableHelper*"/>
-                </copy>
-              </target>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
 
@@ -485,110 +464,12 @@
         </executions>
       </plugin>
 
-      <!-- Javadoc against Base and ExternalizableHelper only -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <executions>
-          <!-- generate javadoc for Base, ExternalizableHelper -->
           <execution>
-            <id>javadoc-base-classes</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>javadoc</goal>
-            </goals>
-            <configuration>
-              <!-- the top-level javadoc will be used to replace others later -->
-              <sourcepath>${project.build.directory}/sources</sourcepath>
-              <outputDirectory>${project.build.directory}/base</outputDirectory>
-              <reportOutputDirectory>${project.build.directory}/base</reportOutputDirectory>
-
-              <doclet>${javadoc.doclet.class}</doclet>
-              <docletPath>${javadoc.doclet.path}</docletPath>
-              <additionalparam>-ignoreinherited=java.lang.Object</additionalparam>
-
-              <detectOfflineLinks>false</detectOfflineLinks>
-
-              <skip>${skip.docs}</skip>
-
-              <additionalDependencies>
-                <additionalDependency>
-                  <groupId>org.graalvm.sdk</groupId>
-                  <artifactId>graal-sdk</artifactId>
-                  <version>${graal.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js</artifactId>
-                  <version>${graal.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js-scriptengine</artifactId>
-                  <version>${graal.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.graalvm.js</groupId>
-                  <artifactId>js-launcher</artifactId>
-                  <version>${graal.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>javax.json.bind</groupId>
-                  <artifactId>javax.json.bind-api</artifactId>
-                  <version>${jsonb.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>javax.inject</groupId>
-                  <artifactId>javax.inject</artifactId>
-                  <version>${javax.inject.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>javaee</groupId>
-                  <artifactId>javaee-api</artifactId>
-                  <version>${javaee.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>javax.json</groupId>
-                  <artifactId>javax.json-api</artifactId>
-                  <version>${jsonp.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.glassfish</groupId>
-                  <artifactId>javax.json</artifactId>
-                  <version>${jsonp.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.glassfish.jersey.core</groupId>
-                  <artifactId>jersey-server</artifactId>
-                  <version>${jersey.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>org.glassfish.jersey.inject</groupId>
-                  <artifactId>jersey-hk2</artifactId>
-                  <version>${jersey.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>jakarta.ws.rs</groupId>
-                  <artifactId>jakarta.ws.rs-api</artifactId>
-                  <version>${jakarta.ws.rs.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>com.oracle.coherence.ce</groupId>
-                  <artifactId>coherence-core</artifactId>
-                  <version>${project.version}</version>
-                </additionalDependency>
-              </additionalDependencies>
-
-              <sourceFileIncludes>
-                <include>com/tangosol/util/Base.java</include>
-                <include>com/tangosol/util/ExternalizableHelper.java</include>
-              </sourceFileIncludes>
-            </configuration>
-          </execution>
-
-          <!-- Javadoc the remaining classes -->
-          <execution>
-            <id>javadoc-remaining-classes</id>
+            <id>javadoc</id>
             <phase>process-classes</phase>
             <goals>
               <goal>javadoc</goal>
@@ -600,12 +481,6 @@
               <outputDirectory>${project.build.directory}/apidocs</outputDirectory>
               <reportOutputDirectory>${project.build.directory}/apidocs</reportOutputDirectory>
 
-              <doclet>${javadoc.doclet.class}</doclet>
-              <docletPath>${javadoc.doclet.path}</docletPath>
-              <additionalparam>
-                -ignoreinherited=java.lang.Object,com.tangosol.util.Base,com.tangosol.util.ExternalizableHelper
-              </additionalparam>
-
               <detectOfflineLinks>false</detectOfflineLinks>
 
               <skip>${skip.docs}</skip>
@@ -632,29 +507,29 @@
                   <version>${graal.version}</version>
                 </additionalDependency>
                 <additionalDependency>
-                  <groupId>javax.json.bind</groupId>
-                  <artifactId>javax.json.bind-api</artifactId>
-                  <version>${jsonb.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>javax.inject</groupId>
-                  <artifactId>javax.inject</artifactId>
-                  <version>${javax.inject.version}</version>
-                </additionalDependency>
-                <additionalDependency>
                   <groupId>javaee</groupId>
                   <artifactId>javaee-api</artifactId>
                   <version>${javaee.version}</version>
                 </additionalDependency>
                 <additionalDependency>
-                  <groupId>javax.json</groupId>
-                  <artifactId>javax.json-api</artifactId>
+                  <groupId>jakarta.inject</groupId>
+                  <artifactId>jakarta.inject-api</artifactId>
+                  <version>${inject.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>jakarta.json.bind</groupId>
+                  <artifactId>jakarta.json.bind-api</artifactId>
+                  <version>${jsonb.version}</version>
+                </additionalDependency>
+                <additionalDependency>
+                  <groupId>jakarta.json</groupId>
+                  <artifactId>jakarta.json-api</artifactId>
                   <version>${jsonp.version}</version>
                 </additionalDependency>
                 <additionalDependency>
-                  <groupId>org.glassfish</groupId>
-                  <artifactId>javax.json</artifactId>
-                  <version>${jsonp.version}</version>
+                  <groupId>jakarta.ws.rs</groupId>
+                  <artifactId>jakarta.ws.rs-api</artifactId>
+                  <version>2.1.6</version>
                 </additionalDependency>
                 <additionalDependency>
                   <groupId>org.glassfish.jersey.core</groupId>
@@ -665,11 +540,6 @@
                   <groupId>org.glassfish.jersey.inject</groupId>
                   <artifactId>jersey-hk2</artifactId>
                   <version>${jersey.version}</version>
-                </additionalDependency>
-                <additionalDependency>
-                  <groupId>jakarta.ws.rs</groupId>
-                  <artifactId>jakarta.ws.rs-api</artifactId>
-                  <version>${jakarta.ws.rs.version}</version>
                 </additionalDependency>
                 <additionalDependency>
                   <groupId>com.oracle.coherence.ce</groupId>
