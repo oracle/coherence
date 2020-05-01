@@ -219,7 +219,6 @@ public class DefaultCacheServerTest
             throws InterruptedException
         {
         final long cHeartbeatMillis = 1000L;
-              int  cIterations      = 3;
 
         ExtensibleConfigurableCacheFactory eccf = mock(ExtensibleConfigurableCacheFactory.class);
 
@@ -240,7 +239,7 @@ public class DefaultCacheServerTest
             }, "DCS");
         t.start();
 
-        Blocking.sleep(cHeartbeatMillis * cIterations + cHeartbeatMillis);
+        server.waitForServiceStart();
 
         server.shutdownServer();
         t.interrupt();
