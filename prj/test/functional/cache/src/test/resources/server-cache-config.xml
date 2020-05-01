@@ -34,6 +34,10 @@
       <cache-name>repl-*</cache-name>
       <scheme-name>repl-default</scheme-name>
     </cache-mapping>
+    <cache-mapping>
+      <cache-name>test-coh20907</cache-name>
+      <scheme-name>test-coh20907</scheme-name>
+    </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -114,5 +118,24 @@
       </backing-map-scheme>
       <autostart>true</autostart>
     </replicated-scheme>
-</caching-schemes>
+
+    <distributed-scheme>
+      <scheme-name>test-coh20907</scheme-name>
+      <service-name>DistributedCoh20907</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>cache.TestCacheStore</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
 </cache-config>
