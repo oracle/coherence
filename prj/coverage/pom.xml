@@ -142,6 +142,21 @@
           <artifactId>coherence-cdi-server</artifactId>
           <version>${project.version}</version>
         </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-mp-config</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-mp-messaging</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+           <groupId>${coherence.group.id}</groupId>
+           <artifactId>coherence-mp-metrics</artifactId>
+           <version>${project.version}</version>
+        </dependency>
 
         <!-- The following modules only contains tests so by using
              test scope the module source is not included in reports

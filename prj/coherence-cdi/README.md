@@ -19,7 +19,7 @@ applications.
 In order to use Coherence CDI, you need to declare it as a dependency in your `pom.xml`:
 ```xml
     <dependency>
-        <groupId>com.oracle.coherence</groupId>
+        <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence-cdi</artifactId>
         <version>${coherence.version}</version>
     </dependency>
