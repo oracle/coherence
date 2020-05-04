@@ -381,7 +381,7 @@ public class JMXRequestSender
 
         try
             {
-            memberId = (Integer) JMXUtils.runJMXQuerySingleResult(f_connection, "Coherence:type=Cluster",
+            memberId = (Integer) JMXUtils.runJMXQuerySingleResult(f_connection, "Coherence:type=Cluster,*",
                     new JMXUtils.Attribute("LocalMemberId"));
             }
         catch (Exception e)
