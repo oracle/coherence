@@ -53,17 +53,4 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <!-- Can be removed when COH-20993 is resolved -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration combine.self="override">
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>
