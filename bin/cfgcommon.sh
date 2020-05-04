@@ -106,6 +106,7 @@ function setup
   if [ -z $JAVA_HOME ] || [ "$($JAVA_HOME/bin/java -version 2>&1 | sed 's/.*version "\([0-9]*\).*/\1/; 1q')" != "$_VERSION_REQUIRED" ]; then
     # Try to find the correct version
     JAVA_HOME=`eval $_JAVA_HOME_CMD`
+	echo JAVA_HOME evaluated to $JAVA_HOME
 
     unset _ERROR
 
