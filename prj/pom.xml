@@ -637,8 +637,9 @@
     <!-- tool versions -->
     <ant-tangosol.version>1.0</ant-tangosol.version>
     <java.version>1.8</java.version>
-    <maven.version>3.6.0</maven.version>
     <java.version.eight>1.8</java.version.eight>
+    <java.version.release>8</java.version.release> <!-- maven-compiler-plugin "release" version -->
+    <maven.version>3.6.0</maven.version>
 
     <!--
       Need to set the following to false because of the bug in 3.1 version of the
@@ -983,6 +984,7 @@
           <configuration>
             <source>${java.version}</source>
             <target>${java.version}</target>
+            <release>${java.version.release}</release>
           </configuration>
         </plugin>
 
