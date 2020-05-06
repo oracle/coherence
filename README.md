@@ -24,7 +24,7 @@
   1. [Code Example](#hello-coh)
 1. [Building](#build)
 1. [Integrations](#integrations)
-1. [Documentation](https://docs.oracle.com/en/middleware/fusion-middleware/coherence/12.2.1.4/index.html)
+1. [Documentation](#documentation)
 1. [Contributing](#contrib)
 
 ## <a name="intro"></a>Introduction
@@ -353,7 +353,29 @@ $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 
 ```
 
-## <a name="integrations"></a>Integrations
+# <a name="integrations"></a>Integrations
+
+# <a name="documentation"></a>Documentation
+
+## Oracle Coherence Documentation
+
+Oracle Coherence product documentation is available
+[here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html).
+
+## Coherence Community Edition Disabled and Excluded Functionality
+
+The following Oracle Coherence functionality is not included in Coherence Community Edition
+
+* Management of Coherence via the Oracle WebLogic Management Framework
+* WebLogic Server Multitenancy support
+* Deployment of Grid Archives (GARs)
+* HTTP session management for application servers (Coherence*Web)
+* GoldenGate HotCache
+* TopLink-based CacheLoaders and CacheStores
+* Elastic Data
+* Federation and WAN (wide area network) support
+* Transaction Framework
+* CommonJ work manager
 
 # <a name="contrib"></a>Contribute
 
