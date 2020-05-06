@@ -6,14 +6,18 @@
  */
 package com.oracle.coherence.mp.metrics;
 
+import com.oracle.coherence.cdi.CdiMetricsRegistryAdapter;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
 
-import io.helidon.metrics.RegistryFactory;
-
 import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceLoader;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.Metadata;
@@ -23,13 +27,22 @@ import org.eclipse.microprofile.metrics.MetricRegistry.Type;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.Tag;
 
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
+
 /**
  * An implementation of {@link MetricsRegistryAdapter}  registers Coherence
  * metrics with Helidon's vendor or application registry.
  *
+ * This implementation is NOT discoverable by the standard {@link ServiceLoader}
+ * mechanism, as it requires CDI injection of vendor and application metrics
+ * registries. {@link CdiMetricsRegistryAdapter} within {@code coherence-cdi}
+ * module bridges the gap between the {@link ServiceLoader} and the CDI and will
+ * discover this adapter and register metrics with it.
+ *
  * @author Aleks Seovic     2019.09.13
  * @author Jonathan Knight  2020.01.08
  */
+@ApplicationScoped
 public class MpMetricsRegistryAdapter
         implements MetricsRegistryAdapter
     {
@@ -40,8 +53,6 @@ public class MpMetricsRegistryAdapter
      */
     public MpMetricsRegistryAdapter()
         {
-        this(RegistryFactory.getInstance().getRegistry(Type.VENDOR),
-             RegistryFactory.getInstance().getRegistry(Type.APPLICATION));
         }
 
     /**
@@ -236,10 +247,14 @@ public class MpMetricsRegistryAdapter
     /**
      * MicroProfile Vendor Registry to publish metrics to.
      */
-    private final MetricRegistry f_vendorRegistry;
+    @Inject
+    @RegistryType(type = Type.VENDOR)
+    private MetricRegistry f_vendorRegistry;
 
     /**
      * MicroProfile Application Registry to publish metrics to.
      */
-    private final MetricRegistry f_appRegistry;
+    @Inject
+    @RegistryType(type = Type.APPLICATION)
+    private MetricRegistry f_appRegistry;
     }

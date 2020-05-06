@@ -31,11 +31,22 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-cdi</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!--
       additional compile and runtime dependencies, marked as
       'provided' in order to avoid version conflicts
      -->
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.eclipse.microprofile.config</groupId>
       <artifactId>microprofile-config-api</artifactId>
@@ -46,11 +57,6 @@
       <artifactId>microprofile-metrics-api</artifactId>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>io.helidon.microprofile.metrics</groupId>
-      <artifactId>helidon-microprofile-metrics</artifactId>
-      <scope>provided</scope>
-    </dependency>
 
     <!-- test dependencies -->
 
@@ -58,6 +64,11 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-mp-config</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.microprofile.metrics</groupId>
+      <artifactId>helidon-microprofile-metrics</artifactId>
       <scope>test</scope>
     </dependency>
 
