@@ -100,6 +100,16 @@
     </user-type>
 
     <user-type>
+      <type-id>1018</type-id>
+      <class-name>extend.DistExtendDeferKeyCheckTests$OrderId</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1019</type-id>
+      <class-name>extend.DistExtendDeferKeyCheckTests$ItemId</class-name>
+    </user-type>
+
+    <user-type>
       <type-id>1034</type-id>
       <class-name>data.pof.PortablePerson</class-name>
     </user-type>
