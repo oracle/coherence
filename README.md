@@ -353,16 +353,16 @@ $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 
 ```
 
-# <a name="integrations"></a>Integrations
+## <a name="integrations"></a>Integrations
 
-# <a name="documentation"></a>Documentation
+## <a name="documentation"></a>Documentation
 
-## Oracle Coherence Documentation
+### Oracle Coherence Documentation
 
 Oracle Coherence product documentation is available
 [here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html).
 
-## Coherence Community Edition Disabled and Excluded Functionality
+### Coherence Community Edition Disabled and Excluded Functionality
 
 The following Oracle Coherence functionality is not included in Coherence Community Edition
 
@@ -377,6 +377,6 @@ The following Oracle Coherence functionality is not included in Coherence Commun
 * Transaction Framework
 * CommonJ work manager
 
-# <a name="contrib"></a>Contribute
+## <a name="contrib"></a>Contribute
 
 Interested in contributing?  Please see our contribution [guidelines](CONTRIBUTING.md) for details.
