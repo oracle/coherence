@@ -59,7 +59,7 @@ Coherence APIs, thus the natural place to start is downloading from maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>14.1.1-0-0</version>
+        <version>14.1.1-0-1</version>
     </dependency>
 </dependencies>
 ```
@@ -178,7 +178,7 @@ retrieved to illustrate the permanence of the data.
 
 $> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-0/coherence-14.1.1-0-1.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-1/coherence-14.1.1-0-1.jar
 
 $> java -jar $COH_JAR &
 
@@ -276,7 +276,7 @@ inserts and retrieves data from the Coherence server.
 <dependency>
   <groupId>com.oracle.coherence.ce</groupId>
   <artifactId>coherence</artifactId>
-  <version>14.1.1-0-1-SNAPSHOT</version>
+  <version>14.1.1-0-1</version>
 </dependency>
 ```
 1. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
