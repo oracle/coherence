@@ -122,7 +122,7 @@ public class JMXRequestSender
     public Set<ObjectName> getAllClusters()
             throws Exception
         {
-        return f_connection.queryNames(new ObjectName("Coherence:type=Cluster"), null);
+        return f_connection.queryNames(new ObjectName("Coherence:type=Cluster,*"), null);
         }
 
     @Override
@@ -381,7 +381,7 @@ public class JMXRequestSender
 
         try
             {
-            memberId = (Integer) JMXUtils.runJMXQuerySingleResult(f_connection, "Coherence:type=Cluster",
+            memberId = (Integer) JMXUtils.runJMXQuerySingleResult(f_connection, "Coherence:type=Cluster,*",
                     new JMXUtils.Attribute("LocalMemberId"));
             }
         catch (Exception e)
