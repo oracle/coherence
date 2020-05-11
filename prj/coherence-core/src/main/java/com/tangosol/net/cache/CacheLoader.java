@@ -9,6 +9,7 @@ package com.tangosol.net.cache;
 
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -36,10 +37,26 @@ public interface CacheLoader<K, V>
     * passed collection. If a key does not have an associated value in
     * the underlying store, then the return map will not have an entry
     * for that key.
+    * <p>
+    * The default implementation of this method calls {@link #load} for each
+    * key in the supplied Collection. Implementations that can optimize multi-key
+    * operations <code>should</code> override this default implementation.
     *
     * @param colKeys  a collection of keys to load
     *
     * @return a Map of keys to associated values for the specified keys
     */
-    public Map<K, V> loadAll(Collection<? extends K> colKeys);
+    public default Map<K, V> loadAll(Collection<? extends K> colKeys)
+        {
+        Map<K, V> map = new HashMap<>();
+        for (K key : colKeys)
+            {
+            V value = load(key);
+            if (value != null)
+                {
+                map.put(key, value);
+                }
+            }
+        return map;
+        }
     }

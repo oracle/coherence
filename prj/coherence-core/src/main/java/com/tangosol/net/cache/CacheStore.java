@@ -9,6 +9,7 @@ package com.tangosol.net.cache;
 
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -44,13 +45,38 @@ public interface CacheStore<K, V>
     * successfully are to be removed from the specified <tt>mapEntries</tt>,
     * indicating that the store operation for the entries left in the map has
     * failed or has not been attempted.
+    * <p>
+    * The default implementation of this method calls {@link #store} for each entry in
+    * the supplied Map. Once stored successfully, an entry is removed from
+    * the Map (if possible). Implementations that can optimize multi-entry operations
+    * <code>should</code> override this default implementation.
     *
     * @param mapEntries   a Map of any number of keys and values to store
     *
     * @throws UnsupportedOperationException  if this implementation or the
     *         underlying store is read-only
     */
-    public void storeAll(Map<? extends K, ? extends V> mapEntries);
+    public default void storeAll(Map<? extends K, ? extends V> mapEntries)
+        {
+        boolean fRemove = true;
+
+        for (Iterator<? extends Map.Entry<? extends K, ? extends V>> iter = mapEntries.entrySet().iterator(); iter.hasNext(); )
+            {
+            Map.Entry<? extends K, ? extends V> entry = iter.next();
+            store(entry.getKey(), entry.getValue());
+            if (fRemove)
+                {
+                try
+                    {
+                    iter.remove();
+                    }
+                catch (UnsupportedOperationException e)
+                    {
+                    fRemove = false;
+                    }
+                }
+            }
+        }
 
     /**
     * Remove the specified key from the underlying store if present.
@@ -70,11 +96,35 @@ public interface CacheStore<K, V>
     * are to be removed from the specified <tt>colKeys</tt>, indicating that
     * the erase operation for the keys left in the collection has failed or has
     * not been attempted.
+    * <p>
+    * The default implementation of this method calls {@link #erase} for each key in
+    * the supplied Collection. Once erased successfully, the key is removed from
+    * the Collection (if possible). Implementations that can optimize multi-key
+    * operations <code>should</code> override this default implementation.
     *
     * @param colKeys  keys whose mappings are being removed from the cache
     *
     * @throws UnsupportedOperationException  if this implementation or the
     *         underlying store is read-only
     */
-    public void eraseAll(Collection<? extends K> colKeys);
+    public default void eraseAll(Collection<? extends K> colKeys)
+        {
+        boolean fRemove = true;
+
+        for (Iterator<? extends K> iter = colKeys.iterator(); iter.hasNext(); )
+            {
+            erase(iter.next());
+            if (fRemove)
+                {
+                try
+                    {
+                    iter.remove();
+                    }
+                catch (UnsupportedOperationException e)
+                    {
+                    fRemove = false;
+                    }
+                }
+            }
+        }
     }

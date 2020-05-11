@@ -10,11 +10,6 @@ package com.tangosol.net.cache;
 
 import com.tangosol.util.Base;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 
 /**
 * An abstract base class for the JCache CacheLoader.
@@ -37,28 +32,4 @@ public abstract class AbstractCacheLoader<K, V>
     *         <tt>null</tt> if no value is available for that key
     */
     public abstract V load(K key);
-
-    /**
-    * Return the values associated with each the specified keys in the
-    * passed collection. If a key does not have an associated value in
-    * the underlying store, then the return map will not have an entry
-    * for that key.
-    *
-    * @param colKeys  a collection of keys to load
-    *
-    * @return a Map of keys to associated values for the specified keys
-    */
-    public Map<K, V> loadAll(Collection<? extends K> colKeys)
-        {
-        Map<K, V> map = new HashMap<>();
-        for (K key : colKeys)
-            {
-            V value = load(key);
-            if (value != null)
-                {
-                map.put(key, value);
-                }
-            }
-        return map;
-        }
     }
