@@ -105,7 +105,7 @@ public class VisualVMView
             String sMessage = Localization.getLocalText("ERR_Invalid_URL");
             try
                 {
-                Set<ObjectName> allClusters = requestSender.getAllCacheMembers();
+                Set<ObjectName> allClusters = requestSender.getAllClusters();
                 if (allClusters == null || allClusters.size() == 0)
                     {
                     LOGGER.warning(sMessage);

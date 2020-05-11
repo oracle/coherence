@@ -92,10 +92,16 @@ public class ClusterData
     protected SortedMap<Object, Data> getJMXDataMap(RequestSender requestSender, VisualVMModel model)
         {
         SortedMap<Object, Data> mapData = new TreeMap<Object, Data>();
+        HttpRequestSender httpRequestSender = null;
 
         try
             {
             Set<ObjectName> clusterSet = requestSender.getAllClusters();
+
+            if (requestSender instanceof HttpRequestSender)
+                {
+                httpRequestSender = (HttpRequestSender) requestSender;
+            }
 
             for (Iterator<ObjectName> cacheNameIter = clusterSet.iterator(); cacheNameIter.hasNext(); )
                 {
@@ -107,7 +113,17 @@ public class ClusterData
                         new String[] { ATTR_CLUSTER_NAME, ATTR_LICENSE_MODE, ATTR_VERSION,
                                 ATTR_DEPARTURE_COUNT, ATTR_CLUSTER_SIZE });
 
-                data.setColumn(ClusterData.CLUSTER_NAME, getAttributeValueAsString(listAttr, ATTR_CLUSTER_NAME));
+                String sClusterName = getAttributeValueAsString(listAttr, ATTR_CLUSTER_NAME);
+
+                // if we are using http request sender and the cluster name has not been set, then set it
+                // so it can be used in the subsequent calls to be added to the base management URL
+                // if we are connected to a WebLogic Server cluster via REST
+                if (httpRequestSender != null && httpRequestSender.getClusterName() == null)
+                    {
+                    httpRequestSender.setClusterName(sClusterName);
+                    }
+
+                data.setColumn(ClusterData.CLUSTER_NAME, sClusterName);
                 data.setColumn(ClusterData.LICENSE_MODE, getAttributeValueAsString(listAttr, ATTR_LICENSE_MODE));
                 data.setColumn(ClusterData.VERSION, getAttributeValueAsString(listAttr, ATTR_VERSION));
                 data.setColumn(ClusterData.DEPARTURE_COUNT,
