@@ -252,12 +252,6 @@
         </configuration>
       </plugin>
 
-      <!-- flatten POM to remove build-specific content -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-      </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -339,6 +333,12 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <!-- flatten POM to remove build-specific content -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
       </plugin>
 
       <plugin>
