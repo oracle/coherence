@@ -45,6 +45,16 @@ public class PersistenceStatistics
         {
         }
 
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        StringBuilder sb = new StringBuilder("Cache Statistics\n\n");
+        f_mapStats.values().forEach(sb::append);
+        return sb.toString();
+        }
+
     // ----- Iterable interface ---------------------------------------------
 
     @Override
@@ -366,7 +376,7 @@ public class PersistenceStatistics
         @Override
         public String toString()
             {
-            StringBuilder sb = new StringBuilder("CachePersistenceStatistics(cacheName=");
+            StringBuilder sb = new StringBuilder("PersistenceStatistics(cacheName=");
             sb.append(f_sCacheName)
               .append(", size=")
               .append(m_cSize)
