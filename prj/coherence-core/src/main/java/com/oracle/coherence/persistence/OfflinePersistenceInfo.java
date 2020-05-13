@@ -62,6 +62,24 @@ public class OfflinePersistenceInfo
         f_nPersistenceVersion = nPersistenceVersion;
         }
 
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        StringBuilder sb = new StringBuilder("Persistence Information\n\n");
+
+        sb.append("Storage version:              ").append(getStorageVersion()).append('\n')
+          .append("Implementation version:       ").append(getImplVersion()).append('\n')
+          .append("Number of partition:          ").append(getPartitionCount()).append('\n')
+          .append("Number of partitions present: ").append(getGUIDs().length).append('\n')
+          .append("Is Complete?:                 ").append(isComplete()).append('\n')
+          .append("Is Archived?:                 ").append(isArchived()).append('\n')
+          .append('\n');
+
+        return sb.toString();
+        }
+
     // ----- accessors ------------------------------------------------------
 
     /**

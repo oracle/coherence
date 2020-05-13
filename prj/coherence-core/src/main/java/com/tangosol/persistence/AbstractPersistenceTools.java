@@ -13,9 +13,6 @@ import com.oracle.coherence.persistence.PersistenceTools;
 import com.tangosol.util.Binary;
 import com.tangosol.util.LongArray;
 
-import java.io.File;
-import java.io.PrintStream;
-
 /**
  * Abstract implementation of PersistenceTools which can be extended for either
  * local or archived snapshot operations.
@@ -45,6 +42,27 @@ public abstract class AbstractPersistenceTools
     public OfflinePersistenceInfo getPersistenceInfo()
         {
         return f_info;
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        StringBuilder sb = new StringBuilder();
+
+        if (f_info != null)
+            {
+            sb.append(f_info);
+            }
+
+        PersistenceStatistics stats = getStatistics();
+        if (stats != null)
+            {
+            sb.append(stats);
+            }
+
+        return sb.toString();
         }
 
     // ----- inner class: StatsVisitor  -------------------------------------
