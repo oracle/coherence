@@ -2045,6 +2045,17 @@
         </plugins>
       </build>
     </profile>
+
+    <!--
+       settings required to be able to run tests with Java 8
+    -->
+    <profile>
+      <id>test-jdk8</id>
+      <properties>
+        <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
+        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
+      </properties>
+    </profile>
   </profiles>
 
   <repositories>
