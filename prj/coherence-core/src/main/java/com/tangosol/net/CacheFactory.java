@@ -32,6 +32,8 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 
+import java.util.function.Supplier;
+
 
 /**
 * Factory for the <b>Coherence&#8482;</b> cache product.
@@ -744,6 +746,32 @@ public abstract class CacheFactory
                 {
                 System.out.println(sMessage);
                 }
+            }
+        }
+
+    /**
+     * Log a message using Coherence logging facility which is driven by
+     * the "logging-config" element located in the tangosol-coherence.xml
+     * configuration file.
+     *
+     * @param supplierMessage  the {@link Supplier} that will be evaluated
+     *                         if the severity is being logged
+     * @param nSeverity        the severity of the logged message;
+     *                         0=default, 1=error; 2=warning; 3=info; 4-9=debug
+     *
+     * @throws IllegalArgumentException if {@code supplierMessage} is {@code null}
+     *
+     * @since 14.1.2
+     */
+    public static void log(Supplier<String> supplierMessage, int nSeverity)
+        {
+        if (supplierMessage == null)
+            {
+            throw new IllegalArgumentException("supplierMessage cannot be null");
+            }
+        if (isLogEnabled(nSeverity))
+            {
+            log(supplierMessage.get(), nSeverity);
             }
         }
 
