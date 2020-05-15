@@ -855,7 +855,7 @@
                       while (current != null)
                           {
                           sDevRoot = current.toString()
-                          if (sDevRoot.contains(File.separatorChar + "prj"))
+                          if (sDevRoot.contains(File.separator + "prj"))
                               {
                               current = current.getParent().toAbsolutePath().normalize();
                               continue
