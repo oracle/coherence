@@ -6,9 +6,9 @@
  */
 package com.tangosol.persistence;
 
-import com.oracle.coherence.persistence.OfflinePersistenceInfo;
-import com.oracle.coherence.persistence.PersistenceStatistics;
-import com.oracle.coherence.persistence.PersistenceTools;
+import com.oracle.datagrid.persistence.OfflinePersistenceInfo;
+import com.oracle.datagrid.persistence.PersistenceStatistics;
+import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.LongArray;

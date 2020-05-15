@@ -8,8 +8,9 @@ package com.tangosol.persistence;
 
 import com.oracle.coherence.persistence.FatalAccessException;
 import com.oracle.coherence.persistence.PersistenceException;
-import com.oracle.coherence.persistence.PersistenceTools;
 import com.oracle.coherence.persistence.PersistentStore;
+
+import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.tangosol.coherence.config.builder.PersistenceEnvironmentParamBuilder;
 import com.tangosol.coherence.config.scheme.AbstractServiceScheme;

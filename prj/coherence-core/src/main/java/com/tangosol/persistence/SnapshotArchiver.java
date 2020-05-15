@@ -8,7 +8,8 @@ package com.tangosol.persistence;
 
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceException;
-import com.oracle.coherence.persistence.PersistenceTools;
+
+import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.tangosol.io.ReadBuffer;
 

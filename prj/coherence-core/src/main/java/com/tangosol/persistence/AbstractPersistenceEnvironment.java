@@ -7,11 +7,13 @@
 package com.tangosol.persistence;
 
 import com.oracle.coherence.common.base.Continuation;
-import com.oracle.coherence.persistence.PersistenceEnvironment;
+
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistenceManager;
-
 import com.oracle.coherence.persistence.PersistentStore;
+
+import com.oracle.datagrid.persistence.PersistenceEnvironment;
+
 import com.tangosol.internal.util.DaemonPool;
 
 import com.tangosol.io.FileHelper;
