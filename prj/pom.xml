@@ -769,9 +769,6 @@
     <!--                      Path Configuration                            -->
     <!-- ================================================================== -->
 
-    <!-- the path to the base directory for the entire product -->
-    <root.path>${env.DEV_ROOT}</root.path>
-
     <!-- the path to the "prj" directory -->
     <projects.path>${root.path}/prj</projects.path>
 
@@ -843,10 +840,34 @@
                 <providerSelection>${maven.gmaven.providerSelection.version}</providerSelection>
                 <source>
 
+                  import java.nio.file.Files
+                  import java.nio.file.Path
                   import java.nio.file.Paths
                   import java.text.SimpleDateFormat
 
                   props = project.properties
+
+                  // determine the root project directory
+                  sDevRoot = System.getenv().get("DEV_ROOT");
+                  if (sDevRoot == null || sDevRoot.isEmpty())
+                      {
+                      current = Paths.get(".").toAbsolutePath().normalize();
+                      while (current != null)
+                          {
+                          sDevRoot = current.toString()
+                          if (sDevRoot.contains(File.separatorChar + "prj"))
+                              {
+                              current = current.getParent().toAbsolutePath().normalize();
+                              continue
+                              }
+                          props.setProperty("root.path", sDevRoot);
+                          break
+                          }
+                      }
+                  else
+                      {
+                      props.setProperty("root.path", sDevRoot);
+                      }
 
                   // project version properties
                   matcher = project.version =~ /^([0-9]+)\\.([0-9]+)\\.([0-9]+)-([0-9]+)-([0-9]+)(.*)/
