@@ -34,8 +34,8 @@ import java.util.TreeSet;
  * @since  12.2.1
  */
 @SuppressWarnings("unchecked")
-public class PortableTypeSerializer
-        implements PofSerializer
+public class PortableTypeSerializer<T>
+        implements PofSerializer<T>
     {
     // ---- constructors ----------------------------------------------------
 
@@ -46,7 +46,7 @@ public class PortableTypeSerializer
      * @param nTypeId  the type identifier of the user type to serialize and deserialize
      * @param clazz    the class of the user type to serialize and deserialize
      */
-    public PortableTypeSerializer(int nTypeId, Class<?> clazz)
+    public PortableTypeSerializer(int nTypeId, Class<T> clazz)
         {
         Base.azzert(nTypeId >= 0, "user type identifier cannot be negative");
         if (!PortableObject.class.isAssignableFrom(clazz))
@@ -55,31 +55,29 @@ public class PortableTypeSerializer
                              "] does not implement a PortableObject interface",
                              CacheFactory.LOG_ERR);
             }
-        this.m_nTypeId = nTypeId;
+        m_nTypeId = nTypeId;
         }
 
     // ---- PofSerializer implementation ------------------------------------
 
     @Override
-    public void serialize(PofWriter writer, Object o)
+    public void serialize(PofWriter writer, T value)
             throws IOException
         {
-        if (!(o instanceof PortableObject))
+        if (!(value instanceof PortableObject))
             {
-            throw new IOException("Class [" + o.getClass() +
+            throw new IOException("Class [" + value.getClass() +
                     "] does not implement a PortableObject interface");
             }
 
-        PortableObject po = (PortableObject) o;
-        boolean fEvolvable = o instanceof EvolvableObject;
-        EvolvableObject et = fEvolvable ? (EvolvableObject) o : null;
+        PortableObject po = (PortableObject) value;
+        boolean fEvolvable = value instanceof EvolvableObject;
+        EvolvableObject et = fEvolvable ? (EvolvableObject) value : null;
 
         try
             {
-            CacheFactory.log("Serializing " + o.getClass(), CacheFactory.LOG_MAX);
-
             PofContext ctx = writer.getPofContext();
-            Set<Integer> typeIds = getTypeIds(o, ctx);
+            Set<Integer> typeIds = getTypeIds(value, ctx);
 
             for (int typeId : typeIds)
                 {
@@ -97,7 +95,7 @@ public class PortableTypeSerializer
                                                  e.getImplVersion()));
                     }
 
-                Class cls = getClassForTypeId(ctx, typeId);
+                Class<?> cls = getClassForTypeId(ctx, typeId);
                 if (cls != null)
                     {
                     po.writeExternal(nestedWriter);
@@ -116,14 +114,14 @@ public class PortableTypeSerializer
                 {
                 sClass = writer.getPofContext().getClassName(m_nTypeId);
                 }
-            catch (Exception eIgnore) {}
+            catch (Exception ignore) {}
 
             String sActual = null;
             try
                 {
-                sActual = o.getClass().getName();
+                sActual = value.getClass().getName();
                 }
-            catch (Exception eIgnore) {}
+            catch (Exception ignore) {}
 
             throw new IOException(
                     "An exception occurred writing a PortableObject"
@@ -135,15 +133,13 @@ public class PortableTypeSerializer
         }
 
     @Override
-    public Object deserialize(PofReader reader)
+    public T deserialize(PofReader reader)
             throws IOException
         {
         try
             {
-            PortableObject po = (PortableObject)
-                    (getClassForTypeId(reader.getPofContext(), m_nTypeId)).newInstance();
-
-            CacheFactory.log("Deserializing " + po.getClass(), CacheFactory.LOG_MAX);
+            PortableObject po = (PortableObject) (getClassForTypeId(reader.getPofContext(), m_nTypeId))
+                            .getDeclaredConstructor().newInstance();
 
             boolean fEvolvable = po instanceof EvolvableObject;
             EvolvableObject et = fEvolvable ? (EvolvableObject) po : null;
@@ -173,7 +169,7 @@ public class PortableTypeSerializer
                 }
 
             reader.readRemainder();
-            return po;
+            return (T) po;
             }
         catch (Exception e)
             {
@@ -183,7 +179,7 @@ public class PortableTypeSerializer
                 {
                 sClass = reader.getPofContext().getClassName(m_nTypeId);
                 }
-            catch (Exception eIgnore) {}
+            catch (Exception ignore) {}
 
             throw new IOException(
                     "An exception occurred instantiating a PortableObject"
@@ -209,7 +205,7 @@ public class PortableTypeSerializer
         {
         SortedSet<Integer> typeIds = new TreeSet<>();
 
-        Class clazz = o.getClass();
+        Class<?> clazz = o.getClass();
         while (pofContext.isUserType(clazz))
             {
             typeIds.add(pofContext.getUserTypeIdentifier(clazz));
@@ -238,7 +234,7 @@ public class PortableTypeSerializer
      * @return  the class associated with a specified type identifier, or null
      *          if the identifier is not defined in the current POF context
      */
-    protected Class getClassForTypeId(PofContext ctx, int nTypeId)
+    protected Class<?> getClassForTypeId(PofContext ctx, int nTypeId)
         {
         try
             {
