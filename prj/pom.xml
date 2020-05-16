@@ -696,6 +696,7 @@
     <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
     <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
     <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
+    <maven.jandex.plugin.version>1.0.6</maven.jandex.plugin.version>
     <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
     <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
     <maven.license.plugin.version>3.0</maven.license.plugin.version>
@@ -817,6 +818,22 @@
   <build>
     <pluginManagement>
       <plugins>
+        <!-- jandex-maven-plugin -->
+        <plugin>
+            <groupId>org.jboss.jandex</groupId>
+            <artifactId>jandex-maven-plugin</artifactId>
+            <version>${maven.jandex.plugin.version}</version>
+            <executions>
+                <execution>
+                    <id>make-index</id>
+                    <goals>
+                        <goal>jandex</goal>
+                    </goals>
+                    <phase>process-classes</phase>
+                </execution>
+            </executions>
+        </plugin>
+
         <!-- build-helper-maven-plugin -->
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

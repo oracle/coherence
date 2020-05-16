@@ -98,6 +98,17 @@
 
   <build>
     <plugins>
+      <!-- create CDI index -->
+      <plugin>
+          <groupId>org.jboss.jandex</groupId>
+          <artifactId>jandex-maven-plugin</artifactId>
+          <executions>
+              <execution>
+                  <id>make-index</id>
+              </execution>
+          </executions>
+      </plugin>
+
       <!-- we deploy this module to a Maven repository -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
