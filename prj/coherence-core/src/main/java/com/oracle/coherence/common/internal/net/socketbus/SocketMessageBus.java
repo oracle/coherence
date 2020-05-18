@@ -1110,12 +1110,15 @@ public class SocketMessageBus
                         // emit the BACKLOG_EXCESSIVE event to prevent OOM in case of delayed handshake
                         invoke(() ->
                             {
-                            if (!m_fBacklog)
+                            synchronized (this)
                                 {
-                                m_fBacklog = true;
-                                emitEvent(new SimpleEvent(
-                                        Event.Type.BACKLOG_EXCESSIVE,
-                                        getPeer()));
+                                if (!m_fBacklog && getProtocolVersion() < 0)
+                                    {
+                                    m_fBacklog = true;
+                                    emitEvent(new SimpleEvent(
+                                            Event.Type.BACKLOG_EXCESSIVE,
+                                            getPeer()));
+                                    }
                                 }
                             });
                         }
