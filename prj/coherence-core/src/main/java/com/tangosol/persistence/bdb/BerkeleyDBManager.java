@@ -8,10 +8,11 @@ package com.tangosol.persistence.bdb;
 
 import com.oracle.coherence.persistence.ConcurrentAccessException;
 import com.oracle.coherence.persistence.FatalAccessException;
-import com.oracle.coherence.persistence.OfflinePersistenceInfo;
 import com.oracle.coherence.persistence.PersistenceException;
-import com.oracle.coherence.persistence.PersistenceTools;
 import com.oracle.coherence.persistence.PersistentStore;
+
+import com.oracle.datagrid.persistence.OfflinePersistenceInfo;
+import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.sleepycat.je.CacheMode;
 import com.sleepycat.je.CheckpointConfig;
@@ -327,7 +328,7 @@ public class BerkeleyDBManager
     @Override
     protected PersistenceTools instantiatePersistenceTools(OfflinePersistenceInfo info)
         {
-        return  new AbstractPersistenceSnapshotTools(getDataDirectory(), info)
+        return new AbstractPersistenceSnapshotTools(getDataDirectory(), info)
             {
             // ----- PersistenceTools methods -------------------------------
 

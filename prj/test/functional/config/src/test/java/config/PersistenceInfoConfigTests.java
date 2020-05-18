@@ -8,7 +8,8 @@ package config;
 
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceManager;
-import com.oracle.coherence.persistence.PersistenceTools;
+
+import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.tangosol.coherence.component.util.SafeCluster;
 

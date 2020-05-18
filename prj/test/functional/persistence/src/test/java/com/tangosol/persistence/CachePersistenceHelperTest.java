@@ -6,11 +6,12 @@
  */
 package com.tangosol.persistence;
 
-import com.oracle.coherence.persistence.OfflinePersistenceInfo;
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistenceManager;
-import com.oracle.coherence.persistence.PersistenceTools;
 import com.oracle.coherence.persistence.PersistentStore;
+
+import com.oracle.datagrid.persistence.OfflinePersistenceInfo;
+import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
