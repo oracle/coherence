@@ -14,7 +14,7 @@ import com.oracle.coherence.common.base.Hasher;
 import com.oracle.coherence.common.base.HashHelper;
 import com.oracle.coherence.common.base.Formatting;
 import com.oracle.coherence.common.base.Objects;
-import com.oracle.coherence.common.base.Loggers;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Randoms;
 import com.oracle.coherence.common.base.Reads;
 import com.oracle.coherence.common.base.StackTrace;
@@ -67,7 +67,7 @@ public abstract class Base
      */
     public static void trace(boolean fVal)
         {
-        Loggers.trace(fVal);
+        Logger.trace(fVal);
         }
 
     /**
@@ -77,7 +77,7 @@ public abstract class Base
      */
     public static void trace(char chVal)
         {
-        Loggers.trace(chVal);
+        Logger.trace(chVal);
         }
 
     /**
@@ -87,7 +87,7 @@ public abstract class Base
      */
     public static void trace(int nVal)
         {
-        Loggers.trace(nVal);
+        Logger.trace(nVal);
         }
 
     /**
@@ -97,7 +97,7 @@ public abstract class Base
      */
     public static void trace(long lVal)
         {
-        Loggers.trace(lVal);
+        Logger.trace(lVal);
         }
 
     /**
@@ -107,7 +107,7 @@ public abstract class Base
      */
     public static void trace(float flVal)
         {
-        Loggers.trace(flVal);
+        Logger.trace(flVal);
         }
 
     /**
@@ -117,7 +117,7 @@ public abstract class Base
      */
     public static void trace(double dflVal)
         {
-        Loggers.trace(dflVal);
+        Logger.trace(dflVal);
         }
 
     /**
@@ -127,7 +127,7 @@ public abstract class Base
      */
     public static void trace(byte[] ab)
         {
-        Loggers.trace(ab);
+        Logger.trace(ab);
         }
 
     /**
@@ -137,7 +137,7 @@ public abstract class Base
      */
     public static void trace(String sVal)
         {
-        Loggers.trace(sVal);
+        Logger.trace(sVal);
         }
 
     /**
@@ -147,7 +147,7 @@ public abstract class Base
      */
     public static void trace(Object oVal)
         {
-        Loggers.trace(oVal);
+        Logger.trace(oVal);
         }
 
     // ----- assertion support ----------------------------------------------
@@ -287,7 +287,7 @@ public abstract class Base
      */
     public static void out()
         {
-        Loggers.out();
+        Logger.out();
         }
 
     /**
@@ -297,7 +297,7 @@ public abstract class Base
      */
     public static void out(Object o)
         {
-        Loggers.out(o);
+        Logger.out(o);
         }
 
     /**
@@ -307,7 +307,7 @@ public abstract class Base
      */
     public static void out(String s)
         {
-        Loggers.out(s);
+        Logger.out(s);
         }
 
     /**
@@ -317,7 +317,7 @@ public abstract class Base
      */
     public static void out(Class<?> clz)
         {
-        Loggers.out(clz);
+        Logger.out(clz);
         }
 
     /**
@@ -327,7 +327,7 @@ public abstract class Base
      */
     public static void out(Throwable e)
         {
-        Loggers.out(e);
+        Logger.out(e);
         }
 
     /**
@@ -335,7 +335,7 @@ public abstract class Base
      */
     public static void err()
         {
-        Loggers.err();
+        Logger.err();
         }
 
     /**
@@ -345,7 +345,7 @@ public abstract class Base
      */
     public static void err(Object o)
         {
-        Loggers.err(o);
+        Logger.err(o);
         }
 
     /**
@@ -355,7 +355,7 @@ public abstract class Base
      */
     public static void err(String s)
         {
-        Loggers.err(s);
+        Logger.err(s);
         }
 
     /**
@@ -365,7 +365,7 @@ public abstract class Base
      */
     public static void err(Class<?> clz)
         {
-        Loggers.err(clz);
+        Logger.err(clz);
         }
 
     /**
@@ -375,7 +375,7 @@ public abstract class Base
      */
     public static void err(Throwable e)
         {
-        Loggers.err(e);
+        Logger.err(e);
         }
 
     /**
@@ -383,7 +383,7 @@ public abstract class Base
      */
     public static void log()
         {
-        Loggers.log();
+        Logger.log();
         }
 
     /**
@@ -393,7 +393,7 @@ public abstract class Base
      */
     public static void log(Object o)
         {
-        Loggers.log(o);
+        Logger.log(o);
         }
 
     /**
@@ -403,7 +403,7 @@ public abstract class Base
      */
     public static void log(String s)
         {
-        Loggers.log(s);
+        Logger.log(s);
         }
 
     /**
@@ -413,7 +413,7 @@ public abstract class Base
      */
     public static void log(Class<?> clz)
         {
-        Loggers.log(clz);
+        Logger.log(clz);
         }
 
     /**
@@ -423,7 +423,7 @@ public abstract class Base
      */
     public static void log(Throwable e)
         {
-        Loggers.log(e);
+        Logger.log(e);
         }
 
 
@@ -2224,7 +2224,7 @@ public abstract class Base
      */
     public static PrintWriter getOut()
         {
-        return Loggers.getOut();
+        return Logger.getOut();
         }
 
     /**
@@ -2235,7 +2235,7 @@ public abstract class Base
      */
     public static void setOut(PrintWriter writer)
         {
-        Loggers.setOut(writer);
+        Logger.setOut(writer);
         }
 
 
@@ -2246,7 +2246,7 @@ public abstract class Base
      */
     public static PrintWriter getErr()
         {
-        return Loggers.getErr();
+        return Logger.getErr();
         }
 
     /**
@@ -2257,7 +2257,7 @@ public abstract class Base
      */
     public static void setErr(PrintWriter writer)
         {
-        Loggers.setErr(writer);
+        Logger.setErr(writer);
         }
 
     /**
@@ -2267,7 +2267,7 @@ public abstract class Base
      */
     public static PrintWriter getLog()
         {
-        return Loggers.getLog();
+        return Logger.getLog();
         }
 
     /**
@@ -2278,7 +2278,7 @@ public abstract class Base
      */
     public static void setLog(PrintWriter writer)
         {
-        Loggers.setLog(writer);
+        Logger.setLog(writer);
         }
 
     /**
@@ -2288,7 +2288,7 @@ public abstract class Base
      */
     public static boolean isLogEcho()
         {
-        return Loggers.isLogEcho();
+        return Logger.isLogEcho();
         }
 
     /**
@@ -2298,7 +2298,7 @@ public abstract class Base
      */
     public static void setLogEcho(boolean fEcho)
         {
-        Loggers.setLogEcho(fEcho);
+        Logger.setLogEcho(fEcho);
         }
 
 

@@ -21,7 +21,7 @@ import java.math.BigInteger;
 
 import java.util.ArrayList;
 
-import static com.oracle.coherence.common.base.Loggers.out;
+import static com.oracle.coherence.common.base.Logger.out;
 
 /**
  * Class for providing StackTrace functionality.

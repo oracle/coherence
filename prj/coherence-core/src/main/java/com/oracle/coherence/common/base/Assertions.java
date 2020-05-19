@@ -8,7 +8,7 @@ package com.oracle.coherence.common.base;
 
 import com.tangosol.util.AssertionException;
 
-import static com.oracle.coherence.common.base.Loggers.err;
+import static com.oracle.coherence.common.base.Logger.err;
 import static com.oracle.coherence.common.base.StackTrace.getExpression;
 import static com.oracle.coherence.common.base.StackTrace.getStackTrace;
 

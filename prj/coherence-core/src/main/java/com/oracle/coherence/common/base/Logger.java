@@ -18,12 +18,14 @@ import static com.oracle.coherence.common.base.StackTrace.printStackTrace;
 /**
  * Class for providing printed output functionality.
  *
- * @author lh, as  2020.04.02
+ * @author Luk Ho  2020.04.08
+ * @author Aleks Seovic  2020.05.18
+ *
  * @since Coherence 14.1.2
  */
-public abstract class Loggers
+public abstract class Logger
     {
-    // ----- printed output support ----------------------------------------------
+    // ----- printed output support -----------------------------------------
 
     /**
      * Prints a blank line.
