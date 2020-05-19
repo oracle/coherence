@@ -17,6 +17,10 @@
       <scheme-name>distributed-rwbm-ra</scheme-name>
     </cache-mapping>
     <cache-mapping>
+      <cache-name>dist-rwbm-ra-related</cache-name>
+      <scheme-name>distributed-rwbm-ra</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
       <cache-name>dist-rwbm-ra-bin</cache-name>
       <scheme-name>distributed-rwbm-ra</scheme-name>
       <init-params>

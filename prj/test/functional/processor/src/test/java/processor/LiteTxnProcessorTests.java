@@ -845,7 +845,7 @@ public class LiteTxnProcessorTests
             Binary            binKeyAssoc   = (Binary) ctx.getKeyToInternalConverter().convert(IKeyAssoc);
 
             // should be null because binKeyAssoc is not enlisted and is not in the backing map
-            assertNull(ctxBackingMap.getReadOnlyEntry(binKeyAssoc));
+            assertFalse(ctxBackingMap.getReadOnlyEntry(binKeyAssoc).isPresent());
 
             // enlist binKeyAssoc in the transaction sandbox, but not in backingMap yet
             BinaryEntry binEntryAssoc = (BinaryEntry) ctxBackingMap.getBackingMapEntry(binKeyAssoc);
@@ -1372,10 +1372,10 @@ public class LiteTxnProcessorTests
             Converter                converterFr = ctx.getKeyFromInternalConverter();
             Converter                converterTo = ctx.getKeyToInternalConverter();
 
-            //test none-exist entry, should return null
+            //test none-exist entry, should return a non-present entry
             Integer     oKey         = (Integer) converterFr.convert(binKey) + 200;
             BinaryEntry binTestEntry = (BinaryEntry) ctxThis.getReadOnlyEntry(converterTo.convert(oKey));
-            assertNull(binTestEntry);
+            assertFalse(binTestEntry.isPresent());
 
             //test existing entry from enlisted partition
             oKey         = (Integer) converterFr.convert(binKey) + 100;
