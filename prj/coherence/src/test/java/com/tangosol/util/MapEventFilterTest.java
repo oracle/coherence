@@ -8,6 +8,10 @@
 package com.tangosol.util;
 
 
+import com.tangosol.util.extractor.IdentityExtractor;
+import com.tangosol.util.extractor.KeyExtractor;
+import com.tangosol.util.filter.EqualsFilter;
+import com.tangosol.util.filter.InFilter;
 import com.tangosol.util.filter.MapEventFilter;
 import com.tangosol.util.filter.GreaterFilter;
 
@@ -15,6 +19,8 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.WrapperNamedCache;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.Test;
 
 import java.util.List;
@@ -765,4 +771,78 @@ public class MapEventFilterTest
 
            assertTrue(mef.equals(mef2));
            }
+
+    /**
+     * Test for MapEventFilter using KeyExtractor.
+     */
+    @Test
+    public void testMapEventFilterUsingKeyExtractor()
+        {
+        NamedCache<Integer, String> map = instantiateTestCache();
+
+        Integer key1 = Integer.valueOf(1);
+        String value1 = "one";
+        String updatedValue1 = "ONE";
+        Integer key2 = Integer.valueOf(2);
+        String value2 = "two";
+        String updatedValue2 = "TWO";
+
+        MapEvent[] aExpectedEvents = {
+            new MapEvent<Integer, String>(map, MapEvent.ENTRY_INSERTED, key1, null, value1)
+        };
+        AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
+        Set<Integer> keySet = new HashSet<>();
+        keySet.add(key1);
+        Filter<String> filter =
+            new InFilter<>(new KeyExtractor<>(IdentityExtractor.<String>INSTANCE()), keySet);
+
+        map.addMapListener(listener,
+                           new MapEventFilter<Integer, String>(MapEventFilter.E_INSERTED, filter),
+                           false);
+
+        map.put(key1, value1);
+        map.put(key1, updatedValue1);
+        map.remove(key1);
+
+        map.put(key2, value2);
+        map.put(key2, updatedValue2);
+        map.remove(key2);
+
+        listener.assertState();
+        }
+
+    /**
+     * Test for MapEventFilter with Value Type.
+     */
+    @Test
+    public void testMapEvenFiltertWithValueType()
+        {
+        NamedCache<Integer, String> map = instantiateTestCache();
+        Integer key1 = Integer.valueOf(1);
+        String value1 = "one";
+        String updatedValue1 = "ONE";
+        Integer key2 = Integer.valueOf(2);
+        String value2 = "two";
+        String updatedValue2 = "TWO";
+
+        MapEvent[] aExpectedEvents = {
+            new MapEvent<Integer, String>(map, MapEvent.ENTRY_INSERTED, key1, null, value1)
+        };
+        AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
+        Filter<String> filter = new EqualsFilter<String, String>("toString", value1);
+
+        map.addMapListener(listener,
+                           new MapEventFilter<Integer, String>(MapEvent.ENTRY_INSERTED, filter),
+                           false);
+
+        map.put(key1, value1);
+        map.put(key1, updatedValue1);
+        map.remove(key1);
+
+        map.put(key2, value2);
+        map.put(key2, updatedValue2);
+        map.remove(key2);
+
+        listener.assertState();
+        }
     }

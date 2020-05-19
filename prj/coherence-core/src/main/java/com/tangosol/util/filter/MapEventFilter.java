@@ -81,9 +81,9 @@ import javax.json.bind.annotation.JsonbProperty;
 * @author gg 2003.09.22
 * @since Coherence 2.3
 */
-public class MapEventFilter<T>
+public class MapEventFilter<K, V>
         extends    ExternalizableHelper
-        implements Filter<T>, ExternalizableLite, PortableObject
+        implements Filter<MapEvent<K, V>>, ExternalizableLite, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -128,7 +128,7 @@ public class MapEventFilter<T>
     *
     * @since Coherence 3.1
     */
-    public MapEventFilter(Filter<T> filter)
+    public MapEventFilter(Filter<V> filter)
         {
         this(E_KEYSET, filter);
         }
@@ -140,7 +140,7 @@ public class MapEventFilter<T>
     * @param nMask   combination of any of the E_* values
     * @param filter  (optional) the filter used for evaluating event values
     */
-    public MapEventFilter(int nMask, Filter<T> filter)
+    public MapEventFilter(int nMask, Filter<V> filter)
         {
         if ((nMask & (E_ALL | E_KEYSET | E_UPDATED_WITHIN)) == 0)
             {
@@ -156,14 +156,9 @@ public class MapEventFilter<T>
 
     /**
     * {@inheritDoc}
-    *
-    * @throws ClassCastException if the specified object is not an instance
-    *                            of MapEvent
     */
-    public boolean evaluate(T o)
+    public boolean evaluate(MapEvent<K, V> event)
         {
-        MapEvent event = (MapEvent) o;
-
         // check if the event is of a type ("id") that the client is
         // interested in evaluating
         int nId   = event.getId();
@@ -181,7 +176,7 @@ public class MapEventFilter<T>
             }
 
         // check for a client-specified event filter
-        Filter<T> filter = getFilter();
+        Filter<V> filter = getFilter();
         if (filter == null)
             {
             return true;
@@ -253,7 +248,7 @@ public class MapEventFilter<T>
     *
     * @return the filter used to evaluate the event value(s)
     */
-    public Filter<T> getFilter()
+    public Filter<V> getFilter()
         {
         return m_filter;
         }
@@ -343,7 +338,7 @@ public class MapEventFilter<T>
             sb.setLength(sb.length() - 1);
             }
 
-        Filter<T> filter = getFilter();
+        Filter<V> filter = getFilter();
         if (filter != null)
             {
             sb.append(", filter=")
@@ -373,7 +368,7 @@ public class MapEventFilter<T>
             throws IOException
         {
         m_nMask  = readInt(in);
-        m_filter = (Filter<T>) readObject(in);
+        m_filter = (Filter<V>) readObject(in);
         }
 
     /**
@@ -396,7 +391,7 @@ public class MapEventFilter<T>
             throws IOException
         {
         m_nMask  = in.readInt(0);
-        m_filter = (Filter<T>) in.readObject(1);
+        m_filter = (Filter<V>) in.readObject(1);
         }
 
     /**
@@ -510,5 +505,5 @@ public class MapEventFilter<T>
     * The event value(s) filter.
     */
     @JsonbProperty("filter")
-    protected Filter<T> m_filter;
+    protected Filter<V> m_filter;
     }

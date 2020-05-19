@@ -13,6 +13,7 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.cache.CacheEvent;
 
 import com.tangosol.util.Filter;
+import com.tangosol.util.MapEvent;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -24,11 +25,14 @@ import javax.json.bind.annotation.JsonbProperty;
  * An extension of the {@link MapEventFilter} which allows selection of client
  * driven (natural) events, cache internal (synthetic) events, or both.
  *
+ * @param <K>  the type of the cache entry keys
+ * @param <V>  the type of the cache entry values
+ *
  * @author sw 2013.04.04
  * @since Coherence 3.7.1.9
  */
-public class CacheEventFilter<T>
-        extends MapEventFilter<T>
+public class CacheEventFilter<K, V>
+        extends MapEventFilter<K, V>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -71,7 +75,7 @@ public class CacheEventFilter<T>
      * @param filter          the filter passed previously to a keySet() query method
      * @param nMaskSynthetic  any combination of E_SYNTHETIC and E_NATURAL
      */
-    public CacheEventFilter(Filter<T> filter, int nMaskSynthetic)
+    public CacheEventFilter(Filter<V> filter, int nMaskSynthetic)
         {
         this(E_KEYSET, filter, nMaskSynthetic);
         }
@@ -84,7 +88,7 @@ public class CacheEventFilter<T>
      * @param filter          (optional) the filter used for evaluating event values
      * @param nMaskSynthetic  any combination of E_SYNTHETIC and E_NATURAL
      */
-    public CacheEventFilter(int nMask, Filter<T> filter, int nMaskSynthetic)
+    public CacheEventFilter(int nMask, Filter<V> filter, int nMaskSynthetic)
         {
         super(nMask, filter);
 
@@ -97,7 +101,7 @@ public class CacheEventFilter<T>
     /**
      * {@inheritDoc}
      */
-    public boolean evaluate(T o)
+    public boolean evaluate(MapEvent<K, V> o)
         {
         if (o instanceof CacheEvent)
             {
