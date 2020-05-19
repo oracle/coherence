@@ -92,6 +92,16 @@
       <artifactId>jettison</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -147,32 +157,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>test-jdk11</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun.xml.bind</groupId>
-          <artifactId>jaxb-core</artifactId>
-        </dependency>
-
-        <dependency>
-          <groupId>com.sun.xml.bind</groupId>
-          <artifactId>jaxb-impl</artifactId>
-        </dependency>
-
-        <dependency>
-          <groupId>javax.activation</groupId>
-          <artifactId>activation</artifactId>
-        </dependency>
-
-        <dependency>
-          <groupId>javax.xml.bind</groupId>
-          <artifactId>jaxb-api</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
 
 </project>
