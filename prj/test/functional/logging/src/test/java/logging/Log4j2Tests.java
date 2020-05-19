@@ -31,7 +31,6 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 
-
 /**
  * Functional test of the Log4j 2 logging functionality.
  *
@@ -81,14 +80,14 @@ public class Log4j2Tests extends AbstractFunctionalTest
         String sMessage_finest = "This is a TRACE message";
 
         // The log level for Log4j logging is INFO,
-        // it should override coherence log level.
-        assertFalse(CacheFactory.isLogEnabled(9));
+        // it should override default coherence log level (LOG_DEBUG).
+        assertFalse(CacheFactory.isLogEnabled(LOG_DEBUG));
 
         // FINEST level message should not be logged
-        CacheFactory.log(sMessage_finest, 6);
+        CacheFactory.log(sMessage_finest, LOG_FINEST);
 
         // INFO level message is logged
-        CacheFactory.log(sMessage_info, 3);
+        CacheFactory.log(sMessage_info, LOG_INFO);
 
         // wait for the logger to wake
         Eventually.assertThat(invoking(this).isLogged(sMessage_info), is(true));

@@ -799,7 +799,7 @@ to find specific notes on changes suggested for production use.
     <destination system-property="coherence.log">stderr</destination>
     <logger-name system-property="coherence.log.logger"></logger-name>
     <severity-level system-property="coherence.log.level">5</severity-level>
-    <message-format>{date}/{uptime} {product} {version} &lt;{level}&gt; (thread={thread}, member={member}): {text}</message-format>
+    <message-format system-property="coherence.log.format">{date}/{uptime} {product} {version} &lt;{level}&gt; (thread={thread}, member={member}): {text}</message-format>
     <character-limit system-property="coherence.log.limit">1048576</character-limit>
   </logging-config>
 

@@ -61,7 +61,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 0", 0);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Trace SLF4J - This is log level 0\n"));
+        Eventually.assertThat(invoking(logger).getLogOutput(), is("Info SLF4J - This is log level 0\n"));
         }
 
     @Test
@@ -97,7 +97,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 4", 4);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Debug SLF4J - This is log level 4\n"));
+        Eventually.assertThat(invoking(logger).getLogOutput(), is("Info SLF4J - This is log level 4\n"));
         }
 
     @Test
@@ -106,7 +106,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 5", 5);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Trace SLF4J - This is log level 5\n"));
+        Eventually.assertThat(invoking(logger).getLogOutput(), is("Debug SLF4J - This is log level 5\n"));
         }
 
     @Test
@@ -115,7 +115,16 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 6", 6);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Trace SLF4J - This is log level 6\n"));
+        Eventually.assertThat(invoking(logger).getLogOutput(), is("Debug SLF4J - This is log level 6\n"));
+        }
+
+    @Test
+    public void testLogLevel7()
+        {
+        DebugLogger logger = m_logger;
+        CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 7", 7);
+
+        Eventually.assertThat(invoking(logger).getLogOutput(), is("Trace SLF4J - This is log level 7\n"));
         }
 
     // ----- data members ---------------------------------------------------

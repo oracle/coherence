@@ -65,8 +65,8 @@ public class LogLevelTests extends AbstractFunctionalTest
 
         // Default log level for JDK logging is INFO
         // with JDK logging configured, it should override
-        // coherence log level.
-        assertFalse(CacheFactory.isLogEnabled(9));
+        // default coherence log level (LOG_DEBUG).
+        assertFalse(CacheFactory.isLogEnabled(LOG_DEBUG));
 
         // FINEST level message should not be logged
         m_logger.log(Level.FINEST, sMessage_finest);

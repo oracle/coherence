@@ -2586,10 +2586,20 @@ public abstract class Base
     public static final int LOG_INFO = 3;
 
     /**
+     * Log level 4 indicates configuration related log message.
+     */
+    public static final int LOG_CONFIG = 4;
+
+    /**
      * As of Coherence 3.2, the default logging level is 5, so using the level
      * of 5 will show up in the logs by default as a debug message.
      */
     public static final int LOG_DEBUG = 5;
+
+    /**
+     * Log level 5 indicates an essential debug message.
+     */
+    public static final int LOG_FINE = 5;
 
     /**
      * As of Coherence 3.2, the default logging level is 5, so using a level
@@ -2598,6 +2608,16 @@ public abstract class Base
      */
     public static final int LOG_QUIET = 6;
 
+    /**
+     * Log level 6 indicates a non-essential debug message.
+     */
+    public static final int LOG_FINER = 6;
+
+    /**
+     * Log level 7 indicates a very low-level, non-essential debug message
+     * or a tracing message.
+     */
+    public static final int LOG_FINEST = 7;
 
     // ----- data members ---------------------------------------------------
 

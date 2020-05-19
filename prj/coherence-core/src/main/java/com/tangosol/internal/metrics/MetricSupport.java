@@ -55,6 +55,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static com.tangosol.util.Base.LOG_WARN;
+
 /**
  * A helper class to provide support for registering and un-registering
  * Coherence metrics based on MBeans.
@@ -280,7 +282,7 @@ public class MetricSupport
                     catch (Throwable t)
                         {
                         CacheFactory.log("Caught exception registering metric "
-                                + metric.getIdentifier() + " with " + adapter);
+                                + metric.getIdentifier() + " with " + adapter, LOG_WARN);
                         }
                     }
                 }
