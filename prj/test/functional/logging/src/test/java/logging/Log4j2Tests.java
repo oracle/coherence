@@ -8,12 +8,12 @@ package logging;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Logger;
 import common.AbstractFunctionalTest;
 
 import com.tangosol.net.CacheFactory;
 
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.WriterAppender;
 import org.apache.logging.log4j.core.config.AppenderRef;
@@ -80,14 +80,14 @@ public class Log4j2Tests extends AbstractFunctionalTest
         String sMessage_finest = "This is a TRACE message";
 
         // The log level for Log4j logging is INFO,
-        // it should override default coherence log level (LOG_DEBUG).
-        assertFalse(CacheFactory.isLogEnabled(LOG_DEBUG));
+        // it should override default coherence log level (FINE).
+        assertFalse(Logger.isEnabled(Logger.FINE));
 
         // FINEST level message should not be logged
-        CacheFactory.log(sMessage_finest, LOG_FINEST);
+        Logger.finest(sMessage_finest);
 
         // INFO level message is logged
-        CacheFactory.log(sMessage_info, LOG_INFO);
+        Logger.info(sMessage_info);
 
         // wait for the logger to wake
         Eventually.assertThat(invoking(this).isLogged(sMessage_info), is(true));

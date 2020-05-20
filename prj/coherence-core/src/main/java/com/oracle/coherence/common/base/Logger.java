@@ -6,386 +6,648 @@
  */
 package com.oracle.coherence.common.base;
 
-import com.tangosol.util.NullImplementation;
+import com.tangosol.net.CacheFactory;
 
-import java.io.PrintWriter;
+import java.util.function.Supplier;
 
-import static com.oracle.coherence.common.base.Formatting.toHexEscape;
-import static com.oracle.coherence.common.base.Formatting.toQuotedStringEscape;
-import static com.oracle.coherence.common.base.StackTrace.getExpression;
 import static com.oracle.coherence.common.base.StackTrace.printStackTrace;
 
 /**
- * Class for providing printed output functionality.
+ * Logging API.
  *
- * @author Luk Ho  2020.04.08
  * @author Aleks Seovic  2020.05.18
- *
  * @since Coherence 14.1.2
  */
 public abstract class Logger
     {
-    // ----- printed output support -----------------------------------------
+    // ----- basic logging support ------------------------------------------
 
     /**
-     * Prints a blank line.
+     * Return {@code true} if the specified severity level should be logged.
+     *
+     * @param nSeverity  the severity level
+     *
+     * @return {@code true} if the specified severity level should be logged;
+     *         {@code false} otherwise
      */
-    public static void out()
+    @SuppressWarnings("deprecation")
+    public static boolean isEnabled(int nSeverity)
         {
-        s_out.println();
+        return CacheFactory.isLogEnabled(nSeverity);
         }
 
     /**
-     * Prints the passed Object.
+     * Log the specified message at the specified severity level.
      *
-     * @param o  the Object to print.
+     * @param sMessage   the message to log
+     * @param nSeverity  the severity level
      */
-    public static void out(Object o)
+    @SuppressWarnings("deprecation")
+    public static void log(String sMessage, int nSeverity)
         {
-        s_out.println(o);
+        CacheFactory.log(sMessage, nSeverity);
         }
 
     /**
-     * Prints the passed String value.
+     * Log the specified message at the specified severity level.
      *
-     * @param s  the String to print.
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param nSeverity        the severity level
      */
-    public static void out(String s)
+    public static void log(Supplier<String> supplierMessage, int nSeverity)
         {
-        s_out.println(s);
+        if (isEnabled(nSeverity))
+            {
+            log(supplierMessage.get(), nSeverity);
+            }
         }
 
     /**
-     * Prints the passed class information.
+     * Log the specified message and the exception stack trace at the
+     * specified severity level.
      *
-     * @param clz  the class object to print.
+     * @param sMessage   the message to log
+     * @param e          the exception to log the stack trace for
+     * @param nSeverity  the severity level
      */
-    public static void out(Class<?> clz)
+    public static void log(String sMessage, Throwable e, int nSeverity)
         {
-        s_out.println(Classes.toString(clz));
+        if (isEnabled(nSeverity))
+            {
+            sMessage = sMessage.trim();
+            if (sMessage.length() > 0 && sMessage.charAt(sMessage.length() - 1) != ':')
+                {
+                sMessage += ':';
+                }
+            log(sMessage + " " + e, nSeverity);
+            log(printStackTrace(e), nSeverity);
+            }
         }
 
     /**
-     * Prints the passed exception information.
+     * Log the specified message and the exception stack trace at the
+     * specified severity level.
+     * 
+     * The message is provided by the {@link Supplier}, which will only be 
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
      *
-     * @param e  the Throwable object to print.
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
+     * @param nSeverity        the severity level
+     */
+    public static void log(Supplier<String> supplierMessage, Throwable e, int nSeverity)
+        {
+        if (isEnabled(nSeverity))
+            {
+            log(supplierMessage.get(), e, nSeverity);
+            }
+        }
+
+    /**
+     * Log the specified exception information (message and stack trace)
+     * at the specified severity level.
+     *
+     * @param e          the exception to log
+     * @param nSeverity  the severity level
+     */
+    public static void log(Throwable e, int nSeverity)
+        {
+        log(e.toString(), nSeverity);
+        log(printStackTrace(e), nSeverity);
+        }
+
+    // ---- ALWAYS support --------------------------------------------------
+
+    /**
+     * Log the specified message with {@link #ALWAYS} severity.
+     *
+     * @param sMessage  the message to log
+     */
+    public static void out(String sMessage)
+        {
+        log(sMessage, ALWAYS);
+        }
+
+    /**
+     * Log the specified message with {@link #ALWAYS} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     */
+    public static void out(Supplier<String> supplierMessage)
+        {
+        log(supplierMessage, ALWAYS);
+        }
+
+    /**
+     * Log the specified message and the exception stack trace with
+     * {@link #ALWAYS} severity.
+     *
+     * @param sMessage  the message to log
+     * @param e         the exception to log the stack trace for
+     */
+    public static void out(String sMessage, Throwable e)
+        {
+        log(sMessage, e, ALWAYS);
+        }
+
+    /**
+     * Log the specified message and the exception stack trace with
+     * {@link #ALWAYS} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
+     */
+    public static void out(Supplier<String> supplierMessage, Throwable e)
+        {
+        log(supplierMessage, e, ALWAYS);
+        }
+
+    /**
+     * Log the specified exception information (message and stack trace) with
+     * {@link #ALWAYS} severity.
+     *
+     * @param e  the exception to log
      */
     public static void out(Throwable e)
         {
-        s_out.println(printStackTrace(e));
+        log(e, ALWAYS);
         }
 
-    /**
-     * Prints a blank line to the trace Writer.
-     */
-    public static void err()
-        {
-        s_err.println();
-        }
+    // ---- ERROR support ---------------------------------------------------
 
     /**
-     * Prints the passed Object to the trace Writer.
+     * Log the specified message with {@link #ERROR} severity.
      *
-     * @param o  the Object to print.
+     * @param sMessage  the message to log
      */
-    public static void err(Object o)
+    public static void err(String sMessage)
         {
-        s_err.println(o);
+        log(sMessage, ERROR);
         }
 
     /**
-     * Prints the passed String value to the trace Writer.
+     * Log the specified message with {@link #ERROR} severity.
      *
-     * @param s  the String to print.
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
      */
-    public static void err(String s)
+    public static void err(Supplier<String> supplierMessage)
         {
-        s_err.println(s);
+        log(supplierMessage, ERROR);
         }
 
     /**
-     * Prints the passed class information to the trace Writer.
+     * Log the specified message and the exception stack trace with
+     * {@link #ERROR} severity.
      *
-     * @param clz  the class object to print.
+     * @param sMessage  the message to log
+     * @param e         the exception to log the stack trace for
      */
-    public static void err(Class<?> clz)
+    public static void err(String sMessage, Throwable e)
         {
-        s_err.println(Classes.toString(clz));
+        log(sMessage, e, ERROR);
         }
 
     /**
-     * Prints the passed exception information to the trace Writer.
+     * Log the specified message and the exception stack trace with
+     * {@link #ERROR} severity.
      *
-     * @param e  the Throwable object to print.
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
+     */
+    public static void err(Supplier<String> supplierMessage, Throwable e)
+        {
+        log(supplierMessage, e, ERROR);
+        }
+
+    /**
+     * Log the specified exception information (message and stack trace) with
+     * {@link #ERROR} severity.
+     *
+     * @param e  the exception to log
      */
     public static void err(Throwable e)
         {
-        s_err.println(printStackTrace(e));
+        log(e, ERROR);
         }
 
-    /**
-     * Prints a blank line to the log.
-     */
-    public static void log()
-        {
-        s_log.println();
-        if (s_fEchoLog)
-            {
-            s_out.println();
-            }
-        }
+    // ---- WARNING support -------------------------------------------------
 
     /**
-     * Prints the passed Object to the log.
+     * Log the specified message with {@link #WARNING} severity.
      *
-     * @param o  the Object to print.
+     * @param sMessage  the message to log
      */
-    public static void log(Object o)
+    public static void warn(String sMessage)
         {
-        log(String.valueOf(o));
+        log(sMessage, WARNING);
         }
 
     /**
-     * Prints the passed String value to the log.
+     * Log the specified message with {@link #WARNING} severity.
      *
-     * @param s  the String to print.
-     */
-    public static void log(String s)
-        {
-        s_log.println(s);
-        if (s_fEchoLog)
-            {
-            s_out.println(s);
-            }
-        }
-
-    /**
-     * Prints the passed class information to the log.
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
      *
-     * @param clz  the class object to print.
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
      */
-    public static void log(Class<?> clz)
+    public static void warn(Supplier<String> supplierMessage)
         {
-        log(Classes.toString(clz));
+        log(supplierMessage, WARNING);
         }
 
     /**
-     * Prints the passed exception information to the log.
+     * Log the specified message and the exception stack trace with
+     * {@link #WARNING} severity.
      *
-     * @param e  the Throwable object to print.
+     * @param sMessage  the message to log
+     * @param e         the exception to log the stack trace for
      */
-    public static void log(Throwable e)
+    public static void warn(String sMessage, Throwable e)
         {
-        String s = printStackTrace(e);
-        s_log.println(s);
-        if (s_fEchoLog)
-            {
-            s_out.println(s);
-            }
+        log(sMessage, e, WARNING);
         }
 
     /**
-     * Obtains the current writer used for printing.
+     * Log the specified message and the exception stack trace with
+     * {@link #WARNING} severity.
      *
-     * @return the current writer used for printing; never null
-     */
-    public static PrintWriter getOut()
-        {
-        return s_out;
-        }
-
-    /**
-     * Sets the current writer used for printing.
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
      *
-     * @param writer  the java.io.PrintWriter instance to use for printing;
-     *                may be null
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
      */
-    public static void setOut(PrintWriter writer)
+    public static void warn(Supplier<String> supplierMessage, Throwable e)
         {
-        s_out = writer == null
-                        ? new PrintWriter(NullImplementation.getWriter(), true)
-                        : writer;
+        log(supplierMessage, e, WARNING);
         }
 
     /**
-     * Obtains the current writer used for tracing.
+     * Log the specified exception information (message and stack trace) with
+     * {@link #WARNING} severity.
      *
-     * @return the current writer used for tracing; never null
+     * @param e  the exception to log
      */
-    public static PrintWriter getErr()
+    public static void warn(Throwable e)
         {
-        return s_err;
+        log(e, WARNING);
         }
 
+    // ---- INFO support ----------------------------------------------------
+
     /**
-     * Sets the current writer used for tracing.
+     * Log the specified message with {@link #INFO} severity.
      *
-     * @param writer  the java.io.PrintWriter instance to use for tracing; may
-     *                be null
+     * @param sMessage  the message to log
      */
-    public static void setErr(PrintWriter writer)
+    public static void info(String sMessage)
         {
-        s_err = writer == null
-                        ? new PrintWriter(NullImplementation.getWriter(), true)
-                        : writer;
+        log(sMessage, INFO);
         }
 
     /**
-     * Obtains the current writer used for logging.
+     * Log the specified message with {@link #INFO} severity.
      *
-     * @return the current writer used for logging; never null
-     */
-    public static PrintWriter getLog()
-        {
-        return s_log;
-        }
-
-    /**
-     * Sets the current writer used for logging.
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
      *
-     * @param writer  the java.io.PrintWriter instance to use for logging; may
-     *                be null
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
      */
-    public static void setLog(PrintWriter writer)
+    public static void info(Supplier<String> supplierMessage)
         {
-        s_log = writer == null
-                        ? new PrintWriter(NullImplementation.getWriter(), true)
-                        : writer;
+        log(supplierMessage, INFO);
         }
 
     /**
-    * Determine if the log is echoed to the console.
-    *
-    * @return true if the log is echoed to the console
-    */
-    public static boolean isLogEcho()
+     * Log the specified message and the exception stack trace with
+     * {@link #INFO} severity.
+     *
+     * @param sMessage  the message to log
+     * @param e         the exception to log the stack trace for
+     */
+    public static void info(String sMessage, Throwable e)
         {
-        return s_fEchoLog;
+        log(sMessage, e, INFO);
         }
 
     /**
-    * Specify whether the log should echo to the console.
-    *
-    * @param fEcho  true if the log should echo to the console
-    */
-    public static void setLogEcho(boolean fEcho)
-        {
-        s_fEchoLog = fEcho;
-        }
-
-    // ----- debugging support:  expression evaluation ----------------------
-
-    /**
-     * Display the value of a boolean expression.
+     * Log the specified message and the exception stack trace with
+     * {@link #INFO} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
      */
-    public static void trace(boolean fVal)
+    public static void info(Supplier<String> supplierMessage, Throwable e)
         {
-        traceImpl(String.valueOf(fVal));
-        }
-
-    /**
-     * Display the value of a char expression.
-     */
-    public static void trace(char chVal)
-        {
-        traceImpl(String.valueOf(chVal));
+        log(supplierMessage, e, INFO);
         }
 
     /**
-     * Display the value of an int expression.
+     * Log the specified exception information (message and stack trace) with
+     * {@link #INFO} severity.
+     *
+     * @param e  the exception to log
      */
-    public static void trace(int nVal)
+    public static void info(Throwable e)
         {
-        traceImpl(String.valueOf(nVal));
+        log(e, INFO);
+        }
+
+    // ---- FINE support ----------------------------------------------------
+
+    /**
+     * Log the specified message with {@link #FINE} severity.
+     *
+     * @param sMessage  the message to log
+     */
+    public static void fine(String sMessage)
+        {
+        log(sMessage, FINE);
         }
 
     /**
-     * Display the value of a long expression.
+     * Log the specified message with {@link #FINE} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
      */
-    public static void trace(long lVal)
+    public static void fine(Supplier<String> supplierMessage)
         {
-        traceImpl(String.valueOf(lVal));
+        log(supplierMessage, FINE);
         }
 
     /**
-     * Display the value of a float expression.
+     * Log the specified message and the exception stack trace with 
+     * {@link #FINE} severity.
+     *
+     * @param sMessage  the message to log
+     * @param e         the exception to log the stack trace for
      */
-    public static void trace(float flVal)
+    public static void fine(String sMessage, Throwable e)
         {
-        traceImpl(String.valueOf(flVal));
+        log(sMessage, e, FINE);
         }
 
     /**
-     * Display the value of a double expression.
+     * Log the specified message and the exception stack trace with 
+     * {@link #FINE} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
      */
-    public static void trace(double dflVal)
+    public static void fine(Supplier<String> supplierMessage, Throwable e)
         {
-        traceImpl(String.valueOf(dflVal));
+        log(supplierMessage, e, FINE);
         }
 
     /**
-     * Display the value of a byte array expression.
+     * Log the specified exception information (message and stack trace) with 
+     * {@link #FINE} severity.
+     *
+     * @param e  the exception to log
      */
-    public static void trace(byte[] ab)
+    public static void fine(Throwable e)
         {
-        if (ab == null)
-            {
-            traceImpl(null);
-            }
-        else
-            {
-            traceImpl("length=" + ab.length + ", binary=" + toHexEscape(ab));
-            }
+        log(e, FINE);
+        }
+
+    // ---- FINER support ----------------------------------------------------
+
+    /**
+     * Log the specified message with {@link #FINER} severity.
+     *
+     * @param sMessage  the message to log
+     */
+    public static void finer(String sMessage)
+        {
+        log(sMessage, FINER);
         }
 
     /**
-     * Display the value of a String expression.
+     * Log the specified message with {@link #FINER} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
      */
-    public static void trace(String sVal)
+    public static void finer(Supplier<String> supplierMessage)
         {
-        traceImpl(sVal == null ? "null" : toQuotedStringEscape(sVal));
+        log(supplierMessage, FINER);
         }
 
     /**
-     * Display the value of an Object expression.
+     * Log the specified message and the exception stack trace with 
+     * {@link #FINER} severity.
+     *
+     * @param sMessage  the message to log
+     * @param e         the exception to log the stack trace for
      */
-    public static void trace(Object oVal)
+    public static void finer(String sMessage, Throwable e)
         {
-        traceImpl(String.valueOf(oVal));
+        log(sMessage, e, FINER);
         }
 
-
     /**
-     * Internal implementation for trace methods.
+     * Log the specified message and the exception stack trace with 
+     * {@link #FINER} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
      */
-    private static void traceImpl(String sVal)
+    public static void finer(Supplier<String> supplierMessage, Throwable e)
         {
-        String sExpr = getExpression("trace");
-        out((sExpr == null ? "?" : sExpr) + '=' + (sVal == null ? "null" : sVal));
+        log(supplierMessage, e, FINER);
         }
 
+    /**
+     * Log the specified exception information (message and stack trace) with 
+     * {@link #FINER} severity.
+     *
+     * @param e  the exception to log
+     */
+    public static void finer(Throwable e)
+        {
+        log(e, FINER);
+        }
 
-    // ----- data members ---------------------------------------------------
+    // ---- FINEST support --------------------------------------------------
 
     /**
-     * The writer to use for print output.
+     * Log the specified message with {@link #FINEST} severity.
+     *
+     * @param sMessage  the message to log
      */
-    private static PrintWriter s_out = new PrintWriter(System.out, true);
+    public static void finest(String sMessage)
+        {
+        log(sMessage, FINEST);
+        }
 
     /**
-     * The writer to use for trace output.
+     * Log the specified message with {@link #FINEST} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
      */
-    private static PrintWriter s_err = new PrintWriter(System.err, true);
+    public static void finest(Supplier<String> supplierMessage)
+        {
+        log(supplierMessage, FINEST);
+        }
 
     /**
-     * The writer to use for logging.  By default, there is no persistent
-     * log.
+     * Log the specified message and the exception stack trace with 
+     * {@link #FINEST} severity.
+     *
+     * @param sMessage  the message to log
+     * @param e         the exception to log the stack trace for
      */
-    private static PrintWriter s_log = new PrintWriter(NullImplementation.getWriter(), true);
+    public static void finest(String sMessage, Throwable e)
+        {
+        log(sMessage, e, FINEST);
+        }
 
     /**
-     * Option to log to the console in addition to the logging writer.  By
-     * default, all logged messages are echoed to the console.
+     * Log the specified message and the exception stack trace with 
+     * {@link #FINEST} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
      */
-    private static boolean s_fEchoLog = true;
+    public static void finest(Supplier<String> supplierMessage, Throwable e)
+        {
+        log(supplierMessage, e, FINEST);
+        }
+
+    /**
+     * Log the specified exception information (message and stack trace) with 
+     * {@link #FINEST} severity.
+     *
+     * @param e  the exception to log
+     */
+    public static void finest(Throwable e)
+        {
+        log(e, FINEST);
+        }
+
+    // ---- constants -------------------------------------------------------
+
+    /**
+     * Severity 0 will always be logged.
+     */
+    public static final int ALWAYS = 0;
+
+    /**
+     * Severity 1 indicates an error.
+     */
+    public static final int ERROR = 1;
+
+    /**
+     * Severity 2 indicates a warning.
+     */
+    public static final int WARNING = 2;
+
+    /**
+     * Severity 3 indicates information that should likely be logged.
+     */
+    public static final int INFO = 3;
+
+    /**
+     * Severity 4 indicates configuration related log message.
+     */
+    public static final int CONFIG = 4;
+
+    /**
+     * Severity 5 indicates an essential debug message.
+     */
+    public static final int FINE = 5;
+
+    /**
+     * Severity 6 indicates a non-essential debug message.
+     */
+    public static final int FINER = 6;
+
+    /**
+     * Severity 7 indicates a very low-level, non-essential debug message
+     * or a tracing message.
+     */
+    public static final int FINEST = 7;
     }

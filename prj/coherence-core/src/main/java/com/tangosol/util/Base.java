@@ -14,12 +14,11 @@ import com.oracle.coherence.common.base.Hasher;
 import com.oracle.coherence.common.base.HashHelper;
 import com.oracle.coherence.common.base.Formatting;
 import com.oracle.coherence.common.base.Objects;
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Randoms;
 import com.oracle.coherence.common.base.Reads;
 import com.oracle.coherence.common.base.StackTrace;
-
 import com.oracle.coherence.common.base.TimeHelper;
+
 import com.oracle.coherence.common.util.CommonMonitor;
 
 import com.tangosol.coherence.config.Config;
@@ -67,7 +66,7 @@ public abstract class Base
      */
     public static void trace(boolean fVal)
         {
-        Logger.trace(fVal);
+        traceImpl(String.valueOf(fVal));
         }
 
     /**
@@ -77,7 +76,7 @@ public abstract class Base
      */
     public static void trace(char chVal)
         {
-        Logger.trace(chVal);
+        traceImpl(String.valueOf(chVal));
         }
 
     /**
@@ -87,7 +86,7 @@ public abstract class Base
      */
     public static void trace(int nVal)
         {
-        Logger.trace(nVal);
+        traceImpl(String.valueOf(nVal));
         }
 
     /**
@@ -97,7 +96,7 @@ public abstract class Base
      */
     public static void trace(long lVal)
         {
-        Logger.trace(lVal);
+        traceImpl(String.valueOf(lVal));
         }
 
     /**
@@ -107,7 +106,7 @@ public abstract class Base
      */
     public static void trace(float flVal)
         {
-        Logger.trace(flVal);
+        traceImpl(String.valueOf(flVal));
         }
 
     /**
@@ -117,7 +116,7 @@ public abstract class Base
      */
     public static void trace(double dflVal)
         {
-        Logger.trace(dflVal);
+        traceImpl(String.valueOf(dflVal));
         }
 
     /**
@@ -127,7 +126,14 @@ public abstract class Base
      */
     public static void trace(byte[] ab)
         {
-        Logger.trace(ab);
+        if (ab == null)
+            {
+            traceImpl(null);
+            }
+        else
+            {
+            traceImpl("length=" + ab.length + ", binary=" + toHexEscape(ab));
+            }
         }
 
     /**
@@ -137,7 +143,7 @@ public abstract class Base
      */
     public static void trace(String sVal)
         {
-        Logger.trace(sVal);
+        traceImpl(sVal == null ? "null" : toQuotedStringEscape(sVal));
         }
 
     /**
@@ -147,7 +153,17 @@ public abstract class Base
      */
     public static void trace(Object oVal)
         {
-        Logger.trace(oVal);
+        traceImpl(String.valueOf(oVal));
+        }
+
+
+    /**
+     * Internal implementation for trace methods.
+     */
+    private static void traceImpl(String sVal)
+        {
+        String sExpr = StackTrace.getExpression("trace");
+        out((sExpr == null ? "?" : sExpr) + '=' + (sVal == null ? "null" : sVal));
         }
 
     // ----- assertion support ----------------------------------------------
@@ -287,7 +303,7 @@ public abstract class Base
      */
     public static void out()
         {
-        Logger.out();
+        s_out.println();
         }
 
     /**
@@ -297,7 +313,7 @@ public abstract class Base
      */
     public static void out(Object o)
         {
-        Logger.out(o);
+        s_out.println(o);
         }
 
     /**
@@ -307,7 +323,7 @@ public abstract class Base
      */
     public static void out(String s)
         {
-        Logger.out(s);
+        s_out.println(s);
         }
 
     /**
@@ -317,17 +333,17 @@ public abstract class Base
      */
     public static void out(Class<?> clz)
         {
-        Logger.out(clz);
+        s_out.println(Classes.toString(clz));
         }
 
     /**
      * Prints the passed exception information.
      *
-     * @param e  the Throwable object to print
+     * @param e  the Throwable object to print.
      */
     public static void out(Throwable e)
         {
-        Logger.out(e);
+        s_out.println(printStackTrace(e));
         }
 
     /**
@@ -335,47 +351,47 @@ public abstract class Base
      */
     public static void err()
         {
-        Logger.err();
+        s_err.println();
         }
 
     /**
      * Prints the passed Object to the trace Writer.
      *
-     * @param o  the Object to print
+     * @param o  the Object to print.
      */
     public static void err(Object o)
         {
-        Logger.err(o);
+        s_err.println(o);
         }
 
     /**
      * Prints the passed String value to the trace Writer.
      *
-     * @param s  the String to print
+     * @param s  the String to print.
      */
     public static void err(String s)
         {
-        Logger.err(s);
+        s_err.println(s);
         }
 
     /**
      * Prints the passed class information to the trace Writer.
      *
-     * @param clz  the class object to print
+     * @param clz  the class object to print.
      */
     public static void err(Class<?> clz)
         {
-        Logger.err(clz);
+        s_err.println(Classes.toString(clz));
         }
 
     /**
      * Prints the passed exception information to the trace Writer.
      *
-     * @param e  the Throwable object to print
+     * @param e  the Throwable object to print.
      */
     public static void err(Throwable e)
         {
-        Logger.err(e);
+        s_err.println(printStackTrace(e));
         }
 
     /**
@@ -383,7 +399,11 @@ public abstract class Base
      */
     public static void log()
         {
-        Logger.log();
+        s_log.println();
+        if (s_fEchoLog)
+            {
+            s_out.println();
+            }
         }
 
     /**
@@ -393,7 +413,7 @@ public abstract class Base
      */
     public static void log(Object o)
         {
-        Logger.log(o);
+        log(String.valueOf(o));
         }
 
     /**
@@ -403,7 +423,11 @@ public abstract class Base
      */
     public static void log(String s)
         {
-        Logger.log(s);
+        s_log.println(s);
+        if (s_fEchoLog)
+            {
+            s_out.println(s);
+            }
         }
 
     /**
@@ -413,7 +437,7 @@ public abstract class Base
      */
     public static void log(Class<?> clz)
         {
-        Logger.log(clz);
+        log(Classes.toString(clz));
         }
 
     /**
@@ -423,9 +447,13 @@ public abstract class Base
      */
     public static void log(Throwable e)
         {
-        Logger.log(e);
+        String s = printStackTrace(e);
+        s_log.println(s);
+        if (s_fEchoLog)
+            {
+            s_out.println(s);
+            }
         }
-
 
     // ----- class loader support --------------------------------------------
 
@@ -2224,7 +2252,7 @@ public abstract class Base
      */
     public static PrintWriter getOut()
         {
-        return Logger.getOut();
+        return s_out;
         }
 
     /**
@@ -2235,9 +2263,10 @@ public abstract class Base
      */
     public static void setOut(PrintWriter writer)
         {
-        Logger.setOut(writer);
+        s_out = writer == null
+                        ? new PrintWriter(NullImplementation.getWriter(), true)
+                        : writer;
         }
-
 
     /**
      * Obtains the current writer used for tracing.
@@ -2246,7 +2275,7 @@ public abstract class Base
      */
     public static PrintWriter getErr()
         {
-        return Logger.getErr();
+        return s_err;
         }
 
     /**
@@ -2257,7 +2286,9 @@ public abstract class Base
      */
     public static void setErr(PrintWriter writer)
         {
-        Logger.setErr(writer);
+        s_err = writer == null
+                        ? new PrintWriter(NullImplementation.getWriter(), true)
+                        : writer;
         }
 
     /**
@@ -2267,7 +2298,7 @@ public abstract class Base
      */
     public static PrintWriter getLog()
         {
-        return Logger.getLog();
+        return s_log;
         }
 
     /**
@@ -2278,7 +2309,9 @@ public abstract class Base
      */
     public static void setLog(PrintWriter writer)
         {
-        Logger.setLog(writer);
+        s_log = writer == null
+                        ? new PrintWriter(NullImplementation.getWriter(), true)
+                        : writer;
         }
 
     /**
@@ -2288,7 +2321,7 @@ public abstract class Base
      */
     public static boolean isLogEcho()
         {
-        return Logger.isLogEcho();
+        return s_fEchoLog;
         }
 
     /**
@@ -2298,9 +2331,8 @@ public abstract class Base
      */
     public static void setLogEcho(boolean fEcho)
         {
-        Logger.setLogEcho(fEcho);
+        s_fEchoLog = fEcho;
         }
-
 
     // ----- IO support -----------------------------------------------------
 
@@ -2597,29 +2629,35 @@ public abstract class Base
     public static final int LOG_DEBUG = 5;
 
     /**
-     * Log level 5 indicates an essential debug message.
-     */
-    public static final int LOG_FINE = 5;
-
-    /**
      * As of Coherence 3.2, the default logging level is 5, so using a level
      * higher than 5 will be "quiet" by default, meaning that it will not show
      * up in the logs unless the configured logging level is increased.
      */
     public static final int LOG_QUIET = 6;
 
-    /**
-     * Log level 6 indicates a non-essential debug message.
-     */
-    public static final int LOG_FINER = 6;
-
-    /**
-     * Log level 7 indicates a very low-level, non-essential debug message
-     * or a tracing message.
-     */
-    public static final int LOG_FINEST = 7;
-
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The writer to use for print output.
+     */
+    private static PrintWriter s_out = new PrintWriter(System.out, true);
+
+    /**
+     * The writer to use for trace output.
+     */
+    private static PrintWriter s_err = new PrintWriter(System.err, true);
+
+    /**
+     * The writer to use for logging.  By default, there is no persistent
+     * log.
+     */
+    private static PrintWriter s_log = new PrintWriter(NullImplementation.getWriter(), true);
+
+    /**
+     * Option to log to the console in addition to the logging writer.  By
+     * default, all logged messages are echoed to the console.
+     */
+    private static boolean s_fEchoLog = true;
 
     /**
      * The configured ThreadFactory.
