@@ -27,8 +27,10 @@ import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Converter;
 import com.tangosol.util.Daemon;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
+import com.tangosol.util.InvocableMap.StreamingAggregator;
 import com.tangosol.util.ListMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
@@ -61,6 +63,8 @@ import common.TestHelper;
 
 
 import data.Person;
+
+import org.hamcrest.Matchers;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -2476,6 +2480,62 @@ public class ReadWriteBackingMapTests
             }
         }
 
+    /*
+     * Test a ReadOnly BinaryEntry will result in a read-through.
+     */
+    @Test
+    public void testCacheStoreReadThroughWithReadOnlyEntry()
+        {
+        final String CACHE_RELATED = "dist-rwbm-ra-related";
+
+        NamedCache<String, Integer> cache       = getNamedCache("dist-rwbm-ra");
+        NamedCache<String, Integer> cacheJoined = getNamedCache(CACHE_RELATED);
+        try
+            {
+            cache      .put("1", 1);
+            cacheJoined.put("1", 1);
+            cache      .put("2", 1);
+            cacheJoined.put("2", 1);
+
+            // confirm aggregation returns the correct result including entries that are not present
+            Integer NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"1"}).getSet(),
+                    new CustomAggregator(CACHE_RELATED, false));
+            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(Integer.valueOf(2))));
+
+            // confirm aggregation returns the correct result only for entries that are present
+            NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"2"}).getSet(),
+                    new CustomAggregator(CACHE_RELATED, true));
+            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(Integer.valueOf(2))));
+
+            // wait for the entries to expire
+            Eventually.assertThat(invoking(cache).size(), is(0));
+            Eventually.assertThat(invoking(cacheJoined).size(), is(0));
+
+            // same aggregation call should cause a read through
+            NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"1"}).getSet(),
+                    new CustomAggregator(CACHE_RELATED, false));
+            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(Integer.valueOf(2))));
+
+            // aggregation for only present entries should not cause a load
+            NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"2"}).getSet(),
+                    new CustomAggregator(CACHE_RELATED, true));
+            assertThat(NResult, Matchers.anyOf(Matchers.nullValue(), is(Integer.valueOf(0))));
+
+            // force a load on the 'driving' cache to ensure getReadOnlyEntry
+            // does not result in a load
+            assertEquals(Integer.valueOf(1), cache.get("2"));
+
+            NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"2"}).getSet(),
+                    new CustomAggregator(CACHE_RELATED, true));
+            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(Integer.valueOf(1))));
+            }
+        finally
+            {
+            cache.destroy();
+            cacheJoined.destroy();
+            }
+        }
+
 
     // ----- helper methods -------------------------------------------------
 
@@ -2902,7 +2962,8 @@ public class ReadWriteBackingMapTests
      * An EntryProcessor implementation to get the current size of the
      * AbstractCacheStore being used.
      */
-    public static class GetStoreSizeProcessor implements InvocableMap.EntryProcessor<String, Integer, Integer>
+    public static class GetStoreSizeProcessor
+            implements InvocableMap.EntryProcessor<String, Integer, Integer>
         {
         public GetStoreSizeProcessor()
             {
@@ -2917,6 +2978,78 @@ public class ReadWriteBackingMapTests
                     (ReadWriteBackingMap) ((BinaryEntry) entry).getBackingMapContext().getBackingMap();
             return ((AbstractTestStore) backingMap.getCacheStore().getStore()).getStorageMap().size();
             }
+        }
+
+    // ----- inner class: CustomAggregator ----------------------------------
+
+    public static class CustomAggregator
+            implements StreamingAggregator
+        {
+        // ----- constructors -----------------------------------------------
+
+        public CustomAggregator() {}
+
+        public CustomAggregator(String sCacheName, boolean fPresentOnly)
+            {
+            m_sCacheName       = sCacheName;
+            m_nCharacteristics = PARALLEL | (fPresentOnly ? PRESENT_ONLY : 0);
+            }
+
+        @Override
+        public StreamingAggregator supply()
+            {
+            return new CustomAggregator();
+            }
+
+        @Override
+        public boolean accumulate(Entry entry)
+            {
+            BinaryEntry binEntryThis = (BinaryEntry) entry;
+            BinaryEntry binEntryThat = (BinaryEntry) binEntryThis.getContext().getBackingMapContext(m_sCacheName).
+                    getReadOnlyEntry(binEntryThis.getBinaryKey());
+
+            Integer NValThis = (Integer) binEntryThis.getValue();
+            Integer NValThat = (Integer) (binEntryThat == null ? null : binEntryThat.getValue());
+
+            m_nValue += (NValThis == null ? 0 : NValThis.intValue()) +
+                    (NValThat == null ? 0 : NValThat.intValue());
+
+            return true;
+            }
+
+        @Override
+        public boolean combine(Object oPartial)
+            {
+            if (oPartial instanceof Integer)
+                {
+                m_nValue += ((Integer) oPartial).intValue();
+                }
+            return true;
+            }
+
+        @Override
+        public Object getPartialResult()
+            {
+            return m_nValue;
+            }
+
+        @Override
+        public Object finalizeResult()
+            {
+            return m_nValue;
+            }
+
+        @Override
+        public int characteristics()
+            {
+            return m_nCharacteristics;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        protected int    m_nValue;
+        protected String m_sCacheName;
+        protected int    m_nCharacteristics;
         }
 
     // ----- static helpers -------------------------------------------------

@@ -117,14 +117,17 @@ public interface BackingMapContext
      * format) from the associated cache.
      * <p>
      * This method may be called within the context of an EntryProcessor or Aggregator
-     * invocation
+     * invocation, and may result in a {@link com.tangosol.net.cache.CacheLoader#load(java.lang.Object)
+     * load}.
+     * <p>
+     * Note: to infer whether the InvocableMap.Entry exists in the cache use
+     *       {@link InvocableMap.Entry#isPresent()}
      *
      * @param oKey  the key (in internal format) to obtain an entry for;
      *              must not be null
      *
-     * @return  an InvocableMap.Entry for the specified key, or null if the
-     *         specified key is not owned by this service member or the corresponding
-     *         entry does not exist in the associated cache
+     * @return an InvocableMap.Entry for the specified key, or null if the
+     *         specified key is not owned by this service member
      *
      * @throws IllegalStateException if called from an inactive invocation context
      */
