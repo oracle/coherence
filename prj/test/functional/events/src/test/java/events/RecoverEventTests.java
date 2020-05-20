@@ -307,13 +307,15 @@ public class RecoverEventTests
             {
             Eventually.assertThat(invoking(proxy).isMBeanRegistered(sPersistenceMBean), is(true));
             }
-        catch (RuntimeException e)
+        catch (AssertionError | RuntimeException t)
             {
             CacheFactory.log("Could not find MBean (" + sPersistenceMBean + "); following has been registered:\n" +
                     proxy.queryNames("type=Persistence,*", null), CacheFactory.LOG_INFO);
 
             String sOut = HeapDump.dumpHeap();
             CacheFactory.log("Dumping heap for analysis here :\n" + sOut, CacheFactory.LOG_INFO);
+
+            throw t;
             }
         }
 
