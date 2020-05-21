@@ -6,4 +6,3 @@
 #
 
 com.oracle.coherence.mp.config.CoherenceConfigSource
-com.oracle.coherence.mp.config.CoherenceLoggingConfigSource

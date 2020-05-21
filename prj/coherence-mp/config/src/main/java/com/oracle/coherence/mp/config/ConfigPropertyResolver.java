@@ -38,6 +38,7 @@ public class ConfigPropertyResolver
         ConfigBuilder builder = resolver.getBuilder();
         m_config = builder
                 .addDefaultSources()
+                .withSources(new CoherenceLoggingConfigSource())
                 .build();
         }
 
