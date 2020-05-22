@@ -1570,6 +1570,9 @@
         <!-- internal modules -->
         <module>coherence-core-components</module>
 
+        <!-- distributed modules -->
+        <module>coherence-javadoc</module>
+
         <!-- functional tests that require a full distribution to have been built -->
         <module>test/distribution</module>
       </modules>
@@ -1890,6 +1893,20 @@
       <id>stage13</id>
       <modules>
         <module>test/distribution</module>
+      </modules>
+    </profile>
+
+    <!--
+       stage14 runs javadoc
+    -->
+    <profile>
+      <id>stage14</id>
+      <properties>
+        <project.official>true</project.official>
+        <skipTests>true</skipTests>
+      </properties>
+      <modules>
+        <module>coherence-javadoc</module>
       </modules>
     </profile>
 
