@@ -689,10 +689,7 @@
                 </additionalDependency>
               </additionalDependencies>
 
-              <!-- changes here should be duplicated in coherence-javadoc/pom.xml -->
               <sourceFileIncludes>
-                <include>com/oracle/coherence/common/base/*.java</include>
-
                 <include>com/tangosol/application/*.java</include>
 
                 <include>com/tangosol/coherence/config/*.java</include>
