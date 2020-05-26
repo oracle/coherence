@@ -250,26 +250,6 @@
                     <resource>
                       <directory>../coherence-rest/src/main/java</directory>
                     </resource>
-
-                    <resource>
-                      <directory>../coherence-cdi/src/main/java</directory>
-                    </resource>
-
-                    <resource>
-                      <directory>../coherence-cdi-server/src/main/java</directory>
-                    </resource>
-
-                    <resource>
-                      <directory>../coherence-mp/config/src/main/java</directory>
-                    </resource>
-
-                    <resource>
-                      <directory>../coherence-mp/messaging/src/main/java</directory>
-                    </resource>
-
-                    <resource>
-                      <directory>../coherence-mp/metrics/src/main/java</directory>
-                    </resource>
                   </resources>
 
                   <!-- always start clean -->
@@ -301,9 +281,6 @@
                   <reportOutputDirectory>${project.build.directory}/javadoc</reportOutputDirectory>
                   <skip>false</skip>
                   <sourceFileIncludes>
-                    <include>com/oracle/coherence/cdi/*.java</include>
-                    <include>com/oracle/coherence/mp/**/*.java</include>
-
                     <include>com/tangosol/application/*.java</include>
                     <include>com/tangosol/application/server/*.java</include>
 
@@ -476,14 +453,6 @@
                       <packages>
                         com.tangosol.coherence.rest*:com.tangosol.coherence.rest.io*:com.tangosol.coherence.rest.query*:com.tangosol.coherence.rest.server*:com.tangosol.coherence.rest.servlet*:com.tangosol.coherence.rest.util.aggregator*:com.tangosol.coherence.rest.util.processor*
                       </packages>
-                    </group>
-                    <group>
-                      <title>Coherence CDI</title>
-                      <packages>com.oracle.coherence.cdi*</packages>
-                    </group>
-                    <group>
-                      <title>Coherence MicroProfile</title>
-                      <packages>com.oracle.coherence.mp*</packages>
                     </group>
                   </groups>
                 </configuration>
