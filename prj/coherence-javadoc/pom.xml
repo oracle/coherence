@@ -121,6 +121,23 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- grpc -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-grpc-proxy-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-java-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -312,6 +329,18 @@
                     <resource>
                       <directory>../coherence-mp/metrics/src/main/java</directory>
                     </resource>
+
+                    <resource>
+                      <directory>../coherence-grpc-proxy-client/src/main/java</directory>
+                    </resource>
+
+                    <resource>
+                      <directory>../coherence-grpc-proxy/src/main/java</directory>
+                    </resource>
+
+                    <resource>
+                      <directory>../coherence-java-client/src/main/java</directory>
+                    </resource>
                   </resources>
 
                   <!-- always start clean -->
@@ -343,8 +372,15 @@
                   <reportOutputDirectory>${project.build.directory}/javadoc</reportOutputDirectory>
                   <skip>false</skip>
                   <sourceFileIncludes>
+                    <include>com/oracle/coherence/common/base/*.java</include>
                     <include>com/oracle/coherence/cdi/*.java</include>
-                    <include>com/oracle/coherence/mp/**/*.java</include>
+
+                    <include>com/oracle/coherence/mp/config/*.java</include>
+                    <include>com/oracle/coherence/mp/messaging/*.java</include>
+
+                    <include>com/oracle/coherence/grpc/proxy/*.java</include>
+                    <include>com/oracle/coherence/grpc/proxy/client/*.java</include>
+                    <include>com/oracle/coherence/cache/grpc/client/*.java</include>
 
                     <include>com/tangosol/application/*.java</include>
                     <include>com/tangosol/application/server/*.java</include>
@@ -488,7 +524,7 @@
                     <group>
                       <title>Coherence</title>
                       <packages>
-                        com.tangosol.injection*:com.tangosol.io*:com.tangosol.net*:com.tangosol.run*:com.tangosol.util*:com.oracle.common*
+                        com.tangosol.injection*:com.tangosol.io*:com.tangosol.net*:com.tangosol.run*:com.tangosol.util*:com.oracle.coherence.common.base*
                       </packages>
                     </group>
                     <group>
@@ -526,6 +562,10 @@
                     <group>
                       <title>Coherence MicroProfile</title>
                       <packages>com.oracle.coherence.mp*</packages>
+                    </group>
+                    <group>
+                      <title>Coherence gRPC</title>
+                      <packages>com.oracle.coherence.grpc*:com.oracle.coherence.cache.grpc.client*</packages>
                     </group>
                   </groups>
                 </configuration>

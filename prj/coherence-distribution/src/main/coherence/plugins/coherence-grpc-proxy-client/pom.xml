@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.oracle.coherence</groupId>
+  <artifactId>coherence-grpc-proxy-client</artifactId>
+  <version>${project.version.pom}</version>
+  <name>${project.organization.name} Coherence gRPC Proxy Client</name>
+  <description>${project.organization.name} Coherence gRPC Proxy Client</description>
+  <url>http://www.oracle.com/us/products/middleware/cloud-app-foundation/coherence/overview/index.html</url>
+  <inceptionYear>2002</inceptionYear>
+  <!-- ${project.oracle.maven.header} -->
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>${protobuf.lib.version}</version>
+    </dependency>
+  </dependencies>
+</project>

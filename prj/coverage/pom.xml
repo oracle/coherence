@@ -99,12 +99,52 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-grpc-proxy-client</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-grpc-proxy</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-java-client</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-hotcache-core</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-hotcache-oracle</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+         <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-http-grizzly</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+         <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-http-jetty</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+         <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-http-netty</artifactId>
           <version>${project.version}</version>
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-jcache</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-json</artifactId>
           <version>${project.version}</version>
         </dependency>
         <dependency>

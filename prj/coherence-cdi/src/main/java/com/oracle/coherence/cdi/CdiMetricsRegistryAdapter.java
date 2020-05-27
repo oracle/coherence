@@ -47,10 +47,20 @@ public class CdiMetricsRegistryAdapter
      */
     private void delegate(Consumer<MetricsRegistryAdapter> action)
         {
+        CDI<Object> cdi;
+        try
+            {
+            cdi = CDI.current();
+            }
+        catch (IllegalStateException cdiNotAvailable)
+            {
+            return;
+            }
+
         Instance<MetricsRegistryAdapter> adapters = m_adapters;
         if (adapters == null)
             {
-            adapters = m_adapters = CDI.current().select(MetricsRegistryAdapter.class);
+            adapters = m_adapters = cdi.select(MetricsRegistryAdapter.class);
             }
 
         adapters.forEach(action);

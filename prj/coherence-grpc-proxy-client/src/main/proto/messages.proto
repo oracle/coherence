@@ -1,0 +1,454 @@
+/*
+ * Copyright (c) 2020, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
+// Authors:
+//  Mahesh Kannan
+//  Jonathan Knight
+
+// NamedCacheService message types
+//
+
+syntax = "proto3";
+
+package coherence;
+
+option java_multiple_files = true;
+option java_package = "com.oracle.coherence.grpc.proxy.client";
+
+// A request to clear all the entries in the cache.
+message ClearRequest {
+    // The name of the cache.
+    string cache = 1;
+}
+
+// A request to determine whether an entry exists in a cache
+// with a specific key and value.
+message ContainsEntryRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialization format.
+    bytes key = 3;
+    // The value of the entry to verify.
+    bytes value = 4;
+}
+
+// A request to determine whether an entry exists in a cache
+// for the specified key.
+message ContainsKeyRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The key of the entry to verify.
+    bytes key = 3;
+}
+
+// A request to determine whether an entry exists in a cache
+// with the specified value.
+message ContainsValueRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The value of the entry to verify.
+    bytes value = 3;
+}
+
+// A request to destroy a cache.
+message DestroyRequest {
+    // The name of the cache.
+    string cache = 1;
+}
+
+// A request to determine whether a cache is empty or not.
+message IsEmptyRequest {
+    // The name of the cache.
+    string cache = 1;
+}
+
+// A request to determine the number of entries in a cache.
+message SizeRequest {
+    // The name of the cache.
+    string cache = 1;
+}
+
+// A request to obtain the value to which a cache maps the
+// specified key.
+message GetRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The key of the entry to retrieve.
+    bytes key = 3;
+}
+
+// A request to obtain the values that map to the specified keys
+message GetAllRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The key of the entry to retrieve.
+    repeated bytes key = 3;
+}
+
+// A request to associate the specified value with the
+// specified key in a cache.
+message PutRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The cache entry key.
+    bytes key = 3;
+    // The value of the entry.
+    bytes value = 4;
+    // The time to live in millis.
+    int64 ttl = 5;
+}
+
+// A request to associate the specified value with the
+// specified key in a cache.
+message PutAllRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The cache entries to put.
+    repeated Entry entry = 3;
+}
+
+// A request to associate the specified value with the
+// specified key in a cache only if the specified key
+// is not associated with any value (including null).
+message PutIfAbsentRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The cache entry key.
+    bytes key = 3;
+    // The value to be put.
+    bytes value = 4;
+    // The time to live in millis.
+    int64 ttl = 5;
+}
+
+// A request to remove the mapping for a key from a cache
+// if it is present.
+message RemoveRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The key of the entry to be removed.
+    bytes key = 3;
+}
+
+// A request to remove the mapping for a key from a cache
+// only if the specified key is associated with the specified
+// value in that cache.
+message RemoveMappingRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The key of the entry to be removed.
+    bytes key = 3;
+    // The value of the entry to verify.
+    bytes value = 4;
+}
+
+// A request to replace the mapping for the specified key
+// with the specified value in a cache only if the specified
+// key is associated with some value in that cache.
+message ReplaceRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The key of the entry to be replaced.
+    bytes key = 3;
+    // The value of the entry to be replaced.
+    bytes value = 4;
+}
+
+// A request to replace the mapping for the specified key
+// with the specified newValue in a cache only if the specified
+// key is associated with the specified previousValue in
+// that cache.
+message ReplaceMappingRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The key of the entry to be replaced.
+    bytes key = 3;
+    // The previous value that should exist in the cache.
+    bytes previousValue = 4;
+    // The new value to put.
+    bytes newValue = 5;
+}
+
+// A request for a page of data from a cache.
+// This request is used for implementing methods such as NamedCache.keySet(),
+// NamedCache.entrySet() and NamedCache.values() where it would be impractical
+// to return the whole data set in one response.
+message PageRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format
+    string format = 2;
+    // An opaque cookie to track the requested page.
+    bytes cookie = 4;
+}
+
+// A cache entry key/value pair.
+message EntryResult {
+    // The cache entry key.
+    bytes key = 1;
+    // The cache entry value.
+    bytes value = 2;
+    // An opaque cookie to track the requested page.
+    bytes cookie = 3;
+}
+
+// A key value pair.
+message Entry {
+    // The cache entry key.
+    bytes key = 1;
+    // The value of the entry.
+    bytes value = 2;
+}
+
+// A request to truncate a cache.
+message TruncateRequest {
+    // The name of the cache.
+    string cache = 1;
+}
+
+// A request to add an index to a cache
+message AddIndexRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialized ValueExtractor to use to creat the index.
+    bytes extractor = 3;
+    // A flag indicating whether to sort the index
+    bool sorted = 4;
+    // The optional comparator to use to sort the index.
+    bytes comparator = 5;
+}
+
+// A request to remove an index from a cache
+message RemoveIndexRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialized ValueExtractor to use to creat the index.
+    bytes extractor = 3;
+}
+
+// A request to aggreagte entries in a cache.
+message AggregateRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialized EntryAggregator to use to creat the index.
+    bytes aggregator = 3;
+    // The optional set of serialized keys of the entries to aggregate.
+    repeated bytes keys = 4;
+    // The optional serialized Filter to identify the entries to aggregate.
+    bytes filter = 5;
+}
+
+// A request to invoke an EntryProcessor against a single entry.
+message InvokeRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialized EntryProcessor to use to creat the index.
+    bytes processor = 3;
+    // The serialized key of the entry to process.
+    bytes key = 4;
+}
+
+// A request to invoke an entry processor against a number of entries.
+message InvokeAllRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialized EntryProcessor to use to creat the index.
+    bytes processor = 3;
+    // The optional set of serialized keys of the entries to process.
+    repeated bytes keys = 4;
+    // The optional serialized Filter to identify the entries to process.
+    bytes filter = 5;
+}
+
+// A request to get a set of entries from a cache.
+message EntrySetRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialized Filter to identify the entries to return.
+    bytes filter = 3;
+    // The optional comparator to use to sort the returned entries.
+    bytes comparator = 4;
+}
+
+// A request to get a set of keys from a cache.
+message KeySetRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialized Filter to identify the keys to return.
+    bytes filter = 3;
+}
+
+// A request to get a collection of values from a cache.
+message ValuesRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // The serialized Filter to identify the values to return.
+    bytes filter = 3;
+    // The optional comparator to use to sort the returned values.
+    bytes comparator = 4;
+}
+
+// An optional value.
+message OptionalValue {
+    // A flag indicating whether the value is present.
+    bool present = 1;
+    // The serialized value.
+    bytes value = 2;
+}
+
+// A message to subscribe to or unsubscribe from MapEvents for a cache.
+message MapListenerRequest {
+    // The name of the cache.
+    string cache = 1;
+    // The serialization format.
+    string format = 2;
+    // A unique identifier for the request so that the client
+    // can match a request to a response
+    string uid = 3;
+    // An enum representing the request type
+    enum RequestType {
+        // The request to initialise the channel.
+        INIT = 0;
+        // The request is for a key listener.
+        KEY = 1;
+        // The request is for a Filter listener.
+        FILTER = 2;
+    }
+    // The type of the request.
+    RequestType type = 4;
+    // The serialized Filter to identify the entries to subscribe to.
+    bytes filter = 5;
+    // The serialized key to identify the entry to subscribe to.
+    bytes key = 6;
+    // A flag set to true to indicate that the MapEvent objects do
+    // not have to include the OldValue and NewValue property values
+    // in order to allow optimizations
+    bool lite = 7;
+    // A flag indicating whether to subscribe to (true) or unsubscribe from (false) events.
+    bool subscribe = 8;
+    // A flag set to true to indicate that the listener is a priming listener.
+    bool priming = 9;
+    // An optional serialized MapTrigger.
+    bytes trigger = 10;
+    // A unique filter identifier.
+    int64 filterId = 11;
+}
+
+// A response to indicate that a MapListener was subscribed to a cache.
+message MapListenerResponse {
+    // A response can be one of either a subscribed response or an event response.
+    oneof response_type {
+        MapListenerSubscribedResponse subscribed = 1;
+        MapListenerUnsubscribedResponse unsubscribed = 2;
+        MapEventResponse event = 3;
+        MapListenerErrorResponse error = 4;
+        CacheDestroyedResponse destroyed = 5;
+        CacheTruncatedResponse truncated = 6;
+    }
+}
+
+// A response to indicate that a MapListener was subscribed to a cache.
+message MapListenerSubscribedResponse {
+    string uid = 1;
+}
+
+// A response to indicate that a MapListener was unsubscribed from a cache.
+message MapListenerUnsubscribedResponse {
+    string uid = 1;
+}
+
+// A response to indicate that a cache was destroyed.
+message CacheDestroyedResponse {
+    string cache = 1;
+}
+
+// A response to indicate that a cache was truncated.
+message CacheTruncatedResponse {
+    string cache = 1;
+}
+
+// A response to indicate that an error occurred processing a MapListener request.
+message MapListenerErrorResponse {
+    string uid = 1;
+    string message = 2;
+    int32 code = 3;
+    repeated string stack = 4;
+}
+
+// A response containing a MapEvent for a MapListener
+message MapEventResponse {
+    // The type of the event
+    int32 id = 1;
+    // The key of the entry
+    bytes key = 2;
+    // The new value of the entry
+    bytes newValue = 3;
+    // The old value of the entry
+    bytes oldValue = 4;
+    // An enum of TransformationState values to describes how a CacheEvent has been or should be transformed.
+    enum TransformationState {
+        // Value used to indicate that an event is non-transformable and should
+        // not be passed to any transformer-based listeners.
+        NON_TRANSFORMABLE = 0;
+        // Value used to indicate that an event is transformable and could be
+        // passed to transformer-based listeners.
+        TRANSFORMABLE = 1;
+        // Value used to indicate that an event has been transformed, and should
+        // only be passed to transformer-based listeners.
+        TRANSFORMED = 2;
+    }
+    // TransformationState describes how a CacheEvent has been or should be transformed.
+    TransformationState transformationState = 5;
+    // The Filter identifiers applicable to the event.
+    repeated int64 filterIds = 6;
+    // A flag indicating whether the event is a synthetic event.
+    bool synthetic = 7;
+    // A flag indicating whether the event is a priming event.
+    bool priming = 8;
+}
+
+

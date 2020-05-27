@@ -25,6 +25,12 @@
       <artifactId>tracing-jaeger-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- JSON serialization -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-json</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
         <groupId>jakarta.json</groupId>
         <artifactId>jakarta.json-api</artifactId>

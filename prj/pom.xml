@@ -192,6 +192,11 @@
         <version>${helidon.version}</version>
       </dependency>
       <dependency>
+        <groupId>io.helidon.metrics</groupId>
+        <artifactId>helidon-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
         <groupId>io.helidon.microprofile.config</groupId>
         <artifactId>helidon-microprofile-config</artifactId>
         <version>${helidon.version}</version>
@@ -199,6 +204,31 @@
       <dependency>
         <groupId>io.helidon.microprofile.metrics</groupId>
         <artifactId>helidon-microprofile-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.microprofile.grpc</groupId>
+        <artifactId>helidon-microprofile-grpc-server</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.microprofile.grpc</groupId>
+        <artifactId>helidon-microprofile-grpc-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.microprofile.grpc</groupId>
+        <artifactId>helidon-microprofile-grpc-client</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.grpc</groupId>
+        <artifactId>helidon-grpc-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.tracing</groupId>
+        <artifactId>helidon-tracing-jaeger</artifactId>
         <version>${helidon.version}</version>
       </dependency>
 
@@ -528,6 +558,20 @@
           <scope>test</scope>
       </dependency>
 
+      <!-- rxjava -->
+      <dependency>
+        <groupId>io.reactivex.rxjava3</groupId>
+        <artifactId>rxjava</artifactId>
+        <version>${rxjava.version}</version>
+      </dependency>
+
+      <!-- Protobuf -->
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${protobuf.version}</version>
+      </dependency>
+
       <!-- test dependencies -->
       <dependency>
         <groupId>org.jacoco</groupId>
@@ -634,6 +678,18 @@
         <artifactId>jakarta.xml.bind-api</artifactId>
         <version>${jaxb-api.version}</version>
       </dependency>
+
+      <!-- gRPC -->
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-protobuf</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-services</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -710,6 +766,7 @@
     <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
     <maven.animalsniffer.plugin.version>1.16</maven.animalsniffer.plugin.version>
     <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
+    <maven.protobuf.plugin.version>0.5.1</maven.protobuf.plugin.version>
 
     <!-- library dependency versions -->
     <activation-api.version>1.2.2</activation-api.version>
@@ -725,7 +782,9 @@
     <eclipse.jetty.version>9.3.11.v20160721</eclipse.jetty.version>
     <felix.version>6.0.3</felix.version>
     <graal.version>19.3.1</graal.version>
-    <helidon.version>2.0.0-M2</helidon.version>
+    <grpc.version>1.25.0</grpc.version>
+    <helidon.version>2.0.0-COH-INTERNAL-1</helidon.version>
+    <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
     <jackson.version>2.10.2</jackson.version>
     <jackson.databind.version>${jackson.version}</jackson.databind.version>
@@ -751,6 +810,12 @@
     <netty.version>4.1.45.Final</netty.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
+    <oracle.db.version>11.2.0.3.0</oracle.db.version>
+    <org.apache.sshd.version>2.3.0</org.apache.sshd.version>
+    <protobuf.version>3.10.0</protobuf.version>
+    <resin.version>3.0</resin.version>
+    <rxjava.version>3.0.2</rxjava.version>
+    <sdoapi.version>12.1.0.1</sdoapi.version>
     <servlet.version>3.1.0</servlet.version>
     <slf4j.version>1.7.26</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
@@ -998,6 +1063,25 @@
             <groupId>org.commonjava.maven.plugins</groupId>
             <artifactId>directory-maven-plugin</artifactId>
             <version>${maven.directory.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.xolstice.maven.plugins</groupId>
+          <artifactId>protobuf-maven-plugin</artifactId>
+          <version>${maven.protobuf.plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>compile</goal>
+                <goal>test-compile</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <protocArtifact>com.google.protobuf:protoc:3.5.1-1:exe:${os.detected.classifier}</protocArtifact>
+            <pluginId>grpc-java</pluginId>
+            <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+          </configuration>
         </plugin>
 
         <!-- maven-antrun-plugin -->
@@ -1517,6 +1601,9 @@
 
         <module>coherence-testing-support</module>
 
+        <!-- coherence-json is distributed, but must be built before tests -->
+        <module>coherence-json</module>
+
         <module>coherence-tracing</module>
         <module>coherence-docker</module>
 
@@ -1540,6 +1627,9 @@
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
+        <module>coherence-grpc-proxy-client</module>
+        <module>coherence-grpc-proxy</module>
+        <module>coherence-java-client</module>
       </modules>
     </profile>
 
@@ -1801,6 +1891,9 @@
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
+        <module>coherence-grpc-proxy-client</module>
+        <module>coherence-grpc-proxy</module>
+        <module>coherence-java-client</module>
       </modules>
     </profile>
 
