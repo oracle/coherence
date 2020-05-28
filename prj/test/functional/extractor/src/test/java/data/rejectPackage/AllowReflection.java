@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2020, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
+package data.rejectPackage;
+
+
+/**
+ * Test class for CoherenceReflectFilterTests.
+ *
+ * @author jf 2020.05.19
+ */
+public class AllowReflection
+    implements data.TestInterface
+    {
+    // ----- constructors ---------------------------------------------------
+
+    public AllowReflection(String sValue)
+        {
+        m_sProperty = sValue;
+        }
+
+    // ----- TestInterface methods ------------------------------------------
+
+    @Override
+    public String getProperty()
+        {
+        return m_sProperty;
+        }
+
+    @Override
+    public void setProperty(String sValue)
+        {
+        m_sProperty = sValue;
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    private String m_sProperty;
+    }

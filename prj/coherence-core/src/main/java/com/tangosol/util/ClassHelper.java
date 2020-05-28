@@ -8,7 +8,7 @@
 package com.tangosol.util;
 
 
-import com.tangosol.coherence.config.Config;
+import com.tangosol.internal.util.extractor.ReflectionAllowedFilter;
 
 import com.tangosol.run.xml.XmlElement;
 
@@ -1473,27 +1473,10 @@ public abstract class ClassHelper
     * @param oTarget  the reflection target
     *
     * @return {@code true} if {@code oTarget} is a valid type for reflection operations
-    *
     */
     public static boolean isReflectionAllowed(Object oTarget)
         {
-        return FILTERING_DISABLED || !isBlackListed(oTarget);
-        }
-
-    // ----- helper methods -------------------------------------------------
-
-    /**
-    * Returns {@code true} if the type of the provided object is black listed.
-    *
-    * @param oTarget  the reflection target
-    *
-    * @return {@code true} if the type of the provided object is black listed.
-    */
-    private static boolean isBlackListed(Object oTarget)
-        {
-        return oTarget instanceof Class   ||
-               oTarget instanceof Runtime ||
-               oTarget instanceof System;
+        return ReflectionAllowedFilter.INSTANCE.evaluate(oTarget.getClass());
         }
 
     // ----- constants ------------------------------------------------------
@@ -1509,33 +1492,50 @@ public abstract class ClassHelper
     public final static Object[] VOID = new Object[0];
 
     /**
-    * System property specifying valid reflect target types.
-    */
-    public final static String REFLECT_FILTER_PROPERTY = "coherence.reflect.filter";
+     * Separator for filter patterns.
+     */
+    public final static String REFLECT_FILTER_SEPARATOR = ReflectionAllowedFilter.REFLECT_FILTER_SEPARATOR;
 
     /**
-    * Value to disable the reflection target blacklist.
-    */
-    public final static String REFLECT_ALLOW_ALL = "*";
+     *  Configure reflection allowed class white list and/or black list by setting the value of this
+     *  system property to a set of patterns.
+     *  <p>
+     *  Patterns are separated by ";" (semicolon). Whitespace is significant and
+     *  is considered part of the pattern.
+     *  <ul>
+     *  <li>If the pattern starts with "!", the class is rejected if the remaining pattern is matched;
+     *      otherwise the class is allowed if the pattern matches.</li>
+     *  <li>If the pattern ends with ".**" it matches any class in the package and all subpackages.</li>
+     *  <li>If the pattern ends with ".*" it matches any class in the package.</li>
+     *  <li>If the pattern ends with "*", it matches any class with the pattern as a prefix.</li>
+     *  <li>If the pattern is equal to the class name, it matches.</li>
+     *  <li>Otherwise, the pattern is not matched.</li>
+     *  </ul>
+     *  <p>
+     *  The resulting filter tries to match the class, if any.
+     *  The first pattern that matches, working from left to right, determines
+     *  if a reflection is allowed on a class by the filter or rejected.
+     *  If none of the patterns match the class, reflection will be allowed.
+     */
+    public final static String REFLECT_FILTER_PROPERTY = ReflectionAllowedFilter.REFLECT_FILTER_PROPERTY;
 
     /**
-    * Flag, when {@code true}, indicates that all types are valid reflection targets.
-    */
-    private final static boolean FILTERING_DISABLED;
+     * Value to set system property {@link #REFLECT_FILTER_PROPERTY} to disable the reflection allowed filter.
+     */
+    public final static String REFLECT_ALLOW_ALL = ReflectionAllowedFilter.REFLECT_ALLOW_ALL;
 
     /**
-    * Default reflection filter list which disables reflection against the following types:
-    * <ul>
-    *     <li>java.lang.Class</li>
-    *     <li>java.lang.System</li>
-    *     <li>java.lang.Runtime</li>
-    * </ul>
-    */
-    private final static String DEFAULT_FILTER_LIST = "!java.lang.Class,!java.lang.System,!java.lang.Runtime";
+     * Default reflection filter list which disables reflection against the following types:
+     * <ul>
+     *     <li>java.lang.Class</li>
+     *     <li>java.lang.System</li>
+     *     <li>java.lang.Runtime</li>
+     * </ul>
+     */
+    public final static String DEFAULT_REFLECT_ALLOWED_BLACKLIST = ReflectionAllowedFilter.DEFAULT_REFLECT_ALLOWED_BLACKLIST;
 
-    static
-        {
-        FILTERING_DISABLED = REFLECT_ALLOW_ALL.equals(
-                Config.getProperty(REFLECT_FILTER_PROPERTY, DEFAULT_FILTER_LIST));
-        }
+    /**
+     * Composed of {@link #DEFAULT_REFLECT_ALLOWED_BLACKLIST} followed by allowing reflection against all other classes.
+     */
+    public final static String DEFAULT_FILTER_LIST = ReflectionAllowedFilter.DEFAULT_FILTER_LIST;
     }

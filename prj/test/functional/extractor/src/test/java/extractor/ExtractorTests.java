@@ -18,6 +18,7 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.WrapperException;
 
 import com.tangosol.util.extractor.AbstractExtractor;
 import com.tangosol.util.extractor.DeserializationAccelerator;
@@ -25,6 +26,7 @@ import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
+import com.tangosol.util.extractor.UniversalExtractor;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.LessEqualsFilter;
 
@@ -279,7 +281,39 @@ public class ExtractorTests
             }
         }
 
-    // ----- helpers --------------------------------------------------------
+    @Test(expected = IllegalArgumentException.class)
+    public void testMustNotExtractFromRuntime()
+        throws Throwable
+        {
+        ValueExtractor<Runtime, String> extractor = new UniversalExtractor<>("toString()");
+        try
+            {
+            String s = extractor.extract(Runtime.getRuntime());
+            fail("must throw exception");
+            }
+        catch (WrapperException e)
+            {
+            System.out.println(e.getOriginalException().getLocalizedMessage());
+            throw e.getOriginalException();
+            }
+        }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMustNotExtractFromClass()
+        throws Throwable
+        {
+        ValueExtractor<Class, String> extractor = new UniversalExtractor<>("toString()");
+        try
+            {
+            String s = extractor.extract(String.class);
+            fail("must throw exception");
+            }
+        catch (WrapperException e)
+            {
+            System.out.println(e.getOriginalException().getLocalizedMessage());
+            throw e.getOriginalException();
+            }
+        }
 
     /**
     * Return the cache used by all test methods.
