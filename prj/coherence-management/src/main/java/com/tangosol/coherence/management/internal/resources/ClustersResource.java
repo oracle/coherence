@@ -6,11 +6,10 @@
  */
 package com.tangosol.coherence.management.internal.resources;
 
-import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 import com.tangosol.coherence.management.internal.ClusterNameSupplier;
+import com.tangosol.coherence.management.internal.EntityMBeanResponse;
+
 import com.tangosol.util.Filter;
-import com.tangosol.util.extractor.IdentityExtractor;
-import com.tangosol.util.filter.EqualsFilter;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -18,7 +17,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+
 import java.net.URI;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -127,8 +128,8 @@ public class ClustersResource
     private Filter<String> createDomainPartitionFilter()
         {
         String sDomainPartitionName = m_uriInfo.getQueryParameters().getFirst(DOMAIN_PARTITION);
-        return (sDomainPartitionName == null) ? null
-                : new EqualsFilter<>(IdentityExtractor.INSTANCE(), sDomainPartitionName);
+        return (sDomainPartitionName == null)
+               ? null : s -> s.equals(sDomainPartitionName);
         }
 
     // ----- data members ---------------------------------------------------

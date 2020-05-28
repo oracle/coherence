@@ -1115,9 +1115,9 @@ public abstract class AbstractManagementResource
             return m_uriInfo.getQueryParameters().getFirst(EXCLUDE_FIELDS);
             }
 
-        List<String> listIncludeFields = (List<String>) mapQuery.get(EXCLUDE_FIELDS);
+        List<String> listExcludeFields = (List<String>) mapQuery.get(EXCLUDE_FIELDS);
 
-        return listIncludeFields == null ? null : listIncludeFields.stream().collect(Collectors.joining(","));
+        return listExcludeFields == null ? null : listExcludeFields.stream().collect(Collectors.joining(","));
         }
 
     /**

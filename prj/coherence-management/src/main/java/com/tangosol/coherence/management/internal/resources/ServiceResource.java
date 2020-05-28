@@ -239,7 +239,7 @@ public class ServiceResource
         EntityMBeanResponse response =
                 getResponseEntityForMbean(bldrQuery, uriParent, uriSelf, filterAttributes, filterLinks, CHILD_LINKS);
 
-        if(response != null)
+        if (response != null)
             {
             Object              oChildren = getChildrenQuery(mapQuery);
             Map<String, Object> mapEntity = response.getEntity();

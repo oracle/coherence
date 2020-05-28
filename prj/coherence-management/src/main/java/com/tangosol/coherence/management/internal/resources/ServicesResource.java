@@ -17,17 +17,13 @@ import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Filter;
 
-import com.tangosol.util.extractor.IdentityExtractor;
-
-import com.tangosol.util.filter.EqualsFilter;
-import com.tangosol.util.filter.IsNullFilter;
-
 import java.net.URI;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import java.util.Set;
 import java.util.function.Predicate;
@@ -309,8 +305,8 @@ public class ServicesResource extends AbstractManagementResource
     public Filter<String> createDomainPartitionPredicate(String sDomainPartitionName)
         {
         return sDomainPartitionName == null
-                ? new IsNullFilter<>(IdentityExtractor.INSTANCE())
-                : new EqualsFilter<>(IdentityExtractor.INSTANCE(), sDomainPartitionName);
+                ? Objects::isNull
+                : s -> s.equals(sDomainPartitionName);
 
         /*
         return uriInfo ->
