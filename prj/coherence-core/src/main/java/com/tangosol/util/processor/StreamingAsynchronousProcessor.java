@@ -71,7 +71,7 @@ public class StreamingAsynchronousProcessor<K, V, R>
         }
 
     /**
-     * Construct an  for a given processor, and one or more callbacks.
+     * Construct a StreamingAsynchronousProcessor for a given processor and one or more callbacks.
      * <p>
      * <b>Important Note:</b> All provided callbacks must be non-blocking.
      * For example, any use of {@link NamedCache} API is completely disallowed.
