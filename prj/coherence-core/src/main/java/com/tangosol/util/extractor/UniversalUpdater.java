@@ -90,14 +90,6 @@ public class UniversalUpdater
             }
 
         Class<?> clzTarget = oTarget.getClass();
-
-        if (!ClassHelper.isReflectionAllowed(oTarget))
-            {
-            throw new IllegalArgumentException("The type, " + clzTarget.getName() +
-                    ", is disallowed as a reflection target by the current " +
-                    "reflection filter configuration");
-            }
-
         TargetReflectionDescriptor targetPrev = m_targetPrev;
         try
             {
@@ -234,6 +226,14 @@ public class UniversalUpdater
             }
         else
             {
+            // only check if reflection is allowed when method is non null and not cached from previous update
+            if (!ClassHelper.isReflectionAllowed(oTarget))
+                {
+                throw new IllegalArgumentException("The type, " + clzTarget.getName() +
+                    ", is disallowed as a reflection target by the current " +
+                    "reflection filter configuration");
+                }
+
             m_targetPrev = new TargetReflectionDescriptor(clzTarget, method);
             }
         method.invoke(oTarget, oValue);

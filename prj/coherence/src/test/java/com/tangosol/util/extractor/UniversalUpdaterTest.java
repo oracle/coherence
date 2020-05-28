@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.tangosol.util.WrapperException;
+
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertFalse;
@@ -222,5 +224,38 @@ public class UniversalUpdaterTest
             }
 
         assertTrue("expected 1, observed " + updater.nUpdateComplexCalls, updater.nUpdateComplexCalls == 1 && maps.size() == 10);
+        }
+
+
+    @SuppressWarnings("unchecked")
+    @Test(expected = IllegalArgumentException.class)
+    public void testDefaultReflectionBlacklistAgainstClass()
+        throws Throwable
+        {
+        UniversalUpdater extractor = new UniversalUpdater("isInstance()");
+        try
+            {
+            extractor.update(String.class, "stringInstance");
+            }
+        catch (WrapperException e)
+            {
+            throw e.getOriginalException();
+            }
+        }
+
+    @SuppressWarnings("unchecked")
+    @Test(expected = IllegalArgumentException.class)
+    public void testDefaultReflectionBlacklistAgainstRuntime()
+        throws Throwable
+        {
+        UniversalUpdater extractor = new UniversalUpdater("exec()");
+        try
+            {
+            extractor.update(Runtime.getRuntime(), "command");
+            }
+        catch (WrapperException e)
+            {
+            throw e.getOriginalException();
+            }
         }
     }
