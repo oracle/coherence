@@ -359,53 +359,6 @@
         <version>${jsonp.version}</version>
       </dependency>
 
-      <!-- jvisualvm -->
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-application</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-application-views</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-charts</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-core</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-tools</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>org-openide-modules</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>org-openide-util</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>org-openide-dialogs</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>org-openide-windows</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-
       <!-- ldb -->
       <dependency>
         <groupId>org.fusesource.leveldbjni</groupId>
@@ -1383,7 +1336,6 @@
         <!-- distributed modules -->
         <module>coherence</module>
         <module>coherence-jcache</module>
-        <module>coherence-jvisualvm</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
@@ -1583,7 +1535,6 @@
         <module>coherence-tracing</module>
         <module>coherence</module>
         <module>coherence-jcache</module>
-        <module>coherence-jvisualvm</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
@@ -1643,7 +1594,6 @@
         <module>coherence-testing-support</module>
         <module>coherence</module>
         <module>coherence-jcache</module>
-        <module>coherence-jvisualvm</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-mock</module>
@@ -1770,6 +1720,75 @@
       <properties>
         <project.build.number>${env.P4_CHANGELIST}</project.build.number>
       </properties>
+    </profile>
+
+    <profile>
+      <id>visualvm</id>
+      <modules>
+        <module>coherence-jvisualvm</module>
+      </modules>
+
+      <dependencies>
+        <!-- jvisualvm -->
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>com-sun-tools-visualvm-application</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>com-sun-tools-visualvm-application-views</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>com-sun-tools-visualvm-charts</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>com-sun-tools-visualvm-core</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>com-sun-tools-visualvm-tools</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>org-openide-modules</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>org-openide-util</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>org-openide-dialogs</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.tools.visualvm.api</groupId>
+          <artifactId>org-openide-windows</artifactId>
+          <version>${jvisualvm.version}</version>
+        </dependency>
+      </dependencies>
+
+      <!-- required for VisualVM -->
+      <repositories>
+        <repository>
+          <id>visualvm</id>
+          <name>VisualVM Repository</name>
+          <url>http://bits.netbeans.org/nexus/content/repositories/visualvm/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots/>
+        </repository>
+      </repositories>
     </profile>
 
     <profile>
@@ -1958,16 +1977,6 @@
       <name>Oracle Released Java Packages</name>
       <url>http://download.oracle.com/maven</url>
       <layout>default</layout>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots/>
-    </repository>
-    <!-- required for VisualVM -->
-    <repository>
-      <id>visualvm</id>
-      <name>VisualVM Repository</name>
-      <url>http://bits.netbeans.org/nexus/content/repositories/visualvm/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
