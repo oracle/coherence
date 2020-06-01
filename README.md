@@ -29,23 +29,27 @@
 
 ## <a name="intro"></a>Introduction
 
-[Coherence](http://coherence.java.net/) is a scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably storing data.
-The product is used at scale, for both compute and raw storage, in a vast array of industries such as critical financial trading systems, high performance telecommunication
+[Coherence](http://coherence.java.net/) is a scalable, fault-tolerant, cloud-ready,
+distributed platform for building grid-based applications and reliably storing data.
+The product is used at scale, for both compute and raw storage, in a vast array of 
+industries such as critical financial trading systems, high performance telecommunication
 products and eCommerce applications. 
 
-Typically these deployments do not tolerate any downtime and Coherence is chosen due its novel features in
-death detection, application data evolvability, and the robust, battle-hardened core of the product that enables it to be seamlessly deployed and adapted within any ecosystem.
+Typically these deployments do not tolerate any downtime and Coherence is chosen due to its 
+novel features in death detection, application data evolvability, and the robust,
+battle-hardened core of the product that enables it to be seamlessly deployed and 
+adapted within any ecosystem.
 
-At a high level, Coherence provides an implementation of the all too familiar `Map<K,V>` interface but rather than storing the associated data in the local process it is partitioned (or sharded) across a number of designated remote nodes. The partitioning enables applications to not only distribute (and therefore scale) their storage across multiple processes, machines, racks, and data centers but also to perform grid-based processing to truly harness the CPU resources of the machines. 
+At a high level, Coherence provides an implementation of the familiar `Map<K,V>` interface but rather than storing the associated data in the local process it is partitioned (or sharded) across a number of designated remote nodes. This partitioning enables applications to not only distribute (and therefore scale) their storage across multiple processes, machines, racks, and data centers but also to perform grid-based processing to truly harness the CPU resources of the machines. 
 
-The Coherence interface `NamedCache<K,V>` (an extension of `Map<K,V`) provides methods to query, aggregate (map/reduce style) and compute (send functions to storage nodes for locally executed mutations) the data set.
+The Coherence interface `NamedCache<K,V>` (an extension of `Map<K,V>) provides methods to query, aggregate (map/reduce style) and compute (send functions to storage nodes for locally executed mutations) the data set.
 These capabilities, in addition to numerous other features, allow Coherence to be used as a framework to write robust, distributed applications.
 
 ## <a name="acquire"></a>How to Get Coherence Community Edition 
 
 <!-- When a user is required to perform an action, Oracle recommends to use a Gerund (where possible)Downloading, Installing, Configuring, Obtaining in this case. "Obtaining Coherence Community Edition -->
 
-As Coherence is generally embedded into an application by using Coherence APIs, you can download it from Maven:
+As Coherence is generally embedded into an application by using Coherence APIs, the natural place to consume this dependency is from Maven:
 
 ```xml
 <dependencies>
@@ -57,26 +61,35 @@ As Coherence is generally embedded into an application by using Coherence APIs, 
 </dependencies>
 ```
 <!-- The links produce 404 error, using https worked -->
-You can also procure it from the official [Docker site](https://hub.docker.com/_/oracle-coherence-12c).
-For other language clients, use [C++](http://github.com/oracle/coherence-cpp-extend-client) and
-[.NET](http://github.com/oracle/coherence-dotnet-extend-client) and for the non-community
+You can also get Coherence from the official [Docker site](https://hub.docker.com/_/oracle-coherence-12c).
+For other language clients, use [C++](https://github.com/oracle/coherence-cpp-extend-client) and
+[.NET](https://github.com/oracle/coherence-dotnet-extend-client) and for the non-community
 edition, see [Oracle Technology Network](https://www.oracle.com/middleware/technologies/coherence-downloads.html).
 
 ## <a name="overview"></a>Coherence Overview
 <!--Suggestion "Overview of Coherence or simply "Overview"  -->
-Coherence provides a fundamental service that is responsible
-for all facets of clustering and is a common denominator / building block for all other Coherence services. This service, referred to as 'service 0' internally,
+First and foremost, Coherence provides a fundamental service that is responsible
+for all facets of clustering and is a common denominator / building block for all 
+other Coherence services. This service, referred to as 'service 0' internally,
 ensures that the mesh of members is maintained and responsive, taking action to collaboratively
-evict, shun, or in some cases, voluntarily depart the cluster when deemed necessary.
+evict, shun, or in some cases, voluntarily depart the cluster when deemed necessary. 
+As members join and leave the cluster, other Coherence services are notified, 
+thus enabling those services to react accordingly.
 
-As members join and leave the cluster, other Coherence services are notified, thus enabling those services to react accordingly.
+> Note: This part of the Coherence product has been in production for more that 10 years,
+>       being the subject of some extensive and imaginative testing. While this feature has
+>       been discussed here, it certainly is not something that customers, generally,
+>       interact with directly, but is valuable to be aware of.
+!--Suggestion: should be say "important" instead of "valuable"?  -->
 
- Note: This part of the Coherence product has been in production for more than 10 years, being the subject of some extensive and imaginative testing. While it has been discussed here it certainly is not something that customers, generally, interact with directly but is valuable to be aware of . <!--Not clear what the last sentence means here. -->
-
-Coherence services build on top of the clustering service. The key implementations to be aware of are PartitionedService, InvocationService, and ProxyService.
+Coherence services build on top of the cluster service. The key implementations to be aware of are PartitionedService, InvocationService, and ProxyService.
 
 <!--Suggestion: Better to provide a second level heading to provide a break for readability. "Coherence Cache" or "Feature of Cohrence Cache" or any relevant title-->
-In the majority of cases, customers deal with caches. A cache is represented by a an implementation of `NamedCache<K,V>` and is used by Coherence customers as a system-of-record rather than a lossy store of data. A cache is hosted by a service, generally the PartitionedService, and is the entry point to store, retrieve, aggregate, query, and stream data. 
+In the majority of cases, customers deal with caches. A cache is represented by 
+an implementation of `NamedCache<K,V>`. Cache is an unfortunate name, as many 
+Coherence customers use Coherence as a system-of-record rather than a lossy
+store of data. A cache is hosted by a service, generally the PartitionedService, 
+and is the entry point to store, retrieve, aggregate, query, and stream data. 
 
 Cache provides a number of features:
 <!-- It would improve readability if we present the following information in a table - Functional features and Non Functional Features-->
@@ -85,8 +98,10 @@ Cache provides a number of features:
   * **MapListeners** to asynchronously notify clients of changes to data
   * **EventInterceptors** (either sync or async) to be notified storage level events, including
 mutations, partition transfer, failover, etc
-* **NearCaches** - locally cached data based on previous requests with local content invalidated upon changes in storage tier
-* **ViewCaches** - locally stored view of remote data that can be a subset based on a predicate and is kept in sync real time
+* **NearCaches** - locally cached data based on previous requests with local content
+invalidated upon changes in storage tier
+* **ViewCaches** - locally stored view of remote data that can be a subset based on a
+predicate and is kept in sync real time
 * **Queries** - distributed, parallel query evaluation to return matching key, values
 or entries with potential to optimize performance with indices
 * **Aggregations** - a map/reduce style aggregation where data is aggregated in parallel
