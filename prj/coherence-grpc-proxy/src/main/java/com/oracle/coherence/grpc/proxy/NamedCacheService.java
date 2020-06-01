@@ -1765,6 +1765,7 @@ public class NamedCacheService
             }
 
         NamedCache<Binary, Binary>      c               = getCache(sCacheName, true);
+        NamedCache<Binary, Binary>      nonPassThrough  = getCache(sCacheName, false);
         AsyncNamedCache<Binary, Binary> cache           = c.async();
         CacheService                    cacheService    = cache.getNamedCache().getCacheService();
         Serializer                      serializerCache = cacheService.getSerializer();
@@ -1799,7 +1800,7 @@ public class NamedCacheService
 
         return new CacheRequestHolder<>(request,
                                         cache,
-                                        () -> this.getCache(sCacheName, false),
+                                        () -> nonPassThrough,
                                         format,
                                         serializerRequest, executor);
         }
