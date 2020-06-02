@@ -253,10 +253,8 @@ class GrpcRemoteSessionIT
     @Test
     void shouldBuildSessionWithInvalidChannelName()
         {
-        assertThrows(IllegalArgumentException.class,
-                     () -> GrpcRemoteSession.builder()
-                             .channelName("foo")
-                             .build());
+        GrpcRemoteSession session = GrpcRemoteSession.builder().channelName("foo").build();
+        assertThat(session.name(), is(GrpcRemoteSession.DEFAULT_NAME));
         }
 
     @Test

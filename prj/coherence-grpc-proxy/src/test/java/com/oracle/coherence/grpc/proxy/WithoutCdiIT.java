@@ -25,7 +25,7 @@ import io.helidon.grpc.server.GrpcRouting;
 import io.helidon.grpc.server.GrpcServer;
 import io.helidon.grpc.server.ServiceDescriptor;
 
-import io.helidon.microprofile.grpc.client.GrpcClientProxyBuilder;
+import io.helidon.microprofile.grpc.client.GrpcProxyBuilder;
 
 import io.helidon.microprofile.grpc.server.GrpcServiceBuilder;
 
@@ -92,7 +92,7 @@ class WithoutCdiIT
         cache.put("key-2", "value-2");
         cache.put("key-3", "value-3");
 
-        NamedCacheClient client = GrpcClientProxyBuilder.create(s_channel, NamedCacheClient.class).build();
+        NamedCacheClient client = GrpcProxyBuilder.create(s_channel, NamedCacheClient.class).build();
         Int32Value int32Value = client.size(Requests.size(cacheName)).toCompletableFuture().get();
         assertThat(int32Value, is(notNullValue()));
         assertThat(int32Value.getValue(), is(cache.size()));

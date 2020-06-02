@@ -45,7 +45,7 @@ import com.oracle.coherence.grpc.proxy.client.ValuesRequest;
 import io.grpc.stub.StreamObserver;
 
 import io.helidon.microprofile.grpc.core.Bidirectional;
-import io.helidon.microprofile.grpc.core.RpcService;
+import io.helidon.microprofile.grpc.core.Grpc;
 import io.helidon.microprofile.grpc.core.ServerStreaming;
 import io.helidon.microprofile.grpc.core.Unary;
 
@@ -59,7 +59,7 @@ import java.util.stream.Stream;
  * @author Jonathan Knight  2019.11.01
  * @since 14.1.2
  */
-@RpcService(name = "coherence.NamedCacheService")
+@Grpc(name = "coherence.NamedCacheService")
 @SuppressWarnings("CdiManagedBeanInconsistencyInspection")
 public interface NamedCacheService
     {

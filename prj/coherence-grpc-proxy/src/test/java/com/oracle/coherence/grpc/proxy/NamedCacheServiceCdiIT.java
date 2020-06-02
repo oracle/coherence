@@ -10,10 +10,12 @@ package com.oracle.coherence.grpc.proxy;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
-import io.helidon.microprofile.grpc.client.GrpcServiceProxy;
+import io.helidon.microprofile.grpc.client.GrpcProxy;
+
 import io.helidon.microprofile.grpc.core.InProcessGrpcChannel;
 
 import io.helidon.microprofile.server.Server;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import javax.enterprise.inject.Instance;
@@ -22,11 +24,8 @@ import javax.enterprise.inject.spi.CDI;
 
 import javax.inject.Inject;
 
-import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -68,7 +67,7 @@ class NamedCacheServiceCdiIT
     protected NamedCacheClient createService()
         {
         Instance<NamedCacheClient> instance = CDI.current()
-                .select(NamedCacheClient.class, GrpcServiceProxy.Literal.INSTANCE, InProcessGrpcChannel.Literal.INSTANCE);
+                .select(NamedCacheClient.class, GrpcProxy.Literal.INSTANCE, InProcessGrpcChannel.Literal.INSTANCE);
 
         assertThat(instance.isResolvable(), is(true));
         return instance.get();
@@ -97,7 +96,7 @@ class NamedCacheServiceCdiIT
         {
         // ----- data members -----------------------------------------------
         @Inject
-        @GrpcServiceProxy
+        @GrpcProxy
         @InProcessGrpcChannel
         private NamedCacheClient service;
         }

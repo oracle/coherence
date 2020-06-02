@@ -69,7 +69,7 @@ import io.helidon.config.Config;
 
 import io.helidon.grpc.client.GrpcChannelsProvider;
 
-import io.helidon.microprofile.grpc.client.GrpcClientProxyBuilder;
+import io.helidon.microprofile.grpc.client.GrpcProxyBuilder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -2265,7 +2265,7 @@ public class AsyncNamedCacheClient<K, V>
         public AsyncNamedCacheClient<K, V> build()
             {
             Channel           chan    = getChannel().orElse(GrpcChannelsProvider.create(f_config).channel("default"));
-            NamedCacheService service = GrpcClientProxyBuilder.create(chan, NamedCacheService.class).build();
+            NamedCacheService service = GrpcProxyBuilder.create(chan, NamedCacheService.class).build();
             String            fmt     = getFormat().orElse("java");
 
             SerializerProducer serializerProducer = SerializerProducer.builder().beanManager(m_beanManager).build();

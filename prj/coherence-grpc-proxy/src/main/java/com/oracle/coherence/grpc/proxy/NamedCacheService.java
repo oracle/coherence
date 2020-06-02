@@ -91,7 +91,7 @@ import io.helidon.config.Config;
 import io.helidon.grpc.core.ResponseHelper;
 
 import io.helidon.microprofile.grpc.core.Bidirectional;
-import io.helidon.microprofile.grpc.core.RpcService;
+import io.helidon.microprofile.grpc.core.Grpc;
 import io.helidon.microprofile.grpc.core.ServerStreaming;
 import io.helidon.microprofile.grpc.core.Unary;
 
@@ -134,7 +134,7 @@ import static com.oracle.coherence.grpc.proxy.Processors.ReplaceProcessor;
  * so as not to consume or block threads in the Fork Join Pool. The {@link DaemonPoolExecutor} is
  * configurable so that its thread counts can be controlled.
  * <p>
- * This class is an {@link ApplicationScoped} CDI bean and also a {@link RpcService}. When used in a
+ * This class is an {@link ApplicationScoped} CDI bean and also a {@link Grpc} service. When used in a
  * Helidon Microprofile gRPC server this service will be automatically discovered and deployed.
  * Alternatively it is possible to use the {@link NamedCacheService.Builder} to create an instance of
  * this service and manually deploy it.
@@ -143,7 +143,7 @@ import static com.oracle.coherence.grpc.proxy.Processors.ReplaceProcessor;
  * @author Jonathan Knight  2019.11.07
  * @since 14.1.2
  */
-@RpcService(name = NamedCacheService.SERVICE_NAME)
+@Grpc(name = NamedCacheService.SERVICE_NAME)
 @ApplicationScoped
 public class NamedCacheService
         implements NamedCacheClient

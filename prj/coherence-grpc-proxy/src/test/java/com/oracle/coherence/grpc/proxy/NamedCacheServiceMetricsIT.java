@@ -29,7 +29,7 @@ import com.tangosol.util.aggregator.Count;
 
 import io.grpc.stub.StreamObserver;
 
-import io.helidon.microprofile.grpc.client.GrpcServiceProxy;
+import io.helidon.microprofile.grpc.client.GrpcProxy;
 
 import io.helidon.microprofile.grpc.core.InProcessGrpcChannel;
 
@@ -482,7 +482,7 @@ class NamedCacheServiceMetricsIT
         {
         BeanManager                beanManager = CDI.current().getBeanManager();
         Instance<NamedCacheClient> instance    = beanManager.createInstance()
-                .select(NamedCacheClient.class, GrpcServiceProxy.Literal.INSTANCE, InProcessGrpcChannel.Literal.INSTANCE);
+                .select(NamedCacheClient.class, GrpcProxy.Literal.INSTANCE, InProcessGrpcChannel.Literal.INSTANCE);
 
         assertThat(instance.isResolvable(), is(true));
         return instance.get();
