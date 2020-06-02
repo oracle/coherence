@@ -1972,55 +1972,6 @@
         <module>coherence-jvisualvm</module>
       </modules>
 
-      <dependencies>
-        <!-- jvisualvm -->
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>com-sun-tools-visualvm-application</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>com-sun-tools-visualvm-application-views</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>com-sun-tools-visualvm-charts</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>com-sun-tools-visualvm-core</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>com-sun-tools-visualvm-tools</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>org-openide-modules</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>org-openide-util</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>org-openide-dialogs</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.tools.visualvm.api</groupId>
-          <artifactId>org-openide-windows</artifactId>
-          <version>${jvisualvm.version}</version>
-        </dependency>
-      </dependencies>
-
       <!-- required for VisualVM -->
       <repositories>
         <repository>
