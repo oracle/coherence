@@ -1,0 +1,92 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Overview
+:description: Oracle Coherence documentation
+:keywords: coherence, java, documentation
+
+== Overview
+
+Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably
+storing data. The product is used at scale, for both compute and raw storage, in a vast array of industries including
+critical financial trading systems, high performance telecommunication products and eCommerce applications to name but
+a few. Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death
+detection, application data evolvability, and the robust, battle-hardened core of the product allowing it to be seamlessly
+deployed and adapt within any ecosystem.
+
+At a high level, Coherence provides an implementation of the all too familiar Map<K,V> interface but rather than storing
+the associated data in the local process it is partitioned (or sharded if you prefer) across a number of designated remote
+nodes. This allows applications to not only distribute (and therefore scale) their storage across multiple processes,
+machines, racks, and data centers but also to perform grid-based processing to truly harness the cpu resources of the
+machines. The Coherence interface NamedCache<K,V> (an extension of Map<K,V) provides methods to query, aggregate
+(map/reduce style) and compute (send functions to storage nodes for locally executed mutations) the data set.
+These capabilities, in addition to numerous other features, allows Coherence to be used as a framework to write robust,
+distributed applications.
+
+== Get Going
+
+[PILLARS]
+====
+[CARD]
+.Coherence
+[icon=explore,link=docs/about/02_introduction.adoc]
+--
+What is Oracle Coherence.
+--
+
+[CARD]
+.Quick Start
+[icon=fa-rocket,link=docs/about/03_quickstart.adoc]
+--
+A quick-start guide to using Coherence.
+--
+====
+
+== Components
+
+[PILLARS]
+====
+[CARD]
+.CDI
+[icon=extension,link=coherence-cdi/README.adoc]
+--
+Coherence CDI extensions.
+--
+
+[CARD]
+.Microprofile
+[icon=widgets,link=coherence-mp/README.adoc]
+--
+Coherence Microprofile support.
+--
+
+[CARD]
+.gRPC
+[icon=settings_ethernet,link=coherence-grpc-proxy/README.adoc]
+--
+Coherence gRPC server and client.
+--
+====
+
+== Reference
+
+[PILLARS]
+====
+[CARD]
+.Docs
+[icon=import_contacts,link=https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html,link-type=url]
+--
+Oracle Coherence commercial edition product documentation.
+--
+[CARD]
+.JavaDocs
+[icon=library_books,link=../api/index.html,link-type=url]
+--
+Browse the Coherence JavaDocs.
+--
+====

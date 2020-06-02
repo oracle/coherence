@@ -1,0 +1,33 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence MP
+:description: Oracle Coherence documentation
+:keywords: coherence, java, documentation
+
+== Coherence MP
+
+Coherence provides a number of additional modules that provide support for different Microprofile APIs.
+
+[PILLARS]
+====
+[CARD]
+.Microprofile Config
+[link=coherence-mp/config/README.adoc]
+--
+Using Coherence as a Microprofile config source.
+--
+
+[CARD]
+.Microprofile Metrics
+[link=coherence-mp/metrics/README.adoc]
+--
+Configure Coherence to publish metrics via the Microprofile metrics API.
+--
+====
+

@@ -1,0 +1,96 @@
+#
+# Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+
+engine:
+  asciidoctor:
+    images-dir: "docs/images"
+    libraries:
+      - "asciidoctor-diagram"
+    attributes:
+      plantumlconfig: "_plantuml-config.txt"
+      operator-version: "${project.version}"
+assets:
+  - target: "/"
+    includes:
+      - "css/*.css"
+  - target: "/"
+    includes:
+      - "docs/images/**/*"
+header:
+  favicon:
+    path: "docs/images/favicon.png"
+    type: "png"
+  stylesheets:
+    - path: "docs/css/styles.css"
+pages:
+    - includes:
+        - "**/*.adoc"
+      excludes:
+backend:
+    name: "vuetify"
+    homePage: "docs/about/01_overview.adoc"
+    releases:
+        - "${project.version}"
+    navigation:
+      title: "Oracle Coherence"
+      glyph:
+        type: "image"
+        value: "docs/images/oracle-coherence.svg"
+      items:
+        - title: "Core documentation"
+          items:
+            - title: "About"
+              pathprefix: "/about"
+              glyph:
+                type: "icon"
+                value: "assistant"
+              items:
+                - includes:
+                    - "docs/about/*.adoc"
+            - title: "CDI"
+              pathprefix: "/coherence-cdi"
+              glyph:
+                type: "icon"
+                value: "extension"
+              items:
+                - includes:
+                    - "coherence-cdi/README.adoc"
+            - title: "Microprofile"
+              pathprefix: "/coherence-mp"
+              glyph:
+                type: "icon"
+                value: "widgets"
+              items:
+                - includes:
+                    - "coherence-mp/README.adoc"
+                    - "coherence-mp/config/README.adoc"
+                    - "coherence-mp/metrics/README.adoc"
+            - title: "Coherence gRPC"
+              pathprefix: "/coherence-grpc-proxy"
+              glyph:
+                type: "icon"
+                value: "settings_ethernet"
+              items:
+                - includes:
+                    - "coherence-grpc-proxy/README.adoc"
+                    - "coherence-grpc-proxy-client/README.adoc"
+        - title: "Additional resources"
+          items:
+            - title: "Slack"
+              glyph:
+                type: "icon"
+                value: "fa-slack"
+              href: "https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE"
+            - title: "Coherence Community"
+              glyph:
+                type: "icon"
+                value: "people"
+              href: "https://coherence.java.net"
+            - title: "GitHub"
+              glyph:
+                type: "icon"
+                value: "fa-github-square"
+              href: "https://github.com/oracle/coherence"
