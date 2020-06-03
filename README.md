@@ -40,16 +40,25 @@ novel features in death detection, application data evolvability, and the robust
 battle-hardened core of the product that enables it to be seamlessly deployed and 
 adapted within any ecosystem.
 
-At a high level, Coherence provides an implementation of the familiar `Map<K,V>` interface but rather than storing the associated data in the local process it is partitioned (or sharded) across a number of designated remote nodes. This partitioning enables applications to not only distribute (and therefore scale) their storage across multiple processes, machines, racks, and data centers but also to perform grid-based processing to truly harness the CPU resources of the machines. 
+At a high level, Coherence provides an implementation of the familiar `Map<K,V>`
+interface but rather than storing the associated data in the local process it is partitioned
+(or sharded) across a number of designated remote nodes. This partitioning enables
+applications to not only distribute (and therefore scale) their storage across multiple
+processes, machines, racks, and data centers but also to perform grid-based processing
+to truly harness the CPU resources of the machines. 
 
-The Coherence interface `NamedCache<K,V>` (an extension of `Map<K,V>) provides methods to query, aggregate (map/reduce style) and compute (send functions to storage nodes for locally executed mutations) the data set.
-These capabilities, in addition to numerous other features, allow Coherence to be used as a framework to write robust, distributed applications.
+The Coherence interface `NamedCache<K,V>` (an extension of `Map<K,V>) provides methods
+to query, aggregate (map/reduce style) and compute (send functions to storage nodes
+for locally executed mutations) the data set. These capabilities, in addition to 
+numerous other features, enable Coherence to be used as a framework for writing robust,
+distributed applications.
 
 ## <a name="acquire"></a>How to Get Coherence Community Edition 
 
 <!-- When a user is required to perform an action, Oracle recommends to use a Gerund (where possible)Downloading, Installing, Configuring, Obtaining in this case. "Obtaining Coherence Community Edition -->
 
-As Coherence is generally embedded into an application by using Coherence APIs, the natural place to consume this dependency is from Maven:
+As Coherence is generally embedded into an application by using Coherence APIs,
+the natural place to consume this dependency is from Maven:
 
 ```xml
 <dependencies>
@@ -85,9 +94,9 @@ thus enabling those services to react accordingly.
 Coherence services build on top of the cluster service. The key implementations to be aware of are PartitionedService, InvocationService, and ProxyService.
 
 <!--Suggestion: Better to provide a second level heading to provide a break for readability. "Coherence Cache" or "Feature of Cohrence Cache" or any relevant title-->
-In the majority of cases, customers deal with caches. A cache is represented by 
-an implementation of `NamedCache<K,V>`. Cache is an unfortunate name, as many 
-Coherence customers use Coherence as a system-of-record rather than a lossy
+In the majority of cases, customers deal with caches. A cache is represented 
+by an implementation of `NamedCache<K,V>`. Cache is an unfortunate name, as 
+many Coherence customers use Coherence as a system-of-record rather than a lossy
 store of data. A cache is hosted by a service, generally the PartitionedService, 
 and is the entry point to store, retrieve, aggregate, query, and stream data. 
 
@@ -160,7 +169,9 @@ our own [operator](https://github.com/oracle/coherence-operator)
 ### CLI Hello Coherence
 
 The following example illustrated starting a **storage enabled** Coherence Server,
-followed by a **storage disabled** Coherence Console. Using the console, data is inserted, retrieved, and then the console is terminated. The console is restarted and data is once again retrieved to illustrate the permanence of the data.
+followed by a **storage disabled** Coherence Console. Using the console, data is
+inserted, retrieved, and then the console is terminated. The console is restarted
+and data is once again retrieved to illustrate the permanence of the data.
 <!-- Better to present the two note items as an itemized list under a single 'Note'? -->
 > **Note:** 
 * This example uses the OOTB cache configuration. Therefore,  it is unnecessary to explicitly specify that the console is storage disabled.
@@ -260,7 +271,9 @@ $> kill %1
 
 ### <a name="hello-coh"></a>Programmatic Hello Coherence Example
 
-The following example illustrates starting a **storage enabled** Coherence server, followed by running the `HelloCoherence` application. The `HelloCoherence` application inserts and retrieves data from the Coherence server.
+The following example illustrates starting a **storage enabled** Coherence server,
+followed by running the `HelloCoherence` application. The `HelloCoherence` application
+inserts and retrieves data from the Coherence server.
 
 #### Build `HelloCoherence`
 
