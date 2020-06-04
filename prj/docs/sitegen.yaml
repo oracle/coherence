@@ -21,7 +21,7 @@ assets:
       - "docs/images/**/*"
 header:
   favicon:
-    path: "docs/images/favicon.png"
+    path: "docs/images/logo.png"
     type: "png"
   stylesheets:
     - path: "docs/css/styles.css"
@@ -38,7 +38,7 @@ backend:
       title: "Oracle Coherence"
       glyph:
         type: "image"
-        value: "docs/images/oracle-coherence.svg"
+        value: "docs/images/logo.png"
       items:
         - title: "Core documentation"
           items:
@@ -77,8 +77,18 @@ backend:
                 - includes:
                     - "coherence-grpc-proxy/README.adoc"
                     - "coherence-grpc-proxy-client/README.adoc"
-        - title: "Additional resources"
+        - title: "Additional Resources"
           items:
+            - title: "Commercial Product Docs"
+              glyph:
+                type: "icon"
+                value: "import_contacts"
+              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
+            - title: "Coherence CE JavaDocs"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence/20.06/api/index.html"
             - title: "Slack"
               glyph:
                 type: "icon"
@@ -88,7 +98,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "people"
-              href: "https://coherence.java.net"
+              href: "https://oracle.github.io/coherence/index.html"
             - title: "GitHub"
               glyph:
                 type: "icon"

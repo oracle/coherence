@@ -45,9 +45,22 @@ What is Oracle Coherence.
 --
 A quick-start guide to using Coherence.
 --
+
+[CARD]
+.Docs
+[icon=import_contacts,link=https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html,link-type=url]
+--
+Oracle Coherence commercial edition product documentation.
+--
+[CARD]
+.JavaDocs
+[icon=library_books,link=../api/index.html,link-type=url]
+--
+Browse the Coherence CE JavaDocs.
+--
 ====
 
-== Components
+== New Features
 
 [PILLARS]
 ====
@@ -70,23 +83,5 @@ Coherence Microprofile support.
 [icon=settings_ethernet,link=coherence-grpc-proxy/README.adoc]
 --
 Coherence gRPC server and client.
---
-====
-
-== Reference
-
-[PILLARS]
-====
-[CARD]
-.Docs
-[icon=import_contacts,link=https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html,link-type=url]
---
-Oracle Coherence commercial edition product documentation.
---
-[CARD]
-.JavaDocs
-[icon=library_books,link=../api/index.html,link-type=url]
---
-Browse the Coherence JavaDocs.
 --
 ====
