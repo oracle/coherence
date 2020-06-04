@@ -29,7 +29,6 @@
   <modules>
     <module>config</module>
     <module>metrics</module>
-    <module>messaging</module>
   </modules>
 
 </project>

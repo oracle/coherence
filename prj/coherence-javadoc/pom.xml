@@ -68,11 +68,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-mp-messaging</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
        <groupId>${coherence.group.id}</groupId>
        <artifactId>coherence-mp-metrics</artifactId>
        <version>${project.version}</version>
