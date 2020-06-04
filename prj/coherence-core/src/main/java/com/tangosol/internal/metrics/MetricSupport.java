@@ -932,7 +932,7 @@ public class MetricSupport
             if (bean.getType() == MemoryType.HEAP)
                 {
                 String              sMBeanName       = bean.getObjectName().getCanonicalName();
-                String              sDescr           = "Memory Pool '" + bean.getName() + "' usage after GC ";
+                String              sDescr           = "Memory pool heap usage after GC ";
                 MBeanServerProxy    proxy            = f_suppMBeanServerProxy.get();
                 Map<String, String> mapTagAttributes = new HashMap<>();
                 Map<String, String> mapTag           = createMetricTags(sMBeanName,
