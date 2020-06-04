@@ -47,7 +47,7 @@ applications to not only distribute (and therefore scale) their storage across m
 processes, machines, racks, and data centers but also to perform grid-based processing
 to truly harness the CPU resources of the machines. 
 
-The Coherence interface `NamedCache<K,V>` (an extension of `Map<K,V>) provides methods
+The Coherence interface `NamedCache<K,V>` (an extension of `Map<K,V>`) provides methods
 to query, aggregate (map/reduce style) and compute (send functions to storage nodes
 for locally executed mutations) the data set. These capabilities, in addition to 
 numerous other features, enable Coherence to be used as a framework for writing robust,
@@ -78,11 +78,11 @@ edition, see [Oracle Technology Network](https://www.oracle.com/middleware/techn
 ## <a name="overview"></a>Coherence Overview
 <!--Suggestion "Overview of Coherence or simply "Overview"  -->
 First and foremost, Coherence provides a fundamental service that is responsible
-for all facets of clustering and is a common denominator / building block for all 
+for all facets of clustering and is a common denominator / building block for all
 other Coherence services. This service, referred to as 'service 0' internally,
 ensures that the mesh of members is maintained and responsive, taking action to collaboratively
-evict, shun, or in some cases, voluntarily depart the cluster when deemed necessary. 
-As members join and leave the cluster, other Coherence services are notified, 
+evict, shun, or in some cases, voluntarily depart the cluster when deemed necessary.
+As members join and leave the cluster, other Coherence services are notified,
 thus enabling those services to react accordingly.
 
 > Note: This part of the Coherence product has been in production for more that 10 years,
@@ -91,17 +91,17 @@ thus enabling those services to react accordingly.
 >       interact with directly, but is valuable to be aware of.
 !--Suggestion: should be say "important" instead of "valuable"?  -->
 
-Coherence services build on top of the cluster service. The key implementations to be aware of are PartitionedService, InvocationService, and ProxyService.
+Coherence services build on top of the cluster service. The key implementations
+to be aware of are PartitionedService, InvocationService, and ProxyService.
 
-<!--Suggestion: Better to provide a second level heading to provide a break for readability. "Coherence Cache" or "Feature of Cohrence Cache" or any relevant title-->
 In the majority of cases, customers deal with caches. A cache is represented 
 by an implementation of `NamedCache<K,V>`. Cache is an unfortunate name, as 
 many Coherence customers use Coherence as a system-of-record rather than a lossy
 store of data. A cache is hosted by a service, generally the PartitionedService, 
 and is the entry point to store, retrieve, aggregate, query, and stream data. 
 
-Cache provides a number of features:
-<!-- It would improve readability if we present the following information in a table - Functional features and Non Functional Features-->
+Caches provide a number of features:
+
 * Fundamental **key-based access**: get/put getAll/putAll
 * Client-side and storage-side events
   * **MapListeners** to asynchronously notify clients of changes to data
@@ -159,7 +159,7 @@ for distant (high latency) clients and for non-java languages such as C++ and .N
 our own [operator](https://github.com/oracle/coherence-operator)
 
 ## <a name="get-started"></a>Hello Coherence
-<!-- Or: Getting Started with Coherence -->
+
 
 ### Prerequisites
 
@@ -172,14 +172,17 @@ The following example illustrated starting a **storage enabled** Coherence Serve
 followed by a **storage disabled** Coherence Console. Using the console, data is
 inserted, retrieved, and then the console is terminated. The console is restarted
 and data is once again retrieved to illustrate the permanence of the data.
-<!-- Better to present the two note items as an itemized list under a single 'Note'? -->
-> **Note:** 
-* This example uses the OOTB cache configuration. Therefore,  it is unnecessary to explicitly specify that the console is storage disabled.
-* Coherence cluster members discover each other by using one of two mechanisms: multicast (default) or Well Known Addressing (deterministic broadcast). If your system does not support mutlicast, enable WKA by specifying
-`-Dcoherence.wka=localhost` for both processes started in the following console examples.
+
+> **Note:** This example uses the OOTB cache configuration and therefore, explicitly
+>          specifying the console is storage disabled is unnecessary.
+
+> **Note:** Coherence cluster members discover each other via one of two mechanisms;
+>           multicast (default) or Well Known Addressing (deterministic broadcast).
+>           If your system does not support mutlicast, enable WKA by specifying
+>           `-Dcoherence.wka=localhost` for both processes started in the following
+>           console examples.
 
 #### <a name="cohql"></a>CohQL Console 
-<!-- Should we say "Using CohQL Console"? -->
 
 ```shell
 
@@ -219,7 +222,6 @@ CohQL> bye
 
 $> kill %1
 ```
-<!-- Should we say "Using Coherence Console"? -->
 #### <a name="coh-console"></a>Coherence Console
 ```shell
 
@@ -308,7 +310,7 @@ inserts and retrieves data from the Coherence server.
         cache.put("french" , "Bonjour");
 
         // list
-          cache.entrySet().forEach(System.out::println);
+        cache.entrySet().forEach(System.out::println);
         }
     }
 ```
@@ -318,8 +320,7 @@ inserts and retrieves data from the Coherence server.
 ```
 5. Start a cache Server
 ```shell
-   mvn exec:java 
-  -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
+   mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
 ```
 6. Run `HelloCoherence`
 ```shell
@@ -338,7 +339,6 @@ inserts and retrieves data from the Coherence server.
 ```
 
 ## <a name="build"></a>Building
-<!-- Suggestion: Buildig Modules -->
 
 ```shell
 
@@ -363,7 +363,7 @@ $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 ```
 
 ## <a name="integrations"></a>Integrations
-<!-- Will be adding content here? -->
+<!-- Better to remove the topic if no content available? -->
 
 ## <a name="documentation"></a>Documentation
 
@@ -373,9 +373,9 @@ Oracle Coherence product documentation is available
 [here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html).
 
 ### Coherence Community Edition Disabled and Excluded Functionality
-<!-- Suggestion: Disabled and Excluded Functionalities in Coherence Community Edition -->
+<!-- Suggestion: Disabled and Excluded Features (sounds better I think) in Coherence Community Edition -->
 
-The following Oracle Coherence functionalities are not included in the Coherence Community Edition:
+The following Oracle Coherence features are not included in the Coherence Community Edition:
 
 * Management of Coherence via the Oracle WebLogic Management Framework
 * WebLogic Server Multitenancy Support
