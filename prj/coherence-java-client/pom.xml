@@ -130,4 +130,14 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <!-- This module requires Java 11 -->
+    <profile>
+      <id>test-jdk8</id>
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+    </profile>
+  </profiles>
 </project>
