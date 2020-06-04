@@ -576,6 +576,7 @@
     <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
 
     <!-- library dependency versions -->
+    <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
     <asm.version>7.2</asm.version>
     <bdb.version>6.2.31</bdb.version>
     <bnd.version>4.3.0</bnd.version>
@@ -583,6 +584,7 @@
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <felix.version>6.0.3</felix.version>
     <graal.version>19.1.1</graal.version>
+    <helidon-build-tools.version>2.0.0-M4</helidon-build-tools.version>
     <jackson.version>2.10.2</jackson.version>
     <jackson.databind.version>${jackson.version}</jackson.databind.version>
     <jacoco.version>0.8.5</jacoco.version>
@@ -1062,6 +1064,27 @@
           </configuration>
         </plugin>
 
+        <plugin>
+          <groupId>io.helidon.build-tools</groupId>
+          <artifactId>sitegen-maven-plugin</artifactId>
+          <version>${helidon-build-tools.version}</version>
+          <configuration>
+            <siteConfigFile>${top.parent.basedir}/docs/sitegen.yaml</siteConfigFile>
+            <siteSourceDirectory>${top.parent.basedir}</siteSourceDirectory>
+            <siteOutputDirectory>${project.build.directory}/docs</siteOutputDirectory>
+            <siteArchiveExcludes>
+              <siteArchiveExclude>.asciidoctor/**</siteArchiveExclude>
+            </siteArchiveExcludes>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.asciidoctor</groupId>
+              <artifactId>asciidoctorj-diagram</artifactId>
+              <version>${asciidoctor.diagram.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+
         <!-- maven-install-plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1205,6 +1228,12 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+          <groupId>io.helidon.build-tools</groupId>
+          <artifactId>sitegen-maven-plugin</artifactId>
+          <extensions>true</extensions>
       </plugin>
 
       <plugin>
@@ -1523,7 +1552,14 @@
           </plugins>
       </build>
     </profile>
-    
+
+    <profile>
+      <id>docs</id>
+      <modules>
+        <module>docs</module>
+      </modules>
+    </profile>
+
     <profile>
       <id>release</id>
       

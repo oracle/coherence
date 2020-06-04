@@ -1,0 +1,79 @@
+#
+# Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+
+engine:
+  asciidoctor:
+    images-dir: "docs/images"
+    libraries:
+      - "asciidoctor-diagram"
+    attributes:
+      plantumlconfig: "_plantuml-config.txt"
+      operator-version: "${project.version}"
+assets:
+  - target: "/"
+    includes:
+      - "css/*.css"
+  - target: "/"
+    includes:
+      - "docs/images/**/*"
+header:
+  favicon:
+    path: "docs/images/logo.png"
+    type: "png"
+  stylesheets:
+    - path: "docs/css/styles.css"
+pages:
+    - includes:
+        - "**/*.adoc"
+      excludes:
+backend:
+    name: "vuetify"
+    homePage: "docs/about/01_overview.adoc"
+    releases:
+        - "${project.version}"
+    navigation:
+      title: "Oracle Coherence"
+      glyph:
+        type: "image"
+        value: "docs/images/logo.png"
+      items:
+        - title: "Core documentation"
+          items:
+            - title: "About"
+              pathprefix: "/about"
+              glyph:
+                type: "icon"
+                value: "assistant"
+              items:
+                - includes:
+                    - "docs/about/*.adoc"
+        - title: "Additional Resources"
+          items:
+            - title: "Commercial Product Docs"
+              glyph:
+                type: "icon"
+                value: "import_contacts"
+              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
+            - title: "Coherence CE JavaDocs"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence/14.1.1.0/api/index.html"
+            - title: "Slack"
+              glyph:
+                type: "icon"
+                value: "fa-slack"
+              href: "https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE"
+            - title: "Coherence Community"
+              glyph:
+                type: "icon"
+                value: "people"
+              href: "https://oracle.github.io/coherence/index.html"
+            - title: "GitHub"
+              glyph:
+                type: "icon"
+                value: "fa-github-square"
+              href: "https://github.com/oracle/coherence"
