@@ -737,8 +737,8 @@
     <felix.version>6.0.3</felix.version>
     <graal.version>19.3.1</graal.version>
     <grpc.version>1.25.0</grpc.version>
-    <helidon.version>2.0.0-M4</helidon.version>
-    <helidon-build-tools.version>2.0.0-M4</helidon-build-tools.version>
+    <helidon.version>2.0.0-RC1</helidon.version>
+    <helidon-build-tools.version>2.0.0-RC1</helidon-build-tools.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
     <jackson.version>2.10.2</jackson.version>
