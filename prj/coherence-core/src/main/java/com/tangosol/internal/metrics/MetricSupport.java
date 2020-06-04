@@ -21,6 +21,7 @@ import com.tangosol.net.management.annotation.MetricsTag;
 import com.tangosol.net.management.annotation.MetricsValue;
 
 import com.tangosol.net.metrics.MBeanMetric;
+import com.tangosol.net.metrics.MBeanMetric.Identifier;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
 
 import com.tangosol.util.Base;
@@ -39,6 +40,10 @@ import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryType;
+import java.lang.management.MemoryUsage;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -263,6 +268,8 @@ public class MetricSupport
             {
             return;
             }
+
+        ensureMemoryMetrics(f_listRegistry);
 
         f_setRegistered.add(sMBeanName);
 
@@ -912,6 +919,57 @@ public class MetricSupport
                 && "java.lang".equals(objectName.getKeyProperty("Domain")));
         }
 
+    private synchronized void ensureMemoryMetrics(List<MetricsRegistryAdapter> listRegistry)
+        {
+        if (f_fMemoryRegistered || listRegistry.isEmpty())
+            {
+            return;
+            }
+        f_fMemoryRegistered = true;
+
+        for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans())
+            {
+            if (bean.getType() == MemoryType.HEAP)
+                {
+                String              sMBeanName       = bean.getObjectName().getCanonicalName();
+                String              sDescr           = "Memory Pool '" + bean.getName() + "' usage after GC ";
+                MBeanServerProxy    proxy            = f_suppMBeanServerProxy.get();
+                Map<String, String> mapTagAttributes = new HashMap<>();
+                Map<String, String> mapTag           = createMetricTags(sMBeanName,
+                                                                        proxy,
+                                                                        bean.getObjectName(),
+                                                                        mapTagAttributes);
+
+                mapTag.put("name", bean.getName());
+
+                Identifier idUsed      = new Identifier(MBeanMetric.Scope.VENDOR,
+                                                       METRIC_PREFIX_HEAP_AFTER_GC + "Used",
+                                                        mapTag);
+                Identifier idMax       = new Identifier(MBeanMetric.Scope.VENDOR,
+                                                        METRIC_PREFIX_HEAP_AFTER_GC + "Max",
+                                                        mapTag);
+                Identifier idCommitted = new Identifier(MBeanMetric.Scope.VENDOR,
+                                                       METRIC_PREFIX_HEAP_AFTER_GC + "Committed",
+                                                        mapTag);
+                Identifier idInit      = new Identifier(MBeanMetric.Scope.VENDOR,
+                                                       METRIC_PREFIX_HEAP_AFTER_GC + "Initial",
+                                                        mapTag);
+
+                MemoryAfterGCMetric metricUsed      = new MemoryAfterGCMetric(idUsed, sDescr + "(used)", bean, MemoryUsage::getUsed);
+                MemoryAfterGCMetric metricMax       = new MemoryAfterGCMetric(idMax, sDescr + "(max)", bean, MemoryUsage::getMax);
+                MemoryAfterGCMetric metricCommitted = new MemoryAfterGCMetric(idCommitted, sDescr + "(committed)", bean, MemoryUsage::getCommitted);
+                MemoryAfterGCMetric metricInit      = new MemoryAfterGCMetric(idInit, sDescr + "(initial)", bean, MemoryUsage::getInit);
+
+                for (MetricsRegistryAdapter adapter : listRegistry)
+                    {
+                    adapter.register(metricUsed);
+                    adapter.register(metricMax);
+                    adapter.register(metricCommitted);
+                    adapter.register(metricInit);
+                    }
+                }
+            }
+        }
 
     // ----- inner class: BaseMetric ----------------------------------------
 
@@ -1079,6 +1137,33 @@ public class MetricSupport
         private String f_sKey;
         }
 
+    // ----- inner class: MemoryCollectionUsageMetric -----------------------
+
+    class MemoryAfterGCMetric
+            extends BaseMetric
+        {
+        public MemoryAfterGCMetric(Identifier                    id,
+                                   String                        sDescr,
+                                   MemoryPoolMXBean              bean,
+                                   Function<MemoryUsage, Number> fn)
+            {
+            super(id, bean.getObjectName().getCanonicalName(), sDescr);
+            f_bean = bean;
+            f_function = fn;
+            }
+
+        @Override
+        Object getAttributeValue()
+            {
+            MemoryUsage usage = f_bean.getCollectionUsage();
+            return usage == null ? null : f_function.apply(usage);
+            }
+
+        private final MemoryPoolMXBean f_bean;
+        private final Function<MemoryUsage, Number> f_function;
+        }
+
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -1100,6 +1185,11 @@ public class MetricSupport
      * MBean object name query for java.lang domain of type Platform for subType GarbageCollection.
      */
     private static final String PLATFORM_GC = "type=Platform,Domain=java.lang,subType=GarbageCollector";
+
+    /**
+     * The prefix for heap after GC metric names.
+     */
+    private static final String METRIC_PREFIX_HEAP_AFTER_GC = "Coherence.Memory.HeapAfterGC.";
 
     /**
      * MBean object name query for Federation OriginMBean.
@@ -1221,4 +1311,9 @@ public class MetricSupport
      * The currently registered MBeans.
      */
     private final Set<String> f_setRegistered = new HashSet<>();
+
+    /**
+     * Flag indicating whether memory metrics have been registered.
+     */
+    private boolean f_fMemoryRegistered;
     }
