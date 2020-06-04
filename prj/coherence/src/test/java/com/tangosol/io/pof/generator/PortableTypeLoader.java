@@ -69,7 +69,7 @@ public class PortableTypeLoader
                     && !className.equals("data.evolvable.Color")
                     && schema.findTypeByJavaName(className) != null)
                 {
-                String sClassPathName = className.replace('.', File.separatorChar) + ".class";
+                String sClassPathName = className.replace('.', '/') + ".class";
 
                 InputStream in = getClass().getClassLoader().getResourceAsStream(sClassPathName);
 

@@ -12,6 +12,7 @@ import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.schema.lang.java.JavaTypeDescriptor;
 import com.oracle.coherence.common.schema.util.NameTransformer;
 import com.oracle.coherence.common.schema.util.NameTransformerChain;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,12 +21,14 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -366,7 +369,13 @@ public class ClassFileSchemaSource
             }
         else
             {
-            jarIn = Classes.getContextClassLoader(this).getResourceAsStream(jarFile.toString());
+            String sJarFileName = jarFile.toString();
+            if (s_isWindows)
+                {
+                sJarFileName = sJarFileName.replace('\\', '/');
+                }
+
+            jarIn = Classes.getContextClassLoader(this).getResourceAsStream(sJarFileName);
             }
 
         if (jarIn != null)
@@ -416,7 +425,13 @@ public class ClassFileSchemaSource
             }
         else
             {
-            try (InputStream in = Classes.getContextClassLoader(this).getResourceAsStream(file.toString()))
+            String sFilename = file.toString();
+            if (s_isWindows)
+                {
+                sFilename = sFilename.replace('\\', '/');
+                }
+
+            try (InputStream in = Classes.getContextClassLoader(this).getResourceAsStream(sFilename))
                 {
                 if (in != null)
                     {
@@ -696,4 +711,6 @@ public class ClassFileSchemaSource
                     .firstLetterToUppercase();
 
     private int m_nPass;
+
+    protected static boolean s_isWindows = new StringTokenizer(System.getProperty("os.name").toLowerCase().trim()).nextToken().contains("windows") ? true : false;
     }
