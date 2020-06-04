@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<!--[if IE 8]>			<html class="ie ie8"> <![endif]-->
+<!--[if IE 9]>			<html class="ie ie9"> <![endif]-->
+<!--[if gt IE 9]><!-->	<html> <!--<![endif]-->
+	<head>
+		<meta charset="utf-8" />
+		<title>Coherence Community</title>
+		<meta name="keywords" content="HTML5,CSS3,Template" />
+		<meta name="description" content="Everything related to Oracle Coherence" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+		<!-- mobile settings -->
+		<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=0" />
+
+		<!-- Favicon -->
+		<link rel="shortcut icon" href="assets/images/favicon.ico" />
+
+		<!-- WEB FONTS -->
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700,800&amp;subset=latin,latin-ext,cyrillic,cyrillic-ext" rel="stylesheet" type="text/css" />
+
+		<!-- CORE CSS -->
+		<link href="assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/font-awesome.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/sky-forms.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/weather-icons.min.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/line-icons.css" rel="stylesheet" type="text/css" />
+		<link href="assets/plugins/owl-carousel/owl.pack.css" rel="stylesheet" type="text/css" />
+		<link href="assets/plugins/magnific-popup/magnific-popup.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/animate.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/flexslider.css" rel="stylesheet" type="text/css" />
+
+		<!-- REVOLUTION SLIDER -->
+		<link href="assets/css/revolution-slider.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/layerslider.css" rel="stylesheet" type="text/css" />
+
+		<!-- THEME CSS -->
+		<link href="assets/css/essentials.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/layout.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/header-transparent.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/footer-default.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/color_scheme/red.css" rel="stylesheet" type="text/css" id="color_scheme" />
+
+		<!-- Morenizr -->
+		<script type="text/javascript" src="assets/plugins/modernizr.min.js"></script>
+
+		<!--[if lte IE 8]>
+			<script src="assets/plugins/respond.js"></script>
+		<![endif]-->
+	</head>
+	
+	<!-- 
+		Available body classes: 
+			smoothscroll			= enable chrome browser smooth scroll
+			grey 					= grey content background
+			boxed 					= boxed style
+			pattern1 ... pattern10 	= background pattern
+
+		Background Image - add to body: 
+			data-background="assets/images/boxed_background/1.jpg"
+
+		Examples: 
+			<body class="smoothscroll grey boxed pattern3">
+			<body class="smoothscroll boxed" data-background="assets/images/boxed_background/1.jpg">
+	-->
+	<body class="smoothscroll pattern6">
+
+		<div id="wrapper">
+
+			<header id="header">
+
+				<!-- Top Nav -->
+				<header id="topNav">
+					<div class="container">
+
+						<!-- Logo -->
+						<a class="logo" href="index.html">
+							<img src="assets/images/logo-red.png" height="50" alt="" />
+						</a>
+
+						<!-- Mobile Menu Button -->
+						<button class="btn btn-mobile" data-toggle="collapse" data-target=".nav-main-collapse">
+							<i class="fa fa-bars"></i>
+						</button>
+
+						<!-- Top Nav -->
+						<div class="navbar-collapse nav-main-collapse collapse">
+							<nav class="nav-main">
+
+								<!--
+									NOTE
+									
+									For a regular link, remove "dropdown" class from LI tag and "dropdown-toggle" class from the href.
+									Direct Link Example: 
+
+									<li>
+										<a href="#">HOME</a>
+									</li>
+								-->
+								<ul id="topMain" class="nav nav-pills nav-main white"><!-- add "white" class if you want white menu text color-->
+									<li class="active">
+										<a href="#overview">Overview</a>
+									</li>
+                                    <li>
+                                        <a href="#features">Features</a>
+                                    </li>
+                                    <li>
+                                        <a href="examples.html">Examples</a>
+                                    </li>
+									<li class="dropdown">
+										<a class="dropdown-toggle" href="#">Documentation</a>
+										<ul class="dropdown-menu">
+											<li><a href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html" target="_new"><i class="fa fa-external-link"></i> Official Documentation (all editions)</a></li>
+                                            <li class="divider"></li>
+                                            <li><a href="14.1.1.0/docs/" target="_new"><i class="fa fa-external-link"></i> Coherence CE 14.1.1 Documentation</a></li>
+                                            <li><a href="20.06/docs/" target="_new"><i class="fa fa-external-link"></i> Coherence CE 20.06 Documentation</a></li>
+										</ul>
+									</li>
+									<li>
+                                    	<a href="https://medium.com/oracle-coherence" target="_new"><i class="fa fa-medium"></i> Blog</a>
+									</li>
+                                    <li>
+                                        <a href="https://github.com/oracle/coherence" target="_new"><i class="fa fa-github"></i> Code</a>
+                                    </li>
+								</ul>
+
+							</nav>
+						</div>
+						<!-- /Top Nav -->
+
+					</div><!-- /.container -->
+				</header>
+				<!-- /Top Nav -->
+
+			</header>
+
+
+			<!-- REVOLUTION SLIDER -->
+			<div class="slider fullwidthbanner-container roundedcorners">
+				<div class="fullwidthbanner" data-height="650">
+					<ul class="hide">
+
+						<!-- SLIDE  -->
+						<li data-transition="fade" data-slotamount="14"  data-masterspeed="300" data-delay="10000">
+
+							<!-- COVER IMAGE -->
+							<img src="assets/images/1x1.png" data-lazyload="assets/images/wall.jpg" alt="" data-bgfit="cover" data-bgposition="left top" data-bgrepeat="no-repeat" />
+
+							<div class="tp-caption modern_medium_fat_white lfl stl"
+								data-x="60"
+								data-y="300"
+								data-speed="300"
+								data-start="500"
+								data-easing="easeOutExpo">ARE YOU BUILDING
+							</div>
+
+							<div class="tp-caption large_bold_white sft stb"
+								data-x="60"
+								data-y="323"
+								data-speed="300"
+								data-start="1000"
+								data-easing="easeOutExpo">MICROSERVICES?
+							</div>
+
+							<div class="tp-caption medium_light_white sft stb"
+								data-x="60"
+								data-y="400"
+								data-speed="500"
+								data-start="2000"
+								data-easing="easeOutExpo">You've come to the right place
+							</div>
+
+							<div class="tp-caption sft medium_light_white" 
+								data-x="600"
+								data-y="200"
+								data-speed="600" 
+								data-start="1500" 
+								data-easing="easeOutExpo"><img src="assets/images/sockshop-final.png" width="700" alt="" />
+							</div>
+
+						</li>
+
+						<!-- SLIDE  ->
+						<li data-transition="fade" data-slotamount="7" data-masterspeed="300" data-link="http://www.stepofweb.com/" data-target="_blank" data-saveperformance="off" >
+
+							<img src="assets/images/1x1.png" data-lazyload="assets/images/wall.jpg" alt="" data-bgfit="cover" data-bgposition="center bottom" data-bgrepeat="no-repeat" />
+
+							<div class="tp-caption sft medium_light_white" 
+								data-x="right" 
+								data-y="bottom" data-voffset="100"
+								data-speed="1000" 
+								data-start="1000" 
+								data-easing="easeOutExpo"><img src="assets/images/federation-2.png" alt="" />
+							</div>
+
+							<div class="tp-caption sft medium_light_white" 
+								data-x="right"  data-hoffset="-145"
+								data-y="430" 
+								data-speed="1000" 
+								data-start="1500" 
+								data-easing="easeOutExpo"><img src="assets/images/federation.png" alt="" />
+							</div>
+
+							<div class="tp-caption block_black sfl tp-resizeme" 
+								data-x="70" 
+								data-y="272" 
+								data-speed="750" 
+								data-start="1000" 
+								data-easing="easeOutExpo" 
+								data-splitin="none" 
+								data-splitout="none" 
+								data-elementdelay="0.1" 
+								data-endelementdelay="0.1" 
+								data-endspeed="300">Epona Multipurpose Template
+							</div>
+
+							<div class="tp-caption block_black sfl tp-resizeme" 
+								data-x="70" 
+								data-y="316" 
+								data-speed="750" 
+								data-start="1400" 
+								data-easing="easeOutExpo" 
+								data-splitin="none" 
+								data-splitout="none" 
+								data-elementdelay="0.1" 
+								data-endelementdelay="0.1" 
+								data-endspeed="300">Loaded With Options, And Is Simply A Joy To Use
+							</div>
+
+							<div class="tp-caption block_black sfr tp-resizeme" 
+								data-x="70" 
+								data-y="360" 
+								data-speed="750" 
+								data-start="1800" 
+								data-easing="easeOutExpo" 
+								data-splitin="none" 
+								data-splitout="none" 
+								data-elementdelay="0.1" 
+								data-endelementdelay="0.1" 
+								data-endspeed="300">Premium Sliders That Are Easy To Use With Any Content
+							</div>
+
+						</li>
+                        <!-- SLIDE -->
+					</ul>
+					<div class="tp-bannertimer"></div>
+				</div>
+			</div>
+			<!-- /REVOLUTION SLIDER -->
+
+
+			<!-- CALLOUT -->
+			<div class="callout dark"><!-- add "styleBackgroundColor" class for colored background and white text OR "dark" for a dark callout -->
+				<div class="container">
+
+					<div class="row">
+
+						<div class="col-md-8"><!-- title + shortdesc -->
+							<h3>
+                                The best way to build
+                                <span class="word-rotator"><!-- word rotator -->
+                                    <span class="items bold">
+                                        <span><strong>modern</strong></span>
+                                        <span><strong>stateful</strong></span>
+                                        <span><strong>scalable</strong></span>
+                                        <span><strong>cloud native</strong></span>
+                                    </span>
+                                </span><!-- /word rotator -->
+                            </h3>
+                            <h3>
+                                microservices
+                            </h3>
+						</div>
+
+						<div class="col-md-4">
+                            <img src="assets/images/microservices-platform.png" height="80" alt="" />
+						</div>
+
+					</div>
+
+				</div>
+			</div>
+			<!-- /CALLOUT -->
+
+			<!-- WELCOME -->
+			<section>
+				<div class="container">
+					<header>
+                        <a name="overview"></a>
+						<h2>
+							Welcome to <span class="bold"><em>Coherence Community Edition</em></span>
+						</h2>
+                        <p class="lead">Coherence CE (Community Edition) is a free and open source edition of Oracle
+                        Coherence, first and market-leading in-memory data grid. Since its initial release in 2001,
+                        it has been used by hundreds of customers across many industries to power some of the
+                        mission critical systems you use every day. Often immitated, but never duplicated, it is now
+                        available for everyone to use free of charge.</p>
+					</header>
+                    
+                    
+					<!-- FEATURED BOXES 3 -->
+					<div class="row featured-box-minimal">
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><i class="fa fa-arrows"></i> Scalable</h4>
+                            <p>Coherence clusters can easily scale to hundreds of members (JVMs), all of which can both store and process the data. This allows you to scale both the data storage and the processing capacity by simply adding more members to the cluster, which you can do at any time.</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><i class="fa fa-cog"></i> Reliable</h4>
+                            <p>Coherence stores each piece of data within multiple members (one primary and one or more backup copies), and doesn't consider any mutating operation complete until the backup(s) are successfully created. This ensures that your data grid can tolerate the failure at any level: from single JVM, to whole data center.</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><i class="fa fa-rocket"></i> Fast</h4>
+                            <p>Coherence is fast. Like, sub-millisecond fast. Each member of the cluster is aware of where each piece of data resides and can access it using a single network call. There are no connections to acquire or release, and no distributed transactions to commit or roll back.</p>
+						</div>
+                    </div>
+                    
+                    <div class="row featured-box-minimal">
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><i class="fa fa-database"></i> Durable</h4>
+                            <p>Coherence can optionally persist data to disk (either local or shared), which prevents data loss even in the case of complete cluster outage. Coherence Grid Edition (commercial) also supports data center replication and application failover.</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><i class="fa fa-cloud"></i> Cloud Enabled</h4>
+                            <p>Coherence comes with its own Kubernetes Operator, which allows you to provision Coherence-based application into any Kubernetes cluster using 5 lines of YAML. It also has built-in support for OpenTracing, Prometheus and Grafana, and comes with a number of custom Grafana dashboards that allow you to monitor cluster of any size in any environment.</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><i class="fa fa-code"></i> Joy to Use</h4>
+                            <p>Coherence is just a library that you can embed into your application and start coding against. If you know how to use <code>java.util.Map</code>, you know how to get started with Coherence. From basic gets and puts, to Stream API, it's all there. Once you reach the limits of basic functionality, you can leverage some of the advanced features that will allow you to build better distributed applications.</p>
+						</div>
+
+					</div>
+					<!-- /FEATURED BOXES 3 -->
+
+				</div>
+			</section>
+			<!-- /WELCOME -->
+
+            <!-- FEATURES CALLOUT -->
+            <div class="callout dark">
+                <div class="container">
+
+                    <a name="features"></a>
+                    <div class="row">
+                        <div class="col-md-9">
+                            <h2>Coherence <strong>Features</strong></h2>
+                            <h4>Coherence is designed to run 24/7, all year long. Nothing makes us more proud than when the users tell us they haven't touched their production cluster in years.</h4>
+                            <h4>Although, we would like them to upgrade and use the new features from time to time...</h4>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            <!-- /FEATURES CALLOUT -->
+
+            <!-- FEATURES -->
+			<section class="alternate">
+                <div class="container">
+                    
+ <!--               <div class="owl-carousel" data-plugin-options='{"items": 1, "autoHeight": true, "navigation": false, "pagination": true, "transitionStyle":"fade"}'><!-- transitionStyle: fade, backSlide, goDown, fadeUp,  -->
+
+                    <div class="row">
+						<div class="col-md-4">
+							<h4>Clustering and <strong>Data Sharding</strong></h4>
+                            <p>Coherence requires minimal configuration in order for the members to discover one another and form a cluster. This makes it just as easy to create a cluster of 500 members as it is to create a cluster of 5 members, both on the physical hardware and in virtualized environments.</p>
+                            <p>Once the cluster is formed, Coherence will automatically shard the data across all the members and ensure that each piece of data has a backup copy as well. No cluster member is special, and any member can fail at any given time without significant impact on the cluster as a whole.</p>
+                            <p>In other words, failure is expected and built into the architecture, not an exception.</p>
+						</div>
+						
+						<div class="col-md-8 text-center">
+							<video controls src="assets/video/clustering.mp4" poster="assets/images/clustering.png" width="700"/>
+						</div>
+					</div>
+                    <hr/>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>Scalability and <strong>High Avalability</strong></h4>
+                            <p>Coherence can be easily scaled out to increase both the storage and the processing capacity, and can be scaled in just as easily to reduce resource usage when the additional capacity is not needed, to the limit of the in-memory data set size.</p>
+                            <p>Whenever you add or remove cluster members, Coherence will automatically rebalance the data by moving some of the partitions to new members or be restoring partitions from backup for the departed members.</p>
+                            <p>Coherence is aware of the network topology and always stores backups <strong>as far away as possible</strong> from the primary copy. In the common case of a cluster spanning multiple availability domains/zones in the cloud region, this allows you to lose a whole availability domain without any data loss.</p>
+                        </div>
+                        
+                        <div class="col-md-8 text-center">
+                            <video controls src="assets/video/ha.mp4" poster="assets/images/ha.png" width="700"/>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>Disk-Based <strong>Persistence</strong></h4>
+                            <p>You also have the option of persisting data to disk, either actively, as the changes happen, or on demand, by taking periodic snapshots of the cluster state. You can use either local or shared disk, but we strongly recommend that you use SSD in either case if you care about peformance. When running inside of Kubernetes, both regular volumes and PVCs are fully supported.</p>
+                            <p>This allows you to quickly restore cluster state from disk in case of catastrophic failure, such as data center power loss, or to speed up whole-cluster upgrades if you can tolerate some downtime. If you can't, you can still use persistence to create backups, and rolling upgrades to perform cluster upgrades while keeping the system fully operational.</p>
+                        </div>
+                        
+                        <div class="col-md-8 text-center">
+                            <video controls src="assets/video/persistence.mp4" poster="assets/images/persistence.png" width="700"/>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>Key-Value <strong>Data Store</strong></h4>
+                            <p>Coherence <code>NamedCache</code> API is an extension of <code>java.util.Map</code> interface, so if you know how to use Java <code>Map</code>, you already know how to use Coherence for basic key-value operations. The difference is that now you have a fault tolerant <code>Map</code> that can be scaled across many cluster members and optionally persisted to disk</p>
+                            <p>Key-based operations in Coherence are very efficient. Every cluster member is aware of the partition/shard distribution across the cluster, and the partition that a given key belongs to is determined using a consistent hashing algorithm. That means that any piece of data is only one direct network call away, regardless of the cluster size.</p>
+                            <p>Unlike some of the competitors, Coherence lets you work with classes and objects like you normally would, and converts them to binary data for network transfer and storage purposes when necessary, using one of the several supported serialization formats.</p>
+                        </div>
+
+                        <div class="col-md-8 text-center">
+                            <video controls src="assets/video/kv.mp4" poster="assets/images/kv.png" width="700"/>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>Parallel <strong>Queries</strong></h4>
+                            <p>Being able to store and access data based on a key is great, but sometimes you need more than that. Coherence allows you to query on any data attribute present in your data model, and even allows you to define your own query <strong>filter</strong> if one of the built-in ones doesn't fit the bill. If you defined an index for a given query attribute, it will be used to optimize the query execution and avoid unnecessary deserialization.</p>
+                            <p>Coherence executes queries in parallel, across the whole cluster, by default, allowing you to query across the whole data set at once without worrying about its physical distribution. However, it also allows you to execute a targeted query against a single cluster member in situations when you know that all possible results will be collocated based on data affinity configuration. This allows you to optimize queries even further, by limiting the amount of data that needs to be processed.</p>
+                        </div>
+                        
+                        <div class="col-md-8 text-center">
+                            <video controls src="assets/video/query.mp4" poster="assets/images/query.png" width="700"/>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>Efficient <strong>Aggregation</strong></h4>
+                            <p>Sometimes you don't need the actual data objects that are stored within the data grid, but the derived, calculated result based on them. This is where Coherence aggragation features come in handy.</p>
+                            <p>Coherence <strong>aggregators</strong> are similar to Java <code>Collectors</code> -- they <em>accumulate</em> individual data objects into a partial result in parallel, across all cluster members, and then <em>combine</em> partial results from all the members into a final result that is ultimately returned to the caller.</p>
+                            <p>Aggregations can be executed against the whole data set, or they can be limited to a subset of the data using a query or a key set. They also tend to scale linearly, so you can typically improve aggregation performance by simply spreading the data (and the processing load) across more cluster members.</p>
+                        </div>
+                        
+                        <div class="col-md-8 text-center">
+                            <video controls src="assets/video/aggregation.mp4" poster="assets/images/aggregation.png" width="700"/>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>In-Place <strong>Processing</strong></h4>
+                            <p>If there is one defining feature that makes Coherence stand out from many competing technologies, and allows you to write efficient distributed applications, this is it.</p>
+                            <p>The problem with many applications that both hurts their performance and prevents them from scaling is that they simply move too much data over the network and require complicated distributed concurrency control. <em>Read-modify-write</em> is probably the most common data access pattern in vast majority of applications, even though it is very inefficient way of performing data modification.</p>
+                            <p>Coherence addresses this problem by allowing you to send the data modification code into the grid and execute it where the data is, against one or more entries. This can not only significantly impact how much data needs to be moved over the wire, but it also takes care of cluster-wide concurrency control &mdash; each <strong>entry processor</strong> has the exclusive access to the entry it is processing for the duration of its execution.</p>
+                            <p>Think of it as stored procedures, but using Java lambdas and rich server-side domain models.</p>
+                        </div>
+
+                        <div class="col-md-8 text-center">
+                            <video controls src="assets/video/processor.mp4" poster="assets/images/processor.png" width="700"/>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>Sophisticated <strong>Event Model</strong></h4>
+                            <p>Coherence allows you to react to almost any event that happens within the cluster: members joining or leaving, services starting or shutting down, data partitions being transferred or restored from disk &mdash; you name it, it is probably there.</p>
+                            <p>Of course, you can also observe data modification events, both on the server-side and using any of the supported clients. Whether it's entry inserts, updates and removals, or entry processor executions, it's all observable (and in many cases, vetoable).</p>
+                            <p>Coherence <strong>events</strong> and <strong>interceptors</strong> also allow you to leverage Coherence data grid as the central integration hub for multiple back end systems, and provide what appears to be a single unified data store for your front end applications.
+                        </div>
+                        
+                        <div class="col-md-8 text-center">
+                            <video controls src="assets/video/events.mp4" poster="assets/images/events.png" width="700"/>
+                        </div>
+                    </div>
+<!--                </div>-->
+				</div>
+			</section>
+			<!-- /FEATURES -->
+
+			<!-- DARK CALLOUT -->
+			<div class="callout dark arrow-up">
+				<div class="container text-center">
+
+                    <h2>And many more...</h2>
+                    <p>Doesn't matter if you are a begginer or an advanced developer. Coherence is easy to use, distributed to its core, and has a number of features that will make development of modern cloud native applications a breeze.</p>
+					
+					<div class="divider half-margins"><!-- divider --></div>
+
+					<div class="row text-left">
+						<div class="col-md-4 col-sm-4">
+							<ul class="list-icon spaced check-circle">
+								<li>Synchronous and Asynchronous API</li>
+                                <li>Extensive Security Features</li>
+								<li>Support for CDI</li>
+                                <li>Support for Eclipse MicroProfile</li>
+                                <li>Support for OpenTracing</li>
+                                <li>Support for OpenMetrics</li>
+                                
+							</ul>
+						</div>
+						<div class="col-md-4 col-sm-4">
+							<ul class="list-icon spaced check-circle">
+                                <li>Native Clients for Java, .NET and C++</li>
+                                <li>REST API</li>
+                                <li>JMX and REST-based Management</li>
+                                <li>Data Affinity Support</li>
+                                <li>Partition-Local Transactions</li>
+                                <li>Built-In Durable Messaging</li>
+							</ul>
+						</div>
+						<div class="col-md-4 col-sm-4">
+							<ul class="list-icon spaced check-circle">
+								<li>Custom Kubernetes Operator</li>
+								<li>Integration with Prometheus</li>
+                                <li>Integration with Jaeger</li>
+                                <li>Awesome Grafana Dashboards</li>
+                                <li>Extensive Documentation</li>
+                                <li>Realistic Sample Applications</li>
+							</ul>
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<!-- /DARK CALLOUT -->
+
+			<!-- QUICKSTART CALLOUT -->
+			<div class="callout styleBackgroundColor"><!-- add "styleBackgroundColor" class for colored background and white text OR "dark" for a dark callout -->
+				<div class="container">
+
+					<div class="row">
+
+                        <a name="quickstart"></a>
+						<div class="col-md-6"><!-- title + shortdesc -->
+                            <h2>Quick <strong>Start</strong></h2>
+							<h4>Did we convince you? If so, <strong>give Coherence a try</strong></h4>
+						</div>
+
+					</div>
+				</div>
+			</div>
+			<!-- /QUICKSTART CALLOUT -->
+
+            <!-- QUICKSTART -->
+            <section>
+                <div class="container">
+                
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h3><i class="fa fa-play-circle styleColor"></i> Add Dependencies to <code>pom.xml</code></h3>
+                            <p>Coherence lorem ipsum</p>
+                        </div>
+                        
+                        <div class="col-md-7">
+                            <p>Embed Gist</p>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h3><i class="fa fa-play-circle styleColor"></i> Configure Coherence</h3>
+                            <p>Coherence lorem ipsum</p>
+                        </div>
+                        
+                        <div class="col-md-7">
+                            <p>Embed Gist</p>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h3><i class="fa fa-play-circle styleColor"></i> Implement <code>Person</code> Class</h3>
+                            <p>Coherence lorem ipsum</p>
+                        </div>
+                        
+                        <div class="col-md-7">
+                            <p>Embed Gist</p>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h3><i class="fa fa-play-circle styleColor"></i> Implement <code>Main</code> Class</h3>
+                            <p>Coherence lorem ipsum</p>
+                        </div>
+                        
+                        <div class="col-md-7">
+                            <p>Embed Gist</p>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h3><i class="fa fa-play-circle styleColor"></i> Run the Application</h3>
+                            <p>Coherence lorem ipsum</p>
+                        </div>
+                        
+                        <div class="col-md-7">
+                            <p>Embed Gist</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            <!-- /QUICKSTART -->
+            
+			<!-- TESTIMONIALS ->
+			<section>
+				<div class="container">
+					
+					
+					<header class="text-center">
+						<h2>Wow, Incredible Theme I've ever seen</h2>
+						<blockquote class="noborder nopadding nomargin">
+							<i>This is the Best Theme I have ever seen. I am a full time web dev, and this theme blows me away. I wanted to thank you for all your hard work. I am really looking forward to building my new site! I think you thought of everything and then some.</i>
+							<cite class="block">Dorin Grigoras</cite>
+						</blockquote>
+
+						<div class="divider half-margins"></div>
+
+					</header>
+
+					
+					<div class="row">
+						<div class="col-md-4">
+							<div class="testimonial classic female animate_from_bottom">
+								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
+								<cite><strong>John Doe</strong>, Customer</cite>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="testimonial classic male animate_from_bottom">
+								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
+								<cite><strong>John Doe</strong>, Customer</cite>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="testimonial classic male animate_from_bottom">
+								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
+								<cite><strong>John Doe</strong>, Customer</cite>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-6">
+							<div class="testimonial classic female animate_from_bottom">
+								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
+								<cite><strong>John Doe</strong>, Customer</cite>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="testimonial classic male animate_from_bottom">
+								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
+								<cite><strong>John Doe</strong>, Customer</cite>
+							</div>
+						</div>
+					</div>
+
+					<div class="owl-carousel animate_from_bottom text-center" data-plugin-options='{"items": 1, "singleItem": true, "navigation": false, "pagination": true, "autoPlay": true, "transitionStyle":"fadeUp"}'><!-- transitionStyle: fade, backSlide, goDown, fadeUp,  ->
+						<div class="testimonial">
+							<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
+							<cite><strong>John Doe</strong>, Customer</cite>
+						</div>
+
+						<div class="testimonial">
+							<p>Donec tellus massa, tristique sit amet condim vel, facilisis quis sapien. Praesent id enim sit amet odio vulputate eleifend in in tortor. Donec tellus massa.</p>
+							<cite><strong>Jessica Doe</strong>, Customer</cite>
+						</div>
+
+						<div class="testimonial">
+							<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
+							<cite><strong>Dorin Doe</strong>, Customer</cite>
+						</div>
+
+						<div class="testimonial">
+							<p>Donec tellus massa, tristique sit amet condim vel, facilisis quis sapien. Praesent id enim sit amet odio vulputate eleifend in in tortor. Donec tellus massa.</p>
+							<cite><strong>Melissa Doe</strong>, Customer</cite>
+						</div>
+
+					</div>
+
+				</div>
+			</section>
+			<!-- /TESTIMONIALS -->
+
+
+			<!-- FOOTER -->
+			<footer id="footer">
+                <div class="container">
+
+                    <div class="row">
+
+                        <!-- col #1 -->
+                        <div class="spaced col-md-4 col-sm-4">
+
+                            <h4>Stay <strong>Connected</strong></h4>
+
+                            <p>
+                                Connect with us on social networks.
+                            </p>
+
+                            <p class="block"><!-- social -->
+                                <a href="https://twitter.com/OracleCoherence" target="_new" class="social fa fa-twitter"></a>
+                                <a href="https://www.linkedin.com/groups/1782166/" target="_new" class="social fa fa-linkedin"></a>
+                                <a href="http://www.facebook.com/oraclecoherencepm" target="_new" class="social fa fa-facebook"></a>
+                            </p><!-- /social -->
+
+                            <h4><strong>Contribute</strong></h4>
+ 
+                            <ul class="list-unstyled nobordered">
+                                <li><a class="block" href="https://github.com/oracle/coherence" target="_new"><i class="fa fa-github"></i> Fork us on GitHub and start coding.</a></li>
+                            </ul>
+      
+                        </div>
+                        <!-- /col #1 -->
+
+                        <!-- col #2 -->
+                        <div class="spaced col-md-8 col-sm-8">
+
+                            <div class="row">
+
+                                <div class="col-md-4 hidden-sm hidden-xs">
+                                    <h4>Learn <strong>More</strong></h4>
+                                    <ul class="list-unstyled nobordered">
+                                        <li><a class="block" href="https://www.youtube.com/user/OracleCoherence" target="_new"><i class="fa fa-youtube"></i> Watch our Videos</a></li>
+                                        <li><a class="block" href="https://medium.com/oracle-coherence" target="_new"><i class="fa fa-medium"></i> Read our Blog</a></li>
+                                        <li><a class="block" href="https://stackoverflow.com/tags/coherence" target="_new"><i class="fa fa-stack-overflow"></i> Find Answers</a></li>
+                                        <li><a class="block" href="https://join.slack.com/t/oraclecoherence/shared_invite/zt-9ufv220y-Leudk0o5ntgNV0xraa8DNw" target="_new"><i class="fa fa-slack"></i> Chat with Us</a></li>
+                                    </ul>
+                                </div>
+
+                                <div class="col-md-4 hidden-sm hidden-xs">
+                                    <h4>Related <strong>Projects</strong></h4>
+                                    <ul class="list-unstyled nobordered">
+                                        <li><a class="block" href="https://github.com/oracle/coherence-operator/" target="_new"><i class="fa fa-external-link"></i> Coherence  Operator</a></li>
+                                        <li><a class="block" href="https://helidon.io/" target="_new"><i class="fa fa-external-link"></i> Helidon </a></li>
+                                        <li><a class="block" href="https://www.graalvm.org" target="_new"><i class="fa fa-external-link"></i> GraalVM</a></li>
+                                        <li><a class="block" href="#" target="_new"><i class="fa fa-external-link"></i> Verrazzano</a></li>
+                                        <li><a class="block" href="https://github.com/coherence-community/coherence-spring" target="_new"><i class="fa fa-external-link"></i> Spring Integration</a></li>
+                                        <li><a class="block" href="https://github.com/coherence-community/coherence-hibernate" target="_new"><i class="fa fa-external-link"></i> Hibernate Integration</a></li>
+                                    </ul>
+                                </div>
+
+                                <div class="col-md-4 hidden-sm hidden-xs">
+                                    <h4>About <strong>Us</strong></h4>
+                                    <ul class="list-unstyled nobordered">
+                                        <li><a class="block" href="team.html"><i class="fa fa-angle-right"></i> Meet the Team</a></li>
+                                        <li><a class="block" href="events.html"><i class="fa fa-angle-right"></i> Upcoming Events</a></li>
+                                        <li><a class="block" href="presentations.html"><i class="fa fa-angle-right"></i> Past Presentations</a></li>
+                                        <li><a class="block" href="faq.html"><i class="fa fa-angle-right"></i> FAQ</a></li>
+                                    </ul>
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!-- /col #2 -->
+
+                    </div>
+
+                </div>
+
+				<hr />
+
+				<div class="copyright">
+					<div class="container text-center fsize12">
+                        Copyright &copy; 2020, Oracle and/or its affiliates. All rights reserved &bull; Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.
+					</div>
+				</div>
+			</footer>
+			<!-- /FOOTER -->
+
+			<a href="#" id="toTop"></a>
+
+		</div><!-- /#wrapper -->
+
+		<!-- JAVASCRIPT FILES -->
+		<script type="text/javascript" src="assets/plugins/jquery-2.2.3.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/jquery.isotope.js"></script>
+		<script type="text/javascript" src="assets/plugins/masonry.js"></script>
+
+		<script type="text/javascript" src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/magnific-popup/jquery.magnific-popup.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/owl-carousel/owl.carousel.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/knob/js/jquery.knob.js"></script>
+		<script type="text/javascript" src="assets/plugins/flexslider/jquery.flexslider-min.js"></script>
+
+		<!-- REVOLUTION SLIDER -->
+		<script type="text/javascript" src="assets/plugins/revolution-slider/js/jquery.themepunch.tools.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/revolution-slider/js/jquery.themepunch.revolution.min.js"></script>
+		<script type="text/javascript" src="assets/js/revolution_slider.js"></script>
+		
+
+		<script type="text/javascript" src="assets/js/scripts.js"></script>
+	</body>
+</html>

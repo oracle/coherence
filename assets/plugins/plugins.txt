@@ -1,0 +1,2 @@
+plugins.zip - contain  the unpacked scripts
+already included on assets/js/scripts.js

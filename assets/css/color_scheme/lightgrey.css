@@ -1,0 +1,224 @@
+/**
+	@Lightgrey		#9E9E9E
+	@Dark Lightgrey	#828282
+*/
+
+a,
+.tp-caption a {
+	color:#9E9E9E;
+}
+
+#footer li a:hover,
+#footer a:hover,
+a, a:hover, a:active,
+#topNav ul.nav li li a:hover,
+.tp-caption a:hover,
+.featured-box-minimal h4,
+.glyphicon, .wi,
+p.dropcap:first-letter,
+ul.side-nav a:hover,
+ul.side-nav ul li.active>a,
+.li, div.owl-carousel .caption,
+.pagination>li>a, 
+.pagination>li>span,
+.pagination > li > a:hover,
+.pagination > li > span:hover,
+.pagination > li > a:focus,
+.pagination > li > span:focus,
+div.mega-price-table .pricing:hover h4,
+div.mega-price-table .pricing-table i.fa, /* icons */
+#blog a>span,
+#blog h1>span,
+.cartContent a.remove_item:hover,
+.owl-carousel.featured a.figure>span>i,
+.btn-link,
+.styleColor {
+	color:#828282;
+}
+
+p.dropcap.color:first-letter,
+span.badge,
+#toTop:hover,
+#bar, .slider-handle,
+div.featured-box i.fa,
+i.featured-icon,
+.progress-bar-primary,
+.modal-header,
+.timeline .timeline-left .item:before,
+.timeline .timeline-right .item:before,
+.timeline .timeline-centered .item.pull-right:before,
+.timeline .timeline-centered .item.pull-left:before,
+div.mega-price-table .pricing-title, 
+div.mega-price-table .pricing-head,
+div.mega-price-table .pricing.popular,
+#topNav ul.nav>li:hover>a:before, 
+#topNav ul.nav>li.active>a:before,
+.styleBackgroundColor {
+	background-color:#828282;
+}
+
+/* icons , boxes */
+i.featured-icon:after,
+div.featured-box.nobg.border-only i.fa {
+	color:#828282;
+	border-color:#828282;
+}
+section.product-view-colors a:hover,
+section.product-view-colors a.active,
+i.featured-icon {
+	border-color:#828282;
+
+}
+i.featured-icon.empty {
+	color:#828282 !important;
+	border-color:#828282;
+}
+
+/* Top Nav */
+#topNav ul.nav .dropdown-menu>li.active>a, 
+#topNav ul.nav .dropdown-menu>li:hover>a, 
+#topNav ul.nav .dropdown-menu>li:focus>a {
+	color:#fff !important;
+	background-color:#828282;
+}
+
+#topNav ul.dropdown-menu>li:hover>a.dropdown-toggle:after { /* arrow sub-submenu */
+	color:#fff;
+}
+
+/* Primary Button */
+.btn-primary {
+	border-color:#9E9E9E;
+	background-color:#9E9E9E;
+}
+
+.btn-white {
+	color:#828282 !important;
+}
+
+.pagination>.active>a, 
+.pagination>.active>span, 
+.pagination>.active>a:hover, 
+.pagination>.active>span:hover, 
+.pagination>.active>a:focus, 
+.pagination>.active>span:focus,
+.btn-primary:hover, 
+.btn-primary:focus, 
+.btn-primary:active, 
+.btn-primary.active, 
+.open .dropdown-toggle.btn-primary,
+.daterangepicker td.active, 
+.daterangepicker td.active:hover,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus {
+	border-color:#828282;
+	background-color:#828282;
+}
+
+
+/* embed title */
+section header em,
+h1>em, h2>em, h3>em, h4>em, h5>em, h6>em {
+	font-style:normal;
+	color:#828282;
+}
+
+/* Top Nav active/hover */
+#topNav ul.nav>li.mega-menu>ul li:hover>a,
+#topNav ul.nav>li.mega-menu>ul li.active>a,
+#topNav ul.nav>li:hover:before,
+#topNav ul.nav>li.active:before {
+	background-color: #828282;
+}
+/* Top Nav color active */
+#topNav .nav-pills.colored>li.active>a, 
+#topNav .nav-pills.colored>li.active>a:hover, 
+#topNav .nav-pills.colored>li.active>a:focus {
+	color:#fff;
+	background-color:#828282;
+}
+
+/* Misc */
+.styleBackgroundColor,
+.featured-box-minimal i.fa {
+	background-color:#828282;
+}
+
+ul.list-icon li:before {
+	color:#828282;
+	font-size:16px;
+}
+body.boxed #topBar {
+	border-top:#828282 4px solid;
+}
+
+.panel-epona {
+	border:#828282 1px solid;
+}
+
+.panel-epona>.panel-heading {
+	background-color:#828282;
+	color:#fff;
+}
+
+/* Slider Captions */
+.tp-caption.block_styleColor {
+	background-color: #828282;
+	color:#fff;
+}
+.tp-caption.block_white {
+	color:#828282;
+}
+
+/* flex slider */
+.flexslider.flexFull .flex-direction-nav a:hover, 
+.flexslider.flexContent .flex-direction-nav a:hover {
+	background-color: #828282;
+	color:#fff;
+}
+
+/* essentials rewrite */
+.alert.alert-default {
+	border-left:#828282 3px solid;
+}
+
+/* item box */
+.item-box .item-hover .overlay {
+	background-color:rgba(158,158,158,0.6);
+}
+
+
+
+/* 
+	Sky Forms
+*/
+/**/
+/* normal state */
+/**/
+.sky-form .toggle i:before {
+	background-color: #828282;	
+}
+.sky-form .button {
+	background-color: #828282;
+}
+
+
+/**/
+/* checked state */
+/**/
+.sky-form .radio input + i:after {
+	background-color: #828282;	
+}
+.sky-form .checkbox input + i:after {
+	color: #828282;
+}
+.sky-form .radio input:checked + i,
+.sky-form .checkbox input:checked + i,
+.sky-form .toggle input:checked + i {
+	border-color: #828282;	
+}
+.sky-form .rating input:checked ~ label {
+	color: #828282;	
+}
+

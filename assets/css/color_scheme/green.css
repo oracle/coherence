@@ -1,0 +1,224 @@
+/**
+	@Green		#A0CE4D
+	@Dark Green	#8ab933
+*/
+
+a,
+.tp-caption a {
+	color:#A0CE4D;
+}
+
+#footer li a:hover,
+#footer a:hover,
+a, a:hover, a:active,
+#topNav ul.nav li li a:hover,
+.tp-caption a:hover,
+.featured-box-minimal h4,
+.glyphicon, .wi,
+p.dropcap:first-letter,
+ul.side-nav a:hover,
+ul.side-nav ul li.active>a,
+.li, div.owl-carousel .caption,
+.pagination>li>a, 
+.pagination>li>span,
+.pagination > li > a:hover,
+.pagination > li > span:hover,
+.pagination > li > a:focus,
+.pagination > li > span:focus,
+div.mega-price-table .pricing:hover h4,
+div.mega-price-table .pricing-table i.fa, /* icons */
+#blog a>span,
+#blog h1>span,
+.cartContent a.remove_item:hover,
+.owl-carousel.featured a.figure>span>i,
+.btn-link,
+.styleColor {
+	color:#8ab933;
+}
+
+p.dropcap.color:first-letter,
+span.badge,
+#toTop:hover,
+#bar, .slider-handle,
+div.featured-box i.fa,
+i.featured-icon,
+.progress-bar-primary,
+.modal-header,
+.timeline .timeline-left .item:before,
+.timeline .timeline-right .item:before,
+.timeline .timeline-centered .item.pull-right:before,
+.timeline .timeline-centered .item.pull-left:before,
+div.mega-price-table .pricing-title, 
+div.mega-price-table .pricing-head,
+div.mega-price-table .pricing.popular,
+#topNav ul.nav>li:hover>a:before, 
+#topNav ul.nav>li.active>a:before,
+.styleBackgroundColor {
+	background-color:#8ab933;
+}
+
+/* icons , boxes */
+i.featured-icon:after,
+div.featured-box.nobg.border-only i.fa {
+	color:#8ab933;
+	border-color:#8ab933;
+}
+section.product-view-colors a:hover,
+section.product-view-colors a.active,
+i.featured-icon {
+	border-color:#8ab933;
+
+}
+i.featured-icon.empty {
+	color:#8ab933 !important;
+	border-color:#8ab933;
+}
+
+/* Top Nav */
+#topNav ul.nav .dropdown-menu>li.active>a, 
+#topNav ul.nav .dropdown-menu>li:hover>a, 
+#topNav ul.nav .dropdown-menu>li:focus>a {
+	color:#fff !important;
+	background-color:#8ab933;
+}
+
+#topNav ul.dropdown-menu>li:hover>a.dropdown-toggle:after { /* arrow sub-submenu */
+	color:#fff;
+}
+
+/* Primary Button */
+.btn-primary {
+	border-color:#A0CE4D;
+	background-color:#A0CE4D;
+}
+
+.btn-white {
+	color:#8ab933 !important;
+}
+
+.pagination>.active>a, 
+.pagination>.active>span, 
+.pagination>.active>a:hover, 
+.pagination>.active>span:hover, 
+.pagination>.active>a:focus, 
+.pagination>.active>span:focus,
+.btn-primary:hover, 
+.btn-primary:focus, 
+.btn-primary:active, 
+.btn-primary.active, 
+.open .dropdown-toggle.btn-primary,
+.daterangepicker td.active, 
+.daterangepicker td.active:hover,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus {
+	border-color:#8ab933;
+	background-color:#8ab933;
+}
+
+
+/* embed title */
+section header em,
+h1>em, h2>em, h3>em, h4>em, h5>em, h6>em {
+	font-style:normal;
+	color:#8ab933;
+}
+
+/* Top Nav active/hover */
+#topNav ul.nav>li.mega-menu>ul li:hover>a,
+#topNav ul.nav>li.mega-menu>ul li.active>a,
+#topNav ul.nav>li:hover:before,
+#topNav ul.nav>li.active:before {
+	background-color: #8ab933;
+}
+/* Top Nav color active */
+#topNav .nav-pills.colored>li.active>a, 
+#topNav .nav-pills.colored>li.active>a:hover, 
+#topNav .nav-pills.colored>li.active>a:focus {
+	color:#fff;
+	background-color:#8ab933;
+}
+
+/* Misc */
+.styleBackgroundColor,
+.featured-box-minimal i.fa {
+	background-color:#8ab933;
+}
+
+ul.list-icon li:before {
+	color:#8ab933;
+	font-size:16px;
+}
+body.boxed #topBar {
+	border-top:#8ab933 4px solid;
+}
+
+.panel-epona {
+	border:#8ab933 1px solid;
+}
+
+.panel-epona>.panel-heading {
+	background-color:#8ab933;
+	color:#fff;
+}
+
+/* Slider Captions */
+.tp-caption.block_styleColor {
+	background-color: #8ab933;
+	color:#fff;
+}
+.tp-caption.block_white {
+	color:#8ab933;
+}
+
+/* flex slider */
+.flexslider.flexFull .flex-direction-nav a:hover, 
+.flexslider.flexContent .flex-direction-nav a:hover {
+	background-color: #8ab933;
+	color:#fff;
+}
+
+/* essentials rewrite */
+.alert.alert-default {
+	border-left:#8ab933 3px solid;
+}
+
+/* item box */
+.item-box .item-hover .overlay {
+	background-color:rgba(160,206,77,0.6);
+}
+
+
+
+/* 
+	Sky Forms
+*/
+/**/
+/* normal state */
+/**/
+.sky-form .toggle i:before {
+	background-color: #8ab933;	
+}
+.sky-form .button {
+	background-color: #8ab933;
+}
+
+
+/**/
+/* checked state */
+/**/
+.sky-form .radio input + i:after {
+	background-color: #8ab933;	
+}
+.sky-form .checkbox input + i:after {
+	color: #8ab933;
+}
+.sky-form .radio input:checked + i,
+.sky-form .checkbox input:checked + i,
+.sky-form .toggle input:checked + i {
+	border-color: #8ab933;	
+}
+.sky-form .rating input:checked ~ label {
+	color: #8ab933;	
+}
+
