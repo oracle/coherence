@@ -68,13 +68,55 @@ distributed applications.</p>
 </v-card-text>
 </v-card>
 </v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"><div class="card__link-hover"/>
+</a>
+<v-layout align-center justify-center class="">
+<v-avatar size="150px">
+<v-icon class="xxx-large">import_contacts</v-icon>
+</v-avatar>
+</v-layout>
+<div class="px-3">
+<v-divider class="indigo lighten-4"/>
+</div>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Docs</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Oracle Coherence commercial edition product documentation.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<a id="" title="" target="_blank" href="../api/index.html"><div class="card__link-hover"/>
+</a>
+<v-layout align-center justify-center class="">
+<v-avatar size="150px">
+<v-icon class="xxx-large">library_books</v-icon>
+</v-avatar>
+</v-layout>
+<div class="px-3">
+<v-divider class="indigo lighten-4"/>
+</div>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">JavaDocs</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Browse the Coherence CE JavaDocs.</p>
+</v-card-text>
+</v-card>
+</v-flex>
 </v-layout>
 </v-container>
 </v-flex>
 </v-layout>
 </div>
 
-<h2 id="_components">Components</h2>
+<h2 id="_new_features">New Features</h2>
 <div class="section">
 <v-layout row wrap class="mb-5">
 <v-flex xs12>
@@ -140,60 +182,6 @@ distributed applications.</p>
 <v-card-text class="caption">
 <p></p>
 <p>Coherence gRPC server and client.</p>
-</v-card-text>
-</v-card>
-</v-flex>
-</v-layout>
-</v-container>
-</v-flex>
-</v-layout>
-</div>
-
-<h2 id="_reference">Reference</h2>
-<div class="section">
-<v-layout row wrap class="mb-5">
-<v-flex xs12>
-<v-container fluid grid-list-md class="pa-0">
-<v-layout row wrap class="pillars">
-<v-flex xs12 sm4 lg3>
-<v-card>
-<a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"><div class="card__link-hover"/>
-</a>
-<v-layout align-center justify-center class="">
-<v-avatar size="150px">
-<v-icon class="xxx-large">import_contacts</v-icon>
-</v-avatar>
-</v-layout>
-<div class="px-3">
-<v-divider class="indigo lighten-4"/>
-</div>
-<v-card-title primary class="headline layout justify-center">
-<span style="text-align:center">Docs</span>
-</v-card-title>
-<v-card-text class="caption">
-<p></p>
-<p>Oracle Coherence commercial edition product documentation.</p>
-</v-card-text>
-</v-card>
-</v-flex>
-<v-flex xs12 sm4 lg3>
-<v-card>
-<a id="" title="" target="_blank" href="../api/index.html"><div class="card__link-hover"/>
-</a>
-<v-layout align-center justify-center class="">
-<v-avatar size="150px">
-<v-icon class="xxx-large">library_books</v-icon>
-</v-avatar>
-</v-layout>
-<div class="px-3">
-<v-divider class="indigo lighten-4"/>
-</div>
-<v-card-title primary class="headline layout justify-center">
-<span style="text-align:center">JavaDocs</span>
-</v-card-title>
-<v-card-text class="caption">
-<p></p>
-<p>Browse the Coherence JavaDocs.</p>
 </v-card-text>
 </v-card>
 </v-flex>

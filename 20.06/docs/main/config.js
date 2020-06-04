@@ -19,7 +19,7 @@ function createConfig() {
         },
         navTitle: 'Oracle Coherence',
         navIcon: null,
-        navLogo: 'docs/images/oracle-coherence.svg'
+        navLogo: 'docs/images/logo.png'
     };
 }
 
@@ -143,6 +143,19 @@ function createRoutes(){
             component: loadPage('coherence-grpc-proxy-client-README', '/coherence-grpc-proxy-client/README', {})
         },
         {
+            path: '/docs/README',
+            meta: {
+                h1: 'Coherence Documentation Module',
+                title: 'Coherence Documentation Module',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: false
+            },
+            component: loadPage('docs-README', '/docs/README', {})
+        },
+        {
             path: '/', redirect: '/docs/about/01_overview'
         },
         {
@@ -192,7 +205,19 @@ function createNav(){
             ]
         },
         { divider: true },
-        { header: 'Additional resources' },
+        { header: 'Additional Resources' },
+        {
+            title: 'Commercial Product Docs',
+            action: 'import_contacts',
+            href: 'https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html',
+            target: '_blank'
+        },
+        {
+            title: 'Coherence CE JavaDocs',
+            action: 'library_books',
+            href: 'https://oracle.github.io/coherence/20.06/api/index.html',
+            target: '_blank'
+        },
         {
             title: 'Slack',
             action: 'fa-slack',
@@ -202,7 +227,7 @@ function createNav(){
         {
             title: 'Coherence Community',
             action: 'people',
-            href: 'https://coherence.java.net',
+            href: 'https://oracle.github.io/coherence/index.html',
             target: '_blank'
         },
         {

@@ -146,6 +146,21 @@
             "title": "Coherence gRPC Server"
         },
         {
+            "location": "/docs/README",
+            "text": " To build the docs run the following Maven command from the top-level prj/ directory: <markup lang=\"shell\" >mvn clean install -DskipTests -P docs -pl docs ",
+            "title": "Build the Docs"
+        },
+        {
+            "location": "/docs/README",
+            "text": " To view the documentation to see what it looks like after building run the following command from the top-level prj/ directory: <markup lang=\"shell\" >mvn exec:exec -P docs -pl docs This requires Python to be installed and runs a small Pythin http server from the directory where the docs have been built to. ",
+            "title": "View the Docs"
+        },
+        {
+            "location": "/docs/README",
+            "text": " This is the module that builds the Coherence documentation. The module is not part of the default build and must be built separately. Build the Docs To build the docs run the following Maven command from the top-level prj/ directory: <markup lang=\"shell\" >mvn clean install -DskipTests -P docs -pl docs View the Docs To view the documentation to see what it looks like after building run the following command from the top-level prj/ directory: <markup lang=\"shell\" >mvn exec:exec -P docs -pl docs This requires Python to be installed and runs a small Pythin http server from the directory where the docs have been built to. ",
+            "title": "Coherence Documentation Module"
+        },
+        {
             "location": "/coherence-mp/config/README",
             "text": " Coherence MP Config provides support for [Eclipse MicroProfile Config] ( https://microprofile.io/project/eclipse/microprofile-config ) within Coherence cluster members. It allows you both to configure various Coherence parameters from the values specified in any of the supported config sources, and to use Coherence cache as another, mutable config source. ",
             "title": "Coherence MicroProfile Config"
@@ -172,18 +187,13 @@
         },
         {
             "location": "/docs/about/01_overview",
-            "text": " explore Coherence What is Oracle Coherence. fa-rocket Quick Start A quick-start guide to using Coherence. ",
+            "text": " explore Coherence What is Oracle Coherence. fa-rocket Quick Start A quick-start guide to using Coherence. import_contacts Docs Oracle Coherence commercial edition product documentation. library_books JavaDocs Browse the Coherence CE JavaDocs. ",
             "title": "Get Going"
         },
         {
             "location": "/docs/about/01_overview",
             "text": " extension CDI Coherence CDI extensions. widgets Microprofile Coherence Microprofile support. settings_ethernet gRPC Coherence gRPC server and client. ",
-            "title": "Components"
-        },
-        {
-            "location": "/docs/about/01_overview",
-            "text": " import_contacts Docs Oracle Coherence commercial edition product documentation. library_books JavaDocs Browse the Coherence JavaDocs. ",
-            "title": "Reference"
+            "title": "New Features"
         },
         {
             "location": "/docs/about/02_introduction",
