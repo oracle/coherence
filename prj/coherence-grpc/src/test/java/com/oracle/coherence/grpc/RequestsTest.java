@@ -4,9 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
-package com.oracle.coherence.grpc.proxy.client;
-
+package com.oracle.coherence.grpc;
 
 import com.google.protobuf.ByteString;
 
@@ -20,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-
 
 /**
  * @author Jonathan Knight  2019.11.27

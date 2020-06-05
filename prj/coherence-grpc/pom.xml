@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.oracle.coherence</groupId>
+        <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>main</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
@@ -18,9 +18,9 @@
 
     <artifactId>coherence-grpc</artifactId>
 
-    <name>Coherence gRPC Client</name>
+    <name>Coherence gRPC</name>
     <description>
-        Coherence Microprofile gRPC Client
+        Coherence gRPC Common Functionality
     </description>
 
     <dependencies>

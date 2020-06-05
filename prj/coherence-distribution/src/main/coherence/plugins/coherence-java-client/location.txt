@@ -1,1 +1,0 @@
-coherence/lib/coherence-java-client.jar
