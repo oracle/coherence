@@ -9,7 +9,7 @@ package com.oracle.coherence.cache.grpc.client;
 
 import com.google.protobuf.ByteString;
 
-import com.oracle.coherence.grpc.proxy.client.EntryResult;
+import com.oracle.coherence.grpc.EntryResult;
 
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.RequestIncompleteException;

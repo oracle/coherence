@@ -10,8 +10,8 @@ package com.oracle.coherence.grpc.proxy;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 
-import com.oracle.coherence.grpc.proxy.client.BinaryHelper;
-import com.oracle.coherence.grpc.proxy.client.Requests;
+import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.Requests;
 
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;

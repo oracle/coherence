@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
   Copyright (c) 2000, 2020, Oracle and/or its affiliates.
- 
+
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
 -->
@@ -10,13 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.oracle.coherence.ce</groupId>
+        <groupId>com.oracle.coherence</groupId>
         <artifactId>main</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>coherence-grpc-proxy-client</artifactId>
+    <artifactId>coherence-grpc</artifactId>
 
     <name>Coherence gRPC Client</name>
     <description>
@@ -28,6 +28,12 @@
             <groupId>${coherence.group.id}</groupId>
             <artifactId>coherence</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+          <groupId>io.helidon.grpc</groupId>
+          <artifactId>io.grpc</artifactId>
+          <scope>provided</scope>
         </dependency>
 
         <dependency>

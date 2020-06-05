@@ -9,7 +9,7 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.Int32Value;
 
-import com.oracle.coherence.grpc.proxy.client.Requests;
+import com.oracle.coherence.grpc.Requests;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;

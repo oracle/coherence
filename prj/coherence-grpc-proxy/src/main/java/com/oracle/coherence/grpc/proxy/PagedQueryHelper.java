@@ -12,9 +12,9 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.UnsafeByteOperations;
 
-import com.oracle.coherence.grpc.proxy.client.BinaryHelper;
-import com.oracle.coherence.grpc.proxy.client.EntryResult;
-import com.oracle.coherence.grpc.proxy.client.PageRequest;
+import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.EntryResult;
+import com.oracle.coherence.grpc.PageRequest;
 
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;

@@ -10,10 +10,10 @@ package com.oracle.coherence.grpc.proxy;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 
-import com.oracle.coherence.grpc.proxy.client.BinaryHelper;
-import com.oracle.coherence.grpc.proxy.client.Entry;
-import com.oracle.coherence.grpc.proxy.client.EntryResult;
-import com.oracle.coherence.grpc.proxy.client.OptionalValue;
+import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.Entry;
+import com.oracle.coherence.grpc.EntryResult;
+import com.oracle.coherence.grpc.OptionalValue;
 
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;

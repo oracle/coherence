@@ -124,7 +124,7 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc-proxy-client</artifactId>
+      <artifactId>coherence-grpc</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -326,7 +326,7 @@
                     </resource>
 
                     <resource>
-                      <directory>../coherence-grpc-proxy-client/src/main/java</directory>
+                      <directory>../coherence-grpc/src/main/java</directory>
                     </resource>
 
                     <resource>

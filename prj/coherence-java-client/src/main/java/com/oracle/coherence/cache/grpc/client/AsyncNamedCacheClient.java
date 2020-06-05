@@ -16,19 +16,19 @@ import com.google.protobuf.UnsafeByteOperations;
 
 import com.oracle.coherence.cdi.SerializerProducer;
 
-import com.oracle.coherence.grpc.proxy.client.BinaryHelper;
-import com.oracle.coherence.grpc.proxy.client.ContainsEntryRequest;
-import com.oracle.coherence.grpc.proxy.client.Entry;
-import com.oracle.coherence.grpc.proxy.client.EntryResult;
-import com.oracle.coherence.grpc.proxy.client.InvokeAllRequest;
-import com.oracle.coherence.grpc.proxy.client.MapEventResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerErrorResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerRequest;
-import com.oracle.coherence.grpc.proxy.client.MapListenerResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerSubscribedResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerUnsubscribedResponse;
-import com.oracle.coherence.grpc.proxy.client.OptionalValue;
-import com.oracle.coherence.grpc.proxy.client.Requests;
+import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.ContainsEntryRequest;
+import com.oracle.coherence.grpc.Entry;
+import com.oracle.coherence.grpc.EntryResult;
+import com.oracle.coherence.grpc.InvokeAllRequest;
+import com.oracle.coherence.grpc.MapEventResponse;
+import com.oracle.coherence.grpc.MapListenerErrorResponse;
+import com.oracle.coherence.grpc.MapListenerRequest;
+import com.oracle.coherence.grpc.MapListenerResponse;
+import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
+import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
+import com.oracle.coherence.grpc.OptionalValue;
+import com.oracle.coherence.grpc.Requests;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 

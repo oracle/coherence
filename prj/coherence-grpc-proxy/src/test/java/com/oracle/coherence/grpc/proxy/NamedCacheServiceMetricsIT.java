@@ -9,14 +9,14 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.ByteString;
 
-import com.oracle.coherence.grpc.proxy.client.BinaryHelper;
-import com.oracle.coherence.grpc.proxy.client.EntrySetRequest;
-import com.oracle.coherence.grpc.proxy.client.InvokeAllRequest;
-import com.oracle.coherence.grpc.proxy.client.KeySetRequest;
-import com.oracle.coherence.grpc.proxy.client.MapListenerRequest;
-import com.oracle.coherence.grpc.proxy.client.PageRequest;
-import com.oracle.coherence.grpc.proxy.client.Requests;
-import com.oracle.coherence.grpc.proxy.client.ValuesRequest;
+import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.EntrySetRequest;
+import com.oracle.coherence.grpc.InvokeAllRequest;
+import com.oracle.coherence.grpc.KeySetRequest;
+import com.oracle.coherence.grpc.MapListenerRequest;
+import com.oracle.coherence.grpc.PageRequest;
+import com.oracle.coherence.grpc.Requests;
+import com.oracle.coherence.grpc.ValuesRequest;
 
 import com.tangosol.io.Serializer;
 

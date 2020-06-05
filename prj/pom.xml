@@ -16,8 +16,8 @@
   <packaging>pom</packaging>
 
   <name>Coherence Project</name>
-  <description>Oracle Coherence Data Grid</description>
-  <url>http://www.oracle.com/us/products/middleware/cloud-app-foundation/coherence/overview/index.html/coherence</url>
+  <description>Oracle Coherence Community Edition</description>
+  <url>https://coherence.community/</url>
   <inceptionYear>2000</inceptionYear>
 
   <organization>
@@ -224,6 +224,11 @@
       <dependency>
         <groupId>io.helidon.grpc</groupId>
         <artifactId>helidon-grpc-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.grpc</groupId>
+        <artifactId>io.grpc</artifactId>
         <version>${helidon.version}</version>
       </dependency>
       <dependency>
@@ -1120,7 +1125,7 @@
           <artifactId>maven-deploy-plugin</artifactId>
           <version>${maven.deploy.plugin.version}</version>
           <configuration>
-            <skip>true</skip>
+            <skip>false</skip>
           </configuration>
         </plugin>
 
@@ -1466,6 +1471,14 @@
       </plugin>
 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <configuration>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+        </configuration>
+      </plugin>
+
+      <plugin>
           <groupId>io.helidon.build-tools</groupId>
           <artifactId>sitegen-maven-plugin</artifactId>
           <extensions>true</extensions>
@@ -1617,7 +1630,7 @@
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
-        <module>coherence-grpc-proxy-client</module>
+        <module>coherence-grpc</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
       </modules>
@@ -1825,6 +1838,13 @@
         <module>coherence-mock</module>
         <module>coherence-http-netty</module>
         <module>coherence-rest</module>
+        <module>coherence-cdi</module>
+        <module>coherence-cdi-server</module>
+        <module>coherence-mp-config</module>
+        <module>coherence-mp-metrics</module>
+        <module>coherence-grpc</module>
+        <module>coherence-grpc-proxy</module>
+        <module>coherence-java-client</module>
       </modules>
 
       <build>
@@ -1886,7 +1906,7 @@
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
-        <module>coherence-grpc-proxy-client</module>
+        <module>coherence-grpc</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
       </modules>

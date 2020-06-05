@@ -9,15 +9,15 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.ByteString;
 
-import com.oracle.coherence.grpc.proxy.client.BinaryHelper;
-import com.oracle.coherence.grpc.proxy.client.CacheDestroyedResponse;
-import com.oracle.coherence.grpc.proxy.client.CacheTruncatedResponse;
-import com.oracle.coherence.grpc.proxy.client.MapEventResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerErrorResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerRequest;
-import com.oracle.coherence.grpc.proxy.client.MapListenerResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerSubscribedResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerUnsubscribedResponse;
+import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.CacheDestroyedResponse;
+import com.oracle.coherence.grpc.CacheTruncatedResponse;
+import com.oracle.coherence.grpc.MapEventResponse;
+import com.oracle.coherence.grpc.MapListenerErrorResponse;
+import com.oracle.coherence.grpc.MapListenerRequest;
+import com.oracle.coherence.grpc.MapListenerResponse;
+import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
+import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
 
 import com.tangosol.coherence.component.net.message.MapEventMessage;
 

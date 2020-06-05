@@ -99,7 +99,7 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-grpc-proxy-client</artifactId>
+          <artifactId>coherence-grpc</artifactId>
           <version>${project.version}</version>
         </dependency>
         <dependency>

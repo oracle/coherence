@@ -12,35 +12,35 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
-import com.oracle.coherence.grpc.proxy.client.AddIndexRequest;
-import com.oracle.coherence.grpc.proxy.client.AggregateRequest;
-import com.oracle.coherence.grpc.proxy.client.ClearRequest;
-import com.oracle.coherence.grpc.proxy.client.ContainsEntryRequest;
-import com.oracle.coherence.grpc.proxy.client.ContainsKeyRequest;
-import com.oracle.coherence.grpc.proxy.client.ContainsValueRequest;
-import com.oracle.coherence.grpc.proxy.client.DestroyRequest;
-import com.oracle.coherence.grpc.proxy.client.Entry;
-import com.oracle.coherence.grpc.proxy.client.EntryResult;
-import com.oracle.coherence.grpc.proxy.client.GetAllRequest;
-import com.oracle.coherence.grpc.proxy.client.GetRequest;
-import com.oracle.coherence.grpc.proxy.client.InvokeAllRequest;
-import com.oracle.coherence.grpc.proxy.client.InvokeRequest;
-import com.oracle.coherence.grpc.proxy.client.IsEmptyRequest;
-import com.oracle.coherence.grpc.proxy.client.MapListenerRequest;
-import com.oracle.coherence.grpc.proxy.client.MapListenerResponse;
-import com.oracle.coherence.grpc.proxy.client.OptionalValue;
-import com.oracle.coherence.grpc.proxy.client.PageRequest;
-import com.oracle.coherence.grpc.proxy.client.PutAllRequest;
-import com.oracle.coherence.grpc.proxy.client.PutIfAbsentRequest;
-import com.oracle.coherence.grpc.proxy.client.PutRequest;
-import com.oracle.coherence.grpc.proxy.client.RemoveIndexRequest;
-import com.oracle.coherence.grpc.proxy.client.RemoveMappingRequest;
-import com.oracle.coherence.grpc.proxy.client.RemoveRequest;
-import com.oracle.coherence.grpc.proxy.client.ReplaceMappingRequest;
-import com.oracle.coherence.grpc.proxy.client.ReplaceRequest;
-import com.oracle.coherence.grpc.proxy.client.SizeRequest;
-import com.oracle.coherence.grpc.proxy.client.TruncateRequest;
-import com.oracle.coherence.grpc.proxy.client.ValuesRequest;
+import com.oracle.coherence.grpc.AddIndexRequest;
+import com.oracle.coherence.grpc.AggregateRequest;
+import com.oracle.coherence.grpc.ClearRequest;
+import com.oracle.coherence.grpc.ContainsEntryRequest;
+import com.oracle.coherence.grpc.ContainsKeyRequest;
+import com.oracle.coherence.grpc.ContainsValueRequest;
+import com.oracle.coherence.grpc.DestroyRequest;
+import com.oracle.coherence.grpc.Entry;
+import com.oracle.coherence.grpc.EntryResult;
+import com.oracle.coherence.grpc.GetAllRequest;
+import com.oracle.coherence.grpc.GetRequest;
+import com.oracle.coherence.grpc.InvokeAllRequest;
+import com.oracle.coherence.grpc.InvokeRequest;
+import com.oracle.coherence.grpc.IsEmptyRequest;
+import com.oracle.coherence.grpc.MapListenerRequest;
+import com.oracle.coherence.grpc.MapListenerResponse;
+import com.oracle.coherence.grpc.OptionalValue;
+import com.oracle.coherence.grpc.PageRequest;
+import com.oracle.coherence.grpc.PutAllRequest;
+import com.oracle.coherence.grpc.PutIfAbsentRequest;
+import com.oracle.coherence.grpc.PutRequest;
+import com.oracle.coherence.grpc.RemoveIndexRequest;
+import com.oracle.coherence.grpc.RemoveMappingRequest;
+import com.oracle.coherence.grpc.RemoveRequest;
+import com.oracle.coherence.grpc.ReplaceMappingRequest;
+import com.oracle.coherence.grpc.ReplaceRequest;
+import com.oracle.coherence.grpc.SizeRequest;
+import com.oracle.coherence.grpc.TruncateRequest;
+import com.oracle.coherence.grpc.ValuesRequest;
 
 import io.grpc.stub.StreamObserver;
 
@@ -209,7 +209,7 @@ public interface NamedCacheService
      * If the cache previously contained a mappings for the keys, the old value
      * is replaced by the specified value.
      *
-     * @param request  the {@link com.oracle.coherence.grpc.proxy.client.PutAllRequest} to execute
+     * @param request  the {@link com.oracle.coherence.grpc.PutAllRequest} to execute
      *
      * @return a {@link CompletionStage} that will complete with the result of
      *         the {@link com.tangosol.net.NamedCache#putAll(java.util.Map)}
@@ -384,10 +384,10 @@ public interface NamedCacheService
     CompletionStage<Empty> removeIndex(RemoveIndexRequest request);
 
     /**
-     * Execute an {@link com.oracle.coherence.grpc.proxy.client.AggregateRequest} against a cache and return the result
+     * Execute an {@link com.oracle.coherence.grpc.AggregateRequest} against a cache and return the result
      * serialized in a {@link BytesValue}.
      *
-     * @param request  the {@link com.oracle.coherence.grpc.proxy.client.AggregateRequest} to execute
+     * @param request  the {@link com.oracle.coherence.grpc.AggregateRequest} to execute
      *
      * @return the serialized aggregation result
      */
@@ -397,7 +397,7 @@ public interface NamedCacheService
     /**
      * Stream a set of cache values to a {@link StreamObserver}.
      *
-     * @param request  the {@link com.oracle.coherence.grpc.proxy.client.ValuesRequest} to execute
+     * @param request  the {@link com.oracle.coherence.grpc.ValuesRequest} to execute
      *
      * @return a {@link Stream} of {@link BytesValue} instances
      *

@@ -8,12 +8,12 @@
 package com.oracle.coherence.cache.grpc.client;
 
 
-import com.oracle.coherence.grpc.proxy.client.BinaryHelper;
-import com.oracle.coherence.grpc.proxy.client.Entry;
-import com.oracle.coherence.grpc.proxy.client.InvokeAllRequest;
-import com.oracle.coherence.grpc.proxy.client.MapListenerRequest;
-import com.oracle.coherence.grpc.proxy.client.MapListenerResponse;
-import com.oracle.coherence.grpc.proxy.client.MapListenerSubscribedResponse;
+import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.Entry;
+import com.oracle.coherence.grpc.InvokeAllRequest;
+import com.oracle.coherence.grpc.MapListenerRequest;
+import com.oracle.coherence.grpc.MapListenerResponse;
+import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
 
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ExternalizableLite;

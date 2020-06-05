@@ -17,7 +17,7 @@ syntax = "proto3";
 package coherence;
 
 option java_multiple_files = true;
-option java_package = "com.oracle.coherence.grpc.proxy.client";
+option java_package = "com.oracle.coherence.grpc";
 
 // A request to clear all the entries in the cache.
 message ClearRequest {

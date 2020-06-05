@@ -76,7 +76,7 @@ backend:
               items:
                 - includes:
                     - "coherence-grpc-proxy/README.adoc"
-                    - "coherence-grpc-proxy-client/README.adoc"
+                    - "coherence-grpc/README.adoc"
         - title: "Additional Resources"
           items:
             - title: "Commercial Product Docs"
