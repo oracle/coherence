@@ -13,7 +13,7 @@
   <parent>
     <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>main</artifactId>
-    <version>14.1.2-0-0-SNAPSHOT</version>
+    <version>${revision}</version>
   </parent>
 
   <artifactId>plugins</artifactId>
