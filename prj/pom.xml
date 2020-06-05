@@ -12,7 +12,7 @@
 
   <groupId>com.oracle.coherence.ce</groupId>
   <artifactId>main</artifactId>
-  <version>14.1.2-0-0-SNAPSHOT</version>
+  <version>${revision}</version>
   <packaging>pom</packaging>
 
   <name>Coherence Project</name>
@@ -647,6 +647,15 @@
   </dependencyManagement>
 
   <properties>
+    <!--
+      This allows us to use ${revision} instead of explicit version in all
+      the POMs, and to specify it as the command line property (-Drevision).
+
+      Note that this property has to be named 'revision' and that it has
+      special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
+      -->
+    <revision>14.1.2-20-06-SNAPSHOT</revision>
+
     <!-- The groupId of the Coherence product -->
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 

@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>main</artifactId>
-    <version>14.1.2-0-0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -27,7 +27,6 @@
   </description>
 
   <modules>
-    <module>bom</module>
     <module>config</module>
     <module>metrics</module>
   </modules>
