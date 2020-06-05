@@ -40,7 +40,10 @@
 		<link href="assets/css/footer-default.css" rel="stylesheet" type="text/css" />
 		<link href="assets/css/color_scheme/red.css" rel="stylesheet" type="text/css" id="color_scheme" />
 
-		<!-- Morenizr -->
+        <!-- Prism CSS (syntax hilighting) -->
+        <link href="assers/css/prism.css" rel="stylesheet" />
+		
+        <!-- Modernizr -->
 		<script type="text/javascript" src="assets/plugins/modernizr.min.js"></script>
 
 		<!--[if lte IE 8]>
@@ -109,17 +112,17 @@
 									<li class="dropdown">
 										<a class="dropdown-toggle" href="#">Documentation</a>
 										<ul class="dropdown-menu">
-											<li><a href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html" target="_new"><i class="fa fa-external-link"></i> Official Documentation (all editions)</a></li>
+											<li><a href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html" target="_blank"><i class="fa fa-external-link"></i> Official Documentation (all editions)</a></li>
                                             <li class="divider"></li>
-                                            <li><a href="14.1.1.0/docs/" target="_new"><i class="fa fa-external-link"></i> Coherence CE 14.1.1 Documentation</a></li>
-                                            <li><a href="20.06/docs/" target="_new"><i class="fa fa-external-link"></i> Coherence CE 20.06 Documentation</a></li>
+                                            <li><a href="14.1.1.0/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 14.1.1 Documentation</a></li>
+                                            <li><a href="20.06/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 20.06 Documentation</a></li>
 										</ul>
 									</li>
 									<li>
-                                    	<a href="https://medium.com/oracle-coherence" target="_new"><i class="fa fa-medium"></i> Blog</a>
+                                    	<a href="https://medium.com/oracle-coherence" target="_blank"><i class="fa fa-medium"></i> Blog</a>
 									</li>
                                     <li>
-                                        <a href="https://github.com/oracle/coherence" target="_new"><i class="fa fa-github"></i> Code</a>
+                                        <a href="https://github.com/oracle/coherence" target="_blank"><i class="fa fa-github"></i> Code</a>
                                     </li>
 								</ul>
 
@@ -161,21 +164,28 @@
 								data-easing="easeOutExpo">MICROSERVICES?
 							</div>
 
-							<div class="tp-caption medium_light_white sft stb"
-								data-x="60"
-								data-y="400"
-								data-speed="500"
+                            <div class="tp-caption lfl stl medium_light_white"
+                                data-x="950"
+                                data-y="80"
+                                data-speed="3000"
+                                data-start="2000"
+                                data-easing="easeOutExpo"><img src="assets/images/sockshop-ui-1.png" width="270" alt="" />
+                            </div>
+							<div class="tp-caption sfb medium_light_white"
+								data-x="570"
+								data-y="220"
+								data-speed="2000"
 								data-start="2000"
-								data-easing="easeOutExpo">You've come to the right place
-							</div>
-
-							<div class="tp-caption sft medium_light_white" 
-								data-x="600"
-								data-y="200"
-								data-speed="600" 
-								data-start="1500" 
 								data-easing="easeOutExpo"><img src="assets/images/sockshop-final.png" width="700" alt="" />
 							</div>
+
+                            <div class="tp-caption medium_light_white sft stb"
+                                data-x="60"
+                                data-y="400"
+                                data-speed="500"
+                                data-start="3000"
+                                data-easing="easeOutExpo">You've come to the right place
+                            </div>
 
 						</li>
 
@@ -372,7 +382,7 @@
 						</div>
 						
 						<div class="col-md-8 text-center">
-							<video controls src="assets/video/clustering.mp4" poster="assets/images/clustering.png" width="700"/>
+							<video controls class="shadow" src="assets/video/clustering.mp4" poster="assets/images/clustering.png" width="700"/>
 						</div>
 					</div>
                     <hr/>
@@ -386,7 +396,7 @@
                         </div>
                         
                         <div class="col-md-8 text-center">
-                            <video controls src="assets/video/ha.mp4" poster="assets/images/ha.png" width="700"/>
+                            <video controls class="shadow" src="assets/video/ha.mp4" poster="assets/images/ha.png" width="700"/>
                         </div>
                     </div>
                     <hr/>
@@ -399,7 +409,7 @@
                         </div>
                         
                         <div class="col-md-8 text-center">
-                            <video controls src="assets/video/persistence.mp4" poster="assets/images/persistence.png" width="700"/>
+                            <video controls class="shadow" src="assets/video/persistence.mp4" poster="assets/images/persistence.png" width="700"/>
                         </div>
                     </div>
                     <hr/>
@@ -413,7 +423,7 @@
                         </div>
 
                         <div class="col-md-8 text-center">
-                            <video controls src="assets/video/kv.mp4" poster="assets/images/kv.png" width="700"/>
+                            <video controls class="shadow" src="assets/video/kv.mp4" poster="assets/images/kv.png" width="700"/>
                         </div>
                     </div>
                     <hr/>
@@ -426,7 +436,7 @@
                         </div>
                         
                         <div class="col-md-8 text-center">
-                            <video controls src="assets/video/query.mp4" poster="assets/images/query.png" width="700"/>
+                            <video controls class="shadow" src="assets/video/query.mp4" poster="assets/images/query.png" width="700"/>
                         </div>
                     </div>
                     <hr/>
@@ -440,7 +450,7 @@
                         </div>
                         
                         <div class="col-md-8 text-center">
-                            <video controls src="assets/video/aggregation.mp4" poster="assets/images/aggregation.png" width="700"/>
+                            <video controls class="shadow" src="assets/video/aggregation.mp4" poster="assets/images/aggregation.png" width="700"/>
                         </div>
                     </div>
                     <hr/>
@@ -455,7 +465,7 @@
                         </div>
 
                         <div class="col-md-8 text-center">
-                            <video controls src="assets/video/processor.mp4" poster="assets/images/processor.png" width="700"/>
+                            <video controls class="shadow" src="assets/video/processor.mp4" poster="assets/images/processor.png" width="700"/>
                         </div>
                     </div>
                     <hr/>
@@ -469,7 +479,7 @@
                         </div>
                         
                         <div class="col-md-8 text-center">
-                            <video controls src="assets/video/events.mp4" poster="assets/images/events.png" width="700"/>
+                            <video controls class="shadow" src="assets/video/events.mp4" poster="assets/images/events.png" width="700"/>
                         </div>
                     </div>
 <!--                </div>-->
@@ -533,7 +543,7 @@
                         <a name="quickstart"></a>
 						<div class="col-md-6"><!-- title + shortdesc -->
                             <h2>Quick <strong>Start</strong></h2>
-							<h4>Did we convince you? If so, <strong>give Coherence a try</strong></h4>
+							<h4>Did we convince you to <strong>give Coherence a try?</strong></h4>
 						</div>
 
 					</div>
@@ -705,15 +715,15 @@
                             </p>
 
                             <p class="block"><!-- social -->
-                                <a href="https://twitter.com/OracleCoherence" target="_new" class="social fa fa-twitter"></a>
-                                <a href="https://www.linkedin.com/groups/1782166/" target="_new" class="social fa fa-linkedin"></a>
-                                <a href="http://www.facebook.com/oraclecoherencepm" target="_new" class="social fa fa-facebook"></a>
+                                <a href="https://twitter.com/OracleCoherence" target="_blank" class="social fa fa-twitter"></a>
+                                <a href="https://www.linkedin.com/groups/1782166/" target="_blank" class="social fa fa-linkedin"></a>
+                                <a href="http://www.facebook.com/oraclecoherencepm" target="_blank" class="social fa fa-facebook"></a>
                             </p><!-- /social -->
 
                             <h4><strong>Contribute</strong></h4>
  
                             <ul class="list-unstyled nobordered">
-                                <li><a class="block" href="https://github.com/oracle/coherence" target="_new"><i class="fa fa-github"></i> Fork us on GitHub and start coding.</a></li>
+                                <li><a class="block" href="https://github.com/oracle/coherence" target="_blank"><i class="fa fa-github"></i> Fork us on GitHub and start coding.</a></li>
                             </ul>
       
                         </div>
@@ -727,25 +737,26 @@
                                 <div class="col-md-4 hidden-sm hidden-xs">
                                     <h4>Learn <strong>More</strong></h4>
                                     <ul class="list-unstyled nobordered">
-                                        <li><a class="block" href="https://www.youtube.com/user/OracleCoherence" target="_new"><i class="fa fa-youtube"></i> Watch our Videos</a></li>
-                                        <li><a class="block" href="https://medium.com/oracle-coherence" target="_new"><i class="fa fa-medium"></i> Read our Blog</a></li>
-                                        <li><a class="block" href="https://stackoverflow.com/tags/coherence" target="_new"><i class="fa fa-stack-overflow"></i> Find Answers</a></li>
-                                        <li><a class="block" href="https://join.slack.com/t/oraclecoherence/shared_invite/zt-9ufv220y-Leudk0o5ntgNV0xraa8DNw" target="_new"><i class="fa fa-slack"></i> Chat with Us</a></li>
+                                        <li><a class="block" href="https://www.youtube.com/user/OracleCoherence" target="_blank"><i class="fa fa-youtube"></i> Watch our Videos</a></li>
+                                        <li><a class="block" href="https://medium.com/oracle-coherence" target="_blank"><i class="fa fa-medium"></i> Read our Blog</a></li>
+                                        <li><a class="block" href="https://stackoverflow.com/tags/coherence" target="_blank"><i class="fa fa-stack-overflow"></i> Find Answers</a></li>
+                                        <li><a class="block" href="https://join.slack.com/t/oraclecoherence/shared_invite/zt-9ufv220y-Leudk0o5ntgNV0xraa8DNw" target="_blank"><i class="fa fa-slack"></i> Chat with Us</a></li>
                                     </ul>
                                 </div>
 
                                 <div class="col-md-4 hidden-sm hidden-xs">
                                     <h4>Related <strong>Projects</strong></h4>
                                     <ul class="list-unstyled nobordered">
-                                        <li><a class="block" href="https://github.com/oracle/coherence-operator/" target="_new"><i class="fa fa-external-link"></i> Coherence  Operator</a></li>
-                                        <li><a class="block" href="https://helidon.io/" target="_new"><i class="fa fa-external-link"></i> Helidon </a></li>
-                                        <li><a class="block" href="https://www.graalvm.org" target="_new"><i class="fa fa-external-link"></i> GraalVM</a></li>
-                                        <li><a class="block" href="#" target="_new"><i class="fa fa-external-link"></i> Verrazzano</a></li>
-                                        <li><a class="block" href="https://github.com/coherence-community/coherence-spring" target="_new"><i class="fa fa-external-link"></i> Spring Integration</a></li>
-                                        <li><a class="block" href="https://github.com/coherence-community/coherence-hibernate" target="_new"><i class="fa fa-external-link"></i> Hibernate Integration</a></li>
+                                        <li><a class="block" href="https://github.com/oracle/coherence-operator" target="_blank"><i class="fa fa-external-link"></i> Coherence  Operator</a></li>
+                                        <li><a class="block" href="https://helidon.io" target="_blank"><i class="fa fa-external-link"></i> Helidon </a></li>
+                                        <li><a class="block" href="https://www.graalvm.org" target="_blank"><i class="fa fa-external-link"></i> GraalVM</a></li>
+                                        <li><a class="block" href="https://verrazano.io" target="_blank"><i class="fa fa-external-link"></i> Verrazzano</a></li>
+                                        <li><a class="block" href="https://github.com/coherence-community/coherence-spring" target="_blank"><i class="fa fa-external-link"></i> Spring Integration</a></li>
+                                        <li><a class="block" href="https://github.com/coherence-community/coherence-hibernate" target="_blank"><i class="fa fa-external-link"></i> Hibernate Integration</a></li>
                                     </ul>
                                 </div>
 
+                                <!--
                                 <div class="col-md-4 hidden-sm hidden-xs">
                                     <h4>About <strong>Us</strong></h4>
                                     <ul class="list-unstyled nobordered">
@@ -755,6 +766,7 @@
                                         <li><a class="block" href="faq.html"><i class="fa fa-angle-right"></i> FAQ</a></li>
                                     </ul>
                                 </div>
+                                -->
 
                             </div>
 
@@ -795,6 +807,7 @@
 		<script type="text/javascript" src="assets/plugins/revolution-slider/js/jquery.themepunch.revolution.min.js"></script>
 		<script type="text/javascript" src="assets/js/revolution_slider.js"></script>
 		
+        <script type="text/javascript" src="prism.js"></script>
 
 		<script type="text/javascript" src="assets/js/scripts.js"></script>
 	</body>

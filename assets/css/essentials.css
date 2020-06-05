@@ -130,6 +130,10 @@ audio, canvas, img, video {
 	vertical-align: middle;
 }
 
+.shadow {
+    box-shadow: 5px 5px 30px #555;
+}
+
 p {
 	display: block;
 	-webkit-margin-before: 1em;
