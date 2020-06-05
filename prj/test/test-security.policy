@@ -31,8 +31,11 @@ grant codeBase "file:${oracle.coherence.lib}/coherence-${test.project.version}.j
   permission java.io.FilePermission "${user.home}${/}coherence${/}-", "read, write, delete";
   permission java.io.FilePermission "http:/xmlns.oracle.com/coherence/-", "read";
   permission java.io.FilePermission "${test.tmp.dir}${/}-", "read, write, delete, execute";
+  permission java.io.FilePermission "${java.io.tmpdir}${/}-", "read, write, delete";
   permission java.lang.management.ManagementPermission "control";
   permission java.lang.management.ManagementPermission "monitor";
+  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.management.internal";
+  permission java.lang.RuntimePermission "accessClassInPackage.jdk.internal.ref";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.management";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.reflect";
@@ -40,6 +43,7 @@ grant codeBase "file:${oracle.coherence.lib}/coherence-${test.project.version}.j
   permission java.lang.RuntimePermission "accessClassInPackage.sun.security.provider";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.security.x509";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "accessSystemModules";
   permission java.lang.RuntimePermission "accessUserInformation"; // required by persistence examples
   permission java.lang.RuntimePermission "createClassLoader";
   permission java.lang.RuntimePermission "getClassLoader";
@@ -124,6 +128,9 @@ grant codeBase "file:${oracle.coherence.lib}/coherence-${test.project.version}.j
   permission java.security.SecurityPermission "getProperty.ssl.TrustManagerFactory.algorithm";
   permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2";
   permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2.runtime.reflect";
+
+  // The following permission is required for taking JFR.
+  permission "jdk.jfr.FlightRecorderPermission" "accessFlightRecorder";
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/json/target/json-${test.project.version}-tests.jar" {
@@ -179,6 +186,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-rest/-" {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "accessSystemModules";
   permission java.lang.RuntimePermission "createClassLoader";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
@@ -226,6 +234,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-rest/target/coheren
   permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "accessSystemModules";
   permission java.lang.RuntimePermission "createClassLoader";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
@@ -272,6 +281,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-management/-" {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "accessSystemModules";
   permission java.lang.RuntimePermission "createClassLoader";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
@@ -296,6 +306,9 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-management/-" {
   permission javax.management.MBeanPermission "reporter.*","*";
   permission javax.management.MBeanServerPermission "*";
   permission javax.management.MBeanTrustPermission "*";
+
+  // The following permission is required for taking JFR.
+  permission "jdk.jfr.FlightRecorderPermission" "accessFlightRecorder";
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../coherence-management/target/coherence-management-${test.project.version}.jar" {
@@ -316,6 +329,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-management/target/c
   permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "accessSystemModules";
   permission java.lang.RuntimePermission "createClassLoader";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
@@ -339,6 +353,9 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-management/target/c
   permission javax.management.MBeanPermission "reporter.*","*";
   permission javax.management.MBeanServerPermission "*";
   permission javax.management.MBeanTrustPermission "*";
+
+  // The following permission is required for taking JFR.
+  permission "jdk.jfr.FlightRecorderPermission" "accessFlightRecorder";
 };
 
 // The following grant block is needed by Coherence Metrics.
