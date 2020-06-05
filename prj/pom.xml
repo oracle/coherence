@@ -232,6 +232,12 @@
         <version>${helidon.version}</version>
       </dependency>
       <dependency>
+        <groupId>io.helidon.grpc</groupId>
+        <artifactId>helidon-grpc-core</artifactId>
+        <version>${helidon.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
         <groupId>io.helidon.tracing</groupId>
         <artifactId>helidon-tracing-jaeger</artifactId>
         <version>${helidon.version}</version>

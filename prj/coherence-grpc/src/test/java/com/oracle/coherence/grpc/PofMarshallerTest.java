@@ -24,28 +24,28 @@ class PofMarshallerTest
     @Test
     void testConfigFile()
         {
-        PofMarshaller m = new PofMarshaller("pof-config.xml");
+        PofMarshaller<String> m = new PofMarshaller<>("pof-config.xml", String.class);
         assertThat(m.parse(m.stream("test")), is("test"));
         }
 
     @Test
     void testPofContext()
         {
-        PofMarshaller m = new PofMarshaller(new SimplePofContext());
+        PofMarshaller<String> m = new PofMarshaller<>(new SimplePofContext(), String.class);
         assertThat(m.parse(m.stream("test")), is("test"));
         }
 
     @Test
     void testStreamException()
         {
-        PofMarshaller m = new PofMarshaller(new SimplePofContext());
+        PofMarshaller<Object> m = new PofMarshaller<>(new SimplePofContext(), Object.class);
         assertThrows(StatusRuntimeException.class, () -> m.stream(new Object()));
         }
 
     @Test
     void testParseException()
         {
-        PofMarshaller m = new PofMarshaller(new SimplePofContext());
+        PofMarshaller<Object> m = new PofMarshaller<>(new SimplePofContext(), Object.class);
         assertThrows(StatusRuntimeException.class, () -> m.parse(null));
         }
     }
