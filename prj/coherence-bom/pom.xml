@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence</groupId>
+  <artifactId>coherence-bom</artifactId>
+  <version>${revision}</version>
+  <packaging>pom</packaging>
+
+  <name>Coherence BOM</name>
+  <description>Oracle Coherence Bill of Materials</description>
+
+  <properties>
+    <revision>14.1.2-20-06-SNAPSHOT</revision>
+    <coherence.group.id>com.oracle.coherence</coherence.group.id>
+
+    <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
+    <maven.flatten.plugin.version>1.2.2</maven.flatten.plugin.version>
+    <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-cdi</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-cdi-server</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-discovery</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-grpc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-grpc-proxy</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-http-netty</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-java-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-jcache</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-json</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-jvisualvm</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-loadbalancer</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-login</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-management</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-metrics</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-mock</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-mp-config</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-mp-metrics</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rest</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>${maven.flatten.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+            <configuration>
+              <pomElements>
+                <name/>
+                <description/>
+                <dependencyManagement/>
+              </pomElements>
+              <updatePomFile>true</updatePomFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>${maven.install.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${maven.deploy.plugin.version}</version>
+        <configuration combine.self="override">
+          <skip>false</skip>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>

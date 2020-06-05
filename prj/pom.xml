@@ -1619,6 +1619,7 @@
 
         <!-- distributed modules -->
         <module>coherence</module>
+        <module>coherence-bom</module>
         <module>coherence-jcache</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
@@ -1896,6 +1897,7 @@
         <module>coherence-discovery</module>
         <module>coherence-testing-support</module>
         <module>coherence</module>
+        <module>coherence-bom</module>
         <module>coherence-jcache</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
