@@ -27,6 +27,7 @@
   </description>
 
   <modules>
+    <module>bom</module>
     <module>config</module>
     <module>metrics</module>
   </modules>
