@@ -8,6 +8,8 @@ import com.tangosol.util.ObservableMap;
 import com.tangosol.util.QueryMap;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
 
 /**
  * A Map-based data-structure that manages entries across one or more processes.
@@ -94,6 +96,34 @@ public interface NamedMap<K, V>
     default void truncate()
         {
         throw new UnsupportedOperationException();
+        }
+
+    /**
+     * Perform the given action for each entry selected by the specified key set
+     * until all entries have been processed or the action throws an exception.
+     * <p>
+     * Exceptions thrown by the action are relayed to the caller.
+     * <p>
+     * The implementation processes each entry on the client and should only be
+     * used for read-only client-side operations (such as adding map entries to
+     * a UI widget, for example).
+     * <p>
+     * Any entry mutation caused by the specified action will not be propagated
+     * to the server when this method is called on a distributed map, so it
+     * should be avoided. The mutating operations on a subset of entries
+     * should be implemented using one of {@link InvocableMap#invokeAll},
+     * {@link #replaceAll}, {@link #compute}, or {@link #merge} methods instead.
+     *
+     * @param collKeys  the keys to process; these keys are not required to
+     *                  exist within the Map
+     * @param action    the action to be performed for each entry
+     *
+     * @since 12.2.1
+     */
+    public default void forEach(Collection<? extends K> collKeys, BiConsumer<? super K, ? super V> action)
+        {
+        Objects.requireNonNull(action);
+        getAll(collKeys).forEach(action);
         }
 
     /**

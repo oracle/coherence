@@ -142,7 +142,7 @@ public interface CacheMap<K, V>
     public default void forEach(Collection<? extends K> collKeys, BiConsumer<? super K, ? super V> action)
         {
         Objects.requireNonNull(action);
-        getAll(collKeys).entrySet().forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
+        getAll(collKeys).forEach(action);
         }
 
     /**
