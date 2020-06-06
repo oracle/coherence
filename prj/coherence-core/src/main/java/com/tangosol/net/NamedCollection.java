@@ -41,6 +41,20 @@ public interface NamedCollection
     public void destroy();
 
     /**
+     * Specifies whether or not this NamedCollection has been destroyed.
+     *
+     * Implementations must override this method to provide the necessary information.
+     *
+     * @return true if the NamedCollection has been destroyed; false otherwise
+     */
+    public default boolean isDestroyed()
+        {
+        // to avoid cumbersome caller exception handling;
+        // default is a no-op.
+        return false;
+        }
+
+    /**
      * The Option interface defines the root interface of all NamedCollection Options.
      */
     public interface Option
