@@ -1,25 +1,35 @@
+/*
+ * Copyright (c) 2020 Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
 package com.tangosol.net;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
+
 import java.util.function.Supplier;
 
 /**
- * The {@link ViewBuilder} provides a means to {@link #build()} a {@code view}
- * ({@link ContinuousQueryCache}) using a fluent pattern / style.
+ * The {@link ViewBuilder} provides a means to {@link #build()} a {@code map view}
+ * using a fluent pattern / style.
  *
- * @param <K>        the type of the cache entry keys
- * @param <V_BACK>   the type of the entry values in the back cache that is used
+ * @param <K>        the type of the map entry keys
+ * @param <V_BACK>   the type of the entry values in the backing map that is used
  *                   as the source for this {@code view}
  * @param <V_FRONT>  the type of the entry values in this {@code view}, which
  *                   will be the same as {@code V_BACK}, unless a {@code transformer} is specified
  *                   when creating this {@code view}
  *
  * @author Aleks Seovic  2020.06.06
+ *
+ * @since 14.1.2
  */
 public class MapViewBuilder<K, V_BACK, V_FRONT>
     {
@@ -84,7 +94,7 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
      * the underlying map prior to storing them locally.
      *
      * @param mapper  the {@link ValueExtractor} that will be used to
-     *                transform values retrieved from the underlying cache
+     *                transform values retrieved from the underlying map
      *                before storing them locally; if specified, this
      *                {@code view} will become {@code read-only}
      *
@@ -175,7 +185,7 @@ public class MapViewBuilder<K, V_BACK, V_FRONT>
 
     /**
      * The {@link ValueExtractor} that will be used to transform values
-     * retrieved from the underlying cache before storing them locally; if
+     * retrieved from the underlying map before storing them locally; if
      * specified, this {@code view} will become {@code read-only}.
      */
     protected ValueExtractor<? super V_BACK, ? extends V_FRONT> m_mapper;

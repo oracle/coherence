@@ -1,8 +1,17 @@
+/*
+ * Copyright (c) 2020 Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
 package com.tangosol.net;
 
 import com.oracle.coherence.common.util.Options;
+
 import com.tangosol.internal.util.processor.CacheProcessors;
+
 import com.tangosol.net.cache.CacheMap;
+
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ImmutableArrayList;
@@ -12,6 +21,7 @@ import com.tangosol.util.comparator.EntryComparator;
 import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.function.Remote;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,13 +30,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 
 /**
+ * Asynchronous {@link NamedMap}.
+ *
+ * @param <K>  the type of the map entry keys
+ * @param <V>  the type of the map entry values
+ *
  * @author Aleks Seovic  2020.06.06
+ *
+ * @since 14.1.2
  */
 public interface AsyncNamedMap<K, V>
     {
@@ -56,14 +74,14 @@ public interface AsyncNamedMap<K, V>
         }
 
     /**
-     * Get all the specified keys, if they are in the cache. For each key that
-     * is in the cache, that key and its corresponding value will be placed in
+     * Get all the specified keys, if they are in the map. For each key that
+     * is in the map, that key and its corresponding value will be placed in
      * the map that is returned by this method. The absence of a key in the
-     * returned map indicates that it was not in the cache, which may imply (for
-     * caches that can load behind the scenes) that the requested data could not
+     * returned map indicates that it was not in the map, which may imply (for
+     * maps that can load behind the scenes) that the requested data could not
      * be loaded.
      *
-     * @param colKeys  a collection of keys that may be in the named cache
+     * @param colKeys  a collection of keys that may be in the named map
      *
      * @return a {@link CompletableFuture} for a Map of keys to values for the
      *         specified keys passed in <tt>colKeys</tt>
@@ -92,7 +110,7 @@ public interface AsyncNamedMap<K, V>
      * Stream the entries associated with the specified keys to the provided
      * callback.
      *
-     * @param colKeys   a collection of keys that may be in the named cache
+     * @param colKeys   a collection of keys that may be in the named map
      * @param callback  a consumer of results as they become available
      *
      * @return a {@link CompletableFuture} that can be used to determine whether
@@ -109,7 +127,7 @@ public interface AsyncNamedMap<K, V>
      * Stream the entries associated with the specified keys to the provided
      * callback.
      *
-     * @param colKeys   a collection of keys that may be in the named cache
+     * @param colKeys   a collection of keys that may be in the named map
      * @param callback  a consumer of results as they become available
      *
      * @return a {@link CompletableFuture} that can be used to determine whether
@@ -122,8 +140,8 @@ public interface AsyncNamedMap<K, V>
         }
 
     /**
-     * Associates the specified value with the specified key in this cache. If
-     * the cache previously contained a mapping for this key, the old value is
+     * Associates the specified value with the specified key in this map. If
+     * the map previously contained a mapping for this key, the old value is
      * replaced.
      * <p>
      * Invoking this method is equivalent to the following call:
@@ -168,9 +186,9 @@ public interface AsyncNamedMap<K, V>
 
     /**
      * Removes all of the mappings from the specified keys from this map, if
-     * they are present in the cache.
+     * they are present in the map.
      *
-     * @param colKeys  a collection of keys that may be in the named cache
+     * @param colKeys  a collection of keys that may be in the named map
      *
      * @return a {@link CompletableFuture}
      */
@@ -707,11 +725,11 @@ public interface AsyncNamedMap<K, V>
                                        InvocableMap.EntryAggregator<? super K, ? super V, R> aggregator);
 
     /**
-     * Returns the number of key-value mappings in this cache.  If the
-     * cache contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
+     * Returns the number of key-value mappings in this map.  If the
+     * map contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
      * <tt>Integer.MAX_VALUE</tt>.
      *
-     * @return the number of key-value mappings in this cache
+     * @return the number of key-value mappings in this map
      */
     default CompletableFuture<Integer> size()
         {
@@ -719,9 +737,9 @@ public interface AsyncNamedMap<K, V>
         }
 
     /**
-     * Returns <tt>true</tt> if this cache contains no key-value mappings.
+     * Returns <tt>true</tt> if this map contains no key-value mappings.
      *
-     * @return <tt>true</tt> if this cache contains no key-value mappings
+     * @return <tt>true</tt> if this map contains no key-value mappings
      */
     default CompletableFuture<Boolean> isEmpty()
         {
@@ -729,8 +747,8 @@ public interface AsyncNamedMap<K, V>
         }
 
     /**
-     * Removes all of the mappings from this cache.
-     * The cache will be empty after this operation completes.
+     * Removes all of the mappings from this map.
+     * The map will be empty after this operation completes.
      */
     default CompletableFuture<Void> clear()
         {
@@ -738,16 +756,15 @@ public interface AsyncNamedMap<K, V>
         }
 
     /**
-     * Returns <tt>true</tt> if this cache contains a mapping for the specified
+     * Returns <tt>true</tt> if this map contains a mapping for the specified
      * key.  More formally, returns <tt>true</tt> if and only if
-     * this cache contains a mapping for a key <tt>k</tt> such that
+     * this map contains a mapping for a key <tt>k</tt> such that
      * <tt>(key==null ? k==null : key.equals(k))</tt>.  (There can be
      * at most one such mapping.)
      *
-     * @param key key whose presence in this cache is to be tested
+     * @param key key whose presence in this map is to be tested
      *
-     * @return <tt>true</tt> if this cache contains a mapping for the specified
-     *         key
+     * @return <tt>true</tt> if this map contains a mapping for the specified key
      */
     default CompletableFuture<Boolean> containsKey(K key)
         {

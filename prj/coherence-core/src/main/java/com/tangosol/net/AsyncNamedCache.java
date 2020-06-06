@@ -6,38 +6,11 @@
  */
 package com.tangosol.net;
 
-import com.oracle.coherence.common.util.Options;
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.net.cache.CacheMap;
 
-import com.tangosol.util.AsynchronousAgent;
-import com.tangosol.util.Filter;
-import com.tangosol.util.ImmutableArrayList;
-import com.tangosol.util.InvocableMap;
-
-import com.tangosol.util.aggregator.Count;
-import com.tangosol.util.comparator.EntryComparator;
-import com.tangosol.util.comparator.SafeComparator;
-
-import com.tangosol.util.filter.AlwaysFilter;
-
-import com.tangosol.util.function.Remote;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
 import java.util.concurrent.CompletableFuture;
-
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.IntSupplier;
 
 /**
  * Asynchronous {@link NamedCache}.
