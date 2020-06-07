@@ -21,11 +21,11 @@ import javax.inject.Named;
 
 import com.oracle.coherence.cdi.events.Activated;
 import com.oracle.coherence.cdi.events.Activating;
-import com.oracle.coherence.cdi.events.CacheName;
+import com.oracle.coherence.cdi.events.Cache;
 import com.oracle.coherence.cdi.events.Created;
 import com.oracle.coherence.cdi.events.Destroyed;
 import com.oracle.coherence.cdi.events.Disposing;
-import com.oracle.coherence.cdi.events.ServiceName;
+import com.oracle.coherence.cdi.events.Service;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.NamedCache;
@@ -81,7 +81,7 @@ class CdiNamespaceHandlerIT
                                                           .addBeanClass(ActivationListener.class));
 
     @Inject
-    @CacheFactory("cdi-beans-cache-config.xml")
+    @Name("cdi-beans-cache-config.xml")
     private ConfigurableCacheFactory ccf;
 
     @Inject
@@ -204,12 +204,12 @@ class CdiNamespaceHandlerIT
             System.out.println("onCreated: " + event);
             }
 
-        private void onCreatedCache(@Observes @Created @ServiceName("PartitionedCache") CacheLifecycleEvent event)
+        private void onCreatedCache(@Observes @Created @Service("PartitionedCache") CacheLifecycleEvent event)
             {
             System.out.println("onCreatedCache: " + event);
             }
 
-        private void onCreatedApples(@Observes @Created @CacheName("apples") CacheLifecycleEvent event)
+        private void onCreatedApples(@Observes @Created @Cache("apples") CacheLifecycleEvent event)
             {
             System.out.println("onCreatedApples: " + event);
             }
@@ -286,8 +286,8 @@ class CdiNamespaceHandlerIT
             {
             System.out.println(e);
 
-            CacheName cache = CacheName.Literal.of(e.getCacheName());
-            ServiceName service = ServiceName.Literal.of(e.getDispatcher().getBackingMapContext()
+            Cache cache = Cache.Literal.of(e.getCacheName());
+            Service service = Service.Literal.of(e.getDispatcher().getBackingMapContext()
                                                                  .getManagerContext().getCacheService().getInfo().getServiceName());
 
             if (e.getType() == CREATED)

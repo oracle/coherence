@@ -17,7 +17,6 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.net.CacheFactoryBuilder;
-import com.tangosol.net.Session;
 import com.tangosol.net.options.WithClassLoader;
 import com.tangosol.net.options.WithConfiguration;
 
@@ -47,7 +46,7 @@ class SessionProducerTest
         {
         CacheFactoryBuilder builder = mock(CacheFactoryBuilder.class);
         CacheFactoryUriResolver resolver = mock(CacheFactoryUriResolver.class);
-        Session session = mock(Session.class);
+        com.tangosol.net.Session session = mock(com.tangosol.net.Session.class);
         InjectionPoint injectionPoint = mock(InjectionPoint.class);
         Member member = mock(Member.class);
         Class cls = getClass();
@@ -55,16 +54,16 @@ class SessionProducerTest
         when(injectionPoint.getMember()).thenReturn(member);
         when(member.getDeclaringClass()).thenReturn(cls);
         when(resolver.resolve(anyString())).thenReturn("foo");
-        when(builder.createSession(any(Session.Option.class))).thenReturn(session);
+        when(builder.createSession(any(com.tangosol.net.Session.Option.class))).thenReturn(session);
 
         SessionProducer producer = new SessionProducer(resolver, builder);
-        Session result = producer.getDefaultSession(injectionPoint);
+        com.tangosol.net.Session result = producer.getDefaultSession(injectionPoint);
         assertThat(result, is(sameInstance(session)));
 
-        ArgumentCaptor<Session.Option> args = ArgumentCaptor.forClass(Session.Option.class);
+        ArgumentCaptor<com.tangosol.net.Session.Option> args = ArgumentCaptor.forClass(com.tangosol.net.Session.Option.class);
         verify(builder).createSession(args.capture());
 
-        Options<Session.Option> options = Options.from(Session.Option.class, args.getAllValues().toArray(new Session.Option[0]));
+        Options<com.tangosol.net.Session.Option> options = Options.from(com.tangosol.net.Session.Option.class, args.getAllValues().toArray(new com.tangosol.net.Session.Option[0]));
         WithConfiguration withConfiguration = options.get(WithConfiguration.class);
         WithClassLoader withClassLoader = options.get(WithClassLoader.class);
 
@@ -79,27 +78,27 @@ class SessionProducerTest
         {
         CacheFactoryBuilder builder = mock(CacheFactoryBuilder.class);
         CacheFactoryUriResolver resolver = mock(CacheFactoryUriResolver.class);
-        Session session = mock(Session.class);
+        com.tangosol.net.Session session = mock(com.tangosol.net.Session.class);
         InjectionPoint injectionPoint = mock(InjectionPoint.class);
         Member member = mock(Member.class);
         Class cls = getClass();
-        Set<Annotation> qualifiers = Collections.singleton(CacheFactory.Literal.of("foo"));
+        Set<Annotation> qualifiers = Collections.singleton(Name.Literal.of("foo"));
 
         when(injectionPoint.getMember()).thenReturn(member);
         when(injectionPoint.getQualifiers()).thenReturn(qualifiers);
         when(member.getDeclaringClass()).thenReturn(cls);
         when(resolver.resolve(anyString())).thenReturn("bar");
-        when(builder.createSession(any(Session.Option.class))).thenReturn(session);
+        when(builder.createSession(any(com.tangosol.net.Session.Option.class))).thenReturn(session);
 
         SessionProducer producer = new SessionProducer(resolver, builder);
-        Session result = producer.getDefaultSession(injectionPoint);
+        com.tangosol.net.Session result = producer.getDefaultSession(injectionPoint);
         assertThat(result, is(sameInstance(session)));
 
-        ArgumentCaptor<Session.Option> args = ArgumentCaptor.forClass(Session.Option.class);
+        ArgumentCaptor<com.tangosol.net.Session.Option> args = ArgumentCaptor.forClass(com.tangosol.net.Session.Option.class);
         verify(builder).createSession(args.capture());
         verify(resolver).resolve("foo");
 
-        Options<Session.Option> options = Options.from(Session.Option.class, args.getAllValues().toArray(new Session.Option[0]));
+        Options<com.tangosol.net.Session.Option> options = Options.from(com.tangosol.net.Session.Option.class, args.getAllValues().toArray(new com.tangosol.net.Session.Option[0]));
         WithConfiguration withConfiguration = options.get(WithConfiguration.class);
         WithClassLoader withClassLoader = options.get(WithClassLoader.class);
 
@@ -114,14 +113,14 @@ class SessionProducerTest
         {
         CacheFactoryBuilder builder = mock(CacheFactoryBuilder.class);
         CacheFactoryUriResolver resolver = mock(CacheFactoryUriResolver.class);
-        Session session = mock(Session.class);
+        com.tangosol.net.Session session = mock(com.tangosol.net.Session.class);
         Class cls = getClass();
         InjectionPoint injectionPointOne = mock(InjectionPoint.class);
         Member memberOne = mock(Member.class);
-        Set<Annotation> qualifiersOne = Collections.singleton(CacheFactory.Literal.of("foo"));
+        Set<Annotation> qualifiersOne = Collections.singleton(Name.Literal.of("foo"));
         InjectionPoint injectionPointTwo = mock(InjectionPoint.class);
         Member memberTwo = mock(Member.class);
-        Set<Annotation> qualifiersTwo = Collections.singleton(CacheFactory.Literal.of("foo"));
+        Set<Annotation> qualifiersTwo = Collections.singleton(Name.Literal.of("foo"));
 
         when(injectionPointOne.getMember()).thenReturn(memberOne);
         when(injectionPointOne.getQualifiers()).thenReturn(qualifiersOne);
@@ -130,16 +129,16 @@ class SessionProducerTest
         when(injectionPointTwo.getQualifiers()).thenReturn(qualifiersTwo);
         when(memberTwo.getDeclaringClass()).thenReturn(cls);
         when(resolver.resolve(anyString())).thenReturn("bar");
-        when(builder.createSession(any(Session.Option.class))).thenReturn(session);
+        when(builder.createSession(any(com.tangosol.net.Session.Option.class))).thenReturn(session);
 
         SessionProducer producer = new SessionProducer(resolver, builder);
 
-        Session resultOne = producer.getDefaultSession(injectionPointOne);
-        Session resultTwo = producer.getDefaultSession(injectionPointTwo);
+        com.tangosol.net.Session resultOne = producer.getDefaultSession(injectionPointOne);
+        com.tangosol.net.Session resultTwo = producer.getDefaultSession(injectionPointTwo);
         assertThat(resultOne, is(sameInstance(session)));
         assertThat(resultTwo, is(sameInstance(session)));
 
-        ArgumentCaptor<Session.Option> args = ArgumentCaptor.forClass(Session.Option.class);
+        ArgumentCaptor<com.tangosol.net.Session.Option> args = ArgumentCaptor.forClass(com.tangosol.net.Session.Option.class);
         verify(builder, times(1)).createSession(args.capture());
         }
 
@@ -148,15 +147,15 @@ class SessionProducerTest
         {
         CacheFactoryBuilder builder = mock(CacheFactoryBuilder.class);
         CacheFactoryUriResolver resolver = mock(CacheFactoryUriResolver.class);
-        Session sessionOne = mock(Session.class);
-        Session sessionTwo = mock(Session.class);
+        com.tangosol.net.Session sessionOne = mock(com.tangosol.net.Session.class);
+        com.tangosol.net.Session sessionTwo = mock(com.tangosol.net.Session.class);
         Class cls = getClass();
         InjectionPoint injectionPointOne = mock(InjectionPoint.class);
         Member memberOne = mock(Member.class);
-        Set<Annotation> qualifiersOne = Collections.singleton(CacheFactory.Literal.of("foo"));
+        Set<Annotation> qualifiersOne = Collections.singleton(Name.Literal.of("foo"));
         InjectionPoint injectionPointTwo = mock(InjectionPoint.class);
         Member memberTwo = mock(Member.class);
-        Set<Annotation> qualifiersTwo = Collections.singleton(CacheFactory.Literal.of("bar"));
+        Set<Annotation> qualifiersTwo = Collections.singleton(Name.Literal.of("bar"));
 
         when(injectionPointOne.getMember()).thenReturn(memberOne);
         when(injectionPointOne.getQualifiers()).thenReturn(qualifiersOne);
@@ -166,16 +165,16 @@ class SessionProducerTest
         when(memberTwo.getDeclaringClass()).thenReturn(cls);
         when(resolver.resolve("foo")).thenReturn("foo-uri");
         when(resolver.resolve("bar")).thenReturn("bar-uri");
-        when(builder.createSession(any(Session.Option.class))).thenReturn(sessionOne, sessionTwo);
+        when(builder.createSession(any(com.tangosol.net.Session.Option.class))).thenReturn(sessionOne, sessionTwo);
 
         SessionProducer producer = new SessionProducer(resolver, builder);
 
-        Session resultOne = producer.getDefaultSession(injectionPointOne);
-        Session resultTwo = producer.getDefaultSession(injectionPointTwo);
+        com.tangosol.net.Session resultOne = producer.getDefaultSession(injectionPointOne);
+        com.tangosol.net.Session resultTwo = producer.getDefaultSession(injectionPointTwo);
         assertThat(resultOne, is(sameInstance(sessionOne)));
         assertThat(resultTwo, is(sameInstance(sessionTwo)));
 
-        ArgumentCaptor<Session.Option> args = ArgumentCaptor.forClass(Session.Option.class);
+        ArgumentCaptor<com.tangosol.net.Session.Option> args = ArgumentCaptor.forClass(com.tangosol.net.Session.Option.class);
         verify(builder, times(2)).createSession(args.capture());
         }
 

@@ -7,7 +7,6 @@
 package com.oracle.coherence.cdi;
 
 import com.tangosol.net.CacheFactoryBuilder;
-import com.tangosol.net.Session;
 import com.tangosol.net.options.WithClassLoader;
 import com.tangosol.net.options.WithConfiguration;
 
@@ -26,7 +25,7 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
 /**
- * A CDI producer for {@link Session} instances.
+ * A CDI producer for {@link com.tangosol.net.Session} instances.
  *
  * @author Jonathan Knight  2019.11.06
  */
@@ -51,7 +50,7 @@ public class SessionProducer
      *
      * @param uriResolver          the URI resolver to use
      * @param cacheFactoryBuilder  the {@link CacheFactoryBuilder} to use to
-     *                             obtain {@link Session} instances
+     *                             obtain {@link com.tangosol.net.Session} instances
      */
     SessionProducer(CacheFactoryUriResolver uriResolver, CacheFactoryBuilder cacheFactoryBuilder)
         {
@@ -62,24 +61,24 @@ public class SessionProducer
     // ---- producer methods ------------------------------------------------
 
     /**
-     * Produces the default {@link Session}.
+     * Produces the default {@link com.tangosol.net.Session}.
      *
      * @param injectionPoint  the {@link InjectionPoint} that the cache factory
      *                        it to be injected into
      *
-     * @return the default {@link Session}
+     * @return the default {@link com.tangosol.net.Session}
      */
     @Produces
-    public Session getDefaultSession(InjectionPoint injectionPoint)
+    public com.tangosol.net.Session getDefaultSession(InjectionPoint injectionPoint)
         {
         return getNamedSession(injectionPoint);
         }
 
     /**
-     * Produces a named {@link Session}.
+     * Produces a named {@link com.tangosol.net.Session}.
      * <p>
      * If the value of the name qualifier is blank or empty String the default
-     * {@link Session} will be returned.
+     * {@link com.tangosol.net.Session} will be returned.
      * <p>
      * The name parameter will be resolved to a cache configuration URI using
      * the {@link CacheFactoryUriResolver} bean.
@@ -87,16 +86,16 @@ public class SessionProducer
      * @param injectionPoint  the {@link InjectionPoint} that the cache factory
      *                        it to be injected into
      *
-     * @return the named {@link Session}
+     * @return the named {@link com.tangosol.net.Session}
      */
     @Produces
-    @CacheFactory("")
-    public Session getNamedSession(InjectionPoint injectionPoint)
+    @Name("")
+    public com.tangosol.net.Session getNamedSession(InjectionPoint injectionPoint)
         {
         String sName = injectionPoint.getQualifiers()
                 .stream()
-                .filter(q -> q.annotationType().isAssignableFrom(CacheFactory.class))
-                .map(q -> ((CacheFactory) q).value())
+                .filter(q -> q.annotationType().isAssignableFrom(Name.class))
+                .map(q -> ((Name) q).value())
                 .findFirst()
                 .orElse(null);
 
@@ -116,7 +115,7 @@ public class SessionProducer
         ClassLoader loader = member == null
                              ? Base.getContextClassLoader()
                              : member.getDeclaringClass().getClassLoader();
-        Map<String, Session> map = f_mapSession.computeIfAbsent(loader, l -> new HashMap<>());
+        Map<String, com.tangosol.net.Session> map = f_mapSession.computeIfAbsent(loader, l -> new HashMap<>());
         return map.computeIfAbsent(sUri, u -> f_cacheFactoryBuilder.createSession(cfg, WithClassLoader.using(loader)));
         }
 
@@ -135,5 +134,5 @@ public class SessionProducer
     /**
      * Session map, keyed by class loader.
      */
-    private final Map<ClassLoader, Map<String, Session>> f_mapSession = new HashMap<>();
+    private final Map<ClassLoader, Map<String, com.tangosol.net.Session>> f_mapSession = new HashMap<>();
     }

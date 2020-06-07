@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.cache.grpc.client;
 
+import com.oracle.coherence.cdi.Name;
 import com.tangosol.io.DefaultSerializer;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -196,11 +197,11 @@ class GrpcRemoteSessionsIT
         // ----- data members -----------------------------------------------
 
         @Inject
-        @RemoteSession
+        @Remote
         protected Session m_session;
 
         @Inject
-        @RemoteSession
+        @Remote
         protected GrpcRemoteSession m_remoteSession;
         }
 
@@ -229,15 +230,18 @@ class GrpcRemoteSessionsIT
         // ----- data members -----------------------------------------------
 
         @Inject
-        @RemoteSession("test")
+        @Remote
+        @Name("test")
         private GrpcRemoteSession m_session;
 
         @Inject
-        @RemoteSession("test-java")
+        @Remote
+        @Name("test-java")
         private GrpcRemoteSession m_javaSession;
 
         @Inject
-        @RemoteSession("test-pof")
+        @Remote
+        @Name("test-pof")
         private GrpcRemoteSession m_pofSession;
         }
 
@@ -250,14 +254,14 @@ class GrpcRemoteSessionsIT
 
         @SuppressWarnings("unused")
         @Inject
-        protected void setSession(@RemoteSession Session session)
+        protected void setSession(@Remote Session session)
             {
             this.m_session = session;
             }
 
         @SuppressWarnings("unused")
         @Inject
-        protected void setRemoteSession(@RemoteSession GrpcRemoteSession remoteSession)
+        protected void setRemoteSession(@Remote GrpcRemoteSession remoteSession)
             {
             this.m_remoteSession = remoteSession;
             }
@@ -289,8 +293,8 @@ class GrpcRemoteSessionsIT
         // ----- constructors -----------------------------------------------
 
         @Inject
-        public CtorBean(@RemoteSession Session session,
-                        @RemoteSession GrpcRemoteSession remoteSession)
+        public CtorBean(@Remote Session session,
+                        @Remote GrpcRemoteSession remoteSession)
             {
             this.f_session       = session;
             this.f_remoteSession = remoteSession;

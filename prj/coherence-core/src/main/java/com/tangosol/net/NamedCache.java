@@ -14,11 +14,10 @@ import com.tangosol.net.cache.CacheMap;
 
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.Base;
-import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.ObservableMap;
-import com.tangosol.util.QueryMap;
-
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.BiConsumer;
 
 /**
 * A Map-based data-structure that manages entries across one or more processes.
@@ -35,7 +34,8 @@ import com.tangosol.util.QueryMap;
 * @since Coherence 1.1.2
 */
 public interface NamedCache<K, V>
-        extends NamedCollection, ObservableMap<K, V>, CacheMap<K, V>, ConcurrentMap<K, V>, QueryMap<K, V>, InvocableMap<K, V>
+        extends NamedMap<K, V>, CacheMap<K, V>
+
     {
     /**
     * Return the cache name.
@@ -50,18 +50,6 @@ public interface NamedCache<K, V>
     * @return the CacheService
     */
     public CacheService getCacheService();
-
-    @Override
-    public default String getName()
-        {
-        return getCacheName();
-        }
-
-    @Override
-    public default CacheService getService()
-        {
-        return getCacheService();
-        }
 
     /**
     * Associates the specified value with the specified key in this cache and
@@ -91,30 +79,31 @@ public interface NamedCache<K, V>
     public V put(K key, V value, long cMillis);
 
     /**
-    * Removes all mappings from this map.
-    * <p>
-    * <b>Note: invoking the {@code clear()} operation against a distributed cache
-    * can be both a memory and CPU intensive task and therefore is generally
-    * not recommended. Either {@link #truncate()} or {@link #destroy()} operations
-    * may be suitable alternatives.</b>
-    */
-    public void clear();
-
-    /**
-    * Removes all mappings from this map.
-    * <p>
-    * Note: the removal of entries caused by this truncate operation will
-    * not be observable. This includes any registered {@link com.tangosol.util.MapListener
-    * listeners}, {@link com.tangosol.util.MapTrigger triggers}, or {@link
-    * com.tangosol.net.events.EventInterceptor interceptors}. However, a
-    * {@link com.tangosol.net.events.partition.cache.CacheLifecycleEvent CacheLifecycleEvent}
-    * is raised to notify subscribers of the execution of this operation.
-    *
-    * @throws UnsupportedOperationException if the server does not support the truncate operation
-    */
-    public default void truncate()
+     * Perform the given action for each entry selected by the specified key set
+     * until all entries have been processed or the action throws an exception.
+     * <p>
+     * Exceptions thrown by the action are relayed to the caller.
+     * <p>
+     * The implementation processes each entry on the client and should only be
+     * used for read-only client-side operations (such as adding cache entries to
+     * a UI widget, for example).
+     * <p>
+     * Any entry mutation caused by the specified action will not be propagated
+     * to the server when this method is called on a distributed cache, so it
+     * should be avoided. The mutating operations on a subset of entries
+     * should be implemented using one of {@link InvocableMap#invokeAll},
+     * {@link #replaceAll}, {@link #compute}, or {@link #merge} methods instead.
+     *
+     * @param collKeys  the keys to process; these keys are not required to
+     *                  exist within the Map
+     * @param action    the action to be performed for each entry
+     *
+     * @since 12.2.1
+     */
+    public default void forEach(Collection<? extends K> collKeys, BiConsumer<? super K, ? super V> action)
         {
-        throw new UnsupportedOperationException();
+        Objects.requireNonNull(action);
+        getAll(collKeys).forEach(action);
         }
 
     /**
@@ -146,15 +135,6 @@ public interface NamedCache<K, V>
                     "The NamedCache [" + this.getCacheName() +
                     "] doesn't implement or support [" + clzNamedCache + "]");
             }
-        }
-
-    // ----- NamedCache.Option interface -------------------------------
-
-    /**
-     * An immutable option for requesting and configuring {@link NamedCache}s.
-     */
-    interface Option
-        {
         }
 
     // ----- Async API ------------------------------------------------------
@@ -210,38 +190,6 @@ public interface NamedCache<K, V>
     public default AsyncNamedCache<K, V> async(AsyncNamedCache.Option... options)
         {
         return new DefaultAsyncNamedCache<>(this, options);
-        }
-
-    /**
-     * Specifies whether or not the NamedCache has been destroyed.
-     *
-     * Implementations must override this method to provide the necessary information.
-     *
-     * @return true if the NamedCache has been destroyed; false otherwise
-     *
-     * @since Coherence 12.2.1.0.0
-     */
-    public default boolean isDestroyed()
-        {
-        // to avoid cumbersome caller exception handling;
-        // default is a no-op.
-        return false;
-        }
-
-    /**
-     * Specifies whether or not the NamedCache has been released.
-     *
-     * Implementations must override this method to provide the necessary information.
-     *
-     * @return true if the NamedCache has been released; false otherwise
-     *
-     * @since Coherence 12.2.1.0.0
-     */
-    public default boolean isReleased()
-        {
-        // to avoid cumbersome caller exception handling;
-        // default is a no-op.
-        return false;
         }
 
     // ----- View API -------------------------------------------------------

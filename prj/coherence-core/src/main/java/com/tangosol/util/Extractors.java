@@ -6,9 +6,13 @@
  */
 package com.tangosol.util;
 
+import com.tangosol.io.pof.generator.PortableTypeGenerator;
 import com.tangosol.io.pof.reflect.PofNavigator;
+import com.tangosol.io.pof.reflect.PofReflectionHelper;
 import com.tangosol.io.pof.reflect.SimplePofPath;
 
+import com.tangosol.io.pof.schema.annotation.Portable;
+import com.tangosol.io.pof.schema.annotation.PortableType;
 import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
@@ -269,6 +273,31 @@ public class Extractors
     public static <T, E> ValueExtractor<T, E> fromPof(Class<E> cls, int... indexes)
         {
         return fromPof(cls, new SimplePofPath(Objects.requireNonNull(indexes)));
+        }
+
+    /**
+     * Returns an extractor that extracts the value of the specified index(es)
+     * from a POF encoded {@link PortableType @PortableType}.
+     * <p>
+     * The specified class *must* be marked with {@link PortableType @PortableType}
+     * annotation and instrumented using {@link PortableTypeGenerator} in order
+     * for this method to work. Otherwise, an {@link IllegalArgumentException}
+     * will be thrown.
+     *
+     * @param sPath  the path of the property to extract
+     *
+     * @param <T> the type of the POF serialized object to extract from
+     * @param <E> the type of the extracted value
+     *
+     * @return an extractor that extracts the value of the specified field
+     *
+     * @throws  NullPointerException  if the indexes parameter is null
+     * @throws  IllegalArgumentException  if the specified class isn't a portable
+     *          type, or the specified property path doesn't exist
+     */
+    public static <T, E> ValueExtractor<T, E> fromPof(Class<E> cls, String sPath)
+        {
+        return fromPof(cls, PofReflectionHelper.getPofNavigator(cls, sPath));
         }
 
     /**

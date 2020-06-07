@@ -104,13 +104,13 @@ public class SerializerProducer
      * @return an instance of a named {@link Serializer}
      */
     @Produces
-    @SerializerFormat("")
+    @Name("")
     public Serializer getNamedSerializer(InjectionPoint ip)
         {
         String name = ip.getQualifiers()
                 .stream()
-                .filter(q -> q instanceof SerializerFormat)
-                .map(q -> ((SerializerFormat) q).value())
+                .filter(q -> q instanceof Name)
+                .map(q -> ((Name) q).value())
                 .findFirst()
                 .orElse("");
 

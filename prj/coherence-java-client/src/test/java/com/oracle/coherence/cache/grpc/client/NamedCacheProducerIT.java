@@ -7,9 +7,12 @@
 
 package com.oracle.coherence.cache.grpc.client;
 
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Session;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.cache.CacheMap;
 
 import com.tangosol.util.ConcurrentMap;
@@ -72,11 +75,11 @@ class NamedCacheProducerIT
     @Test
     void shouldGetDynamicNamedCache()
         {
-        Annotation           qualifier = RemoteCache.Literal.of("numbers");
-        Instance<NamedCache> instance  = CDI.current().select(NamedCache.class, qualifier);
+        Annotation           name     = Name.Literal.of("numbers");
+        Instance<NamedCache> instance = CDI.current().select(NamedCache.class, name, Remote.Literal.INSTANCE);
 
         assertThat(instance.isResolvable(), is(true));
-        assertThat(instance.get().getCacheName(), is("numbers"));
+        assertThat(instance.get().getName(), is("numbers"));
         }
 
     @Test
@@ -84,7 +87,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = CDI.current().select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getNumbers(), is(notNullValue()));
-        assertThat(bean.getNumbers().getCacheName(), is("numbers"));
+        assertThat(bean.getNumbers().getName(), is("numbers"));
         }
 
     @Test
@@ -92,7 +95,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = CDI.current().select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getNamedCache(), is(notNullValue()));
-        assertThat(bean.getNamedCache().getCacheName(), is("numbers"));
+        assertThat(bean.getNamedCache().getName(), is("numbers"));
         }
 
     @Test
@@ -100,7 +103,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = CDI.current().select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericCache(), is(notNullValue()));
-        assertThat(bean.getGenericCache().getCacheName(), is("numbers"));
+        assertThat(bean.getGenericCache().getName(), is("numbers"));
         }
 
     @Test
@@ -108,7 +111,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = CDI.current().select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericKeys(), is(notNullValue()));
-        assertThat(bean.getGenericKeys().getCacheName(), is("genericKeys"));
+        assertThat(bean.getGenericKeys().getName(), is("genericKeys"));
         }
 
     @Test
@@ -116,7 +119,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = CDI.current().select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericValues(), is(notNullValue()));
-        assertThat(bean.getGenericValues().getCacheName(), is("genericValues"));
+        assertThat(bean.getGenericValues().getName(), is("genericValues"));
         }
 
     @Test
@@ -124,7 +127,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = CDI.current().select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getNumbers(), is(notNullValue()));
-        assertThat(bean.getNumbers().getNamedCache().getCacheName(), is("numbers"));
+        assertThat(bean.getNumbers().getNamedCache().getName(), is("numbers"));
         }
 
     @Test
@@ -132,7 +135,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = CDI.current().select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getNamedCache(), is(notNullValue()));
-        assertThat(bean.getNamedCache().getNamedCache().getCacheName(), is("numbers"));
+        assertThat(bean.getNamedCache().getNamedCache().getName(), is("numbers"));
         }
 
     @Test
@@ -140,7 +143,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = CDI.current().select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericCache(), is(notNullValue()));
-        assertThat(bean.getGenericCache().getNamedCache().getCacheName(), is("numbers"));
+        assertThat(bean.getGenericCache().getNamedCache().getName(), is("numbers"));
         }
 
     @Test
@@ -148,7 +151,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = CDI.current().select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericKeys(), is(notNullValue()));
-        assertThat(bean.getGenericKeys().getNamedCache().getCacheName(), is("genericKeys"));
+        assertThat(bean.getGenericKeys().getNamedCache().getName(), is("genericKeys"));
         }
 
     @Test
@@ -156,7 +159,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = CDI.current().select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericValues(), is(notNullValue()));
-        assertThat(bean.getGenericValues().getNamedCache().getCacheName(), is("genericValues"));
+        assertThat(bean.getGenericValues().getNamedCache().getName(), is("genericValues"));
         }
 
     @Test
@@ -165,15 +168,15 @@ class NamedCacheProducerIT
         DifferentCacheFactoryBean bean = CDI.current().select(DifferentCacheFactoryBean.class).get();
 
         assertThat(bean.getDefaultCcfNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfNumbers().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getDefaultCcfNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getDefaultCcfAsyncNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache().getName(), Matchers.is("numbers"));
         assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache(), is(bean.getDefaultCcfNumbers()));
 
         assertThat(bean.getSpecificCcfNumbers(), is(notNullValue()));
-        assertThat(bean.getSpecificCcfNumbers().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getSpecificCcfNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getSpecificCcfAsyncNumbers(), is(notNullValue()));
-        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache().getName(), Matchers.is("numbers"));
         assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache(), is(bean.getSpecificCcfNumbers()));
 
         assertThat(bean.getDefaultCcfNumbers(), is(not(sameInstance(bean.getSpecificCcfNumbers()))));
@@ -185,9 +188,19 @@ class NamedCacheProducerIT
         CtorBean bean = CDI.current().select(CtorBean.class).get();
 
         assertThat(bean.getNumbers(), Matchers.notNullValue());
-        assertThat(bean.getNumbers().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getLetters(), Matchers.notNullValue());
-        assertThat(bean.getLetters().getNamedCache().getCacheName(), Matchers.is("letters"));
+        assertThat(bean.getLetters().getNamedCache().getName(), Matchers.is("letters"));
+        }
+
+    @SuppressWarnings("rawtypes")
+    @Test
+    void shouldInjectSuperTypeNamedMap()
+        {
+        SuperTypesBean bean = CDI.current().select(SuperTypesBean.class).get();
+        NamedMap       map  = bean.getNamedMap();
+        assertThat(map, is(notNullValue()));
+        assertThat(map, is(sameInstance(bean.getNamedCache())));
         }
 
     @SuppressWarnings("rawtypes")
@@ -250,7 +263,7 @@ class NamedCacheProducerIT
 
         protected NamedCache getNumbers()
             {
-            return m_numbers;
+            return numbers;
             }
 
         protected NamedCache getNamedCache()
@@ -276,23 +289,27 @@ class NamedCacheProducerIT
         // ----- data members -----------------------------------------------
 
         @Inject
-        @RemoteCache("numbers")
-        protected NamedCache m_numbers;
+        @Remote
+        protected NamedCache numbers;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected NamedCache m_namedCache;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected NamedCache<Integer, String> m_genericCache;
 
         @Inject
-        @RemoteCache("genericKeys")
+        @Remote
+        @Name("genericKeys")
         protected NamedCache<List<String>, String> m_genericKeys;
 
         @Inject
-        @RemoteCache("genericValues")
+        @Remote
+        @Name("genericValues")
         protected NamedCache<String, List<String>> m_genericValues;
         }
 
@@ -306,7 +323,7 @@ class NamedCacheProducerIT
 
         protected AsyncNamedCache getNumbers()
             {
-            return m_numbers;
+            return numbers;
             }
 
         protected AsyncNamedCache getNamedCache()
@@ -332,23 +349,27 @@ class NamedCacheProducerIT
         // ----- data members -----------------------------------------------
 
         @Inject
-        @RemoteCache("numbers")
-        protected AsyncNamedCache m_numbers;
+        @Remote
+        protected AsyncNamedCache numbers;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected AsyncNamedCache m_namedCache;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected AsyncNamedCache<Integer, String> m_genericCache;
 
         @Inject
-        @RemoteCache("genericKeys")
+        @Remote
+        @Name("genericKeys")
         protected AsyncNamedCache<List<String>, String> m_genericKeys;
 
         @Inject
-        @RemoteCache("genericValues")
+        @Remote
+        @Name("genericValues")
         protected AsyncNamedCache<String, List<String>> m_genericValues;
         }
 
@@ -383,21 +404,25 @@ class NamedCacheProducerIT
         // ----- data members -----------------------------------------------
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected NamedCache m_defaultCcfNumbers;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected AsyncNamedCache m_defaultCcfAsyncNumbers;
 
         @Inject
-        @RemoteCache("numbers")
-        @RemoteSession("test")
+        @Remote
+        @Name("numbers")
+        @Session("test")
         protected NamedCache m_specificCcfNumbers;
 
         @Inject
-        @RemoteCache("numbers")
-        @RemoteSession("test")
+        @Remote
+        @Name("numbers")
+        @Session("test")
         protected AsyncNamedCache m_specificCcfAsyncNumbers;
         }
 
@@ -409,8 +434,8 @@ class NamedCacheProducerIT
         // ----- constructors -----------------------------------------------
 
         @Inject
-        public CtorBean(@RemoteCache("numbers") NamedCache<Integer, String> numbers,
-                        @RemoteCache("letters") AsyncNamedCache<String, String> letters)
+        public CtorBean(@Remote @Name("numbers") NamedCache<Integer, String> numbers,
+                        @Remote @Name("letters") AsyncNamedCache<String, String> letters)
             {
             this.m_numbers = numbers;
             this.m_letters = letters;
@@ -447,6 +472,11 @@ class NamedCacheProducerIT
             return m_namedCache;
             }
 
+         protected NamedMap<Integer, String> getNamedMap()
+            {
+            return m_namedCache;
+            }
+
         protected InvocableMap<Integer, String> getInvocableMap()
             {
             return m_invocableMap;
@@ -475,27 +505,38 @@ class NamedCacheProducerIT
         // ----- data members -----------------------------------------------
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected NamedCache<Integer, String> m_namedCache;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
+        protected NamedMap<Integer, String> m_namedMap;
+
+        @Inject
+        @Remote
+        @Name("numbers")
         protected InvocableMap<Integer, String> m_invocableMap;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected ObservableMap<Integer, String> m_observableMap;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected ConcurrentMap<Integer, String> m_concurrentMap;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected QueryMap<Integer, String> m_queryMap;
 
         @Inject
-        @RemoteCache("numbers")
+        @Remote
+        @Name("numbers")
         protected CacheMap<Integer, String> m_cacheMap;
         }
 

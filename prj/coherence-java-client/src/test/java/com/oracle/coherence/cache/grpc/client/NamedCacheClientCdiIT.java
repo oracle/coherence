@@ -7,6 +7,8 @@
 
 package com.oracle.coherence.cache.grpc.client;
 
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Session;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheFactory;
@@ -78,8 +80,8 @@ class NamedCacheClientCdiIT
         Instance<NamedCacheClient> cacheInstance = CDI.current().getBeanManager()
                 .createInstance()
                 .select(NamedCacheClient.class,
-                        RemoteCache.Literal.of(sCacheName),
-                        RemoteSession.Literal.of(sessionName));
+                        Name.Literal.of(sCacheName),
+                        Session.Literal.of(sessionName));
 
         assertThat(cacheInstance.isResolvable(), is(true));
 

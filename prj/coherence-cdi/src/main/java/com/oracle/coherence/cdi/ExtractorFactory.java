@@ -14,12 +14,12 @@ import com.tangosol.util.ValueExtractor;
  * A factory that produces instances of {@link com.tangosol.util.ValueExtractor}
  * for a given {@link java.lang.annotation.Annotation}.
  * <p>
- * A {@link com.oracle.coherence.cdi.ValueExtractorFactory} is normally a CDI
- * bean that is also annotated with a {@link com.oracle.coherence.cdi.ValueExtractorBinding}
+ * A {@link ExtractorFactory} is normally a CDI
+ * bean that is also annotated with a {@link ExtractorBinding}
  * annotation. Whenever an injection point annotated with the corresponding
- * {@link com.oracle.coherence.cdi.ValueExtractorBinding} annotation is
- * encountered the {@link com.oracle.coherence.cdi.ValueExtractorFactory} bean's
- * {@link com.oracle.coherence.cdi.ValueExtractorFactory#create(java.lang.annotation.Annotation)}
+ * {@link ExtractorBinding} annotation is
+ * encountered the {@link ExtractorFactory} bean's
+ * {@link ExtractorFactory#create(java.lang.annotation.Annotation)}
  * method is called to create an instance of a {@link com.tangosol.util.ValueExtractor}.
  *
  * @param <A> the annotation type that the factory supports
@@ -28,7 +28,7 @@ import com.tangosol.util.ValueExtractor;
  *
  * @author Jonathan Knight  2019.10.25
  */
-public interface ValueExtractorFactory<A extends Annotation, T, E>
+public interface ExtractorFactory<A extends Annotation, T, E>
     {
     /**
      * Create a {@link com.tangosol.util.ValueExtractor} instance.

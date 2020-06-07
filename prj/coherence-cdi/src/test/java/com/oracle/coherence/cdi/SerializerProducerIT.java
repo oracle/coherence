@@ -52,7 +52,7 @@ class SerializerProducerIT
     @Test
     void shouldGetDynamicSerializer()
         {
-        Annotation qualifier = SerializerFormat.Literal.of("java");
+        Annotation qualifier = Name.Literal.of("java");
         Instance<Serializer> instance = weld.select(Serializer.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));
@@ -106,19 +106,19 @@ class SerializerProducerIT
     private static class SerializerFieldsBean
         {
         @Inject
-        @SerializerFormat("")
+        @Name("")
         private Serializer defaultSerializer;
 
         @Inject
-        @SerializerFormat("java")
+        @Name("java")
         private Serializer java;
 
         @Inject
-        @SerializerFormat("pof")
+        @Name("pof")
         private Serializer pof;
 
         @Inject
-        @SerializerFormat("custom")
+        @Name("custom")
         private Serializer custom;
 
         Serializer getDefaultSerializer()
@@ -148,7 +148,7 @@ class SerializerProducerIT
         private final Serializer serializer;
 
         @Inject
-        CtorBean(@SerializerFormat("pof") Serializer serializer)
+        CtorBean(@Name("pof") Serializer serializer)
             {
             this.serializer = serializer;
             }

@@ -38,6 +38,7 @@ import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.cache.CacheEvent;
@@ -208,6 +209,20 @@ public class AsyncNamedCacheClient<K, V>
     // ----- AsyncNamedCache interface --------------------------------------
 
     @Override
+   public NamedCache<K, V> getNamedCache()
+       {
+       return getNamedCacheClient();
+       }
+
+    // ----- AsyncNamedMap interface ----------------------------------------
+
+    @Override
+   public NamedMap<K, V> getNamedMap()
+       {
+       return getNamedCacheClient();
+       }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <R> CompletableFuture<R> aggregate(Collection<? extends K> colKeys,
                                               InvocableMap.EntryAggregator<? super K, ? super V, R> entryAggregator)
@@ -253,12 +268,6 @@ public class AsyncNamedCacheClient<K, V>
                 return failedFuture(t);
                 }
             });
-        }
-
-     @Override
-    public NamedCache<K, V> getNamedCache()
-        {
-        return getNamedCacheClient();
         }
 
     @Override

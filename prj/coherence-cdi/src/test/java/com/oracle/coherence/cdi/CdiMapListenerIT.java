@@ -9,7 +9,7 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
 
-import com.oracle.coherence.cdi.events.CacheName;
+import com.oracle.coherence.cdi.events.Cache;
 import com.oracle.coherence.cdi.events.Deleted;
 import com.oracle.coherence.cdi.events.Inserted;
 import com.oracle.coherence.cdi.events.Updated;
@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 
 import javax.inject.Inject;
@@ -62,7 +61,7 @@ class CdiMapListenerIT
                                                           .addBeanClass(TestListener.class));
 
     @Inject
-    @CacheFactory("cdi-events-cache-config.xml")
+    @Name("cdi-events-cache-config.xml")
     private ConfigurableCacheFactory ccf;
 
     @Inject
@@ -124,20 +123,20 @@ class CdiMapListenerIT
             events.compute(event.getId(), (k, v) -> v == null ? 1 : v + 1);
             }
 
-        private void onPersonInserted(@Observes @Inserted @CacheName("people") MapEvent<String, Person> event)
+        private void onPersonInserted(@Observes @Inserted @Cache("people") MapEvent<String, Person> event)
             {
             record(event);
             assertThat(event.getNewValue().getLastName(), is("Simpson"));
             }
 
-        private void onPersonUpdated(@Observes @Updated @CacheName("people") MapEvent<String, Person> event)
+        private void onPersonUpdated(@Observes @Updated @Cache("people") MapEvent<String, Person> event)
             {
             record(event);
             assertThat(event.getOldValue().getLastName(), is("Simpson"));
             assertThat(event.getNewValue().getLastName(), is("SIMPSON"));
             }
 
-        private void onPersonDeleted(@Observes @Deleted @CacheName("people") MapEvent<String, Person> event)
+        private void onPersonDeleted(@Observes @Deleted @Cache("people") MapEvent<String, Person> event)
             {
             record(event);
             assertThat(event.getOldValue().getLastName(), is("Simpson"));

@@ -12,10 +12,10 @@
 
 Coherence CDI provides support for http://cdi-spec.org/[CDI] (Contexts and Dependency  Injection) within Coherence cluster members.
 
-It allows you both to inject Coherence-managed resources, such as `NamedCache` and `Session`  instances into CDI managed beans, and to inject CDI beans into Coherence-managed resources,  such as event interceptors and cache stores, and to handle Coherence server-side events using CDI observer methods.
+It allows you both to inject Coherence-managed resources, such as `NamedMap`, `NamedCache` and `Session`  instances into CDI managed beans, and to inject CDI beans into Coherence-managed resources,  such as event interceptors and cache stores, as well as to handle Coherence server-side events using CDI observer methods.
 
 In addition, Coherence CDI provides support for automatic injection of transient objects upon deserialization.
-This allows you to inject CDI managed beans such as services and  repositories (to use DDD nomenclature) into transient objects, such as entry processor and even data class instances, greatly simplifying implementation of true Domain Driven  applications.
+This allows you to inject CDI managed beans such as services and repositories (to use DDD nomenclature) into transient objects, such as entry processor and even data class instances, greatly simplifying implementation of true Domain Driven  applications.
 
 == Usage
 
@@ -50,26 +50,26 @@ Once the necessary dependency is in place, you can start using CDI to inject Coh
 CDI, and dependency injection in general, make it easy for application classes to declare the dependencies they need and let the runtime provide them when necessary.
 This makes the applications easier to develop, test and reason about, and the code significantly cleaner.
 
-Coherence CDI allows you to do the same for Coherence objects, such as `Cluster`, `Session`, `NamedCache`, `ContinuousQueryCache`, `ConfigurableCacheFactory`, etc.
+Coherence CDI allows you to do the same for Coherence objects, such as `Cluster`, `Session`, `NamedMap`,`NamedCache`, `ContinuousQueryCache`, `ConfigurableCacheFactory`, etc.
 
-==== Injecting `NamedCache` and related objects
+==== Injecting `NamedMap`, `NamedCache` and related objects
 
-In order to inject an instance of a `NamedCache` into your CDI bean, you simply need to define an injection point for it:
-
-[source,java]
-----
-@Inject
-private NamedCache<Long, Person> people;
-----
-
-In the example above we've assumed that the cache name you want to inject is the same as the name of the field you are injecting into, `people`.
-If that's not the case, you can use `@Cache` qualifier to specify the name of the cache you want to obtain explicitly:
+In order to inject an instance of a `NamedMap` into your CDI bean, you simply need to define an injection point for it:
 
 [source,java]
 ----
 @Inject
-@Cache("people")
-private NamedCache<Long, Person> m_people;
+private NamedMap<Long, Person> people;
+----
+
+In the example above we've assumed that the map name you want to inject is the same as the name of the field you are injecting into, `people`.
+If that's not the case, you can use `@Name` qualifier to specify the name of the map you want to obtain explicitly:
+
+[source,java]
+----
+@Inject
+@Name("people")
+private NamedMap<Long, Person> m_people;
 ----
 
 This is also what you have to do if you are using constructor injection instead:
@@ -77,77 +77,82 @@ This is also what you have to do if you are using constructor injection instead:
 [source,java]
 ----
 @Inject
-public MyClass(@Cache("people") NamedCache<Long, Person> people) {
+public MyClass(@Name("people") NamedMap<Long, Person> people) {
     ...
 }
 ----
 
 All of the examples above assume that you want to use the default `ConfigurableCacheFactory`, which is often, but not always the case.
-For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple Coherence cache config files, and multiple `ConfigurableCacheFactoriy` instances.
+For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple Coherence config files, and multiple `ConfigurableCacheFactory` instances.
 
-In this case you would use `@CacheFactory` qualifier to specify the URI of the cache configuration to use:
+In this case you would use `@Session` qualifier to specify the URI of the cache configuration to use:
 
 [source,java]
 ----
 @Inject
-@CacheFactory("products-cluster.xml")
+@Session("products-cluster.xml")
 private NamedCache<Long, Product> products;
 
 @Inject
-@CacheFactory("customers-cluster.xml")
+@Session("customers-cluster.xml")
 private NamedCache<Long, Customer> customers;
 ----
 
-You can replace `NamedCache` in any of the examples above with `AsyncNamedCache` in order to inject  asynchronous variant of the `NamedCache` API:
+You can replace `NamedMap` or `NamedCache` in any of the examples above with `AsyncNamedCache` and `AsyncNamedCache` respectively, in order to inject  asynchronous variant of those APIs:
 
 [source,java]
 ----
 @Inject
-private AsyncNamedCache<Long, Person> people;
+private AsyncNamedMap<Long, Person> people;
+
+@Inject
+@Session("products-cluster.xml")
+private AsyncNamedCache<Long, Person> Product;
 ----
 
-You can also inject *cache views*, which are effectively instances of a `ContinuousQueryCache`, either by declaring the injection point as `ContinuousQueryCache` instead of `NamedCache`, or by simply adding `@CacheView` qualifier:
+You can also inject *views*, by simply adding `View` qualifier to either `NamedMap` or `NamedCache`:
 
 [source,java]
 ----
 @Inject
-private ContinuousQueryCache<Long, Person> people;
+@View
+private NamedMap<Long, Person> people;
 
 @Inject
-@CacheView
-private NamedCache<Long, Person> people;
+@View
+private NamedCache<Long, Product> products;
 ----
 
-The examples above are equivalent, and both will bring *all* the data from the backing cache into a local view, as they will use `AlwaysFilter` when constructing `CQC`.
+The examples above are equivalent, and both will bring *all* the data from the backing map into a local view, as they will use `AlwaysFilter` when constructing a view.
 If you want to limit the data in the view to a subset, you can implement a custom xref:./doc/filter-bindings.adoc[filter binding] (recommended), or use a built-in `@WhereFilter` for convenience, which allows you to specify a filter using CohQL:
 
 [source,java]
 ----
 @Inject
-@CacheView
+@View
 @WhereFilter("gender = 'MALE'")
-@Cache("people")
-private NamedCache<Long, Person> men;
+@Name("people")
+private NamedMap<Long, Person> men;
 
 @Inject
-@CacheView
+@View
 @WhereFilter("gender = 'FEMALE'")
-@Cache("people")
-private NamedCache<Long, Person> women;
+@Name("people")
+private NamedMap<Long, Person> women;
 ----
 
-The `ContinuousQueryCache`, and *cache views* by extension, also support transformation of the  cached value on the server, in order to reduce both the amount of data stored locally and the amount of data transferred over the network.
-For example, you may have a complex `Person` objects in the backing cache, but only need their names in order to populate a drop down on the client UI.
+The  *views* also support transformation of the entry values on the server, in order to reduce both the amount of data stored locally, and the amount of data transferred over the network.
+For example, you may have a complex `Person` objects in the backing map, but only need their names in order to populate a drop down on the client UI.
 
 In that case, you can implement a custom xref:./doc/extractor-bindings.adoc[extractor binding] (recommended), or use a built-in `@PropertyExtractor` for convenience:
 
 [source,java]
 ----
 @Inject
-@CacheView
+@View
 @PropertyExtractor("fullName")
-@Cache("people")
-private NamedCache<Long, String> names;
+@Name("people")
+private NamedMap<Long, String> names;
 ----
 
 Note that the value type in the example above has changed from `Person` to `String`, due to server-side transformation caused by the specified `@PropertyExtractor`.
@@ -163,12 +168,12 @@ private NamedTopic<Order> orders;
 ----
 
 In the example above we've assumed that the topic name you want to inject is the same as the name of the field you are injecting into, in this case``orders``.
-If that's not the case, you  can use `@Topic` qualifier to specify the name of the cache you want to obtain explicitly:
+If that's not the case, you  can use `@Name` qualifier to specify the name of the cache you want to obtain explicitly:
 
 [source,java]
 ----
 @Inject
-@Topic("orders")
+@Name("orders")
 private NamedTopic<Order> m_orders;
 ----
 
@@ -177,24 +182,24 @@ This is also what you have to do if you are using constructor injection instead:
 [source,java]
 ----
 @Inject
-public MyClass(@Topic("orders") NamedTopic<Order> orders) {
+public MyClass(@Name("orders") NamedTopic<Order> orders) {
     ...
 }
 ----
 
 All of the examples above assume that you want to use the default `ConfigurableCacheFactory`, which is often, but not always the case.
-For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple Coherence cache config files, and multiple `ConfigurableCacheFactoriy` instances.
+For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple Coherence cache config files, and multiple `ConfigurableCacheFactory` instances.
 
-In this case you would use `@CacheFactory` qualifier to specify the URI of the cache configuration to use:
+In this case you would use `Session` qualifier to specify the URI of the cache configuration to use:
 
 [source,java]
 ----
 @Inject
-@CacheFactory("payments-cluster.xml")
+@Session("payments-cluster.xml")
 private NamedTopic<PaymentRequest> payments;
 
 @Inject
-@CacheFactory("shipments-cluster.xml")
+@Session("shipments-cluster.xml")
 private NamedTopic<ShippingRequest> shipments;
 ----
 
@@ -208,11 +213,11 @@ This can be easily accomplished by replacing `NamedTopic<T>` in any of the examp
 private Publisher<Order> orders;
 
 @Inject
-@Topic("orders")
+@Name("orders")
 private Publisher<Order> m_orders;
 
 @Inject
-@CacheFactory("payments-cluster.xml")
+@Session("payments-cluster.xml")
 private Publisher<PaymentRequest> payments;
 ----
 
@@ -224,15 +229,15 @@ or `Subscriber<T>`:
 private Subscriber<Order> orders;
 
 @Inject
-@Topic("orders")
+@Name("orders")
 private Subscriber<Order> m_orders;
 
 @Inject
-@CacheFactory("payments-cluster.xml")
+@Session("payments-cluster.xml")
 private Subscriber<PaymentRequest> payments;
 ----
 
-Basically, all topic-related details, such as topic name (based on either injection point name or the explicit name from `@Topic` annotation), cache factory URI and message type, will be used under the hood to retrieve the `NamedTopic`, and to obtain `Publisher` or `Subscriber` from it.
+Basically, all topic-related details, such as topic name (based on either injection point name or the explicit name from `@Name` annotation), factory URI and message type, will be used under the hood to retrieve the `NamedTopic`, and to obtain `Publisher` or `Subscriber` from it.
 
 Additionally, if you want to place your ``Subscriber``s into a subscriber group, you can easily accomplish that by adding `@SubscriberGroup` qualifier to the injection point:
 
@@ -245,7 +250,7 @@ private Subscriber<Order> orders;
 
 ==== Other Supported Injection Points
 
-While the injection of a `NamedCache`, `NamedTopic`, and related instances, as shown above,  is probably the single most useful feature of Coherence CDI, it is certainly not the only one.
+While the injection of a `NamedMap`, `NamedCache`, `NamedTopic`, and related instances, as shown above,  is probably the single most used feature of Coherence CDI, it is certainly not the only one.
 The following sections describe other Coherence artifacts that can be injected using Coherence CDI.
 
 ===== `Cluster` and `OperationalContext` Injection
@@ -281,16 +286,16 @@ private ConfigurableCacheFactory ccf;
 private Session session;
 ----
 
-If you need a specific `CCF` or `Session` you can simply qualify them using `@CacheFactory` qualifier and specifying the URI of the cache config file to use:
+If you need a specific `CCF` or `Session` you can simply qualify them using `@Name` qualifier and specifying the URI of the cache config file to use:
 
 [source,java]
 ----
 @Inject
-@CacheFactory("my-cache-config.xml")
+@Name("my-cache-config.xml")
 private ConfigurableCacheFactory ccf;
 
 @Inject
-@CacheFactory("my-cache-config.xml")
+@Name("my-cache-config.xml")
 private Session session;
 ----
 
@@ -306,16 +311,16 @@ To get a default `Serializer` for the current context class loader, you can simp
 private Serializer defaultSerializer;
 ----
 
-However, it may be more useful to inject one of the named serializers defined in the operational configuration, which can be easily accomplished using `@SerializerFormat` qualifier:
+However, it may be more useful to inject one of the named serializers defined in the operational configuration, which can be easily accomplished using `@Name` qualifier:
 
 [source,java]
 ----
 @Inject
-@SerializerFormat("java")
+@Name("java")
 private Serializer javaSerializer;
 
 @Inject
-@SerializerFormat("pof")
+@Name("pof")
 private Serializer pofSerializer;
 ----
 
@@ -337,7 +342,7 @@ it would be automatically discovered and registered by the CDI, and you would th
 [source,java]
 ----
 @Inject
-@SerializerFormat("json")
+@Name("json")
 private Serializer jsonSerializer;
 ----
 
@@ -483,12 +488,12 @@ The observer method above will receive all `INSERTING` events for all the caches
 
 [source,java]
 ----
-private void onInserting(@Observes @Updated @CacheName("people") EntryEvent<?, ?> event) {
-    // handle UPDATED event on 'people' cache only
+private void onInserting(@Observes @Updated @Cache("people") EntryEvent<?, ?> event) {
+    // handle UPDATED event on 'people' map/cache only
 }
 
-private void onRemoved(@Observes @Removed @ServiceName("Products") EntryEvent<?, ?> event) {
-    // handle REMOVED event on any cache on the 'Products' service
+private void onRemoved(@Observes @Removed @Service("Products") EntryEvent<?, ?> event) {
+    // handle REMOVED event on any map/cache on the 'Products' service
 }
 ----
 
@@ -509,12 +514,12 @@ private void onActivated(@Observes @Activated LifecycleEvent event) {
     // handle cache factory activation
 }
 
-private void onCreatedPeople(@Observes @Created @CacheName("people") CacheLifecycleEvent event) {
-    // handle creation of the 'people' cache
+private void onCreatedPeople(@Observes @Created @Cache("people") CacheLifecycleEvent event) {
+    // handle creation of the 'people' map/cache
 }
 
-private void onExecuting(@Observes @Executing @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event) {
-    // intercept 'Uppercase` entry processor execution against 'people' cache
+private void onExecuting(@Observes @Executing @Cache("people") @Processor(Uppercase.class) EntryProcessorEvent event) {
+    // intercept 'Uppercase` entry processor execution against 'people' map/cache
 }
 ----
 
@@ -524,12 +529,12 @@ And again, you can broaden the scope by widening the type of events you observe:
 ----
 private void onPartitionedCacheEvent(@Observes com.tangosol.net.events.partition.cache.Event<?> event) {
     // handle any/all events raised by the partitioned cache service (CacheLifecycleEvent, EntryEvent or EntryProcessorEvent)
-    // can use @CacheName and @ServiceName as a narrowing qualifier
+    // can use @Cache and @Service as a narrowing qualifier
 }
 
 private void onPartitionedServiceEvent(@Observes com.tangosol.net.events.partition.Event<?> event) {
     // handle any/all events raised by the partitioned service (TransactionEvent, TransferEvent or UnsolicitedCommitEvent)
-    // can use @ServiceName as a narrowing qualifier
+    // can use @Service as a narrowing qualifier
 }
 
 private void onEvent(@Observes com.tangosol.net.events.Event<?> event) {
@@ -549,12 +554,12 @@ private void onActivated(@ObservesAsync @Activated LifecycleEvent event) {
     // handle cache factory activation
 }
 
-private void onCreatedPeople(@ObservesAsync @Created @CacheName("people") CacheLifecycleEvent event) {
-    // handle creation of the 'people' cache
+private void onCreatedPeople(@ObservesAsync @Created @Cache("people") CacheLifecycleEvent event) {
+    // handle creation of the 'people' map/cache
 }
 
-private void onExecuting(@ObservesAsync @Executing @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event) {
-    // intercept 'Uppercase` entry processor execution against 'people' cache
+private void onExecuting(@ObservesAsync @Executing @Cache("people") @Processor(Uppercase.class) EntryProcessorEvent event) {
+    // intercept 'Uppercase` entry processor execution against 'people', map/cache
 }
 ----
 

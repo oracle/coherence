@@ -35,7 +35,7 @@ public class BeanBuilder
      *
      * @param exprBeanName  the name of the CDI bean
      */
-    public BeanBuilder(String exprBeanName)
+    BeanBuilder(String exprBeanName)
         {
         m_exprBeanName = new LiteralExpression<>(exprBeanName);
         }

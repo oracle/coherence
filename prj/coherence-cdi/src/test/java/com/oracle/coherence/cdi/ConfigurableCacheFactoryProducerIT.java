@@ -53,21 +53,21 @@ public class ConfigurableCacheFactoryProducerIT
      * Should inject the test CCF.
      */
     @Inject
-    @CacheFactory("test-cache-config.xml")
+    @Name("test-cache-config.xml")
     private ConfigurableCacheFactory testCacheFactory;
 
     /**
      * Should inject the the default CCF.
      */
     @Inject
-    @CacheFactory("")
+    @Name("")
     private ConfigurableCacheFactory qualifiedDefaultCacheFactory;
 
     /**
      * Should inject the the default CCF.
      */
     @Inject
-    @CacheFactory(" ")
+    @Name(" ")
     private ConfigurableCacheFactory namedDefaultCacheFactory;
 
     /**
@@ -108,7 +108,7 @@ public class ConfigurableCacheFactoryProducerIT
     @Test
     void shouldGetDynamicCCF()
         {
-        Annotation qualifier = CacheFactory.Literal.of("test-cache-config.xml");
+        Annotation qualifier = Name.Literal.of("test-cache-config.xml");
         Instance<ConfigurableCacheFactory> instance = weld.select(ConfigurableCacheFactory.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));

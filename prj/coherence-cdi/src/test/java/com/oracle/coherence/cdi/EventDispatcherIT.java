@@ -17,7 +17,7 @@ import javax.inject.Inject;
 
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
-import com.oracle.coherence.cdi.events.CacheName;
+import com.oracle.coherence.cdi.events.Cache;
 import com.oracle.coherence.cdi.events.Created;
 import com.oracle.coherence.cdi.events.Destroyed;
 import com.oracle.coherence.cdi.events.Executed;
@@ -77,7 +77,7 @@ class EventDispatcherIT
                                                           .addBeanClass(EventDispatcher.class));
 
     @Inject
-    @CacheFactory("cdi-events-cache-config.xml")
+    @Name("cdi-events-cache-config.xml")
     private ConfigurableCacheFactory ccf;
 
     @Inject
@@ -159,19 +159,19 @@ class EventDispatcherIT
             }
 
         // cache lifecycle events
-        private void onCreatedPeople(@Observes @Created @CacheName("people") CacheLifecycleEvent event)
+        private void onCreatedPeople(@Observes @Created @Cache("people") CacheLifecycleEvent event)
             {
             record(event);
             assertThat(event.getCacheName(), is("people"));
             }
 
-        private void onDestroyedPeople(@Observes @Destroyed @CacheName("people") CacheLifecycleEvent event)
+        private void onDestroyedPeople(@Observes @Destroyed @Cache("people") CacheLifecycleEvent event)
             {
             record(event);
             assertThat(event.getCacheName(), is("people"));
             }
 
-        private void onPersonInserted(@Observes @Inserted @CacheName("people") EntryEvent<?, ?> event)
+        private void onPersonInserted(@Observes @Inserted @Cache("people") EntryEvent<?, ?> event)
             {
             record(event);
             ((EntryEvent<String, Person>) event).getEntrySet().stream()
@@ -179,7 +179,7 @@ class EventDispatcherIT
                     .forEach(person -> assertThat(person.getLastName(), is("Simpson")));
             }
 
-        private void onPersonUpdated(@Observes @Updated @CacheName("people") EntryEvent<?, ?> event)
+        private void onPersonUpdated(@Observes @Updated @Cache("people") EntryEvent<?, ?> event)
             {
             record(event);
             ((EntryEvent<String, Person>) event).getEntrySet().stream()
@@ -187,7 +187,7 @@ class EventDispatcherIT
                     .forEach(person -> assertThat(person.getLastName(), is("SIMPSON")));
             }
 
-        private void onPersonRemoved(@Observes @Removed @CacheName("people") EntryEvent<?, ?> event)
+        private void onPersonRemoved(@Observes @Removed @Cache("people") EntryEvent<?, ?> event)
             {
             record(event);
             ((EntryEvent<String, Person>) event).getEntrySet().stream()
@@ -195,14 +195,14 @@ class EventDispatcherIT
                     .forEach(person -> assertThat(person.getLastName(), is("SIMPSON")));
             }
 
-        private void onExecuting(@Observes @Executing @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)
+        private void onExecuting(@Observes @Executing @Cache("people") @Processor(Uppercase.class) EntryProcessorEvent event)
             {
             record(event);
             assertThat(event.getProcessor(), is(instanceOf(Uppercase.class)));
             assertThat(event.getEntrySet().size(), is(5));
             }
 
-        private void onExecuted(@Observes @Executed @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)
+        private void onExecuted(@Observes @Executed @Cache("people") @Processor(Uppercase.class) EntryProcessorEvent event)
             {
             record(event);
             assertThat(event.getProcessor(), is(instanceOf(Uppercase.class)));

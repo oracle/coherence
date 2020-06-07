@@ -7,6 +7,8 @@
 
 package com.oracle.coherence.cache.grpc.client;
 
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Session;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 
@@ -42,46 +44,51 @@ public class NamedCacheProducer
     // ----- public methods -------------------------------------------------
 
     /**
-     * Produce a {@link NamedCache} gRPC client using the name from the {@link RemoteCache}
-     * qualifier as the cache name and the name from the optional {@link RemoteSession}
-     * qualifier to identify the gRPC {@link com.tangosol.net.Session} to use to connect to
+     * Produce a {@link NamedCache} gRPC client using the name from the
+     * {@link Name @Name} qualifier as the cache name and the name
+     * from the optional {@link Session @Session} qualifier to
+     * identify the gRPC {@link com.tangosol.net.Session} to use to connect to
      * the server.
      * <p>
-     * If no {@link RemoteSession} qualifier is present the default gRPC session will be used.
+     * If no {@link Session} qualifier is present the default gRPC session will be used.
      *
      * @param injectionPoint  the injection point to inject the {@link NamedCache} into
      * @param <K>             the type of the cache keys
      * @param <V>             the type of the cache values
      *
-     * @return a {@link NamedCache} using the name from the {@link RemoteCache} qualifier
-     *         as the cache name and the name from the optional {@link RemoteSession} qualifier
+     * @return a {@link NamedCache} using the name from the {@link Name} qualifier
+     *         as the cache name and the name from the optional {@link Session} qualifier
      */
     @Produces
-    @RemoteCache
-    @RemoteSession("")
-    public <K, V> NamedCacheClient<K, V> getRemoteNamedCache(InjectionPoint injectionPoint)
+    @Remote
+    @Name("")
+    @Session("")
+    public <K, V> NamedCacheClient<K, V> getNamedCache(InjectionPoint injectionPoint)
         {
         AsyncNamedCacheClient<K, V> async = getAsyncNamedCacheClient(injectionPoint);
         return async.getNamedCacheClient();
         }
 
     /**
-     * Produce an {@link AsyncNamedCache} gRPC client using the name from the {@link RemoteCache}
-     * qualifier as the cache name and the name from the optional {@link RemoteSession} qualifier
-     * to identify the gRPC {@link com.tangosol.net.Session} to use to connect to the server.
+     * Produce a {@link AsyncNamedCache} gRPC client using the name from the
+     * {@link Name @Name} qualifier as the cache name and the name
+     * from the optional {@link Session @Session} qualifier to
+     * identify the gRPC {@link com.tangosol.net.Session} to use to connect to
+     * the server.
      * <p>
-     * If no {@link RemoteSession} qualifier is present the default gRPC channel will be used.
+     * If no {@link Session} qualifier is present the default gRPC channel will be used.
      *
      * @param injectionPoint  the injection point to inject the {@link AsyncNamedCache} into
      * @param <K>             the type of the cache keys
      * @param <V>             the type of the cache values
      *
-     * @return a {@link NamedCache} using the name from the {@link RemoteCache} qualifier
-     *         as the cache name and the name from the optional {@link RemoteSession} qualifier
+     * @return a {@link NamedCache} using the name from the {@link Name} qualifier
+     *         as the cache name and the name from the optional {@link Session} qualifier
      */
     @Produces
-    @RemoteCache
-    @RemoteSession("")
+    @Remote
+    @Name("")
+    @Session("")
     public <K, V> AsyncNamedCacheClient<K, V> getRemoteAsyncNamedCache(InjectionPoint injectionPoint)
         {
         return getAsyncNamedCacheClient(injectionPoint);
@@ -102,19 +109,25 @@ public class NamedCacheProducer
         {
         Set<Annotation> qualifiers = injectionPoint.getQualifiers();
 
-        String name = qualifiers.stream()
-                .filter(q -> RemoteCache.class.isAssignableFrom(q.getClass()))
-                .map(q -> ((RemoteCache) q).value())
+        String sName = qualifiers.stream()
+                .filter(q -> Name.class.isAssignableFrom(q.getClass()))
+                .map(q -> ((Name) q).value())
                 .findFirst()
                 .orElse(null);
 
-        if (name == null || name.isEmpty())
+        if (sName == null || sName.isEmpty())
             {
-            name = injectionPoint.getMember().getName();
+            sName = injectionPoint.getMember().getName();
             }
 
-        GrpcRemoteSession session = f_sessionProducer.getSession(injectionPoint);
-        return session.getAsyncCache(name);
+        String sSessionName = qualifiers.stream()
+                .filter(q -> Session.class.isAssignableFrom(q.getClass()))
+                .map(q -> ((Session) q).value())
+                .findFirst()
+                .orElse(GrpcRemoteSession.DEFAULT_NAME);
+
+        GrpcRemoteSession session = f_sessionProducer.ensureSession(sSessionName);
+        return session.getAsyncCache(sName);
         }
 
     // ----- data members ---------------------------------------------------

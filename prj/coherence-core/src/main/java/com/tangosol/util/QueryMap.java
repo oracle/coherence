@@ -169,15 +169,15 @@ public interface QueryMap<K, V>
      * Add an index to this QueryMap. This allows to correlate values stored in
      * this <i>indexed Map</i> (or attributes of those values) to the
      * corresponding keys in the indexed Map and increase the performance of
-     * <tt>keySet</tt> and <tt>entrySet</tt> methods.
+     * methods that use {@link Filter Filters}.
      * <p>
      * The ordering maintained by this map (as determined by either the
      * specified Comparator or the natural ordering of the indexed values) must
      * be <i>consistent with equals</i> (see {@link Comparable} or {@link
      * Comparator} for a precise definition of <i>consistent with equals</i>.)
      * <p>
-     * This method is only intended as a hint to the cache implementation, and
-     * as such it may be ignored by the cache if indexes are not supported or if
+     * This method is only intended as a hint to the map implementation, and
+     * as such it may be ignored by the map if indexes are not supported or if
      * the desired index (or a similar index) already exists. It is expected
      * that an application will call this method to suggest an index even if the
      * index may already exist, just so that the application is certain that
@@ -206,6 +206,40 @@ public interface QueryMap<K, V>
      * @see com.tangosol.util.comparator.ChainedComparator
      */
     public <T, E> void addIndex(ValueExtractor<? super T, ? extends E> extractor, boolean fOrdered, Comparator<? super E> comparator);
+
+    /**
+     * Add an unordered index to this QueryMap. This allows to correlate values
+     * stored in this <i>indexed Map</i> (or attributes of those values) to the
+     * corresponding keys in the indexed Map and increase the performance of
+     * methods that use {@link Filter Filters}.
+     * <p>
+     * This method is only intended as a hint to the map implementation, and
+     * as such it may be ignored by the map if indexes are not supported or if
+     * the desired index (or a similar index) already exists. It is expected
+     * that an application will call this method to suggest an index even if the
+     * index may already exist, just so that the application is certain that
+     * index has been suggested. For example in a distributed environment, each
+     * server will likely suggest the same set of indexes when it starts, and
+     * there is no downside to the application blindly requesting those indexes
+     * regardless of whether another server has already requested the same
+     * indexes.
+     * <p>
+     * <b>Note: This method will have no effect when using Coherence Standard
+     * Edition.</b>
+     *
+     * @param <T>        the type of the value to extract from
+     * @param <E>        the type of value that will be extracted
+     * @param extractor  the ValueExtractor object that is used to extract an
+     *                   indexable Object from a value stored in the indexed
+     *                   Map.  Must not be null.
+     *
+     * @see com.tangosol.util.extractor.ReflectionExtractor
+     * @see com.tangosol.util.comparator.ChainedComparator
+     */
+    public default <T, E> void addIndex(ValueExtractor<? super T, ? extends E> extractor)
+        {
+        addIndex(extractor, false, null);
+        }
 
     /**
      * Remove an index from this QueryMap.

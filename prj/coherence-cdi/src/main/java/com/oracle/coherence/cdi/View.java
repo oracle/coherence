@@ -23,7 +23,7 @@ import javax.inject.Qualifier;
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CacheView
+public @interface View
     {
     /**
      * A flag that is {@code true} to cache both the keys and values of the
@@ -38,11 +38,11 @@ public @interface CacheView
     // ---- inner class: Literal --------------------------------------------
 
     /**
-     * An annotation literal for the {@link CacheView} annotation.
+     * An annotation literal for the {@link View} annotation.
      */
     class Literal
-            extends AnnotationLiteral<CacheView>
-            implements CacheView
+            extends AnnotationLiteral<View>
+            implements View
         {
         /**
          * Construct {@code Literal} instance.
@@ -57,13 +57,13 @@ public @interface CacheView
             }
 
         /**
-         * Create a {@link CacheView.Literal}.
+         * Create a {@link View.Literal}.
          *
          * @param fCacheValues a flag that is {@code true} to cache both the keys
          *                     and values of the materialized view locally, or
          *                     {@code false} to only cache the keys
          *
-         * @return a {@link CacheView.Literal} with the specified value
+         * @return a {@link View.Literal} with the specified value
          */
         public static Literal of(boolean fCacheValues)
             {
@@ -87,7 +87,7 @@ public @interface CacheView
         // ---- constants -------------------------------------------------------
 
         /**
-         * A singleton instance of {@link com.oracle.coherence.cdi.CacheView.Literal}
+         * A singleton instance of {@link View.Literal}
          * with the cache values flag set to true.
          */
         public static final Literal INSTANCE = Literal.of(true);

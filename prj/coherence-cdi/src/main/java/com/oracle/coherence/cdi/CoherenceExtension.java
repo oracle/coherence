@@ -33,7 +33,7 @@ import org.jboss.weld.environment.se.events.ContainerInitialized;
  * @author Jonathan Knight  2019.10.24
  * @author Aleks Seovic  2020.03.25
  */
-public class CoherenceExtension
+class CoherenceExtension
         implements Extension
     {
     /**
@@ -54,19 +54,19 @@ public class CoherenceExtension
         }
 
     /**
-     * Process {@link ValueExtractorFactory} beans annotated with
-     * {@link ValueExtractorBinding}.
+     * Process {@link ExtractorFactory} beans annotated with
+     * {@link ExtractorBinding}.
      *
      * @param event  the event to process
      * @param <T>    the declared type of the injection point
      */
-    private <T extends ValueExtractorFactory<?, ?, ?>> void processValueExtractorInjectionPoint(
-            @Observes @WithAnnotations(ValueExtractorBinding.class) ProcessAnnotatedType<T> event)
+    private <T extends ExtractorFactory<?, ?, ?>> void processValueExtractorInjectionPoint(
+            @Observes @WithAnnotations(ExtractorBinding.class) ProcessAnnotatedType<T> event)
         {
         AnnotatedType<T> type = event.getAnnotatedType();
         type.getAnnotations()
                 .stream()
-                .filter(a -> a.annotationType().isAnnotationPresent(ValueExtractorBinding.class))
+                .filter(a -> a.annotationType().isAnnotationPresent(ExtractorBinding.class))
                 .map(AnnotationInstance::create)
                 .forEach(a -> m_mapExtractorSupplier.put(a, type.getJavaClass()));
         }
@@ -88,14 +88,14 @@ public class CoherenceExtension
                 .beanClass(FilterProducer.FilterFactoryResolver.class);
 
         // Register the value extractor producer bean that knows about all of the ValueExtractorFactory beans
-        ValueExtractorProducer.ValueExtractorFactoryResolver extractorResolver
-                = new ValueExtractorProducer.ValueExtractorFactoryResolver(m_mapExtractorSupplier);
+        ExtractorProducer.ValueExtractorFactoryResolver extractorResolver
+                = new ExtractorProducer.ValueExtractorFactoryResolver(m_mapExtractorSupplier);
         event.addBean()
                 .produceWith(i -> extractorResolver)
-                .types(ValueExtractorProducer.ValueExtractorFactoryResolver.class)
+                .types(ExtractorProducer.ValueExtractorFactoryResolver.class)
                 .qualifiers(Default.Literal.INSTANCE)
                 .scope(ApplicationScoped.class)
-                .beanClass(ValueExtractorProducer.ValueExtractorFactoryResolver.class);
+                .beanClass(ExtractorProducer.ValueExtractorFactoryResolver.class);
         }
 
     /**
@@ -119,8 +119,8 @@ public class CoherenceExtension
     private Map<AnnotationInstance, Class<? extends FilterFactory<?, ?>>> m_mapFilterSupplier = new HashMap<>();
 
     /**
-     * A map of {@link ValueExtractorBinding} annotation to {@link
-     * ValueExtractorFactory} bean class.
+     * A map of {@link ExtractorBinding} annotation to {@link
+     * ExtractorFactory} bean class.
      */
-    private Map<AnnotationInstance, Class<? extends ValueExtractorFactory<?, ?, ?>>> m_mapExtractorSupplier = new HashMap<>();
+    private Map<AnnotationInstance, Class<? extends ExtractorFactory<?, ?, ?>>> m_mapExtractorSupplier = new HashMap<>();
     }

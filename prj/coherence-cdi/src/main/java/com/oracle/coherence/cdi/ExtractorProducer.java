@@ -30,13 +30,13 @@ import javax.inject.Inject;
 
 /**
  * A CDI bean that produces {@link ValueExtractor} instances using {@link
- * ValueExtractorFactory} beans annotated with {@link ValueExtractorBinding}
+ * ExtractorFactory} beans annotated with {@link ExtractorBinding}
  * annotations.
  *
  * @author Jonathan Knight  2019.10.25
  */
 @ApplicationScoped
-class ValueExtractorProducer
+class ExtractorProducer
     {
     // ---- constructors ----------------------------------------------------
 
@@ -47,7 +47,7 @@ class ValueExtractorProducer
      * @param extractorFactoryResolver     a {@code ValueExtractorFactoryResolver} to use
      */
     @Inject
-    ValueExtractorProducer(BeanManager beanManager, ValueExtractorFactoryResolver extractorFactoryResolver)
+    ExtractorProducer(BeanManager beanManager, ValueExtractorFactoryResolver extractorFactoryResolver)
         {
         f_beanManager = beanManager;
         f_extractorFactoryResolver = extractorFactoryResolver;
@@ -76,12 +76,12 @@ class ValueExtractorProducer
             {
             for (Annotation annotation : annotated.getAnnotations())
                 {
-                if (annotation.annotationType().isAnnotationPresent(ValueExtractorBinding.class))
+                if (annotation.annotationType().isAnnotationPresent(ExtractorBinding.class))
                     {
-                    Class<? extends ValueExtractorFactory> clazz = f_extractorFactoryResolver.resolve(annotation);
+                    Class<? extends ExtractorFactory> clazz = f_extractorFactoryResolver.resolve(annotation);
                     if (clazz != null)
                         {
-                        ValueExtractorFactory supplier = f_beanManager.createInstance().select(clazz).get();
+                        ExtractorFactory supplier = f_beanManager.createInstance().select(clazz).get();
                         if (supplier != null)
                             {
                             ValueExtractor extractor = supplier.create(annotation);
@@ -122,13 +122,13 @@ class ValueExtractorProducer
     // ---- inner class: UniversalExtractorSupplier -------------------------
 
     /**
-     * A {{@link ValueExtractorFactory} that produces{@link ValueExtractor}
+     * A {{@link ExtractorFactory} that produces{@link ValueExtractor}
      * instances for a given property or method name.
      */
     @PropertyExtractor("")
     @ApplicationScoped
     static class UniversalExtractorSupplier
-            implements ValueExtractorFactory<PropertyExtractor, Object, Object>
+            implements ExtractorFactory<PropertyExtractor, Object, Object>
         {
         @Override
         public ValueExtractor<Object, Object> create(PropertyExtractor annotation)
@@ -140,7 +140,7 @@ class ValueExtractorProducer
     // ---- inner class: UniversalExtractorsSupplier ------------------------
 
     /**
-     * A {{@link ValueExtractorFactory} that produces {@link
+     * A {{@link ExtractorFactory} that produces {@link
      * com.tangosol.util.extractor.MultiExtractor} containing {@link
      * ValueExtractor} instances produced from the annotations contained in a
      * {@link PropertyExtractor.Extractors} annotation.
@@ -148,7 +148,7 @@ class ValueExtractorProducer
     @PropertyExtractor.Extractors({})
     @ApplicationScoped
     static class UniversalExtractorsSupplier
-            implements ValueExtractorFactory<PropertyExtractor.Extractors, Object, Object>
+            implements ExtractorFactory<PropertyExtractor.Extractors, Object, Object>
         {
         @Override
         @SuppressWarnings("unchecked")
@@ -171,13 +171,13 @@ class ValueExtractorProducer
     // ---- inner class: ChainedExtractorSupplier ---------------------------
 
     /**
-     * A {{@link ValueExtractorFactory} that produces chained {@link
+     * A {{@link ExtractorFactory} that produces chained {@link
      * ValueExtractor} instances for an array of property or method names.
      */
     @ChainedExtractor("")
     @ApplicationScoped
     static class ChainedExtractorSupplier
-            implements ValueExtractorFactory<ChainedExtractor, Object, Object>
+            implements ExtractorFactory<ChainedExtractor, Object, Object>
         {
         @Override
         public ValueExtractor<Object, Object> create(ChainedExtractor annotation)
@@ -189,7 +189,7 @@ class ValueExtractorProducer
     // ---- inner class: ChainedExtractorsSupplier --------------------------
 
     /**
-     * A {{@link ValueExtractorFactory} that produces {@link
+     * A {{@link ExtractorFactory} that produces {@link
      * com.tangosol.util.extractor.MultiExtractor} containing {@link
      * ValueExtractor} instances produced from the annotations contained in a
      * {@link ChainedExtractor.Extractors} annotation.
@@ -198,7 +198,7 @@ class ValueExtractorProducer
     @ApplicationScoped
     static class ChainedExtractorsSupplier
             implements
-            ValueExtractorFactory<ChainedExtractor.Extractors, Object, Object>
+            ExtractorFactory<ChainedExtractor.Extractors, Object, Object>
         {
         @Override
         @SuppressWarnings("unchecked")
@@ -221,13 +221,13 @@ class ValueExtractorProducer
     // ---- inner class: PofExtractorSupplier -------------------------------
 
     /**
-     * A {{@link ValueExtractorFactory} that produces{@link ValueExtractor}
-     * instances for a given property or method name.
+     * A {{@link ExtractorFactory} that produces{@link ValueExtractor}
+     * instances for a given POF index or property path.
      */
-    @PofExtractor(0)
+    @PofExtractor()
     @ApplicationScoped
     static class PofExtractorSupplier
-            implements ValueExtractorFactory<PofExtractor, Object, Object>
+            implements ExtractorFactory<PofExtractor, Object, Object>
         {
         @Override
         @SuppressWarnings("unchecked")
@@ -236,14 +236,32 @@ class ValueExtractorProducer
             Class clazz = annotation.type().equals(Object.class)
                           ? null
                           : annotation.type();
-            return Extractors.fromPof(clazz, annotation.value());
+            String sPath   = annotation.path();
+            int[]  anIndex = annotation.index();
+
+            if (sPath.length() == 0 && anIndex.length == 0)
+                {
+                throw new IllegalArgumentException("Neither 'index' nor 'path' are defined within @PofExtractor annotation. One is required.");
+                }
+            if (sPath.length() > 0 && anIndex.length > 0)
+                {
+                throw new IllegalArgumentException("Both 'index' and 'path' are defined within @PofExtractor annotation. Only one is allowed.");
+                }
+            if (sPath.length() > 0 && clazz == null)
+                {
+                throw new IllegalArgumentException("'type' must be specified within @PofExtractor annotation when property path is used.");
+                }
+
+            return sPath.length() > 0
+                   ? Extractors.fromPof(clazz, sPath)
+                   : Extractors.fromPof(clazz, anIndex);
             }
         }
 
     // ---- inner class: PofExtractorsSupplier -------------------------------
 
     /**
-     * A {{@link ValueExtractorFactory} that produces {@link
+     * A {{@link ExtractorFactory} that produces {@link
      * com.tangosol.util.extractor.MultiExtractor} containing {@link
      * ValueExtractor} instances produced from the annotations contained in a
      * {@link PofExtractor.Extractors} annotation.
@@ -252,7 +270,7 @@ class ValueExtractorProducer
     @ApplicationScoped
     static class PofExtractorsSupplier
             implements
-            ValueExtractorFactory<PofExtractor.Extractors, Object, Object>
+            ExtractorFactory<PofExtractor.Extractors, Object, Object>
         {
         @Override
         @SuppressWarnings("unchecked")
@@ -275,8 +293,8 @@ class ValueExtractorProducer
     // ---- inner class: ValueExtractorFactoryResolver ----------------------
 
     /**
-     * A resolver of {{@link ValueExtractorFactory} bean classes for a given
-     * {{@link ValueExtractorBinding} annotation.
+     * A resolver of {{@link ExtractorFactory} bean classes for a given
+     * {{@link ExtractorBinding} annotation.
      */
     static class ValueExtractorFactoryResolver
         {
@@ -285,28 +303,28 @@ class ValueExtractorProducer
          *
          * @param mapExtractorFactory  the map of extractor bindings to extractor factories
          */
-        ValueExtractorFactoryResolver(Map<AnnotationInstance, Class<? extends ValueExtractorFactory<?, ?, ?>>> mapExtractorFactory)
+        ValueExtractorFactoryResolver(Map<AnnotationInstance, Class<? extends ExtractorFactory<?, ?, ?>>> mapExtractorFactory)
             {
             m_mapExtractorFactory = mapExtractorFactory;
             }
 
         /**
-         * Obtain the {{@link ValueExtractorFactory} class for a given {{@link
-         * ValueExtractorBinding} annotation.
+         * Obtain the {{@link ExtractorFactory} class for a given {{@link
+         * ExtractorBinding} annotation.
          *
          * @param annotation the extractor binding to obtain the {{@link
-         *                   ValueExtractorFactory} class for
-         * @param <A>        the type of the {{@link ValueExtractorBinding}
+         *                   ExtractorFactory} class for
+         * @param <A>        the type of the {{@link ExtractorBinding}
          *                   annotation
          *
-         * @return the {{@link ValueExtractorFactory} class for a given {{@link
-         * ValueExtractorBinding} annotation
+         * @return the {{@link ExtractorFactory} class for a given {{@link
+         * ExtractorBinding} annotation
          */
         @SuppressWarnings("unchecked")
-        <A extends Annotation> Class<? extends ValueExtractorFactory<A, ?, ?>> resolve(A annotation)
+        <A extends Annotation> Class<? extends ExtractorFactory<A, ?, ?>> resolve(A annotation)
             {
             AnnotationInstance instance = AnnotationInstance.create(annotation);
-            return (Class<? extends ValueExtractorFactory<A, ?, ?>>) m_mapExtractorFactory.get(instance);
+            return (Class<? extends ExtractorFactory<A, ?, ?>>) m_mapExtractorFactory.get(instance);
             }
 
         // ---- data members ----------------------------------------------------
@@ -314,7 +332,7 @@ class ValueExtractorProducer
         /**
          * The map of extractor bindings to extractor factories.
          */
-        private Map<AnnotationInstance, Class<? extends ValueExtractorFactory<?, ?, ?>>> m_mapExtractorFactory;
+        private Map<AnnotationInstance, Class<? extends ExtractorFactory<?, ?, ?>>> m_mapExtractorFactory;
         }
 
     // ---- data members ----------------------------------------------------
@@ -325,8 +343,8 @@ class ValueExtractorProducer
     private final BeanManager f_beanManager;
 
     /**
-     * The resolver that can resolve a {{@link ValueExtractorFactory} bean from
-     * a {{@link ValueExtractorBinding} annotation.
+     * The resolver that can resolve a {{@link ExtractorFactory} bean from
+     * a {{@link ExtractorBinding} annotation.
      */
     private final ValueExtractorFactoryResolver f_extractorFactoryResolver;
     }

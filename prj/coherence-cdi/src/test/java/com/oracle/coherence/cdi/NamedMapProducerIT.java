@@ -1,11 +1,19 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.cdi;
+
+import com.tangosol.net.AsyncNamedMap;
+import com.tangosol.net.NamedMap;
+import com.tangosol.net.cache.CacheMap;
+import com.tangosol.util.ConcurrentMap;
+import com.tangosol.util.InvocableMap;
+import com.tangosol.util.ObservableMap;
+import com.tangosol.util.QueryMap;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -14,18 +22,12 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.tangosol.net.AsyncNamedCache;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.cache.CacheMap;
-import com.tangosol.util.ConcurrentMap;
-import com.tangosol.util.InvocableMap;
-import com.tangosol.util.ObservableMap;
-import com.tangosol.util.QueryMap;
-
 import org.hamcrest.Matchers;
+
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -36,20 +38,20 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Integration test for the {@link com.oracle.coherence.cdi.ConfigurableCacheFactoryProducer}
+ * Integration test for the {@link ConfigurableCacheFactoryProducer}
  * using the Weld JUnit extension.
  *
  * @author Jonathan Knight  2019.10.19
  */
 @ExtendWith(WeldJunit5Extension.class)
-class NamedCacheProducerIT
+class NamedMapProducerIT
     {
 
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addBeanClass(CtorBean.class)
-                                                          .addBeanClass(NamedCacheFieldsBean.class)
-                                                          .addBeanClass(AsyncNamedCacheFieldsBean.class)
+                                                          .addBeanClass(NamedMapFieldsBean.class)
+                                                          .addBeanClass(AsyncNamedMapFieldsBean.class)
                                                           .addBeanClass(SuperTypesBean.class)
                                                           .addBeanClass(DifferentCacheFactoryBean.class)
                                                           .addBeanClass(FilterProducer.class)
@@ -68,93 +70,93 @@ class NamedCacheProducerIT
                                                           .addExtension(new CoherenceExtension()));
 
     @Test
-    void shouldGetDynamicNamedCache()
+    void shouldGetDynamicNamedMap()
         {
         Annotation qualifier = Name.Literal.of("numbers");
-        Instance<NamedCache> instance = weld.select(NamedCache.class, qualifier);
+        Instance<NamedMap> instance = weld.select(NamedMap.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));
         assertThat(instance.get().getName(), is("numbers"));
         }
 
     @Test
-    void shouldInjectNamedCacheUsingFieldName()
+    void shouldInjectNamedMapUsingFieldName()
         {
-        NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
+        NamedMapFieldsBean bean = weld.select(NamedMapFieldsBean.class).get();
         assertThat(bean.getNumbers(), is(notNullValue()));
         assertThat(bean.getNumbers().getName(), is("numbers"));
         }
 
     @Test
-    void shouldInjectQualifiedNamedCache()
+    void shouldInjectQualifiedNamedMap()
         {
-        NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
-        assertThat(bean.getNamedCache(), is(notNullValue()));
-        assertThat(bean.getNamedCache().getName(), is("numbers"));
+        NamedMapFieldsBean bean = weld.select(NamedMapFieldsBean.class).get();
+        assertThat(bean.getNamedMap(), is(notNullValue()));
+        assertThat(bean.getNamedMap().getName(), is("numbers"));
         }
 
     @Test
-    void shouldInjectNamedCacheWithGenerics()
+    void shouldInjectNamedMapWithGenerics()
         {
-        NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
+        NamedMapFieldsBean bean = weld.select(NamedMapFieldsBean.class).get();
         assertThat(bean.getGenericCache(), is(notNullValue()));
         assertThat(bean.getGenericCache().getName(), is("numbers"));
         }
 
     @Test
-    void shouldInjectNamedCacheWithGenericKeys()
+    void shouldInjectNamedMapWithGenericKeys()
         {
-        NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
+        NamedMapFieldsBean bean = weld.select(NamedMapFieldsBean.class).get();
         assertThat(bean.getGenericKeys(), is(notNullValue()));
         assertThat(bean.getGenericKeys().getName(), is("genericKeys"));
         }
 
     @Test
-    void shouldInjectNamedCacheWithGenericValues()
+    void shouldInjectNamedMapWithGenericValues()
         {
-        NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
+        NamedMapFieldsBean bean = weld.select(NamedMapFieldsBean.class).get();
         assertThat(bean.getGenericValues(), is(notNullValue()));
         assertThat(bean.getGenericValues().getName(), is("genericValues"));
         }
 
     @Test
-    void shouldInjectAsyncNamedCacheUsingFieldName()
+    void shouldInjectAsyncNamedMapUsingFieldName()
         {
-        AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
+        AsyncNamedMapFieldsBean bean = weld.select(AsyncNamedMapFieldsBean.class).get();
         assertThat(bean.getNumbers(), is(notNullValue()));
-        assertThat(bean.getNumbers().getNamedCache().getName(), is("numbers"));
+        assertThat(bean.getNumbers().getNamedMap().getName(), is("numbers"));
         }
 
     @Test
-    void shouldInjectQualifiedAsyncNamedCache()
+    void shouldInjectQualifiedAsyncNamedMap()
         {
-        AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
-        assertThat(bean.getNamedCache(), is(notNullValue()));
-        assertThat(bean.getNamedCache().getNamedCache().getName(), is("numbers"));
+        AsyncNamedMapFieldsBean bean = weld.select(AsyncNamedMapFieldsBean.class).get();
+        assertThat(bean.getNamedMap(), is(notNullValue()));
+        assertThat(bean.getNamedMap().getNamedMap().getName(), is("numbers"));
         }
 
     @Test
-    void shouldInjectAsyncNamedCacheWithGenerics()
+    void shouldInjectAsyncNamedMapWithGenerics()
         {
-        AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
+        AsyncNamedMapFieldsBean bean = weld.select(AsyncNamedMapFieldsBean.class).get();
         assertThat(bean.getGenericCache(), is(notNullValue()));
-        assertThat(bean.getGenericCache().getNamedCache().getName(), is("numbers"));
+        assertThat(bean.getGenericCache().getNamedMap().getName(), is("numbers"));
         }
 
     @Test
-    void shouldInjectAsyncNamedCacheWithGenericKeys()
+    void shouldInjectAsyncNamedMapWithGenericKeys()
         {
-        AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
+        AsyncNamedMapFieldsBean bean = weld.select(AsyncNamedMapFieldsBean.class).get();
         assertThat(bean.getGenericKeys(), is(notNullValue()));
-        assertThat(bean.getGenericKeys().getNamedCache().getName(), is("genericKeys"));
+        assertThat(bean.getGenericKeys().getNamedMap().getName(), is("genericKeys"));
         }
 
     @Test
-    void shouldInjectAsyncNamedCacheWithGenericValues()
+    void shouldInjectAsyncNamedMapWithGenericValues()
         {
-        AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
+        AsyncNamedMapFieldsBean bean = weld.select(AsyncNamedMapFieldsBean.class).get();
         assertThat(bean.getGenericValues(), is(notNullValue()));
-        assertThat(bean.getGenericValues().getNamedCache().getName(), is("genericValues"));
+        assertThat(bean.getGenericValues().getNamedMap().getName(), is("genericValues"));
         }
 
     @Test
@@ -165,14 +167,14 @@ class NamedCacheProducerIT
         assertThat(bean.getDefaultCcfNumbers(), is(notNullValue()));
         assertThat(bean.getDefaultCcfNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getDefaultCcfAsyncNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache().getName(), Matchers.is("numbers"));
-        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache(), is(bean.getDefaultCcfNumbers()));
+        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedMap().getName(), Matchers.is("numbers"));
+        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedMap(), is(bean.getDefaultCcfNumbers()));
 
         assertThat(bean.getSpecificCcfNumbers(), is(notNullValue()));
         assertThat(bean.getSpecificCcfNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getSpecificCcfAsyncNumbers(), is(notNullValue()));
-        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache().getName(), Matchers.is("numbers"));
-        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache(), is(bean.getSpecificCcfNumbers()));
+        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedMap().getName(), Matchers.is("numbers"));
+        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedMap(), is(bean.getSpecificCcfNumbers()));
 
         assertThat(bean.getDefaultCcfNumbers(), is(not(bean.getSpecificCcfNumbers())));
         }
@@ -185,7 +187,7 @@ class NamedCacheProducerIT
         assertThat(bean.getNumbers(), Matchers.notNullValue());
         assertThat(bean.getNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getLetters(), Matchers.notNullValue());
-        assertThat(bean.getLetters().getNamedCache().getName(), Matchers.is("letters"));
+        assertThat(bean.getLetters().getNamedMap().getName(), Matchers.is("letters"));
         }
 
     @Test
@@ -194,7 +196,7 @@ class NamedCacheProducerIT
         SuperTypesBean bean = weld.select(SuperTypesBean.class).get();
         InvocableMap map = bean.getInvocableMap();
         assertThat(map, is(notNullValue()));
-        assertThat(map, is(sameInstance(bean.getNamedCache())));
+        assertThat(map, is(sameInstance(bean.getNamedMap())));
         }
 
     @Test
@@ -203,7 +205,7 @@ class NamedCacheProducerIT
         SuperTypesBean bean = weld.select(SuperTypesBean.class).get();
         ObservableMap map = bean.getObservableMap();
         assertThat(map, is(notNullValue()));
-        assertThat(map, is(sameInstance(bean.getNamedCache())));
+        assertThat(map, is(sameInstance(bean.getNamedMap())));
         }
 
     @Test
@@ -212,7 +214,7 @@ class NamedCacheProducerIT
         SuperTypesBean bean = weld.select(SuperTypesBean.class).get();
         ConcurrentMap map = bean.getConcurrentMap();
         assertThat(map, is(notNullValue()));
-        assertThat(map, is(sameInstance(bean.getNamedCache())));
+        assertThat(map, is(sameInstance(bean.getNamedMap())));
         }
 
     @Test
@@ -221,7 +223,7 @@ class NamedCacheProducerIT
         SuperTypesBean bean = weld.select(SuperTypesBean.class).get();
         QueryMap map = bean.getQueryMap();
         assertThat(map, is(notNullValue()));
-        assertThat(map, is(sameInstance(bean.getNamedCache())));
+        assertThat(map, is(sameInstance(bean.getNamedMap())));
         }
 
     @Test
@@ -230,98 +232,98 @@ class NamedCacheProducerIT
         SuperTypesBean bean = weld.select(SuperTypesBean.class).get();
         CacheMap map = bean.getCacheMap();
         assertThat(map, is(notNullValue()));
-        assertThat(map, is(sameInstance(bean.getNamedCache())));
+        assertThat(map, is(sameInstance(bean.getNamedMap())));
         }
 
     // ----- test beans -----------------------------------------------------
 
     @ApplicationScoped
-    private static class NamedCacheFieldsBean
+    private static class NamedMapFieldsBean
         {
         @Inject
-        private NamedCache numbers;
+        private NamedMap numbers;
 
         @Inject
         @Name("numbers")
-        private NamedCache namedCache;
+        private NamedMap namedCache;
 
         @Inject
         @Name("numbers")
-        private NamedCache<Integer, String> genericCache;
+        private NamedMap<Integer, String> genericCache;
 
         @Inject
-        private NamedCache<List<String>, String> genericKeys;
+        private NamedMap<List<String>, String> genericKeys;
 
         @Inject
-        private NamedCache<String, List<String>> genericValues;
+        private NamedMap<String, List<String>> genericValues;
 
-        public NamedCache getNumbers()
+        public NamedMap getNumbers()
             {
             return numbers;
             }
 
-        public NamedCache getNamedCache()
+        public NamedMap getNamedMap()
             {
             return namedCache;
             }
 
-        public NamedCache<Integer, String> getGenericCache()
+        public NamedMap<Integer, String> getGenericCache()
             {
             return genericCache;
             }
 
-        public NamedCache<List<String>, String> getGenericKeys()
+        public NamedMap<List<String>, String> getGenericKeys()
             {
             return genericKeys;
             }
 
-        public NamedCache<String, List<String>> getGenericValues()
+        public NamedMap<String, List<String>> getGenericValues()
             {
             return genericValues;
             }
         }
 
     @ApplicationScoped
-    private static class AsyncNamedCacheFieldsBean
+    private static class AsyncNamedMapFieldsBean
         {
         @Inject
-        private AsyncNamedCache numbers;
+        private AsyncNamedMap numbers;
 
         @Inject
         @Name("numbers")
-        private AsyncNamedCache namedCache;
+        private AsyncNamedMap namedCache;
 
         @Inject
         @Name("numbers")
-        private AsyncNamedCache<Integer, String> genericCache;
+        private AsyncNamedMap<Integer, String> genericCache;
 
         @Inject
-        private AsyncNamedCache<List<String>, String> genericKeys;
+        private AsyncNamedMap<List<String>, String> genericKeys;
 
         @Inject
-        private AsyncNamedCache<String, List<String>> genericValues;
+        private AsyncNamedMap<String, List<String>> genericValues;
 
-        public AsyncNamedCache getNumbers()
+        public AsyncNamedMap getNumbers()
             {
             return numbers;
             }
 
-        public AsyncNamedCache getNamedCache()
+        public AsyncNamedMap getNamedMap()
             {
             return namedCache;
             }
 
-        public AsyncNamedCache<Integer, String> getGenericCache()
+        public AsyncNamedMap<Integer, String> getGenericCache()
             {
             return genericCache;
             }
 
-        public AsyncNamedCache<List<String>, String> getGenericKeys()
+        public AsyncNamedMap<List<String>, String> getGenericKeys()
             {
             return genericKeys;
             }
 
-        public AsyncNamedCache<String, List<String>> getGenericValues()
+        public AsyncNamedMap<String, List<String>> getGenericValues()
             {
             return genericValues;
             }
@@ -332,38 +334,38 @@ class NamedCacheProducerIT
         {
         @Inject
         @Name("numbers")
-        private NamedCache defaultCcfNumbers;
+        private NamedMap defaultCcfNumbers;
 
         @Inject
         @Name("numbers")
-        private AsyncNamedCache defaultCcfAsyncNumbers;
-
-        @Inject
-        @Name("numbers")
-        @Session("test-cache-config.xml")
-        private NamedCache specificCcfNumbers;
+        private AsyncNamedMap defaultCcfAsyncNumbers;
 
         @Inject
         @Name("numbers")
         @Session("test-cache-config.xml")
-        private AsyncNamedCache specificCcfAsyncNumbers;
+        private NamedMap specificCcfNumbers;
 
-        public NamedCache getDefaultCcfNumbers()
+        @Inject
+        @Name("numbers")
+        @Session("test-cache-config.xml")
+        private AsyncNamedMap specificCcfAsyncNumbers;
+
+        public NamedMap getDefaultCcfNumbers()
             {
             return defaultCcfNumbers;
             }
 
-        public AsyncNamedCache getDefaultCcfAsyncNumbers()
+        public AsyncNamedMap getDefaultCcfAsyncNumbers()
             {
             return defaultCcfAsyncNumbers;
             }
 
-        public NamedCache getSpecificCcfNumbers()
+        public NamedMap getSpecificCcfNumbers()
             {
             return specificCcfNumbers;
             }
 
-        public AsyncNamedCache getSpecificCcfAsyncNumbers()
+        public AsyncNamedMap getSpecificCcfAsyncNumbers()
             {
             return specificCcfAsyncNumbers;
             }
@@ -373,25 +375,25 @@ class NamedCacheProducerIT
     private static class CtorBean
         {
 
-        private final NamedCache<Integer, String> numbers;
+        private final NamedMap<Integer, String> numbers;
 
-        private final AsyncNamedCache<String, String> letters;
+        private final AsyncNamedMap<String, String> letters;
 
         @Inject
-        CtorBean(@Name("numbers") NamedCache<Integer, String> numbers,
-                 @Name("letters") AsyncNamedCache<String, String> letters)
+        CtorBean(@Name("numbers") NamedMap<Integer, String> numbers,
+                 @Name("letters") AsyncNamedMap<String, String> letters)
             {
 
             this.numbers = numbers;
             this.letters = letters;
             }
 
-        NamedCache<Integer, String> getNumbers()
+        NamedMap<Integer, String> getNumbers()
             {
             return numbers;
             }
 
-        AsyncNamedCache<String, String> getLetters()
+        AsyncNamedMap<String, String> getLetters()
             {
             return letters;
             }
@@ -402,7 +404,7 @@ class NamedCacheProducerIT
         {
         @Inject
         @Name("numbers")
-        private NamedCache<Integer, String> namedCache;
+        private NamedMap<Integer, String> namedCache;
 
         @Inject
         @Name("numbers")
@@ -424,7 +426,7 @@ class NamedCacheProducerIT
         @Name("numbers")
         private CacheMap<Integer, String> cacheMap;
 
-        NamedCache<Integer, String> getNamedCache()
+        NamedMap<Integer, String> getNamedMap()
             {
             return namedCache;
             }

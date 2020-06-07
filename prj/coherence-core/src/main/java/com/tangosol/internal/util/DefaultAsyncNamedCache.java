@@ -12,6 +12,7 @@ import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.PartitionedService;
 
 import com.tangosol.util.Filter;
@@ -68,13 +69,23 @@ public class DefaultAsyncNamedCache<K, V>
         m_options = Options.from(AsyncNamedCache.Option.class, options);
         }
 
-    // ---- AsyncInvocableMap interface -------------------------------------
+    // ---- AsyncNamedCache interface ---------------------------------------
 
     @Override
     public NamedCache<K, V> getNamedCache()
         {
         return m_cache;
         }
+
+    // ---- AsyncNamedMap interface -----------------------------------------
+
+    @Override
+    public NamedMap<K, V> getNamedMap()
+        {
+        return m_cache;
+        }
+
+    // ---- AsyncInvocableMap interface -------------------------------------
 
     @Override
     public <R> CompletableFuture<R> invoke(K key,

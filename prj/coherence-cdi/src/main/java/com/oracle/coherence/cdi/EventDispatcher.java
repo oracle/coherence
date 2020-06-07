@@ -10,7 +10,7 @@ import com.oracle.coherence.cdi.events.Activated;
 import com.oracle.coherence.cdi.events.Activating;
 import com.oracle.coherence.cdi.events.Arrived;
 import com.oracle.coherence.cdi.events.Assigned;
-import com.oracle.coherence.cdi.events.CacheName;
+import com.oracle.coherence.cdi.events.Cache;
 import com.oracle.coherence.cdi.events.Committed;
 import com.oracle.coherence.cdi.events.Committing;
 import com.oracle.coherence.cdi.events.Created;
@@ -28,7 +28,7 @@ import com.oracle.coherence.cdi.events.Recovered;
 import com.oracle.coherence.cdi.events.Removed;
 import com.oracle.coherence.cdi.events.Removing;
 import com.oracle.coherence.cdi.events.Rollback;
-import com.oracle.coherence.cdi.events.ServiceName;
+import com.oracle.coherence.cdi.events.Service;
 import com.oracle.coherence.cdi.events.Truncated;
 import com.oracle.coherence.cdi.events.Updated;
 import com.oracle.coherence.cdi.events.Updating;
@@ -151,8 +151,8 @@ public class EventDispatcher
         @Override
         public void onEvent(CacheLifecycleEvent event)
             {
-            CacheName   cache   = CacheName.Literal.of(event.getCacheName());
-            ServiceName service = ServiceName.Literal.of(event.getService().getInfo().getServiceName());
+            Cache cache   = Cache.Literal.of(event.getCacheName());
+            Service service = Service.Literal.of(event.getService().getInfo().getServiceName());
 
             Event<CacheLifecycleEvent> e = m_cacheLifecycleEvent.select(cache, service);
                     
@@ -191,8 +191,8 @@ public class EventDispatcher
         @Override
         public void onEvent(EntryEvent<?, ?> event)
             {
-            CacheName   cache   = CacheName.Literal.of(event.getCacheName());
-            ServiceName service = ServiceName.Literal.of(event.getService().getInfo().getServiceName());
+            Cache cache   = Cache.Literal.of(event.getCacheName());
+            Service service = Service.Literal.of(event.getService().getInfo().getServiceName());
 
             Event<EntryEvent<?, ?>> e = m_entryEvent.select(cache, service);
             
@@ -240,8 +240,8 @@ public class EventDispatcher
         @Override
         public void onEvent(EntryProcessorEvent event)
             {
-            CacheName   cache     = CacheName.Literal.of(event.getCacheName());
-            ServiceName service   = ServiceName.Literal.of(event.getService().getInfo().getServiceName());
+            Cache cache     = Cache.Literal.of(event.getCacheName());
+            Service service   = Service.Literal.of(event.getService().getInfo().getServiceName());
             Processor   processor = Processor.Literal.of(event.getProcessor().getClass());
 
             Event<EntryProcessorEvent> e = m_entryProcessorEvent.select(cache, service, processor);
@@ -278,7 +278,7 @@ public class EventDispatcher
         @Override
         public void onEvent(TransactionEvent event)
             {
-            ServiceName service = ServiceName.Literal.of(event.getService().getInfo().getServiceName());
+            Service service = Service.Literal.of(event.getService().getInfo().getServiceName());
 
             Event<TransactionEvent> e = m_transactionEvent.select(service);
 
@@ -314,7 +314,7 @@ public class EventDispatcher
         @Override
         public void onEvent(TransferEvent event)
             {
-            ServiceName service = ServiceName.Literal.of(event.getService().getInfo().getServiceName());
+            Service service = Service.Literal.of(event.getService().getInfo().getServiceName());
 
             Event<TransferEvent> e = m_transferEvent.select(service);
 
@@ -365,7 +365,7 @@ public class EventDispatcher
         @Override
         public void onEvent(UnsolicitedCommitEvent event)
             {
-            ServiceName service = ServiceName.Literal.of(event.getService().getInfo().getServiceName());
+            Service service = Service.Literal.of(event.getService().getInfo().getServiceName());
 
             Event<UnsolicitedCommitEvent> e = m_unsolicitedCommitEvent.select(service);
 
