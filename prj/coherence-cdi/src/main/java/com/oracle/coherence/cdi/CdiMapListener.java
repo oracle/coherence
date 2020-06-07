@@ -6,11 +6,10 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.cdi.events.CacheName;
+import com.oracle.coherence.cdi.events.Cache;
 import com.oracle.coherence.cdi.events.Deleted;
 import com.oracle.coherence.cdi.events.Inserted;
-import com.oracle.coherence.cdi.events.Removed;
-import com.oracle.coherence.cdi.events.ServiceName;
+import com.oracle.coherence.cdi.events.Service;
 import com.oracle.coherence.cdi.events.Updated;
 
 import com.tangosol.net.NamedCache;
@@ -21,7 +20,6 @@ import com.tangosol.util.ObservableMap;
 
 import java.lang.annotation.Annotation;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 
 import javax.inject.Inject;
@@ -58,8 +56,8 @@ public abstract class CdiMapListener<K, V>
     // ---- data members ----------------------------------------------------
 
     /**
-     * Fires the event to CDI observers after adding {@link CacheName} and
-     * {@link ServiceName} qualifiers (if possible).
+     * Fires the event to CDI observers after adding {@link Cache @Cache} and
+     * {@link Service} qualifiers (if possible).
      *
      * @param event       {@link MapEvent} to fire
      * @param qualifiers  the additional event qualifiers
@@ -72,9 +70,9 @@ public abstract class CdiMapListener<K, V>
 
         if (map instanceof NamedCache)
             {
-            NamedCache<K, V>    cache       = (NamedCache<K, V>) map;
-            CacheName.Literal   cacheName   = CacheName.Literal.of(cache.getCacheName());
-            ServiceName.Literal serviceName = ServiceName.Literal.of(cache.getCacheService().getInfo().getServiceName());
+            NamedCache<K, V>    cache   = (NamedCache<K, V>) map;
+            Cache.Literal   cacheName   = Cache.Literal.of(cache.getCacheName());
+            Service.Literal serviceName = Service.Literal.of(cache.getCacheService().getInfo().getServiceName());
 
             e = e.select(cacheName, serviceName);
             }

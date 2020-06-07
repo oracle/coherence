@@ -102,7 +102,7 @@ class ValueExtractorProducerTest
     void shouldCreatePropertyExtractor()
         {
         PropertyExtractor annotation = PropertyExtractor.Literal.of("firstName");
-        ValueExtractorProducer.UniversalExtractorSupplier supplier = new ValueExtractorProducer.UniversalExtractorSupplier();
+        ExtractorProducer.UniversalExtractorSupplier supplier = new ExtractorProducer.UniversalExtractorSupplier();
         ValueExtractor extractor = supplier.create(annotation);
 
         assertThat(extractor, is(notNullValue()));
@@ -115,7 +115,7 @@ class ValueExtractorProducerTest
         PropertyExtractor annotation1 = PropertyExtractor.Literal.of("firstName");
         PropertyExtractor annotation2 = PropertyExtractor.Literal.of("lastName");
         PropertyExtractor.Extractors annotation = PropertyExtractor.Extractors.Literal.of(annotation1, annotation2);
-        ValueExtractorProducer.UniversalExtractorsSupplier supplier = new ValueExtractorProducer.UniversalExtractorsSupplier();
+        ExtractorProducer.UniversalExtractorsSupplier supplier = new ExtractorProducer.UniversalExtractorsSupplier();
         ValueExtractor extractor = supplier.create(annotation);
 
         assertThat(extractor, is(notNullValue()));
@@ -128,7 +128,7 @@ class ValueExtractorProducerTest
     void shouldCreateChainedExtractor()
         {
         ChainedExtractor annotation = ChainedExtractor.Literal.of("phoneNumber", "countryCode");
-        ValueExtractorProducer.ChainedExtractorSupplier supplier = new ValueExtractorProducer.ChainedExtractorSupplier();
+        ExtractorProducer.ChainedExtractorSupplier supplier = new ExtractorProducer.ChainedExtractorSupplier();
         ValueExtractor extractor = supplier.create(annotation);
 
         assertThat(extractor, is(notNullValue()));
@@ -141,7 +141,7 @@ class ValueExtractorProducerTest
         ChainedExtractor annotation1 = ChainedExtractor.Literal.of("phoneNumber", "countryCode");
         ChainedExtractor annotation2 = ChainedExtractor.Literal.of("phoneNumber", "number");
         ChainedExtractor.Extractors annotation = ChainedExtractor.Extractors.Literal.of(annotation1, annotation2);
-        ValueExtractorProducer.ChainedExtractorsSupplier supplier = new ValueExtractorProducer.ChainedExtractorsSupplier();
+        ExtractorProducer.ChainedExtractorsSupplier supplier = new ExtractorProducer.ChainedExtractorsSupplier();
         ValueExtractor extractor = supplier.create(annotation);
 
         assertThat(extractor, is(notNullValue()));
@@ -155,7 +155,7 @@ class ValueExtractorProducerTest
     void shouldCreatePofExtractor()
         {
         PofExtractor annotation = PofExtractor.Literal.of(Integer.class, 3, 0);
-        ValueExtractorProducer.PofExtractorSupplier supplier = new ValueExtractorProducer.PofExtractorSupplier();
+        ExtractorProducer.PofExtractorSupplier supplier = new ExtractorProducer.PofExtractorSupplier();
         ValueExtractor extractor = supplier.create(annotation);
 
         assertThat(extractor, is(notNullValue()));
@@ -169,7 +169,7 @@ class ValueExtractorProducerTest
         PofExtractor annotation1 = PofExtractor.Literal.of(3, 0);
         PofExtractor annotation2 = PofExtractor.Literal.of(3, 1);
         PofExtractor.Extractors annotation = PofExtractor.Extractors.Literal.of(annotation1, annotation2);
-        ValueExtractorProducer.PofExtractorsSupplier supplier = new ValueExtractorProducer.PofExtractorsSupplier();
+        ExtractorProducer.PofExtractorsSupplier supplier = new ExtractorProducer.PofExtractorsSupplier();
         ValueExtractor extractor = supplier.create(annotation);
 
         assertThat(extractor, is(instanceOf(MultiExtractor.class)));

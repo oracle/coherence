@@ -23,7 +23,7 @@ import javax.inject.Qualifier;
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CacheFactory
+public @interface Session
     {
     /**
      * The URI used to identify a specific {@link
@@ -37,11 +37,11 @@ public @interface CacheFactory
     // ---- inner class: Literal --------------------------------------------
 
     /**
-     * An annotation literal for the {@link CacheFactory} annotation.
+     * An annotation literal for the {@link Session} annotation.
      */
     class Literal
-            extends AnnotationLiteral<CacheFactory>
-            implements CacheFactory
+            extends AnnotationLiteral<Session>
+            implements Session
         {
         /**
          * Construct {@code Literal} instacne.
@@ -55,12 +55,12 @@ public @interface CacheFactory
             }
 
         /**
-         * Create a {@link CacheFactory.Literal}.
+         * Create a {@link Session.Literal}.
          *
          * @param sUri  the URI used to identify a specific
          *              {@link com.tangosol.net.ConfigurableCacheFactory}
          *
-         * @return a {@link CacheFactory.Literal} with the specified URI
+         * @return a {@link Session.Literal} with the specified URI
          */
         public static Literal of(String sUri)
             {

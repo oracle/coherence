@@ -55,7 +55,7 @@ class NamedCacheProducer
     // For some reason IntelliJ marks the parameter as an error but builds and tests pass
     NamedCacheProducer(ConfigurableCacheFactoryProducer cacheFactoryProducer,
                        FilterProducer filterProducer,
-                       ValueExtractorProducer extractorProducer)
+                       ExtractorProducer extractorProducer)
         {
         m_cacheFactoryProducer = cacheFactoryProducer;
         m_filterProducer       = filterProducer;
@@ -84,25 +84,25 @@ class NamedCacheProducer
         }
 
     /**
-     * Produce an {@link AsyncNamedCache} using the name from the {@link Cache}
+     * Produce an {@link AsyncNamedCache} using the name from the {@link Name}
      * qualifier as the cache name and the name from the optional {@link
-     * CacheFactory} qualifier to identify the source {@link
+     * Session} qualifier to identify the source {@link
      * ConfigurableCacheFactory}.
      * <p>
-     * If no {@link CacheFactory} qualifier is present the default {@link
+     * If no {@link Session} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      *
      * @param injectionPoint the injection point to inject the {@link AsyncNamedCache} into
      * @param <K>            the type of the cache keys
      * @param <V>            the type of the cache values
      *
-     * @return an {@link AsyncNamedCache} using the name from the {@link Cache}
+     * @return an {@link AsyncNamedCache} using the name from the {@link Name}
      *         qualifier as the cache name and the name from the optional
-     *         {@link CacheFactory} qualifier
+     *         {@link Session} qualifier
      */
     @Produces
-    @Cache("")
-    @CacheFactory("")
+    @Name("")
+    @Session("")
     <K, V> AsyncNamedCache<K, V> getAsyncNamedCache(InjectionPoint injectionPoint)
         {
         NamedCache<K, V> cache = getCache(injectionPoint);
@@ -129,26 +129,26 @@ class NamedCacheProducer
         }
 
     /**
-     * Produce an {@link NamedCache} using the name from the {@link Cache}
+     * Produce an {@link NamedCache} using the name from the {@link Name}
      * qualifier as the cache name and the name from the optional {@link
-     * CacheFactory} qualifier to identify the source {@link
+     * Session} qualifier to identify the source {@link
      * ConfigurableCacheFactory}.
      * <p>
-     * If no {@link CacheFactory} qualifier is present the default {@link
+     * If no {@link Session} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      *
      * @param injectionPoint  the injection point to inject the {@link NamedCache} into
      * @param <K>             the type of the cache keys
      * @param <V>             the type of the cache values
      *
-     * @return an {@link NamedCache} using the name from the {@link Cache}
+     * @return an {@link NamedCache} using the name from the {@link Name}
      *         qualifier as the cache name and the name from the optional
-     *         {@link CacheFactory} qualifier
+     *         {@link Session} qualifier
      */
     @Produces
-    @Cache("")
-    @CacheView
-    @CacheFactory("")
+    @Name("")
+    @View
+    @Session("")
     <K, V> NamedCache<K, V> getCache(InjectionPoint injectionPoint)
         {
         return getCacheInternal(injectionPoint, false);
@@ -192,12 +192,12 @@ class NamedCacheProducer
 
     /**
      * Produce an {@link com.tangosol.net.cache.ContinuousQueryCache} using the
-     * name from the {@link com.oracle.coherence.cdi.Cache} qualifier as the
+     * name from the {@link Name} qualifier as the
      * underlying cache name and the name from the optional {@link
-     * com.oracle.coherence.cdi.CacheFactory} qualifier to identify the source
+     * Session} qualifier to identify the source
      * {@link com.tangosol.net.ConfigurableCacheFactory}.
      * <p>
-     * If no {@link com.oracle.coherence.cdi.CacheFactory} qualifier is present
+     * If no {@link Session} qualifier is present
      * the default {@link com.tangosol.net.ConfigurableCacheFactory} will be
      * used as the source.
      *
@@ -212,15 +212,15 @@ class NamedCacheProducer
      *                        specified when creating this {@link ContinuousQueryCache}
      *
      * @return an {@link com.tangosol.net.cache.ContinuousQueryCache} using the
-     *         name from the {@link com.oracle.coherence.cdi.Cache} qualifier
+     *         name from the {@link Name} qualifier
      *         as the name of the underlying cache and the name from the optional
-     *         {@link com.oracle.coherence.cdi.CacheFactory} qualifier to identify
+     *         {@link Session} qualifier to identify
      *         the source {@link com.tangosol.net.ConfigurableCacheFactory}
      */
     @Produces
-    @Cache("")
-    @CacheView
-    @CacheFactory("")
+    @Name("")
+    @View
+    @Session("")
     @Typed(ContinuousQueryCache.class)
     <K, V_BACK, V_FRONT> ContinuousQueryCache<K, V_BACK, V_FRONT> getCQC(InjectionPoint injectionPoint)
         {
@@ -265,7 +265,7 @@ class NamedCacheProducer
      *                  creating this {@link ContinuousQueryCache}
      */
     <K, V_BACK, V_FRONT> void destroyQualifiedCQC(
-            @Disposes @Cache("") @CacheView @CacheFactory("") ContinuousQueryCache<K, V_BACK, V_FRONT> cqc)
+            @Disposes @Name("") @View @Session("") ContinuousQueryCache<K, V_BACK, V_FRONT> cqc)
         {
         cqc.destroy();
         }
@@ -276,7 +276,7 @@ class NamedCacheProducer
      * Create a {@link NamedCache} instance.
      * <p>
      * If the injection point has a type of {@link ContinuousQueryCache} or is
-     * qualified with the {@link CacheView} annotation then a {@link
+     * qualified with the {@link View} annotation then a {@link
      * ContinuousQueryCache} instance will be returned otherwise a {@link
      * NamedCache} will be returned.
      *
@@ -292,18 +292,23 @@ class NamedCacheProducer
     private <K, V, C extends NamedCache<K, V>> C getCacheInternal(InjectionPoint injectionPoint, boolean fView)
         {
         String  sName        = null;
+        String  sSession     = null;
         boolean fCacheValues = true;
 
         for (Annotation annotation : injectionPoint.getQualifiers())
             {
-            if (Cache.class.equals(annotation.annotationType()))
+            if (Name.class.equals(annotation.annotationType()))
                 {
-                sName = ((Cache) annotation).value();
+                sName = ((Name) annotation).value();
                 }
-            else if (CacheView.class.equals(annotation.annotationType()))
+            else if (Session.class.equals(annotation.annotationType()))
+                {
+                sSession = ((Session) annotation).value();
+                }
+            else if (View.class.equals(annotation.annotationType()))
                 {
                 fView = true;
-                fCacheValues = ((CacheView) annotation).cacheValues();
+                fCacheValues = ((View) annotation).cacheValues();
                 }
             }
 
@@ -318,7 +323,7 @@ class NamedCacheProducer
             sName = member.getName();
             }
 
-        ConfigurableCacheFactory ccf = m_cacheFactoryProducer.getNamedConfigurableCacheFactory(injectionPoint);
+        ConfigurableCacheFactory ccf = m_cacheFactoryProducer.getConfigurableCacheFactory(sSession, injectionPoint);
         ClassLoader loader = member == null
                              ? Base.getContextClassLoader()
                              : member.getDeclaringClass().getClassLoader();
@@ -353,5 +358,5 @@ class NamedCacheProducer
     /**
      * The producer of {@link com.tangosol.util.ValueExtractor} instances.
      */
-    private ValueExtractorProducer m_extractorProducer;
+    private ExtractorProducer m_extractorProducer;
     }

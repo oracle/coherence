@@ -85,28 +85,17 @@ class ConfigurableCacheFactoryProducer
      * @return the named {@link ConfigurableCacheFactory}
      */
     @Produces
-    @CacheFactory("")
+    @Name("")
     public ConfigurableCacheFactory getNamedConfigurableCacheFactory(InjectionPoint injectionPoint)
         {
         String sName = injectionPoint.getQualifiers()
                 .stream()
-                .filter(q -> q.annotationType().isAssignableFrom(CacheFactory.class))
-                .map(q -> ((CacheFactory) q).value())
+                .filter(q -> q.annotationType().isAssignableFrom(Name.class))
+                .map(q -> ((Name) q).value())
                 .findFirst()
                 .orElse(null);
 
-        String sUri = m_uriResolver.resolve(sName);
-        if (sUri == null || sUri.trim().isEmpty())
-            {
-            sUri = WithConfiguration.autoDetect().getLocation();
-            }
-
-        Member      member = injectionPoint.getMember();
-        ClassLoader loader = member == null
-                             ? Base.getContextClassLoader()
-                             : member.getDeclaringClass().getClassLoader();
-
-        return f_cacheFactoryBuilder.getConfigurableCacheFactory(sUri, loader);
+        return getConfigurableCacheFactory(sName, injectionPoint);
         }
 
     /**
@@ -130,7 +119,7 @@ class ConfigurableCacheFactoryProducer
      *
      * @param ccf  the {@link ConfigurableCacheFactory} to dispose
      */
-    void disposeQualifiedConfigurableCacheFactory(@Disposes @CacheFactory("") ConfigurableCacheFactory ccf)
+    void disposeQualifiedConfigurableCacheFactory(@Disposes @Name("") ConfigurableCacheFactory ccf)
         {
         ccf.dispose();
         }
@@ -144,6 +133,24 @@ class ConfigurableCacheFactoryProducer
     public CacheFactoryBuilder getCacheFactoryBuilder()
         {
         return f_cacheFactoryBuilder;
+        }
+
+    // ---- helpers ---------------------------------------------------------
+
+    ConfigurableCacheFactory getConfigurableCacheFactory(String sName, InjectionPoint injectionPoint)
+        {
+        String sUri = m_uriResolver.resolve(sName);
+        if (sUri == null || sUri.trim().isEmpty())
+            {
+            sUri = WithConfiguration.autoDetect().getLocation();
+            }
+
+        Member member = injectionPoint.getMember();
+        ClassLoader loader = member == null
+                             ? Base.getContextClassLoader()
+                             : member.getDeclaringClass().getClassLoader();
+
+        return f_cacheFactoryBuilder.getConfigurableCacheFactory(sUri, loader);
         }
 
     // ---- data members ----------------------------------------------------

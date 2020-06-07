@@ -6,6 +6,8 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.tangosol.io.pof.generator.PortableTypeGenerator;
+import com.tangosol.io.pof.schema.annotation.PortableType;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Repeatable;
@@ -16,29 +18,55 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.enterprise.util.Nonbinding;
 
 /**
- * A {@link ValueExtractorBinding} annotation representing a {@link
+ * A {@link ExtractorBinding} annotation representing a {@link
  * com.tangosol.util.extractor.PofExtractor}.
+ * <p>
+ * This annotation can be used to define an extractor that extracts and attribute
+ * from a POF stream based on an array of integer property indices, in which
+ * case the type is optional, or a property path based on serialized field names
+ * concatenated using period (ie. {@code address.city}, in which case {@link
+ * #type()} attribute must be set as well.
+ * <p>
+ * The latter approach can only be used if the specified type is annotated with a
+ * {@link PortableType @PortableType} annotation and has been instrumented using
+ * {@link PortableTypeGenerator} (typically via {@code pof-maven-plugin}).
+ * <p>
+ * Either {@link #index()} or {@link #path()} must be specified within this
+ * annotation in order for it to be valid.
  *
  * @author Jonathan Knight  2019.10.25
+ * @author Aleks Seovic  2020.06.06
  */
 @Inherited
-@ValueExtractorBinding
+@ExtractorBinding
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(PofExtractor.Extractors.class)
 public @interface PofExtractor
     {
     /**
-     * Returns the POF indexes to use to extract the value.
+     * Returns an array of POF indexes to use to extract the value.
      *
-     * @return the POF indexes to use to extract the value
+     * @return an array of POF indexes to use to extract the value
      */
-    @Nonbinding int[] value();
+    @Nonbinding int[] index() default {};
 
     /**
-     * Returns the type being extracted.
+     * Returns a property path to use to extract the value.
+     * <p>
+     * This attribute can only be used in combination with the {@link #type()}
+     * attribute, and only if the specified type is annotated with a
+     * {@link PortableType @PortableType} annotation and instrumented using
+     * {@link PortableTypeGenerator}.
      *
-     * @return the type being extracted
+     * @return a property path to use to extract the value
+     */
+    @Nonbinding String path() default "";
+
+    /**
+     * Returns the root type to extract property from.
+     *
+     * @return the root type to extract property from
      */
     @Nonbinding Class<?> type() default Object.class;
 
@@ -48,7 +76,7 @@ public @interface PofExtractor
      * A holder for the repeatable {@link PofExtractor} annotation.
      */
     @Inherited
-    @ValueExtractorBinding
+    @ExtractorBinding
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @interface Extractors
@@ -117,14 +145,17 @@ public @interface PofExtractor
             implements PofExtractor
         {
         /**
+         * Construct {@code Literal} instance.
          *
-         * @param clzType
-         * @param anIndices
+         * @param clzType  the root type to extract property from
+         * @param anIndex  an array of POF indexes to use to extract the value
+         * @param sPath    a property path to use to extract the value
          */
-        private Literal(Class<?> clzType, int[] anIndices)
+        private Literal(Class<?> clzType, int[] anIndex, String sPath)
             {
-            f_clzType   = clzType;
-            f_anIndices = anIndices;
+            f_clzType = clzType;
+            f_anIndex = anIndex;
+            f_sPath   = sPath;
             }
 
         /**
@@ -136,7 +167,7 @@ public @interface PofExtractor
          */
         public static Literal of(int... value)
             {
-            return new Literal(Object.class, value);
+            return new Literal(Object.class, value, "");
             }
 
         /**
@@ -148,7 +179,19 @@ public @interface PofExtractor
          */
         public static Literal of(Class<?> type, int... value)
             {
-            return new Literal(type, value);
+            return new Literal(type, value, "");
+            }
+
+       /**
+         * Create a {@link PofExtractor.Literal}.
+         *
+         * @param sPath  the POF indexes to use to extract the value
+         *
+         * @return a {@link PofExtractor.Literal} with the specified value
+         */
+        public static Literal of(Class<?> type, String sPath)
+            {
+            return new Literal(type, new int[] {}, sPath);
             }
 
         /**
@@ -156,9 +199,24 @@ public @interface PofExtractor
          *
          * @return the POF indexes to use to extract a value
          */
-        public int[] value()
+        public int[] index()
             {
-            return f_anIndices;
+            return f_anIndex;
+            }
+
+        /**
+        * Returns a property path to use to extract the value.
+        * <p>
+        * This attribute can only be used in combination with the {@link #type()}
+        * attribute, and only if the specified type is annotated with a
+        * {@link PortableType @PortableType} annotation and instrumented using
+        * {@link PortableTypeGenerator}.
+        *
+        * @return a property path to use to extract the value
+        */
+        public String path()
+            {
+            return f_sPath;
             }
 
         /**
@@ -176,7 +234,12 @@ public @interface PofExtractor
         /**
          * The POF indexes to use to extract the value.
          */
-        private final int[] f_anIndices;
+        private final int[] f_anIndex;
+
+        /**
+         * The property path to use to extract the value
+         */
+        private final String f_sPath;
 
         /**
          * The type being extracted.

@@ -12,6 +12,7 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
+import java.lang.annotation.Annotation;
 import javax.enterprise.context.ApplicationScoped;
 
 import javax.enterprise.inject.Disposes;
@@ -66,39 +67,47 @@ class NamedTopicProducer
         }
 
     /**
-     * Produce a {@link NamedTopic} using the name from the {@link Topic}
+     * Produce a {@link NamedTopic} using the name from the {@link Name @Name}
      * qualifier as the topic name and the name from the optional {@link
-     * CacheFactory} qualifier to identify the source {@link
+     * Session @Factory} qualifier to identify the source {@link
      * ConfigurableCacheFactory}.
      * <p>
-     * If no {@link CacheFactory} qualifier is present the default {@link
+     * If no {@link Session @Factory} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      *
      * @param injectionPoint  the injection point to inject the {@link NamedTopic} into
      * @param <V>             the type of the topic's elements
      *
-     * @return a {@link NamedTopic} using the name from the {@link Topic}
+     * @return a {@link NamedTopic} using the name from the {@link Name @Name}
      *         qualifier as the topic name and the name from the optional
-     *         {@link CacheFactory} qualifier
+     *         {@link Session @Factory} qualifier
      */
     @Produces
-    @Topic("")
-    @CacheFactory("")
+    @Name("")
+    @Session("")
     <V> NamedTopic<V> getNamedTopic(InjectionPoint injectionPoint)
         {
-        String sName = injectionPoint.getQualifiers()
-                .stream()
-                .filter(q -> Topic.class.isAssignableFrom(q.getClass()))
-                .map(q -> ((Topic) q).value())
-                .findFirst()
-                .orElse(null);
+        String  sName        = null;
+        String  sSession     = null;
+
+        for (Annotation annotation : injectionPoint.getQualifiers())
+            {
+            if (Name.class.equals(annotation.annotationType()))
+                {
+                sName = ((Name) annotation).value();
+                }
+            else if (Session.class.equals(annotation.annotationType()))
+                {
+                sSession = ((Session) annotation).value();
+                }
+             }
 
         if (sName == null)
             {
             sName = injectionPoint.getMember().getName();
             }
 
-        ConfigurableCacheFactory ccf = m_cacheFactoryProducer.getNamedConfigurableCacheFactory(injectionPoint);
+        ConfigurableCacheFactory ccf = m_cacheFactoryProducer.getConfigurableCacheFactory(sSession, injectionPoint);
         return ccf.ensureTopic(sName);
         }
 
@@ -122,23 +131,23 @@ class NamedTopicProducer
 
     /**
      * Produce a {@link Publisher} for a {@link NamedTopic} using the name from
-     * the {@link Topic} qualifier as the topic name and the name from the
-     * optional {@link CacheFactory} qualifier to identify the source {@link
+     * the {@link Name @Name} qualifier as the topic name and the name from the
+     * optional {@link Session @Factory} qualifier to identify the source {@link
      * ConfigurableCacheFactory}.
      * <p>
-     * If no {@link CacheFactory} qualifier is present the default {@link
+     * If no {@link Session @Factory} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      *
      * @param injectionPoint  the injection point to inject the {@link NamedTopic} into
      * @param <V>             the type of the topic's elements
      *
-     * @return a {@link NamedTopic} using the name from the {@link Topic}
+     * @return a {@link NamedTopic} using the name from the {@link Name @Name}
      *         qualifier as the topic name and the name from the optional
-     *         {@link CacheFactory} qualifier
+     *         {@link Session @Factory} qualifier
      */
     @Produces
-    @Topic("")
-    @CacheFactory("")
+    @Name("")
+    @Session("")
     <V> Publisher<V> getNamedTopicPublisher(InjectionPoint injectionPoint)
         {
         NamedTopic<V> topic = getNamedTopic(injectionPoint);
@@ -166,7 +175,7 @@ class NamedTopicProducer
      * @param publisher  the {@link Publisher} to dispose
      * @param <V>        the type of the topic elements
      */
-    <V> void closeQualifiedPublisher(@Disposes @Topic("") @CacheFactory("") Publisher<V> publisher)
+    <V> void closeQualifiedPublisher(@Disposes @Name("") @Session("") Publisher<V> publisher)
         {
         publisher.close();
         }
@@ -195,13 +204,13 @@ class NamedTopicProducer
     /**
      * Produce a {@link Subscriber} to a {@link NamedTopic}.
      * <p>
-     * The value from the {@link Topic} qualifier, if present, will be used as
-     * the topic name. If no  {@link Topic} qualifier is present then the
+     * The value from the {@link Name @Name} qualifier, if present, will be used as
+     * the topic name. If no  {@link Name @Name} qualifier is present then the
      * injection point member name will be used as the topic name.
      * <p>
-     * The name from the optional {@link CacheFactory} qualifier will be used to
+     * The name from the optional {@link Session @Factory} qualifier will be used to
      * determine the source {@link ConfigurableCacheFactory}. If no {@link
-     * CacheFactory} qualifier is present the default {@link
+     * Session} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      * <p>
      * The optional {@link SubscriberGroup} qualifier can be used to specify a
@@ -210,13 +219,13 @@ class NamedTopicProducer
      * @param injectionPoint  the injection point to inject the {@link NamedTopic} into
      * @param <V>             the type of the topic's elements
      *
-     * @return a {@link NamedTopic} using the name from the {@link Topic}
+     * @return a {@link NamedTopic} using the name from the {@link Name @Name}
      *         qualifier as the topic name and the name from the optional
-     *         {@link CacheFactory} qualifier
+     *         {@link Session @Factory} qualifier
      */
     @Produces
-    @Topic("")
-    @CacheFactory("")
+    @Name("")
+    @Session("")
     @SuppressWarnings("unchecked")
     <V> Subscriber<V> getNamedTopicSubscriber(InjectionPoint injectionPoint)
         {
@@ -254,7 +263,7 @@ class NamedTopicProducer
      * @param subscriber  the {@link Subscriber} to dispose
      * @param <V>         the type of the topic elements
      */
-    <V> void closeQualifiedSubscriber(@Disposes @Topic("") @CacheFactory("") Subscriber<V> subscriber)
+    <V> void closeQualifiedSubscriber(@Disposes @Name("") @Session("") Subscriber<V> subscriber)
         {
         subscriber.close();
         }

@@ -30,10 +30,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * associate {@link com.tangosol.util.ValueExtractor}s with target beans.
  * <p>
  * ValueExtractor bindings are used by annotating a {@link
- * com.oracle.coherence.cdi.ValueExtractorFactory} bean with the binding type
+ * ExtractorFactory} bean with the binding type
  * annotations. Wherever the same annotation is used at an injection point that
  * requires a {@link com.tangosol.util.ValueExtractor} the corresponding
- * factory's {@link com.oracle.coherence.cdi.ValueExtractorFactory#create(java.lang.annotation.Annotation)}
+ * factory's {@link ExtractorFactory#create(java.lang.annotation.Annotation)}
  * method is called to produce a {@link com.tangosol.util.ValueExtractor}
  * instance.
  *
@@ -42,6 +42,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(ANNOTATION_TYPE)
 @Retention(RUNTIME)
 @Documented
-public @interface ValueExtractorBinding
+public @interface ExtractorBinding
     {
     }

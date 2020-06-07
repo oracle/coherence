@@ -17,35 +17,35 @@ import javax.inject.Qualifier;
 
 /**
  * A qualifier annotation used when injecting Coherence resource to indicate a
- * specific cache name.
+ * specific resource name.
  *
  * @author Jonathan Knight  2019.10.20
  */
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Cache
+public @interface Name
     {
     /**
-     * The name used to identify a specific cache.
+     * The name used to identify a specific resource.
      *
-     * @return the name used to identify a specific cache
+     * @return the name used to identify a specific resource
      */
     @Nonbinding String value();
 
     // ---- inner class: Literal --------------------------------------------
 
     /**
-     * An annotation literal for the {@link Cache} annotation.
+     * An annotation literal for the {@link Name} annotation.
      */
     class Literal
-            extends AnnotationLiteral<Cache>
-            implements Cache
+            extends AnnotationLiteral<Name>
+            implements Name
         {
         /**
          * Construct {@code Cache.Literal} instance.
          *
-         * @param sName  the cache name
+         * @param sName  the resource name
          */
         private Literal(String sName)
             {
@@ -53,11 +53,11 @@ public @interface Cache
             }
 
         /**
-         * Create a {@link Cache.Literal}.
+         * Create a {@link Name.Literal}.
          *
-         * @param sName  the cache name
+         * @param sName  the resource name
          *
-         * @return a {@link Cache.Literal} with the specified value
+         * @return a {@link Name.Literal} with the specified value
          */
         public static Literal of(String sName)
             {
@@ -65,9 +65,9 @@ public @interface Cache
             }
 
         /**
-         * The name used to identify a specific cache.
+         * The name used to identify a specific resource.
          *
-         * @return the name used to identify a specific cache
+         * @return the name used to identify a specific resource
          */
         public String value()
             {
@@ -77,7 +77,7 @@ public @interface Cache
         // ---- data members ------------------------------------------------
 
         /**
-         * The cache name.
+         * The resource name.
          */
         private final String m_sName;
         }

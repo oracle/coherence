@@ -65,13 +65,13 @@ class CacheViewProducerIT
                                                           .addBeanClass(FilterProducer.class)
                                                           .addBeanClass(FilterProducer.AlwaysFilterSupplier.class)
                                                           .addBeanClass(FilterProducer.WhereFilterSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.class)
-                                                          .addBeanClass(ValueExtractorProducer.UniversalExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.UniversalExtractorsSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.ChainedExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.ChainedExtractorsSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.PofExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.PofExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.class)
+                                                          .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.ChainedExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.ChainedExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.PofExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.PofExtractorsSupplier.class)
                                                           .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
                                                           .addExtension(new CoherenceExtension()));
@@ -86,8 +86,8 @@ class CacheViewProducerIT
     @Test
     void shouldGetDynamicContinuousQueryCache()
         {
-        Annotation cache = Cache.Literal.of("numbers");
-        Annotation cacheView = CacheView.Literal.INSTANCE;
+        Annotation cache = Name.Literal.of("numbers");
+        Annotation cacheView = View.Literal.INSTANCE;
         Instance<ContinuousQueryCache> instance = weld.select(ContinuousQueryCache.class, cache, cacheView);
 
         assertThat(instance.isResolvable(), is(true));
@@ -317,21 +317,21 @@ class CacheViewProducerIT
         private ContinuousQueryCache numbers;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private ContinuousQueryCache namedCache;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private ContinuousQueryCache<Integer, String, String> genericCache;
 
         @Inject
-        @CacheView
+        @View
         private ContinuousQueryCache<List<String>, String, String> genericKeys;
 
         @Inject
-        @CacheView
+        @View
         private ContinuousQueryCache<String, List<String>, String> genericValues;
 
         public ContinuousQueryCache getNumbers()
@@ -368,14 +368,14 @@ class CacheViewProducerIT
 
         @Inject
         @AlwaysFilter
-        @Cache("beans")
-        @CacheView
+        @Name("beans")
+        @View
         private ContinuousQueryCache<String, Person, Person> always;
 
         @Inject
         @WhereFilter("lastName = 'foo'")
-        @Cache("beans")
-        @CacheView
+        @Name("beans")
+        @View
         private ContinuousQueryCache<String, Person, Person> foo;
 
         public NamedCache<String, Person> getCache()
@@ -398,18 +398,18 @@ class CacheViewProducerIT
     private static class DifferentCacheFactoryBean
         {
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private ContinuousQueryCache defaultCcfNumbers;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
-        @CacheFactory("test-cache-config.xml")
+        @Name("numbers")
+        @View
+        @Session("test-cache-config.xml")
         private ContinuousQueryCache specificCcfNumbers;
 
         @Inject
-        @CacheFactory("test-cache-config.xml")
+        @Session("test-cache-config.xml")
         private NamedCache numbers;
 
         public ContinuousQueryCache getDefaultCcfNumbers()
@@ -431,8 +431,8 @@ class CacheViewProducerIT
         private final ContinuousQueryCache<Integer, String, String> numbers;
 
         @Inject
-        CtorBean(@Cache("numbers") @CacheView NamedCache<Integer, String> view,
-                 @Cache("numbers") ContinuousQueryCache<Integer, String, String> numbers)
+        CtorBean(@Name("numbers") @View NamedCache<Integer, String> view,
+                 @Name("numbers") ContinuousQueryCache<Integer, String, String> numbers)
             {
             this.view = view;
             this.numbers = numbers;
@@ -453,38 +453,38 @@ class CacheViewProducerIT
     private static class SuperTypesBean
         {
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private ContinuousQueryCache<Integer, String, String> cqc;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private NamedCache<Integer, String> namedCache;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private InvocableMap<Integer, String> invocableMap;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private ObservableMap<Integer, String> observableMap;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private ConcurrentMap<Integer, String> concurrentMap;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private QueryMap<Integer, String> queryMap;
 
         @Inject
-        @Cache("numbers")
-        @CacheView
+        @Name("numbers")
+        @View
         private CacheMap<Integer, String> cacheMap;
 
         ContinuousQueryCache<Integer, String, String> getContinuousQueryCache()
@@ -527,23 +527,23 @@ class CacheViewProducerIT
     private static class WithTransformersBean
         {
         @Inject
-        @Cache("people")
+        @Name("people")
         private NamedCache<String, Person> namedCache;
 
         @Inject
-        @Cache("people")
-        @CacheView(cacheValues = false)
+        @Name("people")
+        @View(cacheValues = false)
         private ContinuousQueryCache<String, Person, String> keysOnly;
 
         @Inject
-        @Cache("people")
-        @CacheView
+        @Name("people")
+        @View
         @PropertyExtractor("firstName")
         private ContinuousQueryCache<String, Person, String> names;
 
         @Inject
-        @Cache("people")
-        @CacheView
+        @Name("people")
+        @View
         @ChainedExtractor({"phoneNumber", "number"})
         @WhereFilter("lastName = 'foo'")
         private ContinuousQueryCache<String, Person, String> filteredNames;

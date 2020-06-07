@@ -16,13 +16,13 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.enterprise.util.Nonbinding;
 
 /**
- * A {@link ValueExtractorBinding} annotation representing a {@link
+ * A {@link ExtractorBinding} annotation representing a {@link
  * com.tangosol.util.extractor.UniversalExtractor}.
  *
  * @author Jonathan Knight  2019.10.25
  */
 @Inherited
-@ValueExtractorBinding
+@ExtractorBinding
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(PropertyExtractor.Extractors.class)
@@ -49,7 +49,7 @@ public @interface PropertyExtractor
      * A holder for the repeatable {@link PropertyExtractor} annotation.
      */
     @Inherited
-    @ValueExtractorBinding
+    @ExtractorBinding
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @interface Extractors

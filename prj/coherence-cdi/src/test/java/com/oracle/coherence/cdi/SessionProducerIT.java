@@ -12,8 +12,6 @@ import java.lang.annotation.Annotation;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.tangosol.net.Session;
-
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
@@ -45,28 +43,28 @@ class SessionProducerIT
      * Should inject the default Session.
      */
     @Inject
-    private Session defaultSession;
+    private com.tangosol.net.Session defaultSession;
 
     /**
      * Should inject the test Session.
      */
     @Inject
-    @CacheFactory("test-cache-config.xml")
-    private Session testSession;
+    @Name("test-cache-config.xml")
+    private com.tangosol.net.Session testSession;
 
     /**
      * Should inject the the default Session.
      */
     @Inject
-    @CacheFactory("")
-    private Session qualifiedDefaultSession;
+    @Name("")
+    private com.tangosol.net.Session qualifiedDefaultSession;
 
     /**
      * Should inject the the default Session.
      */
     @Inject
-    @CacheFactory(" ")
-    private Session namedDefaultSession;
+    @Name(" ")
+    private com.tangosol.net.Session namedDefaultSession;
 
     @Test
     void shouldInjectDefaultSession()
@@ -97,8 +95,8 @@ class SessionProducerIT
     @Test
     void shouldGetDynamicCCF()
         {
-        Annotation qualifier = CacheFactory.Literal.of("test-cache-config.xml");
-        Instance<Session> instance = weld.select(Session.class, qualifier);
+        Annotation qualifier = Name.Literal.of("test-cache-config.xml");
+        Instance<com.tangosol.net.Session> instance = weld.select(com.tangosol.net.Session.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));
         assertThat(instance.get(), is(sameInstance(testSession)));

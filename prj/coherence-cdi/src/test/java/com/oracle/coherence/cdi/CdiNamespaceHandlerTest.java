@@ -11,7 +11,6 @@ import javax.enterprise.inject.se.SeContainer;
 import javax.enterprise.inject.se.SeContainerInitializer;
 
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
-import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
 import com.tangosol.config.xml.DefaultProcessingContext;
@@ -20,16 +19,14 @@ import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
+
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**

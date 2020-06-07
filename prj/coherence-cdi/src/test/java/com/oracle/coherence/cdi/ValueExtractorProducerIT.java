@@ -70,13 +70,13 @@ class ValueExtractorProducerIT
 
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
-                                                          .addBeanClass(ValueExtractorProducer.class)
-                                                          .addBeanClass(ValueExtractorProducer.UniversalExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.UniversalExtractorsSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.ChainedExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.ChainedExtractorsSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.PofExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.PofExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.class)
+                                                          .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.ChainedExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.ChainedExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.PofExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.PofExtractorsSupplier.class)
                                                           .addBeanClass(TestExtractorFactory.class)
                                                           .addBeanClass(ExtractorBean.class)
                                                           .addExtension(new CoherenceExtension()));
@@ -218,7 +218,7 @@ class ValueExtractorProducerIT
     // ----- helper classes -------------------------------------------------
 
     @Inherited
-    @ValueExtractorBinding
+    @ExtractorBinding
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     public @interface TestExtractor
@@ -227,7 +227,7 @@ class ValueExtractorProducerIT
     @TestExtractor
     @ApplicationScoped
     public static class TestExtractorFactory
-            implements ValueExtractorFactory<TestExtractor, Person, String>
+            implements ExtractorFactory<TestExtractor, Person, String>
         {
         @Override
         public ValueExtractor<Person, String> create(TestExtractor annotation)
@@ -251,7 +251,7 @@ class ValueExtractorProducerIT
         private ValueExtractor<Person, String> customExtractor;
 
         @Inject
-        @PofExtractor({3, 0})
+        @PofExtractor(index = {3, 0})
         private ValueExtractor<Person, Integer> pofExtractor;
 
         @Inject
@@ -271,8 +271,8 @@ class ValueExtractorProducerIT
         private ValueExtractor<Person, List<?>> multiChainedExtractor;
 
         @Inject
-        @PofExtractor({3, 0})
-        @PofExtractor({3, 1})
+        @PofExtractor(index = {3, 0})
+        @PofExtractor(index = {3, 1})
         private ValueExtractor<Person, List<?>> multiPofExtractor;
 
         public ValueExtractor<Person, String> getFirstNameExtractor()

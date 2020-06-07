@@ -55,7 +55,7 @@ public interface AsyncNamedMap<K, V>
      * @return the {@link NamedCache} instance this {@code AsyncNamedCache} is
      *         based on
      */
-    public NamedCache<K, V> getNamedCache();
+    public NamedMap<K, V> getNamedMap();
 
     // ---- Asynchronous Map methods ----------------------------------------
 

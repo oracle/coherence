@@ -4,6 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
+
 package com.oracle.coherence.cdi.events;
 
 import java.lang.annotation.Documented;
@@ -15,35 +16,36 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Qualifier;
 
 /**
- * A qualifier annotation used to indicate a specific service name.
+ * A qualifier annotation used when injecting Coherence resource to indicate a
+ * specific cache name.
  *
  * @author Aleks Seovic  2020.04.01
  */
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ServiceName
+public @interface Cache
     {
     /**
-     * The value used to identify a specific service.
+     * Obtain the value used to identify a specific cache.
      *
-     * @return the value used to identify a specific service
+     * @return value used to identify a specific cache
      */
     String value();
 
     // ---- inner class: Literal --------------------------------------------
 
     /**
-     * An annotation literal for the {@link ServiceName} annotation.
+     * An annotation literal for the {@link Cache} annotation.
      */
     class Literal
-            extends AnnotationLiteral<ServiceName>
-            implements ServiceName
+            extends AnnotationLiteral<Cache>
+            implements Cache
         {
         /**
-         * Construct {@link ServiceName.Literal} instance.
+         * Construct {@link Cache.Literal} instance.
          *
-         * @param sName  the service name
+         * @param sName  the cache name
          */
         private Literal(String sName)
             {
@@ -51,11 +53,11 @@ public @interface ServiceName
             }
 
         /**
-         * Create a {@link ServiceName.Literal}.
+         * Create a {@link Cache.Literal}.
          *
-         * @param sName  the service name
+         * @param sName  the cache name
          *
-         * @return a {@link ServiceName.Literal} with the specified value
+         * @return a {@link Cache.Literal} with the specified value
          */
         public static Literal of(String sName)
             {
@@ -63,9 +65,9 @@ public @interface ServiceName
             }
 
         /**
-         * The name used to identify a specific service.
+         * The name used to identify a specific cache.
          *
-         * @return the name used to identify a specific service
+         * @return the name used to identify a specific cache
          */
         public String value()
             {
@@ -75,7 +77,7 @@ public @interface ServiceName
         // ---- data members ------------------------------------------------
 
         /**
-         * The service name.
+         * The cache name.
          */
         private final String f_sName;
         }

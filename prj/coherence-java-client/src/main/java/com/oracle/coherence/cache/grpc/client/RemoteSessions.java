@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.cache.grpc.client;
 
+import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.common.util.Options;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionProvider;
@@ -148,13 +149,14 @@ public class RemoteSessions
      * @return the named {@link GrpcRemoteSession}
      */
     @Produces
-    @RemoteSession("")
+    @Remote
+    @Name("")
     protected GrpcRemoteSession getSession(InjectionPoint injectionPoint)
         {
         String name = injectionPoint.getQualifiers()
                 .stream()
-                .filter(q -> q.annotationType().isAssignableFrom(RemoteSession.class))
-                .map(q -> ((RemoteSession) q).value())
+                .filter(q -> q.annotationType().isAssignableFrom(Name.class))
+                .map(q -> ((Name) q).value())
                 .findFirst()
                 .orElse(GrpcRemoteSession.DEFAULT_NAME);
 
@@ -168,7 +170,7 @@ public class RemoteSessions
      *
      * @return a {@link GrpcRemoteSession} instance.
      */
-    protected GrpcRemoteSession ensureSession(String name)
+    GrpcRemoteSession ensureSession(String name)
         {
         GrpcRemoteSession session = f_mapSessions.computeIfAbsent(name, k -> GrpcRemoteSession.builder(f_config)
                 .name(name)
