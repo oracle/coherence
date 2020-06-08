@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.cdi.events.SingleEntryEvent;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Set;
@@ -69,6 +70,7 @@ class EventDispatcherIT
                                                           .addBeanClass(TestObservers.class)
                                                           .addBeanClass(EventDispatcher.LifecycleEventHandler.class)
                                                           .addBeanClass(EventDispatcher.CacheLifecycleEventHandler.class)
+                                                          .addBeanClass(EventDispatcher.SingleEntryEventHandler.class)
                                                           .addBeanClass(EventDispatcher.EntryEventHandler.class)
                                                           .addBeanClass(EventDispatcher.EntryProcessorEventHandler.class)
                                                           .addBeanClass(EventDispatcher.TransactionEventHandler.class)
@@ -120,6 +122,10 @@ class EventDispatcherIT
         assertThat(observers.getEvents(), hasItem(EntryEvent.Type.UPDATED));
         assertThat(observers.getEvents(), hasItem(EntryEvent.Type.REMOVING));
         assertThat(observers.getEvents(), hasItem(EntryEvent.Type.REMOVED));
+
+        assertThat(observers.getInserted(), is(5));
+        assertThat(observers.getUpdated(), is(5));
+        assertThat(observers.getRemoved(), is(5));
         }
 
     // ---- helper classes --------------------------------------------------
@@ -143,9 +149,28 @@ class EventDispatcherIT
         {
         private Set<Enum> events = new TreeSet<>(Comparator.comparing(Enum::name));
 
+        private int nInserted = 0;
+        private int nUpdated = 0;
+        private int nRemoved = 0;
+
         Set<Enum> getEvents()
             {
             return events;
+            }
+
+        public int getInserted()
+            {
+            return nInserted;
+            }
+
+        public int getUpdated()
+            {
+            return nUpdated;
+            }
+
+        public int getRemoved()
+            {
+            return nRemoved;
             }
 
         private void record(Event event)
@@ -171,6 +196,12 @@ class EventDispatcherIT
             assertThat(event.getCacheName(), is("people"));
             }
 
+        private void onPersonInserted(@Observes @Inserted @Cache("people") SingleEntryEvent<?, ?> event)
+            {
+            nInserted++;
+            assertThat(((Person) event.getValue()).getLastName(), is("Simpson"));
+            }
+
         private void onPersonInserted(@Observes @Inserted @Cache("people") EntryEvent<?, ?> event)
             {
             record(event);
@@ -179,12 +210,24 @@ class EventDispatcherIT
                     .forEach(person -> assertThat(person.getLastName(), is("Simpson")));
             }
 
+        private void onPersonUpdated(@Observes @Updated @Cache("people") SingleEntryEvent<?, ?> event)
+            {
+            nUpdated++;
+            assertThat(((Person) event.getValue()).getLastName(), is("SIMPSON"));
+            }
+
         private void onPersonUpdated(@Observes @Updated @Cache("people") EntryEvent<?, ?> event)
             {
             record(event);
             ((EntryEvent<String, Person>) event).getEntrySet().stream()
                     .map(BinaryEntry::getValue)
                     .forEach(person -> assertThat(person.getLastName(), is("SIMPSON")));
+            }
+
+        private void onPersonRemoved(@Observes @Removed @Cache("people") SingleEntryEvent<?, ?> event)
+            {
+            nRemoved++;
+            assertThat(((Person) event.getOldValue()).getLastName(), is("SIMPSON"));
             }
 
         private void onPersonRemoved(@Observes @Removed @Cache("people") EntryEvent<?, ?> event)

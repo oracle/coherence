@@ -29,6 +29,7 @@ import com.oracle.coherence.cdi.events.Removed;
 import com.oracle.coherence.cdi.events.Removing;
 import com.oracle.coherence.cdi.events.Rollback;
 import com.oracle.coherence.cdi.events.Service;
+import com.oracle.coherence.cdi.events.SingleEntryEvent;
 import com.oracle.coherence.cdi.events.Truncated;
 import com.oracle.coherence.cdi.events.Updated;
 import com.oracle.coherence.cdi.events.Updating;
@@ -46,6 +47,7 @@ import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
 
+import com.tangosol.util.BinaryEntry;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.Instance;
@@ -182,6 +184,59 @@ public class EventDispatcher
     // ---- inner class: EntryEventHandler ----------------------------------
 
     /**
+     * Handler for {@link SingleEntryEvent}s.
+     */
+    @ApplicationScoped
+    static class SingleEntryEventHandler
+            implements EventHandler, EventInterceptor<EntryEvent<?, ?>>
+        {
+        @Override
+        public void onEvent(EntryEvent<?, ?> event)
+            {
+            Cache cache   = Cache.Literal.of(event.getCacheName());
+            Service service = Service.Literal.of(event.getService().getInfo().getServiceName());
+
+            Event<SingleEntryEvent<?, ?>> e = m_entryEvent.select(cache, service);
+            
+            switch (event.getType())
+                {
+                case INSERTING:
+                    e = e.select(Inserting.Literal.INSTANCE);
+                    break;
+                case INSERTED:
+                    e = e.select(Inserted.Literal.INSTANCE);
+                    break;
+                case UPDATING:
+                    e = e.select(Updating.Literal.INSTANCE);
+                    break;
+                case UPDATED:
+                    e = e.select(Updated.Literal.INSTANCE);
+                    break;
+                case REMOVING:
+                    e = e.select(Removing.Literal.INSTANCE);
+                    break;
+                case REMOVED:
+                    e = e.select(Removed.Literal.INSTANCE);
+                    break;
+                }
+
+            for (BinaryEntry<?, ?> entry : event.getEntrySet())
+                {
+                SingleEntryEvent<?, ?> singleEntryEvent = new SingleEntryEvent<>(event.getType(), entry);
+                e.fireAsync(singleEntryEvent);
+                e.fire(singleEntryEvent);
+                }
+            }
+
+        // ---- data members ----------------------------------------------------
+
+        @Inject
+        private Event<SingleEntryEvent<?, ?>> m_entryEvent;
+        }
+
+    // ---- inner class: EntryEventHandler ----------------------------------
+
+    /**
      * Handler for {@link EntryEvent}s.
      */
     @ApplicationScoped
@@ -195,7 +250,7 @@ public class EventDispatcher
             Service service = Service.Literal.of(event.getService().getInfo().getServiceName());
 
             Event<EntryEvent<?, ?>> e = m_entryEvent.select(cache, service);
-            
+
             switch (event.getType())
                 {
                 case INSERTING:
