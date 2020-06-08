@@ -1013,6 +1013,7 @@ abstract class BaseNamedCacheServiceTests
         finally
             {
             requestObserver.onCompleted();
+            cache.removeMapListener(listener, filter);
             }
         }
 
@@ -1168,6 +1169,7 @@ abstract class BaseNamedCacheServiceTests
         finally
             {
             requestObserver.onCompleted();
+            cache.removeMapListener(listener, "key-2");
             }
         }
 
@@ -1235,6 +1237,7 @@ abstract class BaseNamedCacheServiceTests
         finally
             {
             requestObserver.onCompleted();
+            cache.removeMapListener(listener, "key-2");
             }
         }
 
@@ -1495,6 +1498,8 @@ abstract class BaseNamedCacheServiceTests
         finally
             {
             requestObserver.onCompleted();
+            cache.removeMapListener(listener, "key-2");
+            cache.removeMapListener(listener, "key-4");
             }
         }
 
@@ -1566,6 +1571,7 @@ abstract class BaseNamedCacheServiceTests
         finally
             {
             requestObserver.onCompleted();
+            cache.removeMapListener(listener, filter);
             }
         }
 
@@ -1637,6 +1643,8 @@ abstract class BaseNamedCacheServiceTests
         finally
             {
             requestObserver.onCompleted();
+            cache.removeMapListener(listenerOne, filter);
+            cache.removeMapListener(listenerTwo, key);
             }
         }
 
@@ -1712,6 +1720,8 @@ abstract class BaseNamedCacheServiceTests
         finally
             {
             requestObserver.onCompleted();
+            cache.removeMapListener(listenerOne, filterOne);
+            cache.removeMapListener(listenerTwo, filterTwo);
             }
         }
 
