@@ -76,7 +76,7 @@ public class ViewBuilderTest
         assertThat(queryCache.getTransformer(),       is(nullValue()));
         assertThat(queryCache.getReconnectInterval(), is(0L));
         assertThat(queryCache.getCacheName(),         containsString("ContinuousQueryCache"));
-        assertThat(queryCache.isCacheValues(),        is(false));
+        assertThat(queryCache.isCacheValues(),        is(true));
         }
 
     @Test
