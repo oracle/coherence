@@ -53,6 +53,19 @@ import javax.ws.rs.core.UriInfo;
 @PermitAll
 public class MetricsResource
     {
+    // ----- constructors ---------------------------------------------------
+
+    public MetricsResource()
+        {
+        this(Boolean.parseBoolean(System.getProperty(PROP_USE_LEGACY_NAMES, "true")));
+        }
+
+    public MetricsResource(boolean fUseLegacyNames)
+        {
+        f_fUseLegacyNames = fUseLegacyNames;
+        }
+
+
     // ----- MetricsResource methods ----------------------------------------
 
     /**
@@ -65,7 +78,7 @@ public class MetricsResource
     public MetricsFormatter getPrometheusMetrics(@Context UriInfo uriInfo)
         {
         final MetricPredicate predicate = new MetricPredicate(null, uriInfo.getQueryParameters());
-        return new PrometheusFormatter(useExtendedFormat(uriInfo), getMetrics(predicate));
+        return new PrometheusFormatter(useExtendedFormat(uriInfo), f_fUseLegacyNames, getMetrics(predicate));
         }
 
     /**
@@ -88,7 +101,7 @@ public class MetricsResource
     public MetricsFormatter getPrometheusMetrics(@PathParam("metric") String sName, @Context UriInfo uriInfo)
         {
         final MetricPredicate predicate = new MetricPredicate(sName, uriInfo.getQueryParameters());
-        return new PrometheusFormatter(useExtendedFormat(uriInfo), getMetrics(predicate));
+        return new PrometheusFormatter(useExtendedFormat(uriInfo), f_fUseLegacyNames, getMetrics(predicate));
         }
 
     /**
@@ -253,14 +266,16 @@ public class MetricsResource
         /**
          * Construct {@code PrometheusFormatter} instance.
          *
-         * @param fExtended  the flag specifying whether to include metric type
-         *                   and description into the output
-         * @param metrics    the list of metrics to write
+         * @param fExtended        the flag specifying whether to include metric type
+         *                         and description into the output
+         * @param fUseLegacyNames  a flag specifying whether to use COherence legacy name formats
+         * @param metrics          the list of metrics to write
          */
-        PrometheusFormatter(boolean fExtended, List<MBeanMetric> metrics)
+        PrometheusFormatter(boolean fExtended, boolean fUseLegacyNames, List<MBeanMetric> metrics)
             {
-            f_fExtended = fExtended;
-            f_metrics   = metrics;
+            f_fExtended       = fExtended;
+            f_fUseLegacyNames = fUseLegacyNames;
+            f_metrics         = metrics;
             }
 
         // ---- MetricsFormatter interface ----------------------------------
@@ -336,14 +351,25 @@ public class MetricsResource
                 }
             }
 
-        private static String prometheusName(MBeanMetric.Scope scope, String sName)
+        private String prometheusName(MBeanMetric.Scope scope, String sName)
             {
+            // ************************************************************
+            // Warning: Changing this method may change the format of the
+            // metric names and will break any customer that relies on this
+            // for things like Grafana dashboards.
+            // ************************************************************
+
             // spec 3.2.1
 
-            //Dot (.), Space ( ), Dash (-) are translated to underscore (_).
-            sName = sName.replace('.', '_');
-            sName = sName.replace(' ', '_');
-            sName = sName.replace('-', '_');
+            // Escape any invalid characters by changing them to an underscore
+            sName = sName.replaceAll("[^a-zA-Z0-9_]", "_");
+
+            if (!f_fUseLegacyNames)
+                {
+                // We're configured to use Microprofile compatible names so just
+                // concatenate the registry scope and metric name.
+                return scope == null ? sName : scope.name().toLowerCase() + "_" + sName;
+                }
 
             if (scope != null)
                 {
@@ -393,6 +419,11 @@ public class MetricsResource
          * into the output.
          */
         private final boolean f_fExtended;
+
+        /**
+         * A flag indicating whther to output Microprofile compatible names.
+         */
+        private final boolean f_fUseLegacyNames;
 
         /**
          * The list of metrics to write.
@@ -504,4 +535,15 @@ public class MetricsResource
      */
     private static final boolean f_fAlwaysUseExtended
             = Boolean.parseBoolean(System.getProperty(PROP_EXTENDED, "false"));
+
+    /**
+     * A system property that when true outputs metric names using Coherence legacy
+     * format and when false outputs Prometheus metrics with Microprofile 2.0
+     * compatible metric names.
+     */
+    public static final String PROP_USE_LEGACY_NAMES = "coherence.metrics.legacy.names";
+
+    // ----- data members ---------------------------------------------------
+
+    private final boolean f_fUseLegacyNames;
     }

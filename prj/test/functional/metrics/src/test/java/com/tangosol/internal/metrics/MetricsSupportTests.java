@@ -34,9 +34,11 @@ import com.tangosol.net.management.Registry;
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
 
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,6 +60,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
 import static org.junit.Assert.fail;
 
@@ -112,16 +115,17 @@ public class MetricsSupportTests
 
         assertThat(adapter.metricCount(), is(not(0)));
         adapter.removeMatching("Coherence.Node.");
+        adapter.removeMatching("Coherence.Memory.HeapAfterGC.");
         assertThat(adapter.metricCount(), is(2));
 
         Map<String, String> mapTags = getClusterTags(false);
 
         mapTags.put("version", Coherence.VERSION);
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Cluster.Size",
-                      "Coherence.Cluster.MembersDepartureCount");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Cluster.Size",
+                                    "Coherence.Cluster.MembersDepartureCount");
         }
 
     @Test
@@ -137,23 +141,23 @@ public class MetricsSupportTests
 
         Map<String, String> mapTags = getCommonTagsWithNodeId();
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Node.GuardRecoverCount",
-                      "Coherence.Node.GuardTerminateCount",
-                      "Coherence.Node.PacketsReceived",
-                      "Coherence.Node.PacketsRepeated",
-                      "Coherence.Node.PacketsResent",
-                      "Coherence.Node.PacketsSent",
-                      "Coherence.Node.PublisherSuccessRate",
-                      "Coherence.Node.SendQueueSize",
-                      "Coherence.Node.ReceiverSuccessRate",
-                      "Coherence.Node.TransportBacklogDelay",
-                      "Coherence.Node.TransportReceivedBytes",
-                      "Coherence.Node.TransportReceivedMessages",
-                      "Coherence.Node.TransportRetainedBytes",
-                      "Coherence.Node.TransportSentBytes",
-                      "Coherence.Node.TransportSentMessages");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Node.GuardRecoverCount",
+                                    "Coherence.Node.GuardTerminateCount",
+                                    "Coherence.Node.PacketsReceived",
+                                    "Coherence.Node.PacketsRepeated",
+                                    "Coherence.Node.PacketsResent",
+                                    "Coherence.Node.PacketsSent",
+                                    "Coherence.Node.PublisherSuccessRate",
+                                    "Coherence.Node.SendQueueSize",
+                                    "Coherence.Node.ReceiverSuccessRate",
+                                    "Coherence.Node.TransportBacklogDelay",
+                                    "Coherence.Node.TransportReceivedBytes",
+                                    "Coherence.Node.TransportReceivedMessages",
+                                    "Coherence.Node.TransportRetainedBytes",
+                                    "Coherence.Node.TransportSentBytes",
+                                    "Coherence.Node.TransportSentMessages");
         }
 
     @Test
@@ -170,20 +174,20 @@ public class MetricsSupportTests
         mapTags.put("coherence_service", "DistributedCacheService");
         mapTags.put("tier", "back");
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Cache.Hits",
-                      "Coherence.Cache.HitsMillis",
-                      "Coherence.Cache.Misses",
-                      "Coherence.Cache.MissesMillis",
-                      "Coherence.Cache.Prunes",
-                      "Coherence.Cache.PrunesMillis",
-                      "Coherence.Cache.Size",
-                      "Coherence.Cache.TotalGets",
-                      "Coherence.Cache.TotalGetsMillis",
-                      "Coherence.Cache.TotalPuts",
-                      "Coherence.Cache.TotalPutsMillis",
-                      "Coherence.Cache.UnitsBytes");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Cache.Hits",
+                                    "Coherence.Cache.HitsMillis",
+                                    "Coherence.Cache.Misses",
+                                    "Coherence.Cache.MissesMillis",
+                                    "Coherence.Cache.Prunes",
+                                    "Coherence.Cache.PrunesMillis",
+                                    "Coherence.Cache.Size",
+                                    "Coherence.Cache.TotalGets",
+                                    "Coherence.Cache.TotalGetsMillis",
+                                    "Coherence.Cache.TotalPuts",
+                                    "Coherence.Cache.TotalPutsMillis",
+                                    "Coherence.Cache.UnitsBytes");
         }
 
     @Test
@@ -196,6 +200,7 @@ public class MetricsSupportTests
         metricSupport.register(sMBeanName);
         assertThat(adapter.metricCount(), is(not(0)));
 
+        adapter.removeMatching("Coherence.Memory.HeapAfterGC.");
         metricSupport.remove(sMBeanName);
         assertThat(adapter.metricCount(), is(0));
         }
@@ -216,20 +221,20 @@ public class MetricsSupportTests
         mapTags.put("tier", "front");
         mapTags.put("loader", null);
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Cache.Hits",
-                      "Coherence.Cache.HitsMillis",
-                      "Coherence.Cache.Misses",
-                      "Coherence.Cache.MissesMillis",
-                      "Coherence.Cache.Prunes",
-                      "Coherence.Cache.PrunesMillis",
-                      "Coherence.Cache.Size",
-                      "Coherence.Cache.TotalGets",
-                      "Coherence.Cache.TotalGetsMillis",
-                      "Coherence.Cache.TotalPuts",
-                      "Coherence.Cache.TotalPutsMillis",
-                      "Coherence.Cache.UnitsBytes");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Cache.Hits",
+                                    "Coherence.Cache.HitsMillis",
+                                    "Coherence.Cache.Misses",
+                                    "Coherence.Cache.MissesMillis",
+                                    "Coherence.Cache.Prunes",
+                                    "Coherence.Cache.PrunesMillis",
+                                    "Coherence.Cache.Size",
+                                    "Coherence.Cache.TotalGets",
+                                    "Coherence.Cache.TotalGetsMillis",
+                                    "Coherence.Cache.TotalPuts",
+                                    "Coherence.Cache.TotalPutsMillis",
+                                    "Coherence.Cache.UnitsBytes");
         }
 
     @Test
@@ -246,20 +251,20 @@ public class MetricsSupportTests
         mapTags.put("coherence_service", "DistributedCacheService");
         mapTags.put("tier", "back");
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Cache.Hits",
-                      "Coherence.Cache.HitsMillis",
-                      "Coherence.Cache.Misses",
-                      "Coherence.Cache.MissesMillis",
-                      "Coherence.Cache.Prunes",
-                      "Coherence.Cache.PrunesMillis",
-                      "Coherence.Cache.Size",
-                      "Coherence.Cache.TotalGets",
-                      "Coherence.Cache.TotalGetsMillis",
-                      "Coherence.Cache.TotalPuts",
-                      "Coherence.Cache.TotalPutsMillis",
-                      "Coherence.Cache.UnitsBytes");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Cache.Hits",
+                                    "Coherence.Cache.HitsMillis",
+                                    "Coherence.Cache.Misses",
+                                    "Coherence.Cache.MissesMillis",
+                                    "Coherence.Cache.Prunes",
+                                    "Coherence.Cache.PrunesMillis",
+                                    "Coherence.Cache.Size",
+                                    "Coherence.Cache.TotalGets",
+                                    "Coherence.Cache.TotalGetsMillis",
+                                    "Coherence.Cache.TotalPuts",
+                                    "Coherence.Cache.TotalPutsMillis",
+                                    "Coherence.Cache.UnitsBytes");
         }
 
     @Test
@@ -276,26 +281,26 @@ public class MetricsSupportTests
         mapTags.put("coherence_service", "DistributedCacheService");
         mapTags.put("tier", "back");
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Cache.Hits",
-                      "Coherence.Cache.HitsMillis",
-                      "Coherence.Cache.Misses",
-                      "Coherence.Cache.MissesMillis",
-                      "Coherence.Cache.Prunes",
-                      "Coherence.Cache.PrunesMillis",
-                      "Coherence.Cache.Size",
-                      "Coherence.Cache.StoreAverageBatchSize",
-                      "Coherence.Cache.StoreFailures",
-                      "Coherence.Cache.StoreReads",
-                      "Coherence.Cache.StoreReadMillis",
-                      "Coherence.Cache.StoreWrites",
-                      "Coherence.Cache.StoreWriteMillis",
-                      "Coherence.Cache.TotalGets",
-                      "Coherence.Cache.TotalGetsMillis",
-                      "Coherence.Cache.TotalPuts",
-                      "Coherence.Cache.TotalPutsMillis",
-                      "Coherence.Cache.UnitsBytes");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Cache.Hits",
+                                    "Coherence.Cache.HitsMillis",
+                                    "Coherence.Cache.Misses",
+                                    "Coherence.Cache.MissesMillis",
+                                    "Coherence.Cache.Prunes",
+                                    "Coherence.Cache.PrunesMillis",
+                                    "Coherence.Cache.Size",
+                                    "Coherence.Cache.StoreAverageBatchSize",
+                                    "Coherence.Cache.StoreFailures",
+                                    "Coherence.Cache.StoreReads",
+                                    "Coherence.Cache.StoreReadMillis",
+                                    "Coherence.Cache.StoreWrites",
+                                    "Coherence.Cache.StoreWriteMillis",
+                                    "Coherence.Cache.TotalGets",
+                                    "Coherence.Cache.TotalGetsMillis",
+                                    "Coherence.Cache.TotalPuts",
+                                    "Coherence.Cache.TotalPutsMillis",
+                                    "Coherence.Cache.UnitsBytes");
         }
 
     @Test
@@ -312,27 +317,27 @@ public class MetricsSupportTests
         mapTags.put("coherence_service", "DistributedCacheService");
         mapTags.put("tier", "back");
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Cache.Hits",
-                      "Coherence.Cache.HitsMillis",
-                      "Coherence.Cache.Misses",
-                      "Coherence.Cache.MissesMillis",
-                      "Coherence.Cache.Prunes",
-                      "Coherence.Cache.PrunesMillis",
-                      "Coherence.Cache.QueueSize",
-                      "Coherence.Cache.Size",
-                      "Coherence.Cache.StoreAverageBatchSize",
-                      "Coherence.Cache.StoreFailures",
-                      "Coherence.Cache.StoreReads",
-                      "Coherence.Cache.StoreReadMillis",
-                      "Coherence.Cache.StoreWrites",
-                      "Coherence.Cache.StoreWriteMillis",
-                      "Coherence.Cache.TotalGets",
-                      "Coherence.Cache.TotalGetsMillis",
-                      "Coherence.Cache.TotalPuts",
-                      "Coherence.Cache.TotalPutsMillis",
-                      "Coherence.Cache.UnitsBytes");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Cache.Hits",
+                                    "Coherence.Cache.HitsMillis",
+                                    "Coherence.Cache.Misses",
+                                    "Coherence.Cache.MissesMillis",
+                                    "Coherence.Cache.Prunes",
+                                    "Coherence.Cache.PrunesMillis",
+                                    "Coherence.Cache.QueueSize",
+                                    "Coherence.Cache.Size",
+                                    "Coherence.Cache.StoreAverageBatchSize",
+                                    "Coherence.Cache.StoreFailures",
+                                    "Coherence.Cache.StoreReads",
+                                    "Coherence.Cache.StoreReadMillis",
+                                    "Coherence.Cache.StoreWrites",
+                                    "Coherence.Cache.StoreWriteMillis",
+                                    "Coherence.Cache.TotalGets",
+                                    "Coherence.Cache.TotalGetsMillis",
+                                    "Coherence.Cache.TotalPuts",
+                                    "Coherence.Cache.TotalPutsMillis",
+                                    "Coherence.Cache.UnitsBytes");
         }
 
     @Test
@@ -348,41 +353,41 @@ public class MetricsSupportTests
         mapTags.put("name", "DistributedCacheService");
         mapTags.put("type", "DistributedCache");
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Service.EventBacklog",
-                      "Coherence.Service.EventCount",
-                      "Coherence.Service.MemberCount",
-                      "Coherence.Service.MessagesLocal",
-                      "Coherence.Service.MessagesReceived",
-                      "Coherence.Service.MessagesSent",
-                      "Coherence.Service.OwnedPartitionsBackup",
-                      "Coherence.Service.OwnedPartitionsPrimary",
-                      "Coherence.Service.PartitionsEndangered",
-                      "Coherence.Service.PartitionsUnbalanced",
-                      "Coherence.Service.PartitionsVulnerable",
-                      "Coherence.Service.PersistenceLatencyAverage",
-                      "Coherence.Service.PersistenceLatencyMax",
-                      "Coherence.Service.PersistenceSnapshotSpaceAvailable",
-                      "Coherence.Service.PersistenceSnapshotSpaceTotal",
-                      "Coherence.Service.RequestAverageDuration",
-                      "Coherence.Service.RequestMaxDuration",
-                      "Coherence.Service.RequestPendingCount",
-                      "Coherence.Service.RequestPendingDuration",
-                      "Coherence.Service.RequestTimeoutCount",
-                      "Coherence.Service.RequestTotalCount",
-                      "Coherence.Service.StorageEnabledCount",
-                      "Coherence.Service.TaskAverageDuration",
-                      "Coherence.Service.TaskBacklog",
-                      "Coherence.Service.TaskCount",
-                      "Coherence.Service.TaskHungCount",
-                      "Coherence.Service.TaskHungDuration",
-                      "Coherence.Service.TaskMaxBacklog",
-                      "Coherence.Service.TaskTimeoutCount",
-                      "Coherence.Service.ThreadAbandonedCount",
-                      "Coherence.Service.ThreadAverageActiveCount",
-                      "Coherence.Service.ThreadCount",
-                      "Coherence.Service.ThreadIdleCount");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Service.EventBacklog",
+                                    "Coherence.Service.EventCount",
+                                    "Coherence.Service.MemberCount",
+                                    "Coherence.Service.MessagesLocal",
+                                    "Coherence.Service.MessagesReceived",
+                                    "Coherence.Service.MessagesSent",
+                                    "Coherence.Service.OwnedPartitionsBackup",
+                                    "Coherence.Service.OwnedPartitionsPrimary",
+                                    "Coherence.Service.PartitionsEndangered",
+                                    "Coherence.Service.PartitionsUnbalanced",
+                                    "Coherence.Service.PartitionsVulnerable",
+                                    "Coherence.Service.PersistenceLatencyAverage",
+                                    "Coherence.Service.PersistenceLatencyMax",
+                                    "Coherence.Service.PersistenceSnapshotSpaceAvailable",
+                                    "Coherence.Service.PersistenceSnapshotSpaceTotal",
+                                    "Coherence.Service.RequestAverageDuration",
+                                    "Coherence.Service.RequestMaxDuration",
+                                    "Coherence.Service.RequestPendingCount",
+                                    "Coherence.Service.RequestPendingDuration",
+                                    "Coherence.Service.RequestTimeoutCount",
+                                    "Coherence.Service.RequestTotalCount",
+                                    "Coherence.Service.StorageEnabledCount",
+                                    "Coherence.Service.TaskAverageDuration",
+                                    "Coherence.Service.TaskBacklog",
+                                    "Coherence.Service.TaskCount",
+                                    "Coherence.Service.TaskHungCount",
+                                    "Coherence.Service.TaskHungDuration",
+                                    "Coherence.Service.TaskMaxBacklog",
+                                    "Coherence.Service.TaskTimeoutCount",
+                                    "Coherence.Service.ThreadAbandonedCount",
+                                    "Coherence.Service.ThreadAverageActiveCount",
+                                    "Coherence.Service.ThreadCount",
+                                    "Coherence.Service.ThreadIdleCount");
         }
 
     @Test
@@ -398,29 +403,29 @@ public class MetricsSupportTests
         mapTags.put("name", "ExtendTcpProxyService");
         mapTags.put("type", "Proxy");
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Service.MemberCount",
-                      "Coherence.Service.MessagesLocal",
-                      "Coherence.Service.MessagesReceived",
-                      "Coherence.Service.MessagesSent",
-                      "Coherence.Service.RequestAverageDuration",
-                      "Coherence.Service.RequestMaxDuration",
-                      "Coherence.Service.RequestPendingCount",
-                      "Coherence.Service.RequestPendingDuration",
-                      "Coherence.Service.RequestTimeoutCount",
-                      "Coherence.Service.RequestTotalCount",
-                      "Coherence.Service.TaskAverageDuration",
-                      "Coherence.Service.TaskBacklog",
-                      "Coherence.Service.TaskCount",
-                      "Coherence.Service.TaskHungCount",
-                      "Coherence.Service.TaskHungDuration",
-                      "Coherence.Service.TaskMaxBacklog",
-                      "Coherence.Service.TaskTimeoutCount",
-                      "Coherence.Service.ThreadAbandonedCount",
-                      "Coherence.Service.ThreadAverageActiveCount",
-                      "Coherence.Service.ThreadCount",
-                      "Coherence.Service.ThreadIdleCount");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Service.MemberCount",
+                                    "Coherence.Service.MessagesLocal",
+                                    "Coherence.Service.MessagesReceived",
+                                    "Coherence.Service.MessagesSent",
+                                    "Coherence.Service.RequestAverageDuration",
+                                    "Coherence.Service.RequestMaxDuration",
+                                    "Coherence.Service.RequestPendingCount",
+                                    "Coherence.Service.RequestPendingDuration",
+                                    "Coherence.Service.RequestTimeoutCount",
+                                    "Coherence.Service.RequestTotalCount",
+                                    "Coherence.Service.TaskAverageDuration",
+                                    "Coherence.Service.TaskBacklog",
+                                    "Coherence.Service.TaskCount",
+                                    "Coherence.Service.TaskHungCount",
+                                    "Coherence.Service.TaskHungDuration",
+                                    "Coherence.Service.TaskMaxBacklog",
+                                    "Coherence.Service.TaskTimeoutCount",
+                                    "Coherence.Service.ThreadAbandonedCount",
+                                    "Coherence.Service.ThreadAverageActiveCount",
+                                    "Coherence.Service.ThreadCount",
+                                    "Coherence.Service.ThreadIdleCount");
         }
 
     @Test
@@ -436,44 +441,44 @@ public class MetricsSupportTests
         mapTags.put("name", "DistributedCachePersistence");
         mapTags.put("type", "DistributedCache");
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Service.EventBacklog",
-                      "Coherence.Service.EventCount",
-                      "Coherence.Service.MemberCount",
-                      "Coherence.Service.MessagesLocal",
-                      "Coherence.Service.MessagesReceived",
-                      "Coherence.Service.MessagesSent",
-                      "Coherence.Service.OwnedPartitionsBackup",
-                      "Coherence.Service.OwnedPartitionsPrimary",
-                      "Coherence.Service.PartitionsEndangered",
-                      "Coherence.Service.PartitionsUnbalanced",
-                      "Coherence.Service.PartitionsVulnerable",
-                      "Coherence.Service.PersistenceActiveSpaceAvailable",
-                      "Coherence.Service.PersistenceActiveSpaceTotal",
-                      "Coherence.Service.PersistenceActiveSpaceUsed",
-                      "Coherence.Service.PersistenceLatencyAverage",
-                      "Coherence.Service.PersistenceLatencyMax",
-                      "Coherence.Service.PersistenceSnapshotSpaceAvailable",
-                      "Coherence.Service.PersistenceSnapshotSpaceTotal",
-                      "Coherence.Service.RequestAverageDuration",
-                      "Coherence.Service.RequestMaxDuration",
-                      "Coherence.Service.RequestPendingCount",
-                      "Coherence.Service.RequestPendingDuration",
-                      "Coherence.Service.RequestTimeoutCount",
-                      "Coherence.Service.RequestTotalCount",
-                      "Coherence.Service.StorageEnabledCount",
-                      "Coherence.Service.TaskAverageDuration",
-                      "Coherence.Service.TaskBacklog",
-                      "Coherence.Service.TaskCount",
-                      "Coherence.Service.TaskHungCount",
-                      "Coherence.Service.TaskHungDuration",
-                      "Coherence.Service.TaskMaxBacklog",
-                      "Coherence.Service.TaskTimeoutCount",
-                      "Coherence.Service.ThreadAbandonedCount",
-                      "Coherence.Service.ThreadAverageActiveCount",
-                      "Coherence.Service.ThreadCount",
-                      "Coherence.Service.ThreadIdleCount");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Service.EventBacklog",
+                                    "Coherence.Service.EventCount",
+                                    "Coherence.Service.MemberCount",
+                                    "Coherence.Service.MessagesLocal",
+                                    "Coherence.Service.MessagesReceived",
+                                    "Coherence.Service.MessagesSent",
+                                    "Coherence.Service.OwnedPartitionsBackup",
+                                    "Coherence.Service.OwnedPartitionsPrimary",
+                                    "Coherence.Service.PartitionsEndangered",
+                                    "Coherence.Service.PartitionsUnbalanced",
+                                    "Coherence.Service.PartitionsVulnerable",
+                                    "Coherence.Service.PersistenceActiveSpaceAvailable",
+                                    "Coherence.Service.PersistenceActiveSpaceTotal",
+                                    "Coherence.Service.PersistenceActiveSpaceUsed",
+                                    "Coherence.Service.PersistenceLatencyAverage",
+                                    "Coherence.Service.PersistenceLatencyMax",
+                                    "Coherence.Service.PersistenceSnapshotSpaceAvailable",
+                                    "Coherence.Service.PersistenceSnapshotSpaceTotal",
+                                    "Coherence.Service.RequestAverageDuration",
+                                    "Coherence.Service.RequestMaxDuration",
+                                    "Coherence.Service.RequestPendingCount",
+                                    "Coherence.Service.RequestPendingDuration",
+                                    "Coherence.Service.RequestTimeoutCount",
+                                    "Coherence.Service.RequestTotalCount",
+                                    "Coherence.Service.StorageEnabledCount",
+                                    "Coherence.Service.TaskAverageDuration",
+                                    "Coherence.Service.TaskBacklog",
+                                    "Coherence.Service.TaskCount",
+                                    "Coherence.Service.TaskHungCount",
+                                    "Coherence.Service.TaskHungDuration",
+                                    "Coherence.Service.TaskMaxBacklog",
+                                    "Coherence.Service.TaskTimeoutCount",
+                                    "Coherence.Service.ThreadAbandonedCount",
+                                    "Coherence.Service.ThreadAverageActiveCount",
+                                    "Coherence.Service.ThreadCount",
+                                    "Coherence.Service.ThreadIdleCount");
         }
 
     @Test
@@ -489,13 +494,13 @@ public class MetricsSupportTests
         mapTags.put("coherence_service", "DistributedCacheService");
         mapTags.put("coordinatorId", null);
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.PartitionAssignment.ServiceNodeCount",
-                      "Coherence.PartitionAssignment.ServiceMachineCount",
-                      "Coherence.PartitionAssignment.ServiceRackCount",
-                      "Coherence.PartitionAssignment.ServiceSiteCount",
-                      "Coherence.PartitionAssignment.HAStatusCode");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.PartitionAssignment.ServiceNodeCount",
+                                    "Coherence.PartitionAssignment.ServiceMachineCount",
+                                    "Coherence.PartitionAssignment.ServiceRackCount",
+                                    "Coherence.PartitionAssignment.ServiceSiteCount",
+                                    "Coherence.PartitionAssignment.HAStatusCode");
         }
 
     @Test
@@ -511,24 +516,24 @@ public class MetricsSupportTests
         mapTags.put("cache", TEST_CACHE);
         mapTags.put("coherence_service", "DistributedCacheService");
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.StorageManager.EventsDispatched",
-                      "Coherence.StorageManager.EvictionCount",
-                      "Coherence.StorageManager.IndexTotalUnits",
-                      "Coherence.StorageManager.InsertCount",
-                      "Coherence.StorageManager.ListenerFilterCount",
-                      "Coherence.StorageManager.ListenerKeyCount",
-                      "Coherence.StorageManager.ListenerRegistrations",
-                      "Coherence.StorageManager.LocksGranted",
-                      "Coherence.StorageManager.LocksPending",
-                      "Coherence.StorageManager.MaxQueryDurationMillis",
-                      "Coherence.StorageManager.NonOptimizedQueryCount",
-                      "Coherence.StorageManager.NonOptimizedQueryTotalMillis",
-                      "Coherence.StorageManager.OptimizedQueryCount",
-                      "Coherence.StorageManager.OptimizedQueryTotalMillis",
-                      "Coherence.StorageManager.QueryContentionCount",
-                      "Coherence.StorageManager.RemoveCount");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.StorageManager.EventsDispatched",
+                                    "Coherence.StorageManager.EvictionCount",
+                                    "Coherence.StorageManager.IndexTotalUnits",
+                                    "Coherence.StorageManager.InsertCount",
+                                    "Coherence.StorageManager.ListenerFilterCount",
+                                    "Coherence.StorageManager.ListenerKeyCount",
+                                    "Coherence.StorageManager.ListenerRegistrations",
+                                    "Coherence.StorageManager.LocksGranted",
+                                    "Coherence.StorageManager.LocksPending",
+                                    "Coherence.StorageManager.MaxQueryDurationMillis",
+                                    "Coherence.StorageManager.NonOptimizedQueryCount",
+                                    "Coherence.StorageManager.NonOptimizedQueryTotalMillis",
+                                    "Coherence.StorageManager.OptimizedQueryCount",
+                                    "Coherence.StorageManager.OptimizedQueryTotalMillis",
+                                    "Coherence.StorageManager.QueryContentionCount",
+                                    "Coherence.StorageManager.RemoveCount");
         }
 
     @Test
@@ -545,16 +550,16 @@ public class MetricsSupportTests
         mapTags.put("host", null);
         mapTags.put("protocol", null);
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.ConnectionManager.TotalBytesReceived",
-                      "Coherence.ConnectionManager.TotalBytesSent",
-                      "Coherence.ConnectionManager.TotalMessagesReceived",
-                      "Coherence.ConnectionManager.TotalMessagesSent",
-                      "Coherence.ConnectionManager.UnauthorizedConnectionAttempts",
-                      "Coherence.ConnectionManager.OutgoingByteBacklog",
-                      "Coherence.ConnectionManager.OutgoingMessageBacklog",
-                      "Coherence.ConnectionManager.ConnectionCount");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.ConnectionManager.TotalBytesReceived",
+                                    "Coherence.ConnectionManager.TotalBytesSent",
+                                    "Coherence.ConnectionManager.TotalMessagesReceived",
+                                    "Coherence.ConnectionManager.TotalMessagesSent",
+                                    "Coherence.ConnectionManager.UnauthorizedConnectionAttempts",
+                                    "Coherence.ConnectionManager.OutgoingByteBacklog",
+                                    "Coherence.ConnectionManager.OutgoingMessageBacklog",
+                                    "Coherence.ConnectionManager.ConnectionCount");
         }
 
     @Test
@@ -590,9 +595,9 @@ public class MetricsSupportTests
             listExpectedMetrics.add("Coherence.OS.SystemLoadAverage");
             }
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      listExpectedMetrics.toArray(new String[0]));
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    listExpectedMetrics.toArray(new String[0]));
         }
 
     @Test
@@ -605,17 +610,17 @@ public class MetricsSupportTests
 
         Map<String, String> mapTags = getCommonTagsWithNodeId();
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Memory.ObjectPendingFinalizationCount",
-                      "Coherence.Memory.HeapMemoryUsage.committed",
-                      "Coherence.Memory.HeapMemoryUsage.init",
-                      "Coherence.Memory.HeapMemoryUsage.max",
-                      "Coherence.Memory.HeapMemoryUsage.used",
-                      "Coherence.Memory.NonHeapMemoryUsage.committed",
-                      "Coherence.Memory.NonHeapMemoryUsage.init",
-                      "Coherence.Memory.NonHeapMemoryUsage.max",
-                      "Coherence.Memory.NonHeapMemoryUsage.used");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Memory.ObjectPendingFinalizationCount",
+                                    "Coherence.Memory.HeapMemoryUsage.committed",
+                                    "Coherence.Memory.HeapMemoryUsage.init",
+                                    "Coherence.Memory.HeapMemoryUsage.max",
+                                    "Coherence.Memory.HeapMemoryUsage.used",
+                                    "Coherence.Memory.NonHeapMemoryUsage.committed",
+                                    "Coherence.Memory.NonHeapMemoryUsage.init",
+                                    "Coherence.Memory.NonHeapMemoryUsage.max",
+                                    "Coherence.Memory.NonHeapMemoryUsage.used");
         }
 
     @Test
@@ -630,14 +635,14 @@ public class MetricsSupportTests
 
         mapTags.put("name", null);
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.GC.CollectionCount",
-                      "Coherence.GC.CollectionTime",
-                      "Coherence.GC.LastGcInfo.id",
-                      "Coherence.GC.LastGcInfo.startTime",
-                      "Coherence.GC.LastGcInfo.endTime",
-                      "Coherence.GC.LastGcInfo.duration");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.GC.CollectionCount",
+                                    "Coherence.GC.CollectionTime",
+                                    "Coherence.GC.LastGcInfo.id",
+                                    "Coherence.GC.LastGcInfo.startTime",
+                                    "Coherence.GC.LastGcInfo.endTime",
+                                    "Coherence.GC.LastGcInfo.duration");
         }
 
     @Test
@@ -657,15 +662,15 @@ public class MetricsSupportTests
         mapTags.put("remoteAddress", null);
         mapTags.put("remotePort", null);
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Connection.ConnectionTimeMillis",
-                      "Coherence.Connection.OutgoingByteBacklog",
-                      "Coherence.Connection.OutgoingMessageBacklog",
-                      "Coherence.Connection.TotalBytesReceived",
-                      "Coherence.Connection.TotalBytesSent",
-                      "Coherence.Connection.TotalMessagesSent",
-                      "Coherence.Connection.TotalMessagesReceived");
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Connection.ConnectionTimeMillis",
+                                    "Coherence.Connection.OutgoingByteBacklog",
+                                    "Coherence.Connection.OutgoingMessageBacklog",
+                                    "Coherence.Connection.TotalBytesReceived",
+                                    "Coherence.Connection.TotalBytesSent",
+                                    "Coherence.Connection.TotalMessagesSent",
+                                    "Coherence.Connection.TotalMessagesReceived");
         }
 
     @Test
@@ -688,14 +693,47 @@ public class MetricsSupportTests
         mapTags.put("custom_tag", "TagOne");     // tag from annotated interface method with name specified
         mapTags.put("tagValueTwo", "TagTwo");    // tag from annotated interface method with no name specified
 
-        assertMetrics(adapter.getMetrics(),
-                      mapTags,
-                      "Coherence.Dummy.custom_value",  // metric from annotated method with name specified
-                      "Coherence.Dummy.ValueTwo");                   //  metric from annotated method with no name specified
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Dummy.custom_value",  // metric from annotated method with name specified
+                                    "Coherence.Dummy.ValueTwo");                   //  metric from annotated method with no name specified
+        }
+
+    @Test
+    public void shouldGetHeapAfterGCMetrics() throws Exception
+        {
+        Assume.assumeThat("test skipped, no memory pool MBeans", ManagementFactory.getMemoryPoolMXBeans().size(), is(not(0)));
+        MetricsRegistryAdapterStub adapter = new MetricsRegistryAdapterStub();
+        MetricSupport metricSupport = new MetricSupport(registrySupplier(), Collections.singletonList(adapter));
+
+        metricSupport.register(getMBeanName("*:type=Platform,Domain=java.lang,subType=MemoryPool,*"));
+
+        assertThat(adapter.metricCount(), is(not(0)));
+
+        List<String> metrics = adapter.getMetrics()
+                .stream()
+                .map(MBeanMetric::getName)
+                .distinct()
+                .collect(Collectors.toList());
+
+        assertThat(metrics.size(), is(4));
+        assertThat(metrics, containsInAnyOrder("Coherence.Memory.HeapAfterGC.Initial",
+                                               "Coherence.Memory.HeapAfterGC.Used",
+                                               "Coherence.Memory.HeapAfterGC.Committed",
+                                               "Coherence.Memory.HeapAfterGC.Max"));
         }
 
     // ----- helper methods -------------------------------------------------
 
+
+    private void assertMetricsWithoutAfterGC(List<MBeanMetric> list, Map<String, String> mapTags, String... asMetricName)
+        {
+        List<MBeanMetric> filtered = list.stream()
+                .filter(m -> !m.getName().startsWith("Coherence.Memory.HeapAfterGC."))
+                .collect(Collectors.toList());
+
+        assertMetrics(filtered, mapTags, asMetricName);
+        }
 
     private void assertMetrics(List<MBeanMetric> list, Map<String, String> mapTags, String... asMetricName)
         {
