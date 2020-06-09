@@ -1845,8 +1845,7 @@
         <module>coherence-rest</module>
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
-        <module>coherence-mp-config</module>
-        <module>coherence-mp-metrics</module>
+        <module>coherence-mp</module>
         <module>coherence-grpc</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
