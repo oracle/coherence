@@ -4,11 +4,11 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.cache.grpc.client;
 
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.common.util.Options;
+
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionProvider;
 
@@ -24,7 +24,6 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
 import javax.enterprise.inject.Produces;
-
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -153,14 +152,14 @@ public class RemoteSessions
     @Name("")
     protected GrpcRemoteSession getSession(InjectionPoint injectionPoint)
         {
-        String name = injectionPoint.getQualifiers()
+        String sName = injectionPoint.getQualifiers()
                 .stream()
                 .filter(q -> q.annotationType().isAssignableFrom(Name.class))
                 .map(q -> ((Name) q).value())
                 .findFirst()
                 .orElse(GrpcRemoteSession.DEFAULT_NAME);
 
-        return ensureSession(name);
+        return ensureSession(sName);
         }
 
     /**

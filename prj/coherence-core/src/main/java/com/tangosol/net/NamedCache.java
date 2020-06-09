@@ -4,9 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.net;
-
 
 import com.tangosol.internal.util.DefaultAsyncNamedCache;
 
@@ -15,6 +13,7 @@ import com.tangosol.net.cache.CacheMap;
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.Base;
 import com.tangosol.util.InvocableMap;
+
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -35,7 +34,6 @@ import java.util.function.BiConsumer;
 */
 public interface NamedCache<K, V>
         extends NamedMap<K, V>, CacheMap<K, V>
-
     {
     /**
     * Return the cache name.

@@ -4,14 +4,12 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.cache.grpc.client;
 
 import com.oracle.coherence.cdi.SerializerProducer;
 
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
-
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.net.CacheFactory;
@@ -19,8 +17,8 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.Session;
-
 import com.tangosol.net.topic.NamedTopic;
+
 import com.tangosol.util.Base;
 
 import io.grpc.Channel;

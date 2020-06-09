@@ -4,11 +4,11 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.cache.grpc.client;
 
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Session;
+
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 
@@ -19,7 +19,6 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 
 import javax.enterprise.inject.Produces;
-
 import javax.enterprise.inject.spi.InjectionPoint;
 
 import javax.inject.Inject;

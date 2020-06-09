@@ -4,20 +4,19 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.cache.grpc.client;
 
 import com.oracle.coherence.cdi.Name;
-import com.tangosol.io.DefaultSerializer;
 
+import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.Session;
 
 import io.helidon.microprofile.server.Server;
-import javax.enterprise.context.ApplicationScoped;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.spi.CDI;
 
 import javax.inject.Inject;

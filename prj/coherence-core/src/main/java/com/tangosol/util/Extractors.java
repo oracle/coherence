@@ -7,12 +7,13 @@
 package com.tangosol.util;
 
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
+
 import com.tangosol.io.pof.reflect.PofNavigator;
 import com.tangosol.io.pof.reflect.PofReflectionHelper;
 import com.tangosol.io.pof.reflect.SimplePofPath;
 
-import com.tangosol.io.pof.schema.annotation.Portable;
 import com.tangosol.io.pof.schema.annotation.PortableType;
+
 import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
