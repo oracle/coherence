@@ -8,7 +8,7 @@
 -->
 
 -----
-<img src=https://coherence.java.net/assets/img/logo-community.png><img>
+<img src=https://oracle.github.io/coherence/assets/images/logo-red.png><img>
 
 [![License](http://img.shields.io/badge/license-UPL%201.0-blue.svg)](https://oss.oracle.com/licenses/upl/)
 
@@ -53,9 +53,7 @@ for locally executed mutations) the data set. These capabilities, in addition to
 numerous other features, enable Coherence to be used as a framework for writing robust,
 distributed applications.
 
-## <a name="acquire"></a>How to Get Coherence Community Edition 
-
-<!-- When a user is required to perform an action, Oracle recommends to use a Gerund (where possible)Downloading, Installing, Configuring, Obtaining in this case. "Obtaining Coherence Community Edition -->
+## <a name="acquire"></a>Downloading Coherence Community Edition
 
 As Coherence is generally embedded into an application by using Coherence APIs,
 the natural place to consume this dependency is from Maven:
@@ -69,14 +67,14 @@ the natural place to consume this dependency is from Maven:
     </dependency>
 </dependencies>
 ```
-<!-- The links produce 404 error, using https worked -->
+
 You can also get Coherence from the official [Docker site](https://hub.docker.com/_/oracle-coherence-12c).
 For other language clients, use [C++](https://github.com/oracle/coherence-cpp-extend-client) and
 [.NET](https://github.com/oracle/coherence-dotnet-extend-client) and for the non-community
 edition, see [Oracle Technology Network](https://www.oracle.com/middleware/technologies/coherence-downloads.html).
 
-## <a name="overview"></a>Coherence Overview
-<!--Suggestion "Overview of Coherence or simply "Overview"  -->
+## <a name="overview"></a>Overview
+
 First and foremost, Coherence provides a fundamental service that is responsible
 for all facets of clustering and is a common denominator / building block for all
 other Coherence services. This service, referred to as 'service 0' internally,
@@ -88,8 +86,7 @@ thus enabling those services to react accordingly.
 > Note: This part of the Coherence product has been in production for more that 10 years,
 >       being the subject of some extensive and imaginative testing. While this feature has
 >       been discussed here, it certainly is not something that customers, generally,
->       interact with directly, but is valuable to be aware of.
-!--Suggestion: should be say "important" instead of "valuable"?  -->
+>       interact with directly, but is important to be aware of.
 
 Coherence services build on top of the cluster service. The key implementations
 to be aware of are PartitionedService, InvocationService, and ProxyService.
@@ -159,7 +156,6 @@ for distant (high latency) clients and for non-java languages such as C++ and .N
 our own [operator](https://github.com/oracle/coherence-operator)
 
 ## <a name="get-started"></a>Hello Coherence
-
 
 ### Prerequisites
 
@@ -372,10 +368,10 @@ $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 Oracle Coherence product documentation is available
 [here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html).
 
-### Coherence Community Edition Disabled and Excluded Functionality
+### Disabled and Excluded Features 
 <!-- Suggestion: Disabled and Excluded Features (sounds better I think) in Coherence Community Edition -->
 
-The following Oracle Coherence features are not included in the Coherence Community Edition:
+The following Oracle Coherence features are not included in Coherence Community Edition:
 
 * Management of Coherence via the Oracle WebLogic Management Framework
 * WebLogic Server Multitenancy Support
