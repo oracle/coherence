@@ -368,7 +368,7 @@ $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 Oracle Coherence product documentation is available
 [here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html).
 
-### Disabled and Excluded Features 
+### Features Not Included in Coherence Community Edition 
 <!-- Suggestion: Disabled and Excluded Features (sounds better I think) in Coherence Community Edition -->
 
 The following Oracle Coherence features are not included in Coherence Community Edition:
