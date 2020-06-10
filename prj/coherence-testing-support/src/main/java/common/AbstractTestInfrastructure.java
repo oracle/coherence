@@ -879,6 +879,7 @@ public abstract class AbstractTestInfrastructure
             optionsByType.add(SystemProperty.of("oracle.coherence.lib", System.getProperty("oracle.coherence.lib", sRootDir + "/coherence/target")));
             optionsByType.add(SystemProperty.of("test.project.version", System.getProperty("project.version")));
             optionsByType.add(SystemProperty.of("test.tmp.dir",System.getProperty("java.io.tmpdir")));
+            optionsByType.add(SystemProperty.of("sun.net.maxDatagramSockets", "50"));
             }
 
         return optionsByType;
