@@ -523,43 +523,43 @@
                       </packages>
                     </group>
                     <group>
-                      <title>Coherence Configuration</title>
+                      <title>Configuration</title>
                       <packages>com.tangosol.config*:com.tangosol.coherence.config*</packages>
                     </group>
                     <group>
-                      <title>Coherence Container Integration</title>
+                      <title>Container Integration</title>
                       <packages>com.tangosol.application*</packages>
                     </group>
                     <group>
-                      <title>Coherence Persistence</title>
+                      <title>Persistence</title>
                       <packages>com.oracle.coherence.persistence*:com.tangosol.persistence*</packages>
                     </group>
                     <group>
-                      <title>Coherence Query Language (CohQL)</title>
+                      <title>Query Language (CohQL)</title>
                       <packages>
                           com.tangosol.coherence.dsl*
                       </packages>
                     </group>
                     <group>
-                      <title>Coherence JCache</title>
+                      <title>JCache</title>
                       <packages>com.tangosol.coherence.jcache*</packages>
                     </group>
                     <group>
-                      <title>Coherence REST API</title>
+                      <title>REST API</title>
                       <packages>
                         com.tangosol.coherence.rest*:com.tangosol.coherence.rest.io*:com.tangosol.coherence.rest.query*:com.tangosol.coherence.rest.server*:com.tangosol.coherence.rest.servlet*:com.tangosol.coherence.rest.util.aggregator*:com.tangosol.coherence.rest.util.processor*
                       </packages>
                     </group>
                     <group>
-                      <title>Coherence CDI</title>
+                      <title>CDI</title>
                       <packages>com.oracle.coherence.cdi*</packages>
                     </group>
                     <group>
-                      <title>Coherence MicroProfile</title>
+                      <title>MicroProfile</title>
                       <packages>com.oracle.coherence.mp*</packages>
                     </group>
                     <group>
-                      <title>Coherence gRPC</title>
+                      <title>gRPC</title>
                       <packages>com.oracle.coherence.grpc*:com.oracle.coherence.cache.grpc.client*</packages>
                     </group>
                   </groups>
