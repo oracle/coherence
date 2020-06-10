@@ -68,7 +68,7 @@ public class NamedEventInterceptorBuilderTest
     public void testMinimal()
         {
         NamedEventInterceptorBuilder bldr     = new NamedEventInterceptorBuilder();
-        ParameterResolver       resolver = new NullParameterResolver();
+        ParameterResolver            resolver = new NullParameterResolver();
 
         bldr.setName("AristotolesInterceptor");
         bldr.setCustomBuilder(new InstanceBuilder<EventInterceptor>(AristotlesInterceptor.class));
@@ -136,24 +136,26 @@ public class NamedEventInterceptorBuilderTest
     public void testServiceAndCacheName()
             throws ParseException
         {
-        ServiceInfo                  si   = mock(ServiceInfo.class);
-        CacheService                 cs   = mock(CacheService.class);
-        PartitionedService           ps   = mock(PartitionedService.class);
+        //ServiceInfo                  si   = mock(ServiceInfo.class);
+        //CacheService                 cs   = mock(CacheService.class);
+        //PartitionedService           ps   = mock(PartitionedService.class);
         BackingMapManagerContext     bmmc = mock(BackingMapManagerContext.class);
         BackingMapContext            bmc  = mock(BackingMapContext.class);
         PartitionedCacheDispatcher   bmd  = mock(PartitionedCacheDispatcher.class);
         PartitionedServiceDispatcher psd  = mock(PartitionedServiceDispatcher.class);
 
         // mimic call stacks
-        when(si.getServiceName()).thenReturn("PartitionedService");
-        when(cs.getInfo()).thenReturn(si);
-        when(bmmc.getCacheService()).thenReturn(cs);
-        when(bmc.getManagerContext()).thenReturn(bmmc);
-        when(bmc.getCacheName()).thenReturn("dist-bonjour");
-        when(bmd.getBackingMapContext()).thenReturn(bmc);
+        //when(si.getServiceName()).thenReturn("PartitionedService");
+        //when(cs.getInfo()).thenReturn(si);
+        //when(bmmc.getCacheService()).thenReturn(cs);
+        //when(bmc.getManagerContext()).thenReturn(bmmc);
+        when(psd.getServiceName()).thenReturn("PartitionedService");
+        when(bmd.getServiceName()).thenReturn("PartitionedService");
+        when(bmd.getCacheName()).thenReturn("dist-bonjour");
+        //when(bmd.getBackingMapContext()).thenReturn(bmc);
 
-        when(ps.getInfo()).thenReturn(si);
-        when(psd.getService()).thenReturn(ps);
+        //when(ps.getInfo()).thenReturn(si);
+        //when(psd.getService()).thenReturn(ps);
 
         NamedEventInterceptorBuilder bldr = new NamedEventInterceptorBuilder();
 
@@ -179,13 +181,15 @@ public class NamedEventInterceptorBuilderTest
         // verify service-name filtering
         assertTrue(incptrNamed.isAcceptable(bmd));
         assertTrue(incptrNamed.isAcceptable(psd));
-        when(si.getServiceName()).thenReturn("WrongPartService");
+        when(bmd.getServiceName()).thenReturn("WrongPartService");
+        when(psd.getServiceName()).thenReturn("WrongPartService");
         assertFalse(incptrNamed.isAcceptable(bmd));
         assertFalse(incptrNamed.isAcceptable(psd));
 
         // verify cache-name filtering
-        when(si.getServiceName()).thenReturn("PartitionedService");
-        when(bmc.getCacheName()).thenReturn("repl-bonjour");
+        when(bmd.getServiceName()).thenReturn("PartitionedService");
+        when(psd.getServiceName()).thenReturn("PartitionedService");
+        when(bmd.getCacheName()).thenReturn("repl-bonjour");
         assertFalse(incptrNamed.isAcceptable(bmd));
         assertTrue(incptrNamed.isAcceptable(psd));
         }

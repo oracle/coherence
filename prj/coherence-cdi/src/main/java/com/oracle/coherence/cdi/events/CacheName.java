@@ -15,35 +15,35 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Qualifier;
 
 /**
- * A qualifier annotation used to indicate a specific service name.
+ * A qualifier annotation used to indicate a specific cache name.
  *
  * @author Aleks Seovic  2020.04.01
  */
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Service
+public @interface CacheName
     {
     /**
-     * The value used to identify a specific service.
+     * Obtain the value used to identify a specific cache.
      *
-     * @return the value used to identify a specific service
+     * @return value used to identify a specific cache
      */
     String value();
 
     // ---- inner class: Literal --------------------------------------------
 
     /**
-     * An annotation literal for the {@link Service} annotation.
+     * An annotation literal for the {@link CacheName} annotation.
      */
     class Literal
-            extends AnnotationLiteral<Service>
-            implements Service
+            extends AnnotationLiteral<CacheName>
+            implements CacheName
         {
         /**
-         * Construct {@link Service.Literal} instance.
+         * Construct {@link CacheName.Literal} instance.
          *
-         * @param sName  the service name
+         * @param sName  the cache name
          */
         private Literal(String sName)
             {
@@ -51,11 +51,11 @@ public @interface Service
             }
 
         /**
-         * Create a {@link Service.Literal}.
+         * Create a {@link CacheName.Literal}.
          *
-         * @param sName  the service name
+         * @param sName  the cache name
          *
-         * @return a {@link Service.Literal} with the specified value
+         * @return a {@link CacheName.Literal} with the specified value
          */
         public static Literal of(String sName)
             {
@@ -63,9 +63,9 @@ public @interface Service
             }
 
         /**
-         * The name used to identify a specific service.
+         * The name used to identify a specific cache.
          *
-         * @return the name used to identify a specific service
+         * @return the name used to identify a specific cache
          */
         public String value()
             {
@@ -75,7 +75,7 @@ public @interface Service
         // ---- data members ------------------------------------------------
 
         /**
-         * The service name.
+         * The cache name.
          */
         private final String f_sName;
         }

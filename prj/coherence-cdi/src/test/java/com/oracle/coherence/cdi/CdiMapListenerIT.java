@@ -9,21 +9,19 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
 
-import com.oracle.coherence.cdi.events.Cache;
+import com.oracle.coherence.cdi.events.CacheName;
 import com.oracle.coherence.cdi.events.Deleted;
 import com.oracle.coherence.cdi.events.Inserted;
+import com.oracle.coherence.cdi.events.MapName;
+import com.oracle.coherence.cdi.events.Synchronous;
 import com.oracle.coherence.cdi.events.Updated;
 
 import com.tangosol.net.ConfigurableCacheFactory;
-
 import com.tangosol.net.NamedCache;
-
-import com.tangosol.util.InvocableMap
-        ;
+import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
 
 import java.time.LocalDate;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +42,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Integration test for the {@link EventDispatcher} using the Weld JUnit
+ * Integration test for the {@link CdiInterceptorSupport} using the Weld JUnit
  * extension.
  *
  * @author as  2020.04.03
@@ -54,10 +52,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 class CdiMapListenerIT
     {
     @WeldSetup
-    private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+    private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                          .addExtension(new CoherenceExtension())
                                                           .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
-                                                          .addBeanClass(EventDispatcher.class)
+                                                          .addBeanClass(CdiMapListenerManager.class)
                                                           .addBeanClass(TestListener.class));
 
     @Inject
@@ -71,8 +70,7 @@ class CdiMapListenerIT
     void testEvents()
         {
         NamedCache<String, Person> people = ccf.ensureCache("people", null);
-        people.addMapListener(listener.synchronous());
-        
+
         people.put("homer", new Person("Homer", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("marge", new Person("Marge", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("bart", new Person("Bart", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
@@ -108,7 +106,7 @@ class CdiMapListenerIT
 
     @SuppressWarnings("unchecked")
     @ApplicationScoped
-    public static class TestListener extends CdiMapListener<String, Person>
+    public static class TestListener
         {
         private Map<Integer, Integer> events = new HashMap<>();
 
@@ -123,20 +121,23 @@ class CdiMapListenerIT
             events.compute(event.getId(), (k, v) -> v == null ? 1 : v + 1);
             }
 
-        private void onPersonInserted(@Observes @Inserted @Cache("people") MapEvent<String, Person> event)
+        @Synchronous
+        private void onPersonInserted(@Observes @Inserted @MapName("people") MapEvent<String, Person> event)
             {
             record(event);
             assertThat(event.getNewValue().getLastName(), is("Simpson"));
             }
 
-        private void onPersonUpdated(@Observes @Updated @Cache("people") MapEvent<String, Person> event)
+        @Synchronous
+        private void onPersonUpdated(@Observes @Updated @MapName("people") MapEvent<String, Person> event)
             {
             record(event);
             assertThat(event.getOldValue().getLastName(), is("Simpson"));
             assertThat(event.getNewValue().getLastName(), is("SIMPSON"));
             }
 
-        private void onPersonDeleted(@Observes @Deleted @Cache("people") MapEvent<String, Person> event)
+        @Synchronous
+        private void onPersonDeleted(@Observes @Deleted @CacheName("people") MapEvent<String, Person> event)
             {
             record(event);
             assertThat(event.getOldValue().getLastName(), is("Simpson"));

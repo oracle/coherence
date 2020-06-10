@@ -12,6 +12,7 @@ import com.tangosol.net.options.WithConfiguration;
 
 import com.tangosol.util.Base;
 
+import com.tangosol.util.RegistrationBehavior;
 import java.lang.reflect.Member;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -39,9 +40,9 @@ class ConfigurableCacheFactoryProducer
      * @param uriResolver  the URI resolver to use
      */
     @Inject
-    ConfigurableCacheFactoryProducer(CacheFactoryUriResolver uriResolver)
+    ConfigurableCacheFactoryProducer(CacheFactoryUriResolver uriResolver, CoherenceExtension extension)
         {
-        this(uriResolver, com.tangosol.net.CacheFactory.getCacheFactoryBuilder());
+        this(uriResolver, com.tangosol.net.CacheFactory.getCacheFactoryBuilder(), extension);
         }
 
     /**
@@ -51,10 +52,13 @@ class ConfigurableCacheFactoryProducer
      * @param cacheFactoryBuilder  the {@link CacheFactoryBuilder} to use to
      *                             obtain {@link ConfigurableCacheFactory} instances
      */
-    ConfigurableCacheFactoryProducer(CacheFactoryUriResolver uriResolver, CacheFactoryBuilder cacheFactoryBuilder)
+    ConfigurableCacheFactoryProducer(CacheFactoryUriResolver uriResolver,
+                                     CacheFactoryBuilder cacheFactoryBuilder,
+                                     CoherenceExtension extension)
         {
         f_cacheFactoryBuilder = cacheFactoryBuilder;
         m_uriResolver         = uriResolver;
+        m_extension           = extension;
         }
 
     // ---- producer methods ------------------------------------------------
@@ -67,7 +71,8 @@ class ConfigurableCacheFactoryProducer
     @Produces
     public ConfigurableCacheFactory getDefaultConfigurableCacheFactory()
         {
-        return f_cacheFactoryBuilder.getConfigurableCacheFactory(Base.getContextClassLoader());
+        ConfigurableCacheFactory ccf = f_cacheFactoryBuilder.getConfigurableCacheFactory(Base.getContextClassLoader());
+        return m_extension.registerInterceptors(ccf);
         }
 
     /**
@@ -150,7 +155,8 @@ class ConfigurableCacheFactoryProducer
                              ? Base.getContextClassLoader()
                              : member.getDeclaringClass().getClassLoader();
 
-        return f_cacheFactoryBuilder.getConfigurableCacheFactory(sUri, loader);
+        ConfigurableCacheFactory ccf = f_cacheFactoryBuilder.getConfigurableCacheFactory(sUri, loader);
+        return m_extension.registerInterceptors(ccf);
         }
 
     // ---- data members ----------------------------------------------------
@@ -164,4 +170,9 @@ class ConfigurableCacheFactoryProducer
      * Cache factory URI resolver.
      */
     private CacheFactoryUriResolver m_uriResolver;
+
+    /**
+     * Coherence CDI extension.
+     */
+    private CoherenceExtension m_extension;
     }

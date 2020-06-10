@@ -31,11 +31,11 @@ public class CoherenceTagsConfigSourceTest
         System.setProperty("coherence.cluster", "cluster");
         System.setProperty("coherence.site", "site");
         System.setProperty("coherence.role", "role");
+        System.setProperty("coherence.machine", "machine");
         System.setProperty(MetricID.GLOBAL_TAGS_VARIABLE, "tag_1=value_1,tag_2=VALUE_2");
         }
 
     @Test
-    @Disabled("BLOCKER: regression in Helidon 2.0")
     void testGlobalTags()
         {
         MetricID id = new MetricID("test");
@@ -43,7 +43,7 @@ public class CoherenceTagsConfigSourceTest
         assertThat(id.getTags().get("site"), is("site"));
         assertThat(id.getTags().get("role"), is("role"));
         assertThat(id.getTags().get("node_id"), notNullValue());
-        assertThat(id.getTags().get("machine"), nullValue());
+        assertThat(id.getTags().get("machine"), is("machine"));
         assertThat(id.getTags().get("member"), nullValue());
         assertThat(id.getTags().get("tag_1"), is("value_1"));
         assertThat(id.getTags().get("tag_2"), is("VALUE_2"));

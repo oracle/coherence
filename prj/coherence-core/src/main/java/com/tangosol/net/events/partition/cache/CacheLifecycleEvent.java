@@ -6,6 +6,10 @@
  */
 package com.tangosol.net.events.partition.cache;
 
+
+import com.tangosol.net.NamedCache;
+
+
 /**
  * A CacheLifecycleEvent allows subscribers to capture events pertaining to
  * the lifecycle of a cache.
@@ -22,6 +26,26 @@ public interface CacheLifecycleEvent
      * @return the name of the cache that the event is associated with
      */
     public String getCacheName();
+
+    /**
+     * The name of the service that the event is associated with.
+     *
+     * @return the name of the service that the event is associated with
+     */
+    public default String getServiceName()
+        {
+        return getService().getInfo().getServiceName();
+        }
+
+    /**
+     * The name cache that thi event is associated with.
+     *
+     * @return the cache that this event is associated with
+     */
+    public default NamedCache getCache()
+        {
+        return getService().ensureCache(getCacheName(), null);
+        }
 
     // ----- constants ------------------------------------------------------
 

@@ -9,7 +9,10 @@ package com.tangosol.net.events.partition.cache;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap.EntryProcessor;
 
+import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Consumer;
+
 
 /**
  * An EntryProcessorEvent captures information relating to the execution of
@@ -18,8 +21,9 @@ import java.util.Set;
  * @author bo, nsa, rhan, mwj  2011.03.29
  * @since Coherence 12.1.2
  */
+@SuppressWarnings("rawtypes")
 public interface EntryProcessorEvent
-        extends Event<EntryProcessorEvent.Type>
+        extends Event<EntryProcessorEvent.Type>, Iterable<BinaryEntry>
     {
     /**
      * Return a Set of {@link BinaryEntry entries} being processed by the
@@ -36,6 +40,17 @@ public interface EntryProcessorEvent
      * @return the entry processor associated with this event
      */
     public EntryProcessor getProcessor();
+
+    /**
+     * Returns an iterator over the {@link BinaryEntry entries} in this event.
+     *
+     * @return an iterator over the {@link BinaryEntry entries} in this event.
+     */
+    @Override
+    public default Iterator<BinaryEntry> iterator()
+        {
+        return getEntrySet().iterator();
+        }
 
     // ----- constants ------------------------------------------------------
 

@@ -7,6 +7,8 @@
 package com.tangosol.net.events.partition.cache;
 
 import com.tangosol.net.BackingMapContext;
+import com.tangosol.net.CacheService;
+import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.EventDispatcher;
 
 
@@ -30,4 +32,26 @@ public interface PartitionedCacheDispatcher
      * @return the BackingMapContext for this dispatcher
      */
     public BackingMapContext getBackingMapContext();
+
+    /**
+     * Return the name of the {@link NamedCache cache} that this
+     * PartitionedCacheDispatcher is associated with.
+     *
+     * @return  the cache name
+     */
+    public default String getCacheName()
+        {
+        return getBackingMapContext().getCacheName();
+        }
+
+    /**
+     * Return the name of the {@link CacheService service} that this
+     * PartitionedCacheDispatcher is associated with.
+     *
+     * @return  the service name
+     */
+    public default String getServiceName()
+        {
+        return getBackingMapContext().getManagerContext().getCacheService().getInfo().getServiceName();
+        }
     }

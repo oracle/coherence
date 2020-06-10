@@ -6,9 +6,6 @@
  */
 package com.tangosol.net;
 
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.ViewBuilder;
-
 import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.net.cache.WrapperNamedCache;
 import com.tangosol.util.MapEvent;

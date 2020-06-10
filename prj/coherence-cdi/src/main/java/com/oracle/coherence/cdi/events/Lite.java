@@ -6,31 +6,33 @@
  */
 package com.oracle.coherence.cdi.events;
 
+import com.tangosol.util.MapListener;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import javax.enterprise.util.AnnotationLiteral;
-
 import javax.inject.Qualifier;
 
 /**
- * A qualifier annotation used for any REMOTE event.
+ * A qualifier annotation that can be applied to {@link MapListener} CDI
+ * observers to register them as lite listeners.
  *
- * @author Aleks Seovic  2020.04.13
+ * @author Aleks Seovic  2020.04.01
  */
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Remote
+public @interface Lite
     {
     /**
-     * An annotation literal for the {@link Remote}
+     * An annotation literal for the {@link Lite}
      * annotation.
      */
     class Literal
-            extends AnnotationLiteral<Remote>
-            implements Remote
+            extends AnnotationLiteral<Lite>
+            implements Lite
         {
         public static final Literal INSTANCE = new Literal();
         }

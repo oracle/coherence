@@ -8,7 +8,9 @@ package com.tangosol.net.events.partition.cache;
 
 import com.tangosol.util.BinaryEntry;
 
+import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * An EntryEvent captures information relating to actions performed
@@ -27,7 +29,7 @@ import java.util.Set;
  * @since Coherence 12.1.2
  */
 public interface EntryEvent<K, V>
-        extends Event<EntryEvent.Type>
+        extends Event<EntryEvent.Type>, Iterable<BinaryEntry<K, V>>
     {
     /**
      * Return the immutable Set of {@link BinaryEntry entries} on which the
@@ -36,6 +38,17 @@ public interface EntryEvent<K, V>
      * @return the Set of entries represented by this event
      */
     public Set<BinaryEntry<K, V>> getEntrySet();
+
+    /**
+     * Returns an iterator over the {@link BinaryEntry entries} in this event.
+     *
+     * @return an iterator over the {@link BinaryEntry entries} in this event.
+     */
+    @Override
+    public default Iterator<BinaryEntry<K, V>> iterator()
+        {
+        return getEntrySet().iterator();
+        }
 
     // ----- constants --------------------------------------------------
 

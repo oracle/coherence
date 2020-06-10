@@ -48,18 +48,18 @@ class NamedTopicProducerIT
     {
 
     @WeldSetup
-    private WeldInitiator weld = WeldInitiator.from(RequestScopedSubscribers.class,
-                                                    CtorBean.class,
-                                                    NamedTopicFieldsBean.class,
-                                                    NamedTopicPublisherFieldsBean.class,
-                                                    NamedTopicSubscriberFieldsBean.class,
-                                                    DifferentCacheFactoryBean.class,
-                                                    RequestScopedPublishers.class,
-                                                    RequestScopedSubscribers.class,
-                                                    NamedTopicProducer.class,
-                                                    CacheFactoryUriResolver.Default.class,
-                                                    ConfigurableCacheFactoryProducer.class)
-            .build();
+    private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                              .addExtension(new CoherenceExtension())
+                                                              .addBeanClass(CtorBean.class)
+                                                              .addBeanClass(DifferentCacheFactoryBean.class)
+                                                              .addBeanClass(NamedTopicFieldsBean.class)
+                                                              .addBeanClass(NamedTopicPublisherFieldsBean.class)
+                                                              .addBeanClass(NamedTopicSubscriberFieldsBean.class)
+                                                              .addBeanClass(RequestScopedPublishers.class)
+                                                              .addBeanClass(RequestScopedSubscribers.class)
+                                                              .addBeanClass(NamedTopicProducer.class)
+                                                              .addBeanClass(CacheFactoryUriResolver.Default.class)
+                                                              .addBeanClass(ConfigurableCacheFactoryProducer.class));
 
     @Inject
     private RequestContextController contextController;

@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.cdi.events.SingleEntryEvent;
+import com.oracle.coherence.cdi.events.MapName;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Set;
@@ -18,7 +18,7 @@ import javax.inject.Inject;
 
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
-import com.oracle.coherence.cdi.events.Cache;
+import com.oracle.coherence.cdi.events.CacheName;
 import com.oracle.coherence.cdi.events.Created;
 import com.oracle.coherence.cdi.events.Destroyed;
 import com.oracle.coherence.cdi.events.Executed;
@@ -37,7 +37,6 @@ import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
-import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
 
 import org.jboss.weld.junit5.WeldInitiator;
@@ -53,30 +52,21 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Integration test for the {@link EventDispatcher} using the Weld JUnit
+ * Integration test for the {@link CdiInterceptorSupport} using the Weld JUnit
  * extension.
  *
  * @author as  2020.04.03
  */
 @ExtendWith(WeldJunit5Extension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EventDispatcherIT
+class CdiInterceptorSupportIT
     {
-
     @WeldSetup
-    private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+    private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                          .addExtension(new CoherenceExtension())
                                                           .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
-                                                          .addBeanClass(TestObservers.class)
-                                                          .addBeanClass(EventDispatcher.LifecycleEventHandler.class)
-                                                          .addBeanClass(EventDispatcher.CacheLifecycleEventHandler.class)
-                                                          .addBeanClass(EventDispatcher.SingleEntryEventHandler.class)
-                                                          .addBeanClass(EventDispatcher.EntryEventHandler.class)
-                                                          .addBeanClass(EventDispatcher.EntryProcessorEventHandler.class)
-                                                          .addBeanClass(EventDispatcher.TransactionEventHandler.class)
-                                                          .addBeanClass(EventDispatcher.TransferEventHandler.class)
-                                                          .addBeanClass(EventDispatcher.UnsolicitedCommitEventHandler.class)
-                                                          .addBeanClass(EventDispatcher.class));
+                                                          .addBeanClass(TestObservers.class));
 
     @Inject
     @Name("cdi-events-cache-config.xml")
@@ -122,10 +112,6 @@ class EventDispatcherIT
         assertThat(observers.getEvents(), hasItem(EntryEvent.Type.UPDATED));
         assertThat(observers.getEvents(), hasItem(EntryEvent.Type.REMOVING));
         assertThat(observers.getEvents(), hasItem(EntryEvent.Type.REMOVED));
-
-        assertThat(observers.getInserted(), is(5));
-        assertThat(observers.getUpdated(), is(5));
-        assertThat(observers.getRemoved(), is(5));
         }
 
     // ---- helper classes --------------------------------------------------
@@ -149,103 +135,84 @@ class EventDispatcherIT
         {
         private Set<Enum> events = new TreeSet<>(Comparator.comparing(Enum::name));
 
-        private int nInserted = 0;
-        private int nUpdated = 0;
-        private int nRemoved = 0;
-
         Set<Enum> getEvents()
             {
             return events;
             }
 
-        public int getInserted()
-            {
-            return nInserted;
-            }
-
-        public int getUpdated()
-            {
-            return nUpdated;
-            }
-
-        public int getRemoved()
-            {
-            return nRemoved;
-            }
-
-        private void record(Event event)
+        private void record(Event<?> event)
             {
             events.add(event.getType());
             }
 
-        private void onEvent(@Observes Event event)
+        // lifecycle events
+        private void onLifecycleEvent(@Observes LifecycleEvent event)
+            {
+            record(event);
+            }
+
+        // transfer events
+        private void onTransferEvent(@Observes TransferEvent event)
+            {
+            record(event);
+            }
+
+        // transaction events
+        private void onTransactionEvent(@Observes TransactionEvent event)
             {
             record(event);
             }
 
         // cache lifecycle events
-        private void onCreatedPeople(@Observes @Created @Cache("people") CacheLifecycleEvent event)
+        private void onCacheLifecycleEvent(@Observes CacheLifecycleEvent event)
+            {
+            record(event);
+            }
+
+        private void onCreatedPeople(@Observes @Created @MapName("people") CacheLifecycleEvent event)
             {
             record(event);
             assertThat(event.getCacheName(), is("people"));
             }
 
-        private void onDestroyedPeople(@Observes @Destroyed @Cache("people") CacheLifecycleEvent event)
+        private void onDestroyedPeople(@Observes @Destroyed @CacheName("people") CacheLifecycleEvent event)
             {
             record(event);
             assertThat(event.getCacheName(), is("people"));
             }
 
-        private void onPersonInserted(@Observes @Inserted @Cache("people") SingleEntryEvent<?, ?> event)
-            {
-            nInserted++;
-            assertThat(((Person) event.getValue()).getLastName(), is("Simpson"));
-            }
-
-        private void onPersonInserted(@Observes @Inserted @Cache("people") EntryEvent<?, ?> event)
+        // entry events
+        private void onEntryEvent(@Observes @MapName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            ((EntryEvent<String, Person>) event).getEntrySet().stream()
-                    .map(BinaryEntry::getValue)
-                    .forEach(person -> assertThat(person.getLastName(), is("Simpson")));
             }
 
-        private void onPersonUpdated(@Observes @Updated @Cache("people") SingleEntryEvent<?, ?> event)
-            {
-            nUpdated++;
-            assertThat(((Person) event.getValue()).getLastName(), is("SIMPSON"));
-            }
-
-        private void onPersonUpdated(@Observes @Updated @Cache("people") EntryEvent<?, ?> event)
+        private void onPersonInserted(@Observes @Inserted @CacheName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            ((EntryEvent<String, Person>) event).getEntrySet().stream()
-                    .map(BinaryEntry::getValue)
-                    .forEach(person -> assertThat(person.getLastName(), is("SIMPSON")));
+            event.forEach(entry -> assertThat(entry.getValue().getLastName(), is("Simpson")));
             }
 
-        private void onPersonRemoved(@Observes @Removed @Cache("people") SingleEntryEvent<?, ?> event)
-            {
-            nRemoved++;
-            assertThat(((Person) event.getOldValue()).getLastName(), is("SIMPSON"));
-            }
-
-        private void onPersonRemoved(@Observes @Removed @Cache("people") EntryEvent<?, ?> event)
+        private void onPersonUpdated(@Observes @Updated @CacheName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            ((EntryEvent<String, Person>) event).getEntrySet().stream()
-                    .map(BinaryEntry::getOriginalValue)
-                    .forEach(person -> assertThat(person.getLastName(), is("SIMPSON")));
+            event.forEach(entry -> assertThat(entry.getValue().getLastName(), is("SIMPSON")));
             }
 
-        private void onExecuting(@Observes @Executing @Cache("people") @Processor(Uppercase.class) EntryProcessorEvent event)
+        private void onPersonRemoved(@Observes @Removed @CacheName("people") EntryEvent<String, Person> event)
+            {
+            record(event);
+            event.forEach(entry -> assertThat(entry.getOriginalValue().getLastName(), is("SIMPSON")));
+            }
+
+        private void onExecuting(@Observes @Executing @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)
             {
             record(event);
             assertThat(event.getProcessor(), is(instanceOf(Uppercase.class)));
             assertThat(event.getEntrySet().size(), is(5));
             }
 
-        private void onExecuted(@Observes @Executed @Cache("people") @Processor(Uppercase.class) EntryProcessorEvent event)
+        private void onExecuted(@Observes @Executed @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)
             {
             record(event);
             assertThat(event.getProcessor(), is(instanceOf(Uppercase.class)));

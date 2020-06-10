@@ -4,30 +4,33 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.cdi;
 
 import com.oracle.coherence.cdi.data.Account;
+
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.InvocableMap;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
+
 import javax.inject.Inject;
+
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Integration test for the {@link EventDispatcher} using the Weld JUnit
+ * Integration test for the {@link CdiInterceptorSupport} using the Weld JUnit
  * extension.
  *
  * @author as  2020.04.03
@@ -38,12 +41,12 @@ class InjectableIT
     {
 
     @WeldSetup
-    private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+    private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                          .addExtension(new CoherenceExtension())
                                                           .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
                                                           .addBeanClass(CurrencyConverter.class)
-                                                          .addBeanClass(TestObservers.class)
-                                                          .addBeanClass(EventDispatcher.class));
+                                                          .addBeanClass(TestObservers.class));
 
     @Inject
     @Name("injectable-cache-config.xml")

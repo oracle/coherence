@@ -45,7 +45,7 @@
   <caching-schemes>
     <distributed-scheme>
       <scheme-name>distributed-scheme</scheme-name>
-      <service-name>PartitionedCache</service-name>
+      <service-name>TestCache</service-name>
       <local-storage system-property="coherence.distributed.localstorage">true
       </local-storage>
       <partition-listener>

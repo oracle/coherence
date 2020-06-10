@@ -8,6 +8,7 @@ package com.tangosol.net.events.partition;
 
 import com.tangosol.util.BinaryEntry;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -21,8 +22,9 @@ import java.util.Set;
  * @author hr/gg  2014.04.02
  * @since Coherence 12.2.1
  */
+@SuppressWarnings("rawtypes")
 public interface UnsolicitedCommitEvent
-        extends Event<UnsolicitedCommitEvent.Type>
+        extends Event<UnsolicitedCommitEvent.Type>, Iterable<BinaryEntry>
     {
     /**
      * A set of {@link BinaryEntry entries} observed to have been modified
@@ -32,6 +34,17 @@ public interface UnsolicitedCommitEvent
      *         caused by the partitioned service
      */
     public Set<BinaryEntry> getEntrySet();
+
+    /**
+     * Returns an iterator over the {@link BinaryEntry entries} in this event.
+     *
+     * @return an iterator over the {@link BinaryEntry entries} in this event.
+     */
+    @Override
+    public default Iterator<BinaryEntry> iterator()
+        {
+        return getEntrySet().iterator();
+        }
 
     // ----- inner class: Type ----------------------------------------------
 

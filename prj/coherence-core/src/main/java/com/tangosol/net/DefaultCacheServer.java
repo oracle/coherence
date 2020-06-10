@@ -11,6 +11,8 @@ import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.internal.net.service.LegacyXmlServiceHelper;
 
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.security.DoAsAction;
 
 import com.tangosol.run.xml.XmlElement;
@@ -19,11 +21,13 @@ import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 
+import com.tangosol.util.RegistrationBehavior;
 import java.io.File;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -224,16 +228,72 @@ public class DefaultCacheServer
         }
 
     /**
-    * Start the cache server on a dedicated daemon thread. This method is
-    * intended to be used within managed containers.
-    *
-    * @return the instance of the {@link DefaultCacheServer} started
-    *
-    * @since Coherence 12.1.2
-    */
+     * Start the cache server on a dedicated daemon thread, using default
+     * {@link ConfigurableCacheFactory}.
+     * This method is intended to be used within managed containers.
+     *
+     * @return the instance of the {@link DefaultCacheServer} started
+     *
+     * @since Coherence 12.1.2
+     */
     public static DefaultCacheServer startServerDaemon()
         {
-        DefaultCacheServer server = ensureInstance(getConfigurableCacheFactory());
+        return startServerDaemon(getConfigurableCacheFactory());
+        }
+
+    /**
+     * Start the cache server on a dedicated daemon thread, using default
+     * {@link ConfigurableCacheFactory} and register specified event interceptors.
+     * This method is intended to be used within managed containers.
+     *
+     * @param mapInterceptors  a map of interceptors to register on startup, keyed
+     *                         by interceptor name
+     * @return the instance of the {@link DefaultCacheServer} started
+     *
+     * @since Coherence 14.1.2
+     */
+    public static DefaultCacheServer startServerDaemon(Map<String, EventInterceptor<?>> mapInterceptors)
+        {
+        return startServerDaemon(getConfigurableCacheFactory(), mapInterceptors);
+        }
+
+    /**
+     * Start the cache server on a dedicated daemon thread, using specified
+     * {@link ConfigurableCacheFactory}.
+     * This method is intended to be used within managed containers.
+     *
+     * @param ccf  the {@link ConfigurableCacheFactory} to start the server with
+     *
+     * @return the instance of the {@link DefaultCacheServer} started
+     *
+     * @since Coherence 14.1.2
+     */
+    public static DefaultCacheServer startServerDaemon(ConfigurableCacheFactory ccf)
+        {
+        return startServerDaemon(ccf, Collections.emptyMap());
+        }
+
+    /**
+     * Start the cache server on a dedicated daemon thread, using specified
+     * {@link ConfigurableCacheFactory} and register specified event interceptors.
+     * This method is intended to be used within managed containers.
+     *
+     * @param ccf              the {@link ConfigurableCacheFactory} to use
+     * @param mapInterceptors  a map of interceptors to register on startup, keyed
+     *                         by interceptor name
+     *
+     * @return the instance of the {@link DefaultCacheServer} started
+     *
+     * @since Coherence 14.1.2
+     */
+    public static DefaultCacheServer startServerDaemon(ConfigurableCacheFactory ccf, Map<String, EventInterceptor<?>> mapInterceptors)
+        {
+        InterceptorRegistry registry = ccf.getInterceptorRegistry();
+
+        mapInterceptors.forEach((sName, interceptor) ->
+                registry.registerEventInterceptor(sName, interceptor, RegistrationBehavior.FAIL));
+
+        DefaultCacheServer server = ensureInstance(ccf);
         startDaemon(server);
 
         return server;

@@ -474,7 +474,7 @@ The first thing you need to do is register a single global interceptor within th
 </cache-config>
 ----
 
-Coherence CDI `EventDispatcher` bean will then listen to all events raised by all Coherence event dispatchers and re-raise them as CDI events that you can observe.
+Coherence CDI `CdiInterceptorSupport` bean will then listen to all events raised by all Coherence event dispatchers and re-raise them as CDI events that you can observe.
 For example, to implement the  equivalent of `cacheListener` interceptor above, you would simply define an observer method in  any CDI bean that wants to be notified when the event happens:
 
 [source,java]

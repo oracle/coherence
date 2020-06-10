@@ -7,17 +7,8 @@
   -->
 
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xmlns:cdi="class://com.oracle.coherence.cdi.CdiNamespaceHandler"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
-
-  <interceptors>
-    <interceptor>
-      <instance>
-        <cdi:bean>com.oracle.coherence.cdi.EventDispatcher</cdi:bean>
-      </instance>
-    </interceptor>
-  </interceptors>
 
   <caching-scheme-mapping>
     <cache-mapping>
