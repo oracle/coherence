@@ -10,6 +10,7 @@ package com.tangosol.coherence.metrics.internal;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.metrics.MBeanMetric;
@@ -55,12 +56,29 @@ public class MetricsResource
     {
     // ----- constructors ---------------------------------------------------
 
+    /**
+     * Create a MetricsResource.
+     * <p>
+     * This constructor will be used by JAX-RS to create the resource instance.
+     * <p>
+     * The {@code coherence.metrics.legacy.names} system property will be used to
+     * determine whether legacy metric names ot Microprofile compatible metric
+     * names will be used when publishing Prometheus formatted metrics.
+     */
     public MetricsResource()
         {
-        this(Boolean.parseBoolean(System.getProperty(PROP_USE_LEGACY_NAMES, "true")));
+        this(Boolean.parseBoolean(Config.getProperty(PROP_USE_LEGACY_NAMES, "true")));
         }
 
-    public MetricsResource(boolean fUseLegacyNames)
+    /**
+     * Create a MetricsResource.
+     *
+     * @param fUseLegacyNames  a flag that when {@code true} will cause metric names to
+     *                         be in the legacy format and when {@code false} will cause
+     *                         metric names to be Microprofile compatible when publishing
+     *                         Prometheus metrics.
+     */
+    MetricsResource(boolean fUseLegacyNames)
         {
         f_fUseLegacyNames = fUseLegacyNames;
         }
@@ -545,5 +563,10 @@ public class MetricsResource
 
     // ----- data members ---------------------------------------------------
 
+    /**
+     * A flag that when {@code true} will cause metric names to be in the legacy format
+     * and when {@code false} will cause metric names to be Microprofile compatible when
+     * publishing Prometheus metrics.
+     */
     private final boolean f_fUseLegacyNames;
     }
