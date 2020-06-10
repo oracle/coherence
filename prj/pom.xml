@@ -661,13 +661,12 @@
       http://oss.oracle.com/licenses/upl.
     </javadoc.copyright>
     <javadoc.copyright.header>
-      &lt;b&gt;Oracle&amp;reg; Fusion Middleware Java API
-      Reference for Oracle Coherence&lt;br&gt;14c
-      (${project.version.official})&lt;/b&gt;&lt;br&gt;F23532-01
+      &lt;b&gt;Java API Reference for Oracle&#174; Coherence Community Edition&lt;br&gt;
+      (${project.version.official})&lt;/b&gt;
     </javadoc.copyright.header>
     <javadoc.copyright.bottom>&lt;center&gt;${javadoc.copyright}&lt;/center&gt;</javadoc.copyright.bottom>
     <javadoc.locale>en_US</javadoc.locale>
-    <javadoc.window.title>Oracle&#174; Coherence Java API Reference</javadoc.window.title>
+    <javadoc.window.title>Java API Reference for Oracle&#174; Coherence Community Edition</javadoc.window.title>
   </properties>
 
   <build>
