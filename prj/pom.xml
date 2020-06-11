@@ -665,7 +665,8 @@
       Note that this property has to be named 'revision' and that it has
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
-    <revision>14.1.2-20-06-SNAPSHOT</revision>
+    <revision>20.06.0-SNAPSHOT</revision>
+    <project.version.prefix>14.1.1</project.version.prefix>
 
     <!-- The groupId of the Coherence product -->
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
@@ -900,6 +901,8 @@
                   import java.nio.file.Path
                   import java.nio.file.Paths
                   import java.text.SimpleDateFormat
+                  import java.time.YearMonth
+                  import java.time.format.DateTimeFormatter
 
                   props = project.properties
 
@@ -925,69 +928,32 @@
                       props.setProperty("root.path", sDevRoot);
                       }
 
-                  // project version properties
-                  matcher = project.version =~ /^([0-9]+)\\.([0-9]+)\\.([0-9]+)-([0-9]+)-([0-9]+)(.*)/
+                  // project version properties 20.06.0
+                  matcher = project.version =~ /^([0-9]+)\\.([0-9]+)\\.([0-9]+)-(.*)/
                   matcher.matches()
 
                   // version components
                   result = matcher.toMatchResult()
                   major = result.group(1)
                   minor = result.group(2)
-                  service = result.group(3)
-                  patchset = result.group(4)
-                  patch = result.group(5)
-                  qualifier = result.group(6)
-                  number = props.getProperty("project.build.number")
-                  next = Integer.parseInt(service) + 1
-                  nextPatchSet = Integer.parseInt(patchset) + 1
+                  micro = result.group(3)
 
-                  props.setProperty("project.version.major", major)
-                  props.setProperty("project.version.minor", minor)
-                  props.setProperty("project.version.service", service)
-                  props.setProperty("project.version.patchset", patchset)
-                  props.setProperty("project.version.patch", patch)
+                  // determine next release version
+                  pattern      = DateTimeFormatter.ofPattern("uu.MM")
+                  release      = YearMonth.parse(major + "." + minor, pattern)
+                  nextRelease  = release.plusMonths(6)
 
-                  // patchlevel (or 6th digit) to be used for carb versioning - see coherence-liberte
-                  // ideally this would be the same as the fifth digit
-                  // Aug 15, 2018 comment out for 19c, will be needed eventually but unset for now
-                  // props.setProperty("project.version.patchlevel", patch)
-
-                  // next version string (M.m.s-p-Pq)
-                  props.setProperty("project.version.next",
-                          "${major}.${minor}.${next}-${patchset}-${patch}${qualifier}")
-
-                  // distribution version string (M.m.s.p.Pb[build #])
-                  props.setProperty("project.version.dist",
-                          "${major}.${minor}.${service}.${patchset}.${patch}b${number}")
-
-                  // official version string (M.m.s.p.P)
                   props.setProperty("project.version.official",
-                          "${major}.${minor}.${service}.${patchset}.${patch}")
+                          major + "." + minor + "." + micro)
+                  
+                  props.setProperty("project.version.next",
+                          nextRelease.format(pattern) + ".0")
 
-                  // base release version string (M.m.s.p.0)
-                  //  - used for generating post GA carbs and opatch files
-                  props.setProperty("project.version.base.release",
-                          "${major}.${minor}.${service}.${patchset}.0")
-
-                  // release version string (M.m.s-p-P)
-                  props.setProperty("project.version.release",
-                          "${major}.${minor}.${service}-${patchset}-${patch}")
-
-                  // short version string (M.m.s)
                   props.setProperty("project.version.short",
-                          "${major}.${minor}.${service}")
+                          major + "." + minor)
 
-                  // short next version string (M.m.s)
                   props.setProperty("project.version.next.short",
-                          "${major}.${minor}.${next}")
-
-                  // 4 digit patchset version (M.m.s-p)
-                  props.setProperty("project.version.patchset.release",
-                          "${major}.${minor}.${service}-${patchset}")
-
-                  // 4 digit next patchset version (M.m.s-p)
-                  props.setProperty("project.version.patchset.next.release",
-                          "${major}.${minor}.${service}-${nextPatchSet}")
+                          nextRelease.format(pattern))
 
                   // project metadata properties
                   if (!"true".equals(props.getProperty("project.official")))

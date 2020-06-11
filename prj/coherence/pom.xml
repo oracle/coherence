@@ -408,9 +408,10 @@
               <instructions>
                 <Main-Class>com.tangosol.net.DefaultCacheServer</Main-Class>
                 <Build-Timestamp>${project.timestamp}</Build-Timestamp>
-                <Bundle-SymbolicName>com.oracle.coherence.${project.artifactId}</Bundle-SymbolicName>
-                <Implementation-GroupId>com.oracle.coherence</Implementation-GroupId>
-                <Automatic-Module-Name>com.oracle.coherence</Automatic-Module-Name>
+                <Bundle-SymbolicName>${coherence.group.id}.${project.artifactId}</Bundle-SymbolicName>
+                <Implementation-GroupId>${coherence.group.id}</Implementation-GroupId>
+                <Automatic-Module-Name>${coherence.group.id}</Automatic-Module-Name>
+                <Coherence-Version-Prefix>${project.version.prefix}</Coherence-Version-Prefix>
                 <Export-Package>
                   !*.internal.*,com.oracle.coherence.common.*,com.oracle.common.*,com.tangosol.application.*,com.tangosol.coherence.config.*,com.tangosol.coherence.transaction.*,com.tangosol.config.*,com.tangosol.net.*,com.tangosol.io.*,com.tangosol.persistence.*,com.tangosol.util.*,com.tangosol.run.xml.*,com.tangosol.run.component.*
                 </Export-Package>

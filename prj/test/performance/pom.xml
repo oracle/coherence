@@ -65,7 +65,7 @@
                   <version>${project.version}</version>
                   <type>jar</type>
                   <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/lib/${project.version.major}.${project.version.minor}.${project.version.service}-${project.version.patchset}</outputDirectory>
+                  <outputDirectory>${project.build.directory}/lib/${project.version.official}</outputDirectory>
                   <destFileName>coherence.jar</destFileName>
                 </artifactItem>
               </artifactItems>

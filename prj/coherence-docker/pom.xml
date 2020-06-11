@@ -217,10 +217,12 @@
             <configuration>
               <skip>false</skip>
               <systemProperties>
+                <!--
                 <project.version.dist>${project.version.dist}</project.version.dist>
-                <project.version.pom>${project.version.pom}</project.version.pom>
                 <project.version.release>${project.version.release}</project.version.release>
                 <project.version.short>${project.version.short}</project.version.short>
+                -->
+                <project.version.pom>${project.version.pom}</project.version.pom>
                 <docker.image.name>${docker.image.name}</docker.image.name>
                 <maven.executable.location>${root.path}/tools/maven/bin</maven.executable.location>
                 <console.output.folder>${project.build.directory}/test-output/functional</console.output.folder>
@@ -234,10 +236,12 @@
             <configuration>
               <skip>false</skip>
               <systemProperties>
+                <!--
                 <project.version.dist>${project.version.dist}</project.version.dist>
-                <project.version.pom>${project.version.pom}</project.version.pom>
                 <project.version.release>${project.version.release}</project.version.release>
                 <project.version.short>${project.version.short}</project.version.short>
+                -->
+                <project.version.pom>${project.version.pom}</project.version.pom>
                 <docker.image.name>${docker.image.name}</docker.image.name>
                 <maven.executable.location>${root.path}/tools/maven/bin</maven.executable.location>
                 <console.output.folder>${project.build.directory}/test-output/functional</console.output.folder>
