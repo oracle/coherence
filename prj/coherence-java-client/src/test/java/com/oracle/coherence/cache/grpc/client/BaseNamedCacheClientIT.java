@@ -1465,11 +1465,9 @@ abstract class BaseNamedCacheClientIT
     @MethodSource("serializers")
     void shouldSubscribeToEventsForSingleKey(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                                cacheName        = "test-events-01";
-        CollectingMapListener<String, String> listenerExpected = new CollectingMapListener<>(3);
-        NamedCache<String, String>            cache            = ensureCache(cacheName);
+        String                     cacheName = "test-events-01";
+        NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
-        cache.addMapListener(listenerExpected, "key-2", false);
 
         NamedCacheClient<String, String>      service      = createClient(cacheName, sSerializerName, serializer);
         CollectingMapListener<String, String> listenerTest = new CollectingMapListener<>(3);
@@ -1491,21 +1489,18 @@ abstract class BaseNamedCacheClientIT
             }
 
         assertThat(listenerTest.awaitEvents(3, TimeUnit.SECONDS), is(true));
-        assertThat(listenerExpected.getInsertCount(), is(listenerTest.getInsertCount()));
-        assertThat(listenerExpected.getUpdateCount(), is(listenerTest.getUpdateCount()));
-        assertThat(listenerExpected.getDeleteCount(), is(listenerTest.getDeleteCount()));
+        assertThat("Incorrect number of insert events", listenerTest.getInsertCount(), is(1));
+        assertThat("Incorrect number of update events", listenerTest.getUpdateCount(), is(1));
+        assertThat("Incorrect number of delete events", listenerTest.getDeleteCount(), is(1));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
     void shouldSubscribeToEventsForMultipleKeys(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                                cacheName        = "test-events-02";
-        CollectingMapListener<String, String> listenerExpected = new CollectingMapListener<>(6);
-        NamedCache<String, String>            cache            = ensureCache(cacheName);
+        String                     cacheName = "test-events-02";
+        NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
-        cache.addMapListener(listenerExpected, "key-2", false);
-        cache.addMapListener(listenerExpected, "key-4", false);
 
         NamedCacheClient<String, String>      service      = createClient(cacheName, sSerializerName, serializer);
         CollectingMapListener<String, String> listenerTest = new CollectingMapListener<>(6);
@@ -1528,20 +1523,18 @@ abstract class BaseNamedCacheClientIT
             }
 
         assertThat(listenerTest.awaitEvents(3, TimeUnit.SECONDS), is(true));
-        assertThat(listenerExpected.getInsertCount(), is(listenerTest.getInsertCount()));
-        assertThat(listenerExpected.getUpdateCount(), is(listenerTest.getUpdateCount()));
-        assertThat(listenerExpected.getDeleteCount(), is(listenerTest.getDeleteCount()));
+        assertThat("Incorrect number of insert events", listenerTest.getInsertCount(), is(2));
+        assertThat("Incorrect number of update events", listenerTest.getUpdateCount(), is(2));
+        assertThat("Incorrect number of delete events", listenerTest.getDeleteCount(), is(2));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
     void shouldSubscribeToEventsForAllKeys(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                                cacheName        = "test-events-03";
-        CollectingMapListener<String, String> listenerExpected = new CollectingMapListener<>(30);
-        NamedCache<String, String>            cache            = ensureCache(cacheName);
+        String                     cacheName = "test-events-03";
+        NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
-        cache.addMapListener(listenerExpected);
 
         NamedCacheClient<String, String>      service      = createClient(cacheName, sSerializerName, serializer);
         CollectingMapListener<String, String> listenerTest = new CollectingMapListener<>(30);
@@ -1563,22 +1556,20 @@ abstract class BaseNamedCacheClientIT
             }
 
         assertThat(listenerTest.awaitEvents(3, TimeUnit.SECONDS), is(true));
-        assertThat(listenerExpected.getInsertCount(), is(listenerTest.getInsertCount()));
-        assertThat(listenerExpected.getUpdateCount(), is(listenerTest.getUpdateCount()));
-        assertThat(listenerExpected.getDeleteCount(), is(listenerTest.getDeleteCount()));
+        assertThat("Incorrect number of insert events", listenerTest.getInsertCount(), is(10));
+        assertThat("Incorrect number of update events", listenerTest.getUpdateCount(), is(10));
+        assertThat("Incorrect number of delete events", listenerTest.getDeleteCount(), is(10));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
     void shouldSubscribeToEventsForFilter(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                                 cacheName        = "test-events-04";
-        CollectingMapListener<String, Integer> listenerExpected = new CollectingMapListener<>(20);
-        NamedCache<String, Integer>            cache            = ensureCache(cacheName);
+        String                      cacheName = "test-events-04";
+        NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
 
         MapEventFilter<String, Integer> filter = new MapEventFilter<>(Filters.less(Extractors.identity(), 10));
-        cache.addMapListener(listenerExpected, filter, false);
 
         NamedCacheClient<String, Integer>      service      = createClient(cacheName, sSerializerName, serializer);
         CollectingMapListener<String, Integer> listenerTest = new CollectingMapListener<>(20);
@@ -1596,13 +1587,13 @@ abstract class BaseNamedCacheClientIT
             }
         for (int i = 0; i < 20; i++)
             {
-            cache.remove("key-" + i);
+            cache.remove("key-" + i); // no delete events should be raised
             }
 
         assertThat(listenerTest.awaitEvents(3, TimeUnit.SECONDS), is(true));
-        assertThat(listenerExpected.getInsertCount(), is(listenerTest.getInsertCount()));
-        assertThat(listenerExpected.getUpdateCount(), is(listenerTest.getUpdateCount()));
-        assertThat(listenerExpected.getDeleteCount(), is(listenerTest.getDeleteCount()));
+        assertThat("Incorrect number of insert events", listenerTest.getInsertCount(), is(10));
+        assertThat("Incorrect number of update events", listenerTest.getUpdateCount(), is(10));
+        assertThat("Incorrect number of delete events", listenerTest.getDeleteCount(), is(0));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -1610,15 +1601,11 @@ abstract class BaseNamedCacheClientIT
     @Disabled
     void shouldSubscribeToEventsForKeyAndFilter(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                                 cacheName      = "test-events-04";
-        CollectingMapListener<String, Integer> listenerFilter = new CollectingMapListener<>(20);
-        CollectingMapListener<String, Integer> listenerKey    = new CollectingMapListener<>(3);
-        NamedCache<String, Integer>            cache          = ensureCache(cacheName);
+        String                      cacheName = "test-events-04";
+        NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
 
         MapEventFilter<String, Integer> filter = new MapEventFilter<>(Filters.less(Extractors.identity(), 10));
-        cache.addMapListener(listenerFilter, filter, false);
-        cache.addMapListener(listenerKey, "key-2", false);
 
         NamedCacheClient<String, Integer>      service            = createClient(cacheName, sSerializerName,
                                                                                  serializer);
@@ -1639,18 +1626,18 @@ abstract class BaseNamedCacheClientIT
             }
         for (int i = 0; i < 20; i++)
             {
-            cache.remove("key-" + i);
+            cache.remove("key-" + i); // no delete events should be raised for filter listener
             }
 
-        assertThat(listenerFilter.awaitEvents(3, TimeUnit.SECONDS), is(true));
-        assertThat(listenerKey.awaitEvents(3, TimeUnit.SECONDS), is(true));
+
         assertThat(listenerFilterTest.awaitEvents(3, TimeUnit.SECONDS), is(true));
-        assertThat(listenerFilter.getInsertCount(), is(listenerFilterTest.getInsertCount()));
-        assertThat(listenerFilter.getUpdateCount(), is(listenerFilterTest.getUpdateCount()));
-        assertThat(listenerFilter.getDeleteCount(), is(listenerFilterTest.getDeleteCount()));
-        assertThat(listenerKey.getInsertCount(), is(listenerKeyTest.getInsertCount()));
-        assertThat(listenerKey.getUpdateCount(), is(listenerKeyTest.getUpdateCount()));
-        assertThat(listenerKey.getDeleteCount(), is(listenerKeyTest.getDeleteCount()));
+        assertThat("Incorrect number of insert events (filter)", listenerFilterTest.getInsertCount(), is(10));
+        assertThat("Incorrect number of update events (filter)", listenerFilterTest.getUpdateCount(), is(10));
+        assertThat("Incorrect number of delete events (filter)", listenerFilterTest.getDeleteCount(), is(0));
+
+        assertThat("Incorrect number of insert events (key)", listenerKeyTest.getInsertCount(), is(3));
+        assertThat("Incorrect number of update events (key)", listenerKeyTest.getUpdateCount(), is(3));
+        assertThat("Incorrect number of delete events (key)", listenerKeyTest.getDeleteCount(), is(3));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
