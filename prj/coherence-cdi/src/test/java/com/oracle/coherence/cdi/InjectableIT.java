@@ -49,7 +49,7 @@ class InjectableIT
                                                           .addBeanClass(TestObservers.class));
 
     @Inject
-    @Name("injectable-cache-config.xml")
+    @Scope("injectable-config.xml")
     private ConfigurableCacheFactory ccf;
 
     @Test

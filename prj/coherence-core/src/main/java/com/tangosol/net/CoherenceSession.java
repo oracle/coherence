@@ -37,14 +37,17 @@ public class CoherenceSession
     // ----- Session methods ------------------------------------------------
 
     @Override
+    public <K, V> NamedMap<K, V> getMap(String sName, NamedMap.Option... options)
+        {
+        return m_session.getMap(sName, options);
+        }
+
+    @Override
     public <K, V> NamedCache<K, V> getCache(String sName, NamedCache.Option... options)
         {
         return m_session.getCache(sName, options);
         }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <V> NamedTopic<V> getTopic(String sName, NamedTopic.Option... options)
         {

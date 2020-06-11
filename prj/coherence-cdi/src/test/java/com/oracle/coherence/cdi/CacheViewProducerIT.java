@@ -35,6 +35,7 @@ import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -50,6 +51,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.10.24
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CacheViewProducerIT
     {
 
@@ -405,11 +407,11 @@ class CacheViewProducerIT
         @Inject
         @Name("numbers")
         @View
-        @Session("test-cache-config.xml")
+        @Scope("test-config.xml")
         private ContinuousQueryCache specificCcfNumbers;
 
         @Inject
-        @Session("test-cache-config.xml")
+        @Scope("test-config.xml")
         private NamedCache numbers;
 
         public ContinuousQueryCache getDefaultCcfNumbers()

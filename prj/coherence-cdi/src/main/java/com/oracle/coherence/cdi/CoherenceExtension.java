@@ -15,9 +15,18 @@ import com.oracle.coherence.cdi.CdiInterceptorSupport.TransactionEventHandler;
 import com.oracle.coherence.cdi.CdiInterceptorSupport.TransferEventHandler;
 import com.oracle.coherence.cdi.CdiInterceptorSupport.UnsolicitedCommitEventHandler;
 
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
+import com.tangosol.config.ConfigurationException;
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.ScopeResolver;
+import com.tangosol.net.ScopedCacheFactoryBuilder;
+import com.tangosol.net.Session;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.application.LifecycleEvent;
@@ -28,6 +37,9 @@ import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
 
+import com.tangosol.run.xml.XmlElement;
+import com.tangosol.run.xml.XmlHelper;
+import com.tangosol.util.CopyOnWriteMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.RegistrationBehavior;
 
@@ -35,9 +47,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,6 +61,8 @@ import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.AnnotatedType;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.ProcessObserverMethod;
@@ -236,23 +252,65 @@ public class CoherenceExtension
      * @param event the event fired once the CDI container is initialized
      */
     @SuppressWarnings("unused")
-    private void startCacheServer(@Observes ContainerInitialized event)
+    private void startServer(@Observes ContainerInitialized event, BeanManager beanManager)
         {
-        DefaultCacheServer.startServerDaemon(getEventInterceptors()).waitForServiceStart();
+        CacheFactoryBuilder cfb = m_cacheFactoryBuilder = new CdiCacheFactoryBuilder();
+
+        // start system CCF
+        ConfigurableCacheFactory ccfSys = m_ccfSys = cfb.getConfigurableCacheFactory("coherence-system-config.xml", null);
+        registerInterceptors(ccfSys);
+        ccfSys.getResourceRegistry().registerResource(BeanManager.class, "beanManager", beanManager);
+        ccfSys.activate();
+
+        // start default/application CCF using DCS
+        ConfigurableCacheFactory ccfApp = m_ccfApp = cfb.getConfigurableCacheFactory(null);
+        registerInterceptors(ccfApp);
+        ccfApp.getResourceRegistry().registerResource(BeanManager.class, "beanManager", beanManager);
+        DefaultCacheServer.startServerDaemon(ccfApp).waitForServiceStart();
+        }
+
+    /**
+     * Stop {@link com.tangosol.net.DefaultCacheServer}.
+     *
+     * @param event the event fired before the CDI container is shut down
+     */
+    void stopServer(@Observes BeforeShutdown event)
+        {
+        DefaultCacheServer.shutdown();
+        m_ccfSys.dispose();
         }
 
     // ---- helpers ---------------------------------------------------------
 
     /**
-     * Return all event interceptors created from the discovered observer
-     * methods.
+     * Return the {@code CacheFactoryBuilder builder} to obtain
+     * {@link ConfigurableCacheFactory cache factories} from.
      *
-     * @return all discovered event interceptors
+     * @return the {@code CacheFactoryBuilder builder} to use
      */
-    Map<String, EventInterceptor<?>> getEventInterceptors()
+    CdiCacheFactoryBuilder getCacheFactoryBuilder()
         {
-        return m_lstInterceptors.stream()
-                .collect(Collectors.toMap(EventHandler::getId, Function.identity()));
+        return m_cacheFactoryBuilder;
+        }
+
+    /**
+     * Return default {@link ConfigurableCacheFactory cache factory} for the application.
+     *
+     * @return the default {@link ConfigurableCacheFactory cache factory} for the application
+     */
+    public ConfigurableCacheFactory getDefaultCacheFactory()
+        {
+        return m_ccfApp;
+        }
+
+    /**
+     * Return system {@link ConfigurableCacheFactory cache factory}.
+     *
+     * @return the system {@link ConfigurableCacheFactory cache factory}
+     */
+    ConfigurableCacheFactory getSystemCacheFactory()
+        {
+        return m_ccfSys;
         }
 
     /**
@@ -266,7 +324,7 @@ public class CoherenceExtension
         {
         InterceptorRegistry registry = ccf.getInterceptorRegistry();
         m_lstInterceptors.forEach(interceptor ->
-                registry.registerEventInterceptor(interceptor.getId(), interceptor, RegistrationBehavior.IGNORE));
+                registry.registerEventInterceptor(interceptor.getId(), interceptor, RegistrationBehavior.FAIL));
         return ccf;
         }
 
@@ -322,7 +380,93 @@ public class CoherenceExtension
             }
         }
 
+    // ---- inner class: CdiCacheFactoryBuilder -----------------------------
+
+    /**
+     * Custom implementation of {@link CacheFactoryBuilder} that changes
+     * the default name of the application cache configuration file to load.
+     */
+    static class CdiCacheFactoryBuilder
+            extends ScopedCacheFactoryBuilder
+        {
+        public CdiCacheFactoryBuilder()
+            {
+            super((sConfigURI, loader, sScopeName) -> sScopeName);
+            }
+
+        @Override
+        protected String resolveURI(String sConfigURI)
+            {
+            sConfigURI = super.resolveURI(sConfigURI);
+
+            if (sConfigURI.equals(ExtensibleConfigurableCacheFactory.FILE_CFG_CACHE))
+                {
+                return DEFAULT_CONFIG;
+                }
+            else
+                {
+                return sConfigURI;
+                }
+            }
+
+        @Override
+        protected ConfigurableCacheFactory buildFactory(String sConfigURI, ClassLoader loader)
+            {
+            ConfigurableCacheFactory ccf = super.buildFactory(sConfigURI, loader);
+            String sScope = ccf.getResourceRegistry().getResource(String.class, "scope-name");
+            if (sScope != null && !sScope.isEmpty())
+                {
+                ConfigurableCacheFactory previous = f_mapByScope.putIfAbsent(sScope, ccf);
+                if (previous != null)
+                    {
+                    throw new ConfigurationException("Non-unique ConfigurableCacheFactory scope",
+                                                     "Make sure that each scoped cache factory has a unique scope name.");
+                    }
+                }
+            return ccf;
+            }
+
+        /**
+         * Return a {@link ConfigurableCacheFactory} with the specified scope name,
+         * or {@code null} if the scope doesn't exist.
+         *
+         * @param sScopeName  the name of the scope to get the cache factory for
+         *
+         * @return a {@link ConfigurableCacheFactory} with the specified scope name,
+         *         or {@code null} if the scope doesn't exist
+         */
+        ConfigurableCacheFactory getConfigurableCacheFactory(String sScopeName)
+            {
+            return f_mapByScope.get(sScopeName);
+            }
+
+        // ---- data members ------------------------------------------------
+
+        private static final String DEFAULT_CONFIG = "coherence-config.xml";
+
+        /**
+         * Mapping used to associate cache factories with scopes.
+         */
+        private final Map<String, ConfigurableCacheFactory> f_mapByScope =
+                new ConcurrentHashMap<>();
+       }
+
     // ---- data members ----------------------------------------------------
+
+    /**
+     * {@link CacheFactoryBuilder} to use when creating new cache factories.
+     */
+    private CdiCacheFactoryBuilder m_cacheFactoryBuilder;
+
+    /**
+     * System {@link ConfigurableCacheFactory}.
+     */
+    private ConfigurableCacheFactory m_ccfSys;
+
+    /**
+     * Application {@link ConfigurableCacheFactory}.
+     */
+    private ConfigurableCacheFactory m_ccfApp;
 
     /**
      * A list of event interceptors for all discovered observer methods.

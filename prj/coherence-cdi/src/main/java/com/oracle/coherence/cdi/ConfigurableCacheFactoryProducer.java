@@ -12,13 +12,13 @@ import com.tangosol.net.options.WithConfiguration;
 
 import com.tangosol.util.Base;
 
-import com.tangosol.util.RegistrationBehavior;
 import java.lang.reflect.Member;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import javax.enterprise.inject.Disposes;
 import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 
 import javax.inject.Inject;
@@ -37,28 +37,18 @@ class ConfigurableCacheFactoryProducer
     /**
      * Default constructor used by CDI.
      * 
+     * @param beanManager  the CDI {@code BeanManager}
+     * @param extension    Coherence CDI extension instance
      * @param uriResolver  the URI resolver to use
      */
     @Inject
-    ConfigurableCacheFactoryProducer(CacheFactoryUriResolver uriResolver, CoherenceExtension extension)
+    ConfigurableCacheFactoryProducer(BeanManager beanManager,
+                                     CoherenceExtension extension,
+                                     CacheFactoryUriResolver uriResolver)
         {
-        this(uriResolver, com.tangosol.net.CacheFactory.getCacheFactoryBuilder(), extension);
-        }
-
-    /**
-     * Create a ConfigurableCacheFactoryProducer.
-     *
-     * @param uriResolver          the URI resolver to use
-     * @param cacheFactoryBuilder  the {@link CacheFactoryBuilder} to use to
-     *                             obtain {@link ConfigurableCacheFactory} instances
-     */
-    ConfigurableCacheFactoryProducer(CacheFactoryUriResolver uriResolver,
-                                     CacheFactoryBuilder cacheFactoryBuilder,
-                                     CoherenceExtension extension)
-        {
-        f_cacheFactoryBuilder = cacheFactoryBuilder;
-        m_uriResolver         = uriResolver;
-        m_extension           = extension;
+        f_beanManager = beanManager;
+        f_extension   = extension;
+        f_uriResolver = uriResolver;
         }
 
     // ---- producer methods ------------------------------------------------
@@ -71,17 +61,17 @@ class ConfigurableCacheFactoryProducer
     @Produces
     public ConfigurableCacheFactory getDefaultConfigurableCacheFactory()
         {
-        ConfigurableCacheFactory ccf = f_cacheFactoryBuilder.getConfigurableCacheFactory(Base.getContextClassLoader());
-        return m_extension.registerInterceptors(ccf);
+        return f_extension.getDefaultCacheFactory();
         }
 
     /**
      * Produces a named {@link ConfigurableCacheFactory}.
      * <p>
-     * If the value of the name qualifier is blank or empty String the default
+     * If the value of the scope qualifier is blank or empty, the default
      * {@link com.tangosol.net.ConfigurableCacheFactory} will be returned.
      * <p>
-     * The name parameter will be resolved to a cache configuration URI using
+     * The scope value will be resolved to a registered scope name, or, if
+     * such scope name does not exist, to a cache configuration URI using
      * the {@link CacheFactoryUriResolver} bean.
      *
      * @param injectionPoint  the {@link InjectionPoint} that the cache factory
@@ -90,17 +80,17 @@ class ConfigurableCacheFactoryProducer
      * @return the named {@link ConfigurableCacheFactory}
      */
     @Produces
-    @Name("")
+    @Scope()
     public ConfigurableCacheFactory getNamedConfigurableCacheFactory(InjectionPoint injectionPoint)
         {
-        String sName = injectionPoint.getQualifiers()
+        String sScope = injectionPoint.getQualifiers()
                 .stream()
-                .filter(q -> q.annotationType().isAssignableFrom(Name.class))
-                .map(q -> ((Name) q).value())
+                .filter(q -> q.annotationType().isAssignableFrom(Scope.class))
+                .map(q -> ((Scope) q).value())
                 .findFirst()
                 .orElse(null);
 
-        return getConfigurableCacheFactory(sName, injectionPoint);
+        return getConfigurableCacheFactory(sScope, injectionPoint);
         }
 
     /**
@@ -124,27 +114,40 @@ class ConfigurableCacheFactoryProducer
      *
      * @param ccf  the {@link ConfigurableCacheFactory} to dispose
      */
-    void disposeQualifiedConfigurableCacheFactory(@Disposes @Name("") ConfigurableCacheFactory ccf)
+    void disposeQualifiedConfigurableCacheFactory(@Disposes @Scope() ConfigurableCacheFactory ccf)
         {
         ccf.dispose();
         }
 
     /**
-     * Produces the default {@link ConfigurableCacheFactory}.
+     * Produces the {@link CacheFactoryBuilder}.
      *
-     * @return the default {@link ConfigurableCacheFactory}
+     * @return the {@link CacheFactoryBuilder}
      */
     @Produces
     public CacheFactoryBuilder getCacheFactoryBuilder()
         {
-        return f_cacheFactoryBuilder;
+        return f_extension.getCacheFactoryBuilder();
         }
 
     // ---- helpers ---------------------------------------------------------
 
-    ConfigurableCacheFactory getConfigurableCacheFactory(String sName, InjectionPoint injectionPoint)
+    ConfigurableCacheFactory getConfigurableCacheFactory(String sScope, InjectionPoint injectionPoint)
         {
-        String sUri = m_uriResolver.resolve(sName);
+        if (sScope == null || sScope.trim().isEmpty())
+            {
+            return getDefaultConfigurableCacheFactory();
+            }
+
+        // try to find the factory using scope name
+        ConfigurableCacheFactory ccf = f_extension.getCacheFactoryBuilder().getConfigurableCacheFactory(sScope);
+        if (ccf != null)
+            {
+            return ccf;
+            }
+
+        // treat scope name as config URI and try to load it if necessary
+        String sUri = f_uriResolver.resolve(sScope);
         if (sUri == null || sUri.trim().isEmpty())
             {
             sUri = WithConfiguration.autoDetect().getLocation();
@@ -155,24 +158,30 @@ class ConfigurableCacheFactoryProducer
                              ? Base.getContextClassLoader()
                              : member.getDeclaringClass().getClassLoader();
 
-        ConfigurableCacheFactory ccf = f_cacheFactoryBuilder.getConfigurableCacheFactory(sUri, loader);
-        return m_extension.registerInterceptors(ccf);
+        ccf = getCacheFactoryBuilder().getConfigurableCacheFactory(sUri, loader);
+        if (ccf.getResourceRegistry().getResource(BeanManager.class, "beanManager") != null)
+            {
+            return ccf;
+            }
+        
+        ccf.getResourceRegistry().registerResource(BeanManager.class, "beanManager", f_beanManager);
+        return f_extension.registerInterceptors(ccf);
         }
 
     // ---- data members ----------------------------------------------------
 
     /**
-     * Cache factory builder.
+     * CDI bean manager.
      */
-    private final CacheFactoryBuilder f_cacheFactoryBuilder;
-
-    /**
-     * Cache factory URI resolver.
-     */
-    private CacheFactoryUriResolver m_uriResolver;
+    private final BeanManager f_beanManager;
 
     /**
      * Coherence CDI extension.
      */
-    private CoherenceExtension m_extension;
+    private final CoherenceExtension f_extension;
+
+    /**
+     * Cache factory URI resolver.
+     */
+    private final CacheFactoryUriResolver f_uriResolver;
     }

@@ -13,6 +13,7 @@ import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
+import java.util.Collections;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -331,7 +332,7 @@ public class StorageDispatcherTest
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
-        Set<BinaryEntry>  setEntries  = mock(HashSet.class);
+        Set<BinaryEntry>  setEntries  = Collections.singleton(mock(BinaryEntry.class));
 
         setTypes.add(EntryEvent.Type.INSERTING);
         TestInterceptor interceptor = new TestInterceptor(false);
@@ -358,7 +359,7 @@ public class StorageDispatcherTest
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
-        Set<BinaryEntry>  setEntries  = mock(HashSet.class);
+        Set<BinaryEntry>  setEntries  = Collections.singleton(mock(BinaryEntry.class));
 
         setTypes.add(EntryEvent.Type.INSERTED);
         TestInterceptor interceptor = new TestInterceptor(false);
@@ -385,7 +386,7 @@ public class StorageDispatcherTest
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
-        Set<BinaryEntry>  setEntries  = mock(HashSet.class);
+        Set<BinaryEntry>  setEntries  = Collections.singleton(mock(BinaryEntry.class));
 
         setTypes.add(EntryEvent.Type.REMOVING);
         TestInterceptor interceptor = new TestInterceptor(false);
@@ -412,7 +413,7 @@ public class StorageDispatcherTest
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
-        Set<BinaryEntry>  setEntries  = mock(HashSet.class);
+        Set<BinaryEntry>  setEntries  = Collections.singleton(mock(BinaryEntry.class));
 
         setTypes.add(EntryEvent.Type.REMOVED);
         TestInterceptor interceptor = new TestInterceptor(false);
@@ -439,7 +440,7 @@ public class StorageDispatcherTest
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
-        Set<BinaryEntry>  setEntries  = mock(HashSet.class);
+        Set<BinaryEntry>  setEntries  = Collections.singleton(mock(BinaryEntry.class));
 
         setTypes.add(EntryEvent.Type.UPDATING);
         TestInterceptor interceptor = new TestInterceptor(false);
@@ -466,7 +467,7 @@ public class StorageDispatcherTest
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
-        Set<BinaryEntry>  setEntries  = mock(HashSet.class);
+        Set<BinaryEntry>  setEntries  = Collections.singleton(mock(BinaryEntry.class));
 
         setTypes.add(EntryEvent.Type.UPDATED);
         TestInterceptor interceptor = new TestInterceptor(false);

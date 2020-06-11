@@ -12,7 +12,7 @@
 
 Coherence CDI provides support for http://cdi-spec.org/[CDI] (Contexts and Dependency  Injection) within Coherence cluster members.
 
-It allows you both to inject Coherence-managed resources, such as `NamedMap`, `NamedCache` and `Session`  instances into CDI managed beans, and to inject CDI beans into Coherence-managed resources,  such as event interceptors and cache stores, as well as to handle Coherence server-side events using CDI observer methods.
+It allows you both to inject Coherence-managed resources, such as `NamedMap`, `NamedCache` and `Scope`  instances into CDI managed beans, and to inject CDI beans into Coherence-managed resources,  such as event interceptors and cache stores, as well as to handle Coherence server-side events using CDI observer methods.
 
 In addition, Coherence CDI provides support for automatic injection of transient objects upon deserialization.
 This allows you to inject CDI managed beans such as services and repositories (to use DDD nomenclature) into transient objects, such as entry processor and even data class instances, greatly simplifying implementation of true Domain Driven  applications.
@@ -37,7 +37,7 @@ Once the necessary dependency is in place, you can start using CDI to inject Coh
  ** <<injecting--namedtopic--and-related-objects,Injecting `NamedTopic` and related objects>>
  ** <<other-supported-injection-points,Other Supported Injection Points>>
   *** <<-cluster--and--operationalcontext--injection,`Cluster` and `OperationalContext` Injection>>
-  *** <<-configurablecachefactory--and--session--injection,`ConfigurableCacheFactory` and `Session` Injection>>
+  *** <<-configurablecachefactory--and--session--injection,`ConfigurableCacheFactory` and `Scope` Injection>>
   *** <<-serializer--injection,`Serializer` Injection>>
 * <<injecting-cdi-beans-into-coherence-managed-objects,Injecting CDI Beans into Coherence-managed Objects>>
  ** <<using-cdi-observers-to-handle-coherence-server-side-events,Using CDI Observers to Handle Coherence Server-Side Events>>
@@ -50,7 +50,7 @@ Once the necessary dependency is in place, you can start using CDI to inject Coh
 CDI, and dependency injection in general, make it easy for application classes to declare the dependencies they need and let the runtime provide them when necessary.
 This makes the applications easier to develop, test and reason about, and the code significantly cleaner.
 
-Coherence CDI allows you to do the same for Coherence objects, such as `Cluster`, `Session`, `NamedMap`,`NamedCache`, `ContinuousQueryCache`, `ConfigurableCacheFactory`, etc.
+Coherence CDI allows you to do the same for Coherence objects, such as `Cluster`, `Scope`, `NamedMap`,`NamedCache`, `ContinuousQueryCache`, `ConfigurableCacheFactory`, etc.
 
 ==== Injecting `NamedMap`, `NamedCache` and related objects
 
@@ -85,7 +85,7 @@ public MyClass(@Name("people") NamedMap<Long, Person> people) {
 All of the examples above assume that you want to use the default `ConfigurableCacheFactory`, which is often, but not always the case.
 For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple Coherence config files, and multiple `ConfigurableCacheFactory` instances.
 
-In this case you would use `@Session` qualifier to specify the URI of the cache configuration to use:
+In this case you would use `Scope` qualifier to specify the URI of the cache configuration to use:
 
 [source,java]
 ----
@@ -190,7 +190,7 @@ public MyClass(@Name("orders") NamedTopic<Order> orders) {
 All of the examples above assume that you want to use the default `ConfigurableCacheFactory`, which is often, but not always the case.
 For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple Coherence cache config files, and multiple `ConfigurableCacheFactory` instances.
 
-In this case you would use `Session` qualifier to specify the URI of the cache configuration to use:
+In this case you would use `Scope` qualifier to specify the URI of the cache configuration to use:
 
 [source,java]
 ----
@@ -275,7 +275,7 @@ private OperationalContext ctx;
 
 On rare occasions when you need to use either of these directly, Coherence CDI makes it trivial to do so.
 
-To obtain an instance of a default `CCF` or `Session`, all you need to do is inject them into the  class that needs to use them:
+To obtain an instance of a default `CCF` or `Scope`, all you need to do is inject them into the  class that needs to use them:
 
 [source,java]
 ----
@@ -286,17 +286,17 @@ private ConfigurableCacheFactory ccf;
 private Session session;
 ----
 
-If you need a specific `CCF` or `Session` you can simply qualify them using `@Name` qualifier and specifying the URI of the cache config file to use:
+If you need a specific `CCF` or `Scope` you can simply qualify them using `@Name` qualifier and specifying the URI of the cache config file to use:
 
 [source,java]
 ----
 @Inject
-@Name("my-cache-config.xml")
+@Scope("my-cache-config.xml")
 private ConfigurableCacheFactory ccf;
 
 @Inject
-@Name("my-cache-config.xml")
-private Session session;
+@Scope("my-cache-config.xml")
+private ConfigurableCacheFactory session;
 ----
 
 ===== `Serializer` Injection

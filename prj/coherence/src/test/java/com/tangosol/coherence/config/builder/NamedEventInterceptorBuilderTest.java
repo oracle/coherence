@@ -136,26 +136,15 @@ public class NamedEventInterceptorBuilderTest
     public void testServiceAndCacheName()
             throws ParseException
         {
-        //ServiceInfo                  si   = mock(ServiceInfo.class);
-        //CacheService                 cs   = mock(CacheService.class);
-        //PartitionedService           ps   = mock(PartitionedService.class);
         BackingMapManagerContext     bmmc = mock(BackingMapManagerContext.class);
         BackingMapContext            bmc  = mock(BackingMapContext.class);
         PartitionedCacheDispatcher   bmd  = mock(PartitionedCacheDispatcher.class);
         PartitionedServiceDispatcher psd  = mock(PartitionedServiceDispatcher.class);
 
         // mimic call stacks
-        //when(si.getServiceName()).thenReturn("PartitionedService");
-        //when(cs.getInfo()).thenReturn(si);
-        //when(bmmc.getCacheService()).thenReturn(cs);
-        //when(bmc.getManagerContext()).thenReturn(bmmc);
         when(psd.getServiceName()).thenReturn("PartitionedService");
         when(bmd.getServiceName()).thenReturn("PartitionedService");
         when(bmd.getCacheName()).thenReturn("dist-bonjour");
-        //when(bmd.getBackingMapContext()).thenReturn(bmc);
-
-        //when(ps.getInfo()).thenReturn(si);
-        //when(psd.getService()).thenReturn(ps);
 
         NamedEventInterceptorBuilder bldr = new NamedEventInterceptorBuilder();
 

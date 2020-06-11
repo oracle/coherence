@@ -6,7 +6,8 @@
  */
 package com.oracle.coherence.cache.grpc.client;
 
-import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Remote;
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.net.Session;
@@ -140,7 +141,7 @@ public class RemoteSessions
     /**
      * Produces a remote {@link GrpcRemoteSession}.
      * <p>
-     * If the value of the name qualifier is blank or empty String the default
+     * If the value of the scope qualifier is blank or empty String the default
      * {@link Session} will be returned.
      *
      * @param injectionPoint the {@link InjectionPoint} that the cache factory it to be injected into
@@ -149,13 +150,13 @@ public class RemoteSessions
      */
     @Produces
     @Remote
-    @Name("")
+    @Scope()
     protected GrpcRemoteSession getSession(InjectionPoint injectionPoint)
         {
         String sName = injectionPoint.getQualifiers()
                 .stream()
-                .filter(q -> q.annotationType().isAssignableFrom(Name.class))
-                .map(q -> ((Name) q).value())
+                .filter(q -> q.annotationType().isAssignableFrom(Scope.class))
+                .map(q -> ((Scope) q).value().trim())
                 .findFirst()
                 .orElse(GrpcRemoteSession.DEFAULT_NAME);
 

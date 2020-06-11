@@ -20,6 +20,7 @@ import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap.EntryProcessor;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -176,7 +177,7 @@ public class StorageDispatcher
             {
             super(dispatcher, eventType);
 
-            m_setBinEntry = setBinEntry;
+            m_binEntry = setBinEntry.iterator().next();
             }
 
         // ----- AbstractEvent methods --------------------------------------
@@ -215,7 +216,15 @@ public class StorageDispatcher
          */
         public Set<BinaryEntry<K, V>> getEntrySet()
             {
-            return m_setBinEntry;
+            return Collections.singleton(m_binEntry);
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        public BinaryEntry<K, V> getEntry()
+            {
+            return m_binEntry;
             }
 
         // ----- data members -----------------------------------------------
@@ -223,7 +232,7 @@ public class StorageDispatcher
         /**
          * The set of binary entries associated with this storage transfer event.
          */
-        protected final Set<BinaryEntry<K, V>> m_setBinEntry;
+        protected final BinaryEntry<K, V> m_binEntry;
         }
 
 

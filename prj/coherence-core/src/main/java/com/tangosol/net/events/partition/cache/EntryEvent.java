@@ -8,9 +8,7 @@ package com.tangosol.net.events.partition.cache;
 
 import com.tangosol.util.BinaryEntry;
 
-import java.util.Iterator;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * An EntryEvent captures information relating to actions performed
@@ -29,25 +27,58 @@ import java.util.function.Consumer;
  * @since Coherence 12.1.2
  */
 public interface EntryEvent<K, V>
-        extends Event<EntryEvent.Type>, Iterable<BinaryEntry<K, V>>
+        extends Event<EntryEvent.Type>
     {
     /**
      * Return the immutable Set of {@link BinaryEntry entries} on which the
      * action represented by this {@link EntryEvent} occurred.
      *
      * @return the Set of entries represented by this event
+     *
+     * @deprecated since 14.1.2; use {@link #getEntry()} and related methods instead
      */
+    @Deprecated
     public Set<BinaryEntry<K, V>> getEntrySet();
 
     /**
-     * Returns an iterator over the {@link BinaryEntry entries} in this event.
+     * Return the {@link BinaryEntry entry} on which the action represented by
+     * this {@link EntryEvent} occurred.
      *
-     * @return an iterator over the {@link BinaryEntry entries} in this event.
+     * @return the entry represented by this event
      */
-    @Override
-    public default Iterator<BinaryEntry<K, V>> iterator()
+    public BinaryEntry<K, V> getEntry();
+
+    /**
+     * Return the key of the entry on which the action represented by
+     * this {@link EntryEvent} occurred.
+     *
+     * @return the key of the entry represented by this event
+     */
+    public default K getKey()
         {
-        return getEntrySet().iterator();
+        return getEntry().getKey();
+        }
+
+    /**
+     * Return the value of the entry on which the action represented by
+     * this {@link EntryEvent} occurred.
+     *
+     * @return the value of the entry represented by this event
+     */
+    public default V getValue()
+        {
+        return getEntry().getValue();
+        }
+
+    /**
+     * Return the original value of the entry on which the action represented by
+     * this {@link EntryEvent} occurred.
+     *
+     * @return the original value of the entry represented by this event
+     */
+    public default V getOriginalValue()
+        {
+        return getEntry().getOriginalValue();
         }
 
     // ----- constants --------------------------------------------------

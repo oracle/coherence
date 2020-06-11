@@ -7,7 +7,8 @@
 package com.oracle.coherence.cache.grpc.client;
 
 import com.oracle.coherence.cdi.Name;
-import com.oracle.coherence.cdi.Session;
+import com.oracle.coherence.cdi.Remote;
+import com.oracle.coherence.cdi.Scope;
 
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
@@ -45,23 +46,23 @@ public class NamedCacheProducer
     /**
      * Produce a {@link NamedCache} gRPC client using the name from the
      * {@link Name @Name} qualifier as the cache name and the name
-     * from the optional {@link Session @Session} qualifier to
+     * from the optional {@link Scope @Session} qualifier to
      * identify the gRPC {@link com.tangosol.net.Session} to use to connect to
      * the server.
      * <p>
-     * If no {@link Session} qualifier is present the default gRPC session will be used.
+     * If no {@link Scope} qualifier is present the default gRPC session will be used.
      *
      * @param injectionPoint  the injection point to inject the {@link NamedCache} into
      * @param <K>             the type of the cache keys
      * @param <V>             the type of the cache values
      *
      * @return a {@link NamedCache} using the name from the {@link Name} qualifier
-     *         as the cache name and the name from the optional {@link Session} qualifier
+     *         as the cache name and the name from the optional {@link Scope} qualifier
      */
     @Produces
     @Remote
     @Name("")
-    @Session("")
+    @Scope("")
     public <K, V> NamedCacheClient<K, V> getNamedCache(InjectionPoint injectionPoint)
         {
         AsyncNamedCacheClient<K, V> async = getAsyncNamedCacheClient(injectionPoint);
@@ -71,23 +72,23 @@ public class NamedCacheProducer
     /**
      * Produce a {@link AsyncNamedCache} gRPC client using the name from the
      * {@link Name @Name} qualifier as the cache name and the name
-     * from the optional {@link Session @Session} qualifier to
+     * from the optional {@link Scope @Session} qualifier to
      * identify the gRPC {@link com.tangosol.net.Session} to use to connect to
      * the server.
      * <p>
-     * If no {@link Session} qualifier is present the default gRPC channel will be used.
+     * If no {@link Scope} qualifier is present the default gRPC channel will be used.
      *
      * @param injectionPoint  the injection point to inject the {@link AsyncNamedCache} into
      * @param <K>             the type of the cache keys
      * @param <V>             the type of the cache values
      *
      * @return a {@link NamedCache} using the name from the {@link Name} qualifier
-     *         as the cache name and the name from the optional {@link Session} qualifier
+     *         as the cache name and the name from the optional {@link Scope} qualifier
      */
     @Produces
     @Remote
     @Name("")
-    @Session("")
+    @Scope("")
     public <K, V> AsyncNamedCacheClient<K, V> getRemoteAsyncNamedCache(InjectionPoint injectionPoint)
         {
         return getAsyncNamedCacheClient(injectionPoint);
@@ -120,8 +121,8 @@ public class NamedCacheProducer
             }
 
         String sSessionName = qualifiers.stream()
-                .filter(q -> Session.class.isAssignableFrom(q.getClass()))
-                .map(q -> ((Session) q).value())
+                .filter(q -> Scope.class.isAssignableFrom(q.getClass()))
+                .map(q -> ((Scope) q).value())
                 .findFirst()
                 .orElse(GrpcRemoteSession.DEFAULT_NAME);
 

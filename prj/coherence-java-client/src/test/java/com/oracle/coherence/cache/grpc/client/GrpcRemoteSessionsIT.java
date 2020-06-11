@@ -6,7 +6,8 @@
  */
 package com.oracle.coherence.cache.grpc.client;
 
-import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Remote;
+import com.oracle.coherence.cdi.Scope;
 
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -46,8 +47,6 @@ class GrpcRemoteSessionsIT
         {
         System.setProperty("coherence.ttl", "0");
         System.setProperty("coherence.clustername", "NamedCacheServiceCdiIT");
-
-        DefaultCacheServer.startServerDaemon().waitForServiceStart();
 
         s_server = Server.create().start();
         }
@@ -230,17 +229,17 @@ class GrpcRemoteSessionsIT
 
         @Inject
         @Remote
-        @Name("test")
+        @Scope("test")
         private GrpcRemoteSession m_session;
 
         @Inject
         @Remote
-        @Name("test-java")
+        @Scope("test-java")
         private GrpcRemoteSession m_javaSession;
 
         @Inject
         @Remote
-        @Name("test-pof")
+        @Scope("test-pof")
         private GrpcRemoteSession m_pofSession;
         }
 

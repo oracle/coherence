@@ -46,6 +46,9 @@ public class ConfigurableCacheFactoryProducerIT
                                                          .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                          .addBeanClass(ConfigurableCacheFactoryProducer.class));
 
+    @Inject
+    private CoherenceExtension extension;
+
     /**
      * Should inject the default CCF.
      */
@@ -56,22 +59,29 @@ public class ConfigurableCacheFactoryProducerIT
      * Should inject the test CCF.
      */
     @Inject
-    @Name("test-cache-config.xml")
+    @Scope("test-config.xml")
     private ConfigurableCacheFactory testCacheFactory;
 
     /**
      * Should inject the the default CCF.
      */
     @Inject
-    @Name("")
+    @Scope("")
     private ConfigurableCacheFactory qualifiedDefaultCacheFactory;
 
     /**
      * Should inject the the default CCF.
      */
     @Inject
-    @Name(" ")
+    @Scope(" ")
     private ConfigurableCacheFactory namedDefaultCacheFactory;
+
+    /**
+     * Should inject the the system CCF.
+     */
+    @Inject
+    @Scope(Scope.SYSTEM)
+    private ConfigurableCacheFactory systemCacheFactory;
 
     /**
      * Should inject cache factory builder.
@@ -109,9 +119,16 @@ public class ConfigurableCacheFactoryProducerIT
         }
 
     @Test
+    void shouldInjectSystemConfigurableCacheFactory()
+        {
+        assertThat(systemCacheFactory, is(notNullValue()));
+        assertThat(systemCacheFactory, is(sameInstance(extension.getSystemCacheFactory())));
+        }
+
+    @Test
     void shouldGetDynamicCCF()
         {
-        Annotation qualifier = Name.Literal.of("test-cache-config.xml");
+        Annotation qualifier = Scope.Literal.of("test-config.xml");
         Instance<ConfigurableCacheFactory> instance = weld.select(ConfigurableCacheFactory.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));

@@ -82,7 +82,7 @@ class CdiNamespaceHandlerIT
                                                           .addBeanClass(ActivationListener.class));
 
     @Inject
-    @Name("cdi-beans-cache-config.xml")
+    @Scope("cdi-beans-config.xml")
     private ConfigurableCacheFactory ccf;
 
     @Inject

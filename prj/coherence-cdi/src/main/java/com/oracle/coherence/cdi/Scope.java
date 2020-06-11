@@ -23,48 +23,58 @@ import javax.inject.Qualifier;
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Session
+public @interface Scope
     {
     /**
-     * The URI used to identify a specific {@link
+     * The scope name or URI used to identify a specific {@link
      * com.tangosol.net.ConfigurableCacheFactory}.
      *
-     * @return the URI used to identify a specific
+     * @return the scope name or URI used to identify a specific
      *         {@link com.tangosol.net.ConfigurableCacheFactory}
      */
-    @Nonbinding String value();
+    @Nonbinding String value() default DEFAULT;
+
+    /**
+     * Predefined constant for system scope.
+     */
+    String DEFAULT = "";
+
+    /**
+     * Predefined constant for system scope.
+     */
+    String SYSTEM = "SYS";
 
     // ---- inner class: Literal --------------------------------------------
 
     /**
-     * An annotation literal for the {@link Session} annotation.
+     * An annotation literal for the {@link Scope} annotation.
      */
     class Literal
-            extends AnnotationLiteral<Session>
-            implements Session
+            extends AnnotationLiteral<Scope>
+            implements Scope
         {
         /**
          * Construct {@code Literal} instacne.
          *
-         * @param sUri  the URI used to identify a specific
-         *              {@link com.tangosol.net.ConfigurableCacheFactory}
+         * @param sValue  the scope name or URI used to identify a specific
+         *                {@link com.tangosol.net.ConfigurableCacheFactory}
          */
-        private Literal(String sUri)
+        private Literal(String sValue)
             {
-            m_sValue = sUri;
+            m_sValue = sValue;
             }
 
         /**
-         * Create a {@link Session.Literal}.
+         * Create a {@link Scope.Literal}.
          *
-         * @param sUri  the URI used to identify a specific
-         *              {@link com.tangosol.net.ConfigurableCacheFactory}
+         * @param sValue  the scope name or URI used to identify a specific
+         *                {@link com.tangosol.net.ConfigurableCacheFactory}
          *
-         * @return a {@link Session.Literal} with the specified URI
+         * @return a {@link Scope.Literal} with the specified URI
          */
-        public static Literal of(String sUri)
+        public static Literal of(String sValue)
             {
-            return new Literal(sUri);
+            return new Literal(sValue);
             }
 
         /**
@@ -80,7 +90,7 @@ public @interface Session
         // ---- data members ------------------------------------------------
 
         /**
-         * The name value for this literal.
+         * The value for this literal.
          */
         private final String m_sValue;
         }

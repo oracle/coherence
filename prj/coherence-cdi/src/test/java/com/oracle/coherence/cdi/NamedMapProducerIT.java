@@ -29,6 +29,7 @@ import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -44,6 +45,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.10.19
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NamedMapProducerIT
     {
 
@@ -342,12 +344,12 @@ class NamedMapProducerIT
 
         @Inject
         @Name("numbers")
-        @Session("test-cache-config.xml")
+        @Scope("test-config.xml")
         private NamedMap specificCcfNumbers;
 
         @Inject
         @Name("numbers")
-        @Session("test-cache-config.xml")
+        @Scope("test-config.xml")
         private AsyncNamedMap specificCcfAsyncNumbers;
 
         public NamedMap getDefaultCcfNumbers()

@@ -44,6 +44,20 @@ public interface Session extends AutoCloseable
     // ----- Session methods ------------------------------------------------
 
     /**
+     * Acquire a {@link NamedMap} using the specified {@link com.tangosol.net.NamedMap.Option}s,
+     * for example a {@link TypeAssertion}.
+     *
+     * @param sName    the name of the {@link NamedMap}
+     * @param options  the {@link com.tangosol.net.NamedMap.Option}s
+     *
+     * @param <K>  the type of keys for the {@link NamedMap}
+     * @param <V>  the type of values for the {@link NamedMap}
+     *
+     * @return a {@link NamedMap}
+     */
+    <K, V> NamedMap<K, V> getMap(String sName, NamedMap.Option... options);
+
+    /**
      * Acquire a {@link NamedCache} using the specified {@link com.tangosol.net.NamedCache.Option}s,
      * for example a {@link TypeAssertion}.
      *

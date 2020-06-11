@@ -60,7 +60,7 @@ class CdiMapListenerIT
                                                           .addBeanClass(TestListener.class));
 
     @Inject
-    @Name("cdi-events-cache-config.xml")
+    @Scope("cdi-events-config.xml")
     private ConfigurableCacheFactory ccf;
 
     @Inject

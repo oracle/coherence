@@ -86,10 +86,10 @@ class NamedCacheProducer
     /**
      * Produce an {@link AsyncNamedCache} using the name from the {@link Name}
      * qualifier as the cache name and the name from the optional {@link
-     * Session} qualifier to identify the source {@link
+     * Scope} qualifier to identify the source {@link
      * ConfigurableCacheFactory}.
      * <p>
-     * If no {@link Session} qualifier is present the default {@link
+     * If no {@link Scope} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      *
      * @param injectionPoint the injection point to inject the {@link AsyncNamedCache} into
@@ -98,11 +98,11 @@ class NamedCacheProducer
      *
      * @return an {@link AsyncNamedCache} using the name from the {@link Name}
      *         qualifier as the cache name and the name from the optional
-     *         {@link Session} qualifier
+     *         {@link Scope} qualifier
      */
     @Produces
     @Name("")
-    @Session("")
+    @Scope("")
     <K, V> AsyncNamedCache<K, V> getAsyncNamedCache(InjectionPoint injectionPoint)
         {
         NamedCache<K, V> cache = getCache(injectionPoint);
@@ -131,10 +131,10 @@ class NamedCacheProducer
     /**
      * Produce an {@link NamedCache} using the name from the {@link Name}
      * qualifier as the cache name and the name from the optional {@link
-     * Session} qualifier to identify the source {@link
+     * Scope} qualifier to identify the source {@link
      * ConfigurableCacheFactory}.
      * <p>
-     * If no {@link Session} qualifier is present the default {@link
+     * If no {@link Scope} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      *
      * @param injectionPoint  the injection point to inject the {@link NamedCache} into
@@ -143,12 +143,12 @@ class NamedCacheProducer
      *
      * @return an {@link NamedCache} using the name from the {@link Name}
      *         qualifier as the cache name and the name from the optional
-     *         {@link Session} qualifier
+     *         {@link Scope} qualifier
      */
     @Produces
     @Name("")
     @View
-    @Session("")
+    @Scope("")
     <K, V> NamedCache<K, V> getCache(InjectionPoint injectionPoint)
         {
         return getCacheInternal(injectionPoint, false);
@@ -194,10 +194,10 @@ class NamedCacheProducer
      * Produce an {@link com.tangosol.net.cache.ContinuousQueryCache} using the
      * name from the {@link Name} qualifier as the
      * underlying cache name and the name from the optional {@link
-     * Session} qualifier to identify the source
+     * Scope} qualifier to identify the source
      * {@link com.tangosol.net.ConfigurableCacheFactory}.
      * <p>
-     * If no {@link Session} qualifier is present
+     * If no {@link Scope} qualifier is present
      * the default {@link com.tangosol.net.ConfigurableCacheFactory} will be
      * used as the source.
      *
@@ -214,13 +214,13 @@ class NamedCacheProducer
      * @return an {@link com.tangosol.net.cache.ContinuousQueryCache} using the
      *         name from the {@link Name} qualifier
      *         as the name of the underlying cache and the name from the optional
-     *         {@link Session} qualifier to identify
+     *         {@link Scope} qualifier to identify
      *         the source {@link com.tangosol.net.ConfigurableCacheFactory}
      */
     @Produces
     @Name("")
     @View
-    @Session("")
+    @Scope("")
     @Typed(ContinuousQueryCache.class)
     <K, V_BACK, V_FRONT> ContinuousQueryCache<K, V_BACK, V_FRONT> getCQC(InjectionPoint injectionPoint)
         {
@@ -265,7 +265,7 @@ class NamedCacheProducer
      *                  creating this {@link ContinuousQueryCache}
      */
     <K, V_BACK, V_FRONT> void destroyQualifiedCQC(
-            @Disposes @Name("") @View @Session("") ContinuousQueryCache<K, V_BACK, V_FRONT> cqc)
+            @Disposes @Name("") @View @Scope("") ContinuousQueryCache<K, V_BACK, V_FRONT> cqc)
         {
         cqc.destroy();
         }
@@ -301,9 +301,9 @@ class NamedCacheProducer
                 {
                 sName = ((Name) annotation).value();
                 }
-            else if (Session.class.equals(annotation.annotationType()))
+            else if (Scope.class.equals(annotation.annotationType()))
                 {
-                sSession = ((Session) annotation).value();
+                sSession = ((Scope) annotation).value();
                 }
             else if (View.class.equals(annotation.annotationType()))
                 {

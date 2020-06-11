@@ -10,6 +10,7 @@ import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
 import com.tangosol.net.cache.TypeAssertion;
@@ -19,6 +20,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -49,6 +51,12 @@ public class ConfigurableCacheFactorySession
         }
 
     // ----- Session interface ----------------------------------------------
+
+    @Override
+    public <K, V> NamedMap<K, V> getMap(String sName, NamedMap.Option... options)
+        {
+        return getCache(sName, options);
+        }
 
     @Override
     public <K, V> NamedCache<K, V> getCache(String sName, NamedCache.Option... options)

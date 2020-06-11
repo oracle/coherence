@@ -8,7 +8,8 @@
 package com.oracle.coherence.cache.grpc.client;
 
 import com.oracle.coherence.cdi.Name;
-import com.oracle.coherence.cdi.Session;
+import com.oracle.coherence.cdi.Remote;
+import com.oracle.coherence.cdi.Scope;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 
@@ -416,13 +417,13 @@ class NamedCacheProducerIT
         @Inject
         @Remote
         @Name("numbers")
-        @Session("test")
+        @Scope("test")
         protected NamedCache m_specificCcfNumbers;
 
         @Inject
         @Remote
         @Name("numbers")
-        @Session("test")
+        @Scope("test")
         protected AsyncNamedCache m_specificCcfAsyncNumbers;
         }
 

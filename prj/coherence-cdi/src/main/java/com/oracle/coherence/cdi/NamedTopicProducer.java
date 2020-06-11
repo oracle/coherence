@@ -69,10 +69,10 @@ class NamedTopicProducer
     /**
      * Produce a {@link NamedTopic} using the name from the {@link Name @Name}
      * qualifier as the topic name and the name from the optional {@link
-     * Session @Factory} qualifier to identify the source {@link
+     * Scope @Factory} qualifier to identify the source {@link
      * ConfigurableCacheFactory}.
      * <p>
-     * If no {@link Session @Factory} qualifier is present the default {@link
+     * If no {@link Scope @Factory} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      *
      * @param injectionPoint  the injection point to inject the {@link NamedTopic} into
@@ -80,11 +80,11 @@ class NamedTopicProducer
      *
      * @return a {@link NamedTopic} using the name from the {@link Name @Name}
      *         qualifier as the topic name and the name from the optional
-     *         {@link Session @Factory} qualifier
+     *         {@link Scope @Factory} qualifier
      */
     @Produces
     @Name("")
-    @Session("")
+    @Scope("")
     <V> NamedTopic<V> getNamedTopic(InjectionPoint injectionPoint)
         {
         String  sName        = null;
@@ -96,9 +96,9 @@ class NamedTopicProducer
                 {
                 sName = ((Name) annotation).value();
                 }
-            else if (Session.class.equals(annotation.annotationType()))
+            else if (Scope.class.equals(annotation.annotationType()))
                 {
-                sSession = ((Session) annotation).value();
+                sSession = ((Scope) annotation).value();
                 }
              }
 
@@ -132,10 +132,10 @@ class NamedTopicProducer
     /**
      * Produce a {@link Publisher} for a {@link NamedTopic} using the name from
      * the {@link Name @Name} qualifier as the topic name and the name from the
-     * optional {@link Session @Factory} qualifier to identify the source {@link
+     * optional {@link Scope @Factory} qualifier to identify the source {@link
      * ConfigurableCacheFactory}.
      * <p>
-     * If no {@link Session @Factory} qualifier is present the default {@link
+     * If no {@link Scope @Factory} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      *
      * @param injectionPoint  the injection point to inject the {@link NamedTopic} into
@@ -143,11 +143,11 @@ class NamedTopicProducer
      *
      * @return a {@link NamedTopic} using the name from the {@link Name @Name}
      *         qualifier as the topic name and the name from the optional
-     *         {@link Session @Factory} qualifier
+     *         {@link Scope @Factory} qualifier
      */
     @Produces
     @Name("")
-    @Session("")
+    @Scope("")
     <V> Publisher<V> getNamedTopicPublisher(InjectionPoint injectionPoint)
         {
         NamedTopic<V> topic = getNamedTopic(injectionPoint);
@@ -175,7 +175,7 @@ class NamedTopicProducer
      * @param publisher  the {@link Publisher} to dispose
      * @param <V>        the type of the topic elements
      */
-    <V> void closeQualifiedPublisher(@Disposes @Name("") @Session("") Publisher<V> publisher)
+    <V> void closeQualifiedPublisher(@Disposes @Name("") @Scope("") Publisher<V> publisher)
         {
         publisher.close();
         }
@@ -208,9 +208,9 @@ class NamedTopicProducer
      * the topic name. If no  {@link Name @Name} qualifier is present then the
      * injection point member name will be used as the topic name.
      * <p>
-     * The name from the optional {@link Session @Factory} qualifier will be used to
+     * The name from the optional {@link Scope @Factory} qualifier will be used to
      * determine the source {@link ConfigurableCacheFactory}. If no {@link
-     * Session} qualifier is present the default {@link
+     * Scope} qualifier is present the default {@link
      * ConfigurableCacheFactory} will be used as the source.
      * <p>
      * The optional {@link SubscriberGroup} qualifier can be used to specify a
@@ -221,11 +221,11 @@ class NamedTopicProducer
      *
      * @return a {@link NamedTopic} using the name from the {@link Name @Name}
      *         qualifier as the topic name and the name from the optional
-     *         {@link Session @Factory} qualifier
+     *         {@link Scope @Factory} qualifier
      */
     @Produces
     @Name("")
-    @Session("")
+    @Scope("")
     @SuppressWarnings("unchecked")
     <V> Subscriber<V> getNamedTopicSubscriber(InjectionPoint injectionPoint)
         {
@@ -263,7 +263,7 @@ class NamedTopicProducer
      * @param subscriber  the {@link Subscriber} to dispose
      * @param <V>         the type of the topic elements
      */
-    <V> void closeQualifiedSubscriber(@Disposes @Name("") @Session("") Subscriber<V> subscriber)
+    <V> void closeQualifiedSubscriber(@Disposes @Name("") @Scope("") Subscriber<V> subscriber)
         {
         subscriber.close();
         }

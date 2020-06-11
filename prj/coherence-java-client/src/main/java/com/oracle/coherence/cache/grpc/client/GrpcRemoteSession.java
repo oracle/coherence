@@ -15,6 +15,7 @@ import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
@@ -179,9 +180,9 @@ public class GrpcRemoteSession
     // ----- Session interface ----------------------------------------------
 
     @Override
-    public <V> NamedTopic<V> getTopic(String sName, NamedCollection.Option... options)
+    public <K, V> NamedMap<K, V> getMap(String sName, NamedMap.Option... options)
         {
-        throw new UnsupportedOperationException();
+        return getCache(sName, options);
         }
 
     @Override
@@ -193,6 +194,12 @@ public class GrpcRemoteSession
             throw new IllegalStateException("this session has been closed");
             }
         return (NamedCache<K, V>) getAsyncCache(cacheName, options).getNamedCache();
+        }
+
+    @Override
+    public <V> NamedTopic<V> getTopic(String sName, NamedCollection.Option... options)
+        {
+        throw new UnsupportedOperationException();
         }
 
     @Override

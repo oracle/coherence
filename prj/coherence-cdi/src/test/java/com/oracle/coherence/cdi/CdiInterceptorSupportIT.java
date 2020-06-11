@@ -69,7 +69,7 @@ class CdiInterceptorSupportIT
                                                           .addBeanClass(TestObservers.class));
 
     @Inject
-    @Name("cdi-events-cache-config.xml")
+    @Scope("cdi-events-config.xml")
     private ConfigurableCacheFactory ccf;
 
     @Inject
@@ -190,19 +190,19 @@ class CdiInterceptorSupportIT
         private void onPersonInserted(@Observes @Inserted @CacheName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            event.forEach(entry -> assertThat(entry.getValue().getLastName(), is("Simpson")));
+            assertThat(event.getValue().getLastName(), is("Simpson"));
             }
 
         private void onPersonUpdated(@Observes @Updated @CacheName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            event.forEach(entry -> assertThat(entry.getValue().getLastName(), is("SIMPSON")));
+            assertThat(event.getValue().getLastName(), is("SIMPSON"));
             }
 
         private void onPersonRemoved(@Observes @Removed @CacheName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            event.forEach(entry -> assertThat(entry.getOriginalValue().getLastName(), is("SIMPSON")));
+            assertThat(event.getOriginalValue().getLastName(), is("SIMPSON"));
             }
 
         private void onExecuting(@Observes @Executing @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)

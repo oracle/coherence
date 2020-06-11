@@ -29,6 +29,7 @@ import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -44,6 +45,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.10.23
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NamedTopicProducerIT
     {
 
@@ -399,17 +401,17 @@ class NamedTopicProducerIT
 
         @Inject
         @Name("numbers")
-        @Session("test-cache-config.xml")
+        @Scope("test-config.xml")
         private NamedTopic<String> specificCcfNumbers;
 
         @Inject
         @Name("numbers")
-        @Session("test-cache-config.xml")
+        @Scope("test-config.xml")
         private Publisher<String> specificPublisher;
 
         @Inject
         @Name("numbers")
-        @Session("test-cache-config.xml")
+        @Scope("test-config.xml")
         private Subscriber<String> specificSubscriber;
 
         public NamedTopic<String> getDefaultCcfNumbers()
