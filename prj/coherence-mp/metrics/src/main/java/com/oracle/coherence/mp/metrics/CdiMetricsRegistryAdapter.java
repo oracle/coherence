@@ -4,7 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.cdi;
+package com.oracle.coherence.mp.metrics;
+
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
@@ -14,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
@@ -50,14 +53,23 @@ public class CdiMetricsRegistryAdapter
      */
     private void delegate(Consumer<MetricsRegistryAdapter> action)
         {
-        CDI<Object> cdi;
         try
             {
-            cdi = CDI.current();
             Instance<MetricsRegistryAdapter> adapters = m_adapters;
             if (adapters == null)
                 {
-                adapters = m_adapters = cdi.select(MetricsRegistryAdapter.class);
+                adapters = m_adapters = CDI.current().select(MetricsRegistryAdapter.class);
+                if (adapters.isUnsatisfied())
+                    {
+                    Logger.config("No CDI-managed metrics registry adapters were discovered");
+                    }
+                else
+                    {
+                    String sAdapterNames = adapters.stream()
+                            .map(a -> a.getClass().getSimpleName())
+                            .collect(Collectors.joining(", "));
+                    Logger.config("Registering CDI-managed metrics registry adapters: " + sAdapterNames);
+                    }
                 }
 
             if (!f_deferredActions.isEmpty())

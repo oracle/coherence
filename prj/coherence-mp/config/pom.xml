@@ -31,11 +31,21 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-cdi</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!--
       additional compile and runtime dependencies, marked as
       'provided' in order to avoid version conflicts
      -->
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.eclipse.microprofile.config</groupId>
       <artifactId>microprofile-config-api</artifactId>
@@ -64,6 +74,11 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.weld</groupId>
+      <artifactId>weld-junit5</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -108,6 +123,18 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <reuseForks>false</reuseForks>
+          <!-- needed for tests -->
+          <environmentVariables>
+            <COHERENCE_ROLE>proxy</COHERENCE_ROLE>
+            <COHERENCE_MEMBER>env01</COHERENCE_MEMBER>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <reuseForks>false</reuseForks>
           <!-- needed for tests -->

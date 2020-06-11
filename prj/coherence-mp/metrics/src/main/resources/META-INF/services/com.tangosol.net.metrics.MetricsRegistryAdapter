@@ -5,4 +5,4 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-com.oracle.coherence.cdi.CdiMetricsRegistryAdapter
+com.oracle.coherence.mp.metrics.CdiMetricsRegistryAdapter

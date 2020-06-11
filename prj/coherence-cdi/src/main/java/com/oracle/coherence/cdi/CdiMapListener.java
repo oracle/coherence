@@ -59,7 +59,7 @@ class CdiMapListener<K, V>
                 }
             else if (a instanceof ScopeName)
                 {
-                sService = ((ScopeName) a).value();
+                sScope = ((ScopeName) a).value();
                 }
             else if (a instanceof Inserted)
                 {

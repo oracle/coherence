@@ -6,38 +6,49 @@
  */
 package com.oracle.coherence.mp.config;
 
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.CacheFactoryBuilder;
-import com.tangosol.net.ConfigurableCacheFactory;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.events.EventInterceptor;
+import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.cdi.events.Activated;
+import com.oracle.coherence.cdi.events.CacheName;
+import com.oracle.coherence.cdi.events.Inserted;
+import com.oracle.coherence.cdi.events.ScopeName;
+
+import com.oracle.coherence.cdi.events.Updated;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.events.application.LifecycleEvent;
 
+import com.tangosol.util.MapEvent;
 import java.util.Collections;
 import java.util.Map;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
+
+import javax.inject.Inject;
 import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
 /**
  * An implementation of {@link org.eclipse.microprofile.config.spi.ConfigSource}
- * that reads configuration properties from a Coherence cache.
- * <p/>
- * Be default, this config source have the ordinal of 500 (which implies that
+ * that reads configuration properties from a Coherence map.
+ * <p>
+ * Be default, this config source has the ordinal of 500. That implies that
  * any config properties in it will override properties with the same name from
  * standard MP config sources (files, environment variables and Java system
- * properties). The ordinal value can be changed via {@code
- * coherence.mp.configsource.ordinal} config property.
- * <p/>
- *
+ * properties). The ordinal value can be changed via {@code coherence.config.ordinal}
+ * config property.
+ * <p>
+ * This config source is also mutable. It can be injected into any application 
+ * class by the CDI container, and the values can be modified by calling
+ * {@link }
  * @author Aleks Seovic  2019.10.12
  * @since Coherence 14.1.2
  */
+@ApplicationScoped
 public class CoherenceConfigSource
-        implements ConfigSource, EventInterceptor<LifecycleEvent>
+        implements ConfigSource
     {
     // ---- ConfigSource interface ------------------------------------------
 
@@ -54,31 +65,14 @@ public class CoherenceConfigSource
         m_nOrdinal = config.getOptionalValue(ORDINAL_PROPERTY, Integer.class).orElse(DEFAULT_ORDINAL);
         }
 
-    /**
-     * Activate {@code CoherenceConfigSource} if present in the specified {@link
-     * org.eclipse.microprofile.config.Config config}.
-     *
-     * @param config  configuration object to activate source in
-     */
-    public static void activate(Config config)
-        {
-        for (ConfigSource source : config.getConfigSources())
-            {
-            if (source instanceof CoherenceConfigSource)
-                {
-                ((CoherenceConfigSource) source).activate();
-                }
-            }
-        }
-
     // ---- ConfigSource interface ------------------------------------------
 
     @Override
     public Map<String, String> getProperties()
         {
-        return m_configCache == null
+        return m_configMap == null
                ? Collections.emptyMap()
-               : Collections.unmodifiableMap(m_configCache);
+               : Collections.unmodifiableMap(m_configMap);
         }
 
     @Override
@@ -90,57 +84,59 @@ public class CoherenceConfigSource
     @Override
     public String getValue(String key)
         {
-        return m_configCache == null ? null : m_configCache.get(key);
+        return m_configMap == null ? null : m_configMap.get(key);
         }
 
     @Override
     public String getName()
         {
-        return "coherence";
+        return "CoherenceConfigSource";
         }
 
-    // ---- EventInterceptor interface --------------------------------------
-
-    @Override
-    public void onEvent(LifecycleEvent e)
-        {
-        if (e.getType() == LifecycleEvent.Type.ACTIVATED)
-            {
-            Config config = ConfigProvider.getConfig();
-            activate(config);
-            }
-        }
-
-    // ---- helpers ---------------------------------------------------------
+    // ---- mutation support ------------------------------------------------
 
     /**
-     * Activate this config source.
+     * Set the value of a configuration property.
+     *
+     * @param sKey    configuration property key
+     * @param sValue  the new value to set
+     *
+     * @return the old value of the specified configuration property
      */
-    synchronized CoherenceConfigSource activate()
+    public String setValue(String sKey, String sValue)
         {
-        CacheFactoryBuilder cfb = CacheFactory.getCacheFactoryBuilder();
-        ConfigurableCacheFactory ccf = cfb.getConfigurableCacheFactory(CACHE_CONFIG, null);
-        try
+        if (m_configMap != null)
             {
-            ccf.activate();
-            }
-        catch (IllegalStateException ignore)
-            {
-            // ignore exception thrown if the CCF is already active
+            return m_configMap.put(sKey, sValue);
             }
 
-        m_configCache = ccf.ensureCache("config", null);
-        return this;
+        return null;
+        }
+
+    // ---- property change notification ------------------------------------
+
+    void onPropertyChange(@Observes @ScopeName(Scope.SYSTEM) @CacheName("config") MapEvent<String, String> event)
+        {
+        ConfigPropertyChanged changed = new ConfigPropertyChanged(event);
+        m_propertyChanged.fireAsync(changed);
+        m_propertyChanged.fire(changed);
+        }
+
+    // ---- lifecycle observer ----------------------------------------------
+
+    void onSystemScopeActivated(@Observes @ScopeName(Scope.SYSTEM) @Activated LifecycleEvent e)
+        {
+        m_configMap = e.getConfigurableCacheFactory().ensureCache("config", null);
         }
 
     /**
      * For testing.
      *
-     * @return internal config cache
+     * @return internal config map
      */
-    NamedCache<String, String> getConfigCache()
+    NamedMap<String, String> getConfigMap()
         {
-        return m_configCache;
+        return m_configMap;
         }
 
     // ---- data members ----------------------------------------------------
@@ -154,13 +150,7 @@ public class CoherenceConfigSource
      * The name of the system property that can be used to change the ordinal
      * for this {@link ConfigSource}.
      */
-    public static final String ORDINAL_PROPERTY = "coherence.mp.config.source.ordinal";
-
-    /**
-     * The name of internal cache configuration file that defines cache service
-     * and a cache that will be used to store config properties.
-     */
-    private static final String CACHE_CONFIG = "com/oracle/coherence/mp/config/cache-config.xml";
+    public static final String ORDINAL_PROPERTY = "coherence.config.ordinal";
 
     /**
      * An ordinal/priority for this {@link ConfigSource}.
@@ -168,7 +158,13 @@ public class CoherenceConfigSource
     private final int m_nOrdinal;
 
     /**
-     * The cache used to store configuration properties.
+     * The map used to store configuration properties.
      */
-    private volatile NamedCache<String, String> m_configCache;
+    private volatile NamedMap<String, String> m_configMap;
+
+    /**
+     * An event dispatcher for property change events.
+     */
+    @Inject
+    private Event<ConfigPropertyChanged> m_propertyChanged;
     }

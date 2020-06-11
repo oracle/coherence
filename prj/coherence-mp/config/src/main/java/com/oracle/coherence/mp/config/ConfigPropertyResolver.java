@@ -13,7 +13,6 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 
-
 /**
  * An implementation of Coherence property resolvers that reads system
  * properties and environment variables from MP Config.
@@ -38,7 +37,7 @@ public class ConfigPropertyResolver
         ConfigBuilder builder = resolver.getBuilder();
         m_config = builder
                 .addDefaultSources()
-                .withSources(new CoherenceLoggingConfigSource())
+                .withSources(new CoherenceDefaultsConfigSource())
                 .build();
         }
 

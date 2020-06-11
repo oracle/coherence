@@ -29,7 +29,7 @@ import javax.inject.Inject;
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 @ApplicationScoped
-class CdiMapListenerManager
+public class CdiMapListenerManager
     {
     private void registerListeners(@Observes @Created CacheLifecycleEvent event)
         {

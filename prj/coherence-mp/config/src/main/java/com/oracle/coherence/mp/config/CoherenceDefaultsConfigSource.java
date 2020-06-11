@@ -15,12 +15,13 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
 
 /**
  * A static {@link ConfigSource} implementation that overrides default
- * Coherence logging configuration to:
+ * Coherence configuration to:
  * <ul>
  *     <li>Use {@code java.util.logging} as a logging destination</li>
  *     <li>Use {@code com.oracle.coherence} as a logger name</li>
- *     <li>Changes default message format to {@code (thread={thread}, member={member}): {text}},
- *         in order to allow {@code java.util.logging} to control overall message formatting
+ *     <li>Changes default message format to {@code (thread={thread}, member={member},
+ *         up={uptime}): {text}}, in order to allow {@code java.util.logging}
+ *         to control overall message formatting
  *     </li>
  * </ul>
  *
@@ -31,20 +32,20 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
  * @author Aleks Seovic  2020.05.16
  * @since 14.1.2
  */
-public class CoherenceLoggingConfigSource
+public class CoherenceDefaultsConfigSource
         implements ConfigSource
     {
     // ---- constructors ----------------------------------------------------
 
     /**
-     * Construct {@code CoherenceLoggingConfigSource} instance.
+     * Construct {@code CoherenceDefaultsConfigSource} instance.
      */
-    public CoherenceLoggingConfigSource()
+    public CoherenceDefaultsConfigSource()
         {
         Map<String, String> map = new HashMap<>();
         map.put(DESTINATION, "jdk");
         map.put(LOGGER_NAME, "com.oracle.coherence");
-        map.put(MESSAGE_FORMAT, "(thread={thread}, member={member}): {text}");
+        map.put(MESSAGE_FORMAT, "(thread={thread}, member={member}, up={uptime}): {text}");
 
         f_mapProperties = Collections.unmodifiableMap(map);
         }
@@ -73,7 +74,7 @@ public class CoherenceLoggingConfigSource
     @Override
     public String getName()
         {
-        return "CoherenceLogging";
+        return "CoherenceDefaultsConfigSource";
         }
 
     // ---- constants -------------------------------------------------------
