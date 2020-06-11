@@ -29,12 +29,16 @@ import com.oracle.coherence.cdi.events.Recovered;
 import com.oracle.coherence.cdi.events.Removed;
 import com.oracle.coherence.cdi.events.Removing;
 import com.oracle.coherence.cdi.events.Rollback;
+import com.oracle.coherence.cdi.events.ScopeName;
 import com.oracle.coherence.cdi.events.ServiceName;
 import com.oracle.coherence.cdi.events.Truncated;
 import com.oracle.coherence.cdi.events.Updated;
 import com.oracle.coherence.cdi.events.Updating;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.PartitionedService;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.application.LifecycleEvent;
@@ -88,6 +92,18 @@ class CdiInterceptorSupport
             {
             m_observer = observer;
             m_setTypes = EnumSet.noneOf(classEventType);
+
+            String sScope = null;
+
+            for (Annotation a : observer.getObservedQualifiers())
+                {
+                if (a instanceof ScopeName)
+                    {
+                    sScope = ((ScopeName) a).value();
+                    }
+                }
+
+            m_sScopeName = sScope;
             }
 
         // ---- EventDispatcherAwareInterceptor interface -------------------
@@ -95,7 +111,7 @@ class CdiInterceptorSupport
         @Override
         public void introduceEventDispatcher(String sIdentifier, com.tangosol.net.events.EventDispatcher dispatcher)
             {
-            if (isApplicable(dispatcher))
+            if (isApplicable(dispatcher, m_sScopeName))
                 {
                 dispatcher.addEventInterceptor(getId(), this, eventTypes(), false);
                 }
@@ -104,7 +120,16 @@ class CdiInterceptorSupport
         @Override
         public void onEvent(E event)
             {
-            m_observer.notify(event);
+            if (shouldFire(event))
+                {
+                String sObserverScope = m_sScopeName;
+                String sEventScope    = getScopeName(event);
+
+                if (sObserverScope == null || sEventScope == null || sObserverScope.equals(sEventScope))
+                    {
+                    m_observer.notify(event);
+                    }
+                }
             }
 
         // ---- helpers -----------------------------------------------------
@@ -124,11 +149,42 @@ class CdiInterceptorSupport
          * a specified dispatcher.
          *
          * @param dispatcher  a dispatcher to register this interceptor with
+         * @param sScopeName  a scope name the observer is interested in,
+         *                    or {@code null} for all scopes
          *
          * @return {@code true} if this interceptor should be registered with
          *                      a specified dispatcher; {@code false} otherwise
          */
-        protected abstract boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher);
+        protected abstract boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher, String sScopeName);
+
+        /**
+         * Return {@code true} if the event should fire.
+         * <p>
+         * This allows sub-classes to provide additional filtering logic and
+         * prevent the observer method notification from happening even after
+         * the Coherence server-side event is fired.
+         *
+         * @param event  the event to check
+         *
+         * @return {@code true} if the event should fire
+         */
+        protected boolean shouldFire(E event)
+            {
+            return true;
+            }
+
+        /**
+         * Return the scope name of the {@link ConfigurableCacheFactory} the
+         * specified event was raised from.
+         *
+         * @param event  the event to extract scope name from
+         *
+         * @return the scope name
+         */
+        protected String getScopeName(E event)
+            {
+            return null;
+            }
 
         /**
          * Add specified event type to a set of types this interceptor should handle.
@@ -152,8 +208,21 @@ class CdiInterceptorSupport
 
         // ---- data members ------------------------------------------------
 
+        /**
+         * The observer method to delegate events to.
+         */
         protected final ObserverMethod<E> m_observer;
+
+        /**
+         * A set of event types the observer is interested in.
+         */
         protected final EnumSet<T> m_setTypes;
+
+        /**
+         * The scope name for a {@link ConfigurableCacheFactory} this
+         * interceptor is interested in.
+         */
+        private final String m_sScopeName;
         }
     
     // ---- inner class: LifecycleEventHandler ------------------------------
@@ -186,9 +255,15 @@ class CdiInterceptorSupport
             }
 
         @Override
-        protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher)
+        protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher, String sScopeName)
             {
             return dispatcher instanceof ConfigurableCacheFactoryDispatcher;
+            }
+
+        @Override
+        protected String getScopeName(LifecycleEvent event)
+            {
+            return event.getConfigurableCacheFactory().getScopeName();
             }
         }
 
@@ -231,13 +306,19 @@ class CdiInterceptorSupport
            }
 
        @Override
-       protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher)
+       protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher, String sScopeName)
            {
            if (dispatcher instanceof PartitionedCacheDispatcher)
                {
                PartitionedCacheDispatcher pcd = (PartitionedCacheDispatcher) dispatcher;
-               return ((m_cacheName == null || m_cacheName.equals(pcd.getCacheName())) &&
-                       (m_serviceName == null || m_serviceName.equals(pcd.getServiceName())));
+               ConfigurableCacheFactory   ccf =
+                       pcd.getBackingMapContext().getManagerContext().getManager().getCacheFactory();
+
+               if (sScopeName == null || sScopeName.equals(ccf.getScopeName()))
+                   {
+                   return ((m_cacheName == null || m_cacheName.equals(pcd.getCacheName())) &&
+                           (m_serviceName == null || m_serviceName.equals(pcd.getServiceName())));
+                   }
                }
            
            return false;
@@ -354,13 +435,9 @@ class CdiInterceptorSupport
             m_classProcessor = classProcessor;
             }
 
-        @Override
-        public void onEvent(EntryProcessorEvent event)
+        protected boolean shouldFire(EntryProcessorEvent event)
             {
-            if (m_classProcessor == null || m_classProcessor.equals(event.getProcessor().getClass()))
-                {
-                m_observer.notify(event);
-                }
+            return m_classProcessor == null || m_classProcessor.equals(event.getProcessor().getClass());
             }
 
         // ---- data members ------------------------------------------------
@@ -397,15 +474,31 @@ class CdiInterceptorSupport
            }
 
        @Override
-       protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher)
+       protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher, String sScopeName)
            {
            if (dispatcher instanceof PartitionedServiceDispatcher)
                {
-               PartitionedServiceDispatcher pcd = (PartitionedServiceDispatcher) dispatcher;
-               return m_serviceName == null || m_serviceName.equals(pcd.getServiceName());
+               PartitionedServiceDispatcher psd = (PartitionedServiceDispatcher) dispatcher;
+               ConfigurableCacheFactory     ccf = getConfigurableCacheFactory(psd.getService());
+
+               if (ccf == null || sScopeName == null || sScopeName.equals(ccf.getScopeName()))
+                   {
+                   return m_serviceName == null || m_serviceName.equals(psd.getServiceName());
+                   }
                }
 
            return false;
+           }
+
+       protected ConfigurableCacheFactory getConfigurableCacheFactory(PartitionedService service)
+           {
+           // a bit of a hack, but it should do the job
+           if (service instanceof PartitionedCache)
+               {
+               PartitionedCache pc = (PartitionedCache) service;
+               return pc.getBackingMapManager().getCacheFactory();
+               }
+           return null;
            }
 
        // ---- data members ----------------------------------------------------

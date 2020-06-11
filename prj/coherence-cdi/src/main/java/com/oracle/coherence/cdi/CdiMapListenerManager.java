@@ -34,19 +34,27 @@ class CdiMapListenerManager
     private void registerListeners(@Observes @Created CacheLifecycleEvent event)
         {
         Set<CdiMapListener<?, ?>> setListeners = m_extension.getMapListeners(event.getServiceName(), event.getCacheName());
-        NamedCache cache = event.getCache();
+
+        NamedCache cache       = event.getCache();
+        String     sEventScope = cache.getCacheService().getBackingMapManager().getCacheFactory().getScopeName();
+
         for (CdiMapListener<?, ?> listener : setListeners)
             {
-            Filter  filter = Filters.always();
-            boolean fLite  = listener.isLite();
+            String sScope = listener.getScopeName();
+            if (sScope == null || sScope.equals(sEventScope))
+                {
+                // TODO: get filter from a listener definition, if available
+                Filter filter = Filters.always();
+                boolean fLite = listener.isLite();
 
-            if (listener.isSynchronous())
-                {
-                cache.addMapListener(listener.synchronous(), filter, fLite);
-                }
-            else
-                {
-                cache.addMapListener(listener, filter, fLite);
+                if (listener.isSynchronous())
+                    {
+                    cache.addMapListener(listener.synchronous(), filter, fLite);
+                    }
+                else
+                    {
+                    cache.addMapListener(listener, filter, fLite);
+                    }
                 }
             }
         }
@@ -54,17 +62,25 @@ class CdiMapListenerManager
     private void unregisterListeners(@Observes @Destroyed CacheLifecycleEvent event)
         {
         Set<CdiMapListener<?, ?>> setListeners = m_extension.getMapListeners(event.getServiceName(), event.getCacheName());
-        NamedCache cache = event.getCache();
+
+        NamedCache cache       = event.getCache();
+        String     sEventScope = cache.getCacheService().getBackingMapManager().getCacheFactory().getScopeName();
+
         for (CdiMapListener<?, ?> listener : setListeners)
             {
-            Filter filter = Filters.always();
-            if (listener.isSynchronous())
+            String sScope = listener.getScopeName();
+            if (sScope == null || sScope.equals(sEventScope))
                 {
-                cache.removeMapListener(listener.synchronous(), filter);
-                }
-            else
-                {
-                cache.removeMapListener(listener, filter);
+                // TODO: get filter from a listener definition, if available
+                Filter filter = Filters.always();
+                if (listener.isSynchronous())
+                    {
+                    cache.removeMapListener(listener.synchronous(), filter);
+                    }
+                else
+                    {
+                    cache.removeMapListener(listener, filter);
+                    }
                 }
             }
         }

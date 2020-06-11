@@ -401,6 +401,75 @@ public abstract class Logger
         log(e, INFO);
         }
 
+    // ---- CONFIG support ----------------------------------------------------
+
+    /**
+     * Log the specified message with {@link #CONFIG} severity.
+     *
+     * @param sMessage  the message to log
+     */
+    public static void config(String sMessage)
+        {
+        log(sMessage, CONFIG);
+        }
+
+    /**
+     * Log the specified message with {@link #CONFIG} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     */
+    public static void config(Supplier<String> supplierMessage)
+        {
+        log(supplierMessage, CONFIG);
+        }
+
+    /**
+     * Log the specified message and the exception stack trace with
+     * {@link #CONFIG} severity.
+     *
+     * @param sMessage  the message to log
+     * @param e         the exception to log the stack trace for
+     */
+    public static void config(String sMessage, Throwable e)
+        {
+        log(sMessage, e, CONFIG);
+        }
+
+    /**
+     * Log the specified message and the exception stack trace with
+     * {@link #CONFIG} severity.
+     *
+     * The message is provided by the {@link Supplier}, which will only be
+     * evaluated if the messages should be logged at the specified severity
+     * level. This avoids potentially expensive message construction if the
+     * message isn't going to be logged.
+     *
+     * @param supplierMessage  the supplier of the message to log; only evaluated
+     *                         if the specified severity level should be logged
+     * @param e                the exception to log the stack trace for
+     */
+    public static void config(Supplier<String> supplierMessage, Throwable e)
+        {
+        log(supplierMessage, e, CONFIG);
+        }
+
+    /**
+     * Log the specified exception information (message and stack trace) with
+     * {@link #CONFIG} severity.
+     *
+     * @param e  the exception to log
+     */
+    public static void config(Throwable e)
+        {
+        log(e, CONFIG);
+        }
+
     // ---- FINE support ----------------------------------------------------
 
     /**

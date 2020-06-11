@@ -234,4 +234,14 @@ public interface ConfigurableCacheFactory
      * @since Coherence 12.2.1
      */
     public boolean isCacheActive(String sCacheName, ClassLoader loader);
+
+    /**
+     * Return the scope name of this cache factory, if available.
+     *
+     * @return the scope name of this cache factory, if available; {@code null} otherwise
+     */
+    public default String getScopeName()
+        {
+        return getResourceRegistry().getResource(String.class, "scope-name");
+        }
     }

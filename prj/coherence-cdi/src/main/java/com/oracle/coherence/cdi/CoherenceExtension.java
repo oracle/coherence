@@ -413,7 +413,7 @@ public class CoherenceExtension
         protected ConfigurableCacheFactory buildFactory(String sConfigURI, ClassLoader loader)
             {
             ConfigurableCacheFactory ccf = super.buildFactory(sConfigURI, loader);
-            String sScope = ccf.getResourceRegistry().getResource(String.class, "scope-name");
+            String sScope = ccf.getScopeName();
             if (sScope != null && !sScope.isEmpty())
                 {
                 ConfigurableCacheFactory previous = f_mapByScope.putIfAbsent(sScope, ccf);

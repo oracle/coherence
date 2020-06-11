@@ -11,6 +11,7 @@ import com.oracle.coherence.cdi.events.Deleted;
 import com.oracle.coherence.cdi.events.Inserted;
 import com.oracle.coherence.cdi.events.Lite;
 import com.oracle.coherence.cdi.events.MapName;
+import com.oracle.coherence.cdi.events.ScopeName;
 import com.oracle.coherence.cdi.events.ServiceName;
 import com.oracle.coherence.cdi.events.Synchronous;
 import com.oracle.coherence.cdi.events.Updated;
@@ -38,22 +39,27 @@ class CdiMapListener<K, V>
         {
         m_observer = observer;
 
-        String cache   = "*";
-        String service = "*";
+        String sCache   = "*";
+        String sService = "*";
+        String sScope   = null;
 
         for (Annotation a : observer.getObservedQualifiers())
             {
             if (a instanceof CacheName)
                 {
-                cache = ((CacheName) a).value();
+                sCache = ((CacheName) a).value();
                 }
             else if (a instanceof MapName)
                 {
-                cache = ((MapName) a).value();
+                sCache = ((MapName) a).value();
                 }
             else if (a instanceof ServiceName)
                 {
-                service = ((ServiceName) a).value();
+                sService = ((ServiceName) a).value();
+                }
+            else if (a instanceof ScopeName)
+                {
+                sService = ((ScopeName) a).value();
                 }
             else if (a instanceof Inserted)
                 {
@@ -78,8 +84,9 @@ class CdiMapListener<K, V>
             m_fSync = true;
             }
 
-        m_cacheName   = cache;
-        m_serviceName = service;
+        m_sCacheName   = sCache;
+        m_sServiceName = sService;
+        m_sScopeName   = sScope;
         }
 
     // ---- MapListener interface -------------------------------------------
@@ -112,7 +119,7 @@ class CdiMapListener<K, V>
      */
     String getCacheName()
         {
-        return m_cacheName;
+        return m_sCacheName;
         }
 
     /**
@@ -123,7 +130,18 @@ class CdiMapListener<K, V>
      */
     String getServiceName()
         {
-        return m_serviceName;
+        return m_sServiceName;
+        }
+
+    /**
+     * Return the name of the scope this listener is for, or {@code null} if
+     * it should be registered regardless of the scope name.
+     *
+     * @return the name of the cache this listener is for
+     */
+    String getScopeName()
+        {
+        return m_sScopeName;
         }
 
     /**
@@ -204,8 +222,9 @@ class CdiMapListener<K, V>
      */
     private final ObserverMethod<MapEvent<K, V>> m_observer;
 
-    private final String m_cacheName;
-    private final String m_serviceName;
+    private final String m_sCacheName;
+    private final String m_sServiceName;
+    private final String m_sScopeName;
     private final EnumSet<Type> m_setTypes = EnumSet.noneOf(Type.class);
 
     private boolean m_fLite;
