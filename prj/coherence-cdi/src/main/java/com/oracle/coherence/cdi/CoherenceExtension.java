@@ -16,18 +16,15 @@ import com.oracle.coherence.cdi.CdiInterceptorSupport.TransferEventHandler;
 import com.oracle.coherence.cdi.CdiInterceptorSupport.UnsolicitedCommitEventHandler;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
+
 import com.tangosol.config.ConfigurationException;
-import com.tangosol.internal.net.ConfigurableCacheFactorySession;
-import com.tangosol.net.CacheFactory;
+
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
-
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
-import com.tangosol.net.ScopeResolver;
 import com.tangosol.net.ScopedCacheFactoryBuilder;
-import com.tangosol.net.Session;
-import com.tangosol.net.events.EventInterceptor;
+
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.application.LifecycleEvent;
 import com.tangosol.net.events.partition.TransactionEvent;
@@ -37,9 +34,6 @@ import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
 
-import com.tangosol.run.xml.XmlElement;
-import com.tangosol.run.xml.XmlHelper;
-import com.tangosol.util.CopyOnWriteMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.RegistrationBehavior;
 
@@ -47,13 +41,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
