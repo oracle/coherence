@@ -17,7 +17,7 @@
 
         <user-type>
             <type-id>2001</type-id>
-            <class-name>com.oracle.coherence.cache.grpc.client.Person</class-name>
+            <class-name>com.oracle.coherence.grpc.client.Person</class-name>
         </user-type>
 
     </user-type-list>
