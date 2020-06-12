@@ -19,7 +19,7 @@ In order to use Coherence gRPC Server, you need to declare it as a dependency in
 [source,xml]
 ----
 <dependency>
-  <groupId>com.oracle.coherence</groupId>
+  <groupId>com.oracle.coherence.ce</groupId>
   <artifactId>coherence-grpc-proxy</artifactId>
   <version>${coherence.version}</version>
 </dependency>

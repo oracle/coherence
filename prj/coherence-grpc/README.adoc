@@ -24,7 +24,7 @@ In order to use Coherence gRPC, you need to declare it as a dependency in your `
 [source,xml]
 ----
 <dependency>
-  <groupId>com.oracle.coherence</groupId>
+  <groupId>com.oracle.coherence.ce</groupId>
   <artifactId>coherence-grpc</artifactId>
   <version>${coherence.version}</version>
 </dependency>
