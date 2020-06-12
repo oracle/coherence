@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.cdi;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -141,10 +142,10 @@ class CdiNamespaceHandlerIT
     void shouldUpdateCacheNames()
         {
         assertThat(serviceListener.hasCache("apples"), is(false));
-        NamedCache apples = ccf.ensureCache("apples", null);
-        assertThat(serviceListener.hasCache("apples"), is(true));
+        NamedCache<?, ?> apples = ccf.ensureCache("apples", null);
+        Eventually.assertDeferred(() -> serviceListener.hasCache("apples"), is(true));
         ccf.destroyCache(apples);
-        assertThat(serviceListener.hasCache("apples"), is(false));
+        Eventually.assertDeferred(() -> serviceListener.hasCache("apples"), is(false));
         }
 
     @Test
