@@ -143,4 +143,20 @@ public class MBeanHelperTest
         String sNameCanonical = MBeanHelper.quoteCanonical("Coherence:type*?=*HttpSessionManager,appId=" + "testapp");
         assertThat(sNameCanonical, is("Coherence:\"type\\*\\?\"=*HttpSessionManager,appId=testapp"));
         }
+
+    @Test
+    public void shouldQuoteScopedServiceName()
+            throws MalformedObjectNameException
+        {
+        String sNameCanonical = MBeanHelper.quoteCanonical("Coherence:service=SYS:Config");
+        assertThat(sNameCanonical, is("Coherence:service=\"SYS:Config\""));
+        }
+
+    @Test
+    public void shouldNotQuoteAlreadyQuotedScopedServiceName()
+            throws MalformedObjectNameException
+        {
+        String sNameCanonical = MBeanHelper.quoteCanonical("Coherence:service=\"SYS:Config\"");
+        assertThat(sNameCanonical, is("Coherence:service=\"SYS:Config\""));
+        }
     }
