@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.mp.config;
 
+import com.tangosol.net.CacheFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +44,13 @@ public class CoherenceDefaultsConfigSource
     public CoherenceDefaultsConfigSource()
         {
         Map<String, String> map = new HashMap<>();
-        map.put(DESTINATION, "jdk");
-        map.put(LOGGER_NAME, "com.oracle.coherence");
-        map.put(MESSAGE_FORMAT, "(thread={thread}, member={member}, up={uptime}): {text}");
+        // service defaults
+        map.put(SERVICE_NAME_PREFIX, "${coherence.role}");
+
+        // logging defaults
+        map.put(LOG_DESTINATION, "jdk");
+        map.put(LOG_LOGGER_NAME, "coherence");
+        map.put(LOG_MESSAGE_FORMAT, "(thread={thread}, member={member}, up={uptime}): {text}");
 
         f_mapProperties = Collections.unmodifiableMap(map);
         }
@@ -80,19 +85,24 @@ public class CoherenceDefaultsConfigSource
     // ---- constants -------------------------------------------------------
 
     /**
+     * Default service name prefix. Defaults recursively to ${code coherence.role}.
+     */
+    private static final String SERVICE_NAME_PREFIX = "coherence.service.prefix";
+
+    /**
      * The name of the config property for logging destination.
      */
-    private static final String DESTINATION = "coherence.log";
+    private static final String LOG_DESTINATION = "coherence.log";
 
     /**
      * The name of the config property for logger name.
      */
-    private static final String LOGGER_NAME = "coherence.log.logger";
+    private static final String LOG_LOGGER_NAME = "coherence.log.logger";
 
     /**
      * The name of the config property for message format.
      */
-    private static final String MESSAGE_FORMAT = "coherence.log.format";
+    private static final String LOG_MESSAGE_FORMAT = "coherence.log.format";
 
     // ---- data members ----------------------------------------------------
 

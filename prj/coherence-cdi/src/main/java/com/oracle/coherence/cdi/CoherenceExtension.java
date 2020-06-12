@@ -266,8 +266,9 @@ public class CoherenceExtension
      */
     void stopServer(@Observes BeforeShutdown event)
         {
-        DefaultCacheServer.shutdown();
+        m_ccfApp.dispose();
         m_ccfSys.dispose();
+        DefaultCacheServer.shutdown();
         }
 
     // ---- helpers ---------------------------------------------------------
@@ -278,7 +279,7 @@ public class CoherenceExtension
      *
      * @return the {@code CacheFactoryBuilder builder} to use
      */
-    CdiCacheFactoryBuilder getCacheFactoryBuilder()
+    public CdiCacheFactoryBuilder getCacheFactoryBuilder()
         {
         return m_cacheFactoryBuilder;
         }
