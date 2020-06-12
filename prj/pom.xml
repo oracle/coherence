@@ -617,7 +617,7 @@
     <hamcrest.version>1.3</hamcrest.version>
     <junit.version>4.12</junit.version>
     <mockito.version>2.22.0</mockito.version>
-    <oracle.bedrock.version>5.0.15</oracle.bedrock.version>
+    <oracle.bedrock.version>5.0.18</oracle.bedrock.version>
 
     <!-- ================================================================== -->
     <!--                      Path Configuration                            -->
