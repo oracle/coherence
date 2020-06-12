@@ -6,9 +6,6 @@
  */
 package com.tangosol.net;
 
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.ViewBuilder;
-
 import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.net.cache.WrapperNamedCache;
 import com.tangosol.util.MapEvent;
@@ -76,7 +73,7 @@ public class ViewBuilderTest
         assertThat(queryCache.getTransformer(),       is(nullValue()));
         assertThat(queryCache.getReconnectInterval(), is(0L));
         assertThat(queryCache.getCacheName(),         containsString("ContinuousQueryCache"));
-        assertThat(queryCache.isCacheValues(),        is(false));
+        assertThat(queryCache.isCacheValues(),        is(true));
         }
 
     @Test

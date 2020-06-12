@@ -75,7 +75,7 @@ public interface EventDispatcher
      * @param sIdentifier  the unique name identifying the EventInterceptor
      *                     to remove
      */
-    public void removeEventInterceptor(String sIdentifier);
+    public <E extends Event<? extends Enum>> void removeEventInterceptor(String sIdentifier);
 
     /**
      * Return the set of {@link Event} types this {@link EventDispatcher}

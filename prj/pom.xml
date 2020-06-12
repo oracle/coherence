@@ -12,12 +12,12 @@
 
   <groupId>com.oracle.coherence.ce</groupId>
   <artifactId>main</artifactId>
-  <version>14.1.2-0-0-SNAPSHOT</version>
+  <version>${revision}</version>
   <packaging>pom</packaging>
 
   <name>Coherence Project</name>
-  <description>Oracle Coherence Data Grid</description>
-  <url>http://www.oracle.com/us/products/middleware/cloud-app-foundation/coherence/overview/index.html/coherence</url>
+  <description>Oracle Coherence Community Edition</description>
+  <url>https://coherence.community/</url>
   <inceptionYear>2000</inceptionYear>
 
   <organization>
@@ -192,6 +192,11 @@
         <version>${helidon.version}</version>
       </dependency>
       <dependency>
+        <groupId>io.helidon.metrics</groupId>
+        <artifactId>helidon-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
         <groupId>io.helidon.microprofile.config</groupId>
         <artifactId>helidon-microprofile-config</artifactId>
         <version>${helidon.version}</version>
@@ -199,6 +204,42 @@
       <dependency>
         <groupId>io.helidon.microprofile.metrics</groupId>
         <artifactId>helidon-microprofile-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.microprofile.grpc</groupId>
+        <artifactId>helidon-microprofile-grpc-server</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.microprofile.grpc</groupId>
+        <artifactId>helidon-microprofile-grpc-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.microprofile.grpc</groupId>
+        <artifactId>helidon-microprofile-grpc-client</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.grpc</groupId>
+        <artifactId>helidon-grpc-metrics</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.grpc</groupId>
+        <artifactId>io.grpc</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.grpc</groupId>
+        <artifactId>helidon-grpc-core</artifactId>
+        <version>${helidon.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.tracing</groupId>
+        <artifactId>helidon-tracing-jaeger</artifactId>
         <version>${helidon.version}</version>
       </dependency>
 
@@ -402,53 +443,6 @@
         <version>${jsonp-impl.version}</version>
       </dependency>
 
-      <!-- jvisualvm -->
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-application</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-application-views</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-charts</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-core</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>com-sun-tools-visualvm-tools</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>org-openide-modules</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>org-openide-util</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>org-openide-dialogs</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.tools.visualvm.api</groupId>
-        <artifactId>org-openide-windows</artifactId>
-        <version>${jvisualvm.version}</version>
-      </dependency>
-
       <!-- log4j -->
       <dependency>
         <groupId>log4j</groupId>
@@ -526,6 +520,20 @@
           <artifactId>weld-junit5</artifactId>
           <version>${weld-junit.version}</version>
           <scope>test</scope>
+      </dependency>
+
+      <!-- rxjava -->
+      <dependency>
+        <groupId>io.reactivex.rxjava3</groupId>
+        <artifactId>rxjava</artifactId>
+        <version>${rxjava.version}</version>
+      </dependency>
+
+      <!-- Protobuf -->
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${protobuf.version}</version>
       </dependency>
 
       <!-- test dependencies -->
@@ -634,10 +642,31 @@
         <artifactId>jakarta.xml.bind-api</artifactId>
         <version>${jaxb-api.version}</version>
       </dependency>
+
+      <!-- gRPC -->
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-protobuf</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-services</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <properties>
+    <!--
+      This allows us to use ${revision} instead of explicit version in all
+      the POMs, and to specify it as the command line property (-Drevision).
+
+      Note that this property has to be named 'revision' and that it has
+      special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
+      -->
+    <revision>14.1.2-20-06-SNAPSHOT</revision>
+
     <!-- The groupId of the Coherence product -->
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 
@@ -710,10 +739,12 @@
     <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
     <maven.animalsniffer.plugin.version>1.16</maven.animalsniffer.plugin.version>
     <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
+    <maven.protobuf.plugin.version>0.5.1</maven.protobuf.plugin.version>
 
     <!-- library dependency versions -->
     <activation-api.version>1.2.2</activation-api.version>
     <annotation-api.version>1.3.5</annotation-api.version>
+    <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
     <asm.version>7.2</asm.version>
     <bdb.version>6.2.31</bdb.version>
     <bnd.version>4.3.0</bnd.version>
@@ -725,7 +756,10 @@
     <eclipse.jetty.version>9.3.11.v20160721</eclipse.jetty.version>
     <felix.version>6.0.3</felix.version>
     <graal.version>19.3.1</graal.version>
-    <helidon.version>2.0.0-M2</helidon.version>
+    <grpc.version>1.25.0</grpc.version>
+    <helidon.version>2.0.0-RC1</helidon.version>
+    <helidon-build-tools.version>2.0.0-RC1</helidon-build-tools.version>
+    <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
     <jackson.version>2.10.2</jackson.version>
     <jackson.databind.version>${jackson.version}</jackson.databind.version>
@@ -751,6 +785,12 @@
     <netty.version>4.1.45.Final</netty.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
+    <oracle.db.version>11.2.0.3.0</oracle.db.version>
+    <org.apache.sshd.version>2.3.0</org.apache.sshd.version>
+    <protobuf.version>3.10.0</protobuf.version>
+    <resin.version>3.0</resin.version>
+    <rxjava.version>3.0.2</rxjava.version>
+    <sdoapi.version>12.1.0.1</sdoapi.version>
     <servlet.version>3.1.0</servlet.version>
     <slf4j.version>1.7.26</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
@@ -806,13 +846,12 @@
       http://oss.oracle.com/licenses/upl.
     </javadoc.copyright>
     <javadoc.copyright.header>
-      &lt;b&gt;Oracle&amp;reg; Fusion Middleware Java API
-      Reference for Oracle Coherence&lt;br&gt;14c
-      (${project.version.official})&lt;/b&gt;&lt;br&gt;F23532-01
+      &lt;b&gt;Java API Reference for Oracle&#174; Coherence Community Edition&lt;br&gt;
+      (${project.version.official})&lt;/b&gt;
     </javadoc.copyright.header>
     <javadoc.copyright.bottom>&lt;center&gt;${javadoc.copyright}&lt;/center&gt;</javadoc.copyright.bottom>
     <javadoc.locale>en_US</javadoc.locale>
-    <javadoc.window.title>Oracle&#174; Coherence Java API Reference</javadoc.window.title>
+    <javadoc.window.title>Java API Reference for Oracle&#174; Coherence Community Edition</javadoc.window.title>
   </properties>
 
   <build>
@@ -1000,6 +1039,25 @@
             <version>${maven.directory.plugin.version}</version>
         </plugin>
 
+        <plugin>
+          <groupId>org.xolstice.maven.plugins</groupId>
+          <artifactId>protobuf-maven-plugin</artifactId>
+          <version>${maven.protobuf.plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>compile</goal>
+                <goal>test-compile</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <protocArtifact>com.google.protobuf:protoc:3.5.1-1:exe:${os.detected.classifier}</protocArtifact>
+            <pluginId>grpc-java</pluginId>
+            <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+          </configuration>
+        </plugin>
+
         <!-- maven-antrun-plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1072,7 +1130,7 @@
           <artifactId>maven-deploy-plugin</artifactId>
           <version>${maven.deploy.plugin.version}</version>
           <configuration>
-            <skip>true</skip>
+            <skip>false</skip>
           </configuration>
         </plugin>
 
@@ -1180,6 +1238,7 @@
                   <inceptionYear/>
                   <organization/>
                 </pomElements>
+                <updatePomFile>true</updatePomFile>
               </configuration>
             </execution>
           </executions>
@@ -1236,6 +1295,27 @@
           			<artifactId>junit-vintage-engine</artifactId>
           			<version>${junit.vintage.version}</version>
           		</dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>io.helidon.build-tools</groupId>
+          <artifactId>sitegen-maven-plugin</artifactId>
+          <version>${helidon-build-tools.version}</version>
+          <configuration>
+            <siteConfigFile>${top.parent.basedir}/docs/sitegen.yaml</siteConfigFile>
+            <siteSourceDirectory>${top.parent.basedir}</siteSourceDirectory>
+            <siteOutputDirectory>${project.build.directory}/docs</siteOutputDirectory>
+            <siteArchiveExcludes>
+              <siteArchiveExclude>.asciidoctor/**</siteArchiveExclude>
+            </siteArchiveExcludes>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.asciidoctor</groupId>
+              <artifactId>asciidoctorj-diagram</artifactId>
+              <version>${asciidoctor.diagram.version}</version>
+            </dependency>
           </dependencies>
         </plugin>
 
@@ -1397,6 +1477,17 @@
       </plugin>
 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+          <groupId>io.helidon.build-tools</groupId>
+          <artifactId>sitegen-maven-plugin</artifactId>
+          <extensions>true</extensions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
@@ -1517,6 +1608,9 @@
 
         <module>coherence-testing-support</module>
 
+        <!-- coherence-json is distributed, but must be built before tests -->
+        <module>coherence-json</module>
+
         <module>coherence-tracing</module>
         <module>coherence-docker</module>
 
@@ -1528,8 +1622,8 @@
 
         <!-- distributed modules -->
         <module>coherence</module>
+        <module>coherence-bom</module>
         <module>coherence-jcache</module>
-        <module>coherence-jvisualvm</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
@@ -1540,6 +1634,9 @@
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
+        <module>coherence-grpc</module>
+        <module>coherence-grpc-proxy</module>
+        <module>coherence-java-client</module>
       </modules>
     </profile>
 
@@ -1569,6 +1666,9 @@
       <modules>
         <!-- internal modules -->
         <module>coherence-core-components</module>
+
+        <!-- distributed modules -->
+        <module>coherence-javadoc</module>
 
         <!-- functional tests that require a full distribution to have been built -->
         <module>test/distribution</module>
@@ -1718,6 +1818,13 @@
     </profile>
 
     <profile>
+      <id>docs</id>
+      <modules>
+        <module>docs</module>
+      </modules>
+    </profile>
+
+    <profile>
       <id>release</id>
 
       <modules>
@@ -1728,7 +1835,6 @@
         <module>coherence-tracing</module>
         <module>coherence</module>
         <module>coherence-jcache</module>
-        <module>coherence-jvisualvm</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
@@ -1736,6 +1842,12 @@
         <module>coherence-mock</module>
         <module>coherence-http-netty</module>
         <module>coherence-rest</module>
+        <module>coherence-cdi</module>
+        <module>coherence-cdi-server</module>
+        <module>coherence-mp</module>
+        <module>coherence-grpc</module>
+        <module>coherence-grpc-proxy</module>
+        <module>coherence-java-client</module>
       </modules>
 
       <build>
@@ -1787,8 +1899,8 @@
         <module>coherence-discovery</module>
         <module>coherence-testing-support</module>
         <module>coherence</module>
+        <module>coherence-bom</module>
         <module>coherence-jcache</module>
-        <module>coherence-jvisualvm</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-mock</module>
@@ -1798,6 +1910,9 @@
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
+        <module>coherence-grpc</module>
+        <module>coherence-grpc-proxy</module>
+        <module>coherence-java-client</module>
       </modules>
     </profile>
 
@@ -1893,6 +2008,20 @@
       </modules>
     </profile>
 
+    <!--
+       stage14 runs javadoc
+    -->
+    <profile>
+      <id>stage14</id>
+      <properties>
+        <project.official>true</project.official>
+        <skipTests>true</skipTests>
+      </properties>
+      <modules>
+        <module>coherence-javadoc</module>
+      </modules>
+    </profile>
+
     <profile>
       <id>versioned</id>
       <activation>
@@ -1904,6 +2033,26 @@
       <properties>
         <project.build.number>${env.P4_CHANGELIST}</project.build.number>
       </properties>
+    </profile>
+
+    <profile>
+      <id>visualvm</id>
+      <modules>
+        <module>coherence-jvisualvm</module>
+      </modules>
+
+      <!-- required for VisualVM -->
+      <repositories>
+        <repository>
+          <id>visualvm</id>
+          <name>VisualVM Repository</name>
+          <url>http://bits.netbeans.org/nexus/content/repositories/visualvm/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots/>
+        </repository>
+      </repositories>
     </profile>
 
     <profile>
@@ -2103,16 +2252,6 @@
       <name>Oracle Released Java Packages</name>
       <url>http://download.oracle.com/maven</url>
       <layout>default</layout>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots/>
-    </repository>
-    <!-- required for VisualVM -->
-    <repository>
-      <id>visualvm</id>
-      <name>VisualVM Repository</name>
-      <url>http://bits.netbeans.org/nexus/content/repositories/visualvm/</url>
       <releases>
         <enabled>true</enabled>
       </releases>

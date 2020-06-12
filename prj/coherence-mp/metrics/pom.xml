@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>coherence-mp</artifactId>
-    <version>14.1.2-0-0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -142,4 +142,13 @@
     </plugins>
   </build>
 
+  <profiles>
+    <!-- This module requires Java 11 -->
+    <profile>
+      <id>test-jdk8</id>
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+    </profile>
+  </profiles>
 </project>

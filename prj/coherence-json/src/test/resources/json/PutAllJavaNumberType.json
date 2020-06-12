@@ -1,0 +1,16 @@
+{
+  "@class": "common.data.PutAll",
+  "map":{
+    "@ordered":"true",
+    "entries":[
+      {
+        "key":1,
+        "value":{
+          "@class":"common.data.JavaNumberType",
+          "numberProperty":2147483668,
+          "objectProperty":2147483668
+        }
+      }
+    ]
+  }
+}

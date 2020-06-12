@@ -13,7 +13,7 @@
   <parent>
     <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>main</artifactId>
-    <version>14.1.2-0-0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -79,6 +79,15 @@
             <phase>none</phase>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${maven.deploy.plugin.version}</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
 
       <plugin>

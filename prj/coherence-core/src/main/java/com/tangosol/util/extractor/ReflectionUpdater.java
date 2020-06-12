@@ -73,16 +73,8 @@ public class ReflectionUpdater
                 "Target object is missing for the Updater: " + this);
             }
 
-        Class clzTarget = oTarget.getClass();
-
-        if (!ClassHelper.isReflectionAllowed(oTarget))
-            {
-            throw new IllegalArgumentException("The type, " + clzTarget.getName() +
-                    ", is disallowed as a reflection target by the current " +
-                    "reflection filter configuration");
-            }
-
-        String sMethod = getMethodName();
+        Class  clzTarget = oTarget.getClass();
+        String sMethod   = getMethodName();
 
         try
             {
@@ -96,6 +88,12 @@ public class ReflectionUpdater
                     aclzParam[0] = oValue.getClass();
                     }
 
+                if (!ClassHelper.isReflectionAllowed(oTarget))
+                    {
+                    throw new IllegalArgumentException("The type, " + clzTarget.getName() +
+                        ", is disallowed as a reflection target by the current " +
+                        "reflection filter configuration");
+                    }
                  m_methodPrev = method =
                      ClassHelper.findMethod(clzTarget, sMethod, aclzParam, false);
                 }

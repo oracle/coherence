@@ -29,6 +29,8 @@ package com.tangosol.net.events;
  * @author hr  2012.09.19
  * @since Coherence 12.1.2
  *
+ * @param <E>  the type of {@link Event} this interceptor accepts
+ *
  * @see EventInterceptor
  */
 public interface EventDispatcherAwareInterceptor<E extends Event<?>>

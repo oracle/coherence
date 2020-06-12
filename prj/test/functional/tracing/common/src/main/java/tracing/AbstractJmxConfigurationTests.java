@@ -19,11 +19,7 @@ import com.tangosol.net.Cluster;
 
 import com.tangosol.net.management.MBeanHelper;
 
-import com.tangosol.util.Base;
-
 import java.util.Properties;
-
-import java.util.concurrent.TimeUnit;
 
 import javax.management.Attribute;
 import javax.management.MBeanException;
@@ -33,8 +29,6 @@ import javax.management.ObjectName;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.within;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -250,8 +244,7 @@ public abstract class AbstractJmxConfigurationTests
         {
         Eventually.assertDeferred(() -> member.invoke(
                 (RemoteCallable<Boolean>) TracingHelper::isEnabled),
-                is(fExpectedStatus),
-                within(10, TimeUnit.SECONDS));
+                is(fExpectedStatus));
         }
 
     /**
@@ -260,15 +253,11 @@ public abstract class AbstractJmxConfigurationTests
      * @param server         the {@link MBeanServer} to query
      * @param member         the {@link CoherenceClusterMember} of interest
      * @param fExpectedValue  the expected value
-     *
-     * @throws Exception if an unexpected error occurs
      */
     protected void checkTracingJMXAttribute(MBeanServer server, CoherenceClusterMember member, float fExpectedValue)
-            throws Exception
         {
         Eventually.assertDeferred(() -> getTracingConfigurationForMember(server, member.getLocalMemberId()),
-                              is(fExpectedValue),
-                              within(10, TimeUnit.SECONDS));
+                is(fExpectedValue));
         }
 
     /**
@@ -331,8 +320,6 @@ public abstract class AbstractJmxConfigurationTests
      * @param memberId  member ID
      *
      * @return the current configuration value or {@code null} if the attribute can't be retrieved.
-     *
-     * @throws Exception if an error occurs processing the test
      */
     public Float getTracingConfigurationForMember(MBeanServer server, int memberId)
         {
@@ -344,7 +331,7 @@ public abstract class AbstractJmxConfigurationTests
             }
         catch (Exception e)
             {
-            throw Base.ensureRuntimeException(e);
+            return Float.NaN;
             }
         }
 

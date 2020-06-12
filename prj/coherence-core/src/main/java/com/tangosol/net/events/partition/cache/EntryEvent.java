@@ -34,8 +34,52 @@ public interface EntryEvent<K, V>
      * action represented by this {@link EntryEvent} occurred.
      *
      * @return the Set of entries represented by this event
+     *
+     * @deprecated since 14.1.2; use {@link #getEntry()} and related methods instead
      */
+    @Deprecated
     public Set<BinaryEntry<K, V>> getEntrySet();
+
+    /**
+     * Return the {@link BinaryEntry entry} on which the action represented by
+     * this {@link EntryEvent} occurred.
+     *
+     * @return the entry represented by this event
+     */
+    public BinaryEntry<K, V> getEntry();
+
+    /**
+     * Return the key of the entry on which the action represented by
+     * this {@link EntryEvent} occurred.
+     *
+     * @return the key of the entry represented by this event
+     */
+    public default K getKey()
+        {
+        return getEntry().getKey();
+        }
+
+    /**
+     * Return the value of the entry on which the action represented by
+     * this {@link EntryEvent} occurred.
+     *
+     * @return the value of the entry represented by this event
+     */
+    public default V getValue()
+        {
+        return getEntry().getValue();
+        }
+
+    /**
+     * Return the original value of the entry on which the action represented by
+     * this {@link EntryEvent} occurred.
+     *
+     * @return the original value of the entry represented by this event
+     */
+    public default V getOriginalValue()
+        {
+        return getEntry().getOriginalValue();
+        }
 
     // ----- constants --------------------------------------------------
 

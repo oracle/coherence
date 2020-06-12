@@ -29,6 +29,7 @@ import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -44,22 +45,23 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.10.23
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NamedTopicProducerIT
     {
 
     @WeldSetup
-    private WeldInitiator weld = WeldInitiator.from(RequestScopedSubscribers.class,
-                                                    CtorBean.class,
-                                                    NamedTopicFieldsBean.class,
-                                                    NamedTopicPublisherFieldsBean.class,
-                                                    NamedTopicSubscriberFieldsBean.class,
-                                                    DifferentCacheFactoryBean.class,
-                                                    RequestScopedPublishers.class,
-                                                    RequestScopedSubscribers.class,
-                                                    NamedTopicProducer.class,
-                                                    CacheFactoryUriResolver.Default.class,
-                                                    ConfigurableCacheFactoryProducer.class)
-            .build();
+    private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                              .addExtension(new CoherenceExtension())
+                                                              .addBeanClass(CtorBean.class)
+                                                              .addBeanClass(DifferentCacheFactoryBean.class)
+                                                              .addBeanClass(NamedTopicFieldsBean.class)
+                                                              .addBeanClass(NamedTopicPublisherFieldsBean.class)
+                                                              .addBeanClass(NamedTopicSubscriberFieldsBean.class)
+                                                              .addBeanClass(RequestScopedPublishers.class)
+                                                              .addBeanClass(RequestScopedSubscribers.class)
+                                                              .addBeanClass(NamedTopicProducer.class)
+                                                              .addBeanClass(CacheFactoryUriResolver.Default.class)
+                                                              .addBeanClass(ConfigurableCacheFactoryProducer.class));
 
     @Inject
     private RequestContextController contextController;
@@ -67,7 +69,7 @@ class NamedTopicProducerIT
     @Test
     void shouldGetDynamicNamedTopic()
         {
-        Annotation qualifier = Topic.Literal.of("numbers");
+        Annotation qualifier = Name.Literal.of("numbers");
         Instance<NamedTopic> instance = weld.select(NamedTopic.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));
@@ -233,7 +235,7 @@ class NamedTopicProducerIT
         private Subscriber<String> numbers;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private Subscriber<String> qualifiedSubscriber;
 
         Subscriber<String> getSubscriber()
@@ -254,7 +256,7 @@ class NamedTopicProducerIT
         private Publisher<String> numbers;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private Publisher<String> qualifiedPublisher;
 
         Publisher<String> getPublisher()
@@ -275,11 +277,11 @@ class NamedTopicProducerIT
         private NamedTopic numbers;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private NamedTopic namedTopic;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private NamedTopic<Integer> genericTopic;
 
         @Inject
@@ -313,11 +315,11 @@ class NamedTopicProducerIT
         private Publisher numbers;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private Publisher namedTopic;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private Publisher<Integer> genericTopic;
 
         @Inject
@@ -351,11 +353,11 @@ class NamedTopicProducerIT
         private Subscriber numbers;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private Subscriber namedTopic;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private Subscriber<Integer> genericTopic;
 
         @Inject
@@ -386,30 +388,30 @@ class NamedTopicProducerIT
     private static class DifferentCacheFactoryBean
         {
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private NamedTopic<String> defaultCcfNumbers;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private Publisher<String> defaultPublisher;
 
         @Inject
-        @Topic("numbers")
+        @Name("numbers")
         private Subscriber<String> defaultSubscriber;
 
         @Inject
-        @Topic("numbers")
-        @CacheFactory("test-cache-config.xml")
+        @Name("numbers")
+        @Scope("test-config.xml")
         private NamedTopic<String> specificCcfNumbers;
 
         @Inject
-        @Topic("numbers")
-        @CacheFactory("test-cache-config.xml")
+        @Name("numbers")
+        @Scope("test-config.xml")
         private Publisher<String> specificPublisher;
 
         @Inject
-        @Topic("numbers")
-        @CacheFactory("test-cache-config.xml")
+        @Name("numbers")
+        @Scope("test-config.xml")
         private Subscriber<String> specificSubscriber;
 
         public NamedTopic<String> getDefaultCcfNumbers()
@@ -449,7 +451,7 @@ class NamedTopicProducerIT
         private final NamedTopic<Integer> numbers;
 
         @Inject
-        CtorBean(@Topic("numbers") NamedTopic<Integer> topic)
+        CtorBean(@Name("numbers") NamedTopic<Integer> topic)
             {
             this.numbers = topic;
             }

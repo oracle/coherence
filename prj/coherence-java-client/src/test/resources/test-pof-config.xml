@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+
+  Copyright (c) 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+
+-->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+        xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+    <user-type-list>
+        <!-- by default just include coherence POF user types -->
+        <include>coherence-grpc-proxy-pof-config.xml</include>
+
+        <user-type>
+            <type-id>2001</type-id>
+            <class-name>com.oracle.coherence.cache.grpc.client.Person</class-name>
+        </user-type>
+
+    </user-type-list>
+</pof-config>

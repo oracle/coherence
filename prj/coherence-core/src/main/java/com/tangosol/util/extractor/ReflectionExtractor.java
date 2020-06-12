@@ -113,10 +113,6 @@ public class ReflectionExtractor<T, E>
             }
 
         Class clz = oTarget.getClass();
-        if (!ClassHelper.isReflectionAllowed(oTarget))
-            {
-            throw new IllegalArgumentException(suggestExtractFailureCause(clz, true));
-            }
 
         try
             {
@@ -124,6 +120,11 @@ public class ReflectionExtractor<T, E>
 
             if (method == null || method.getDeclaringClass() != clz)
                 {
+                if (!ClassHelper.isReflectionAllowed(oTarget))
+                    {
+                    throw new IllegalArgumentException(suggestExtractFailureCause(clz, true));
+                    }
+
                 m_methodPrev = method = ClassHelper.findMethod(
                     clz, getMethodName(), ClassHelper.getClassArray(m_aoParam), false);
                 }

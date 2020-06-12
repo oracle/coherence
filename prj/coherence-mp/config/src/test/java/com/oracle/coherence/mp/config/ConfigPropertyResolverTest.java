@@ -28,6 +28,7 @@ class ConfigPropertyResolverTest
         {
         System.setProperty("coherence.member", "sysprop01");
         System.setProperty("coherence.distributed.localstorage", "false");
+        System.setProperty("coherence.cluster", "test");
         }
 
     @Test

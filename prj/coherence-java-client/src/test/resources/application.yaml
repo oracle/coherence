@@ -1,0 +1,44 @@
+#
+# Copyright (c) 2020, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+
+grpc:
+  port: 1408
+  channels:
+    test:
+      host: localhost
+      port: 1408
+
+coherence:
+  sessions:
+#   test session using the default serializer
+    test:
+      channel: test
+      tracing:
+        enabled: true
+        verbose: true
+#   test session using the Java serializer
+    test-java:
+      channel: test
+      serializer: java
+      tracing:
+        enabled: true
+        verbose: true
+#   test session using the POF serializer
+    test-pof:
+      channel: test
+      serializer: pof
+      tracing:
+        enabled: true
+        verbose: true
+#   test session using the json serializer
+    test-json:
+      channel: test
+      serializer: json
+      tracing:
+        enabled: true
+        verbose: true
+

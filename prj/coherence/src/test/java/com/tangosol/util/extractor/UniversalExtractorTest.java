@@ -21,6 +21,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.WrapperException;
 
 import data.extractor.InvokeTestClass;
 
@@ -286,9 +287,17 @@ public class UniversalExtractorTest
     @SuppressWarnings("unchecked")
     @Test(expected = IllegalArgumentException.class)
     public void testDefaultReflectionBlacklist()
+        throws Throwable
         {
         UniversalExtractor extractor = new UniversalExtractor("name", new Object[] {});
-        extractor.extract(String.class);
+        try
+            {
+            extractor.extract(String.class);
+            }
+        catch (WrapperException e)
+            {
+            throw e.getOriginalException();
+            }
         }
 
     public static class TestJavaBean

@@ -13,7 +13,7 @@
   <parent>
     <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>main</artifactId>
-    <version>14.1.2-0-0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -99,12 +99,52 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-grpc</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-grpc-proxy</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-java-client</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-hotcache-core</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-hotcache-oracle</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+         <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-http-grizzly</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+         <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-http-jetty</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+         <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-http-netty</artifactId>
           <version>${project.version}</version>
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-jcache</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-json</artifactId>
           <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -145,11 +185,6 @@
         <dependency>
           <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-mp-config</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-mp-messaging</artifactId>
           <version>${project.version}</version>
         </dependency>
         <dependency>

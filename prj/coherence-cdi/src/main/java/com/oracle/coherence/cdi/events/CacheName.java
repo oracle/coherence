@@ -4,7 +4,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.cdi.events;
 
 import java.lang.annotation.Documented;
@@ -16,8 +15,7 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Qualifier;
 
 /**
- * A qualifier annotation used when injecting Coherence resource to indicate a
- * specific cache name.
+ * A qualifier annotation used to indicate a specific cache name.
  *
  * @author Aleks Seovic  2020.04.01
  */

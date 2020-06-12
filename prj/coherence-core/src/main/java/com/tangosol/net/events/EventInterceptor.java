@@ -17,7 +17,7 @@ package com.tangosol.net.events;
  * @author nsa, rhan, bo, mwj, rhl, hr 2011.03.29
  * @since Coherence 12.1.2
  *
- * @param <E>  the {@link Event} this interceptor accepts
+ * @param <E>  the type of {@link Event} this interceptor accepts
  */
 public interface EventInterceptor<E extends Event<? extends Enum>>
     {

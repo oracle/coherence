@@ -8,7 +8,10 @@ package com.tangosol.net.events.partition;
 
 import com.tangosol.util.BinaryEntry;
 
+import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Consumer;
+
 
 /**
  * A TransactionEvent captures information pertaining to all mutations
@@ -20,8 +23,9 @@ import java.util.Set;
  * @author rhl/hr/gg  2012.09.21
  * @since Coherence 12.1.2
  */
+@SuppressWarnings("rawtypes")
 public interface TransactionEvent
-        extends Event<TransactionEvent.Type>
+        extends Event<TransactionEvent.Type>, Iterable<BinaryEntry>
     {
     /**
      * A set of {@link BinaryEntry entries} enlisted within this
@@ -30,6 +34,17 @@ public interface TransactionEvent
      * @return a set of entries enlisted within this transaction
      */
     public Set<BinaryEntry> getEntrySet();
+
+    /**
+     * Returns an iterator over the {@link BinaryEntry entries} in this event.
+     *
+     * @return an iterator over the {@link BinaryEntry entries} in this event.
+     */
+    @Override
+    public default Iterator<BinaryEntry> iterator()
+        {
+        return getEntrySet().iterator();
+        }
 
     /**
      * The TransactionEvent types.

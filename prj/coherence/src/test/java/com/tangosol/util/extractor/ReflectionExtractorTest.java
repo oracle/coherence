@@ -24,6 +24,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.WrapperException;
 
 import org.junit.Test;
 
@@ -122,8 +123,32 @@ public class ReflectionExtractorTest
     @SuppressWarnings("unchecked")
     @Test(expected = IllegalArgumentException.class)
     public void testDefaultReflectionBlacklist()
+        throws Throwable
+        {
+        ReflectionExtractor extractor = new ReflectionExtractor("exec", new Object[] {});
+        try
+            {
+            extractor.extract(Runtime.getRuntime());
+            }
+        catch (WrapperException e)
+            {
+            throw e.getOriginalException();
+            }
+        }
+
+    @SuppressWarnings("unchecked")
+    @Test(expected = IllegalArgumentException.class)
+    public void testDefaultReflectionBlacklistWithClass()
+        throws Throwable
         {
         ReflectionExtractor extractor = new ReflectionExtractor("getName", new Object[] {});
-        extractor.extract(String.class);
+        try
+            {
+            extractor.extract(String.class);
+            }
+        catch (WrapperException e)
+            {
+            throw e.getOriginalException();
+            }
         }
     }

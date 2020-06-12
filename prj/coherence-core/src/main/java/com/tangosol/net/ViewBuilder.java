@@ -8,7 +8,6 @@ package com.tangosol.net;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
@@ -18,8 +17,8 @@ import com.tangosol.util.filter.AlwaysFilter;
 import java.util.function.Supplier;
 
 /**
- * The {@link ViewBuilder} provides a means to {@link #build()} a {@code view} ({@link ContinuousQueryCache})
- * using a fluent pattern / style.
+ * The {@link ViewBuilder} provides a means to {@link #build()} a {@code view}
+ * ({@link ContinuousQueryCache}) using a fluent pattern / style.
  *
  * @param <K>        the type of the cache entry keys
  * @param <V_BACK>   the type of the entry values in the back cache that is used
@@ -34,6 +33,7 @@ import java.util.function.Supplier;
  * @since 12.2.1.4
  */
 public class ViewBuilder<K, V_BACK, V_FRONT>
+        extends MapViewBuilder<K, V_BACK, V_FRONT>
     {
     // ---- constructors ----------------------------------------------------
 
@@ -57,7 +57,7 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      */
     public ViewBuilder(Supplier<NamedCache<K, V_BACK>> supplierNamedCache)
         {
-        f_supplierNamedCache = supplierNamedCache;
+        super(supplierNamedCache);
         }
 
     // ----- builder interface ----------------------------------------------
@@ -156,52 +156,6 @@ public class ViewBuilder<K, V_BACK, V_FRONT>
      */
     public NamedCache<K, V_FRONT> build()
         {
-        Filter      filter = m_filter;
-        ClassLoader loader = m_loader;
-        return new ContinuousQueryCache<>(f_supplierNamedCache,
-                                          filter == null ? AlwaysFilter.INSTANCE : filter,
-                                          m_fCacheValues,
-                                          m_listener,
-                                          m_mapper,
-                                          loader == null ? Base.getContextClassLoader(this) : loader);
+        return (NamedCache<K, V_FRONT>) super.build();
         }
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The {@link Supplier} returning a {@link NamedCache} from which the
-     * view will be created.
-     */
-    private final Supplier<NamedCache<K, V_BACK>> f_supplierNamedCache;
-
-    /**
-     * The {@link Filter} that will be used to define the entries maintained
-     * in this view.
-     */
-    private Filter m_filter;
-
-    /**
-     * The {@link MapListener} that will receive all the events from
-     * the {@code view}, including those corresponding to its initial
-     * population.
-     */
-    private MapListener<? super K, ? super V_FRONT> m_listener;
-
-    /**
-     * The {@link ValueExtractor} that will be used to transform values
-     * retrieved from the underlying cache before storing them locally; if
-     * specified, this {@code view} will become {@code read-only}.
-     */
-    private ValueExtractor<? super V_BACK, ? extends V_FRONT> m_mapper;
-
-    /**
-     * Flag controlling if the {@code view} will cache both keys and values
-     * or only keys.
-     */
-    private boolean m_fCacheValues;
-
-    /**
-     * The View's {@link ClassLoader}.
-     */
-    private ClassLoader m_loader;
     }

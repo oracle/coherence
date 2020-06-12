@@ -9,85 +9,224 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.cdi.events.CacheName;
 import com.oracle.coherence.cdi.events.Deleted;
 import com.oracle.coherence.cdi.events.Inserted;
-import com.oracle.coherence.cdi.events.Removed;
+import com.oracle.coherence.cdi.events.Lite;
+import com.oracle.coherence.cdi.events.MapName;
+import com.oracle.coherence.cdi.events.ScopeName;
 import com.oracle.coherence.cdi.events.ServiceName;
+import com.oracle.coherence.cdi.events.Synchronous;
 import com.oracle.coherence.cdi.events.Updated;
-
-import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
-import com.tangosol.util.ObservableMap;
 
 import java.lang.annotation.Annotation;
+import java.util.EnumSet;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
-
-import javax.inject.Inject;
+import java.util.Set;
+import javax.enterprise.inject.spi.ObserverMethod;
 
 /**
- * {@link MapListener} implementation that dispatches Coherence {@code MapEvent}s
- * to registered CDI observers.
+ * {@link MapListener} implementation that dispatches {@code MapEvent}s
+ * to a CDI observer.
  *
  * @author Aleks Seovic  2020.04.14
+ * @since 14.1.2
  */
-public abstract class CdiMapListener<K, V>
+class CdiMapListener<K, V>
         implements MapListener<K, V>
     {
+    CdiMapListener(ObserverMethod<MapEvent<K, V>> observer, Set<Annotation> annotations)
+        {
+        m_observer = observer;
+
+        String sCache   = "*";
+        String sService = "*";
+        String sScope   = null;
+
+        for (Annotation a : observer.getObservedQualifiers())
+            {
+            if (a instanceof CacheName)
+                {
+                sCache = ((CacheName) a).value();
+                }
+            else if (a instanceof MapName)
+                {
+                sCache = ((MapName) a).value();
+                }
+            else if (a instanceof ServiceName)
+                {
+                sService = ((ServiceName) a).value();
+                }
+            else if (a instanceof ScopeName)
+                {
+                sService = ((ScopeName) a).value();
+                }
+            else if (a instanceof Inserted)
+                {
+                addType(Type.INSERTED);
+                }
+            else if (a instanceof Updated)
+                {
+                addType(Type.UPDATED);
+                }
+            else if (a instanceof Deleted)
+                {
+                addType(Type.DELETED);
+                }
+            }
+
+        if (annotations.contains(Lite.Literal.INSTANCE))
+            {
+            m_fLite = true;
+            }
+        if (annotations.contains(Synchronous.Literal.INSTANCE))
+            {
+            m_fSync = true;
+            }
+
+        m_sCacheName   = sCache;
+        m_sServiceName = sService;
+        m_sScopeName   = sScope;
+        }
+
     // ---- MapListener interface -------------------------------------------
 
     @Override
     public void entryInserted(MapEvent<K, V> event)
         {
-        fireEvent(event, Inserted.Literal.INSTANCE);
+        handle(Type.INSERTED, event);
         }
 
     @Override
     public void entryUpdated(MapEvent<K, V> event)
         {
-        fireEvent(event, Updated.Literal.INSTANCE);
+        handle(Type.UPDATED, event);
         }
 
     @Override
     public void entryDeleted(MapEvent<K, V> event)
         {
-        fireEvent(event, Deleted.Literal.INSTANCE);
+        handle(Type.DELETED, event);
         }
 
-    // ---- data members ----------------------------------------------------
+    // ---- helpers ---------------------------------------------------------
 
     /**
-     * Fires the event to CDI observers after adding {@link CacheName} and
-     * {@link ServiceName} qualifiers (if possible).
+     * Return the name of the cache this listener is for, or {@code '*'} if
+     * it should be registered regardless of the cache name.
      *
-     * @param event       {@link MapEvent} to fire
-     * @param qualifiers  the additional event qualifiers
+     * @return the name of the cache this listener is for
      */
-    @SuppressWarnings("unchecked")
-    private void fireEvent(MapEvent<K, V> event, Annotation... qualifiers)
+    String getCacheName()
         {
-        Event<MapEvent<K, V>> e   = m_mapEventEvent.select(qualifiers);
-        ObservableMap<K, V>   map = event.getMap();
+        return m_sCacheName;
+        }
 
-        if (map instanceof NamedCache)
+    /**
+     * Return the name of the service this listener is for, or {@code '*'} if
+     * it should be registered regardless of the service name.
+     *
+     * @return the name of the cache this listener is for
+     */
+    String getServiceName()
+        {
+        return m_sServiceName;
+        }
+
+    /**
+     * Return the name of the scope this listener is for, or {@code null} if
+     * it should be registered regardless of the scope name.
+     *
+     * @return the name of the cache this listener is for
+     */
+    String getScopeName()
+        {
+        return m_sScopeName;
+        }
+
+    /**
+     * Return {@code true} if this is lite event listener.
+     *
+     * @return {@code true} if this is lite event listener
+     */
+    public boolean isLite()
+        {
+        return m_fLite;
+        }
+
+    /**
+     * Return {@code true} if this is synchronous event listener.
+     *
+     * @return {@code true} if this is synchronous event listener
+     */
+    public boolean isSynchronous()
+        {
+        return m_fSync;
+        }
+
+    /**
+     * Add specified event type to a set of types this interceptor should handle.
+     *
+     * @param type  the event type to add
+     */
+    private void addType(Type type)
+        {
+        m_setTypes.add(type);
+        }
+
+    /**
+     * Return {@code true} if this listener should handle events of the specified
+     * type.
+     *
+     * @param type  the type to check
+     *
+     * @return {@code true} if this listener should handle events of the specified
+     *         type
+     */
+    private boolean isSupported(Type type)
+        {
+        return m_setTypes.isEmpty() || m_setTypes.contains(type);
+        }
+
+    /**
+     * Notify the observer that the specified event occurred, if the event type
+     * is supported.
+     *
+     * @param type   the event type
+     * @param event  the event
+     */
+    private void handle(Type type, MapEvent<K, V> event)
+        {
+        if (isSupported(type))
             {
-            NamedCache<K, V>    cache       = (NamedCache<K, V>) map;
-            CacheName.Literal   cacheName   = CacheName.Literal.of(cache.getCacheName());
-            ServiceName.Literal serviceName = ServiceName.Literal.of(cache.getCacheService().getInfo().getServiceName());
-
-            e = e.select(cacheName, serviceName);
+            m_observer.notify(event);
             }
+        }
 
-        e.fireAsync(event);
-        e.fire(event);
+    // ---- inner enum: Type ------------------------------------------------
+
+    /**
+     * Event type enumeration.
+     */
+    enum Type
+        {
+        INSERTED,
+        UPDATED,
+        DELETED
         }
 
     // ---- data members ----------------------------------------------------
 
     /**
-     * CDI event dispatcher for map events.
+     * CDI event observer for this listener.
      */
-    @Inject
-    private Event<MapEvent<K, V>> m_mapEventEvent;
+    private final ObserverMethod<MapEvent<K, V>> m_observer;
+
+    private final String m_sCacheName;
+    private final String m_sServiceName;
+    private final String m_sScopeName;
+    private final EnumSet<Type> m_setTypes = EnumSet.noneOf(Type.class);
+
+    private boolean m_fLite;
+    private boolean m_fSync;
     }

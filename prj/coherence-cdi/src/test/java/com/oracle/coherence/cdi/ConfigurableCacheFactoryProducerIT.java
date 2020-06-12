@@ -20,6 +20,7 @@ import org.jboss.weld.junit5.WeldJunit5Extension;
 
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -35,13 +36,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.10.19
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ConfigurableCacheFactoryProducerIT
     {
 
     @WeldSetup
     public WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                         .addExtension(new CoherenceExtension())
                                                          .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                          .addBeanClass(ConfigurableCacheFactoryProducer.class));
+
+    @Inject
+    private CoherenceExtension extension;
 
     /**
      * Should inject the default CCF.
@@ -53,22 +59,29 @@ public class ConfigurableCacheFactoryProducerIT
      * Should inject the test CCF.
      */
     @Inject
-    @CacheFactory("test-cache-config.xml")
+    @Scope("test-config.xml")
     private ConfigurableCacheFactory testCacheFactory;
 
     /**
      * Should inject the the default CCF.
      */
     @Inject
-    @CacheFactory("")
+    @Scope("")
     private ConfigurableCacheFactory qualifiedDefaultCacheFactory;
 
     /**
      * Should inject the the default CCF.
      */
     @Inject
-    @CacheFactory(" ")
+    @Scope(" ")
     private ConfigurableCacheFactory namedDefaultCacheFactory;
+
+    /**
+     * Should inject the the system CCF.
+     */
+    @Inject
+    @Scope(Scope.SYSTEM)
+    private ConfigurableCacheFactory systemCacheFactory;
 
     /**
      * Should inject cache factory builder.
@@ -106,9 +119,16 @@ public class ConfigurableCacheFactoryProducerIT
         }
 
     @Test
+    void shouldInjectSystemConfigurableCacheFactory()
+        {
+        assertThat(systemCacheFactory, is(notNullValue()));
+        assertThat(systemCacheFactory, is(sameInstance(extension.getSystemCacheFactory())));
+        }
+
+    @Test
     void shouldGetDynamicCCF()
         {
-        Annotation qualifier = CacheFactory.Literal.of("test-cache-config.xml");
+        Annotation qualifier = Scope.Literal.of("test-config.xml");
         Instance<ConfigurableCacheFactory> instance = weld.select(ConfigurableCacheFactory.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));

@@ -13,7 +13,7 @@
   <parent>
     <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>main</artifactId>
-    <version>14.1.2-0-0-SNAPSHOT</version>
+    <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -569,7 +569,10 @@
                 </additionalDependency>
               </additionalDependencies>
 
+              <!-- changes here should be duplicated in coherence-javadoc/pom.xml -->
               <sourceFileIncludes>
+                <include>com/oracle/coherence/common/base/*.java</include>
+
                 <include>com/tangosol/application/*.java</include>
 
                 <include>com/tangosol/coherence/config/*.java</include>

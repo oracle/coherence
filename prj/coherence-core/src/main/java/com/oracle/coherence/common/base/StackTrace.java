@@ -421,25 +421,25 @@ public abstract class StackTrace
      *
      * @return null on any failure, otherwise the expression
      */
-    static String getExpression(String sMethod)
+    public static String getExpression(String sMethod)
         {
-        StackTrace.StackFrame[] aframe = getStackFrames();
+        StackTrace.StackFrame[] aFrames = getStackFrames();
         int i = 0;
 
         // find method in call stack
-        while (!aframe[i].getMethodName().equals(sMethod))
+        while (!aFrames[i].getMethodName().equals(sMethod))
             {
             ++i;
             }
 
         // find calling method
-        while (aframe[i].getMethodName().equals(sMethod))
+        while (aFrames[i].getMethodName().equals(sMethod))
             {
             ++i;
             }
 
         // get source line
-        String sLine = aframe[i].getLine();
+        String sLine = aFrames[i].getLine();
         if (sLine != null)
             {
             int of = sLine.indexOf(sMethod);

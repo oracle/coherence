@@ -69,7 +69,8 @@ class CdiNamespaceHandlerIT
     {
 
     @WeldSetup
-    private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+    private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                          .addExtension(new CoherenceExtension())
                                                           .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
                                                           .addBeanClass(CacheStore.class)
@@ -81,7 +82,7 @@ class CdiNamespaceHandlerIT
                                                           .addBeanClass(ActivationListener.class));
 
     @Inject
-    @CacheFactory("cdi-beans-cache-config.xml")
+    @Scope("cdi-beans-config.xml")
     private ConfigurableCacheFactory ccf;
 
     @Inject

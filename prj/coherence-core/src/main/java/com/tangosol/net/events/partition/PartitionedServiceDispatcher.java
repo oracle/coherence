@@ -29,4 +29,15 @@ public interface PartitionedServiceDispatcher
      * @return the {@link PartitionedService} for this dispatcher
      */
     public PartitionedService getService();
+
+    /**
+     * Return the name of the {@link PartitionedService service} that this
+     * PartitionedServiceDispatcher is associated with.
+     *
+     * @return  the service name
+     */
+    public default String getServiceName()
+        {
+        return getService().getInfo().getServiceName();
+        }
     }

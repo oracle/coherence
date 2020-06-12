@@ -9,6 +9,9 @@ package com.oracle.coherence.cdi;
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
 
@@ -47,13 +50,31 @@ public class CdiMetricsRegistryAdapter
      */
     private void delegate(Consumer<MetricsRegistryAdapter> action)
         {
-        Instance<MetricsRegistryAdapter> adapters = m_adapters;
-        if (adapters == null)
+        CDI<Object> cdi;
+        try
             {
-            adapters = m_adapters = CDI.current().select(MetricsRegistryAdapter.class);
-            }
+            cdi = CDI.current();
+            Instance<MetricsRegistryAdapter> adapters = m_adapters;
+            if (adapters == null)
+                {
+                adapters = m_adapters = cdi.select(MetricsRegistryAdapter.class);
+                }
 
-        adapters.forEach(action);
+            if (!f_deferredActions.isEmpty())
+                {
+                for (Consumer<MetricsRegistryAdapter> deferredAction : f_deferredActions)
+                    {
+                    adapters.forEach(deferredAction);
+                    }
+                f_deferredActions.clear();
+                }
+
+            adapters.forEach(action);
+            }
+        catch (IllegalStateException cdiNotAvailable)
+            {
+            f_deferredActions.add(action);
+            }
         }
 
     // ---- data members ----------------------------------------------------
@@ -62,4 +83,7 @@ public class CdiMetricsRegistryAdapter
      * {@link MetricsRegistryAdapter}s discovered by CDI.
      */
     private volatile Instance<MetricsRegistryAdapter> m_adapters;
+
+    private final List<Consumer<MetricsRegistryAdapter>> f_deferredActions =
+            Collections.synchronizedList(new ArrayList<>());
     }

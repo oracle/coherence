@@ -1,0 +1,150 @@
+/*
+ * Copyright (c) 2020, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
+// Authors:
+//  Mahesh Kannan
+//  Jonathan Knight
+
+// NamedCacheService service definition.
+
+syntax = "proto3";
+
+package coherence;
+
+import "messages.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option java_multiple_files = true;
+
+// A gRPC NamedCache service.
+//
+service NamedCacheService {
+
+    // Add an index to a cache.
+    rpc addIndex (AddIndexRequest) returns (google.protobuf.Empty) {
+    }
+
+    // Obtain the results of running an entry aggregator against the cache.
+    // The aggregator may run against entries specified by key or entries
+    // matching a given filter.
+    rpc aggregate (AggregateRequest) returns (google.protobuf.BytesValue) {
+    }
+
+    // Clear a cache.
+    rpc clear (ClearRequest) returns (google.protobuf.Empty) {
+    }
+
+    // Check if this map contains a mapping for the specified key to the specified value.
+    rpc containsEntry (ContainsEntryRequest) returns (google.protobuf.BoolValue) {
+    }
+
+    // Check if this map contains a mapping for the specified key.
+    rpc containsKey (ContainsKeyRequest) returns (google.protobuf.BoolValue) {
+    }
+
+    // Check if this map contains a mapping for the specified value.
+    rpc containsValue (ContainsValueRequest) returns (google.protobuf.BoolValue) {
+    }
+
+    // Destroy a cache.
+    rpc destroy (DestroyRequest) returns (google.protobuf.Empty) {
+    }
+
+    // Obtain all of the entries in the cache where the cache entries
+    // match a given filter.
+    rpc entrySet (EntrySetRequest) returns (stream Entry) {
+    }
+
+    // Sets up a bidirectional channel for cache events.
+    rpc events (stream MapListenerRequest) returns (stream MapListenerResponse) {
+    }
+
+    // Get a value for a given key from a cache.
+    rpc get (GetRequest) returns (OptionalValue) {
+    }
+
+    // Get all of the values from a cache for a given collection of keys.
+    rpc getAll (GetAllRequest) returns (stream Entry) {
+    }
+
+    // Invoke an entry processor against an entry in a cache.
+    rpc invoke (InvokeRequest) returns (google.protobuf.BytesValue) {
+    }
+
+    // Invoke an entry processor against a number of entries in a cache.
+    rpc invokeAll (InvokeAllRequest) returns (stream Entry) {
+    }
+
+    // Determine whether a cache is empty.
+    rpc isEmpty (IsEmptyRequest) returns (google.protobuf.BoolValue) {
+    }
+
+    // Obtain all of the keys in the cache where the cache entries
+    // match a given filter.
+    rpc keySet (KeySetRequest) returns (stream google.protobuf.BytesValue) {
+    }
+
+    // Get the next page of a paged entry set request.
+    rpc nextEntrySetPage (PageRequest) returns (stream EntryResult) {
+    }
+
+    // Get the next page of a paged key set request.
+    rpc nextKeySetPage (PageRequest) returns (stream google.protobuf.BytesValue) {
+    }
+
+    // Associate the specified value with the specified key in this cache.
+    // If the cache previously contained a mapping for the key, the old value
+    // is replaced by the specified value.
+    // An optional expiry (TTL) value may be set for the entry to expire the
+    // entry from the cache after that time.
+    rpc put (PutRequest) returns (google.protobuf.BytesValue) {
+    }
+
+    // Copies all of the mappings from the request into the cache.
+    rpc putAll (PutAllRequest) returns (google.protobuf.Empty) {
+    }
+
+    // If the specified key is not already associated with a value (or is mapped
+    // to null associate it with the given value and returns null, else return
+    // the current value.
+    rpc putIfAbsent (PutIfAbsentRequest) returns (google.protobuf.BytesValue) {
+    }
+
+    // Remove the mapping that is associated with the specified key.
+    rpc remove (RemoveRequest) returns (google.protobuf.BytesValue) {
+    }
+
+    // Remove the mapping that is associated with the specified key only
+    // if the mapping exists in the cache.
+    rpc removeMapping (RemoveMappingRequest) returns (google.protobuf.BoolValue) {
+    }
+
+    // Replace the entry for the specified key only if it is currently
+    // mapped to some value.
+    rpc replace (ReplaceRequest) returns (google.protobuf.BytesValue) {
+    }
+
+    // Replace the mapping for the specified key only if currently mapped
+    // to the specified value.
+    rpc replaceMapping (ReplaceMappingRequest) returns (google.protobuf.BoolValue) {
+    }
+
+    // Determine the number of entries in a cache.
+    rpc size (SizeRequest) returns (google.protobuf.Int32Value) {
+    }
+
+    // Tuncate a cache. This is the same as clearing a cache but no
+    // cache entry events will be generated.
+    rpc truncate (SizeRequest) returns (google.protobuf.Int32Value) {
+    }
+
+    // Obtain all of the values in the cache where the cache entries
+    // match a given filter.
+    rpc values (ValuesRequest) returns (stream google.protobuf.BytesValue) {
+    }
+}

@@ -172,11 +172,6 @@ public class UniversalExtractor<T, E>
             return null;
             }
 
-        if (!ClassHelper.isReflectionAllowed(oTarget))
-            {
-            throw new IllegalArgumentException(suggestExtractFailureCause(oTarget.getClass(), true));
-            }
-
         TargetReflectionDescriptor targetPrev = m_cacheTarget;
         try
             {
@@ -442,6 +437,12 @@ public class UniversalExtractor<T, E>
             }
         else
             {
+            // only check if reflection is allowed when method is non null and not cached from previous extract
+            if (!ClassHelper.isReflectionAllowed(oTarget))
+                {
+                m_cacheTarget = null;
+                throw new IllegalArgumentException(suggestExtractFailureCause(clzTarget, true));
+                }
             m_cacheTarget = new TargetReflectionDescriptor(clzTarget, method);
             }
         return (E) method.invoke(oTarget, aoParam);

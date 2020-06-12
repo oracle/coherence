@@ -27,6 +27,7 @@ import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -42,6 +43,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.10.19
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NamedCacheProducerIT
     {
 
@@ -55,13 +57,13 @@ class NamedCacheProducerIT
                                                           .addBeanClass(FilterProducer.class)
                                                           .addBeanClass(FilterProducer.AlwaysFilterSupplier.class)
                                                           .addBeanClass(FilterProducer.WhereFilterSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.class)
-                                                          .addBeanClass(ValueExtractorProducer.UniversalExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.UniversalExtractorsSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.ChainedExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.ChainedExtractorsSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.PofExtractorSupplier.class)
-                                                          .addBeanClass(ValueExtractorProducer.PofExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.class)
+                                                          .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.ChainedExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.ChainedExtractorsSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.PofExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.PofExtractorsSupplier.class)
                                                           .addBeanClass(NamedCacheProducer.class)
                                                           .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
@@ -70,11 +72,11 @@ class NamedCacheProducerIT
     @Test
     void shouldGetDynamicNamedCache()
         {
-        Annotation qualifier = Cache.Literal.of("numbers");
+        Annotation qualifier = Name.Literal.of("numbers");
         Instance<NamedCache> instance = weld.select(NamedCache.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));
-        assertThat(instance.get().getCacheName(), is("numbers"));
+        assertThat(instance.get().getName(), is("numbers"));
         }
 
     @Test
@@ -82,7 +84,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getNumbers(), is(notNullValue()));
-        assertThat(bean.getNumbers().getCacheName(), is("numbers"));
+        assertThat(bean.getNumbers().getName(), is("numbers"));
         }
 
     @Test
@@ -90,7 +92,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getNamedCache(), is(notNullValue()));
-        assertThat(bean.getNamedCache().getCacheName(), is("numbers"));
+        assertThat(bean.getNamedCache().getName(), is("numbers"));
         }
 
     @Test
@@ -98,7 +100,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericCache(), is(notNullValue()));
-        assertThat(bean.getGenericCache().getCacheName(), is("numbers"));
+        assertThat(bean.getGenericCache().getName(), is("numbers"));
         }
 
     @Test
@@ -106,7 +108,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericKeys(), is(notNullValue()));
-        assertThat(bean.getGenericKeys().getCacheName(), is("genericKeys"));
+        assertThat(bean.getGenericKeys().getName(), is("genericKeys"));
         }
 
     @Test
@@ -114,7 +116,7 @@ class NamedCacheProducerIT
         {
         NamedCacheFieldsBean bean = weld.select(NamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericValues(), is(notNullValue()));
-        assertThat(bean.getGenericValues().getCacheName(), is("genericValues"));
+        assertThat(bean.getGenericValues().getName(), is("genericValues"));
         }
 
     @Test
@@ -122,7 +124,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getNumbers(), is(notNullValue()));
-        assertThat(bean.getNumbers().getNamedCache().getCacheName(), is("numbers"));
+        assertThat(bean.getNumbers().getNamedCache().getName(), is("numbers"));
         }
 
     @Test
@@ -130,7 +132,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getNamedCache(), is(notNullValue()));
-        assertThat(bean.getNamedCache().getNamedCache().getCacheName(), is("numbers"));
+        assertThat(bean.getNamedCache().getNamedCache().getName(), is("numbers"));
         }
 
     @Test
@@ -138,7 +140,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericCache(), is(notNullValue()));
-        assertThat(bean.getGenericCache().getNamedCache().getCacheName(), is("numbers"));
+        assertThat(bean.getGenericCache().getNamedCache().getName(), is("numbers"));
         }
 
     @Test
@@ -146,7 +148,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericKeys(), is(notNullValue()));
-        assertThat(bean.getGenericKeys().getNamedCache().getCacheName(), is("genericKeys"));
+        assertThat(bean.getGenericKeys().getNamedCache().getName(), is("genericKeys"));
         }
 
     @Test
@@ -154,7 +156,7 @@ class NamedCacheProducerIT
         {
         AsyncNamedCacheFieldsBean bean = weld.select(AsyncNamedCacheFieldsBean.class).get();
         assertThat(bean.getGenericValues(), is(notNullValue()));
-        assertThat(bean.getGenericValues().getNamedCache().getCacheName(), is("genericValues"));
+        assertThat(bean.getGenericValues().getNamedCache().getName(), is("genericValues"));
         }
 
     @Test
@@ -163,15 +165,15 @@ class NamedCacheProducerIT
         DifferentCacheFactoryBean bean = weld.select(DifferentCacheFactoryBean.class).get();
 
         assertThat(bean.getDefaultCcfNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfNumbers().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getDefaultCcfNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getDefaultCcfAsyncNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache().getName(), Matchers.is("numbers"));
         assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache(), is(bean.getDefaultCcfNumbers()));
 
         assertThat(bean.getSpecificCcfNumbers(), is(notNullValue()));
-        assertThat(bean.getSpecificCcfNumbers().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getSpecificCcfNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getSpecificCcfAsyncNumbers(), is(notNullValue()));
-        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache().getName(), Matchers.is("numbers"));
         assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache(), is(bean.getSpecificCcfNumbers()));
 
         assertThat(bean.getDefaultCcfNumbers(), is(not(bean.getSpecificCcfNumbers())));
@@ -183,9 +185,9 @@ class NamedCacheProducerIT
         CtorBean bean = weld.select(CtorBean.class).get();
 
         assertThat(bean.getNumbers(), Matchers.notNullValue());
-        assertThat(bean.getNumbers().getCacheName(), Matchers.is("numbers"));
+        assertThat(bean.getNumbers().getName(), Matchers.is("numbers"));
         assertThat(bean.getLetters(), Matchers.notNullValue());
-        assertThat(bean.getLetters().getNamedCache().getCacheName(), Matchers.is("letters"));
+        assertThat(bean.getLetters().getNamedCache().getName(), Matchers.is("letters"));
         }
 
     @Test
@@ -242,11 +244,11 @@ class NamedCacheProducerIT
         private NamedCache numbers;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private NamedCache namedCache;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private NamedCache<Integer, String> genericCache;
 
         @Inject
@@ -288,11 +290,11 @@ class NamedCacheProducerIT
         private AsyncNamedCache numbers;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private AsyncNamedCache namedCache;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private AsyncNamedCache<Integer, String> genericCache;
 
         @Inject
@@ -331,21 +333,21 @@ class NamedCacheProducerIT
     private static class DifferentCacheFactoryBean
         {
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private NamedCache defaultCcfNumbers;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private AsyncNamedCache defaultCcfAsyncNumbers;
 
         @Inject
-        @Cache("numbers")
-        @CacheFactory("test-cache-config.xml")
+        @Name("numbers")
+        @Scope("test-config.xml")
         private NamedCache specificCcfNumbers;
 
         @Inject
-        @Cache("numbers")
-        @CacheFactory("test-cache-config.xml")
+        @Name("numbers")
+        @Scope("test-config.xml")
         private AsyncNamedCache specificCcfAsyncNumbers;
 
         public NamedCache getDefaultCcfNumbers()
@@ -378,8 +380,8 @@ class NamedCacheProducerIT
         private final AsyncNamedCache<String, String> letters;
 
         @Inject
-        CtorBean(@Cache("numbers") NamedCache<Integer, String> numbers,
-                 @Cache("letters") AsyncNamedCache<String, String> letters)
+        CtorBean(@Name("numbers") NamedCache<Integer, String> numbers,
+                 @Name("letters") AsyncNamedCache<String, String> letters)
             {
 
             this.numbers = numbers;
@@ -401,27 +403,27 @@ class NamedCacheProducerIT
     private static class SuperTypesBean
         {
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private NamedCache<Integer, String> namedCache;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private InvocableMap<Integer, String> invocableMap;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private ObservableMap<Integer, String> observableMap;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private ConcurrentMap<Integer, String> concurrentMap;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private QueryMap<Integer, String> queryMap;
 
         @Inject
-        @Cache("numbers")
+        @Name("numbers")
         private CacheMap<Integer, String> cacheMap;
 
         NamedCache<Integer, String> getNamedCache()

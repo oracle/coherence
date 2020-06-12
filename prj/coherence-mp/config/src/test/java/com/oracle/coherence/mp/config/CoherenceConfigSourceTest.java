@@ -96,7 +96,6 @@ class CoherenceConfigSourceTest
         }
 
     @Test
-    @Disabled("BLOCKER: seems to be regression in Helidon 2.0")
     void testDiscovery()
         {
         Config config = getConfig();

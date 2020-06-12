@@ -23,6 +23,20 @@ public interface Releasable
     public boolean isActive();
 
     /**
+     * Specifies whether or this Releasable has been released.
+     *
+     * Implementations must override this method to provide the necessary information.
+     *
+     * @return true if the Releasable has been released; false otherwise
+     */
+    public default boolean isReleased()
+        {
+        // to avoid cumbersome caller exception handling;
+        // default is a no-op.
+        return false;
+        }
+
+    /**
     * Release local resources associated with this Releasable instance.
     */
     public void release();

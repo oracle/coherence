@@ -187,11 +187,11 @@ public class AbstractEventDispatcher
     /**
      * {@inheritDoc}
      */
-    public void removeEventInterceptor(final String sName)
+    public <E extends Event<? extends Enum>> void removeEventInterceptor(final String sName)
         {
-        removeEventInterceptor(new Predicate<NamedEventInterceptor>()
+        removeEventInterceptor(new Predicate<NamedEventInterceptor<E>>()
             {
-            public boolean evaluate(NamedEventInterceptor incptr)
+            public boolean evaluate(NamedEventInterceptor<E> incptr)
                 {
                 return incptr != null && incptr.getRegisteredName().equals(sName);
                 }
@@ -201,11 +201,11 @@ public class AbstractEventDispatcher
     /**
      * {@inheritDoc}
      */
-    public void removeEventInterceptor(final EventInterceptor interceptor)
+    public <E extends Event<? extends Enum>> void removeEventInterceptor(final EventInterceptor<E> interceptor)
         {
-        removeEventInterceptor(new Predicate<NamedEventInterceptor>()
+        removeEventInterceptor(new Predicate<NamedEventInterceptor<E>>()
             {
-            public boolean evaluate(NamedEventInterceptor incptr)
+            public boolean evaluate(NamedEventInterceptor<E> incptr)
                 {
                 return incptr != null && (incptr.getInterceptor() == interceptor || incptr == interceptor);
                 }
@@ -313,17 +313,17 @@ public class AbstractEventDispatcher
      * @param predicate  a Predicate when given a NamedEventInterceptor can
      *                   determine whether the interceptor should be removed
      */
-    protected void removeEventInterceptor(Predicate<NamedEventInterceptor> predicate)
+    protected <E extends Event<? extends Enum>> void removeEventInterceptor(Predicate<NamedEventInterceptor<E>> predicate)
         {
         Set<Enum>                setEventTypes = new HashSet<Enum>();
-        NamedEventInterceptor<?> incptrNamed   = null;
+        NamedEventInterceptor<E> incptrNamed   = null;
         for (final Iterator iter = getInterceptorMap().entrySet().iterator(); iter.hasNext(); )
             {
             Entry entry = (Entry) iter.next();
 
-            final List<NamedEventInterceptor<?>> listInterceptors = (List<NamedEventInterceptor<?>>) entry.getValue();
+            final List<NamedEventInterceptor<E>> listInterceptors = (List<NamedEventInterceptor<E>>) entry.getValue();
             // find the appropriate interceptor based on the predicate
-            for (final NamedEventInterceptor<?> interceptor : listInterceptors)
+            for (final NamedEventInterceptor<E> interceptor : listInterceptors)
                 {
                 if (predicate.evaluate(interceptor))
                     {

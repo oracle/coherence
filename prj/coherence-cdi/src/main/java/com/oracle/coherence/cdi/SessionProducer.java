@@ -6,17 +6,13 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.tangosol.net.CacheFactoryBuilder;
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.Session;
-import com.tangosol.net.options.WithClassLoader;
-import com.tangosol.net.options.WithConfiguration;
 
 import com.tangosol.util.Base;
 
 import java.lang.reflect.Member;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -37,26 +33,12 @@ public class SessionProducer
 
     /**
      * Default constructor used by CDI.
-     *
-     * @param uriResolver  the URI resolver to use
      */
     @Inject
-    SessionProducer(CacheFactoryUriResolver uriResolver)
+    SessionProducer(CoherenceExtension extension, ConfigurableCacheFactoryProducer ccfProducer)
         {
-        this(uriResolver, com.tangosol.net.CacheFactory.getCacheFactoryBuilder());
-        }
-
-    /**
-     * Create a ConfigurableCacheFactoryProducer.
-     *
-     * @param uriResolver          the URI resolver to use
-     * @param cacheFactoryBuilder  the {@link CacheFactoryBuilder} to use to
-     *                             obtain {@link Session} instances
-     */
-    SessionProducer(CacheFactoryUriResolver uriResolver, CacheFactoryBuilder cacheFactoryBuilder)
-        {
-        f_uriResolver         = uriResolver;
-        f_cacheFactoryBuilder = cacheFactoryBuilder;
+        f_extension   = extension;
+        f_ccfProducer = ccfProducer;
         }
 
     // ---- producer methods ------------------------------------------------
@@ -72,16 +54,17 @@ public class SessionProducer
     @Produces
     public Session getDefaultSession(InjectionPoint injectionPoint)
         {
-        return getNamedSession(injectionPoint);
+        return getScopedSession(injectionPoint);
         }
 
     /**
-     * Produces a named {@link Session}.
+     * Produces a {@link Session} for a given scope.
      * <p>
-     * If the value of the name qualifier is blank or empty String the default
+     * If the value of the scope qualifier is blank or empty, the default
      * {@link Session} will be returned.
      * <p>
-     * The name parameter will be resolved to a cache configuration URI using
+     * The scope value will be resolved to a registered scope name, or, if
+     * such scope name does not exist, to a cache configuration URI using
      * the {@link CacheFactoryUriResolver} bean.
      *
      * @param injectionPoint  the {@link InjectionPoint} that the cache factory
@@ -90,50 +73,37 @@ public class SessionProducer
      * @return the named {@link Session}
      */
     @Produces
-    @CacheFactory("")
-    public Session getNamedSession(InjectionPoint injectionPoint)
+    @Scope
+    public Session getScopedSession(InjectionPoint injectionPoint)
         {
-        String sName = injectionPoint.getQualifiers()
+        String sScope = injectionPoint.getQualifiers()
                 .stream()
-                .filter(q -> q.annotationType().isAssignableFrom(CacheFactory.class))
-                .map(q -> ((CacheFactory) q).value())
+                .filter(q -> q.annotationType().isAssignableFrom(Scope.class))
+                .map(q -> ((Scope) q).value().trim())
                 .findFirst()
                 .orElse(null);
-
-        String sUri = f_uriResolver.resolve(sName);
-        WithConfiguration cfg;
-
-        if (sUri == null || sUri.trim().isEmpty())
-            {
-            cfg = WithConfiguration.autoDetect();
-            }
-        else
-            {
-            cfg = WithConfiguration.using(sUri);
-            }
 
         Member      member = injectionPoint.getMember();
         ClassLoader loader = member == null
                              ? Base.getContextClassLoader()
                              : member.getDeclaringClass().getClassLoader();
-        Map<String, Session> map = f_mapSession.computeIfAbsent(loader, l -> new HashMap<>());
-        return map.computeIfAbsent(sUri, u -> f_cacheFactoryBuilder.createSession(cfg, WithClassLoader.using(loader)));
+
+        ConfigurableCacheFactory ccf = sScope == null || sScope.isEmpty()
+                ? f_extension.getDefaultCacheFactory()
+                : f_ccfProducer.getConfigurableCacheFactory(sScope, injectionPoint);
+
+        return new ConfigurableCacheFactorySession(ccf, loader);
         }
 
     // ---- data members ----------------------------------------------------
 
     /**
-     * Cache factory builder.
+     * CDI bean manager.
      */
-    private final CacheFactoryBuilder f_cacheFactoryBuilder;
+    private final ConfigurableCacheFactoryProducer f_ccfProducer;
 
     /**
-     * Cache factory URI resolver.
+     * Coherence CDI extension.
      */
-    private final CacheFactoryUriResolver f_uriResolver;
-
-    /**
-     * Session map, keyed by class loader.
-     */
-    private final Map<ClassLoader, Map<String, Session>> f_mapSession = new HashMap<>();
+    private final CoherenceExtension f_extension;
     }

@@ -1,0 +1,18 @@
+#
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+
+grpc:
+  port: 1408
+
+server:
+  port: 9090
+
+tracing:
+  service: "grpc-proxy"
+  sampler-type: "const"  # JAEGER_SAMPLER_TYPE (https://www.jaegertracing.io/docs/latest/sampling/#client-sampling-configuration)
+  sampler-param: 1       # JAEGER_SAMPLER_PARAM (number)
+
