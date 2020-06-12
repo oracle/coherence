@@ -1128,6 +1128,27 @@
           <configuration>
             <escapeString>\</escapeString>
           </configuration>
+          <executions>
+            <execution>
+              <id>include-license-files</id>
+              <phase>process-resources</phase>
+              <goals>
+                <goal>copy-resources</goal>
+              </goals>
+              <configuration>
+                <resources>
+                  <resource>
+                    <directory>${root.path}</directory>
+                    <includes>
+                      <include>LICENSE.txt</include>
+                      <include>THIRD_PARTY_LICENSES.txt</include>
+                    </includes>
+                  </resource>
+                </resources>
+                <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+              </configuration>
+            </execution>
+          </executions>
         </plugin>
 
         <!-- maven-shade-plugin -->
