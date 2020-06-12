@@ -18,6 +18,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LiteMap;
+import com.tangosol.util.Processors;
 import com.tangosol.util.Versionable;
 
 import com.tangosol.util.extractor.IdentityExtractor;
@@ -142,12 +143,12 @@ public abstract class AbstractEntryProcessorTests
         assertTrue("Result=" + mapResult, aoResult.length == 0);
         assertTrue("Value=" + cache.get("1"), equals(cache.get("1"), value));
 
-        processor = new CompositeProcessor(
+        processor = (CompositeProcessor) Processors.composite(
                 new InvocableMap.EntryProcessor[]
-                        {
+                    {
                         new NumberIncrementor("IntegerValue", new Integer(1), false),
                         new NumberMultiplier("IntegerValue", new Integer(2), false)
-                        });
+                    });
 
         aoResult = (Object[]) cache.invoke("1", processor);
         assertTrue("Result=" + aoResult, aoResult.length == 2);
@@ -224,7 +225,7 @@ public abstract class AbstractEntryProcessorTests
         value = new TestValue();
         value.setIntegerValue(new Integer(1));
         cache.put("1", value);
-        processor = new ConditionalProcessor(NeverFilter.INSTANCE,
+        processor = (ConditionalProcessor) Processors.conditional(NeverFilter.INSTANCE,
                 new ExtractorProcessor("getIntegerValue"));
 
         oResult = cache.invoke("1", processor);
@@ -334,7 +335,7 @@ public abstract class AbstractEntryProcessorTests
         cache.clear();
 
         // test extraction of a non-existent entry
-        extractor = new ExtractorProcessor("getByteValue");
+        extractor = (ExtractorProcessor) Processors.extract("getByteValue");
         oResult   = cache.invoke("1", extractor);
         assertTrue("Result=" + oResult, oResult == null);
         assertTrue("Size=" + cache.size(), cache.size() == 0);
@@ -436,7 +437,7 @@ public abstract class AbstractEntryProcessorTests
         cache.clear();
 
         // test increment of a non-existent entry
-        incrementor = new NumberIncrementor("IntegerValue", new Integer(1), false);
+        incrementor = (NumberIncrementor) Processors.increment("IntegerValue", new Integer(1), false);
         oResult     = cache.invoke("1", incrementor);
         assertTrue("Result=" + oResult, oResult == null);
         assertTrue("Size=" + cache.size(), cache.size() == 0);
@@ -541,7 +542,7 @@ public abstract class AbstractEntryProcessorTests
 
         // test pre and post-increment of a Short value
         cache.put("1", new TestValue());
-        incrementor = new NumberIncrementor("ShortValue", new Short((short) 1), false);
+        incrementor = (NumberIncrementor) Processors.increment("ShortValue", new Short((short) 1), false);
 
         oResult = cache.invoke("1", incrementor);
         value   = (TestValue) cache.get("1");
@@ -960,7 +961,7 @@ public abstract class AbstractEntryProcessorTests
         cache.clear();
 
         // test increment of a non-existent entry
-        multiplier = new NumberMultiplier("IntegerValue", new Integer(2), false);
+        multiplier = (NumberMultiplier) Processors.multiply("IntegerValue", new Integer(2), false);
         oResult    = cache.invoke("1", multiplier);
         assertTrue("Result=" + oResult, oResult == null);
         assertTrue("Size=" + cache.size(), cache.size() == 0);
@@ -1496,8 +1497,8 @@ public abstract class AbstractEntryProcessorTests
         NamedCache      cache = getNamedCache();
         TestValue       value;
         Object          oResult;
-        ConditionalRemove agentLite  = new ConditionalRemove(AlwaysFilter.INSTANCE);
-        ConditionalRemove agentHeavy = new ConditionalRemove(AlwaysFilter.INSTANCE, true);
+        ConditionalRemove agentLite  = (ConditionalRemove) Processors.remove(AlwaysFilter.INSTANCE);
+        ConditionalRemove agentHeavy = (ConditionalRemove) Processors.remove(AlwaysFilter.INSTANCE, true);
 
         cache.clear();
 
@@ -1636,7 +1637,7 @@ public abstract class AbstractEntryProcessorTests
 
         // simple puts
         oResult = cache.invoke("1",
-            new ConditionalPut(AlwaysFilter.INSTANCE, value));
+                Processors.put(AlwaysFilter.INSTANCE, value));
         assertTrue("Result=" + oResult, oResult == null);
         value = (TestValue) cache.get("1");
         assertTrue(value + "!=" + valueOld, equals(value, valueOld));
@@ -1803,7 +1804,7 @@ public abstract class AbstractEntryProcessorTests
         value.setLongValue(Long.valueOf(1));
         value.setLongValue(Long.valueOf(100));
 
-        oResult = cache.invoke("1", new VersionedPut(value));
+        oResult = cache.invoke("1", Processors.versionedPut(value));
         assertTrue("Result=" + oResult, oResult == null);
         value = (TestValue) cache.get("1");
         assertTrue(value + "is not null", equals(value, null));
@@ -1831,7 +1832,7 @@ public abstract class AbstractEntryProcessorTests
         valueOld.setLongValue(Long.valueOf(1));
         valueOld.setVersion(Long.valueOf(101));
 
-        oResult = cache.invoke("1", new VersionedPut(value, true, true));
+        oResult = cache.invoke("1", Processors.versionedPut(value, true, true));
         assertTrue(value + " != " +  valueOld, equals(oResult, valueOld));
         value = (TestValue) cache.get("1");
         assertTrue(value + "!=" + oResult, equals(value, oResult));
@@ -1993,7 +1994,7 @@ public abstract class AbstractEntryProcessorTests
         value.setLongValue(Long.valueOf(100));
 
         mapEntries.put("1", value);
-        oResult = cache.invoke("1", new VersionedPutAll(mapEntries));
+        oResult = cache.invoke("1", Processors.versionedPutAll(mapEntries));
         assertTrue("Result=" + oResult, oResult == null);
         value = (TestValue) cache.get("1");
         assertTrue(value + "is not null", equals(value, null));
@@ -2008,7 +2009,7 @@ public abstract class AbstractEntryProcessorTests
         valueNew.setVersion(Long.valueOf(101));
 
         mapEntries.put("1", value);
-        oResult = cache.invoke("1", new VersionedPutAll(mapEntries, true, false));
+        oResult = cache.invoke("1", Processors.versionedPutAll(mapEntries, true, false));
         assertTrue("Result=" + oResult, oResult == null);
         value = (TestValue) cache.get("1");
         assertTrue(value + " != " +  valueNew , equals(value, valueNew));
@@ -2189,7 +2190,7 @@ public abstract class AbstractEntryProcessorTests
         // exercise the code and get the expected return.
 
         // invoke
-        oResult = cache.invoke("1", new PreloadRequest());
+        oResult = cache.invoke("1", Processors.preload());
         assertTrue("Result=" + oResult, oResult == null);
 
         // invokeAll with key set
@@ -2218,7 +2219,7 @@ public abstract class AbstractEntryProcessorTests
 
         // putAll
         mapResult = cache.invokeAll(mapTemp.keySet(),
-            new ConditionalPutAll(AlwaysFilter.INSTANCE, mapTemp));
+            Processors.putAll(AlwaysFilter.INSTANCE, mapTemp));
         assertTrue(cache.size() + "!=" + 2, cache.size() == 2);
         assertTrue("mapResult=" + mapResult, mapResult == null || mapResult.size() == 0);
 
