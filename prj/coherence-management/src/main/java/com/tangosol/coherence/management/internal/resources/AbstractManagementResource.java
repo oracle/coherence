@@ -63,7 +63,7 @@ import static com.tangosol.net.CacheFactory.log;
  * The base resource for Coherence management resources.
  *
  * @author sr  2017.08.21
- * @since 12.2.1.4.0
+ * @since 12.2.1.4
  */
 public abstract class AbstractManagementResource
     {

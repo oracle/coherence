@@ -924,8 +924,8 @@ public class ExtensibleConfigurableCacheFactory
      *
      * @return the ParameterResolver
      *
-     * @since 14.1.1.0.0
-     */
+     * @since 14.1.1.0
+*/
     public <M extends ResourceMapping> ParameterResolver getParameterResolver(final String sResourceName, Class<M> clzResourceMapping, ClassLoader loader,
                                                   BackingMapManagerContext ctxBMM)
         {

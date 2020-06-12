@@ -237,8 +237,8 @@ public abstract class XmlHelper extends Base
     * @param xmlRoot    the root XmlElement to parse the string into
     * @param fValidate  whether to validate the loaded XML
     *
-    * @since 14.1.1.0.0
-    */
+    * @since 14.1.1.0
+*/
     public static void loadXml(String sXml, XmlDocument xmlRoot, boolean fValidate)
         {
         try
