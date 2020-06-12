@@ -132,7 +132,7 @@ public class DockerImageTests
     /**
      * COHERENCE_HOME inside coherence docker image.
      */
-    private static final String COHERENCE_HOME = System.getProperty("docker.coherence.home", "/u01/coherence");
+    private static final String COHERENCE_HOME = System.getProperty("docker.coherence.home", "/coherence");
 
     // ----- test lifecycle -------------------------------------------------
 
@@ -281,44 +281,6 @@ public class DockerImageTests
         }
 
     @Test
-    public void shouldHaveSiteFile() throws Exception
-        {
-        verifyTestAssumptions();
-
-        Platform platform              = LocalPlatform.get();
-        Path     pathTempDir           = Files.createTempDirectory("dockertest");
-        Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rwxrwxrwx");
-        Files.setPosixFilePermissions(pathTempDir, perms);
-
-        Path pathSite = pathTempDir.resolve("site");
-        Files.write(pathSite, "mysite".getBytes());
-        Files.setPosixFilePermissions(pathSite, perms);
-
-        platform.launch("ls", Arguments.of("-n", pathSite));
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME)
-                                                        .detached()
-                                                        .env("COH_SITE_INFO_LOCATION", "/u01/sharedinfo/site")
-                                                        .volume(pathTempDir.toRealPath() + ":" + "/u01/sharedinfo"),
-                                               ContainerCloseBehaviour.remove()))
-            {
-            DockerContainer container = app.get(DockerContainer.class);
-
-            Eventually.assertThat(invoking(this).tailLogs(platform, container, 50),
-                    hasItem(containsString("Started DefaultCacheServer")));
-
-            Collection<String> logLines = tailLogs(platform, container);
-
-            assertThat(logLines, hasItem(containsString("Location=site:mysite")));
-            }
-        finally
-            {
-            Files.delete(pathSite);
-            Files.delete(pathTempDir);
-            }
-        }
-
-    @Test
     public void shouldAddToClasspath() throws Exception
         {
         verifyTestAssumptions();
@@ -335,13 +297,17 @@ public class DockerImageTests
         Platform platform = LocalPlatform.get();
         int      port     = 20000;
 
+        TestApplicationConsoleBuilder consoleBuilder = new TestApplicationConsoleBuilder("Started DefaultCacheServer");
+
         try (Application app = platform.launch(Run.image(IMAGE_NAME)
                                                        .detached()
                                                        .env("COH_EXTEND_PORT", port)
                                                        .publish(port)
                                                        .volume(fileLib.getCanonicalPath() + ":" + COHERENCE_HOME + "/ext/lib",
                                                                fileConfig.getCanonicalPath() + ":" + COHERENCE_HOME + "/ext/conf"),
-                                               ContainerCloseBehaviour.remove()))
+                                               ContainerCloseBehaviour.remove(),
+                                               consoleBuilder,
+                                               DisplayName.of("server")))
             {
             DockerContainer container = app.get(DockerContainer.class);
 
@@ -390,6 +356,7 @@ public class DockerImageTests
             }
         }
 
+    @SuppressWarnings("rawtypes")
     @Test
     public void shouldStartRestManagementServer() throws Exception
         {
@@ -411,20 +378,20 @@ public class DockerImageTests
             {
             DockerContainer container = app.get(DockerContainer.class);
 
-            Eventually.assertThat(invoking(this).tailLogs(platform, container, 50),
+            Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
                     hasItem(both(containsString(HttpHelper.getServiceName() + ":HttpAcceptor")).and(containsString(Integer.toString(nMgmtHttpPort)))),
                     InitialDelay.of(2, TimeUnit.SECONDS),
                     Timeout.after(16, TimeUnit.SECONDS),
                     MaximumRetryDelay.of(4, TimeUnit.SECONDS),
                     RetryFrequency.every(4, TimeUnit.SECONDS));
 
-            Eventually.assertThat(invoking(this).tailLogs(platform, container, 50),
+            Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
                     hasItem(containsString("Service " + HttpHelper.getServiceName() + " joined")),
                     Timeout.after(16, TimeUnit.SECONDS),
                     MaximumRetryDelay.of(4, TimeUnit.SECONDS),
                     RetryFrequency.every(4, TimeUnit.SECONDS));
 
-            Eventually.assertThat(invoking(this).tailLogs(platform, container, 50),
+            Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
                     hasItem(containsString("Started DefaultCacheServer")),
                     Timeout.after(20, TimeUnit.SECONDS),
                     MaximumRetryDelay.of(4, TimeUnit.SECONDS),
@@ -538,24 +505,6 @@ public class DockerImageTests
 
             // send new-line to stdin of the container to make sure we see the QueryPlus prompt
             Eventually.assertThat(invoking(consoleBuilder).sawMessage(sName, true), is(true));
-            }
-        }
-
-    @Test
-    public void shouldStartContainerWithFileLogs() throws Exception
-        {
-        verifyTestAssumptions();
-
-        Platform platform = LocalPlatform.get();
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME)
-                                                       .detached(),
-                                               ContainerCloseBehaviour.remove()))
-            {
-            DockerContainer container = app.get(DockerContainer.class);
-
-            Eventually.assertThat(invoking(this).tailFileLogs(platform, container.getName(), 50),
-                                  hasItem(containsString("Started DefaultCacheServer")));
             }
         }
 

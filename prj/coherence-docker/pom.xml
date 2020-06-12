@@ -22,9 +22,8 @@
   <name>Coherence Docker Distribution</name>
 
   <properties>
-    <project.version.pom>${project.version.official}-b${project.build.number}</project.version.pom>
-    <docker.image.name>oracle/coherence-ce:${project.version}</docker.image.name>
-    <docker.skip.tests>false</docker.skip.tests>
+    <docker.registry>oraclecoherence</docker.registry>
+    <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
   </properties>
 
   <dependencies>
@@ -32,6 +31,7 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -48,24 +48,6 @@
     <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
-    </dependency>
-
-    <!-- JAX-RS API -->
-
-    <dependency>
-      <groupId>jakarta.ws.rs</groupId>
-      <artifactId>jakarta.ws.rs-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.glassfish.jersey.inject</groupId>
-      <artifactId>jersey-hk2</artifactId>
-    </dependency>
-
-    <!-- JDK 8 javax.annotation missing Priority, required by jakarata.ws.rs:jakarta.ws.rs-api -->
-    <dependency>
-      <groupId>jakarta.annotation</groupId>
-      <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
 
     <!-- test dependencies -->
@@ -119,26 +101,6 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
   <profiles>
     <profile>
       <id>docker</id>
@@ -151,6 +113,7 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-assembly-plugin</artifactId>
             <executions>
               <execution>
@@ -171,29 +134,56 @@
           </plugin>
 
           <plugin>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>0.20.1</version>
-            <configuration>
-              <images>
-                <image>
-                  <name>${docker.image.name}</name>
-                  <build>
-                    <compression>bzip2</compression>
-                    <dockerFileDir>${project.build.directory}/docker-build</dockerFileDir>
-                    <nocache>true</nocache>
-                    <optimise>true</optimise>
-                  </build>
-                </image>
-              </images>
-            </configuration>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>package</id>
-                <phase>package</phase>
+                <id>build-image</id>
                 <goals>
-                  <goal>build</goal>
+                  <goal>exec</goal>
                 </goals>
+                <phase>package</phase>
+                <configuration>
+                  <workingDirectory>${project.build.directory}/docker-build</workingDirectory>
+                  <executable>docker</executable>
+                  <arguments>
+                    <argument>build</argument>
+                    <argument>-t</argument>
+                    <argument>${docker.image.name}</argument>
+                    <argument>.</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>docker-push</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>push-image</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>package</phase>
+                <configuration>
+                  <executable>docker</executable>
+                  <arguments>
+                    <argument>push</argument>
+                    <argument>${docker.image.name}</argument>
+                  </arguments>
+                </configuration>
               </execution>
             </executions>
           </plugin>
@@ -215,7 +205,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <skip>false</skip>
+              <skipTests>false</skipTests>
               <systemProperties>
                 <!--
                 <project.version.dist>${project.version.dist}</project.version.dist>
@@ -234,9 +224,8 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <skip>false</skip>
               <systemProperties>
-                <!--
+                <skipTests>false</skipTests>
                 <project.version.dist>${project.version.dist}</project.version.dist>
                 <project.version.release>${project.version.release}</project.version.release>
                 <project.version.short>${project.version.short}</project.version.short>
