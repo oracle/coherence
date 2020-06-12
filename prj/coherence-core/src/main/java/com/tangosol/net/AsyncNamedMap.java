@@ -44,7 +44,7 @@ import java.util.function.IntSupplier;
  *
  * @author Aleks Seovic  2020.06.06
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public interface AsyncNamedMap<K, V>
     {

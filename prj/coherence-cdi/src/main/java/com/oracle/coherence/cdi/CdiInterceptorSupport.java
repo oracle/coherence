@@ -57,15 +57,13 @@ import java.util.EnumSet;
 
 import javax.enterprise.inject.spi.ObserverMethod;
 
-
 /**
  * Manages registration of CDI observers with {@link InterceptorRegistry}
  * upon {@link ConfigurableCacheFactory} activation, and their subsequent
  * unregistration on deactivation.
  *
  * @author Aleks Seovic  2020.04.03
- *
- * @since 14.1.2
+ * @since 20.06
  */
 class CdiInterceptorSupport
     {

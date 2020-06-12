@@ -47,8 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Base class for serialization tests.
  *
- * @author Aleksandar Seovic  2017.10.03
- * @since 14.1.2
+ * @author Aleks Seovic  2017.10.03
+* @since 20.06
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractSerializerTest

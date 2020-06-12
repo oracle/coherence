@@ -20,6 +20,7 @@ import javax.enterprise.util.Nonbinding;
  * {@link com.tangosol.util.extractor.ChainedExtractor}.
  *
  * @author Jonathan Knight  2019.10.25
+ * @since 20.06
  */
 @Inherited
 @ExtractorBinding

@@ -29,6 +29,7 @@ import org.eclipse.microprofile.metrics.MetricID;
  * returned by the {@link MetricID#GLOBAL_TAGS_VARIABLE} config property.
  *
  * @author Aleks Seovic  2020.03.26
+ * @since 20.06
  */
 public class CoherenceTagsConfigSource
         implements ConfigSource

@@ -26,8 +26,8 @@ import java.util.Map;
  * Internally Genson uses it for the spring webmvc integration, so it can pass method signatures and
  * extract its annotations, etc.
  *
- * @author eugen
- * @see Context
+ * @author Eugen Cepoi
+* @see Context
  * @see com.oracle.coherence.io.json.genson.ext.spring.ExtendedReqRespBodyMethodProcessor ExtendedReqRespBodyMethodProcessor
  * @see com.oracle.coherence.io.json.genson.ext.spring.GensonMessageConverter GensonMessageConverter
  */

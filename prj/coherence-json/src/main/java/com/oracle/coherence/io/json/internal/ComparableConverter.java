@@ -35,7 +35,7 @@ import java.lang.reflect.Type;
  * where the raw value being processed is a JSON String, Number, or Boolean. If the type
  * being handled isn't any of those, allow other {@link Converter converters} to process the value.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 @SuppressWarnings("rawtypes")
 public class ComparableConverter

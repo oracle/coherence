@@ -27,6 +27,8 @@ import java.util.logging.Logger;
  * Both {@value #SYS_PROP_LOGGING_CLASS} and {@value #SYS_PROP_LOGGING_FILE} are
  * honored. If you wish to configure the logging system differently, just do not
  * include the file and/or system properties.
+ *
+ * @since 20.06
  */
 final class LogConfig
     {

@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Jonathan Knight  2019.11.28
- * @since 14.1.2
+ * @since 20.06
  */
 class PagedQueryHelperTest
     {

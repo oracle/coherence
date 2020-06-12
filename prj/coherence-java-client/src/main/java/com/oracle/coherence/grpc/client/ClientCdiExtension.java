@@ -19,7 +19,7 @@ import javax.enterprise.inject.spi.Extension;
  * A gRPC client side CDI {@link Extension}.
  *
  * @author Jonathan Knight  2020.01.10
- * @since 14.1.2
+ * @since 20.06
  */
 public class ClientCdiExtension
         implements Extension

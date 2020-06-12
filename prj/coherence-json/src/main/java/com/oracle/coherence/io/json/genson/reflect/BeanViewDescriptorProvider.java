@@ -41,8 +41,8 @@ import com.oracle.coherence.io.json.genson.reflect.PropertyMutator.MethodMutator
  * get a BeanDescriptor instance for a BeanView (for example if you want to deserialize into an
  * existing object and apply a BeanView). Extending BeanViewDescriptorProvider should be avoided.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public class BeanViewDescriptorProvider extends BaseBeanDescriptorProvider {
 
   private Map<Class<?>, BeanView<?>> views;

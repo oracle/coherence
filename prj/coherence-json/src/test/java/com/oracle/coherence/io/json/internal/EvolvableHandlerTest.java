@@ -39,8 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Test case for evolvability.
  *
- * @author Aleksandar Seovic  2018.06.06
- * @since 14.1.2
+ * @author Aleks Seovic  2018.06.06
+* @since 20.06
  */
 class EvolvableHandlerTest
     {

@@ -28,7 +28,7 @@ import javax.inject.Inject;
  * A CDI producer for {@link NamedCache} gRPC service clients.
  *
  * @author Jonathan Knight  2019.11.07
- * @since 14.1.2
+ * @since 20.06
  */
 @ApplicationScoped
 public class NamedCacheProducer

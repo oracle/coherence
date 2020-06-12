@@ -39,8 +39,8 @@ import com.oracle.coherence.io.json.genson.reflect.PropertyNameResolver;
  * This part of the API is still in beta, it could change in the future in order to make it more
  * powerful.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public abstract class GensonBundle {
   /**
    * This method does not provide any guarantee to when it is called: before user config, during,

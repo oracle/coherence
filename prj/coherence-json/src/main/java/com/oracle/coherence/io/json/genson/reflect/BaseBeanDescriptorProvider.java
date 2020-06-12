@@ -43,8 +43,8 @@ import static com.oracle.coherence.io.json.genson.Trilean.*;
  * you only want to create instances of your own PropertyMutators/PropertyAccessors or BeanCreators
  * just override the corresponding createXXX methods.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public class BaseBeanDescriptorProvider extends AbstractBeanDescriptorProvider {
 
   private final static Comparator<BeanCreator> _beanCreatorsComparator = new Comparator<BeanCreator>() {

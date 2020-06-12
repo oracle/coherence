@@ -35,8 +35,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Integration test for the {@link ConfigurableCacheFactoryProducer} using the
  * Weld JUnit extension.
  *
- * @author jk  2019.10.19
- */
+ * @author Jonathan Knight  2019.10.19
+*/
 @ExtendWith(WeldJunit5Extension.class)
 class SerializerProducerIT
     {

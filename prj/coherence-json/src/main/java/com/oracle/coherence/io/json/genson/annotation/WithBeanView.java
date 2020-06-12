@@ -30,8 +30,8 @@ import com.oracle.coherence.io.json.genson.BeanView;
  * at runtime what BeanView must be used. Its intended to be used in conjunction
  * with springs @ResponseBody/@RequestBody and @RequestMapping annotations.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

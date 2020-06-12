@@ -29,8 +29,8 @@ import java.lang.annotation.Target;
  * write the code that handles nulls during serialization and deserialization of your type (and not
  * of its content). This feature is mainly for internal use.
  *
- * @author eugen
- * @see HandleClassMetadata
+ * @author Eugen Cepoi
+* @see HandleClassMetadata
  * @see com.oracle.coherence.io.json.genson.convert.NullConverter NullConverter
  */
 @Target({ElementType.TYPE})

@@ -20,6 +20,7 @@ import com.tangosol.config.xml.AbstractNamespaceHandler;
  * </ul>
  *
  * @author Aleks Seovic  2019.10.02
+ * @since 20.06
  */
 public class CdiNamespaceHandler
         extends AbstractNamespaceHandler

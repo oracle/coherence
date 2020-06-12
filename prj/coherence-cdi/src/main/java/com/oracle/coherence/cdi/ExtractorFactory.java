@@ -27,6 +27,7 @@ import com.tangosol.util.ValueExtractor;
  * @param <E> the type of value that will be extracted
  *
  * @author Jonathan Knight  2019.10.25
+ * @since 20.06
  */
 public interface ExtractorFactory<A extends Annotation, T, E>
     {

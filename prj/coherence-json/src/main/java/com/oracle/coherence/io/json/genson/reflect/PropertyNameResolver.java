@@ -35,8 +35,8 @@ import com.oracle.coherence.io.json.genson.annotation.JsonProperty;
  * "http://code.google.com/p/genson/source/browse/src/main/java/com/owlike/genson/reflect/PropertyNameResolver.java"
  * >source code</a> for an example.
  *
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.annotation.JsonProperty JsonProperty
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.annotation.JsonProperty JsonProperty
  */
 public interface PropertyNameResolver {
   /**

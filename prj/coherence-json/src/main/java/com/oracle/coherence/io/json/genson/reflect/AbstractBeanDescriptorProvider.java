@@ -40,8 +40,8 @@ import static com.oracle.coherence.io.json.genson.reflect.TypeUtil.*;
  * "http://code.google.com/p/genson/source/browse/src/main/java/com/owlike/genson/reflect/BaseBeanDescriptorProvider.java"
  * >BaseBeanDescriptorProvider</a>.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public abstract class AbstractBeanDescriptorProvider implements BeanDescriptorProvider {
   final static String CONTEXT_KEY = "__GENSON$CREATION_CONTEXT";
   final static String DO_NOT_CACHE_CONVERTER_KEY = "__GENSON$DO_NOT_CACHE_CONVERTER";

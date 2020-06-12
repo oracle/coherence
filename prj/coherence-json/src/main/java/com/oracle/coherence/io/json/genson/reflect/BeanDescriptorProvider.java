@@ -26,8 +26,8 @@ import com.oracle.coherence.io.json.genson.Genson;
  * Interface implemented by classes who want to provide {@link BeanDescriptor} instances for the
  * specified type.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public interface BeanDescriptorProvider {
   /**
    * Provides a BeanDescriptor for "type" using current Genson instance.

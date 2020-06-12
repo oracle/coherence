@@ -26,8 +26,8 @@ import java.lang.annotation.*;
  * By default if a object contains constructors and methods annotated with @JsonCreator the factory
  * methods will be privileged.
  *
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.annotation.JsonProperty JsonProperty
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.annotation.JsonProperty JsonProperty
  * @see com.oracle.coherence.io.json.genson.reflect.BeanMutatorAccessorResolver.StandardMutaAccessorResolver
  * StandardMutaAccessorResolver
  */

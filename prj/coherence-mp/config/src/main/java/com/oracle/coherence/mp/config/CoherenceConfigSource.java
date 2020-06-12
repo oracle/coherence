@@ -44,7 +44,7 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
  * class by the CDI container, and the values can be modified by calling
  * {@link }
  * @author Aleks Seovic  2019.10.12
- * @since Coherence 14.1.2
+ * @since 20.06
  */
 @ApplicationScoped
 public class CoherenceConfigSource

@@ -19,6 +19,7 @@ import javax.enterprise.util.Nonbinding;
  * {@link com.tangosol.util.Filter} produced from a CohQL where clause.
  *
  * @author Jonathan Knight  2019.10.24
+ * @since 20.06
  */
 @Inherited
 @FilterBinding

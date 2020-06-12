@@ -44,7 +44,7 @@ import javax.inject.Named;
  * Upon deserialization, the header will be read and the specified {@link Serializer} will be used
  * to deserialize the payload.  If the header is no present, an {@link IOException} will be thrown.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 @Named("Multiplexing")
 public class MultiplexingSerializer

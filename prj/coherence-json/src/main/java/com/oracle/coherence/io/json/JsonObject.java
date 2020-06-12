@@ -37,7 +37,8 @@ import java.util.Objects;
  * and adds support for POF serialization without fidelity loss in order to
  * support JSON pass-through.
  *
- * @author as  2015.08.25
+ * @author Aleks Seovic  2015.08.25
+* @since 20.06
  */
 public class JsonObject
         extends LinkedHashMap<String, Object>

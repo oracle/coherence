@@ -31,10 +31,10 @@ import java.util.stream.Collectors;
  * A helper class of methods to convert between {@link Binary}
  * instances and proto-buffer byte values.
  *
- * @author Mahesh Kannan    2019.11.01
+ * @author Mahesh Kannan  2019.11.01
  * @author Jonathan Knight  2019.11.07
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public final class BinaryHelper
     {

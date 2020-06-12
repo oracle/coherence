@@ -50,7 +50,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * An integration test for the entry set methods of {@link NamedCacheService}.
  *
  * @author Jonathan Knight  2019.11.08
- * @since 14.1.2
+ * @since 20.06
  */
 class EntrySetIT
     {

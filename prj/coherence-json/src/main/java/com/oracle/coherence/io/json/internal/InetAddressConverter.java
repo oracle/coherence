@@ -18,8 +18,8 @@ import java.net.InetAddress;
 /**
  * A {@link Converter} for {@link InetAddress} instances.
  *
- * @author Aleksandar Seovic  2018.05.31
- * @since 14.1.2
+ * @author Aleks Seovic  2018.05.31
+* @since 20.06
  */
 public class InetAddressConverter
         implements Converter<InetAddress>

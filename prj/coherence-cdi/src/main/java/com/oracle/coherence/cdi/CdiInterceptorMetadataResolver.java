@@ -16,6 +16,7 @@ import org.jboss.weld.proxy.WeldClientProxy;
  * that knows how to extract interceptor metadata from a Weld proxy.
  *
  * @author Aleks Seovic  2020.04.03
+ * @since 20.06
  */
 @SuppressWarnings("unchecked")
 public class CdiInterceptorMetadataResolver

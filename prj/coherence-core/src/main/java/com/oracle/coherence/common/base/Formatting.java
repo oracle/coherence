@@ -25,7 +25,7 @@ import static com.tangosol.util.Base.*;
  * Class for providing formatting functionality for various types.
  *
  * @author cp  2000.08.02
- * @since Coherence 14.1.2
+ * @since 20.06
  */
 @SuppressWarnings({"UnnecessaryLocalVariable", "DuplicatedCode", "ForLoopReplaceableByForEach"})
 public abstract class Formatting

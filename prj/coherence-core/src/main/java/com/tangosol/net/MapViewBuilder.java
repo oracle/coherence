@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  *
  * @author Aleks Seovic  2020.06.06
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public class MapViewBuilder<K, V_BACK, V_FRONT>
     {

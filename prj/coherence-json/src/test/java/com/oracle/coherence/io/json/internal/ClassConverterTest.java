@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Test for {@link ClassConverter}.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 class ClassConverterTest
     {

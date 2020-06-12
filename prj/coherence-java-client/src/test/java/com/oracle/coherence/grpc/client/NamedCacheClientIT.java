@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
  * This integration test runs without a CDI environment.
  *
  * @author Jonathan Knight  2019.11.07
- * @since 14.1.2
+ * @since 20.06
  */
 class NamedCacheClientIT
         extends BaseNamedCacheClientIT

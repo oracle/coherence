@@ -22,7 +22,7 @@ import static com.oracle.coherence.common.base.TimeHelper.getSafeTimeMillis;
  * Class for providing random functionality.
  *
  * @author cp  2000.08.02
- * @since Coherence 14.1.2
+ * @since 20.06
  */
 public abstract class Randoms
     {

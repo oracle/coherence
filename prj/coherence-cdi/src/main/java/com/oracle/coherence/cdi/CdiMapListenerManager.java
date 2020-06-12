@@ -26,6 +26,7 @@ import javax.inject.Inject;
  * created, and unregisters them when it's destroyed.
  *
  * @author Aleks Seovic  2020.06.09
+ * @since 20.06
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 @ApplicationScoped

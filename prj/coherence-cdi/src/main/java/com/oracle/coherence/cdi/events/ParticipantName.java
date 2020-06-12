@@ -18,6 +18,7 @@ import javax.inject.Qualifier;
  * A qualifier annotation used to indicate a specific participant name.
  *
  * @author Aleks Seovic  2020.04.13
+ * @since 20.06
  */
 @Qualifier
 @Documented

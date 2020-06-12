@@ -15,7 +15,7 @@ import java.io.PrintWriter;
  * exception or error to be serialized and deserialized to/from a JSON stream.
  *
  * @author Jonathan Knight  2018.11.28
- * @since 14.1.2
+ * @since 20.06
  */
 public class JsonPortableException
         extends RuntimeException

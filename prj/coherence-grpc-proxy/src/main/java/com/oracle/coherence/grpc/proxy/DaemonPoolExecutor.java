@@ -48,8 +48,8 @@ import io.opentracing.Span;
  * If a tracing {@link Span} is available when tasks are added to this executor then
  * the span will be re-activated when the tasks is run.
  *
- * @author Jonthan Knight  2019.11.19
- * @since 14.1.2
+ * @author Jonathan Knight  2019.11.19
+ * @since 20.06
  */
 public class DaemonPoolExecutor
         implements Executor, Controllable

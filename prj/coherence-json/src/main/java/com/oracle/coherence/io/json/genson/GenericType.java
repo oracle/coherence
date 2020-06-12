@@ -38,8 +38,8 @@ import com.oracle.coherence.io.json.genson.reflect.TypeUtil;
  * </pre>
  *
  * @param <T> the real type
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public abstract class GenericType<T> {
   private final Type type;
   private final Class<T> rawClass;

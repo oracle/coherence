@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
  * @param <V> the type of the underlying cache's values
  *
  * @author Jonathan Knight  2019.11.12
- * @since 14.1.2
+ * @since 20.06
  */
 public class RemoteValues<K, V>
         extends RemoteCollection<K, V, V>

@@ -20,6 +20,7 @@ import javax.inject.Qualifier;
  * observers to register them as {@link MapListener#synchronous()} listeners.
  *
  * @author Aleks Seovic  2020.04.01
+ * @since 20.06
  */
 @Qualifier
 @Documented

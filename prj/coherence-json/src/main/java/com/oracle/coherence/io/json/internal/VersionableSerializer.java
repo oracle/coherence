@@ -19,7 +19,7 @@ import com.tangosol.util.Versionable;
  * {@link Serializer} for {@link Versionable} that delegates the serialization to another {@link Converter}
  * based on the raw type as {@link Versionable} itself has no serializable properties.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 @SuppressWarnings("rawtypes")
 public class VersionableSerializer

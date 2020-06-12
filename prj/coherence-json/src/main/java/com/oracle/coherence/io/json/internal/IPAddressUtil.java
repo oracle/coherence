@@ -11,7 +11,7 @@ package com.oracle.coherence.io.json.internal;
 /**
  * Utility class to convert String IP addresses into an array of bytes.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 final class IPAddressUtil
     {

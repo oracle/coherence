@@ -67,8 +67,8 @@ import java.lang.reflect.Type;
  *
  * @param <T> the base type of the objects this factory can create. T can be of type Converter,
  *            Serializer or Deserializer.
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.Converter
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.Converter
  * @see com.oracle.coherence.io.json.genson.convert.ChainedFactory ChainedFactory
  * @see com.oracle.coherence.io.json.genson.Serializer
  * @see com.oracle.coherence.io.json.genson.Deserializer

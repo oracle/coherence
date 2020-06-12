@@ -19,7 +19,7 @@ import com.tangosol.io.pof.PortableObject;
 /**
  * A simple class representing a person used in tests requiring data classes.
  *
- * @author Jonathan  2019.10.25
+ * @author Jonathan Knight  2019.10.25
  */
 public class Person
         implements PortableObject, Serializable

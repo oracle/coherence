@@ -42,8 +42,8 @@ import static com.oracle.coherence.io.json.genson.Operations.checkNotNull;
  * This class stores also the views present in the current context, those views will be applied to
  * the matching objects during serialization and deserialization.
  *
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.BeanView BeanView
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.BeanView BeanView
  * @see com.oracle.coherence.io.json.genson.convert.BeanViewConverter BeanViewConverter
  * @see com.oracle.coherence.io.json.genson.ThreadLocalHolder ThreadLocalHolder
  */

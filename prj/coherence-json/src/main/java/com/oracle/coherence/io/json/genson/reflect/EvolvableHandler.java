@@ -40,8 +40,8 @@ import java.util.function.Consumer;
  * This prevents data loss when serializing and deserializing the same
  * JSON payload using different versions of Java data classes.
  *
- * @author Aleksandar Seovic  2018.05.20
- */
+ * @author Aleks Seovic  2018.05.20
+*/
 public class EvolvableHandler implements UnknownPropertyHandler {
     private static final Converter<JsonValue> CONVERTER = new JSR353Bundle.JsonValueConverter();
 

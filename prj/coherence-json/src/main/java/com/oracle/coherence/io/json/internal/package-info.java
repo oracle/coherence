@@ -17,5 +17,8 @@
 
 /**
  * Internal JSON packages.
+ *
+ * @author Ryan Lubke  2018.06.15
+ * @since 20.06
  */
 package com.oracle.coherence.io.json.internal;

@@ -45,7 +45,7 @@ import java.util.function.Supplier;
  * @param <Res>  the result type
  *
  * @author Jonathan Knight  2019.11.21
- * @since 14.1.2
+ * @since 20.06
  */
 public class CacheRequestHolder<Req, Res>
     {

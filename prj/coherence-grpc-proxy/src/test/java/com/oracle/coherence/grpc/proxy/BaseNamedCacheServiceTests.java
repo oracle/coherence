@@ -120,7 +120,7 @@ import static org.mockito.Mockito.mock;
  * in different ways.
  *
  * @author Jonathan Knight  2019.11.01
- * @since 14.1.2
+ * @since 20.06
  */
 @SuppressWarnings("rawtypes")
 abstract class BaseNamedCacheServiceTests

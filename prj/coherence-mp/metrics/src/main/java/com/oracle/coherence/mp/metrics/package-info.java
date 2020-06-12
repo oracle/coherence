@@ -6,8 +6,9 @@
  */
 
 /**
- * MicroProfile Metrics integration.
+ * MicroProfile Metrics support.
  *
  * @author Aleks Seovic  2019.10.09
+ * @since 20.06
  */
 package com.oracle.coherence.mp.metrics;

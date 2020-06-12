@@ -51,8 +51,8 @@ import static com.oracle.coherence.io.json.genson.reflect.TypeUtil.*;
  * "http://code.google.com/p/genson/source/browse/src/main/java/com/owlike/genson/convert/DefaultConverters.java"
  * >here</a> as example on how to implement custom converters and factories.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public final class DefaultConverters {
   private DefaultConverters() {
   }

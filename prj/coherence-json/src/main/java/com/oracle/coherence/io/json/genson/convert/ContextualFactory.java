@@ -28,8 +28,8 @@ import com.oracle.coherence.io.json.genson.reflect.BeanProperty;
  * only for POJO databinding, in could be improved implying some refactoring.
  *
  * @param <T> the type of objects handled by Converters built by this factory
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public interface ContextualFactory<T> {
   /**
    * Return an instance of a converter working with objects of type T based on property argument

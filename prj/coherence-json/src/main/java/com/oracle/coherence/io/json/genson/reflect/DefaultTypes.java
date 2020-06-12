@@ -26,8 +26,8 @@ import java.util.Map;
  * This class allows users to change how various {@link ValueType}
  * enum values should be mapped to Java classes during deserialization.
  *
- * @author Aleksandar Seovic  2018.06.05
- */
+ * @author Aleks Seovic  2018.06.05
+*/
 public class DefaultTypes {
     private final Map<ValueType, Class<?>> mappings = new HashMap<>();
 

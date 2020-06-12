@@ -18,6 +18,7 @@ import javax.inject.Qualifier;
  * A qualifier annotation used for any COMMITTING_REMOTE event.
  *
  * @author Aleks Seovic  2020.04.13
+ * @since 20.06
  */
 @Qualifier
 @Documented

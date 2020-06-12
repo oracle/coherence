@@ -28,6 +28,7 @@ import javax.inject.Named;
  * a {@code ServiceLoader}.
  *
  * @author Aleks Seovic  2019.09.10
+ * @since 20.06
  */
 public class PofMarshaller<T>
         extends SerializerMarshaller<T>

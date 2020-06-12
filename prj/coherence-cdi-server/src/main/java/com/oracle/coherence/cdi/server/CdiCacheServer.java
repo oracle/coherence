@@ -22,6 +22,7 @@ import javax.enterprise.inject.se.SeContainerInitializer;
  * services are started correctly.
  *
  * @author Aleks Seovic  2020.03.24
+ * @since 20.06
  */
 public class CdiCacheServer
     {

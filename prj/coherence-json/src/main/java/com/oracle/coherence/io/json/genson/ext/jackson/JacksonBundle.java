@@ -28,8 +28,8 @@ import com.oracle.coherence.io.json.genson.reflect.PropertyNameResolver.Annotati
 /**
  * Genson bundle which allows usage of Jackson annotations for serialization.
  *
- * @author Aleksandar Seovic  2018.05.21
- */
+ * @author Aleks Seovic  2018.05.21
+*/
 public class JacksonBundle extends GensonBundle {
     @Override
     public void configure(GensonBuilder builder) {

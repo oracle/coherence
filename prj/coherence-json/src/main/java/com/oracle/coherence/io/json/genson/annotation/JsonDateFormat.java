@@ -28,8 +28,8 @@ import java.text.SimpleDateFormat;
  * use when working with this date field. The pattern format are the standard ones from
  * {@link SimpleDateFormat}.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

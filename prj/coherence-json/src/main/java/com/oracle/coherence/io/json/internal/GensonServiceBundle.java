@@ -21,7 +21,7 @@ import java.util.ServiceLoader;
  * <p>
  * Bundles are registered in iteration order.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public class GensonServiceBundle
         extends GensonBundle

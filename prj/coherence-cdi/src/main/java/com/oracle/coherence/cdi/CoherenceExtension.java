@@ -66,7 +66,7 @@ import org.jboss.weld.environment.se.events.ContainerInitialized;
  * @author Jonathan Knight  2019.10.24
  * @author Aleks Seovic  2020.03.25
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public class CoherenceExtension
         implements Extension

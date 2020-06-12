@@ -61,8 +61,8 @@ import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
  * serializer of Integer then Factory&lt;Converter&lt;Integer>> and Factory&lt;Serializer&lt;Object>> match
  * both, the first registered will be used.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public class BasicConvertersFactory implements Factory<Converter<?>> {
   private final Map<Type, Serializer<?>> serializersMap;
   private final Map<Type, Deserializer<?>> deserializersMap;

@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
  * @param <V> the type of the cache values
  *
  * @author Jonathan Knight  2019.11.07
- * @since 14.1.2
+ * @since 20.06
  */
 class NamedCacheClient<K, V>
         implements NamedCache<K, V>

@@ -18,8 +18,8 @@ package com.oracle.coherence.io.json.genson.convert;
 import com.oracle.coherence.io.json.genson.convert.ChainedFactory;
 
 /**
- * @author Aleksandar Seovic  2018.05.30
- */
+ * @author Aleks Seovic  2018.05.30
+*/
 public interface ChainedFactoryVisitor {
     void visit(ChainedFactory factory);
 }

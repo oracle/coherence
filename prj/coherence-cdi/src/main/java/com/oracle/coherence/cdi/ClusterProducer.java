@@ -20,6 +20,7 @@ import javax.enterprise.inject.Produces;
  * Cluster}.
  *
  * @author Jonathan Knight  2019.11.20
+ * @since 20.06
  */
 @ApplicationScoped
 public class ClusterProducer

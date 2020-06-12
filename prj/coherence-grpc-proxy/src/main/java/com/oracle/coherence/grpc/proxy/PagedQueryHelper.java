@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * A helper class for cache key set and entry set paged queries.
  *
  * @author Jonathan Knight  2019.11.28
- * @since 14.1.2
+ * @since 20.06
  */
 final class PagedQueryHelper
     {

@@ -29,7 +29,7 @@ import java.util.function.BiConsumer;
  *
  * @author Aleks Seovic  2020.06.06
  *
- * @since Coherence 14.1.2
+ * @since 20.06
  */
 public interface NamedMap<K, V>
         extends NamedCollection, ObservableMap<K, V>, ConcurrentMap<K, V>,

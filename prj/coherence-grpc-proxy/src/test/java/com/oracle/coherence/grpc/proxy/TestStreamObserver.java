@@ -20,7 +20,7 @@ import io.reactivex.rxjava3.observers.TestObserver;
  * that allows tests to easily assert state of the observer.
  *
  * @author Jonathan Knight  2019.11.18
- * @since 14.1.2
+ * @since 20.06
  */
 public class TestStreamObserver<T>
         extends TestObserver<T>

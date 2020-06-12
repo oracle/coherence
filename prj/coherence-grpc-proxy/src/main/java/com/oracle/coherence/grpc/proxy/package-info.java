@@ -7,5 +7,8 @@
 
 /**
  * The Coherence gRPC server implementation.
+ *
+ * @author Jonathan Knight  2019.11.07
+ * @since 20.06
  */
 package com.oracle.coherence.grpc.proxy;

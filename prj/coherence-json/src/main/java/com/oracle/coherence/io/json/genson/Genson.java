@@ -64,8 +64,8 @@ import com.oracle.coherence.io.json.genson.stream.*;
  * You can also deserialize to objects that don't provide a default constructor with no arguments
  * {@link com.oracle.coherence.io.json.genson.GensonBuilder#useConstructorWithArguments(boolean)}.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public final class Genson {
   /**
    * Default genson configuration, the default configuration (sers, desers, etc) will be shared

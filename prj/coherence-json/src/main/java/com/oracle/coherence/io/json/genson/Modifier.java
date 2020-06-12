@@ -18,8 +18,8 @@ package com.oracle.coherence.io.json.genson;
 import java.util.Objects;
 
 /**
- * @author Aleksandar Seovic  2018.06.03
- */
+ * @author Aleks Seovic  2018.06.03
+*/
 @FunctionalInterface
 public interface Modifier<T> {
     T apply(T obj);

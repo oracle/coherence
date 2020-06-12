@@ -22,8 +22,8 @@ import java.util.List;
 /**
  * A {@link Converter} for {@link Throwable}s.
  *
- * @author jk  2018.11.28
- * @since 14.1.2
+ * @author Jonathan Knight  2018.11.28
+* @since 20.06
  */
 public class ThrowableConverter
         implements Converter<Throwable>

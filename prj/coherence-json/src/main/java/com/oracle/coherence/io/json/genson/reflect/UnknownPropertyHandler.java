@@ -32,8 +32,8 @@ import java.util.function.Consumer;
  * loss of unknown properties across clients and severs using different
  * versions of Java classes.
  *
- * @author Aleksandar Seovic  2018.05.09
- */
+ * @author Aleks Seovic  2018.05.09
+*/
 public interface UnknownPropertyHandler {
     /**
      * Called whenever a property is encountered in a JSON document

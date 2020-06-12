@@ -27,6 +27,7 @@ import javax.enterprise.inject.spi.CDI;
  * {@link MetricsRegistryAdapter} interface.
  *
  * @author Aleks Seovic  2020.05.04
+ * @since 20.06
  */
 public class CdiMetricsRegistryAdapter
         implements MetricsRegistryAdapter

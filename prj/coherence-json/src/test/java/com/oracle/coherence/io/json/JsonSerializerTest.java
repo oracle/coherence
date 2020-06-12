@@ -58,9 +58,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * JSON serialization tests.
  *
- * @author Aleksandar Seovic  2017.10.02
- * @author jf  2018.03.09
- * @since 14.1.2
+ * @author Aleks Seovic  2017.10.02
+* @author jf  2018.03.09
+ * @since 20.06
  */
 @SuppressWarnings("unchecked")
 class JsonSerializerTest

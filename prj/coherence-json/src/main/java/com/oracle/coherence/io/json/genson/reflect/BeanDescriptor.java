@@ -44,8 +44,8 @@ import com.oracle.coherence.io.json.genson.stream.ValueType;
  * </pre>
  *
  * @param <T> type that this BeanDescriptor can serialize and deserialize.
- * @author eugen
- * @see BeanDescriptorProvider
+ * @author Eugen Cepoi
+* @see BeanDescriptorProvider
  */
 public class BeanDescriptor<T> implements Converter<T> {
   final Class<?> fromDeclaringClass;

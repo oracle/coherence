@@ -28,8 +28,8 @@ import static com.oracle.coherence.io.json.genson.reflect.BeanMutatorAccessorRes
 /**
  * Genson bundle which allows usage of JSON-B annotations for serialization.
  *
- * @author Aleksandar Seovic  2018.05.21
- */
+ * @author Aleks Seovic  2018.05.21
+*/
 public class JsonbBundle extends GensonBundle {
   @Override
   public void configure(GensonBuilder builder) {

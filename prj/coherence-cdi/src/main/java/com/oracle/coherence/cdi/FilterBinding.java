@@ -36,6 +36,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * method is called to produce a {@link com.tangosol.util.Filter} instance.
  *
  * @author Jonathan Knight  2019.10.24
+ * @since 20.06
  */
 @Target(ANNOTATION_TYPE)
 @Retention(RUNTIME)

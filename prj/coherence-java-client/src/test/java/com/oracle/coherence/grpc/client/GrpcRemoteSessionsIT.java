@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author Jonathan Knight  2019.11.29
- * @since 14.1.2
+ * @since 20.06
  */
 class GrpcRemoteSessionsIT
     {

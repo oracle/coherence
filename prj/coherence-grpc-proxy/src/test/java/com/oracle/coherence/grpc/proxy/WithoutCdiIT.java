@@ -43,7 +43,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Helidon gRPC server that is running without CDI.
  *
  * @author Jonathan Knight  2019.11.29
- * @since 14.1.2
+ * @since 20.06
  */
 @Disabled("Tests disabled until Helidon changes to support this are committed")
 class WithoutCdiIT

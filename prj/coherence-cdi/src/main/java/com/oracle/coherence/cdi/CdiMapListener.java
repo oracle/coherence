@@ -30,7 +30,7 @@ import javax.enterprise.inject.spi.ObserverMethod;
  * to a CDI observer.
  *
  * @author Aleks Seovic  2020.04.14
- * @since 14.1.2
+ * @since 20.06
  */
 class CdiMapListener<K, V>
         implements MapListener<K, V>

@@ -22,6 +22,7 @@ import javax.enterprise.util.Nonbinding;
  * javax.enterprise.util.Nonbinding} are ignored.
  *
  * @author Jonathan Knight  2019.10.24
+ * @since 20.06
  */
 class AnnotationInstance
     {

@@ -32,8 +32,8 @@ import java.lang.annotation.Target;
  * {@link com.oracle.coherence.io.json.genson.GensonBuilder#useClassMetadata(boolean)}
  * GensonBuilder.useClassMetadata(true)}
  *
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.convert.ClassMetadataConverter ClassMetadataConverter
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.convert.ClassMetadataConverter ClassMetadataConverter
  * @see com.oracle.coherence.io.json.genson.GensonBuilder#useClassMetadata(boolean)
  * Genson.Builder.setWithClassMetadata(true)
  */

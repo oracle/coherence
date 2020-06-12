@@ -15,7 +15,7 @@ import javax.enterprise.util.AnnotationLiteral;
  * A {@link GrpcChannel} annotation literal.
  *
  * @author Jonathan Knight  2019.11.28
- * @since 14.1.2
+ * @since 20.06
  */
 class GrpcChannelLiteral
         extends AnnotationLiteral<GrpcChannel>

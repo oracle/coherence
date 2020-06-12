@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * A {@link Converter} for {@link JsonObject} instances.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 @HandleClassMetadata
 public class JsonObjectConverter

@@ -39,6 +39,8 @@ import org.eclipse.microprofile.metrics.annotation.RegistryType;
  *
  * @author Aleks Seovic     2019.09.13
  * @author Jonathan Knight  2020.01.08
+ * 
+ * @since 20.06
  */
 @ApplicationScoped
 public class MpMetricsRegistryAdapter

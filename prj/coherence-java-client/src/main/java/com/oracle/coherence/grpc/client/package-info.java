@@ -6,6 +6,9 @@
  */
 
 /**
- * An implementation of a Coherence gRPC client.
+ * An implementation of a Coherence Java gRPC client.
+ *
+ * @author Jonathan Knight  2019.11.01
+ * @since 20.06
  */
 package com.oracle.coherence.grpc.client;

@@ -33,7 +33,7 @@ import java.io.IOException;
  * to upper case.
  *
  * @author Jonathan Knight  2019.12.17
- * @since 14.1.2
+ * @since 20.06
  */
 public class PersonMapTrigger
         implements MapTrigger<String, Person>, ExternalizableLite, PortableObject

@@ -20,8 +20,8 @@ package com.oracle.coherence.io.json.genson.stream;
  * that there was a syntax error or a state error (calling endObject when it should be endArray
  * etc).
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public final class JsonStreamException extends RuntimeException {
   private static final long serialVersionUID = 8033784054415043293L;
 

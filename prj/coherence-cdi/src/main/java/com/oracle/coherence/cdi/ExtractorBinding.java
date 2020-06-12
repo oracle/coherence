@@ -38,6 +38,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * instance.
  *
  * @author Jonathan Knight  2019.10.25
+ * @since 20.06
  */
 @Target(ANNOTATION_TYPE)
 @Retention(RUNTIME)

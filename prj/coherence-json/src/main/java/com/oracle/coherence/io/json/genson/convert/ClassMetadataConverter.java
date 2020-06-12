@@ -49,8 +49,8 @@ import javax.json.JsonValue;
  * </pre>
  *
  * @param <T>
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.stream.ObjectWriter#writeMetadata(String, String) ObjectWriter.metadata(key, value)
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.stream.ObjectWriter#writeMetadata(String, String) ObjectWriter.metadata(key, value)
  * @see com.oracle.coherence.io.json.genson.stream.ObjectReader#metadata(String) ObjectReader.metadata("class")
  * @see com.oracle.coherence.io.json.genson.Genson#aliasFor(Class) Genson.aliasFor(Class)
  */

@@ -19,6 +19,7 @@ import javax.inject.Qualifier;
  * A qualifier annotation used for any ASSIGNED event.
  *
  * @author Aleks Seovic  2020.04.01
+ * @since 20.06
  */
 @Qualifier
 @Documented

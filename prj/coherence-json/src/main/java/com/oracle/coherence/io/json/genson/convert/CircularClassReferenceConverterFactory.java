@@ -30,8 +30,8 @@ import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
 /**
  * ChainedFactory that handles circular class references.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public class CircularClassReferenceConverterFactory extends ChainedFactory {
   private final static class CircularConverter<T> extends Wrapper<Converter<T>> implements Converter<T> {
 

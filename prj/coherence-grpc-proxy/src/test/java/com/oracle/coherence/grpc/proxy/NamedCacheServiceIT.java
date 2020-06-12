@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
  * Integration tests for {@link NamedCacheService}.
  *
  * @author Jonathan Knight  2019.11.01
- * @since 14.1.2
+ * @since 20.06
  */
 class NamedCacheServiceIT
         extends BaseNamedCacheServiceTests

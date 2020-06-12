@@ -6,6 +6,9 @@
  */
 
 /**
- * The Coherence gRPC server implementation.
+ * Low-level utilities for Coherence gRPC server and client implementation.
+ *
+ * @author Jonathan Knight  2019.11.07
+ * @since 20.06
  */
 package com.oracle.coherence.grpc;

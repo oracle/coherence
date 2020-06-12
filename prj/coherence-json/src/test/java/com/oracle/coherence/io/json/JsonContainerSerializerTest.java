@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests to validate container type serialization.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 class JsonContainerSerializerTest
         extends AbstractSerializerTest

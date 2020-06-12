@@ -29,7 +29,7 @@ import java.util.HashMap;
  *
  * @param <T>  the type of the enum
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public class EnumConverter<T extends Enum<T>>
         implements Converter<T>

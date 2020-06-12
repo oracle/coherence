@@ -33,8 +33,8 @@ import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
  * This converter will use the runtime type of objects during serialization.
  *
  * @param <T> the type this converter is handling.
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public class RuntimeTypeConverter<T> extends Wrapper<Converter<T>> implements Converter<T> {
 
   private static final String CYCLE_KEY = "cycle-detection";

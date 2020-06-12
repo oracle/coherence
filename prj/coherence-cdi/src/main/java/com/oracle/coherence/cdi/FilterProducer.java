@@ -32,6 +32,7 @@ import javax.inject.Inject;
  * annotations.
  *
  * @author Jonathan Knight  2019.10.24
+ * @since 20.06
  */
 @ApplicationScoped
 class FilterProducer

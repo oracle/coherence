@@ -22,6 +22,7 @@ import javax.enterprise.inject.spi.InjectionTarget;
  * upon deserialization.
  *
  * @author Aleks Seovic  2019.10.02
+ * @since 20.06
  */
 public interface Injectable
         extends SerializationSupport

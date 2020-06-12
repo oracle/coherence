@@ -34,8 +34,8 @@ import com.oracle.coherence.io.json.genson.stream.ValueType;
  * deserialization and by calling writer.writeNull() during serialization.
  * <p/>
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public class NullConverterFactory extends ChainedFactory {
   private final boolean failOnNullPrimitive;
 

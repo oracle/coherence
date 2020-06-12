@@ -58,7 +58,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author Mahesh Kannan    2019.11.01
  * @author Jonathan Knight  2019.11.07
- * @since 14.1.2
+ * @since 20.06
  */
 @Grpc(name = "coherence.NamedCacheService")
 @SuppressWarnings("CdiManagedBeanInconsistencyInspection")

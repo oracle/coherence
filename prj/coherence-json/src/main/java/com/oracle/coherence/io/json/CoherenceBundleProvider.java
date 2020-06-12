@@ -18,7 +18,7 @@ import com.tangosol.util.NullImplementation;
 /**
  * A {@link GensonBundleProvider} providing a {@link GensonBundle} that configures package aliases.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public class CoherenceBundleProvider
         implements GensonBundleProvider

@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * a plain Helidon gRPC server without the use of CDI.
  *
  * @author Jonathan Knight  2019.11.29
- * @since 14.1.2
+ * @since 20.06
  */
 public final class ServerHelper
     {

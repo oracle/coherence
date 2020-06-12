@@ -36,8 +36,8 @@ import com.oracle.coherence.io.json.genson.Operations;
  * This class provides utilities to work with java Types. Its main goal is to provide tools for working with generic
  * types.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 /*
  * TODO ExpandedType do we need a reference to an original type?=> Not nice to provide 2
  * implementations for ParameterizedType...

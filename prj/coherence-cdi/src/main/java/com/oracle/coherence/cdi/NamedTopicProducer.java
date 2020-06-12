@@ -27,6 +27,7 @@ import javax.inject.Inject;
  * instances.
  *
  * @author Jonathan Knight  2019.10.23
+ * @since 20.06
  */
 @ApplicationScoped
 class NamedTopicProducer

@@ -43,8 +43,8 @@ import java.util.TreeMap;
  * @param <K> the type of the map keys
  * @param <V> the type of the map values
  *
- * @author Aleksandar Seovic  2018.05.30
- * @since 14.1.2
+ * @author Aleks Seovic  2018.05.30
+* @since 20.06
  */
 @HandleClassMetadata
 public class MapConverter<K, V>

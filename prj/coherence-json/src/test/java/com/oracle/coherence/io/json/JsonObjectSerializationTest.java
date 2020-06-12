@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Tests for {@link JsonObject} serialization.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 class JsonObjectSerializationTest
     {

@@ -25,6 +25,7 @@ import javax.inject.Inject;
  * A CDI producer for {@link Session} instances.
  *
  * @author Jonathan Knight  2019.11.06
+ * @since 20.06
  */
 @ApplicationScoped
 public class SessionProducer

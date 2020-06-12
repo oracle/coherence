@@ -761,7 +761,7 @@ public abstract class CacheFactory
      *
      * @throws IllegalArgumentException if {@code supplierMessage} is {@code null}
      *
-     * @since 14.1.2
+     * @since 20.06
      */
     public static void log(Supplier<String> supplierMessage, int nSeverity)
         {

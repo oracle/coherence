@@ -16,7 +16,7 @@ import static com.oracle.coherence.common.base.StackTrace.printStackTrace;
  * Logging API.
  *
  * @author Aleks Seovic  2020.05.18
- * @since Coherence 14.1.2
+ * @since 20.06
  */
 public abstract class Logger
     {

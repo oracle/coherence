@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Test for {@link ComparableConverter}.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 class ComparableConverterTest
     {

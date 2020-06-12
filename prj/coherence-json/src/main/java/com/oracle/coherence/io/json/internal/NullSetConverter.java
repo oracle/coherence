@@ -19,7 +19,7 @@ import com.tangosol.util.NullImplementation;
 /**
  * A {@link Genson} {@link Converter} for {@link NullImplementation.NullSet}.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public class NullSetConverter
         implements Converter<NullImplementation.NullSet>

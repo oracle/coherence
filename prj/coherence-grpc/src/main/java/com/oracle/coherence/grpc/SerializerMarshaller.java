@@ -35,6 +35,7 @@ import javax.inject.Named;
  * @param <T> the type to marshal
  *
  * @author Aleks Seovic  2017.09.19
+ * @since 20.06
  */
 public class SerializerMarshaller<T>
         implements MethodDescriptor.Marshaller<T>

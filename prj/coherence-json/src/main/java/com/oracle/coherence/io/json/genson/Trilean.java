@@ -18,8 +18,8 @@ package com.oracle.coherence.io.json.genson;
 /**
  * A boolean with 3 states : true, false and unknown.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public enum Trilean {
   TRUE() {
     @Override

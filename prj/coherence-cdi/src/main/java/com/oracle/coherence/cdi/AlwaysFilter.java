@@ -18,6 +18,7 @@ import javax.enterprise.util.AnnotationLiteral;
  * {@link com.tangosol.util.filter.AlwaysFilter}.
  *
  * @author Jonathan Knight  2019.10.24
+ * @since 20.06
  */
 @FilterBinding
 @Inherited

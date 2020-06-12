@@ -31,7 +31,7 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
  * provides an override for a configuration property.
  *
  * @author Aleks Seovic  2020.05.16
- * @since 14.1.2
+ * @since 20.06
  */
 public class CoherenceDefaultsConfigSource
         implements ConfigSource

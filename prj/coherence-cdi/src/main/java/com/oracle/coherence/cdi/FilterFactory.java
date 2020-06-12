@@ -24,6 +24,7 @@ import java.lang.annotation.Annotation;
  * @param <T> the type of value being filtered
  *
  * @author Jonathan Knight  2019.10.24
+ * @since 20.06
  */
 public interface FilterFactory<A extends Annotation, T>
     {

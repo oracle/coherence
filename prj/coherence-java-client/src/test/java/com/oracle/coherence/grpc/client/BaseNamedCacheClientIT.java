@@ -93,7 +93,7 @@ import static org.mockito.Mockito.verify;
  * in different ways.
  *
  * @author Jonathan Knight  2019.11.25
- * @since 14.1.2
+ * @since 20.06
  */
 @SuppressWarnings("rawtypes")
 abstract class BaseNamedCacheClientIT

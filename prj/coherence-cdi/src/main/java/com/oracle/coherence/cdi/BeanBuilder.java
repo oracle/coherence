@@ -23,6 +23,7 @@ import javax.enterprise.inject.spi.CDI;
  * Element processor for {@code <cdi:bean>} XML element.
  *
  * @author Aleks Seovic  2019.10.02
+ * @since 20.06
  */
 public class BeanBuilder
         implements ParameterizedBuilder<Object>,

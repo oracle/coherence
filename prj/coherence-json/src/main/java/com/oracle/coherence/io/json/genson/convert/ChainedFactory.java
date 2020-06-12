@@ -82,8 +82,8 @@ import com.oracle.coherence.io.json.genson.Genson;
  * you wont be able to get class information of A (ex: its annotations). Wrapper class
  * allows to merge class information of current implementation and the wrapped one.
  *
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.convert.NullConverterFactory NullConverterFactory
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.convert.NullConverterFactory NullConverterFactory
  * @see com.oracle.coherence.io.json.genson.convert.BasicConvertersFactory BasicConvertersFactory
  * @see com.oracle.coherence.io.json.genson.Wrapper Wrapper
  */

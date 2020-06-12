@@ -18,7 +18,7 @@ import javax.inject.Named;
  *
  * If an object can't be serialized/deserialized as JSON, then attempt it using Java serialization.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 @Named("SafeJson")
 public class SafeJsonSerializer

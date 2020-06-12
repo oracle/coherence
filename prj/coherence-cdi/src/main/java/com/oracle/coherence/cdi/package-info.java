@@ -21,6 +21,6 @@
  * simplifying implementation of true Domain Driven applications.
  *
  * @author Aleks Seovic  2019.10.09
- * @since 14.1.2
+ * @since 20.06
  */
 package com.oracle.coherence.cdi;

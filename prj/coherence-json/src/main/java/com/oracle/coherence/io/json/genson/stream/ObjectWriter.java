@@ -77,8 +77,8 @@ import java.io.IOException;
  * Be careful if you instantiate ObjectWriter your self you are responsible of flushing and closing
  * the stream.
  *
- * @author eugen
- * @see JsonWriter
+ * @author Eugen Cepoi
+* @see JsonWriter
  * @see ObjectReader
  * @see JsonReader
  */

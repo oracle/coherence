@@ -44,8 +44,8 @@ import java.util.*;
  * extend {@link #createBeanDescriptorProvider()}, or imagine that you implemented some
  * Converters that you always want to register then override {@link #getDefaultConverters()}.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public class GensonBuilder {
   private final DefaultTypes defaultTypes = new DefaultTypes();
   private final Map<Type, Serializer<?>> serializersMap = new HashMap<>();

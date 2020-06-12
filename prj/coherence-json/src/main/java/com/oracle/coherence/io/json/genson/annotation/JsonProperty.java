@@ -31,8 +31,8 @@ import java.lang.annotation.Target;
  * {@link com.oracle.coherence.io.json.genson.reflect.PropertyNameResolver.AnnotationPropertyNameResolver
  * AnnotationPropertyNameResolver}.
  *
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.reflect.PropertyNameResolver.AnnotationPropertyNameResolver
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.reflect.PropertyNameResolver.AnnotationPropertyNameResolver
  * AnnotationPropertyNameResolver
  * @see com.oracle.coherence.io.json.genson.annotation.JsonCreator JsonCreator
  * @see com.oracle.coherence.io.json.genson.annotation.JsonIgnore JsonIgnore

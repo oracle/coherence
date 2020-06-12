@@ -15,7 +15,7 @@ import com.oracle.coherence.io.json.genson.ext.GensonBundle;
  * <p>
  * Note to implementors: this process makes no guarantees on bundle registration ordering.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public interface GensonBundleProvider
     {

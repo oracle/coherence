@@ -49,8 +49,8 @@ import com.oracle.coherence.io.json.genson.stream.ObjectReader;
  * example dealing with more complex objects.
  *
  * @param <T> type of objects handled by this converter.
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public interface Converter<T> extends Serializer<T>, Deserializer<T> {
   @Override
   public void serialize(T object, com.oracle.coherence.io.json.genson.stream.ObjectWriter writer, Context ctx) throws Exception;

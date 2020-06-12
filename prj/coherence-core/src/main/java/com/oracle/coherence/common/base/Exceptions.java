@@ -12,7 +12,7 @@ import java.rmi.RemoteException;
  * Class for providing exception support.
  *
  * @author cp  2000.08.02
- * @since Coherence 14.1.2
+ * @since 20.06
  */
 
 public abstract class Exceptions

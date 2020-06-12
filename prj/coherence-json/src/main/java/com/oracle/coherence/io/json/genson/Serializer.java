@@ -67,8 +67,8 @@ import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
  * As you see it involves very few lines of code and is quite powerful.
  *
  * @param <T> the type of objects this Serializer can serialize.
- * @author eugen
- * @see Converter
+ * @author Eugen Cepoi
+* @see Converter
  * @see com.oracle.coherence.io.json.genson.Factory Factory
  */
 public interface Serializer<T> {

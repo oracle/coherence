@@ -33,8 +33,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Integration test for the {@link CdiInterceptorSupport} using the Weld JUnit
  * extension.
  *
- * @author as  2020.04.03
- */
+ * @author Aleks Seovic  2020.04.03
+*/
 @ExtendWith(WeldJunit5Extension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InjectableIT

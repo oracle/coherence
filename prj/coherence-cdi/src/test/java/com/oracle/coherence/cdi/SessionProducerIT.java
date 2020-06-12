@@ -22,15 +22,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Integration test for the {@link com.oracle.coherence.cdi.SessionProducer}
  * using the Weld JUnit extension.
  *
- * @author jk  2019.10.19
- */
+ * @author Jonathan Knight  2019.10.19
+*/
 @ExtendWith(WeldJunit5Extension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SessionProducerIT

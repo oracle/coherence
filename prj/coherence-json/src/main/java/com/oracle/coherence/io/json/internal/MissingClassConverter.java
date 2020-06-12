@@ -27,8 +27,8 @@ import java.lang.reflect.Type;
  * {@link ClassMetadataConverter} and deserializes JSON into a default
  * object type.
  *
- * @author Aleksandar Seovic  2018.07.04
- * @since 14.1.2
+ * @author Aleks Seovic  2018.07.04
+* @since 20.06
  */
 public class MissingClassConverter
         extends Wrapper<Converter<Object>>

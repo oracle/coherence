@@ -55,8 +55,8 @@ import com.oracle.coherence.io.json.genson.annotation.JsonProperty;
  * new Genson.Builder().set(yourImplementation).create();
  * </pre>
  *
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.Trilean Trilean
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.Trilean Trilean
  * @see StandardMutaAccessorResolver
  * @see AbstractBeanDescriptorProvider
  * @see BaseBeanDescriptorProvider
@@ -584,8 +584,8 @@ public interface BeanMutatorAccessorResolver {
    * Standard implementation of BeanMutatorAccessorResolver.
    * Actually this implementation handles filtering by signature conventions (Java Bean) and visibility.
    *
-   * @author eugen
-   */
+   * @author Eugen Cepoi
+*/
   class StandardMutaAccessorResolver implements BeanMutatorAccessorResolver {
     private final VisibilityFilter fieldVisibilityFilter;
     private final VisibilityFilter methodVisibilityFilter;

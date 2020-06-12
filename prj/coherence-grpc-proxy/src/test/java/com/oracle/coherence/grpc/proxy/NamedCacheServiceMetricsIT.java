@@ -71,7 +71,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * that assert metrics are created for the various service methods.
  *
  * @author Jonathan Knight  2020.01.07
- * @since 14.1.2
+ * @since 20.06
  */
 class NamedCacheServiceMetricsIT
     {

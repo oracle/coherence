@@ -13,7 +13,7 @@ package com.oracle.coherence.grpc.client;
  * @param <T> the type of the resource
  *
  * @author Jonathan Knight  2019.11.29
- * @since 14.1.2
+ * @since 20.06
  */
 interface DeactivationListener<T>
     {

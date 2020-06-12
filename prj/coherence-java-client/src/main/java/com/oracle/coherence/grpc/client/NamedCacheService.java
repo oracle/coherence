@@ -57,7 +57,7 @@ import java.util.stream.Stream;
  * A gRPC NamedCache service.
  *
  * @author Jonathan Knight  2019.11.01
- * @since 14.1.2
+ * @since 20.06
  */
 @Grpc(name = "coherence.NamedCacheService")
 @SuppressWarnings("CdiManagedBeanInconsistencyInspection")

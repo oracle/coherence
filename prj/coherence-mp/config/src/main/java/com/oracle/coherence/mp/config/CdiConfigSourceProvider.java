@@ -23,6 +23,7 @@ import org.eclipse.microprofile.config.spi.ConfigSourceProvider;
  * as a service and using CDI to discover available CDI-managed {@link ConfigSource}s.
  *
  * @author Aleks Seovic  2020.06.11
+ * @since 20.06
  */
 public class CdiConfigSourceProvider
         implements ConfigSourceProvider

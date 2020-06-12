@@ -24,8 +24,8 @@ import java.util.Map;
 /**
  * Convenience base class for {@link Evolvable} data classes.
  *
- * @author Aleksandar Seovic  2018.05.20
- */
+ * @author Aleks Seovic  2018.05.20
+*/
 public abstract class EvolvableObject implements Evolvable {
     @JsonIgnore
     private Map<String, JsonValue> unknownProperties;

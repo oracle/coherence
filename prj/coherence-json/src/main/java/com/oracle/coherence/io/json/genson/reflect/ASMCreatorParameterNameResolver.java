@@ -49,8 +49,8 @@ import org.objectweb.asm.*;
  * 		.setThrowExceptionIfNoDebugInfo(true).create();
  * </pre>
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public final class ASMCreatorParameterNameResolver implements PropertyNameResolver {
   /**
    * Whether we must throw an exception when we encounter a class compiled with no debug

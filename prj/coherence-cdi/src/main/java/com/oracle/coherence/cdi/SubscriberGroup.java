@@ -21,6 +21,7 @@ import javax.inject.Qualifier;
  * subscriber group that the subscriber should belong to.
  *
  * @author Jonathan Knight  2019.10.23
+ * @since 20.06
  */
 @Qualifier
 @Documented

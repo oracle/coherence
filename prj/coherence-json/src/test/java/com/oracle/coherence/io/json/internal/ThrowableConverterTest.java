@@ -30,7 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Test for {@link ThrowableConverter}.
  *
  * @author Jonathan Knight  2018.11.28
- * @since 14.1.2
+ * @since 20.06
  */
 class ThrowableConverterTest
     {

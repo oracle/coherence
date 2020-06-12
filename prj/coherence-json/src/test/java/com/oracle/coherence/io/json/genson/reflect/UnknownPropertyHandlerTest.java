@@ -30,8 +30,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * @author Aleksandar Seovic  2018.05.09
- */
+ * @author Aleks Seovic  2018.05.09
+*/
 public class UnknownPropertyHandlerTest {
     private static final Genson GENSON = new GensonBuilder()
                     .withBundle(new JSR353Bundle())

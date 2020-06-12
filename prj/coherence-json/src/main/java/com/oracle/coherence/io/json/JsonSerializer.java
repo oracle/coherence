@@ -66,7 +66,7 @@ import javax.inject.Named;
 /**
  * JSON Serializer using {@code Genson}.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 @Named("json")
 @ApplicationScoped

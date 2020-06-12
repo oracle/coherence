@@ -19,6 +19,7 @@ import com.tangosol.net.options.WithConfiguration;
  * a {@code String} value.
  *
  * @author Jonathan Knight  2019.10.21
+ * @since 20.06
  */
 public interface CacheFactoryUriResolver
     {

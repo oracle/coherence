@@ -28,8 +28,8 @@ import java.lang.annotation.Target;
  * during serialization use @JsonIgnore(serialize=true), for example if you annotate a field with
  * &#64;JsonIgnore(serialize=true,deserialize=true) it will have no effect!
  *
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.annotation.JsonProperty JsonProperty
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.annotation.JsonProperty JsonProperty
  */
 @Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)

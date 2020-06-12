@@ -51,7 +51,7 @@ import javax.enterprise.inject.spi.CDI;
  * A client {@link Session} that connects to a remote gRPC proxy.
  *
  * @author Jonathan Knight  2019.11.28
- * @since 14.1.2
+ * @since 20.06
  */
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class GrpcRemoteSession

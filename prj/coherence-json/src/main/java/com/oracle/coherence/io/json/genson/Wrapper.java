@@ -34,8 +34,8 @@ import com.oracle.coherence.io.json.genson.reflect.TypeUtil;
  * <p/>
  * In the future there may be other methods to access other kind of class information.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public abstract class Wrapper<T> implements AnnotatedElement {
   private AnnotatedElement wrappedElement;
   protected volatile T wrapped;

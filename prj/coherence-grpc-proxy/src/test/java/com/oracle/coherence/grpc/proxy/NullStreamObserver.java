@@ -14,7 +14,7 @@ import io.grpc.stub.StreamObserver;
  * use in tests where we do not care what happens to this observer.
  *
  * @author Jonathan Knight  2020.01.07
- * @since 14.1.2
+ * @since 20.06
  */
 public class NullStreamObserver<V>
         implements StreamObserver<V>

@@ -16,7 +16,7 @@ import static com.oracle.coherence.common.base.StackTrace.getStackTrace;
  * Class for providing assertion functionality.
  *
  * @author cp  2000.08.02
- * @since Coherence 14.1.2
+ * @since 20.06
  */
 
 public abstract class Assertions

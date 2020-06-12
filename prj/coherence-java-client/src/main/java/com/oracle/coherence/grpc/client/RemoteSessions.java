@@ -35,7 +35,7 @@ import javax.inject.Inject;
  * A CDI producer for {@link GrpcRemoteSession} instances.
  *
  * @author Jonathan Knight  2019.11.28
- * @since 14.1.2
+ * @since 20.06
  */
 @ApplicationScoped
 public class RemoteSessions

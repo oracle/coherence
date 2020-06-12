@@ -16,6 +16,7 @@ import com.tangosol.util.MapEvent;
  * updated in, or removed from the {@link CoherenceConfigSource}.
  *
  * @author Aleks Seovic  2020.06.11
+ * @since 20.06
  */
 public class ConfigPropertyChanged
     {

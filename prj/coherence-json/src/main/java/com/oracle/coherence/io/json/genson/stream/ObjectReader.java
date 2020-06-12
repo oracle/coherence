@@ -91,8 +91,8 @@ import java.util.Map;
  * }
  * </pre>
  *
- * @author eugen
- * @see ValueType
+ * @author Eugen Cepoi
+* @see ValueType
  * @see JsonReader
  * @see ObjectWriter
  * @see JsonWriter

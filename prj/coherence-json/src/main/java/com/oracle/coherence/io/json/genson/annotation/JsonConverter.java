@@ -30,8 +30,8 @@ import com.oracle.coherence.io.json.genson.Converter;
  * field, constructor parameter or setter/getter, Genson will use this Converter instead of any other.
  * <b>The Converter must have a default no arg constructor.</b>
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

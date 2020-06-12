@@ -26,8 +26,8 @@ import java.util.Map;
  * in order to prevent data loss during serialization across different
  * versions of data classes.
  *
- * @author Aleksandar Seovic  2018.05.20
- */
+ * @author Aleks Seovic  2018.05.20
+*/
 public interface Evolvable {
     /**
      * Add unknown property to this instance.

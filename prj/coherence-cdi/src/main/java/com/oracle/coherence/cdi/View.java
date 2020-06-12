@@ -19,6 +19,7 @@ import javax.inject.Qualifier;
  * A qualifier annotation used when injecting a cache view.
  *
  * @author Jonathan Knight  2019.10.24
+ * @since 20.06
  */
 @Qualifier
 @Documented

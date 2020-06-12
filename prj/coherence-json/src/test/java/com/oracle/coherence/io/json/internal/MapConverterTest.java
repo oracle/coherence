@@ -27,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Test for {@link MapConverter}.
  *
- * @author Aleksandar Seovic  2018.05.30
- * @since 14.1.2
+ * @author Aleks Seovic  2018.05.30
+* @since 20.06
  */
 class MapConverterTest
     {

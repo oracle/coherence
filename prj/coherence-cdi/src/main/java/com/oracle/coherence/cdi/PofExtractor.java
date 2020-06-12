@@ -36,6 +36,7 @@ import javax.enterprise.util.Nonbinding;
  *
  * @author Jonathan Knight  2019.10.25
  * @author Aleks Seovic  2020.06.06
+ * @since 20.06
  */
 @Inherited
 @ExtractorBinding

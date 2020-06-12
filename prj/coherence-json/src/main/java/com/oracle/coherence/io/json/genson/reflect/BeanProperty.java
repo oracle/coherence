@@ -28,8 +28,8 @@ import com.oracle.coherence.io.json.genson.annotation.JsonProperty;
  * Represents a bean property, in practice it can be an object field, method (getter/setter) or
  * constructor parameter.
  *
- * @author eugen
- */
+ * @author Eugen Cepoi
+*/
 public abstract class BeanProperty {
   protected final String name;
   protected final Type type;

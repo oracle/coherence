@@ -61,8 +61,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Integration test for the {@link com.oracle.coherence.cdi.CdiNamespaceHandler}
  * using the Weld JUnit extension.
  *
- * @author as  2020.03.31
- */
+ * @author Aleks Seovic  2020.03.31
+*/
 @ExtendWith(WeldJunit5Extension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

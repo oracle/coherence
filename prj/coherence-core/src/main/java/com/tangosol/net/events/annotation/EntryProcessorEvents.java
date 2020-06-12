@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
  * that want to receive {@link EntryProcessorEvent}s.
  *
  * @author as  2020.04.01
- * @since Coherence 14.1.2
+ * @since 20.06
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

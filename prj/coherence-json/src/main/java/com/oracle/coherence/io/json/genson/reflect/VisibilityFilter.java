@@ -39,8 +39,8 @@ import java.lang.reflect.Modifier;
  * So the idea is to pass to the constructor all the Modifier.XXX modifiers that you want to be
  * filtered.
  *
- * @author eugen
- * @see BeanMutatorAccessorResolver.StandardMutaAccessorResolver
+ * @author Eugen Cepoi
+* @see BeanMutatorAccessorResolver.StandardMutaAccessorResolver
  */
 public final class VisibilityFilter {
 

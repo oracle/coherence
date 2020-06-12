@@ -19,7 +19,7 @@ import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
 /**
  * A {@link Converter} for {@link Class} instances.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public class ClassConverter
         implements Converter<Class<?>>

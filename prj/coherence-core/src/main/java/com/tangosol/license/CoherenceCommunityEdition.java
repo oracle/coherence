@@ -16,7 +16,7 @@ import com.tangosol.net.CacheFactory;
 *
 * WARNING:  DO NOT MODIFY OR RECOMPILE THIS CLASS!
 *
-* @since Coherence 14.1.2
+* @since 20.06
 * @author hr  2020.01.06
 */
 public class CoherenceCommunityEdition

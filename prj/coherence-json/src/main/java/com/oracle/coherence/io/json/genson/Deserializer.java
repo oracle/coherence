@@ -25,8 +25,8 @@ import com.oracle.coherence.io.json.genson.stream.ObjectReader;
  * deserializers from other libraries.
  *
  * @param <T> the type of objects this deserializer can deserialize.
- * @author eugen
- * @see Converter
+ * @author Eugen Cepoi
+* @see Converter
  */
 public interface Deserializer<T> {
   /**

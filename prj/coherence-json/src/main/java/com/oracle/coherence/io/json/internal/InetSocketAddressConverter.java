@@ -20,7 +20,7 @@ import java.net.InetSocketAddress;
 /**
  * A {@link Converter} for {@link InetSocketAddress} instances.
  *
- * @since 14.1.2
+ * @since 20.06
  */
 public class InetSocketAddressConverter
         implements Converter<InetSocketAddress>

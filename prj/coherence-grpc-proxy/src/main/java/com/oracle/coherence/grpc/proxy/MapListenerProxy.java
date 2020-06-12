@@ -57,7 +57,7 @@ import java.util.Set;
  * A class to encapsulate bi-directional streaming of map events for a single cache.
  *
  * @author Jonathan Knight  2019.12.03
- * @since 14.1.2
+ * @since 20.06
  */
 class MapListenerProxy
         implements StreamObserver<MapListenerRequest>, MapListener<Object, Object>

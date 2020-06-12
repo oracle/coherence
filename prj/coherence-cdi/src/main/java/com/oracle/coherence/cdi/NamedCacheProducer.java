@@ -34,6 +34,7 @@ import javax.inject.Inject;
  * ContinuousQueryCache} instances.
  *
  * @author Jonathan Knight  2019.10.22
+ * @since 20.06
  */
 @ApplicationScoped
 @SuppressWarnings("unchecked")

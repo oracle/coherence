@@ -34,8 +34,8 @@ import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
  * Converter responsible of applying the BeanView mechanism.
  *
  * @param <T> type of objects this BeanViewConverter can handle.
- * @author eugen
- * @see com.oracle.coherence.io.json.genson.reflect.BeanViewDescriptorProvider BeanViewDescriptorProvider
+ * @author Eugen Cepoi
+* @see com.oracle.coherence.io.json.genson.reflect.BeanViewDescriptorProvider BeanViewDescriptorProvider
  * @see com.oracle.coherence.io.json.genson.BeanView BeanView
  */
 public class BeanViewConverter<T> extends Wrapper<Converter<T>> implements Converter<T> {

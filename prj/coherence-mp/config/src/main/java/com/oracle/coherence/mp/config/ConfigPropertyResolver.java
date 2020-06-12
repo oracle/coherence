@@ -18,7 +18,7 @@ import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
  * properties and environment variables from MP Config.
  *
  * @author Aleks Seovic  2019.10.11
- * @since Coherence 14.1.2
+ * @since 20.06
  *
  * @see com.tangosol.coherence.config.SystemPropertyResolver
  * @see com.tangosol.coherence.config.EnvironmentVariableResolver
