@@ -629,7 +629,7 @@ public class GrpcRemoteSession
 
             return sessionConfig.get("serializer")
                     .asString()
-                    .orElse(Boolean.getBoolean("coherence.pof.enabled") ? "pof" : "java");
+                    .orElseGet(() -> Boolean.getBoolean("coherence.pof.enabled") ? "pof" : "java");
             }
 
         /**

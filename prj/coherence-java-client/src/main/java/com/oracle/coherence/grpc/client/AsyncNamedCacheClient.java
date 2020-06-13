@@ -37,8 +37,8 @@ import com.tangosol.io.Serializer;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
-
 import com.tangosol.net.NamedMap;
+
 import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.cache.CacheEvent;
@@ -2119,7 +2119,6 @@ public class AsyncNamedCacheClient<K, V>
         @Override
         public void onCompleted()
             {
-            LOGGER.log(Level.WARNING, "onComplete called after StreamObserver was closed");
             }
 
         // ----- data members -----------------------------------------------
@@ -2273,7 +2272,7 @@ public class AsyncNamedCacheClient<K, V>
         @Override
         public AsyncNamedCacheClient<K, V> build()
             {
-            Channel           chan    = getChannel().orElse(GrpcChannelsProvider.create(f_config).channel("default"));
+            Channel           chan    = getChannel().orElseGet(() -> GrpcChannelsProvider.create(f_config).channel("default"));
             NamedCacheService service = GrpcProxyBuilder.create(chan, NamedCacheService.class).build();
             String            fmt     = getFormat().orElse("java");
 

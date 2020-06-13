@@ -84,18 +84,21 @@ public class RemoteSessions
         {
         if (s_instance == null)
             {
-            CDI<Object> current = CDI.current();
-            if (current == null)
-                {
-                s_instance = new RemoteSessions();
-                }
-            else
+            try
                 {
                 s_instance = CDI.current()
                         .getBeanManager()
                         .createInstance()
                         .select(RemoteSessions.class)
                         .get();
+                }
+           catch (IllegalStateException ignored) // cdi not available
+               {
+               }
+
+            if (s_instance == null)
+                {
+                s_instance = new RemoteSessions();
                 }
             }
         return s_instance;
