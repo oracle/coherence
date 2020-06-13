@@ -12,7 +12,7 @@
 
 Coherence CDI provides support for http://cdi-spec.org/[CDI] (Contexts and Dependency  Injection) within Coherence cluster members.
 
-It allows you both to inject Coherence-managed resources, such as `NamedMap`, `NamedCache` and `Scope`  instances into CDI managed beans, and to inject CDI beans into Coherence-managed resources,  such as event interceptors and cache stores, as well as to handle Coherence server-side events using CDI observer methods.
+It allows you both to inject Coherence-managed resources, such as `NamedMap`, `NamedCache` and `Scope`  instances into CDI managed beans, to inject CDI beans into Coherence-managed resources,  such as event interceptors and cache stores, and to handle Coherence server-side events using CDI observer methods.
 
 In addition, Coherence CDI provides support for automatic injection of transient objects upon deserialization.
 This allows you to inject CDI managed beans such as services and repositories (to use DDD nomenclature) into transient objects, such as entry processor and even data class instances, greatly simplifying implementation of true Domain Driven  applications.
@@ -36,9 +36,9 @@ Once the necessary dependency is in place, you can start using CDI to inject Coh
  ** <<injecting--namedcache--and-related-objects,Injecting `NamedCache` and related objects>>
  ** <<injecting--namedtopic--and-related-objects,Injecting `NamedTopic` and related objects>>
  ** <<other-supported-injection-points,Other Supported Injection Points>>
-  *** <<-cluster--and--operationalcontext--injection,`Cluster` and `OperationalContext` Injection>>
-  *** <<-configurablecachefactory--and--session--injection,`ConfigurableCacheFactory` and `Scope` Injection>>
-  *** <<-serializer--injection,`Serializer` Injection>>
+  *** <<cluster--and--operationalcontext--injection,`Cluster` and `OperationalContext` Injection>>
+  *** <<configurablecachefactory--and--session--injection,`ConfigurableCacheFactory` and `Scope` Injection>>
+  *** <<serializer--injection,`Serializer` Injection>>
 * <<injecting-cdi-beans-into-coherence-managed-objects,Injecting CDI Beans into Coherence-managed Objects>>
  ** <<using-cdi-observers-to-handle-coherence-server-side-events,Using CDI Observers to Handle Coherence Server-Side Events>>
   *** <<using-asynchronous-observers,Using Asynchronous Observers>>
@@ -50,7 +50,7 @@ Once the necessary dependency is in place, you can start using CDI to inject Coh
 CDI, and dependency injection in general, make it easy for application classes to declare the dependencies they need and let the runtime provide them when necessary.
 This makes the applications easier to develop, test and reason about, and the code significantly cleaner.
 
-Coherence CDI allows you to do the same for Coherence objects, such as `Cluster`, `Scope`, `NamedMap`,`NamedCache`, `ContinuousQueryCache`, `ConfigurableCacheFactory`, etc.
+Coherence CDI allows you to do the same for Coherence objects, such as `Cluster`, `Session`, `NamedMap`,`NamedCache`, `ContinuousQueryCache`, `ConfigurableCacheFactory`, etc.
 
 ==== Injecting `NamedMap`, `NamedCache` and related objects
 
@@ -72,7 +72,7 @@ If that's not the case, you can use `@Name` qualifier to specify the name of the
 private NamedMap<Long, Person> m_people;
 ----
 
-This is also what you have to do if you are using constructor injection instead:
+This is also what you have to do if you are using constructor injection or setter injection:
 
 [source,java]
 ----
@@ -80,21 +80,26 @@ This is also what you have to do if you are using constructor injection instead:
 public MyClass(@Name("people") NamedMap<Long, Person> people) {
     ...
 }
+
+@Inject
+public void setPeople(@Name("people") NamedMap<Long, Person> people) {
+    ...
+}
 ----
 
-All of the examples above assume that you want to use the default `ConfigurableCacheFactory`, which is often, but not always the case.
-For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple Coherence config files, and multiple `ConfigurableCacheFactory` instances.
+All of the examples above assume that you want to use the default scope, which is often, but not always the case.
+For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple scopes.
 
-In this case you would use `Scope` qualifier to specify the URI of the cache configuration to use:
+In this case you would use `@Scope` qualifier to specify the scope name, or the URI of the  configuration file to use:
 
 [source,java]
 ----
 @Inject
-@Session("products-cluster.xml")
+@Scope("products-cluster.xml")
 private NamedCache<Long, Product> products;
 
 @Inject
-@Session("customers-cluster.xml")
+@Scope("customers-cluster.xml")
 private NamedCache<Long, Customer> customers;
 ----
 
@@ -106,7 +111,7 @@ You can replace `NamedMap` or `NamedCache` in any of the examples above with `As
 private AsyncNamedMap<Long, Person> people;
 
 @Inject
-@Session("products-cluster.xml")
+@Scope("products-cluster.xml")
 private AsyncNamedCache<Long, Person> Product;
 ----
 
@@ -167,8 +172,8 @@ In order to inject an instance of a `NamedTopic` into your CDI bean, you simply 
 private NamedTopic<Order> orders;
 ----
 
-In the example above we've assumed that the topic name you want to inject is the same as the name of the field you are injecting into, in this case``orders``.
-If that's not the case, you  can use `@Name` qualifier to specify the name of the cache you want to obtain explicitly:
+In the example above we've assumed that the topic name you want to inject is the same as the name of the field you are injecting into, in this case ``orders``.
+If that's not the case, you  can use `@Name` qualifier to specify the name of the topic you want to obtain explicitly:
 
 [source,java]
 ----
@@ -177,7 +182,7 @@ If that's not the case, you  can use `@Name` qualifier to specify the name of th
 private NamedTopic<Order> m_orders;
 ----
 
-This is also what you have to do if you are using constructor injection instead:
+This is also what you have to do if you are using constructor or setter injection instead:
 
 [source,java]
 ----
@@ -185,21 +190,26 @@ This is also what you have to do if you are using constructor injection instead:
 public MyClass(@Name("orders") NamedTopic<Order> orders) {
     ...
 }
+
+@Inject
+public void setOrdersTopic(@Name("orders") NamedTopic<Order> orders) {
+    ...
+}
 ----
 
-All of the examples above assume that you want to use the default `ConfigurableCacheFactory`, which is often, but not always the case.
-For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple Coherence cache config files, and multiple `ConfigurableCacheFactory` instances.
+All of the examples above assume that you want to use the default scope, which is often, but not always the case.
+For example, you may have an Extend client that connects to multiple Coherence clusters, in which case you would have multiple scopes.
 
-In this case you would use `Scope` qualifier to specify the URI of the cache configuration to use:
+In this case you would use `@Scope` qualifier to specify the scope name or the URI of the  configuration file to use:
 
 [source,java]
 ----
 @Inject
-@Session("payments-cluster.xml")
+@Scope("payments-cluster.xml")
 private NamedTopic<PaymentRequest> payments;
 
 @Inject
-@Session("shipments-cluster.xml")
+@Scope("shipments-cluster.xml")
 private NamedTopic<ShippingRequest> shipments;
 ----
 
@@ -217,7 +227,7 @@ private Publisher<Order> orders;
 private Publisher<Order> m_orders;
 
 @Inject
-@Session("payments-cluster.xml")
+@Scope("payments-cluster.xml")
 private Publisher<PaymentRequest> payments;
 ----
 
@@ -233,13 +243,13 @@ private Subscriber<Order> orders;
 private Subscriber<Order> m_orders;
 
 @Inject
-@Session("payments-cluster.xml")
+@Scope("payments-cluster.xml")
 private Subscriber<PaymentRequest> payments;
 ----
 
-Basically, all topic-related details, such as topic name (based on either injection point name or the explicit name from `@Name` annotation), factory URI and message type, will be used under the hood to retrieve the `NamedTopic`, and to obtain `Publisher` or `Subscriber` from it.
+Topic metadata, such as topic name (based on either injection point name or the explicit name from `@Name` annotation), scope and message type, will be used under the hood to retrieve the `NamedTopic`, and to obtain `Publisher` or `Subscriber` from it.
 
-Additionally, if you want to place your ``Subscriber``s into a subscriber group, you can easily accomplish that by adding `@SubscriberGroup` qualifier to the injection point:
+Additionally, if you want to place your ``Subscriber``s into a subscriber group (effectively turning a topic into a queue), you can easily accomplish that by adding `@SubscriberGroup` qualifier to the injection point:
 
 [source,java]
 ----
@@ -275,7 +285,7 @@ private OperationalContext ctx;
 
 On rare occasions when you need to use either of these directly, Coherence CDI makes it trivial to do so.
 
-To obtain an instance of a default `CCF` or `Scope`, all you need to do is inject them into the  class that needs to use them:
+To obtain an instance of a default `ConfigurableCacheFactory` or `Session`, all you need to do is inject them into the  class that needs to use them:
 
 [source,java]
 ----
@@ -286,7 +296,7 @@ private ConfigurableCacheFactory ccf;
 private Session session;
 ----
 
-If you need a specific `CCF` or `Scope` you can simply qualify them using `@Name` qualifier and specifying the URI of the cache config file to use:
+If you need a specific `ConfigurableCacheFactory` or `Session` you can simply qualify them using `@Scope` qualifier and specifying the scope name or the URI of the configuration file to use:
 
 [source,java]
 ----
@@ -426,7 +436,7 @@ Once you've declared the handler for the `cdi` namespace above, you can specify 
 </cache-config>
 ----
 
-Note that you can only inject named CDI beans (beans with an explicit `@Named` annotations) via  `<cdi:bean>` element.
+Note that you can only inject _named_ CDI beans (beans with an explicit `@Named` annotations) via  `<cdi:bean>` element.
 For example, the `cacheListener` interceptor bean used above would look similar to this:
 
 [source,java]
@@ -453,60 +463,31 @@ If you can't guarantee the latter, you may want to declare the `onEvent` method 
 
 While the above examples show that you can implement any Coherence `EventInterceptor` as a CDI bean and register it using `<cdi:bean>` element within the cache configuration file, Coherence CDI  also provides a much simpler way to accomplish the same goal using standard CDI Events and Observers.
 
-The first thing you need to do is register a single global interceptor within the cache config:
-
-[source,xml]
-----
-<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xmlns:cdi="class://com.oracle.coherence.cdi.CdiNamespaceHandler"
-              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
-              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
-
-  <interceptors>
-    <interceptor>
-      <instance>
-        <cdi:bean>com.oracle.coherence.cdi.EventDispatcher</cdi:bean>
-      </instance>
-    </interceptor>
-  </interceptors>
-
-  <!-- the rest of cache config as usual -->
-</cache-config>
-----
-
-Coherence CDI `CdiInterceptorSupport` bean will then listen to all events raised by all Coherence event dispatchers and re-raise them as CDI events that you can observe.
-For example, to implement the  equivalent of `cacheListener` interceptor above, you would simply define an observer method in  any CDI bean that wants to be notified when the event happens:
+For example, to observe  events raised by some `NamedMap`, you would define a CDI observer such as this one:
 
 [source,java]
 ----
-private void onInserting(@Observes @Inserting EntryEvent<?, ?> event) {
-    // handle INSERTING event on any cache
+private void onMapChange(@Observes @MapName("people") EntryEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache
 }
 ----
 
-The observer method above will receive all `INSERTING` events for all the caches, across all the services, but you can use CDI qualifiers to control that behavior:
+The observer method above will receive all events for the `people` map, but you can also control the types of events received using event qualifiers:
 
 [source,java]
 ----
-private void onInserting(@Observes @Updated @Cache("people") EntryEvent<?, ?> event) {
-    // handle UPDATED event on 'people' map/cache only
+private void onUpdate(@Observes @Updated @MapName("people") EntryEvent<Long, Person> event) {
+    // handle UPDATED events raised by the 'people' map/cache
 }
 
-private void onRemoved(@Observes @Removed @Service("Products") EntryEvent<?, ?> event) {
-    // handle REMOVED event on any map/cache on the 'Products' service
-}
-----
-
-Of course, you can also remove qualifiers to broaden the scope of events your handler receives:
-
-[source,java]
-----
-private void onEntryEvent(@Observes EntryEvent<?, ?> event) {
-    // handle any event on any cache
+private void onChange(@Observes @Inserted @Updated @Removed @MapName("people") EntryEvent<?, ?> event) {
+    // handle INSERTED, UPDATED and REMOVED events raised by the 'people' map/cache
 }
 ----
 
-The examples above show only how to handle ``EntryEvent``s, but the same applies to all other event types:
+In addition `@MapName` qualifier, you can also use `@ServiceName` and `@ScopeName` as a way to limit the events received.
+
+The examples above show only how to handle ``EntryEvent``s, but the same applies to all other server-side event types:
 
 [source,java]
 ----
@@ -514,31 +495,12 @@ private void onActivated(@Observes @Activated LifecycleEvent event) {
     // handle cache factory activation
 }
 
-private void onCreatedPeople(@Observes @Created @Cache("people") CacheLifecycleEvent event) {
+private void onCreatedPeople(@Observes @Created @MapName("people") CacheLifecycleEvent event) {
     // handle creation of the 'people' map/cache
 }
 
-private void onExecuting(@Observes @Executing @Cache("people") @Processor(Uppercase.class) EntryProcessorEvent event) {
+private void onExecuted(@Observes @Executed @MapName("people") @Processor(Uppercase.class) EntryProcessorEvent event) {
     // intercept 'Uppercase` entry processor execution against 'people' map/cache
-}
-----
-
-And again, you can broaden the scope by widening the type of events you observe:
-
-[source,java]
-----
-private void onPartitionedCacheEvent(@Observes com.tangosol.net.events.partition.cache.Event<?> event) {
-    // handle any/all events raised by the partitioned cache service (CacheLifecycleEvent, EntryEvent or EntryProcessorEvent)
-    // can use @Cache and @Service as a narrowing qualifier
-}
-
-private void onPartitionedServiceEvent(@Observes com.tangosol.net.events.partition.Event<?> event) {
-    // handle any/all events raised by the partitioned service (TransactionEvent, TransferEvent or UnsolicitedCommitEvent)
-    // can use @Service as a narrowing qualifier
-}
-
-private void onEvent(@Observes com.tangosol.net.events.Event<?> event) {
-    // handle any/all events (all of the above, plus LifecycleEvent)
 }
 ----
 
@@ -554,21 +516,23 @@ private void onActivated(@ObservesAsync @Activated LifecycleEvent event) {
     // handle cache factory activation
 }
 
-private void onCreatedPeople(@ObservesAsync @Created @Cache("people") CacheLifecycleEvent event) {
+private void onCreatedPeople(@ObservesAsync @Created @MapName("people") CacheLifecycleEvent event) {
     // handle creation of the 'people' map/cache
 }
 
-private void onExecuting(@ObservesAsync @Executing @Cache("people") @Processor(Uppercase.class) EntryProcessorEvent event) {
+private void onExecuted(@ObservesAsync @Executed @MapName("people") @Processor(Uppercase.class) EntryProcessorEvent event) {
     // intercept 'Uppercase` entry processor execution against 'people', map/cache
 }
 ----
 
-However, there is an important caveat.
+[WARNING]
+====
 
 Coherence events fall into two categories: pre- and post-commit events.
-All of the events whose name ends  with `ing`, such as `Inserting`, `Updating`, `Removing` or `Executing` are pre-commit, which means that they can either modify the data or even completely cancel the operation by throwing an exception, but in  order to do so they must be synchronous to ensure that they are executed on the same thread that is  executing the operation that triggered the event.
+All of the events whose name ends  with `"ing"`, such as `Inserting`, `Updating`, `Removing` or `Executing` are pre-commit, which means that they can either modify the data or even veto the operation by throwing an exception, but in  order to do so they must be synchronous to ensure that they are executed on the same thread that is  executing the operation that triggered the event.
 
 That means that you can _observe_ them using asynchronous CDI observers, but if you want to mutate the set of entries that are part of the event payload, or veto the event by throwing an exception, you must use synchronous CDI observer.
+====
 
 === Injecting CDI Beans into Transient Objects
 
@@ -576,11 +540,11 @@ Using CDI to inject Coherence objects into your application classes, and CDI bea
 
 Coherence is a distributed system, and it uses serialization in order to send both the data and the  processing requests from one cluster member (or remote client) to another, as well as to store data, both in memory and on disk.
 
-Processing requests, such as entry processors and aggregators, are then deserialized on a target cluster member(s) in order to be executed, and in some cases they could benefit from dependency injection in order to avoid service lookups.
+Processing requests, such as entry processors and aggregators, have to be deserialized on a target cluster member(s) in order to be executed. In some cases, they could benefit from dependency injection in order to avoid service lookups.
 
-Similarly, while the data is stored in a serialized, binary format, it may need to be deserialized into user supplied classes for server-side processing, such as when executing entry processors and aggregators, and can also benefit from dependency injection (in order to support Domain-Driven Design (DDD), for example).
+Similarly, while the data is stored in a serialized, binary format, it may need to be deserialized into user supplied classes for server-side processing, such as when executing entry processors and aggregators. In this case, data classes can often also benefit from dependency injection (in order to support Domain-Driven Design (DDD), for example).
 
-While these transient objects are not managed by the CDI container, Coherence CDI does support their injection after deserialization, but for performance reasons requires that you explicitly opt-in by implementing `com.oracle.coherence.cdi.Injectable` interface.
+While these transient objects are not managed by the CDI container, Coherence CDI does support their injection during deserialization, but for performance reasons requires that you explicitly opt-in by implementing `com.oracle.coherence.cdi.Injectable` interface.
 
 ==== Making transient classes `Injectable`
 
@@ -610,7 +574,7 @@ public class InjectableBean
 }
 ----
 
-Assuming that you have the following `Converter` service implementation in your application, it will be injected into `InjectableBean` after deserialization and the `getConvertedText` method will return the value of the `text` field converted to upper case:
+Assuming that you have the following `Converter` service implementation in your application, it will be injected into `InjectableBean` during deserialization and the `getConvertedText` method will return the value of the `text` field converted to upper case:
 
 [source,java]
 ----
