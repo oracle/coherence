@@ -665,7 +665,7 @@
       Note that this property has to be named 'revision' and that it has
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
-    <revision>20.06.0-SNAPSHOT</revision>
+    <revision>20.06-SNAPSHOT</revision>
     <project.version.prefix>14.1.1</project.version.prefix>
 
     <!-- The groupId of the Coherence product -->
@@ -928,8 +928,8 @@
                       props.setProperty("root.path", sDevRoot);
                       }
 
-                  // project version properties 20.06.0
-                  matcher = project.version =~ /^([0-9]+)\\.([0-9]+)\\.([0-9]+)-(.*)/
+                  // project version properties 20.06 | 20.06.1
+                  matcher = project.version =~ /^(\\d+)\\.(\\d+)\\.*(\\d*)-*(.*)/
                   matcher.matches()
 
                   // version components
@@ -944,7 +944,7 @@
                   nextRelease  = release.plusMonths(6)
 
                   props.setProperty("project.version.official",
-                          major + "." + minor + "." + micro)
+                          major + "." + minor + (micro ? "." + micro : ""))
                   
                   props.setProperty("project.version.next",
                           nextRelease.format(pattern) + ".0")
