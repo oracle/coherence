@@ -101,6 +101,26 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <profiles>
     <profile>
       <id>docker</id>
@@ -205,6 +225,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
+              <skip>false</skip>
               <skipTests>false</skipTests>
               <systemProperties>
                 <!--
@@ -225,6 +246,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <systemProperties>
+                <skip>false</skip>
                 <skipTests>false</skipTests>
                 <project.version.dist>${project.version.dist}</project.version.dist>
                 <project.version.release>${project.version.release}</project.version.release>
