@@ -113,12 +113,6 @@
         <artifactId>flatten-maven-plugin</artifactId>
       </plugin>
 
-      <!-- run integration tests *Tests.java and *IT.java -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-      </plugin>
-
       <!-- run unit tests *Test.java -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -132,6 +126,8 @@
           </environmentVariables>
         </configuration>
       </plugin>
+
+      <!-- run integration tests *Tests.java and *IT.java -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
