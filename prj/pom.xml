@@ -1829,6 +1829,7 @@
         <module>coherence-mock</module>
         <module>coherence-http-netty</module>
         <module>coherence-rest</module>
+        <module>coherence-json</module>
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
         <module>coherence-mp</module>
