@@ -60,6 +60,7 @@ import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -287,9 +288,12 @@ public abstract class AbstractSimplePersistenceTopicTests
                 // needed before taking a snapshot.
                 publisher.flush().join();
 
+                // create snapshot with global consistency
                 cluster.suspendService(sService);
                 helper.createSnapshot(sService, "snapshot-A");
                 cluster.resumeService(sService);
+
+                PersistenceTestHelper.logTopicMBeanStats(topic);
 
                 for (int i = 50;
                      i < 100;
@@ -302,9 +306,11 @@ public abstract class AbstractSimplePersistenceTopicTests
                 publisher.flush().join();
                 }
 
-            // if we do not call suspend service, then the service will be
-            // automatically suspended and then resumed
+            // create snapshot with global consistency
+            cluster.suspendService(sService);
             helper.createSnapshot(sService, "snapshot-B");
+            cluster.resumeService(sService);
+            PersistenceTestHelper.logTopicMBeanStats(topic);
 
             // intentionally lose all data
             stopCacheServer(sServer + "-1", true);
@@ -390,10 +396,25 @@ public abstract class AbstractSimplePersistenceTopicTests
 
     private void validateSubscriberReceiveData(NamedTopic topic, String sGroup, int nValues) throws ExecutionException, InterruptedException
         {
+        Eventually.assertDeferred("Topic " + topic.getName() + " must have existing subscriber group " + sGroup + " since expecting " + nValues + " messages",
+                () -> topic.getSubscriberGroups().contains(sGroup), is(true));
+
+        PersistenceTestHelper.logTopicMBeanStats(topic);
+
         try (Subscriber subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled(), Subscriber.Name.of(sGroup)))
             {
-            // validate that the data were recovered
-            assertEquals("bar", ((Subscriber.Element<String>) subscriber.receive().get()).getValue());
+            // until receive first message from recovered topic, allow for null that occurs when CompleteOnEmpty is enabled for a subscriber.
+            int MAX_RETRY = 10;
+
+            Subscriber.Element<String> element = (Subscriber.Element<String>) subscriber.receive().get();
+            for (int i = 0; element == null && i < MAX_RETRY; i++)
+                {
+                element = (Subscriber.Element<String>) subscriber.receive().get();
+                Thread.sleep(500L);
+                }
+            assertNotNull("validate first message in subscriber group " + sGroup + " is non-null", element);
+            assertEquals("validate first message in subscriber group is bar",
+                "bar", element.getValue());
             assertEquals("baz", ((Subscriber.Element<String>) subscriber.receive().get()).getValue());
 
             String previousValue = "<empty>";
@@ -476,12 +497,17 @@ public abstract class AbstractSimplePersistenceTopicTests
                 topic.createSubscriber(Subscriber.Name.of("queue")).close(); // create a place holder
 
                 // create an empty-cluster snapshot
+                // create snapshot with global consistency
+                cluster.suspendService(sService);
                 helper.invokeOperationWithWait(PersistenceToolsHelper.CREATE_SNAPSHOT, sEmptySnapshot, sService);
+                cluster.resumeService(sService);
 
                 // create a second snapshot with 53 entries
                 PersistenceTestHelper.populateData(topic, 53);
 
+                cluster.suspendService(sService);
                 helper.invokeOperationWithWait(PersistenceToolsHelper.CREATE_SNAPSHOT, sSnapshot53, sService);
+                cluster.resumeService(sService);
 
                 // archive the snapshots
                 helper.invokeOperationWithWait(PersistenceToolsHelper.ARCHIVE_SNAPSHOT, sEmptySnapshot, sService);
@@ -604,7 +630,7 @@ public abstract class AbstractSimplePersistenceTopicTests
         return asSnapshots == null ||  asSnapshots.length == 0 ? 0: asSnapshots.length;
         }
 
-        /**
+   /**
     * Wait for an extended period compared with {@link AbstractFunctionalTest#waitForBalanced(CacheService)}
     * for the specified (partitioned) cache service to become "balanced".
     *
