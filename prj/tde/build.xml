@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build script for the TDE project. This project creates the        -->
+<!-- tde.jar library.                                                      -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant help                                                  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<project name="tde" default="help" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project properties                                                  -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <property name="tde.project" value="core-ts"/>
+  <property name="tde.project.package"
+            value="Component.Application.GUI.Desktop.TDE"/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project imports                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <import file="../build-import.xml"/>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project task definitions                                            -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <taskdef name="appbundler"
+           classname="com.oracle.appbundler.AppBundlerTask"
+           classpath="${tools.dir}/appbundler/lib/appbundler.jar" />
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Project targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <target name="compile" description="Compile project source.">
+    <ant dir="./core"     target="compile" inheritall="false"/>
+    <ant dir="./core-gui" target="compile" inheritall="false"/>
+    <ant dir="./core-web" target="compile" inheritall="false"/>
+    <ant dir="./core-ts"  target="compile" inheritall="false"/>
+  </target>
+
+  <target name="package" description="Create the project library.">
+    <!-- Copy relocatable TDE resources to the classes directory -->
+    <if>
+      <available file="${tde.project.path}/resource/_package"/>
+      <then>
+        <copy preservelastmodified="true"
+              todir="${tde.project.path}/classes/_package">
+          <fileset dir="${tde.project.path}/resource/_package"/>
+        </copy>
+      </then>
+    </if>
+
+    <!-- Call "super.package()" -->
+    <antcall target="build-import.package"/>
+  </target>
+
+  <target name="clean" description="Remove all project build artifacts.">
+    <ant dir="./core"     target="clean" inheritall="false"/>
+    <ant dir="./core-gui" target="clean" inheritall="false"/>
+    <ant dir="./core-web" target="clean" inheritall="false"/>
+    <ant dir="./core-ts"  target="clean" inheritall="false"/>
+
+    <!-- Call "super.clean()" -->
+    <antcall target="build-import.clean"/>
+  </target>
+
+  <target name="dist" description="Create the project distribution.">
+    <!-- Call "super.dist()" -->
+    <antcall target="build-import.dist">
+      <!-- NOOP -->
+      <param name="project.library" value=""/>
+    </antcall>
+  </target>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Utility targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <target name="copy.tools" description="Copy coherence.jar and tde.jar to the tools/tde/lib directory.">
+    <!-- Copy coherence.jar -->
+    <copy preservelastmodified="true"
+          overwrite="true"
+          file="../coherence/target/coherence-${project.version}.jar"
+          tofile="${tools.dir}/tde/lib/coherence.jar"/>
+
+    <!-- Copy tde.jar -->
+    <copy preservelastmodified="true"
+          overwrite="true"
+          file="${project.library.file}"
+          tofile="${tools.dir}/tde/lib/tde.jar"/>
+  </target>
+
+  <!-- Create an OSX application based on the TDE jar -->
+  <target name="create.app" description="Create an OSX application from the tde.jar in the tools/tde/lib directory.">
+    <appbundler outputdirectory="${project.build.directory}"
+        name="TDE"
+        displayname="TDE"
+        identifier="com.tangosol"
+        shortversion="1.3"
+        icon="${tde.dir}/core-ts/1.3/resource/tde.icns"
+        mainclassname="com.tangosol.tde.component.application.gUI.desktop.TDE">
+      <classpath dir="${tools.dir}/tde/lib">
+        <include name="*.jar"/>
+      </classpath>
+      <option value="-Xms512M"/>
+      <option value="-Xmx1G"/>
+      <option value="-Dapple.laf.useScreenMenuBar=true"/>
+      <option value="-Dtangosol.taps.repos=file://$APP_ROOT/../../../../tde"/>
+    </appbundler>
+    <echo message=" Created app bunlde: ${project.build.directory}/TDE.app"/>
+  </target>
+</project>

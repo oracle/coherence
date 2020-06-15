@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+#
+#  Licensed under the Universal Permissive License v 1.0 as shown at
+#  http://oss.oracle.com/licenses/upl.
+#
+
+# convert three CDBs to XML and then merge the XML
+
+if [ -z $DEV_ROOT ]; then
+  cd $(dirname $0)/../../../bin
+  . ./cfglocal.sh
+  cd - > /dev/null
+fi
+
+export PATH=$PATH:/usr/bin:/usr/local/bin
+
+xml1=/tmp/${1##*/}.xml
+xml2=/tmp/${2##*/}.xml
+xml3=/tmp/${3##*/}.xml
+xml4=/tmp/${4##*/}.xml
+
+merge=$5
+if [ -z $merge ]; then
+  export merge=p4merge
+fi
+
+# convert to XML
+$TDE_HOME/bin/cdb2xml $1 $xml1
+$TDE_HOME/bin/cdb2xml $2 $xml2
+$TDE_HOME/bin/cdb2xml $3 $xml3
+
+# merge
+touch $xml4
+$(which $merge) $xml1 $xml2 $xml3 $xml4 2>&1
+retval=$?
+
+# save xml4 (merged result) back as CDB
+rm $4
+$TDE_HOME/bin/cdb2xml $xml4 $4
+
+rm $xml1 $xml2 $xml3 $xml4
+
+exit $retval

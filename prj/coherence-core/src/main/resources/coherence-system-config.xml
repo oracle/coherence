@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!--
+Cache configuration for system-level services.
+
+It will be loaded automatically when CDI integration is used.
+-->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <scope-name>SYS</scope-name>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>config</cache-name>
+      <scheme-name>config</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>config</scheme-name>
+      <service-name>Config</service-name>
+      <thread-count>0</thread-count>
+      <partition-count system-property="coherence.config.partition.count">3</partition-count>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+        <environment system-property="coherence.config.persistence">default-active</environment>
+      </persistence>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+
+</cache-config>

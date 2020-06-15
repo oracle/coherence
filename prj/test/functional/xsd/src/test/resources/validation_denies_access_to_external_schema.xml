@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:ext="http://maven.apache.org/POM/4.0.0"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config    coherence-cache-config.xsd
+                                  http://maven.apache.org/POM/4.0.0   https://file.io/tSfTgg">
+  <caching-scheme-mapping>
+    <cache-mapping/>
+  </caching-scheme-mapping>
+  <caching-schemes>
+    <local-scheme/>
+  </caching-schemes>
+</cache-config>

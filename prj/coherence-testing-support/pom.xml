@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-testing-support</artifactId>
+  <name>Coherence Testing Support</name>
+
+  <properties>
+    <skip.docs>true</skip.docs>
+    <skip.sources>true</skip.sources>
+  </properties>
+
+  <dependencies>
+    <!--
+      This dependency has a scope of provided as the
+      contents of the dependency is shaded into coherence.jar.
+      It also prevents us depending on coherence.jar directly
+      as that will create a circular dependency on this artifact.
+
+      Additionally it resolves breaking the security tests.
+      -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-discovery</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--
+      This dependency has a scope of provided as the
+      contents of the dependency is shaded into coherence.jar.
+      It also prevents us depending on coherence.jar directly
+      as that will create a circular dependency on this artifact.
+
+      Additionally it resolves breaking the security tests.
+      -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+    </dependency>
+
+    <!--
+      This dependency has a scope of provided as the
+      contents of the dependency is shaded into coherence.jar.
+      It also prevents us depending on coherence.jar directly
+      as that will create a circular dependency on this artifact.
+
+      Additionally it resolves breaking the security tests.
+      -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core-components</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+
+    <!-- Bedrock -->
+    <dependency>
+      <groupId>com.oracle.bedrock.coherence</groupId>
+      <artifactId>coherence-12.2.1-testing-support</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-jacoco</artifactId>
+    </dependency>
+
+    <!-- JUnit 4 -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+    <!-- JaCoCo -->
+    <dependency>
+        <groupId>org.jacoco</groupId>
+        <artifactId>org.jacoco.agent</artifactId>
+        <classifier>runtime</classifier>
+    </dependency>
+
+    <!-- Hamcrest -->
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+    </dependency>
+
+    <!-- Mockito -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+  </dependencies>
+
+
+  <profiles>
+    <profile>
+      <id>copyright</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+          <plugins>
+            <plugin>
+              <groupId>com.mycila</groupId>
+              <artifactId>license-maven-plugin</artifactId>
+              <version>${maven.license.plugin.version}</version>
+              <configuration>
+                <excludes>
+                  <exclude>**/src/main/resources/data/dotnet/*.data</exclude>
+                </excludes>
+              </configuration>
+            </plugin>
+          </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

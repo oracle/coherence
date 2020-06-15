@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
+  -->
+
+<schema targetNamespace="http://xmlns.oracle.com/coherence/schema/dotnet"
+	xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:dotnet="http://xmlns.oracle.com/coherence/schema/dotnet"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified"
+	version="1.0">
+
+  <element name="type" type="dotnet:typeType"/>
+  <element name="property" type="dotnet:propertyType"/>
+  <element name="alias" type="dotnet:aliasType"/>
+
+  <complexType name="aliasType">
+    <attribute name="name" type="string" use="required"/>
+  </complexType>
+
+  <complexType name="typeType">
+    <sequence>
+      <element ref="dotnet:alias" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="name" type="string" use="required"/>
+  </complexType>
+
+  <complexType name="propertyType">
+    <attribute name="type" type="string" use="required"/>
+  </complexType>
+
+</schema>

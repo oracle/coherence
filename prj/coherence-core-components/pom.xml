@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-core-components</artifactId>
+  <name>Coherence Core Components (core, core-net)</name>
+
+  <packaging>jar</packaging>
+
+  <description>
+    Builds the TDE-based Coherence Components (core, core-net)
+  </description>
+
+  <properties>
+    <!-- (re)define the root path of the entire product relative to this project -->
+    <root.path>${project.basedir}/../..</root.path>
+
+    <!-- the path containing artifact classes and resources (to be packaged into the coherence-core-components.jar artifact) -->
+    <artifact.classes.path>${project.build.directory}/artifact-classes</artifact.classes.path>
+    <artifact.sources.path>${project.build.directory}/artifact-sources</artifact.sources.path>
+
+    <!-- the path to tde generated sources (without package information) -->
+    <packageless.sources.path>${project.build.directory}/packageless-sources</packageless.sources.path>
+
+    <!-- TDE properties -->
+    <core.project>core</core.project>
+    <core.project.version>1.3</core.project.version>
+    <core.project.path>${tde.projects.path}/${core.project}/${core.project.version}</core.project.path>
+
+    <core-net.project>core-net</core-net.project>
+    <core-net.project.version>3.0</core-net.project.version>
+    <core-net.project.path>${tde.projects.path}/${core-net.project}/${core-net.project.version}</core-net.project.path>
+    <core-net.project.depends>core</core-net.project.depends>
+    <core-net.project.package>Component.Application.Console.Coherence</core-net.project.package>
+
+    <skip.docs>true</skip.docs>
+    <skip.sources>true</skip.sources>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-discovery</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <!-- copies the project dependencies required for compilation and packaging -->
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <excludeTransitive>true</excludeTransitive>
+              <outputDirectory>${tde.projects.dependencies.path}</outputDirectory>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <stripVersion>true</stripVersion>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>${maven.assembly.plugin.version}</version>
+
+        <executions>
+          <!-- creates the sources.jar artifact -->
+          <execution>
+            <id>create-sources-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <classifier>sources</classifier>
+              <descriptors>
+                <descriptor>src/assembly/sources.xml</descriptor>
+              </descriptors>
+              <attach>true</attach>
+              <skip>${tde.source.not.required}</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>${maven.antrun.plugin.version}</version>
+
+        <executions>
+          <!-- ensure that there is no left-over src directory from any previous code-coverage build -->
+          <execution>
+            <id>delete-coverage-src</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <delete includeEmptyDirs="true" failonerror="false">
+                  <fileset dir="${project.basedir}/src/main/java"/>
+                </delete>
+              </target>
+            </configuration>
+          </execution>
+
+          <!-- determine if compilation of the cdb-based components is actually required -->
+          <execution>
+            <id>detect-conditional-compilation</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <exportAntProperties>true</exportAntProperties>
+              <target>
+                <uptodate property="tde.compile.not.required" targetfile="${project.build.directory}/~last.compile">
+                  <srcfiles dir="${core.project.path}" includes="**/*.cdb"/>
+                  <srcfiles dir="${core-net.project.path}" includes="**/*.cdb"/>
+                  <srcfiles dir="${tde.projects.dependencies.path}" includes="**/*.jar"/>
+                </uptodate>
+              </target>
+            </configuration>
+          </execution>
+
+          <!-- clean the TDE compilation folders (only when a recompile is required) -->
+          <execution>
+            <id>conditional-clean</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- clean core project -->
+                <delete failonerror="false" includeemptydirs="true">
+                  <fileset dir="${core.project.path}/classes"/>
+                  <fileset dir="${core.project.path}/java"/>
+                  <fileset dir="${core.project.path}/target"/>
+                  <fileset file="${core.project.path}/~last.compile"/>
+                </delete>
+
+                <!-- clean core-net project -->
+                <delete failonerror="false" includeemptydirs="true">
+                  <fileset dir="${core-net.project.path}/classes"/>
+                  <fileset dir="${core-net.project.path}/java"/>
+                  <fileset dir="${core-net.project.path}/target"/>
+                  <fileset file="${core-net.project.path}/~last.compile"/>
+                </delete>
+              </target>
+              <skip>${tde.compile.not.required}</skip>
+            </configuration>
+          </execution>
+
+          <!-- ensure that there's a TDE target folder prior to packaging -->
+          <execution>
+            <id>create-core-net-target</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="${core-net.project.path}/target"/>
+              </target>
+            </configuration>
+          </execution>
+
+          <!-- touch the ~last.compile file to record the compilation time -->
+          <execution>
+            <id>update-last-compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <touch file="${project.build.directory}/~last.compile"/>
+
+                <!-- touch the respective CDB-based project ~last.compile files as well -->
+                <!-- (this is so that we can skip compiling these CDB-based projects in other modules) -->
+                <touch file="${core.project.path}/~last.compile"/>
+                <touch file="${core-net.project.path}/~last.compile"/>
+              </target>
+              <skip>${tde.compile.not.required}</skip>
+            </configuration>
+          </execution>
+
+          <!-- relocate the TDE source files for packaging -->
+          <execution>
+            <id>relocate-sources</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- the source-code filterset to relocate the TDE generated source package -->
+                <filterset id="java.filter" begintoken="_" endtoken="e">
+                  <filter token="packag" value="com.tangosol.coherence"/>
+                </filterset>
+
+                <!-- unzip all archived source -->
+                <unzip src="${tde.projects.path}/core/1_1_1.zip"
+                       dest="${packageless.sources.path}">
+                  <patternset>
+                    <include name="**/*.java"/>
+                  </patternset>
+                </unzip>
+                <unzip src="${tde.projects.path}/core-net/2_5.zip"
+                       dest="${packageless.sources.path}">
+                  <patternset>
+                    <include name="**/*.java"/>
+                  </patternset>
+                </unzip>
+
+                <!-- copy all source, replacing the package token in the process -->
+                <delete includeEmptyDirs="true" failonerror="false">
+                  <fileset dir="${artifact.sources.path}"/>
+                </delete>
+                <copy overwrite="true" todir="${artifact.sources.path}/com/tangosol/coherence">
+                  <fileset dir="${packageless.sources.path}/java/_package">
+                    <include name="**/*.java"/>
+                  </fileset>
+                  <filterset begintoken="_" endtoken="e">
+                    <filter token="packag" value="com.tangosol.coherence"/>
+                  </filterset>
+                </copy>
+                <copy overwrite="true" todir="${artifact.sources.path}/com/tangosol/coherence">
+                  <fileset dir="${tde.projects.path}/core/1.3/java/_package">
+                    <include name="**/*.java"/>
+                  </fileset>
+                  <filterset begintoken="_" endtoken="e">
+                    <filter token="packag" value="com.tangosol.coherence"/>
+                  </filterset>
+                </copy>
+                <copy overwrite="true" todir="${artifact.sources.path}/com/tangosol/coherence">
+                  <fileset dir="${tde.projects.path}/core-net/3.0/java/_package">
+                    <include name="**/*.java"/>
+                  </fileset>
+                  <filterset begintoken="_" endtoken="e">
+                    <filter token="packag" value="com.tangosol.coherence"/>
+                  </filterset>
+                </copy>
+              </target>
+              <skip>${tde.source.not.required}</skip>
+            </configuration>
+          </execution>
+
+          <!-- unpack the TDE generated classes so that the maven-jar-plugin can jar it -->
+          <execution>
+            <id>unpack-coherence-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <unjar src="${tde.projects.path}/${core-net.project}/${core-net.project.version}/target/coherence.jar"
+                       dest="${artifact.classes.path}"
+                       overwrite="true"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- ensure the published pom is "flattened" to remove the build instructions in this pom! -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>compile-core</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${java.executable}</executable>
+              <arguments>
+                <argument>-Xms${java.memory.minimum}</argument>
+                <argument>-Xmx${java.memory.maximum}</argument>
+                <argument>-Djava.awt.headless=true</argument>
+                <argument>-Dtangosol.taps.repos=file://${tde.projects.path}</argument>
+                <argument>-Dtangosol.taps.prj=${core.project}:${core.project.version}</argument>
+                <argument>-classpath</argument>
+                <argument>${tde.classpath}</argument>
+                <argument>com.tangosol.tde.component.application.console.Tcmd</argument>
+                <argument>-compile</argument>
+                <argument>-depend</argument>
+                <argument>-warnings:none</argument>
+                <argument>Component</argument>
+              </arguments>
+              <skip>${tde.compile.not.required}</skip>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>compile-core-net</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${java.executable}</executable>
+              <arguments>
+                <argument>-Xms${java.memory.minimum}</argument>
+                <argument>-Xmx${java.memory.maximum}</argument>
+                <argument>-Djava.awt.headless=true</argument>
+                <argument>-Dtangosol.taps.repos=file://${tde.projects.path}</argument>
+                <argument>-Dtangosol.taps.prj=${core-net.project}:${core-net.project.version}</argument>
+                <argument>-classpath</argument>
+                <argument>${tde.classpath}</argument>
+                <argument>com.tangosol.tde.component.application.console.Tcmd</argument>
+                <argument>-compile</argument>
+                <argument>-depend</argument>
+                <argument>-warnings:none</argument>
+                <argument>Component</argument>
+              </arguments>
+              <skip>${tde.compile.not.required}</skip>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>relocate-classes</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${java.executable}</executable>
+              <arguments>
+                <argument>-Xms${java.memory.minimum}</argument>
+                <argument>-Xmx${java.memory.maximum}</argument>
+                <argument>-Djava.awt.headless=true</argument>
+                <argument>-Dtangosol.taps.repos=file://${tde.projects.path}</argument>
+                <argument>-Dtangosol.taps.prj=${core-net.project}:${core-net.project.version}</argument>
+                <argument>-classpath</argument>
+                <argument>${tde.classpath}</argument>
+                <argument>com.tangosol.tde.component.application.console.Tcmd</argument>
+                <argument>-package</argument>
+                <argument>${core-net.project.package}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <classesDirectory>${artifact.classes.path}</classesDirectory>
+          <archive>
+            <compress>false</compress>
+            <manifestEntries>
+              <Implementation-Title>${project.name}</Implementation-Title>
+              <Implementation-Version>${project.version.official}</Implementation-Version>
+              <Implementation-Build>${project.build.number}</Implementation-Build>
+              <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+              <Implementation-GroupId>${project.groupId}</Implementation-GroupId>
+              <Specification-Version>${project.version.official}</Specification-Version>
+              <Specification-Vendor>${project.organization.name}</Specification-Vendor>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>code-coverage</id>
+      <activation>
+        <property>
+          <name>code.coverage.enabled</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <!-- For code coverage we need classes and source in the right location due to limitations on Jacoco only looking in those directories -->
+        <!-- the path containing artifact classes and resources (to be packaged into the coherence-core-components.jar artifact) -->
+        <artifact.classes.path>${project.build.directory}/classes</artifact.classes.path>
+        <artifact.sources.path>${project.basedir}/src/main/java</artifact.sources.path>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>instrument</id>
+                <goals>
+                    <goal>instrument</goal>
+                </goals>
+                <phase>prepare-package</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

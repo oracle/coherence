@@ -1,0 +1,6 @@
+Bundle-Version: 6.2.31
+Bundle-Name: Berkeley DB Java Edition
+Bundle-SymbolicName: com.sleepycat.je
+Bundle-Vendor: Oracle
+Export-Package: com.sleepycat.*
+Import-Package: *;resolution:=optional

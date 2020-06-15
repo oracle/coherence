@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-mock</artifactId>
+  <name>Coherence Mock</name>
+
+  <dependencies>
+    <!-- module dependencies -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- we deploy this module to a repository -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${maven.deploy.plugin.version}</version>
+        <configuration combine.self="override">
+          <skip>false</skip>
+        </configuration>
+      </plugin>
+
+      <!-- flatten POM to remove build-specific content -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>shade</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <artifactSet>
+                <includes>
+                  <include>com.oracle.coherence:coherence</include>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>com.oracle.coherence:coherence</artifact>
+                  <includes>
+                    <include>com/tangosol/io/AbstractByteArrayReadBuffer.class</include>
+                    <include>com/tangosol/io/AbstractEvolvable.class</include>
+                    <include>com/tangosol/io/AbstractReadBuffer.class</include>
+                    <include>com/tangosol/io/ClassLoaderAware.class</include>
+                    <include>com/tangosol/io/DefaultSerializer.class</include>
+                    <include>com/tangosol/io/Evolvable.class</include>
+                    <include>com/tangosol/io/ExternalizableLite.class</include>
+                    <include>com/tangosol/io/ReadBuffer$BufferInput.class</include>
+                    <include>com/tangosol/io/ReadBuffer$BufferInput.class</include>
+                    <include>com/tangosol/io/ReadBuffer.class</include>
+                    <include>com/tangosol/io/ReadBuffer.class</include>
+                    <include>com/tangosol/io/Serializer.class</include>
+                    <include>com/tangosol/io/SerializerAware.class</include>
+                    <include>com/tangosol/io/pof/ConfigurablePofContext.class</include>
+                    <include>com/tangosol/io/pof/EvolvablePortableObject.class</include>
+                    <include>com/tangosol/io/pof/PofConstants.class</include>
+                    <include>com/tangosol/io/pof/PofContext.class</include>
+                    <include>com/tangosol/io/pof/PofHandler.class</include>
+                    <include>com/tangosol/io/pof/PofHelper.class</include>
+                    <include>com/tangosol/io/pof/PofParser.class</include>
+                    <include>com/tangosol/io/pof/PofReader.class</include>
+                    <include>com/tangosol/io/pof/PofSerializer.class</include>
+                    <include>com/tangosol/io/pof/PofValue.class</include>
+                    <include>com/tangosol/io/pof/PofValueParser.class</include>
+                    <include>com/tangosol/io/pof/PofWriter.class</include>
+                    <include>com/tangosol/io/pof/PortableObject.class</include>
+                    <include>com/tangosol/io/pof/PortableObjectSerializer.class</include>
+                    <include>com/tangosol/io/pof/RawDate.class</include>
+                    <include>com/tangosol/io/pof/RawDateTime.class</include>
+                    <include>com/tangosol/io/pof/RawDayTimeInterval.class</include>
+                    <include>com/tangosol/io/pof/RawQuad.class</include>
+                    <include>com/tangosol/io/pof/RawTime.class</include>
+                    <include>com/tangosol/io/pof/RawTimeInterval.class</include>
+                    <include>com/tangosol/io/pof/RawYearMonthInterval.class</include>
+                    <include>com/tangosol/io/pof/reflect/PofNavigator.class</include>
+                    <include>com/tangosol/io/pof/reflect/PofValue.class</include>
+                    <include>com/tangosol/io/pof/reflect/PofValueParser.class</include>
+                    <include>com/tangosol/net/BackingMapManager.class</include>
+                    <include>com/tangosol/net/BackingMapManagerContext.class</include>
+                    <include>com/tangosol/net/CacheFactory.class</include>
+                    <include>com/tangosol/net/CacheService.class</include>
+                    <include>com/tangosol/net/Cluster.class</include>
+                    <include>com/tangosol/net/ClusterPermission.class</include>
+                    <include>com/tangosol/net/ConfigurableCacheFactory.class</include>
+                    <include>com/tangosol/net/DistributedCacheService.class</include>
+                    <include>com/tangosol/net/Invocable.class</include>
+                    <include>com/tangosol/net/InvocableInOrder.class</include>
+                    <include>com/tangosol/net/InvocationObserver.class</include>
+                    <include>com/tangosol/net/InvocationService.class</include>
+                    <include>com/tangosol/net/Member.class</include>
+                    <include>com/tangosol/net/MemberEvent.class</include>
+                    <include>com/tangosol/net/MemberListener.class</include>
+                    <include>com/tangosol/net/NamedCache.class</include>
+                    <include>com/tangosol/net/PartitionedService.class</include>
+                    <include>com/tangosol/net/PriorityTask.class</include>
+                    <include>com/tangosol/net/RequestTimeoutException.class</include>
+                    <include>com/tangosol/net/Service.class</include>
+                    <include>com/tangosol/net/ServiceInfo.class</include>
+                    <include>com/tangosol/net/cache/CacheEvent.class</include>
+                    <include>com/tangosol/net/cache/CacheLoader.class</include>
+                    <include>com/tangosol/net/cache/CacheMap.class</include>
+                    <include>com/tangosol/net/cache/CacheStore.class</include>
+                    <include>com/tangosol/net/cache/KeyAssociation.class</include>
+                    <include>com/tangosol/net/partition/KeyAssociator.class</include>
+                    <include>com/tangosol/net/partition/PartitionSet.class</include>
+                    <include>com/tangosol/run/xml/XmlConfigurable.class</include>
+                    <include>com/tangosol/run/xml/XmlElement.class</include>
+                    <include>com/tangosol/run/xml/XmlValue.class</include>
+                    <include>com/tangosol/util/Base.class</include>
+                    <include>com/tangosol/util/Binary.class</include>
+                    <include>com/tangosol/util/BinaryEntry.class</include>
+                    <include>com/tangosol/util/BinaryWriteBuffer.class</include>
+                    <include>com/tangosol/util/BitHelper.class</include>
+                    <include>com/tangosol/util/ConcurrentMap.class</include>
+                    <include>com/tangosol/util/ConcurrentMap$1.class</include>
+                    <include>com/tangosol/util/Controllable.class</include>
+                    <include>com/tangosol/util/ExternalizableHelper.class</include>
+                    <include>com/tangosol/util/Filter.class</include>
+                    <include>com/tangosol/util/InvocableMap.class</include>
+                    <include>com/tangosol/util/InvocableMap$Entry.class</include>
+                    <include>com/tangosol/util/InvocableMap$EntryAggregator.class</include>
+                    <include>com/tangosol/util/InvocableMap$EntryProcessor.class</include>
+                    <include>com/tangosol/util/InvocableMap$ParallelAwareAggregator.class</include>
+                    <include>com/tangosol/util/LongArray.class</include>
+                    <include>com/tangosol/util/MapEvent.class</include>
+                    <include>com/tangosol/util/MapEventTransformer.class</include>
+                    <include>com/tangosol/util/MapListener.class</include>
+                    <include>com/tangosol/util/MapTrigger.class</include>
+                    <include>com/tangosol/util/ObservableMap.class</include>
+                    <include>com/tangosol/util/QueryMap.class</include>
+                    <include>com/tangosol/util/QueryMap$Entry.class</include>
+                    <include>com/tangosol/util/Service.class</include>
+                    <include>com/tangosol/util/ServiceEvent.class</include>
+                    <include>com/tangosol/util/ServiceListener.class</include>
+                    <include>com/tangosol/util/ValueExtractor.class</include>
+                    <include>com/tangosol/util/ValueManipulator.class</include>
+                    <include>com/tangosol/util/ValueUpdater.class</include>
+                    <include>com/tangosol/util/filter/EntryFilter.class</include>
+                    <include>com/tangosol/util/filter/IndexAwareFilter.class</include>
+                    <include>com/tangosol/util/filter/PartitionedFilter.class</include>
+                  </includes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <configuration>
+              <skip>false</skip>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <configuration>
+              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

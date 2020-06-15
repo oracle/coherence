@@ -1,0 +1,29 @@
+#! /bin/bash
+#
+#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+#
+#  Licensed under the Universal Permissive License v 1.0 as shown at
+#  http://oss.oracle.com/licenses/upl.
+#
+
+# clean a CDB of DOS-style CR
+
+if [ -z $DEV_ROOT ]; then
+  cd $(dirname $0)/../../../bin
+  . ./cfglocal.sh
+  cd - > /dev/null
+fi
+
+xml1=/tmp/${1##*/}.1.xml
+xml2=/tmp/${1##*/}.2.xml
+
+# convert to XML
+rm $xml1
+$TDE_HOME/bin/cdb2xml $1 $xml1
+
+# clean the XML
+tr -d '\r' < $xml1 > $xml2
+
+# convert to CDB
+rm $1
+$TDE_HOME/bin/cdb2xml $xml2 $1

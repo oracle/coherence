@@ -1,0 +1,253 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Quick Start
+
+== Quick Start
+
+=== Prerequisites
+
+. Java - jdk8 or higher
+
+=== How to Get Coherence Community Edition
+
+In the majority of use-cases Coherence will be embedded into an application with the application using Coherence APIs,
+thus the natural place to start is downloading Coherence from maven central:
+
+[source,xml]
+.pom.xml
+----
+<dependencies>
+    <dependency>
+        <groupId>com.oracle.coherence.ce</groupId>
+        <artifactId>coherence</artifactId>
+        <version>14.1.1-0-1</version>
+    </dependency>
+</dependencies>
+----
+
+Other forms of acquiring Coherence include the official https://hub.docker.com/_/oracle-coherence-12c[Docker image],
+other language clients (http://github.com/oracle/coherence-cpp-extend-client[C{pp}] and
+http://github.com/oracle/coherence-dotnet-extend-client[.NET]), and for non community edition features of the product
+please take a look at the https://www.oracle.com/middleware/technologies/coherence-downloads.html[Oracle Technology Network].
+
+== CLI Hello Coherence
+
+The following example illustrated starting a *storage enabled* Coherence Server, followed by a *storage disabled*
+Coherence Console.
+Using the console data can be inserted, retrieved, the console can be terminated and started and data once again
+retrieved to illustrate the permanence of the data.
+
+NOTE: this example uses the out-of-the-box cache configuration and therefore explicitly specifying the console is
+storage disabled is unnecessary.
+
+NOTE: Coherence cluster members discover each other via one of two mechanisms;
+multicast (default) or Well Known Addressing (deterministic broadcast).
+If your system does not support multicast, enable WKA by specifying `-Dcoherence.wka=localhost` for both processes
+started in the following console examples.
+
+=== +++<a name="cohql">++++++</a>+++CohQL Console
+
+To run a CohQL console:
+
+[source,shell]
+----
+
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
+
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-1/coherence-14.1.1-0-1.jar
+
+$> java -jar $COH_JAR &
+
+$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
+
+CohQL> select * from welcomes
+
+CohQL> insert into welcomes key 'english' value 'Hello'
+
+CohQL> insert into welcomes key 'spanish' value 'Hola'
+
+CohQL> insert into welcomes key 'french' value 'Bonjour'
+
+CohQL> select key(), value() from welcomes
+Results
+["french", "Bonjour"]
+["english", "Hello"]
+["spanish", "Hola"]
+
+CohQL> bye
+
+$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
+
+CohQL> select key(), value() from welcomes
+Results
+["french", "Bonjour"]
+["english", "Hello"]
+["spanish", "Hola"]
+
+CohQL> bye
+
+$> kill %1
+----
+
+=== +++<a name="coh-console">++++++</a>+++Coherence Console
+
+To run the Coherence console:
+
+[source,shell]
+----
+
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
+
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-1/coherence-14.1.1-0-1.jar
+
+$> java -jar $COH_JAR &
+
+$> java -cp $COH_JAR com.tangosol.net.CacheFactory
+
+Map (?): cache welcomes
+
+Map (welcomes): get english
+null
+
+Map (welcomes): put english Hello
+null
+
+Map (welcomes): put spanish Hola
+null
+
+Map (welcomes): put french Bonjour
+null
+
+Map (welcomes): get english
+Hello
+
+Map (welcomes): list
+french = Bonjour
+spanish = Hola
+english = Hello
+
+Map (welcomes): bye
+
+$> java -cp $COH_JAR com.tangosol.net.CacheFactory
+
+Map (?): cache welcomes
+
+Map (welcomes): list
+french = Bonjour
+spanish = Hola
+english = Hello
+
+Map (welcomes): bye
+
+$> kill %1
+----
+
+== +++<a name="hello-coh">++++++</a>+++Programmatic Hello Coherence Example
+
+The following example illustrates starting a *storage enabled* Coherence server, followed by running the `HelloCoherence`
+application.
+The `HelloCoherence` application inserts and retrieves data from the Coherence server.
+
+=== Build `HelloCoherence`
+
+. Create a maven project either manually or using an archetype such as maven-archetype-quickstart
+. Add a dependency to the pom file:
+
+
+1. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
+
+[source,java]
+.HelloCoherence.java
+----
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.NamedCache;
+
+public class HelloCoherence
+    {
+    // ----- static methods -------------------------------------------------
+
+    public static void main(String[] asArgs)
+        {
+        NamedCache<String, String> cache = CacheFactory.getCache("welcomes");
+
+        System.out.printf("Accessing cache \"%s\" containing %d entries\n",
+                cache.getCacheName(),
+                cache.size());
+
+        cache.put("english", "Hello");
+        cache.put("spanish", "Hola");
+        cache.put("french" , "Bonjour");
+
+        // list
+        cache.entrySet().forEach(System.out::println);
+        }
+    }
+----
+
+. Compile the maven project:
++
+[source,shell]
+----
+mvn package
+----
+
+. Start a cache Server
++
+[source,shell]
+----
+mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
+----
+
+. Run `HelloCoherence`
++
+[source,shell]
+----
+mvn exec:java -Dexec.mainClass="HelloCoherence"
+----
+
+. Confirm you see output including the following:
++
+[source,shell]
+----
+Accessing cache "welcomes" containing 3 entries
+ConverterEntry{Key="french", Value="Bonjour"}
+ConverterEntry{Key="spanish", Value="Hola"}
+ConverterEntry{Key="english", Value="Hello"}
+----
+
+. Kill the cache server started previously:
++
+[source,shell]
+----
+kill %1
+----
+
+== +++<a name="build">++++++</a>+++Building
+
+[source,shell]
+----
+
+$> git clone git@github.com:oracle/coherence.git
+$> cd coherence/prj
+
+# build all modules
+$> mvn clean install
+
+# build all modules skipping tests
+$> mvn clean install -DskipTests
+
+# build a specific module, including all dependent modules and run tests
+$> mvn -am -pl test/functional/persistence clean verify
+
+# only build coherence.jar without running tests
+$> mvn -am -pl coherence clean install -DskipTests
+
+# only build coherence.jar and skip compilation of CDBs and tests
+$> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
+----

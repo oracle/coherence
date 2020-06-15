@@ -1,0 +1,47 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence gRPC
+
+== Coherence gRPC
+
+Coherence gRPC provides the protobuf definitions necessary to interact with a Coherence data management services over gRPC.
+This library also provides utilities for making low-level cache requests over gRPC, converting between gRPC and
+Coherence binary implementations.
+
+Given this, unless there is a plan to develop a Coherence gRPC client in another language or to create new services
+in Java, there is little need for developers to depend on this library.
+
+== Usage
+
+In order to use Coherence gRPC, you need to declare it as a dependency in your `pom.xml`:
+
+[source,xml]
+----
+<dependency>
+  <groupId>com.oracle.coherence.ce</groupId>
+  <artifactId>coherence-grpc</artifactId>
+  <version>${coherence.version}</version>
+</dependency>
+----
+
+== Protobuf Definitions
+
+
+|===
+|Proto File |Usage
+
+|services.proto
+|defines the RPCs for interacting with a Coherence data management services
+
+|requests.proto
+|defines the request/response structs for making requests to and receiving responses from Coherence
+data management services
+|===
+
+

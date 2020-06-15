@@ -1,0 +1,65 @@
+///////////////////////////////////////////////////////////////////////////////
+
+    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+
+///////////////////////////////////////////////////////////////////////////////
+
+= Coherence MicroProfile Metrics
+
+== Coherence MicroProfile Metrics
+
+Coherence MP Metrics provides support for [Eclipse MicroProfile Metrics] (https://microprofile.io/project/eclipse/microprofile-metrics) within Coherence cluster members.
+
+This is a very simple module that allows you to publish Coherence metrics into MicroProfile Metric Registries available at runtime, and adds Coherence-specific tags to all the metrics published within the process, in order to distinguish them on the monitoring server, such as Prometheus.
+
+== Usage
+
+In order to use Coherence MP Metrics, you need to declare it as a dependency in your `pom.xml`:
+
+[source,xml]
+----
+<dependency>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>coherence-mp-metrics</artifactId>
+    <version>${coherence.version}</version>
+</dependency>
+----
+
+That's it -- once the module above is in the class path, Coherence will discover `MpMetricRegistryAdapter` service it provides, and use it to publish all standard Coherence metrics to the vendor registry, and any user-defined application metrics to the application registry.
+
+All the metrics will be published as gauges, because they represent point-in-time values of various MBean attributes.
+
+== Coherence Global Tags
+
+There could be hundreds of members in a Coherence cluster, with each member  publishing potentially the same set of metrics.
+There could also be many Coherence clusters in the environment, possibly publishing to the same monitoring server instance.
+
+In order to distinguish metrics coming from different clusters, as well as from different members of the same cluster, Coherence MP Metrics will automatically add several tags to *ALL* the metrics published within the process.
+
+The tags added are:
+
+|===
+| Tag Name | Tag Value
+
+| `cluster`
+| the cluster name
+
+| `site`
+| the site the member belongs to (if set)
+
+| `machine`
+| the machine member is on (if set)
+
+| `member`
+| the name of the member (if set)
+
+| `node_id`
+| the node ID of the member
+
+| `role`
+| the member's role
+|===
+
+This ensures that the metrics published by one member do not collide with and  overwrite the metrics published by another members, and allows you to query and  aggregate metrics based on the values of the tags above if desired.
