@@ -1,8 +1,6 @@
-com.oracle.coherence.cache.grpc.client
 com.oracle.coherence.cdi
 com.oracle.coherence.common.base
 com.oracle.coherence.grpc.proxy
-com.oracle.coherence.grpc.proxy.client
 com.oracle.coherence.mp.config
 com.tangosol.application
 com.tangosol.coherence.config

@@ -1,6 +1,4 @@
-com.oracle.common.base
 com.tangosol.application
-com.tangosol.coherence.commonj
 com.tangosol.coherence.config
 com.tangosol.coherence.config.builder
 com.tangosol.coherence.config.builder.storemanager
@@ -22,8 +20,6 @@ com.tangosol.coherence.dsltools.base
 com.tangosol.coherence.dsltools.precedence
 com.tangosol.coherence.dsltools.termlanguage
 com.tangosol.coherence.dsltools.termtrees
-com.tangosol.coherence.federation
-com.tangosol.coherence.federation.events
 com.tangosol.coherence.jcache
 com.tangosol.coherence.jcache.common
 com.tangosol.coherence.jcache.localcache
@@ -43,19 +39,11 @@ com.tangosol.coherence.rest.util.aggregator
 com.tangosol.coherence.rest.util.extractor
 com.tangosol.coherence.rest.util.processor
 com.tangosol.coherence.rest.util.updater
-com.tangosol.coherence.servlet
-com.tangosol.coherence.servlet.api23
-com.tangosol.coherence.servlet.commonj
-com.tangosol.coherence.servlet.commonj.impl
-com.tangosol.coherence.servlet.management
-com.tangosol.coherence.transaction
-com.tangosol.coherence.transaction.exception
 com.tangosol.config
 com.tangosol.config.annotation
 com.tangosol.config.xml
 com.tangosol.io
 com.tangosol.io.bdb
-com.tangosol.io.journal
 com.tangosol.io.nio
 com.tangosol.io.pof
 com.tangosol.io.pof.annotation
@@ -65,7 +53,6 @@ com.tangosol.net.cache
 com.tangosol.net.events
 com.tangosol.net.events.annotation
 com.tangosol.net.events.application
-com.tangosol.net.events.federation
 com.tangosol.net.events.partition
 com.tangosol.net.events.partition.cache
 com.tangosol.net.management
