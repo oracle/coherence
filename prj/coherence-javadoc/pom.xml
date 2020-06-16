@@ -431,10 +431,6 @@
                       <packages>com.tangosol.config*:com.tangosol.coherence.config*</packages>
                     </group>
                     <group>
-                      <title>Container Integration</title>
-                      <packages>com.tangosol.application*</packages>
-                    </group>
-                    <group>
                       <title>Persistence</title>
                       <packages>com.oracle.coherence.persistence*:com.tangosol.persistence*</packages>
                     </group>
