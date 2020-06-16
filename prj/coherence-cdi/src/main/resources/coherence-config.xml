@@ -33,7 +33,7 @@ Should be overridden by the application.
     <!-- partitioned storage scheme for servers -->
     <distributed-scheme>
       <scheme-name>default-storage</scheme-name>
-      <service-name>${coherence.service.prefix Storage}}Service</service-name>
+      <service-name>${coherence.service.prefix Storage}Service</service-name>
       <backing-map-scheme>
         <local-scheme/>
       </backing-map-scheme>
@@ -43,7 +43,7 @@ Should be overridden by the application.
     <!-- partitioned topic scheme for servers -->
     <paged-topic-scheme>
       <scheme-name>default-topic</scheme-name>
-      <service-name>${coherence.service.prefix Default}}TopicService</service-name>
+      <service-name>${coherence.service.prefix Default}TopicService</service-name>
       <local-storage system-property="coherence.topic.localstorage">true</local-storage>
       <autostart system-property="coherence.topic.enabled">true</autostart>
       <high-units system-property="coherence.topic.max_size">0B</high-units>

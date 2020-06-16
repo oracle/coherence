@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.tangosol.net.CacheFactoryBuilder;
 import javax.annotation.Priority;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -55,7 +56,7 @@ public interface CacheFactoryUriResolver
             {
             if (sValue == null || sValue.trim().isEmpty())
                 {
-                return WithConfiguration.autoDetect().getLocation();
+                return CacheFactoryBuilder.URI_DEFAULT;
                 }
             return sValue;
             }

@@ -28,7 +28,8 @@ import com.tangosol.run.xml.XmlElement;
 *
 * @since Coherence 3.5.1
 */
-public interface CacheFactoryBuilder extends SessionProvider
+public interface CacheFactoryBuilder
+        extends SessionProvider
     {
     /**
     * Return the default ConfigurableCacheFactory for a given class loader.
@@ -111,7 +112,7 @@ public interface CacheFactoryBuilder extends SessionProvider
     */
     public void release(ConfigurableCacheFactory factory);
 
-    // ----- SessionProvider methods ---------------------------------------
+    // ----- SessionProvider methods ----------------------------------------
 
     @Override
     default Session createSession(Session.Option... aOptions)
@@ -131,4 +132,11 @@ public interface CacheFactoryBuilder extends SessionProvider
 
         return new ConfigurableCacheFactorySession(factory, loader);
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Default URI identifier.
+     */
+    public String URI_DEFAULT = "$Default$";
     }

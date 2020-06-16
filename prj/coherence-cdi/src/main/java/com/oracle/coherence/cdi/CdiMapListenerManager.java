@@ -34,7 +34,7 @@ public class CdiMapListenerManager
     {
     private void registerListeners(@Observes @Created CacheLifecycleEvent event)
         {
-        Set<CdiMapListener<?, ?>> setListeners = m_extension.getMapListeners(event.getServiceName(), event.getCacheName());
+        Set<CdiMapListener<?, ?>> setListeners = m_extension.getMapListeners(removeScope(event.getServiceName()), event.getCacheName());
 
         NamedCache cache       = event.getCache();
         String     sEventScope = cache.getCacheService().getBackingMapManager().getCacheFactory().getScopeName();
@@ -60,30 +60,19 @@ public class CdiMapListenerManager
             }
         }
 
-    private void unregisterListeners(@Observes @Destroyed CacheLifecycleEvent event)
+    // ---- helpers --------------------------------------------------------
+
+    /**
+     * Remove the scope prefix from a specified service name.
+     *
+     * @param sServiceName  the service name to remove scope prefix from
+     *
+     * @return service name with scope prefix removed
+     */
+    private String removeScope(String sServiceName)
         {
-        Set<CdiMapListener<?, ?>> setListeners = m_extension.getMapListeners(event.getServiceName(), event.getCacheName());
-
-        NamedCache cache       = event.getCache();
-        String     sEventScope = cache.getCacheService().getBackingMapManager().getCacheFactory().getScopeName();
-
-        for (CdiMapListener<?, ?> listener : setListeners)
-            {
-            String sScope = listener.getScopeName();
-            if (sScope == null || sScope.equals(sEventScope))
-                {
-                // TODO: get filter from a listener definition, if available
-                Filter filter = Filters.always();
-                if (listener.isSynchronous())
-                    {
-                    cache.removeMapListener(listener.synchronous(), filter);
-                    }
-                else
-                    {
-                    cache.removeMapListener(listener, filter);
-                    }
-                }
-            }
+        int nIndex = sServiceName.indexOf(':');
+        return nIndex > -1 ? sServiceName.substring(nIndex + 1) : sServiceName;
         }
 
     // ---- data members ---------------------------------------------------

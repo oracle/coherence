@@ -29,10 +29,7 @@ public interface ConfigurableCacheFactory
     {
     /**
      * Activate prepares the factory to be used within a container and should be
-     * called before any other factory method. Note that this factory can only be
-     * activated once and disposed of once.
-     *
-     * @throws IllegalStateException  if this factory has already been activated
+     * called before any other factory method.
      *
      * @since Coherence 12.1.2
      */
@@ -43,8 +40,6 @@ public interface ConfigurableCacheFactory
      * factory and dispose of all resources registered via {@link #getResourceRegistry()}.
      *
      * This factory may not be used after invoking dispose.
-     *
-     * @throws IllegalStateException  if this factory is not active
      *
      * @since Coherence 12.1.2
      */
@@ -242,6 +237,6 @@ public interface ConfigurableCacheFactory
      */
     public default String getScopeName()
         {
-        return getResourceRegistry().getResource(String.class, "scope-name");
+        return null;
         }
     }

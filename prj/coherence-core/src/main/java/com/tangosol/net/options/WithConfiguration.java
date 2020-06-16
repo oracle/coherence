@@ -10,6 +10,7 @@ import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.config.ConfigurationException;
 
+import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionProvider;
 
@@ -47,7 +48,7 @@ public interface WithConfiguration
     @Options.Default
     static WithConfiguration autoDetect()
         {
-        return () -> "$Default$";
+        return () -> CacheFactoryBuilder.URI_DEFAULT;
         }
 
     /**
