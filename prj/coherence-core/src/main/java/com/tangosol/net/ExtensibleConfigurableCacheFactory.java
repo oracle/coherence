@@ -541,7 +541,7 @@ public class ExtensibleConfigurableCacheFactory
         {
         if (m_fActivated)
             {
-            throw new IllegalStateException("This factory is already active.");
+            return;
             }
 
         // validate the configuration
@@ -567,6 +567,11 @@ public class ExtensibleConfigurableCacheFactory
     @Override
     public synchronized void dispose()
         {
+        if (m_fDisposed)
+            {
+            return;
+            }
+
         try
             {
             f_dispatcher.dispatchDisposing(this);
@@ -630,7 +635,8 @@ public class ExtensibleConfigurableCacheFactory
      */
     public String getScopeName()
         {
-        return f_cacheConfig.getScopeName();
+        String sScopeName = getResourceRegistry().getResource(String.class, "scope-name");
+        return sScopeName == null ? f_cacheConfig.getScopeName() : sScopeName;
         }
 
     /**

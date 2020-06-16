@@ -30,7 +30,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Integration test for the {@link CdiInterceptorSupport} using the Weld JUnit
+ * Integration test for the {@link Injectable} using the Weld JUnit
  * extension.
  *
  * @author Aleks Seovic  2020.04.03

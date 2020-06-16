@@ -25,6 +25,9 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.ScopedCacheFactoryBuilder;
 
+import com.tangosol.net.Service;
+import com.tangosol.net.ServiceMonitor;
+import com.tangosol.net.SimpleServiceMonitor;
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.application.LifecycleEvent;
 import com.tangosol.net.events.partition.TransactionEvent;
@@ -48,7 +51,9 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
@@ -98,7 +103,7 @@ public class CoherenceExtension
     private void processLifecycleEventObservers(
             @Observes ProcessObserverMethod<LifecycleEvent, ?> event)
         {
-        m_lstInterceptors.add(new LifecycleEventHandler(event.getObserverMethod()));
+        m_listInterceptors.add(new LifecycleEventHandler(event.getObserverMethod()));
         }
 
     /**
@@ -109,7 +114,7 @@ public class CoherenceExtension
     private void processCacheLifecycleEventObservers(
             @Observes ProcessObserverMethod<CacheLifecycleEvent, ?> event)
         {
-        m_lstInterceptors.add(new CacheLifecycleEventHandler(event.getObserverMethod()));
+        m_listInterceptors.add(new CacheLifecycleEventHandler(event.getObserverMethod()));
         }
 
     /**
@@ -122,7 +127,7 @@ public class CoherenceExtension
     private <K, V> void processEntryEventObservers(
             @Observes ProcessObserverMethod<EntryEvent<K, V>, ?> event)
         {
-        m_lstInterceptors.add(new EntryEventHandler<>(event.getObserverMethod()));
+        m_listInterceptors.add(new EntryEventHandler<>(event.getObserverMethod()));
         }
 
     /**
@@ -133,7 +138,7 @@ public class CoherenceExtension
     private void processEntryProcessorEventObservers(
             @Observes ProcessObserverMethod<EntryProcessorEvent, ?> event)
         {
-        m_lstInterceptors.add(new EntryProcessorEventHandler(event.getObserverMethod()));
+        m_listInterceptors.add(new EntryProcessorEventHandler(event.getObserverMethod()));
         }
 
    /**
@@ -144,7 +149,7 @@ public class CoherenceExtension
     private void processTransactionEventObservers(
             @Observes ProcessObserverMethod<TransactionEvent, ?> event)
         {
-        m_lstInterceptors.add(new TransactionEventHandler(event.getObserverMethod()));
+        m_listInterceptors.add(new TransactionEventHandler(event.getObserverMethod()));
         }
 
    /**
@@ -155,7 +160,7 @@ public class CoherenceExtension
     private void processTransferEventObservers(
             @Observes ProcessObserverMethod<TransferEvent, ?> event)
         {
-        m_lstInterceptors.add(new TransferEventHandler(event.getObserverMethod()));
+        m_listInterceptors.add(new TransferEventHandler(event.getObserverMethod()));
         }
 
    /**
@@ -166,7 +171,7 @@ public class CoherenceExtension
     private void processUnsolicitedCommitEventObservers(
             @Observes ProcessObserverMethod<UnsolicitedCommitEvent, ?> event)
         {
-        m_lstInterceptors.add(new UnsolicitedCommitEventHandler(event.getObserverMethod()));
+        m_listInterceptors.add(new UnsolicitedCommitEventHandler(event.getObserverMethod()));
         }
 
     // ---- Filter and Extractor injection support --------------------------
@@ -242,20 +247,29 @@ public class CoherenceExtension
      * @param event the event fired once the CDI container is initialized
      */
     @SuppressWarnings("unused")
-    private void startServer(@Observes ContainerInitialized event, BeanManager beanManager)
+    synchronized void startServer(@Observes ContainerInitialized event, BeanManager beanManager)
         {
+        m_beanManager = beanManager;
         CacheFactoryBuilder cfb = m_cacheFactoryBuilder = new CdiCacheFactoryBuilder();
 
         // start system CCF
         ConfigurableCacheFactory ccfSys = m_ccfSys = cfb.getConfigurableCacheFactory("coherence-system-config.xml", null);
-        registerInterceptors(ccfSys);
-        ccfSys.getResourceRegistry().registerResource(BeanManager.class, "beanManager", beanManager);
-        ccfSys.activate();
+        initializeConfigurableCacheFactory(ccfSys);
+
+        // start discovered CCFs
+        Instance<ScopeInitializer> initializers = beanManager.createInstance().select(ScopeInitializer.class, Any.Literal.INSTANCE);
+        for (ScopeInitializer initializer : initializers)
+            {
+            ConfigurableCacheFactory ccf = initializer.getConfigurableCacheFactory(cfb);
+            if (ccf != null)
+                {
+                initializeConfigurableCacheFactory(ccf);
+                }
+            }
 
         // start default/application CCF using DCS
         ConfigurableCacheFactory ccfApp = m_ccfApp = cfb.getConfigurableCacheFactory(null);
-        registerInterceptors(ccfApp);
-        ccfApp.getResourceRegistry().registerResource(BeanManager.class, "beanManager", beanManager);
+        initializeConfigurableCacheFactory(ccfApp);
         DefaultCacheServer.startServerDaemon(ccfApp).waitForServiceStart();
         }
 
@@ -264,14 +278,39 @@ public class CoherenceExtension
      *
      * @param event the event fired before the CDI container is shut down
      */
-    void stopServer(@Observes BeforeShutdown event)
+    @SuppressWarnings("unused")
+    synchronized void stopServer(@Observes BeforeShutdown event)
         {
-        m_ccfApp.dispose();
-        m_ccfSys.dispose();
+        f_listServiceMonitors.forEach(ServiceMonitor::stopMonitoring);
+        f_listCCF.forEach(ConfigurableCacheFactory::dispose);
         DefaultCacheServer.shutdown();
         }
 
     // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Initialize specified {@link ConfigurableCacheFactory} with discovered
+     * event observers and {@link BeanManager}.
+     *
+     * @param ccf  the ConfigurableCacheFactory to initialize
+     */
+    public void initializeConfigurableCacheFactory(ConfigurableCacheFactory ccf)
+        {
+        registerInterceptors(ccf);
+        ccf.getResourceRegistry().registerResource(BeanManager.class, "beanManager", m_beanManager);
+        ccf.activate();
+        f_listCCF.add(0, ccf);
+
+        if (ccf instanceof ExtensibleConfigurableCacheFactory)
+            {
+            ExtensibleConfigurableCacheFactory eccf = (ExtensibleConfigurableCacheFactory) ccf;
+            ServiceMonitor serviceMon = new SimpleServiceMonitor();
+
+            serviceMon.setConfigurableCacheFactory(eccf);
+            serviceMon.registerServices(eccf.getServiceMap());
+            f_listServiceMonitors.add(0, serviceMon);
+            }
+        }
 
     /**
      * Return the {@code CacheFactoryBuilder builder} to obtain
@@ -314,8 +353,14 @@ public class CoherenceExtension
     ConfigurableCacheFactory registerInterceptors(ConfigurableCacheFactory ccf)
         {
         InterceptorRegistry registry = ccf.getInterceptorRegistry();
-        m_lstInterceptors.forEach(interceptor ->
-                registry.registerEventInterceptor(interceptor.getId(), interceptor, RegistrationBehavior.FAIL));
+        for (EventHandler<?, ?> handler : m_listInterceptors)
+            {
+            if (handler.getScopeName() == null || handler.getScopeName().equals(ccf.getScopeName()))
+                {
+                registry.registerEventInterceptor(handler.getId(), handler, RegistrationBehavior.FAIL);
+                }
+            }
+
         return ccf;
         }
 
@@ -382,22 +427,29 @@ public class CoherenceExtension
         {
         public CdiCacheFactoryBuilder()
             {
-            super((sConfigURI, loader, sScopeName) -> sScopeName);
+            super((sConfigURI, loader, sScopeName) ->
+                  {
+                  // extract scope name from the config URI, if present
+                  String[] asParts = sConfigURI.split("@");
+                  return asParts.length > 1
+                          ? asParts[0]
+                          : sScopeName;
+                  });
             }
 
         @Override
         protected String resolveURI(String sConfigURI)
             {
-            sConfigURI = super.resolveURI(sConfigURI);
+            // strip scope name from the config URI, if present
+            String[] asParts = sConfigURI.split("@");
+            if (asParts.length > 1)
+                {
+                sConfigURI = asParts[1];
+                }
 
-            if (sConfigURI.equals(ExtensibleConfigurableCacheFactory.FILE_CFG_CACHE))
-                {
-                return DEFAULT_CONFIG;
-                }
-            else
-                {
-                return sConfigURI;
-                }
+            return URI_DEFAULT.equals(sConfigURI)
+                    ? DEFAULT_CONFIG
+                    : super.resolveURI(sConfigURI);
             }
 
         @Override
@@ -445,9 +497,24 @@ public class CoherenceExtension
     // ---- data members ----------------------------------------------------
 
     /**
-     * {@link CacheFactoryBuilder} to use when creating new cache factories.
+     * The {@link BeanManager} for this extension.
+     */
+    private BeanManager m_beanManager;
+
+    /**
+     * The {@link CacheFactoryBuilder} to use when creating new cache factories.
      */
     private CdiCacheFactoryBuilder m_cacheFactoryBuilder;
+
+    /**
+     * A list of {@link ConfigurableCacheFactory} instances initialized by this extension.
+     */
+    private final List<ConfigurableCacheFactory> f_listCCF = new ArrayList<>();
+
+    /**
+     * A list of {@link ServiceMonitor}s initialized by this extension.
+     */
+    private final List<ServiceMonitor> f_listServiceMonitors = new ArrayList<>();
 
     /**
      * System {@link ConfigurableCacheFactory}.
@@ -467,7 +534,7 @@ public class CoherenceExtension
     /**
      * A list of event interceptors for all discovered observer methods.
      */
-    private final List<EventHandler<?, ?>> m_lstInterceptors = new ArrayList<>();
+    private final List<EventHandler<?, ?>> m_listInterceptors = new ArrayList<>();
 
     /**
      * A map of {@link FilterBinding} annotation to {@link FilterFactory} bean

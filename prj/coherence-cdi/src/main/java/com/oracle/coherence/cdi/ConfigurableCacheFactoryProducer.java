@@ -151,7 +151,7 @@ class ConfigurableCacheFactoryProducer
         String sUri = f_uriResolver.resolve(sScope);
         if (sUri == null || sUri.trim().isEmpty())
             {
-            sUri = WithConfiguration.autoDetect().getLocation();
+            sUri = CacheFactoryBuilder.URI_DEFAULT;
             }
 
         Member member = injectionPoint.getMember();
@@ -160,13 +160,12 @@ class ConfigurableCacheFactoryProducer
                              : member.getDeclaringClass().getClassLoader();
 
         ccf = getCacheFactoryBuilder().getConfigurableCacheFactory(sUri, loader);
-        if (ccf.getResourceRegistry().getResource(BeanManager.class, "beanManager") != null)
+        if (ccf.getResourceRegistry().getResource(BeanManager.class, "beanManager") == null)
             {
-            return ccf;
+            f_extension.initializeConfigurableCacheFactory(ccf);
             }
         
-        ccf.getResourceRegistry().registerResource(BeanManager.class, "beanManager", f_beanManager);
-        return f_extension.registerInterceptors(ccf);
+        return ccf;
         }
 
     // ---- data members ----------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -16,53 +16,52 @@ import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 
 /**
- * A qualifier annotation used when injecting Coherence resource to indicate a
- * specific resource name.
+ * A qualifier annotation used to indicate a configuration resource URI.
  *
- * @author Jonathan Knight  2019.10.20
+ * @author Aleks Seovic  2020.06.15
  * @since 20.06
  */
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Name
+public @interface ConfigUri
     {
     /**
-     * The name used to identify a specific resource.
+     * The URI used to identify a specific config resource.
      *
-     * @return the name used to identify a specific resource
+     * @return the URI used to identify a specific config resource
      */
     @Nonbinding String value();
 
     // ---- inner class: Literal --------------------------------------------
 
     /**
-     * An annotation literal for the {@link Name} annotation.
+     * An annotation literal for the {@link ConfigUri} annotation.
      */
     class Literal
-            extends AnnotationLiteral<Name>
-            implements Name
+            extends AnnotationLiteral<ConfigUri>
+            implements ConfigUri
         {
         /**
-         * Construct {@link Name.Literal} instance.
+         * Construct {@link ConfigUri.Literal} instance.
          *
-         * @param sName  the resource name
+         * @param sURI  the config resource URI
          */
-        private Literal(String sName)
+        private Literal(String sURI)
             {
-            m_sName = sName;
+            m_sURI = sURI;
             }
 
         /**
-         * Create a {@link Name.Literal}.
+         * Create a {@link ConfigUri.Literal}.
          *
-         * @param sName  the resource name
+         * @param sURI  the config resource URI
          *
-         * @return a {@link Name.Literal} with the specified value
+         * @return a {@link ConfigUri.Literal} with the specified value
          */
-        public static Literal of(String sName)
+        public static Literal of(String sURI)
             {
-            return new Literal(sName);
+            return new Literal(sURI);
             }
 
         /**
@@ -72,14 +71,14 @@ public @interface Name
          */
         public String value()
             {
-            return m_sName;
+            return m_sURI;
             }
 
         // ---- data members ------------------------------------------------
 
         /**
-         * The resource name.
+         * The config resource URI.
          */
-        private final String m_sName;
+        private final String m_sURI;
         }
     }

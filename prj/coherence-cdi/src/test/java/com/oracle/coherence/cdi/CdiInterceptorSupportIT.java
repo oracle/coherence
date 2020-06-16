@@ -7,6 +7,8 @@
 package com.oracle.coherence.cdi;
 
 import com.oracle.coherence.cdi.events.MapName;
+import com.oracle.coherence.cdi.events.ScopeName;
+import com.oracle.coherence.cdi.events.ServiceName;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Set;
@@ -39,6 +41,7 @@ import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
 import com.tangosol.util.InvocableMap;
 
+import javax.inject.Named;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
@@ -66,10 +69,18 @@ class CdiInterceptorSupportIT
                                                           .addExtension(new CoherenceExtension())
                                                           .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
+                                                          .addBeanClass(EventsScope.class)
                                                           .addBeanClass(TestObservers.class));
 
+    @ApplicationScoped
+    @Named("server-events")
+    @ConfigUri("cdi-events-config.xml")
+    private static class EventsScope
+            implements ScopeInitializer
+        {}
+
     @Inject
-    @Scope("cdi-events-config.xml")
+    @Scope("server-events")
     private ConfigurableCacheFactory ccf;
 
     @Inject
@@ -152,7 +163,7 @@ class CdiInterceptorSupportIT
             }
 
         // transfer events
-        private void onTransferEvent(@Observes TransferEvent event)
+        private void onTransferEvent(@Observes @ScopeName("server-events") @ServiceName("People") TransferEvent event)
             {
             record(event);
             }
@@ -164,7 +175,7 @@ class CdiInterceptorSupportIT
             }
 
         // cache lifecycle events
-        private void onCacheLifecycleEvent(@Observes CacheLifecycleEvent event)
+        private void onCacheLifecycleEvent(@Observes @ServiceName("People") CacheLifecycleEvent event)
             {
             record(event);
             }

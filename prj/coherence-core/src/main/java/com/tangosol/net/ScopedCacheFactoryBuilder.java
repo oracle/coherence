@@ -8,7 +8,6 @@ package com.tangosol.net;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.Dependencies;
 
-import com.tangosol.net.options.WithConfiguration;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
@@ -590,9 +589,4 @@ public class ScopedCacheFactoryBuilder
      */
     protected Map<ClassLoader, Map<URI, XmlElement>> m_mapConfigByLoader =
             new CopyOnWriteMap(WeakHashMap.class);
-
-    /**
-     * Internally used "default" URI identifier.
-     */
-    protected static final String URI_DEFAULT = WithConfiguration.autoDetect().getLocation(); //"$Default$";
     }

@@ -121,7 +121,7 @@ class CdiInterceptorSupport
             if (shouldFire(event))
                 {
                 String sObserverScope = m_sScopeName;
-                String sEventScope    = getScopeName(event);
+                String sEventScope    = getEventScope(event);
 
                 if (sObserverScope == null || sEventScope == null || sObserverScope.equals(sEventScope))
                     {
@@ -179,7 +179,7 @@ class CdiInterceptorSupport
          *
          * @return the scope name
          */
-        protected String getScopeName(E event)
+        protected String getEventScope(E event)
             {
             return null;
             }
@@ -202,6 +202,29 @@ class CdiInterceptorSupport
         protected EnumSet<T> eventTypes()
             {
             return m_setTypes.isEmpty() ? EnumSet.complementOf(m_setTypes) : m_setTypes;
+            }
+
+        /**
+         * Return the name of the scope this interceptor should be registered with.
+         *
+         * @return the name of the scope this interceptor should be registered with
+         */
+        public String getScopeName()
+            {
+            return m_sScopeName;
+            }
+
+        /**
+         * Remove the scope prefix from a specified service name.
+         *
+         * @param sServiceName  the service name to remove scope prefix from
+         *
+         * @return service name with scope prefix removed
+         */
+        protected String removeScope(String sServiceName)
+            {
+            int nIndex = sServiceName.indexOf(':');
+            return nIndex > -1 ? sServiceName.substring(nIndex + 1) : sServiceName;
             }
 
         // ---- data members ------------------------------------------------
@@ -259,7 +282,7 @@ class CdiInterceptorSupport
             }
 
         @Override
-        protected String getScopeName(LifecycleEvent event)
+        protected String getEventScope(LifecycleEvent event)
             {
             return event.getConfigurableCacheFactory().getScopeName();
             }
@@ -315,7 +338,7 @@ class CdiInterceptorSupport
                if (sScopeName == null || sScopeName.equals(ccf.getScopeName()))
                    {
                    return ((m_cacheName == null || m_cacheName.equals(pcd.getCacheName())) &&
-                           (m_serviceName == null || m_serviceName.equals(pcd.getServiceName())));
+                           (m_serviceName == null || m_serviceName.equals(removeScope(pcd.getServiceName()))));
                    }
                }
            
@@ -481,7 +504,7 @@ class CdiInterceptorSupport
 
                if (ccf == null || sScopeName == null || sScopeName.equals(ccf.getScopeName()))
                    {
-                   return m_serviceName == null || m_serviceName.equals(psd.getServiceName());
+                   return m_serviceName == null || m_serviceName.equals(removeScope(psd.getServiceName()));
                    }
                }
 

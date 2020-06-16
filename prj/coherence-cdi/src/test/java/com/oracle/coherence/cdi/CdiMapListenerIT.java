@@ -13,6 +13,8 @@ import com.oracle.coherence.cdi.events.CacheName;
 import com.oracle.coherence.cdi.events.Deleted;
 import com.oracle.coherence.cdi.events.Inserted;
 import com.oracle.coherence.cdi.events.MapName;
+import com.oracle.coherence.cdi.events.ScopeName;
+import com.oracle.coherence.cdi.events.ServiceName;
 import com.oracle.coherence.cdi.events.Synchronous;
 import com.oracle.coherence.cdi.events.Updated;
 
@@ -30,6 +32,7 @@ import javax.enterprise.event.Observes;
 
 import javax.inject.Inject;
 
+import javax.inject.Named;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
@@ -56,11 +59,19 @@ class CdiMapListenerIT
                                                           .addExtension(new CoherenceExtension())
                                                           .addBeanClass(CacheFactoryUriResolver.Default.class)
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
+                                                          .addBeanClass(EventsScope.class)
                                                           .addBeanClass(CdiMapListenerManager.class)
                                                           .addBeanClass(TestListener.class));
 
+    @ApplicationScoped
+    @Named("client-events")
+    @ConfigUri("cdi-events-config.xml")
+    private static class EventsScope
+            implements ScopeInitializer
+        {}
+
     @Inject
-    @Scope("cdi-events-config.xml")
+    @Scope("client-events")
     private ConfigurableCacheFactory ccf;
 
     @Inject
@@ -104,11 +115,10 @@ class CdiMapListenerIT
             }
         }
 
-    @SuppressWarnings("unchecked")
     @ApplicationScoped
     public static class TestListener
         {
-        private Map<Integer, Integer> events = new HashMap<>();
+        private final Map<Integer, Integer> events = new HashMap<>();
 
         Integer getEvents(int id)
             {
@@ -122,14 +132,14 @@ class CdiMapListenerIT
             }
 
         @Synchronous
-        private void onPersonInserted(@Observes @Inserted @MapName("people") MapEvent<String, Person> event)
+        private void onPersonInserted(@Observes @Inserted @ScopeName("client-events") @MapName("people") MapEvent<String, Person> event)
             {
             record(event);
             assertThat(event.getNewValue().getLastName(), is("Simpson"));
             }
 
         @Synchronous
-        private void onPersonUpdated(@Observes @Updated @MapName("people") MapEvent<String, Person> event)
+        private void onPersonUpdated(@Observes @Updated @ServiceName("People") @MapName("people") MapEvent<String, Person> event)
             {
             record(event);
             assertThat(event.getOldValue().getLastName(), is("Simpson"));
