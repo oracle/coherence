@@ -281,9 +281,6 @@
                   <reportOutputDirectory>${project.build.directory}/javadoc</reportOutputDirectory>
                   <skip>false</skip>
                   <sourceFileIncludes>
-                    <include>com/tangosol/application/*.java</include>
-                    <include>com/tangosol/application/server/*.java</include>
-
                     <include>com/tangosol/coherence/commonj/*.java</include>
 
                     <include>com/tangosol/coherence/config/*.java</include>
