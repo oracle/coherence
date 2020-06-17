@@ -9,7 +9,7 @@
 
 #!/bin/sh -e -x -u
 
-trap "echo TRAPed signal" HUP INT QUIT KILL TERM
+trap "echo TRAPed signal" HUP INT QUIT TERM
 
 main()
     {
@@ -72,8 +72,6 @@ usage()
 
 server()
     {
-    # default to JDK logger for DCS
-    PROPS="${PROPS} -Dcoherence.log=jdk -Dcoherence.log.logger=com.oracle.coherence -Djava.util.logging.config.file=${COHERENCE_HOME}/conf/logging.properties"
     # enable management over REST and metrics on their default ports
     PROPS="${PROPS} -Dcoherence.metrics.http.enabled=true -Dcoherence.management.http=all"
     MAIN_CLASS="com.tangosol.net.DefaultCacheServer"
@@ -116,19 +114,6 @@ start()
     if [ "${COH_MGMT_HTTP_PORT}" != "" ]
     then
         PROPS="${PROPS} -Dcoherence.management.http.port=${COH_MGMT_HTTP_PORT}"
-    fi
-
-    if [ "${COH_SITE_INFO_LOCATION}" != "" ]
-    then
-        if [ -f "${COH_SITE_INFO_LOCATION}" ]
-        then
-            SITE=`cat ${COH_SITE_INFO_LOCATION}`
-        fi
-
-        if [ -n "${SITE}" ]
-        then
-            PROPS="${PROPS} -Dcoherence.site=${SITE}"
-        fi
     fi
 
     CLASSPATH="${COHERENCE_HOME}/ext/conf:${COHERENCE_HOME}/ext/lib/*:${CLASSPATH}:${COHERENCE_HOME}/conf:${COHERENCE_HOME}/lib/coherence.jar:${COHERENCE_HOME}/lib/coherence-management.jar:${COHERENCE_HOME}/lib/coherence-metrics.jar:${DEPENDENCY_MODULES}/*"

@@ -17,8 +17,12 @@
     <dependencySet>
       <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>coherence/lib</outputDirectory>
+      <scope>compile</scope>
       <includes>
         <include>jline:jline</include>
+        <include>${coherence.group.id}:coherence</include>
+        <include>${coherence.group.id}:coherence-management</include>
+        <include>${coherence.group.id}:coherence-metrics</include>
       </includes>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
     </dependencySet>
@@ -27,21 +31,15 @@
     <dependencySet>
       <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>coherence/thirdparty/lib</outputDirectory>
-      <includes>
-        <include>org.glassfish.hk2*:*</include>
-        <include>org.glassfish.jersey.core:*</include>
-        <include>org.glassfish.jersey.inject:jersey-hk2</include>
-        <include>org.glassfish.jersey.media:jersey-media-json-jackson</include>
-        <include>org.glassfish.jersey.ext:jersey-entity-filtering</include>
-        <include>com.fasterxml.jackson.*:*</include>
-        <include>jakarta.ws.rs:jakarta.ws.rs-api</include>
-        <include>jakarta.annotation:jakarta.annotation-api</include>
-        <include>javax.validation:*</include>
-      </includes>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+      <excludes>
+        <exclude>${coherence.group.id}:*</exclude>
+        <exclude>jline:jline</exclude>
+      </excludes>
       <fileMode>755</fileMode>
     </dependencySet>
   </dependencySets>
+
   <fileSets>
     <fileSet>
       <directory>src/main/docker</directory>
@@ -49,7 +47,7 @@
       <excludes>
         <exclude>*.sh</exclude>
       </excludes>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <filtered>false</filtered>
     </fileSet>
     <fileSet>
@@ -62,22 +60,4 @@
       <filtered>false</filtered>
     </fileSet>
   </fileSets>
-  <moduleSets>
-    <moduleSet>
-      <useAllReactorProjects>true</useAllReactorProjects>
-      <includes>
-        <include>${coherence.group.id}:coherence</include>
-        <include>${coherence.group.id}:coherence-management</include>
-        <include>${coherence.group.id}:coherence-metrics</include>
-      </includes>
-      <binaries>
-        <outputDirectory>coherence/lib</outputDirectory>
-        <outputFileNameMapping>${module.artifactId}.${module.extension}</outputFileNameMapping>
-        <fileMode>755</fileMode>
-        <unpack>false</unpack>
-        <includeDependencies>false</includeDependencies>
-      </binaries>
-    </moduleSet>
-  </moduleSets>
-
 </assembly>

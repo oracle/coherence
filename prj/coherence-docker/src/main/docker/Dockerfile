@@ -5,28 +5,14 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-FROM openjdk:11.0.6-slim
+FROM openjdk:11-jre-slim
 
-ENV PATH=$PATH:/usr/java/default/bin \
-    CONFIG_JVM_ARGS="-Djava.security.egd=file:/dev/./urandom" \
-    COHERENCE_HOME=/u01/coherence \
-    DEPENDENCY_MODULES=/u01/coherence/thirdparty/lib
+ENV COHERENCE_HOME=/coherence \
+    DEPENDENCY_MODULES=/coherence/thirdparty/lib
 
-COPY start.sh                           /start.sh
-COPY extend-cache-config.xml            $COHERENCE_HOME/conf/extend-cache-config.xml
-COPY logging.properties                 $COHERENCE_HOME/conf/logging.properties
-COPY coherence/                         $COHERENCE_HOME/
-
-RUN mkdir -p /logs && \
-    adduser oracle && \
-    chown oracle -R /u01 && \
-    chgrp -R 0 /u01 && \
-    chmod -R g=u /u01 && \
-    chown oracle -R /logs && \
-    chgrp -R 0 /logs && \
-    chmod -R g=u /logs
-
-USER oracle
+COPY start.sh                 /start.sh
+COPY extend-cache-config.xml  $COHERENCE_HOME/conf/extend-cache-config.xml
+COPY coherence/               $COHERENCE_HOME/
 
 ENTRYPOINT ["/start.sh"]
 
