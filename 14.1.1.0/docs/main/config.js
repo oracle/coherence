@@ -1,9 +1,9 @@
 function createConfig() {
     return {
         home: "docs/about/01_overview",
-        release: "14.1.1-0-1-SNAPSHOT",
+        release: "14.1.1.0.1",
         releases: [
-            "14.1.1-0-1-SNAPSHOT"
+            "14.1.1.0.1"
         ],
         pathColors: {
             "*": "blue-grey"
@@ -17,7 +17,7 @@ function createConfig() {
             success: '#4CAF50',
             warning: '#FFC107'
         },
-        navTitle: 'Oracle Coherence',
+        navTitle: 'Oracle Coherence CE',
         navIcon: null,
         navLogo: 'docs/images/logo.png'
     };
@@ -180,7 +180,7 @@ function createNav(){
         { divider: true },
         { header: 'Additional Resources' },
         {
-            title: 'Commercial Product Docs',
+            title: 'Official Documentation',
             action: 'import_contacts',
             href: 'https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html',
             target: '_blank'
