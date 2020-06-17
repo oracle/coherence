@@ -8,7 +8,7 @@
 -->
 
 -----
-<img src=https://coherence.java.net/assets/img/logo-community.png><img>
+<img src=https://oracle.github.io/coherence/assets/images/logo-red.png><img>
 
 [![License](http://img.shields.io/badge/license-UPL%201.0-blue.svg)](https://oss.oracle.com/licenses/upl/)
 
@@ -29,30 +29,34 @@
 
 ## <a name="intro"></a>Introduction
 
-[Coherence](http://coherence.java.net/) is scalable, fault-tolerant, cloud-ready,
+[Coherence](http://coherence.java.net/) is a scalable, fault-tolerant, cloud-ready,
 distributed platform for building grid-based applications and reliably storing data.
-The product is used at scale, for both compute and raw storage, in a vast array of
-industries including critical financial trading systems, high performance telecommunication
-products and eCommerce applications to name but a few. Typically these deployments
-do not tolerate any downtime and Coherence is chosen due its novel features in
-death detection, application data evolvability, and the robust, battle-hardened
-core of the product allowing it to be seamlessly deployed and adapt within any ecosystem.
+The product is used at scale, for both compute and raw storage, in a vast array of 
+industries such as critical financial trading systems, high performance telecommunication
+products and eCommerce applications. 
 
-At a high level, Coherence provides an implementation of the all too familiar `Map<K,V>`
+Typically these deployments do not tolerate any downtime and Coherence is chosen due to its 
+novel features in death detection, application data evolvability, and the robust,
+battle-hardened core of the product that enables it to be seamlessly deployed and 
+adapted within any ecosystem.
+
+At a high level, Coherence provides an implementation of the familiar `Map<K,V>`
 interface but rather than storing the associated data in the local process it is partitioned
-(or sharded if you prefer) across a number of designated remote nodes. This allows
+(or sharded) across a number of designated remote nodes. This partitioning enables
 applications to not only distribute (and therefore scale) their storage across multiple
 processes, machines, racks, and data centers but also to perform grid-based processing
-to truly harness the cpu resources of the machines. The Coherence interface `NamedCache<K,V>`
-(an extension of `Map<K,V`) provides methods to query, aggregate (map/reduce style) and
-compute (send functions to storage nodes for locally executed mutations) the data set.
-These capabilities, in addition to numerous other features, allows Coherence to be used
-as a framework to write robust, distributed applications.
+to truly harness the CPU resources of the machines. 
 
-## <a name="acquire"></a>How to Get Coherence Community Edition
+The Coherence interface `NamedCache<K,V>` (an extension of `Map<K,V>`) provides methods
+to query, aggregate (map/reduce style) and compute (send functions to storage nodes
+for locally executed mutations) the data set. These capabilities, in addition to 
+numerous other features, enable Coherence to be used as a framework for writing robust,
+distributed applications.
 
-As Coherence is generally embedded into an application with the application using
-Coherence APIs, thus the natural place to start is downloading from maven:
+## <a name="acquire"></a>Downloading Coherence Community Edition
+
+As Coherence is generally embedded into an application by using Coherence APIs,
+the natural place to consume this dependency is from Maven:
 
 ```xml
 <dependencies>
@@ -64,35 +68,36 @@ Coherence APIs, thus the natural place to start is downloading from maven:
 </dependencies>
 ```
 
-Other forms of acquiring Coherence include the official [Docker image](https://hub.docker.com/_/oracle-coherence-12c),
-other language clients ([C++](http://github.com/oracle/coherence-cpp-extend-client) and
-[.NET](http://github.com/oracle/coherence-dotnet-extend-client)), and for non community
-edition features of the product please take a look at the [Oracle Technology Network](https://www.oracle.com/middleware/technologies/coherence-downloads.html).
+You can also get Coherence from the official [Docker site](https://hub.docker.com/_/oracle-coherence-12c).
+For other language clients, use [C++](https://github.com/oracle/coherence-cpp-extend-client) and
+[.NET](https://github.com/oracle/coherence-dotnet-extend-client) and for the non-community
+edition, see [Oracle Technology Network](https://www.oracle.com/middleware/technologies/coherence-downloads.html).
 
-## <a name="overview"></a>Coherence Overview
+## <a name="overview"></a>Overview
 
 First and foremost, Coherence provides a fundamental service that is responsible
 for all facets of clustering and is a common denominator / building block for all
 other Coherence services. This service, referred to as 'service 0' internally,
-ensures the mesh of members is maintained and responsive, taking action to collaboratively
-evict, shun, or in some cases voluntarily depart the cluster when deemed necessary.
-As members join and leave the cluster, other Coherence services are notified thus
-allows those services to react accordingly.
+ensures that the mesh of members is maintained and responsive, taking action to collaboratively
+evict, shun, or in some cases, voluntarily depart the cluster when deemed necessary.
+As members join and leave the cluster, other Coherence services are notified,
+thus enabling those services to react accordingly.
 
-> Note: This part of the Coherence product has been in production for 10+ years,
->       being the subject of some extensive and imaginative testing. While it has
->       been discussed here it certainly is not something that customers, generally,
->       interact with directly but is valuable to be aware of.
+> Note: This part of the Coherence product has been in production for more that 10 years,
+>       being the subject of some extensive and imaginative testing. While this feature has
+>       been discussed here, it certainly is not something that customers, generally,
+>       interact with directly, but is important to be aware of.
 
-Coherence services build on top of the clustering service, with the key implementations
+Coherence services build on top of the cluster service. The key implementations
 to be aware of are PartitionedService, InvocationService, and ProxyService.
 
-In the majority of cases customers will deal with caches; a cache is represented
-by a an implementation of `NamedCache<K,V>`. Cache is an unfortunate name, as
+In the majority of cases, customers deal with caches. A cache is represented 
+by an implementation of `NamedCache<K,V>`. Cache is an unfortunate name, as 
 many Coherence customers use Coherence as a system-of-record rather than a lossy
-store of data. A cache is hosted by a service, generally the PartitionedService,
-and is the entry point to storing, retrieving, aggregating, querying, and streaming
-data. There are a number of features that caches provide:
+store of data. A cache is hosted by a service, generally the PartitionedService, 
+and is the entry point to store, retrieve, aggregate, query, and stream data. 
+
+Caches provide a number of features:
 
 * Fundamental **key-based access**: get/put getAll/putAll
 * Client-side and storage-side events
@@ -160,11 +165,11 @@ our own [operator](https://github.com/oracle/coherence-operator)
 ### CLI Hello Coherence
 
 The following example illustrated starting a **storage enabled** Coherence Server,
-followed by a **storage disabled** Coherence Console. Using the console data is
-inserted, retrieved, the console is terminated and started and data once again
-retrieved to illustrate the permanence of the data.
+followed by a **storage disabled** Coherence Console. Using the console, data is
+inserted, retrieved, and then the console is terminated. The console is restarted
+and data is once again retrieved to illustrate the permanence of the data.
 
-> **Note:** this example uses the OOTB cache configuration and therefore explicitly
+> **Note:** This example uses the OOTB cache configuration and therefore, explicitly
 >          specifying the console is storage disabled is unnecessary.
 
 > **Note:** Coherence cluster members discover each other via one of two mechanisms;
@@ -173,7 +178,8 @@ retrieved to illustrate the permanence of the data.
 >           `-Dcoherence.wka=localhost` for both processes started in the following
 >           console examples.
 
-#### <a name="cohql"></a>CohQL Console
+#### <a name="cohql"></a>CohQL Console 
+
 ```shell
 
 $> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
@@ -212,7 +218,6 @@ CohQL> bye
 
 $> kill %1
 ```
-
 #### <a name="coh-console"></a>Coherence Console
 ```shell
 
@@ -270,23 +275,23 @@ inserts and retrieves data from the Coherence server.
 
 #### Build `HelloCoherence`
 
-1. Create a maven project either manually or using an archetype such as maven-archetype-quickstart
-1. Add a dependency to the pom file:
+1. Create a maven project either manually or by using an archetype such as maven-archetype-quickstart
+2. Add a dependency to the pom file:
 ```xml
-<dependency>
-  <groupId>com.oracle.coherence.ce</groupId>
-  <artifactId>coherence</artifactId>
-  <version>14.1.1-0-1</version>
-</dependency>
+    <dependency>
+     <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>coherence</artifactId>
+    <version>14.1.1-0-1</version>
+    </dependency>
 ```
-1. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
+3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
 ```java
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.NamedCache;
+    import com.tangosol.net.CacheFactory;
+    import com.tangosol.net.NamedCache;
 
-public class HelloCoherence
-    {
-    // ----- static methods -------------------------------------------------
+    public class HelloCoherence
+        {
+        // ----- static methods -------------------------------------------------
 
     public static void main(String[] asArgs)
         {
@@ -305,28 +310,28 @@ public class HelloCoherence
         }
     }
 ```
-1. Compile the maven project:
+4. Compile the maven project:
 ```shell
-mvn package
+     mvn package
 ```
-1. Start a cache Server
+5. Start a cache Server
 ```shell
-mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
+   mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
 ```
-1. Run `HelloCoherence`
+6. Run `HelloCoherence`
 ```shell
-mvn exec:java -Dexec.mainClass="HelloCoherence"
+   mvn exec:java -Dexec.mainClass="HelloCoherence"
 ```
-1. Confirm you see output including the following:
+7. Confirm you see output including the following:
 ```shell
-Accessing cache "welcomes" containing 3 entries
-ConverterEntry{Key="french", Value="Bonjour"}
-ConverterEntry{Key="spanish", Value="Hola"}
-ConverterEntry{Key="english", Value="Hello"}
+    Accessing cache "welcomes" containing 3 entries
+    ConverterEntry{Key="french", Value="Bonjour"}
+    ConverterEntry{Key="spanish", Value="Hola"}
+    ConverterEntry{Key="english", Value="Hello"}
 ```
-1. Kill the cache server started previously:
+8. Kill the cache server started previously:
 ```shell
-kill %1
+     kill %1
 ```
 
 ## <a name="build"></a>Building
@@ -353,30 +358,30 @@ $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 
 ```
 
-# <a name="integrations"></a>Integrations
+## <a name="integrations"></a>Integrations
 
-# <a name="documentation"></a>Documentation
+## <a name="documentation"></a>Documentation
 
-## Oracle Coherence Documentation
+### Oracle Coherence Documentation
 
 Oracle Coherence product documentation is available
 [here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html).
 
-## Coherence Community Edition Disabled and Excluded Functionality
+### Features Not Included in Coherence Community Edition 
 
-The following Oracle Coherence functionality is not included in Coherence Community Edition
+The following Oracle Coherence features are not included in Coherence Community Edition:
 
 * Management of Coherence via the Oracle WebLogic Management Framework
-* WebLogic Server Multitenancy support
+* WebLogic Server Multitenancy Support
 * Deployment of Grid Archives (GARs)
-* HTTP session management for application servers (Coherence*Web)
+* HTTP Session Management for Application Servers (Coherence*Web)
 * GoldenGate HotCache
 * TopLink-based CacheLoaders and CacheStores
 * Elastic Data
-* Federation and WAN (wide area network) support
+* Federation and WAN (wide area network) Support
 * Transaction Framework
-* CommonJ work manager
+* CommonJ Work Manager
 
-# <a name="contrib"></a>Contribute
+## <a name="contrib"></a>Contribute
 
-Interested in contributing?  Please see our contribution [guidelines](CONTRIBUTING.md) for details.
+Interested in contributing?  See our contribution [guidelines](CONTRIBUTING.md) for details.
