@@ -21,163 +21,193 @@ option java_package = "com.oracle.coherence.grpc";
 
 // A request to clear all the entries in the cache.
 message ClearRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
 }
 
 // A request to determine whether an entry exists in a cache
 // with a specific key and value.
 message ContainsEntryRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialization format.
-    bytes key = 3;
+    bytes key = 4;
     // The value of the entry to verify.
-    bytes value = 4;
+    bytes value = 5;
 }
 
 // A request to determine whether an entry exists in a cache
 // for the specified key.
 message ContainsKeyRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The key of the entry to verify.
-    bytes key = 3;
+    bytes key = 4;
 }
 
 // A request to determine whether an entry exists in a cache
 // with the specified value.
 message ContainsValueRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The value of the entry to verify.
-    bytes value = 3;
+    bytes value = 4;
 }
 
 // A request to destroy a cache.
 message DestroyRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
 }
 
 // A request to determine whether a cache is empty or not.
 message IsEmptyRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
 }
 
 // A request to determine the number of entries in a cache.
 message SizeRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
 }
 
 // A request to obtain the value to which a cache maps the
 // specified key.
 message GetRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The key of the entry to retrieve.
-    bytes key = 3;
+    bytes key = 4;
 }
 
 // A request to obtain the values that map to the specified keys
 message GetAllRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The key of the entry to retrieve.
-    repeated bytes key = 3;
+    repeated bytes key = 4;
 }
 
 // A request to associate the specified value with the
 // specified key in a cache.
 message PutRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The cache entry key.
-    bytes key = 3;
+    bytes key = 4;
     // The value of the entry.
-    bytes value = 4;
+    bytes value = 5;
     // The time to live in millis.
-    int64 ttl = 5;
+    int64 ttl = 6;
 }
 
 // A request to associate the specified value with the
 // specified key in a cache.
 message PutAllRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The cache entries to put.
-    repeated Entry entry = 3;
+    repeated Entry entry = 4;
 }
 
 // A request to associate the specified value with the
 // specified key in a cache only if the specified key
 // is not associated with any value (including null).
 message PutIfAbsentRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The cache entry key.
-    bytes key = 3;
+    bytes key = 4;
     // The value to be put.
-    bytes value = 4;
+    bytes value = 5;
     // The time to live in millis.
-    int64 ttl = 5;
+    int64 ttl = 6;
 }
 
 // A request to remove the mapping for a key from a cache
 // if it is present.
 message RemoveRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The key of the entry to be removed.
-    bytes key = 3;
+    bytes key = 4;
 }
 
 // A request to remove the mapping for a key from a cache
 // only if the specified key is associated with the specified
 // value in that cache.
 message RemoveMappingRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The key of the entry to be removed.
-    bytes key = 3;
+    bytes key = 4;
     // The value of the entry to verify.
-    bytes value = 4;
+    bytes value = 5;
 }
 
 // A request to replace the mapping for the specified key
 // with the specified value in a cache only if the specified
 // key is associated with some value in that cache.
 message ReplaceRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The key of the entry to be replaced.
-    bytes key = 3;
+    bytes key = 4;
     // The value of the entry to be replaced.
-    bytes value = 4;
+    bytes value = 5;
 }
 
 // A request to replace the mapping for the specified key
@@ -185,16 +215,18 @@ message ReplaceRequest {
 // key is associated with the specified previousValue in
 // that cache.
 message ReplaceMappingRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The key of the entry to be replaced.
-    bytes key = 3;
+    bytes key = 4;
     // The previous value that should exist in the cache.
-    bytes previousValue = 4;
+    bytes previousValue = 5;
     // The new value to put.
-    bytes newValue = 5;
+    bytes newValue = 6;
 }
 
 // A request for a page of data from a cache.
@@ -202,10 +234,12 @@ message ReplaceMappingRequest {
 // NamedCache.entrySet() and NamedCache.values() where it would be impractical
 // to return the whole data set in one response.
 message PageRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format
-    string format = 2;
+    string format = 3;
     // An opaque cookie to track the requested page.
     bytes cookie = 4;
 }
@@ -230,106 +264,124 @@ message Entry {
 
 // A request to truncate a cache.
 message TruncateRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
 }
 
 // A request to add an index to a cache
 message AddIndexRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialized ValueExtractor to use to creat the index.
-    bytes extractor = 3;
+    bytes extractor = 4;
     // A flag indicating whether to sort the index
-    bool sorted = 4;
+    bool sorted = 5;
     // The optional comparator to use to sort the index.
-    bytes comparator = 5;
+    bytes comparator = 6;
 }
 
 // A request to remove an index from a cache
 message RemoveIndexRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialized ValueExtractor to use to creat the index.
-    bytes extractor = 3;
+    bytes extractor = 4;
 }
 
 // A request to aggreagte entries in a cache.
 message AggregateRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialized EntryAggregator to use to creat the index.
-    bytes aggregator = 3;
+    bytes aggregator = 4;
     // The optional set of serialized keys of the entries to aggregate.
-    repeated bytes keys = 4;
+    repeated bytes keys = 5;
     // The optional serialized Filter to identify the entries to aggregate.
-    bytes filter = 5;
+    bytes filter = 6;
 }
 
 // A request to invoke an EntryProcessor against a single entry.
 message InvokeRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialized EntryProcessor to use to creat the index.
-    bytes processor = 3;
+    bytes processor = 4;
     // The serialized key of the entry to process.
-    bytes key = 4;
+    bytes key = 5;
 }
 
 // A request to invoke an entry processor against a number of entries.
 message InvokeAllRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialized EntryProcessor to use to creat the index.
-    bytes processor = 3;
+    bytes processor = 4;
     // The optional set of serialized keys of the entries to process.
-    repeated bytes keys = 4;
+    repeated bytes keys = 5;
     // The optional serialized Filter to identify the entries to process.
-    bytes filter = 5;
+    bytes filter = 6;
 }
 
 // A request to get a set of entries from a cache.
 message EntrySetRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialized Filter to identify the entries to return.
-    bytes filter = 3;
+    bytes filter = 4;
     // The optional comparator to use to sort the returned entries.
-    bytes comparator = 4;
+    bytes comparator = 5;
 }
 
 // A request to get a set of keys from a cache.
 message KeySetRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialized Filter to identify the keys to return.
-    bytes filter = 3;
+    bytes filter = 4;
 }
 
 // A request to get a collection of values from a cache.
 message ValuesRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // The serialized Filter to identify the values to return.
-    bytes filter = 3;
+    bytes filter = 4;
     // The optional comparator to use to sort the returned values.
-    bytes comparator = 4;
+    bytes comparator = 5;
 }
 
 // An optional value.
@@ -342,13 +394,15 @@ message OptionalValue {
 
 // A message to subscribe to or unsubscribe from MapEvents for a cache.
 message MapListenerRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
     // The name of the cache.
-    string cache = 1;
+    string cache = 2;
     // The serialization format.
-    string format = 2;
+    string format = 3;
     // A unique identifier for the request so that the client
     // can match a request to a response
-    string uid = 3;
+    string uid = 4;
     // An enum representing the request type
     enum RequestType {
         // The request to initialise the channel.
@@ -359,23 +413,23 @@ message MapListenerRequest {
         FILTER = 2;
     }
     // The type of the request.
-    RequestType type = 4;
+    RequestType type = 5;
     // The serialized Filter to identify the entries to subscribe to.
-    bytes filter = 5;
+    bytes filter = 6;
     // The serialized key to identify the entry to subscribe to.
-    bytes key = 6;
+    bytes key = 7;
     // A flag set to true to indicate that the MapEvent objects do
     // not have to include the OldValue and NewValue property values
     // in order to allow optimizations
-    bool lite = 7;
+    bool lite = 8;
     // A flag indicating whether to subscribe to (true) or unsubscribe from (false) events.
-    bool subscribe = 8;
+    bool subscribe = 9;
     // A flag set to true to indicate that the listener is a priming listener.
-    bool priming = 9;
+    bool priming = 10;
     // An optional serialized MapTrigger.
-    bytes trigger = 10;
+    bytes trigger = 11;
     // A unique filter identifier.
-    int64 filterId = 11;
+    int64 filterId = 12;
 }
 
 // A response to indicate that a MapListener was subscribed to a cache.

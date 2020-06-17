@@ -5,7 +5,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.oracle.coherence.grpc.proxy;
+package com.tangosol.internal.util.processor;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.ReadBuffer;
@@ -35,70 +35,70 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A utility class of {@link EntryProcessor} classes used by
- * the {@link NamedCacheService}.
+ * A utility class of {@link EntryProcessor} classes that use {@link Binary}
+ * keys and values to avoid needless deserialization.
  *
  * @author Mahesh Kannan    2019.11.01
  * @author Jonathan Knight  2019.11.07
- * @since 20.06
+ * @since 14.1.2
  */
-public final class Processors
+public final class BinaryProcessors
     {
     // ----- constructors ---------------------------------------------------
 
     /**
      * Utility class must not have public constructor.
      */
-    private Processors()
+    private BinaryProcessors()
         {
         }
 
     /**
-     * Obtain an instance of the {@link GetProcessor}.
+     * Obtain an instance of the {@link BinaryGetProcessor}.
      *
-     * @return an instance of the {@link GetProcessor}
+     * @return an instance of the {@link BinaryGetProcessor}
      */
-    protected static InvocableMap.EntryProcessor<Binary, Binary, Binary> get()
+    public static InvocableMap.EntryProcessor<Binary, Binary, Binary> get()
         {
-        return GetProcessor.INSTANCE;
+        return BinaryGetProcessor.INSTANCE;
         }
 
     /**
-     * Obtain an instance of the {@link PutProcessor}.
+     * Obtain an instance of the {@link BinaryPutProcessor}.
      *
      * @param value  the serialized value to put into the cache
      * @param ttl    the expiry value for the entry
      *
-     * @return an instance of the {@link PutProcessor}
+     * @return an instance of the {@link BinaryPutProcessor}
      */
-    protected static InvocableMap.EntryProcessor<Binary, Binary, Binary> put(Binary value, long ttl)
+    public static InvocableMap.EntryProcessor<Binary, Binary, Binary> put(Binary value, long ttl)
         {
-        return new PutProcessor(value, ttl);
+        return new BinaryPutProcessor(value, ttl);
         }
 
     /**
-     * Obtain an instance of the {@link PutAllProcessor}.
+     * Obtain an instance of the {@link BinaryPutAllProcessor}.
      *
      * @param map  the {@link Map} of {@link Binary} keys and values to add to the cache
      *
-     * @return an instance of the {@link PutProcessor}
+     * @return an instance of the {@link BinaryPutProcessor}
      */
-    protected static InvocableMap.EntryProcessor<Binary, Binary, Binary> putAll(Map<Binary, Binary> map)
+    public static InvocableMap.EntryProcessor<Binary, Binary, Binary> putAll(Map<Binary, Binary> map)
         {
-        return new PutAllProcessor(map);
+        return new BinaryPutAllProcessor(map);
         }
 
     /**
-     * Obtain an instance of the {@link PutIfAbsentProcessor}.
+     * Obtain an instance of the {@link BinaryPutIfAbsentProcessor}.
      *
      * @param value the serialized value to put into the cache
      * @param ttl   the expiry value for the entry
      *
-     * @return an instance of the {@link PutIfAbsentProcessor}
+     * @return an instance of the {@link BinaryPutIfAbsentProcessor}
      */
-    protected static InvocableMap.EntryProcessor<Binary, Binary, Binary> putIfAbsent(Binary value, long ttl)
+    public static InvocableMap.EntryProcessor<Binary, Binary, Binary> putIfAbsent(Binary value, long ttl)
         {
-        return new PutIfAbsentProcessor(value, ttl);
+        return new BinaryPutIfAbsentProcessor(value, ttl);
         }
 
     // ----- class: BaseProcessor -------------------------------------------
@@ -135,14 +135,14 @@ public final class Processors
             }
         }
 
-    // ----- class: ProcessorWithValue --------------------------------------
+    // ----- class: BinaryProcessorWithValue --------------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that contains a value.
      *
      * @param <T> the return type of this {@link EntryProcessor}
      */
-    public abstract static class ProcessorWithValue<T>
+    public abstract static class BinaryProcessorWithValue<T>
             extends BaseProcessor<T>
         {
         // ----- constructors -----------------------------------------------
@@ -150,17 +150,17 @@ public final class Processors
         /**
          * Default constructor for serialization.
          */
-        protected ProcessorWithValue()
+        protected BinaryProcessorWithValue()
             {
             }
 
         /**
-         * Create a {@link ProcessorWithValue}.
+         * Create a {@link BinaryProcessorWithValue}.
          *
          * @param value  the {@link com.tangosol.util.Binary} value to set as the
          *               cache entry value
          */
-        protected ProcessorWithValue(Binary value)
+        protected BinaryProcessorWithValue(Binary value)
             {
             this.m_binValue = value;
             }
@@ -212,14 +212,14 @@ public final class Processors
         protected Binary m_binValue;
         }
 
-    // ----- class: ContainsValueProcessor ----------------------------------
+    // ----- class: BinaryContainsValueProcessor ----------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that checks if the mapping for the
      * key exists in the cache.
      */
-    public static class ContainsValueProcessor
-            extends ProcessorWithValue<Boolean>
+    public static class BinaryContainsValueProcessor
+            extends BinaryProcessorWithValue<Boolean>
         {
         // ----- constructors -----------------------------------------------
 
@@ -227,17 +227,16 @@ public final class Processors
          * Default constructor for serialization.
          */
         @SuppressWarnings("unused")
-        public ContainsValueProcessor()
+        public BinaryContainsValueProcessor()
             {
             }
 
         /**
-         * Create a {@link ContainsValueProcessor}.
+         * Create a {@link BinaryContainsValueProcessor}.
          *
-         * @param value  the {@link com.tangosol.util.Binary} value to set as the
-         *               cache entry value
+         * @param value  the {@link com.tangosol.util.Binary} value to check
          */
-        ContainsValueProcessor(Binary value)
+        public BinaryContainsValueProcessor(Binary value)
             {
             super(value);
             }
@@ -257,14 +256,14 @@ public final class Processors
             }
         }
 
-    // ----- class: RemoveBlindProcessor ------------------------------------
+    // ----- class: BinarySyntheticRemoveBlindProcessor ---------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that removes a cache entry
      * without de-serializing keys or values and returns no
      * result.
      */
-    public static class RemoveBlindProcessor
+    public static class BinarySyntheticRemoveBlindProcessor
             extends BaseProcessor<Void>
         {
         // ----- Processor interface ----------------------------------------
@@ -308,16 +307,16 @@ public final class Processors
         /**
          * Singleton RemoveBlindProcessor.
          */
-        public static final RemoveBlindProcessor INSTANCE = new RemoveBlindProcessor();
+        public static final BinarySyntheticRemoveBlindProcessor INSTANCE = new BinarySyntheticRemoveBlindProcessor();
         }
 
-    // ----- class: PutProcessor --------------------------------------------
+    // ----- class: BinaryPutProcessor --------------------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that updates the mapping
      * of a key to a value in a cache.
      */
-    public static class PutProcessor
+    public static class BinaryPutProcessor
             extends BaseProcessor<Binary>
         {
         // ----- constructors -----------------------------------------------
@@ -325,18 +324,18 @@ public final class Processors
         /**
          * Default constructor for serialization.
          */
-        public PutProcessor()
+        public BinaryPutProcessor()
             {
             }
 
         /**
-         * Create a {@link PutProcessor}.
+         * Create a {@link BinaryPutProcessor}.
          *
          * @param value  the {@link com.tangosol.util.Binary} value to set as the
          *               cache entry value
          * @param cTtl   the expiry value for the entry
          */
-        PutProcessor(Binary value, long cTtl)
+        BinaryPutProcessor(Binary value, long cTtl)
             {
             this.m_binValue = value;
             this.m_cTtl     = cTtl;
@@ -426,13 +425,13 @@ public final class Processors
         protected long m_cTtl;
         }
 
-    // ----- class: PutAllProcessor -----------------------------------------
+    // ----- class: BinaryPutAllProcessor -----------------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that updates the mapping
      * of a number of key to values in a cache.
      */
-    public static class PutAllProcessor
+    public static class BinaryPutAllProcessor
             extends BaseProcessor<Binary>
         {
         // ----- constructors -----------------------------------------------
@@ -441,17 +440,17 @@ public final class Processors
          * Default constructor for serialization.
          */
         @SuppressWarnings("unused")
-        public PutAllProcessor()
+        public BinaryPutAllProcessor()
             {
             this(new HashMap<>());
             }
 
         /**
-         * Create a {@link PutAllProcessor}.
+         * Create a {@link BinaryPutAllProcessor}.
          *
          * @param map  the {@link Map} of {@link Binary} key and values to add to the cache
          */
-        PutAllProcessor(Map<Binary, Binary> map)
+        BinaryPutAllProcessor(Map<Binary, Binary> map)
             {
             this.m_map = map;
             }
@@ -543,14 +542,14 @@ public final class Processors
         protected Map<Binary, Binary> m_map;
         }
 
-    // ----- class: PutIfAbsentProcessor ------------------------------------
+    // ----- class: BinaryPutIfAbsentProcessor ------------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that puts the specified value in the cache
      * only if there is no existing mapping for the key.
      */
-    public static class PutIfAbsentProcessor
-            extends PutProcessor
+    public static class BinaryPutIfAbsentProcessor
+            extends BinaryPutProcessor
         {
         // ----- constructors -----------------------------------------------
 
@@ -558,18 +557,18 @@ public final class Processors
          * Default constructor for serialization.
          */
         @SuppressWarnings("unused")
-        public PutIfAbsentProcessor()
+        public BinaryPutIfAbsentProcessor()
             {
             }
 
         /**
-         * Create a {@link PutIfAbsentProcessor}.
+         * Create a {@link BinaryPutIfAbsentProcessor}.
          *
          * @param value   the {@link com.tangosol.util.Binary} value to set as the
          *                cache entry value
          * @param cTtl    the expiry value for the entry
          */
-        PutIfAbsentProcessor(Binary value, long cTtl)
+        BinaryPutIfAbsentProcessor(Binary value, long cTtl)
             {
             super(value, cTtl);
             }
@@ -590,13 +589,13 @@ public final class Processors
             }
         }
 
-    // ----- class: GetProcessor --------------------------------------------
+    // ----- class: BinaryGetProcessor --------------------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that obtains the {@link com.tangosol.util.Binary}
      * value mapped to a given key in a cache.
      */
-    public static class GetProcessor
+    public static class BinaryGetProcessor
             extends BaseProcessor<Binary>
         {
 
@@ -644,18 +643,18 @@ public final class Processors
         // ----- constants --------------------------------------------------
 
         /**
-         * The singleton {@link GetProcessor}.
+         * The singleton {@link BinaryGetProcessor}.
          */
-        public static final GetProcessor INSTANCE = new GetProcessor();
+        public static final BinaryGetProcessor INSTANCE = new BinaryGetProcessor();
         }
 
-    // ----- class: RemoveProcessor -----------------------------------------
+    // ----- class: BinaryRemoveProcessor -----------------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that obtains the {@link com.tangosol.util.Binary}
      * value mapped to a given key in a cache.
      */
-    public static class RemoveProcessor
+    public static class BinaryRemoveProcessor
             extends BaseProcessor<Binary>
         {
         // ----- Processor interface ----------------------------------------
@@ -675,19 +674,19 @@ public final class Processors
         // ----- constants --------------------------------------------------
 
         /**
-         * The singleton {@link RemoveProcessor}.
+         * The singleton {@link BinaryRemoveProcessor}.
          */
-        public static final RemoveProcessor INSTANCE = new RemoveProcessor();
+        public static final BinaryRemoveProcessor INSTANCE = new BinaryRemoveProcessor();
         }
 
 
-    // ----- class: ReplaceProcessor ----------------------------------------
+    // ----- class: BinaryReplaceProcessor ----------------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that replaces an existing mapping in a cache.
      */
-    public static class ReplaceProcessor
-            extends ProcessorWithValue<Binary>
+    public static class BinaryReplaceProcessor
+            extends BinaryProcessorWithValue<Binary>
         {
         // ----- constructors -----------------------------------------------
 
@@ -695,17 +694,17 @@ public final class Processors
          * Default constructor for serialization.
          */
         @SuppressWarnings("unused")
-        public ReplaceProcessor()
+        public BinaryReplaceProcessor()
             {
             }
 
         /**
-         * Create a {@link ReplaceProcessor}.
+         * Create a {@link BinaryReplaceProcessor}.
          *
          * @param value  the {@link Binary} value to set as the
          *               cache entry value
          */
-        ReplaceProcessor(Binary value)
+        public BinaryReplaceProcessor(Binary value)
             {
             super(value);
             }
@@ -725,13 +724,13 @@ public final class Processors
             }
         }
 
-    // ----- class: ReplaceMappingProcessor ---------------------------------
+    // ----- class: BinaryReplaceMappingProcessor ---------------------------
 
     /**
      * An {@link com.tangosol.util.InvocableMap.EntryProcessor} that replaces a specific existing mapping in a cache.
      */
-    public static class ReplaceMappingProcessor
-            extends ProcessorWithValue<Boolean>
+    public static class BinaryReplaceMappingProcessor
+            extends BinaryProcessorWithValue<Boolean>
         {
         // ----- constructors -----------------------------------------------
 
@@ -739,17 +738,17 @@ public final class Processors
          * Default constructor for serialization.
          */
         @SuppressWarnings("unused")
-        public ReplaceMappingProcessor()
+        public BinaryReplaceMappingProcessor()
             {
             }
 
         /**
-         * Create a {@link ReplaceMappingProcessor}.
+         * Create a {@link BinaryReplaceMappingProcessor}.
          *
          * @param previousValue  the {@link com.tangosol.util.Binary} value of the existing mapping
          * @param newValue       the {@link com.tangosol.util.Binary} value of the new mapping
          */
-        ReplaceMappingProcessor(Binary previousValue, Binary newValue)
+        public BinaryReplaceMappingProcessor(Binary previousValue, Binary newValue)
             {
             super(previousValue);
             this.m_binNewValue = newValue;
@@ -758,16 +757,16 @@ public final class Processors
         // ----- static factory methods -------------------------------------
 
         /**
-         * Create an instance of {@link ReplaceMappingProcessor}.
+         * Create an instance of {@link BinaryReplaceMappingProcessor}.
          *
          * @param previousValue  the {@link com.tangosol.util.Binary} value of the existing mapping
          * @param newValue       the {@link com.tangosol.util.Binary} value of the new mapping
          *
-         * @return an instance of {@link ReplaceMappingProcessor}
+         * @return an instance of {@link BinaryReplaceMappingProcessor}
          */
-        public static ReplaceMappingProcessor create(Binary previousValue, Binary newValue)
+        public static BinaryReplaceMappingProcessor create(Binary previousValue, Binary newValue)
             {
-            return new ReplaceMappingProcessor(previousValue, newValue);
+            return new BinaryReplaceMappingProcessor(previousValue, newValue);
             }
 
         // ----- Processor interface ----------------------------------------

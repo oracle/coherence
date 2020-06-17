@@ -10,6 +10,7 @@ package com.oracle.coherence.grpc.proxy;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.Requests;
 
@@ -64,12 +65,11 @@ class KeySetIT
         {
         System.setProperty("coherence.ttl",        "0");
         System.setProperty("coherence.cluster",    "KeySetIT");
-        System.setProperty("coherence.pof.config", "coherence-grpc-proxy-pof-config.xml");
         DefaultCacheServer.startServerDaemon().waitForServiceStart();
 
         s_ccf     = CacheFactory.getCacheFactoryBuilder()
-                .getConfigurableCacheFactory("coherence-cache-config.xml", null);
-        s_service = NamedCacheService.builder().configurableCacheFactory(s_ccf).build();
+                .getConfigurableCacheFactory("coherence-config.xml", null);
+        s_service = NamedCacheService.builder().configurableCacheFactories(s_ccf).build();
         // set the transfer threshold small so that all of the cache data does not fit into one page
         s_service.setTransferThreshold(100);
         }
@@ -84,9 +84,9 @@ class KeySetIT
         NamedCache<String, String> cache      = s_ccf.ensureCache(sCacheName, null);
         cache.clear();
 
-        Requests.page(sCacheName, "java", ByteString.EMPTY);
+        Requests.page(Scope.DEFAULT, sCacheName, "java", ByteString.EMPTY);
         TestStreamObserver<BytesValue> observer = new TestStreamObserver<>();
-        s_service.nextKeySetPage(Requests.page(sCacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextKeySetPage(Requests.page(Scope.DEFAULT, sCacheName, serializerName, ByteString.EMPTY), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -108,7 +108,7 @@ class KeySetIT
         cache.put("key-1", "value-1");
 
         TestStreamObserver<BytesValue> observer = new TestStreamObserver<>();
-        s_service.nextKeySetPage(Requests.page(cacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextKeySetPage(Requests.page(Scope.DEFAULT, cacheName, serializerName, ByteString.EMPTY), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -139,7 +139,7 @@ class KeySetIT
         Set<String> keys = new HashSet<>();
         ByteString cookie = null;
         TestStreamObserver<BytesValue> observer = new TestStreamObserver<>();
-        s_service.nextKeySetPage(Requests.page(cacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextKeySetPage(Requests.page(Scope.DEFAULT, cacheName, serializerName, ByteString.EMPTY), observer);
 
         while (cookie == null || !cookie.isEmpty())
             {
@@ -159,7 +159,7 @@ class KeySetIT
                     .forEach(keys::add);
 
             observer = new TestStreamObserver<>();
-            s_service.nextKeySetPage(Requests.page(cacheName, "java", cookie), observer);
+            s_service.nextKeySetPage(Requests.page(Scope.DEFAULT, cacheName, "java", cookie), observer);
             }
 
         assertThat(keys.size(), is(cache.size()));

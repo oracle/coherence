@@ -7,19 +7,15 @@
 
 package com.oracle.coherence.grpc.client;
 
-import com.oracle.coherence.cdi.Scope;
 import com.tangosol.io.Serializer;
-
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
-
 import io.grpc.Channel;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 
 /**
  * An integration test for {@link NamedCacheClient} that creates instances of
@@ -30,7 +26,7 @@ import org.junit.jupiter.api.BeforeAll;
  * @author Jonathan Knight  2019.11.07
  * @since 20.06
  */
-class NamedCacheClientIT
+class ScopedNamedCacheClientIT
         extends BaseNamedCacheClientIT
     {
     // ----- test lifecycle -------------------------------------------------
@@ -38,7 +34,7 @@ class NamedCacheClientIT
     @BeforeAll
     static void setupBaseTest() throws Exception
         {
-        serverHelper = new ServerHelper();
+        serverHelper = new ServerHelper(SCOPE_NAME);
         serverHelper.start();
 
         ccf     = serverHelper.getCCF();
@@ -69,7 +65,7 @@ class NamedCacheClientIT
         {
         Map<String, AsyncNamedCacheClient<?, ?>> map = clients.computeIfAbsent(sCacheName, k -> new HashMap<>());
         AsyncNamedCacheClient<K, V> async = (AsyncNamedCacheClient<K, V>)
-                map.computeIfAbsent(sSerializerName, k -> AsyncNamedCacheClient.builder(Scope.DEFAULT, sCacheName)
+                map.computeIfAbsent(sSerializerName, k -> AsyncNamedCacheClient.builder(SCOPE_NAME, sCacheName)
                         .channel(channel)
                         .serializer(serializer, sSerializerName)
                         .build());
@@ -89,6 +85,8 @@ class NamedCacheClientIT
         }
 
     // ----- data members ---------------------------------------------------
+
+    public static final String SCOPE_NAME = "testing";
 
     private static final Map<String, Map<String, AsyncNamedCacheClient<?, ?>>> clients = new HashMap<>();
 

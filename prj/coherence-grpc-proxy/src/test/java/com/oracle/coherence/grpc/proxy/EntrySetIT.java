@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.ByteString;
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.EntryResult;
 import com.oracle.coherence.grpc.Requests;
@@ -61,12 +62,11 @@ class EntrySetIT
         {
         System.setProperty("coherence.ttl",        "0");
         System.setProperty("coherence.cluster",    "EntrySetIT");
-        System.setProperty("coherence.pof.config", "coherence-grpc-proxy-pof-config.xml");
         DefaultCacheServer.startServerDaemon().waitForServiceStart();
 
         s_ccf     = CacheFactory.getCacheFactoryBuilder()
-                .getConfigurableCacheFactory("coherence-cache-config.xml", null);
-        s_service = NamedCacheService.builder().configurableCacheFactory(s_ccf).build();
+                .getConfigurableCacheFactory("coherence-config.xml", null);
+        s_service = NamedCacheService.builder().configurableCacheFactories(s_ccf).build();
         // set the transfer threshold small so that all of the cache data does not fit into one page
         s_service.setTransferThreshold(100);
         }
@@ -81,10 +81,10 @@ class EntrySetIT
         NamedCache<?, ?> cache      = s_ccf.ensureCache(sCacheName, null);
         cache.clear();
 
-        Requests.page(sCacheName, serializerName, ByteString.EMPTY);
+        Requests.page(Scope.DEFAULT, sCacheName, serializerName, ByteString.EMPTY);
 
         TestStreamObserver<EntryResult> observer = new TestStreamObserver<>();
-        s_service.nextEntrySetPage(Requests.page(sCacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextEntrySetPage(Requests.page(Scope.DEFAULT, sCacheName, serializerName, ByteString.EMPTY), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -109,10 +109,10 @@ class EntrySetIT
         cache.clear();
         cache.put("key-1", "value-1");
 
-        Requests.page(sCacheName, serializerName, ByteString.EMPTY);
+        Requests.page(Scope.DEFAULT, sCacheName, serializerName, ByteString.EMPTY);
 
         TestStreamObserver<EntryResult> observer = new TestStreamObserver<>();
-        s_service.nextEntrySetPage(Requests.page(sCacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextEntrySetPage(Requests.page(Scope.DEFAULT, sCacheName, serializerName, ByteString.EMPTY), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -158,10 +158,10 @@ class EntrySetIT
 
         HashMap<String, String> entries = new HashMap<>();
         ByteString              cookie  = null;
-        Requests.page(sCacheName, serializerName, ByteString.EMPTY);
+        Requests.page(Scope.DEFAULT, sCacheName, serializerName, ByteString.EMPTY);
 
         TestStreamObserver<EntryResult> observer = new TestStreamObserver<>();
-        s_service.nextEntrySetPage(Requests.page(sCacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextEntrySetPage(Requests.page(Scope.DEFAULT, sCacheName, serializerName, ByteString.EMPTY), observer);
 
         while (cookie == null || !cookie.isEmpty())
             {
@@ -184,7 +184,7 @@ class EntrySetIT
                 }
 
             observer = new TestStreamObserver<>();
-            s_service.nextEntrySetPage(Requests.page(sCacheName, serializerName, cookie), observer);
+            s_service.nextEntrySetPage(Requests.page(Scope.DEFAULT, sCacheName, serializerName, cookie), observer);
             }
 
         assertThat(entries.size(),     is(cache.size()));

@@ -29,9 +29,24 @@ class RequestsTest
     @Test
     void shouldCreateAddIndexRequest()
         {
-        AddIndexRequest request = Requests.addIndex("foo", "pof", BYTES_1);
+        AddIndexRequest request = Requests.addIndex("test", "foo", "pof", BYTES_1);
 
         assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is("test"));
+        assertThat(request.getCache(),      is("foo"));
+        assertThat(request.getFormat(),     is("pof"));
+        assertThat(request.getExtractor(),  is(BYTES_1));
+        assertThat(request.getSorted(),     is(false));
+        assertThat(request.getComparator(), is(ByteString.EMPTY));
+        }
+
+    @Test
+    void shouldCreateAddIndexRequestWithDefaultScope()
+        {
+        AddIndexRequest request = Requests.addIndex(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getExtractor(),  is(BYTES_1));
@@ -42,9 +57,24 @@ class RequestsTest
     @Test
     void shouldCreateAddIndexRequestSorted()
         {
-        AddIndexRequest request = Requests.addIndex("foo", "pof", BYTES_1, true);
+        AddIndexRequest request = Requests.addIndex("test", "foo", "pof", BYTES_1, true);
 
         assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is("test"));
+        assertThat(request.getCache(),      is("foo"));
+        assertThat(request.getFormat(),     is("pof"));
+        assertThat(request.getExtractor(),  is(BYTES_1));
+        assertThat(request.getSorted(),     is(true));
+        assertThat(request.getComparator(), is(ByteString.EMPTY));
+        }
+
+    @Test
+    void shouldCreateAddIndexRequestSortedWithDefaultScope()
+        {
+        AddIndexRequest request = Requests.addIndex(null, "foo", "pof", BYTES_1, true);
+
+        assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getExtractor(),  is(BYTES_1));
@@ -55,9 +85,24 @@ class RequestsTest
     @Test
     void shouldCreateAddIndexRequestWithComparator()
         {
-        AddIndexRequest request = Requests.addIndex("foo", "pof", BYTES_1, true, BYTES_2);
+        AddIndexRequest request = Requests.addIndex("test", "foo", "pof", BYTES_1, true, BYTES_2);
 
         assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is("test"));
+        assertThat(request.getCache(),      is("foo"));
+        assertThat(request.getFormat(),     is("pof"));
+        assertThat(request.getExtractor(),  is(BYTES_1));
+        assertThat(request.getSorted(),     is(true));
+        assertThat(request.getComparator(), is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateAddIndexRequestWithComparatorWithDefaultScope()
+        {
+        AddIndexRequest request = Requests.addIndex(null, "foo", "pof", BYTES_1, true, BYTES_2);
+
+        assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getExtractor(),  is(BYTES_1));
@@ -68,9 +113,23 @@ class RequestsTest
     @Test
     void shouldCreateAggregateRequestWithFilter()
         {
-        AggregateRequest request = Requests.aggregate("foo", "pof", BYTES_1, BYTES_2);
+        AggregateRequest request = Requests.aggregate("test", "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is("test"));
+        assertThat(request.getCache(),      is("foo"));
+        assertThat(request.getFormat(),     is("pof"));
+        assertThat(request.getFilter(),     is(BYTES_1));
+        assertThat(request.getAggregator(), is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateAggregateRequestWithFilterWithDefaultScope()
+        {
+        AggregateRequest request = Requests.aggregate(null, "foo", "pof", BYTES_1, BYTES_2);
+
+        assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getFilter(),     is(BYTES_1));
@@ -81,9 +140,24 @@ class RequestsTest
     void shouldCreateAggregateRequestWithKeys()
         {
         List<ByteString> keys    = Arrays.asList(BYTES_3, BYTES_4, BYTES_5);
-        AggregateRequest request = Requests.aggregate("foo", "pof", keys, BYTES_2);
+        AggregateRequest request = Requests.aggregate("test", "foo", "pof", keys, BYTES_2);
 
         assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is("test"));
+        assertThat(request.getCache(),      is("foo"));
+        assertThat(request.getFormat(),     is("pof"));
+        assertThat(request.getKeysList(),   is(keys));
+        assertThat(request.getAggregator(), is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateAggregateRequestWithKeysWithDefaultScope()
+        {
+        List<ByteString> keys    = Arrays.asList(BYTES_3, BYTES_4, BYTES_5);
+        AggregateRequest request = Requests.aggregate(null, "foo", "pof", keys, BYTES_2);
+
+        assertThat(request,                 is(notNullValue()));
+        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getKeysList(),   is(keys));
@@ -93,18 +167,43 @@ class RequestsTest
     @Test
     void shouldCreateClearRequest()
         {
-        ClearRequest request = Requests.clear("foo");
+        ClearRequest request = Requests.clear("test", "foo");
 
         assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(),      is("test"));
+        assertThat(request.getCache(), is("foo"));
+        }
+
+    @Test
+    void shouldCreateClearRequestWithDefaultScope()
+        {
+        ClearRequest request = Requests.clear(null, "foo");
+
+        assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
     @Test
     void shouldCreateContainsEntryRequest()
         {
-        ContainsEntryRequest request = Requests.containsEntry("foo", "pof", BYTES_1, BYTES_2);
+        ContainsEntryRequest request = Requests.containsEntry("test", "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        assertThat(request.getValue(),  is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateContainsEntryRequestWithDefaultScope()
+        {
+        ContainsEntryRequest request = Requests.containsEntry(null, "foo", "pof", BYTES_1, BYTES_2);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -114,9 +213,22 @@ class RequestsTest
     @Test
     void shouldCreateContainsKeyRequest()
         {
-        ContainsKeyRequest request = Requests.containsKey("foo", "pof", BYTES_1);
+        ContainsKeyRequest request = Requests.containsKey("test", "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreateContainsKeyRequestWithDefaultScope()
+        {
+        ContainsKeyRequest request = Requests.containsKey(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -125,9 +237,22 @@ class RequestsTest
     @Test
     void shouldCreateContainsValueRequest()
         {
-        ContainsValueRequest request = Requests.containsValue("foo", "pof", BYTES_1);
+        ContainsValueRequest request = Requests.containsValue("test", "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getValue(),  is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreateContainsValueRequestWithDefaultScope()
+        {
+        ContainsValueRequest request = Requests.containsValue(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getValue(),  is(BYTES_1));
@@ -136,18 +261,42 @@ class RequestsTest
     @Test
     void shouldCreateDestroyRequest()
         {
-        DestroyRequest request = Requests.destroy("foo");
+        DestroyRequest request = Requests.destroy("test", "foo");
 
         assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(), is("test"));
+        assertThat(request.getCache(), is("foo"));
+        }
+
+    @Test
+    void shouldCreateDestroyRequestWithDefaultScope()
+        {
+        DestroyRequest request = Requests.destroy(null, "foo");
+
+        assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(), is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
     @Test
     void shouldCreateEntrySetRequest()
         {
-        EntrySetRequest request = Requests.entrySet("foo", "pof", BYTES_1);
+        EntrySetRequest request = Requests.entrySet("test", "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getFilter(), is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreateEntrySetRequestWithDefaultScope()
+        {
+        EntrySetRequest request = Requests.entrySet(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getFilter(), is(BYTES_1));
@@ -156,9 +305,22 @@ class RequestsTest
     @Test
     void shouldCreateGetRequest()
         {
-        GetRequest request = Requests.get("foo", "pof", BYTES_1);
+        GetRequest request = Requests.get("test", "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreateGetRequestWithDefaultScope()
+        {
+        GetRequest request = Requests.get(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -168,9 +330,23 @@ class RequestsTest
     void shouldCreateGetAllRequest()
         {
         List<ByteString> keys    = Arrays.asList(BYTES_3, BYTES_4, BYTES_5);
-        GetAllRequest    request = Requests.getAll("foo", "pof", keys);
+        GetAllRequest request = Requests.getAll("test", "foo", "pof", keys);
 
         assertThat(request,              is(notNullValue()));
+        assertThat(request.getScope(),   is("test"));
+        assertThat(request.getCache(),   is("foo"));
+        assertThat(request.getFormat(),  is("pof"));
+        assertThat(request.getKeyList(), is(keys));
+        }
+
+    @Test
+    void shouldCreateGetAllRequestWithDefaultScope()
+        {
+        List<ByteString> keys    = Arrays.asList(BYTES_3, BYTES_4, BYTES_5);
+        GetAllRequest request = Requests.getAll(null, "foo", "pof", keys);
+
+        assertThat(request,              is(notNullValue()));
+        assertThat(request.getScope(),   is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),   is("foo"));
         assertThat(request.getFormat(),  is("pof"));
         assertThat(request.getKeyList(), is(keys));
@@ -179,9 +355,23 @@ class RequestsTest
     @Test
     void shouldCreateInvokeRequest()
         {
-        InvokeRequest request = Requests.invoke("foo", "pof", BYTES_1, BYTES_2);
+        InvokeRequest request = Requests.invoke("test", "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is("test"));
+        assertThat(request.getCache(),     is("foo"));
+        assertThat(request.getFormat(),    is("pof"));
+        assertThat(request.getKey(),       is(BYTES_1));
+        assertThat(request.getProcessor(), is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateInvokeRequestWithDefaultScope()
+        {
+        InvokeRequest request = Requests.invoke(null, "foo", "pof", BYTES_1, BYTES_2);
+
+        assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getKey(),       is(BYTES_1));
@@ -191,9 +381,24 @@ class RequestsTest
     @Test
     void shouldCreateInvokeAllRequestWithFilter()
         {
-        InvokeAllRequest request = Requests.invokeAll("foo", "pof", BYTES_1, BYTES_2);
+        InvokeAllRequest request = Requests.invokeAll("test", "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is("test"));
+        assertThat(request.getCache(),     is("foo"));
+        assertThat(request.getFormat(),    is("pof"));
+        assertThat(request.getFilter(),    is(BYTES_1));
+        assertThat(request.getKeysCount(), is(0));
+        assertThat(request.getProcessor(), is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateInvokeAllRequestWithFilterWithDefaultScope()
+        {
+        InvokeAllRequest request = Requests.invokeAll(null, "foo", "pof", BYTES_1, BYTES_2);
+
+        assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getFilter(),    is(BYTES_1));
@@ -205,9 +410,25 @@ class RequestsTest
     void shouldCreateInvokeAllRequestWithKeys()
         {
         List<ByteString> keys    = Arrays.asList(BYTES_3, BYTES_4, BYTES_5);
-        InvokeAllRequest request = Requests.invokeAll("foo", "pof", keys, BYTES_2);
+        InvokeAllRequest request = Requests.invokeAll("test", "foo", "pof", keys, BYTES_2);
 
         assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is("test"));
+        assertThat(request.getCache(),     is("foo"));
+        assertThat(request.getFormat(),    is("pof"));
+        assertThat(request.getFilter(),    is(ByteString.EMPTY));
+        assertThat(request.getKeysList(),  is(keys));
+        assertThat(request.getProcessor(), is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateInvokeAllRequestWithKeysWithDefaultScope()
+        {
+        List<ByteString> keys    = Arrays.asList(BYTES_3, BYTES_4, BYTES_5);
+        InvokeAllRequest request = Requests.invokeAll(null, "foo", "pof", keys, BYTES_2);
+
+        assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getFilter(),    is(ByteString.EMPTY));
@@ -218,18 +439,42 @@ class RequestsTest
     @Test
     void shouldCreateIsEmptyRequest()
         {
-        IsEmptyRequest request = Requests.isEmpty("foo");
+        IsEmptyRequest request = Requests.isEmpty("test", "foo");
 
         assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(), is("test"));
+        assertThat(request.getCache(), is("foo"));
+        }
+
+    @Test
+    void shouldCreateIsEmptyRequestWithDefaultScope()
+        {
+        IsEmptyRequest request = Requests.isEmpty(null, "foo");
+
+        assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(), is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
     @Test
     void shouldCreateKeySetRequest()
         {
-        KeySetRequest request = Requests.keySet("foo", "pof", BYTES_1);
+        KeySetRequest request = Requests.keySet("test", "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getFilter(), is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreateKeySetRequestWithDefaultScope()
+        {
+        KeySetRequest request = Requests.keySet(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getFilter(), is(BYTES_1));
@@ -238,9 +483,22 @@ class RequestsTest
     @Test
     void shouldCreatePageRequest()
         {
-        PageRequest request = Requests.page("foo", "pof", BYTES_1);
+        PageRequest request = Requests.page("test", "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getCookie(), is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreatePageRequestWithDefaultScope()
+        {
+        PageRequest request = Requests.page(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getCookie(), is(BYTES_1));
@@ -249,9 +507,24 @@ class RequestsTest
     @Test
     void shouldCreatePutRequest()
         {
-        PutRequest request = Requests.put("foo", "pof", BYTES_1, BYTES_2);
+        PutRequest request = Requests.put("test", "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        assertThat(request.getValue(),  is(BYTES_2));
+        assertThat(request.getTtl(),    is(CacheMap.EXPIRY_DEFAULT));
+        }
+
+    @Test
+    void shouldCreatePutRequestWithDefaultScope()
+        {
+        PutRequest request = Requests.put(null, "foo", "pof", BYTES_1, BYTES_2);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -262,9 +535,24 @@ class RequestsTest
     @Test
     void shouldCreatePutRequestWithExpiry()
         {
-        PutRequest request = Requests.put("foo", "pof", BYTES_1, BYTES_2, 19L);
+        PutRequest request = Requests.put("test", "foo", "pof", BYTES_1, BYTES_2, 19L);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        assertThat(request.getValue(),  is(BYTES_2));
+        assertThat(request.getTtl(),    is(19L));
+        }
+
+    @Test
+    void shouldCreatePutRequestWithExpiryWithDefaultScope()
+        {
+        PutRequest request = Requests.put(null, "foo", "pof", BYTES_1, BYTES_2, 19L);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -277,9 +565,24 @@ class RequestsTest
         {
         List<Entry>   entries = Arrays.asList(Entry.newBuilder().setKey(BYTES_1).setValue(BYTES_2).build(),
                                              Entry.newBuilder().setKey(BYTES_3).setValue(BYTES_4).build());
-        PutAllRequest request = Requests.putAll("foo", "pof", entries);
+        PutAllRequest request = Requests.putAll("test", "foo", "pof", entries);
 
         assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is("test"));
+        assertThat(request.getCache(),     is("foo"));
+        assertThat(request.getFormat(),    is("pof"));
+        assertThat(request.getEntryList(), is(entries));
+        }
+
+    @Test
+    void shouldCreatePutAllRequestWithDefaultScope()
+        {
+        List<Entry>   entries = Arrays.asList(Entry.newBuilder().setKey(BYTES_1).setValue(BYTES_2).build(),
+                                              Entry.newBuilder().setKey(BYTES_3).setValue(BYTES_4).build());
+        PutAllRequest request = Requests.putAll(null, "foo", "pof", entries);
+
+        assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getEntryList(), is(entries));
@@ -288,9 +591,24 @@ class RequestsTest
     @Test
     void shouldCreatePutIfAbsentRequest()
         {
-        PutIfAbsentRequest request = Requests.putIfAbsent("foo", "pof", BYTES_1, BYTES_2);
+        PutIfAbsentRequest request = Requests.putIfAbsent("test", "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        assertThat(request.getValue(),  is(BYTES_2));
+        assertThat(request.getTtl(),    is(CacheMap.EXPIRY_DEFAULT));
+        }
+
+    @Test
+    void shouldCreatePutIfAbsentRequestWithDefaultScope()
+        {
+        PutIfAbsentRequest request = Requests.putIfAbsent(null, "foo", "pof", BYTES_1, BYTES_2);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -301,9 +619,22 @@ class RequestsTest
     @Test
     void shouldCreateRemoveRequest()
         {
-        RemoveRequest request = Requests.remove("foo", "pof", BYTES_1);
+        RemoveRequest request = Requests.remove("test", "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreateRemoveRequestWithDefaultScope()
+        {
+        RemoveRequest request = Requests.remove(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -312,9 +643,23 @@ class RequestsTest
     @Test
     void shouldCreateRemoveMappingRequest()
         {
-        RemoveMappingRequest request = Requests.remove("foo", "pof", BYTES_1, BYTES_2);
+        RemoveMappingRequest request = Requests.remove("test", "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        assertThat(request.getValue(),  is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateRemoveMappingRequestWithDefaultScope()
+        {
+        RemoveMappingRequest request = Requests.remove(null, "foo", "pof", BYTES_1, BYTES_2);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -324,9 +669,22 @@ class RequestsTest
     @Test
     void shouldCreateRemoveIndexRequest()
         {
-        RemoveIndexRequest request = Requests.removeIndex("foo", "pof", BYTES_1);
+        RemoveIndexRequest request = Requests.removeIndex("test", "foo", "pof", BYTES_1);
 
         assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is("test"));
+        assertThat(request.getCache(),     is("foo"));
+        assertThat(request.getFormat(),    is("pof"));
+        assertThat(request.getExtractor(), is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreateRemoveIndexRequestWithDefaultScope()
+        {
+        RemoveIndexRequest request = Requests.removeIndex(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,                is(notNullValue()));
+        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getExtractor(), is(BYTES_1));
@@ -335,9 +693,23 @@ class RequestsTest
     @Test
     void shouldCreateReplaceRequest()
         {
-        ReplaceRequest request = Requests.replace("foo", "pof", BYTES_1, BYTES_2);
+        ReplaceRequest request = Requests.replace("test", "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getKey(),    is(BYTES_1));
+        assertThat(request.getValue(),  is(BYTES_2));
+        }
+
+    @Test
+    void shouldCreateReplaceRequestWithDefaultScope()
+        {
+        ReplaceRequest request = Requests.replace(null, "foo", "pof", BYTES_1, BYTES_2);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -347,9 +719,24 @@ class RequestsTest
     @Test
     void shouldCreateReplaceMappingRequest()
         {
-        ReplaceMappingRequest request = Requests.replace("foo", "pof", BYTES_1, BYTES_2, BYTES_3);
+        ReplaceMappingRequest request = Requests.replace("test", "foo", "pof", BYTES_1, BYTES_2, BYTES_3);
 
         assertThat(request,                    is(notNullValue()));
+        assertThat(request.getScope(),         is("test"));
+        assertThat(request.getCache(),         is("foo"));
+        assertThat(request.getFormat(),        is("pof"));
+        assertThat(request.getKey(),           is(BYTES_1));
+        assertThat(request.getPreviousValue(), is(BYTES_2));
+        assertThat(request.getNewValue(),      is(BYTES_3));
+        }
+
+    @Test
+    void shouldCreateReplaceMappingRequestWithDefaultScope()
+        {
+        ReplaceMappingRequest request = Requests.replace(null, "foo", "pof", BYTES_1, BYTES_2, BYTES_3);
+
+        assertThat(request,                    is(notNullValue()));
+        assertThat(request.getScope(),         is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),         is("foo"));
         assertThat(request.getFormat(),        is("pof"));
         assertThat(request.getKey(),           is(BYTES_1));
@@ -360,27 +747,62 @@ class RequestsTest
     @Test
     void shouldCreateSizeRequest()
         {
-        SizeRequest request = Requests.size("foo");
+        SizeRequest request = Requests.size("test", "foo");
 
         assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(), is("test"));
+        assertThat(request.getCache(), is("foo"));
+        }
+
+    @Test
+    void shouldCreateSizeRequestWithDefaultScope()
+        {
+        SizeRequest request = Requests.size(null, "foo");
+
+        assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(), is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
     @Test
     void shouldCreateTruncateRequest()
         {
-        TruncateRequest request = Requests.truncate("foo");
+        TruncateRequest request = Requests.truncate("test", "foo");
 
         assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(), is("test"));
+        assertThat(request.getCache(), is("foo"));
+        }
+
+    @Test
+    void shouldCreateTruncateRequestWithDefaultScope()
+        {
+        TruncateRequest request = Requests.truncate(null, "foo");
+
+        assertThat(request,            is(notNullValue()));
+        assertThat(request.getScope(), is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
     @Test
     void shouldCreateValuesRequest()
         {
-        ValuesRequest request = Requests.values("foo", "pof", BYTES_1);
+        ValuesRequest request = Requests.values("test", "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is("test"));
+        assertThat(request.getCache(),  is("foo"));
+        assertThat(request.getFormat(), is("pof"));
+        assertThat(request.getFilter(), is(BYTES_1));
+        }
+
+    @Test
+    void shouldCreateValuesRequestWithDefaultScope()
+        {
+        ValuesRequest request = Requests.values(null, "foo", "pof", BYTES_1);
+
+        assertThat(request,             is(notNullValue()));
+        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getFilter(), is(BYTES_1));

@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.grpc.Requests;
 
 import com.tangosol.net.CacheFactory;
@@ -60,7 +61,7 @@ class WithoutCdiIT
         DefaultCacheServer.startServerDaemon().waitForServiceStart();
 
         s_ccf = CacheFactory.getCacheFactoryBuilder()
-                .getConfigurableCacheFactory("coherence-cache-config.xml", null);
+                .getConfigurableCacheFactory("coherence-config.xml", null);
 
         NamedCacheService service = NamedCacheService.create();
         ServiceDescriptor descriptor = GrpcServiceBuilder.create(NamedCacheService.class, () -> service, null).build();
@@ -93,7 +94,7 @@ class WithoutCdiIT
         cache.put("key-3", "value-3");
 
         NamedCacheClient client = GrpcProxyBuilder.create(s_channel, NamedCacheClient.class).build();
-        Int32Value int32Value = client.size(Requests.size(cacheName)).toCompletableFuture().get();
+        Int32Value int32Value = client.size(Requests.size(Scope.DEFAULT, cacheName)).toCompletableFuture().get();
         assertThat(int32Value, is(notNullValue()));
         assertThat(int32Value.getValue(), is(cache.size()));
         }

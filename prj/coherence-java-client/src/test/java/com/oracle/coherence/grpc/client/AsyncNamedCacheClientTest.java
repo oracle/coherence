@@ -8,6 +8,7 @@
 package com.oracle.coherence.grpc.client;
 
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.Entry;
 import com.oracle.coherence.grpc.InvokeAllRequest;
@@ -15,6 +16,7 @@ import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
 import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
 
+import com.oracle.coherence.grpc.Requests;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.Serializer;
@@ -83,7 +85,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorOnly() throws Exception
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -122,7 +124,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorOnlyWithNoResults() throws Exception
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -157,7 +159,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorOnlyWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -188,7 +190,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorOnlyWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
@@ -205,7 +207,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeys() throws Exception
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -248,7 +250,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysWithNoResults() throws Exception
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -287,7 +289,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -323,7 +325,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
@@ -341,7 +343,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilter() throws Exception
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -381,7 +383,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterWithNoResults() throws Exception
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -417,7 +419,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -450,7 +452,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
@@ -468,7 +470,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndConsumer()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -508,7 +510,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndConsumerWithNoResults()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -544,7 +546,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndConsumerWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -580,7 +582,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndConsumerWithCallbackError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -614,7 +616,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndConsumerWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
@@ -635,7 +637,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndConsumer()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -678,7 +680,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndConsumerWithNoResults()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -717,7 +719,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndConsumerWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -757,7 +759,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndConsumerWithCallbackError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -786,7 +788,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndConsumerWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
@@ -808,7 +810,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndConsumer()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -848,7 +850,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndConsumerWithNoResults()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -884,7 +886,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndConsumerWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -921,7 +923,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndConsumerWithCallbackError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -950,7 +952,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndConsumerWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
@@ -972,7 +974,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndBiConsumer()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1012,7 +1014,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndBiConsumerWithNoResults()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1048,7 +1050,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndBiConsumerWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1084,7 +1086,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndBiConsumerWithCallbackError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1118,7 +1120,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithProcessorAndBiConsumerWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
@@ -1139,7 +1141,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndBiConsumer()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1182,7 +1184,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndBiConsumerWithNoResults()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1221,7 +1223,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndBiConsumerWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1261,7 +1263,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndBiConsumerWithCallbackError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1290,7 +1292,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithKeysAndBiConsumerWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
@@ -1312,7 +1314,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndBiConsumer()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1352,7 +1354,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndBiConsumerWithNoResults()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1388,7 +1390,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndBiConsumerWithError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1425,7 +1427,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndBiConsumerWithCallbackError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
@@ -1454,7 +1456,7 @@ class AsyncNamedCacheClientTest
     void shouldInvokeAllWithFilterAndBiConsumerWithInvokeError()
         {
         NamedCacheService                     service    = createMockService();
-        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>("test", service, SERIALIZER, FORMAT);
+        AsyncNamedCacheClient<String, String> realClient = new AsyncNamedCacheClient<>(Scope.DEFAULT, "test", service, SERIALIZER, FORMAT);
         AsyncNamedCacheClient<String, String> client     = spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");

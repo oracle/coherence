@@ -10,6 +10,7 @@ import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.Scope;
 
+import com.oracle.coherence.cdi.SerializerFormat;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 
@@ -62,7 +63,8 @@ public class NamedCacheProducer
     @Produces
     @Remote
     @Name("")
-    @Scope("")
+    @Scope
+    @SerializerFormat("")
     public <K, V> NamedCacheClient<K, V> getNamedCache(InjectionPoint injectionPoint)
         {
         AsyncNamedCacheClient<K, V> async = getAsyncNamedCacheClient(injectionPoint);
@@ -88,7 +90,8 @@ public class NamedCacheProducer
     @Produces
     @Remote
     @Name("")
-    @Scope("")
+    @Scope
+    @SerializerFormat("")
     public <K, V> AsyncNamedCacheClient<K, V> getRemoteAsyncNamedCache(InjectionPoint injectionPoint)
         {
         return getAsyncNamedCacheClient(injectionPoint);
@@ -121,12 +124,18 @@ public class NamedCacheProducer
             }
 
         String sSessionName = qualifiers.stream()
+                        .filter(q -> Remote.class.isAssignableFrom(q.getClass()))
+                        .map(q -> ((Remote) q).value())
+                        .findFirst()
+                        .orElse(Remote.DEFAULT_NAME);
+
+        String sScope = qualifiers.stream()
                 .filter(q -> Scope.class.isAssignableFrom(q.getClass()))
                 .map(q -> ((Scope) q).value())
                 .findFirst()
-                .orElse(GrpcRemoteSession.DEFAULT_NAME);
+                .orElse(Scope.DEFAULT);
 
-        GrpcRemoteSession session = f_sessionProducer.ensureSession(sSessionName);
+        GrpcRemoteSession session = f_sessionProducer.ensureSession(sSessionName, sScope);
         return session.getAsyncCache(sName);
         }
 

@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.grpc.client;
 
+import com.oracle.coherence.cdi.Scope;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
@@ -430,7 +431,7 @@ class NamedCacheServiceValuesIT
         {
         Map<String, AsyncNamedCacheClient<?, ?>> map   = s_mapClients.computeIfAbsent(CACHE_NAME, k -> new HashMap<>());
         AsyncNamedCacheClient<K, V>              async = (AsyncNamedCacheClient<K, V>)
-                map.computeIfAbsent(serializerName, k -> AsyncNamedCacheClient.builder(CACHE_NAME)
+                map.computeIfAbsent(serializerName, k -> AsyncNamedCacheClient.builder(Scope.DEFAULT, CACHE_NAME)
                         .channel(s_channel)
                         .serializer(serializer, serializerName)
                         .build());

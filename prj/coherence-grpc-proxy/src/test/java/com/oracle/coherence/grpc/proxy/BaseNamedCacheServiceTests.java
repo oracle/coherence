@@ -13,6 +13,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.grpc.AggregateRequest;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.Entry;
@@ -90,8 +91,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
-
 import org.junit.jupiter.params.ParameterizedTest;
 
 import org.junit.jupiter.params.provider.Arguments;
@@ -137,31 +136,34 @@ abstract class BaseNamedCacheServiceTests
     /**
      * Obtain the specified {@link NamedCache}.
      *
-     * @param name    the cache name
-     * @param loader  the {@link ClassLoader} to use to obtain the cache
      * @param <K>     the type of the cache keys
      * @param <V>     the type of the cache values
      *
+     * @param sScope  the scope name for the cache
+     * @param name    the cache name
+     * @param loader  the {@link ClassLoader} to use to obtain the cache
      * @return the specified {@link NamedCache}
      */
-    protected abstract <K, V> NamedCache<K, V> ensureCache(String name, ClassLoader loader);
+    protected abstract <K, V> NamedCache<K, V> ensureCache(String sScope, String name, ClassLoader loader);
 
     /**
      * Destroy the specified {@link NamedCache}.
      *
-     * @param cache the cache to destroy
+     * @param sScope  the scope name for the cache
+     * @param cache   the cache to destroy
      */
-    protected abstract void destroyCache(NamedCache<?, ?> cache);
+    protected abstract void destroyCache(String sScope, NamedCache<?, ?> cache);
 
     // ----- Test Methods ---------------------------------------------------
+
     // ----- AddIndex -------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldAddIndex(String serializerName, Serializer serializer) throws Exception
+    public void shouldAddIndex(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String     sCacheName = "add-index-cache";
-        NamedCache cache      = ensureEmptyCache(sCacheName);
+        NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
 
         Map<ValueExtractor, MapIndex> indexMap = removeIndexes(cache);
 
@@ -169,7 +171,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString     binExtractor = toByteString(extractor, serializer);
 
         NamedCacheClient       service  = createService();
-        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sCacheName, serializerName, binExtractor));
+        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sScope, sCacheName, serializerName, binExtractor));
 
         assertThat(response, is(notNullValue()));
         CompletableFuture<Empty> future = response.toCompletableFuture();
@@ -179,12 +181,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(indexMap.get(extractor).isOrdered(), is(false));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldAddSortedIndex(String serializerName, Serializer serializer) throws Exception
+    public void shouldAddSortedIndex(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String     sCacheName = "add-index-cache";
-        NamedCache cache      = ensureEmptyCache(sCacheName);
+        NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
 
         Map<ValueExtractor, MapIndex> indexMap = removeIndexes(cache);
 
@@ -192,7 +194,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString     binExtractor = toByteString(extractor, serializer);
 
         NamedCacheClient       service  = createService();
-        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sCacheName, serializerName, 
+        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sScope, sCacheName, serializerName, 
                                                                              binExtractor, true));
 
         assertThat(response, is(notNullValue()));
@@ -203,12 +205,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(indexMap.get(extractor).isOrdered(), is(true));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldAddSortedIndexWithComparator(String serializerName, Serializer serializer) throws Exception
+    public void shouldAddSortedIndexWithComparator(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String     sCacheName = "add-index-cache";
-        NamedCache cache      = ensureEmptyCache(sCacheName);
+        NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
 
         Map<ValueExtractor, MapIndex> indexMap = removeIndexes(cache);
 
@@ -218,7 +220,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString     binComparator = toByteString(comparator, serializer);
 
         NamedCacheClient       service  = createService();
-        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sCacheName, serializerName, 
+        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sScope, sCacheName, serializerName, 
                                                                              binExtractor, true, binComparator));
 
         assertThat(response, is(notNullValue()));
@@ -232,13 +234,13 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Aggregate ------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallAggregateWithFilterExpectingSingleResult(String serializerName, Serializer serializer)
+    public void shouldCallAggregateWithFilterExpectingSingleResult(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
 
         cache.clear();
 
@@ -255,7 +257,7 @@ abstract class BaseNamedCacheServiceTests
         Filter<Person> filter   = Filters.equal("age", 25);
         int            expected = cache.aggregate(filter, aggregator);
 
-        AggregateRequest request = Requests.aggregate(sCacheName,
+        AggregateRequest request = Requests.aggregate(sScope, sCacheName,
                                                       serializerName,
                                                       BinaryHelper.toByteString(filter, serializer),
                                                       BinaryHelper.toByteString(aggregator, serializer));
@@ -271,14 +273,15 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, is(expected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallAggregateWithFilterMatchingNoEntriesExpectingSingleResult(String serializerName, 
-                                                                             Serializer serializer)
+    public void shouldCallAggregateWithFilterMatchingNoEntriesExpectingSingleResult(String     serializerName, 
+                                                                                    Serializer serializer,
+                                                                                    String     sScope)
             throws Exception
         {
         String                      sCacheName = "people";
-        NamedCache<String, Person>  cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person>  cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -292,7 +295,7 @@ abstract class BaseNamedCacheServiceTests
         Filter<Person> filter    = Filters.equal("age", 100);
         int            cExpected = cache.aggregate(filter, aggregator);
 
-        AggregateRequest request = Requests.aggregate(sCacheName,
+        AggregateRequest request = Requests.aggregate(sScope, sCacheName,
                                                       serializerName,
                                                       BinaryHelper.toByteString(filter, serializer),
                                                       BinaryHelper.toByteString(aggregator, serializer));
@@ -308,12 +311,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, is(cExpected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallAggregateWithKeysExpectingSingleResult(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallAggregateWithKeysExpectingSingleResult(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -330,7 +333,7 @@ abstract class BaseNamedCacheServiceTests
                 .collect(Collectors.toList());
         int              nExpected          = cache.aggregate(listKeys, aggregator);
 
-        AggregateRequest request = Requests.aggregate(sCacheName,
+        AggregateRequest request = Requests.aggregate(sScope, sCacheName,
                                                       serializerName,
                                                       listSerializedKeys,
                                                       BinaryHelper.toByteString(aggregator, serializer));
@@ -346,13 +349,13 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, is(nExpected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallAggregateWithKeysMatchingNoEntriesExpectingSingleResult(String serializerName, Serializer serializer)
+    public void shouldCallAggregateWithKeysMatchingNoEntriesExpectingSingleResult(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -369,7 +372,7 @@ abstract class BaseNamedCacheServiceTests
                 .collect(Collectors.toList());
         int               nExpected         = cache.aggregate(listKeys, aggregator);
 
-        AggregateRequest request = Requests.aggregate(sCacheName,
+        AggregateRequest request = Requests.aggregate(sScope, sCacheName,
                                                       serializerName,
                                                       listSerializedKeys,
                                                       BinaryHelper.toByteString(aggregator, serializer));
@@ -385,13 +388,13 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, is(nExpected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallAggregateWithNoKeysOrFilterExpectingSingleResult(String serializerName, Serializer serializer)
+    public void shouldCallAggregateWithNoKeysOrFilterExpectingSingleResult(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -405,6 +408,7 @@ abstract class BaseNamedCacheServiceTests
         int nExpected = cache.aggregate(aggregator);
 
         AggregateRequest request = AggregateRequest.newBuilder()
+                .setScope(sScope)
                 .setCache(sCacheName)
                 .setFormat(serializerName)
                 .setAggregator(BinaryHelper.toByteString(aggregator, serializer))
@@ -421,12 +425,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, is(nExpected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallAggregateWithFilterExpectingMapResult(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallAggregateWithFilterExpectingMapResult(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -443,7 +447,7 @@ abstract class BaseNamedCacheServiceTests
         Filter<Person>      filter      = Filters.equal("age", 25);
         Map<String, String> mapExpected = cache.aggregate(filter, aggregator);
 
-        AggregateRequest request = Requests.aggregate(sCacheName,
+        AggregateRequest request = Requests.aggregate(sScope, sCacheName,
                                                       serializerName,
                                                       BinaryHelper.toByteString(filter, serializer),
                                                       BinaryHelper.toByteString(aggregator, serializer));
@@ -459,12 +463,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, is(mapExpected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallAggregateWithKeysExpectingMapResult(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallAggregateWithKeysExpectingMapResult(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -484,7 +488,7 @@ abstract class BaseNamedCacheServiceTests
                 .collect(Collectors.toList());
         Map<String, String> nExpected          = cache.aggregate(listKeys, aggregator);
 
-        AggregateRequest request = Requests.aggregate(sCacheName,
+        AggregateRequest request = Requests.aggregate(sScope, sCacheName,
                                                       serializerName,
                                                       listSerializedKeys,
                                                       BinaryHelper.toByteString(aggregator, serializer));
@@ -502,15 +506,16 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Clear ----------------------------------------------------------
 
-    @Test
-    public void shouldClearEmptyCache() throws Exception
+    @ParameterizedTest(name = "{index} scope={0}")
+    @MethodSource("getTestScopes")
+    public void shouldClearEmptyCache(String sScope) throws Exception
         {
         String     sCacheName = "test-cache";
-        NamedCache cache      = ensureEmptyCache(sCacheName);
+        NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient       service  = createService();
-        CompletionStage<Empty> response = service.clear(Requests.clear(sCacheName));
+        CompletionStage<Empty> response = service.clear(Requests.clear(sScope, sCacheName));
 
         assertThat(response, is(notNullValue()));
 
@@ -521,15 +526,16 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.isEmpty(), is(true));
         }
 
-    @Test
-    public void shouldClearPopulatedCache() throws Exception
+    @ParameterizedTest(name = "{index} scope={0}")
+    @MethodSource("getTestScopes")
+    public void shouldClearPopulatedCache(String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
         NamedCacheClient       service  = createService();
-        CompletionStage<Empty> response = service.clear(Requests.clear(sCacheName));
+        CompletionStage<Empty> response = service.clear(Requests.clear(sScope, sCacheName));
 
         assertThat(response, is(notNullValue()));
 
@@ -542,19 +548,19 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Contains Entry -------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldContainEntryWhenMappingPresent(String serializerName, Serializer serializer) throws Exception
+    public void shouldContainEntryWhenMappingPresent(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
         NamedCacheClient           service  = createService();
         ByteString                 key      = toByteString("key-1", serializer);
         ByteString                 value    = toByteString("value-1", serializer);
         CompletionStage<BoolValue> response = service.containsEntry(
-                Requests.containsEntry(sCacheName, serializerName, key, value));
+                Requests.containsEntry(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -564,20 +570,20 @@ abstract class BaseNamedCacheServiceTests
         assertThat(bool.getValue(), is(true));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldNotContainEntryWhenMappingHasDifferentValue(String serializerName, Serializer serializer)
+    public void shouldNotContainEntryWhenMappingHasDifferentValue(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
         NamedCacheClient           service  = createService();
         ByteString                 key      = toByteString("key-1", serializer);
         ByteString                 value    = toByteString("not-value-1", serializer);
         CompletionStage<BoolValue> response = service.containsEntry(
-                Requests.containsEntry(sCacheName, serializerName, key, value));
+                Requests.containsEntry(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -587,18 +593,18 @@ abstract class BaseNamedCacheServiceTests
         assertThat(bool.getValue(), is(false));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldNotContainEntryWhenMappingNotPresent(String serializerName, Serializer serializer) throws Exception
+    public void shouldNotContainEntryWhenMappingNotPresent(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
         NamedCacheClient           service  = createService();
         ByteString                 key      = toByteString("key-100", serializer);
         ByteString                 value    = toByteString("value-100", serializer);
-        CompletionStage<BoolValue> response = service.containsEntry(Requests.containsEntry(sCacheName, serializerName, key, value));
+        CompletionStage<BoolValue> response = service.containsEntry(Requests.containsEntry(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -610,18 +616,18 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Contains Key ---------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnTrueForContainsKeyWithExistingMapping(String serializerName, Serializer serializer)
+    public void shouldReturnTrueForContainsKeyWithExistingMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
         NamedCacheClient           service  = createService();
         ByteString                 key      = toByteString("key-2", serializer);
-        CompletionStage<BoolValue> response = service.containsKey(Requests.containsKey(sCacheName, serializerName, key));
+        CompletionStage<BoolValue> response = service.containsKey(Requests.containsKey(sScope, sCacheName, serializerName, key));
 
         assertThat(response, is(notNullValue()));
 
@@ -632,19 +638,19 @@ abstract class BaseNamedCacheServiceTests
         }
 
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnFalseForContainsKeyWithNonExistentMapping(String serializerName, Serializer serializer)
+    public void shouldReturnFalseForContainsKeyWithNonExistentMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
         NamedCacheClient           service  = createService();
         ByteString                 key      = toByteString("bad-key", serializer);
         CompletionStage<BoolValue> response = service.containsKey(
-                Requests.containsKey(sCacheName, serializerName, key));
+                Requests.containsKey(sScope, sCacheName, serializerName, key));
 
         assertThat(response, is(notNullValue()));
 
@@ -656,17 +662,17 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Contains Value -------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldContainValueWhenValuePresent(String serializerName, Serializer serializer) throws Exception
+    public void shouldContainValueWhenValuePresent(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
         NamedCacheClient           service  = createService();
         ByteString                 value    = toByteString("value-2", serializer);
-        CompletionStage<BoolValue> response = service.containsValue(Requests.containsValue(sCacheName, serializerName, value));
+        CompletionStage<BoolValue> response = service.containsValue(Requests.containsValue(sScope, sCacheName, serializerName, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -676,12 +682,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(bool.getValue(), is(true));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldContainValueWhenValuePresentMultipleTimes(String serializerName, Serializer serializer) throws Exception
+    public void shouldContainValueWhenValuePresentMultipleTimes(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.put("key-1", "value-1");
         cache.put("key-2", "value-2");
         cache.put("key-11", "value-1");
@@ -689,7 +695,7 @@ abstract class BaseNamedCacheServiceTests
 
         NamedCacheClient           service  = createService();
         ByteString                 value    = toByteString("value-2", serializer);
-        CompletionStage<BoolValue> response = service.containsValue(Requests.containsValue(sCacheName, serializerName, value));
+        CompletionStage<BoolValue> response = service.containsValue(Requests.containsValue(sScope, sCacheName, serializerName, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -699,17 +705,17 @@ abstract class BaseNamedCacheServiceTests
         assertThat(bool.getValue(), is(true));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldNotContainValueWhenMappingNotPresent(String serializerName, Serializer serializer) throws Exception
+    public void shouldNotContainValueWhenMappingNotPresent(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
         NamedCacheClient           service  = createService();
         ByteString                 value    = toByteString("value-100", serializer);
-        CompletionStage<BoolValue> response = service.containsValue(Requests.containsValue(sCacheName, serializerName, value));
+        CompletionStage<BoolValue> response = service.containsValue(Requests.containsValue(sScope, sCacheName, serializerName, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -721,14 +727,15 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Destroy --------------------------------------------------------
 
-    @Test
-    public void shouldDestroyCache() throws Exception
+    @ParameterizedTest(name = "{index} scope={0}")
+    @MethodSource("getTestScopes")
+    public void shouldDestroyCache(String sScope) throws Exception
         {
         String     sCacheName = "test-cache";
-        NamedCache cache      = ensureEmptyCache(sCacheName);
+        NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
 
         NamedCacheClient       service  = createService();
-        CompletionStage<Empty> response = service.destroy(Requests.destroy(sCacheName));
+        CompletionStage<Empty> response = service.destroy(Requests.destroy(sScope, sCacheName));
 
         assertThat(response, is(notNullValue()));
 
@@ -741,12 +748,12 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- entrySet(Filter) -----------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallEntrySetWithFilterWhenSomeEntriesMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallEntrySetWithFilterWhenSomeEntriesMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -762,7 +769,7 @@ abstract class BaseNamedCacheServiceTests
 
         ByteString                filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
-        service.entrySet(Requests.entrySet(sCacheName, serializerName, filterBytes), observer);
+        service.entrySet(Requests.entrySet(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -773,12 +780,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult.entrySet(), is(expected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallEntrySetWithFilterWhenAllEntriesMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallEntrySetWithFilterWhenAllEntriesMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -794,7 +801,7 @@ abstract class BaseNamedCacheServiceTests
 
         ByteString                filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
-        service.entrySet(Requests.entrySet(sCacheName, serializerName, filterBytes), observer);
+        service.entrySet(Requests.entrySet(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -805,12 +812,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult.entrySet(), is(expected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallEntrySetWithFilterWhenNoEntriesMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallEntrySetWithFilterWhenNoEntriesMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -826,7 +833,7 @@ abstract class BaseNamedCacheServiceTests
 
         ByteString                filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
-        service.entrySet(Requests.entrySet(sCacheName, serializerName, filterBytes), observer);
+        service.entrySet(Requests.entrySet(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -837,14 +844,14 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult.entrySet(), is(expected));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
     @SuppressWarnings("unchecked")
-    public void shouldCallEntrySetWithFilterAndComparatorWhenSomeEntriesMatch(String serializerName, Serializer serializer)
+    public void shouldCallEntrySetWithFilterAndComparatorWhenSomeEntriesMatch(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                      sCacheName = "numbers";
-        NamedCache<String, Integer> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
             {
@@ -861,7 +868,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                filterBytes     = BinaryHelper.toByteString(filter, serializer);
         ByteString                comparatorBytes = BinaryHelper.toByteString(comparator, serializer);
         TestStreamObserver<Entry> observer        = new TestStreamObserver<>();
-        service.entrySet(Requests.entrySet(sCacheName, serializerName, filterBytes, comparatorBytes), observer);
+        service.entrySet(Requests.entrySet(sScope, sCacheName, serializerName, filterBytes, comparatorBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -872,14 +879,14 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, is(expectedList));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
     @SuppressWarnings("unchecked")
-    public void shouldCallEntrySetWithFilterAndComparatorWhenAllEntriesMatch(String serializerName, Serializer serializer)
+    public void shouldCallEntrySetWithFilterAndComparatorWhenAllEntriesMatch(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                      sCacheName = "numbers";
-        NamedCache<String, Integer> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
             {
@@ -896,7 +903,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                filterBytes    = BinaryHelper.toByteString(filter, serializer);
         ByteString                comparatorBytes = BinaryHelper.toByteString(comparator, serializer);
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
-        service.entrySet(Requests.entrySet(sCacheName, serializerName, filterBytes, comparatorBytes), observer);
+        service.entrySet(Requests.entrySet(sScope, sCacheName, serializerName, filterBytes, comparatorBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -907,14 +914,14 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, is(expectedList));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
     @SuppressWarnings("unchecked")
-    public void shouldCallEntrySetWithFilterAndComparatorWhenNoEntriesMatch(String serializerName, Serializer serializer)
+    public void shouldCallEntrySetWithFilterAndComparatorWhenNoEntriesMatch(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                      sCacheName = "numbers";
-        NamedCache<String, Integer> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
             {
@@ -931,7 +938,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                filterBytes     = BinaryHelper.toByteString(filter, serializer);
         ByteString                comparatorBytes = BinaryHelper.toByteString(comparator, serializer);
         TestStreamObserver<Entry> observer        = new TestStreamObserver<>();
-        service.entrySet(Requests.entrySet(sCacheName, serializerName, filterBytes, comparatorBytes), observer);
+        service.entrySet(Requests.entrySet(sScope, sCacheName, serializerName, filterBytes, comparatorBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -944,15 +951,15 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Events ---------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldSubscribeToAllEvents(String serializerName, Serializer serializer)
+    public void shouldSubscribeToAllEvents(String serializerName, Serializer serializer, String sScope)
         {
-        String                                sCacheName = "test-events-01";
+        String                                sCacheName = "test-events-" + System.currentTimeMillis();
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
         MapEventFilter<String, String>        filter     = new MapEventFilter<>(MapEventFilter.E_ALL,
                                                                                 Filters.always());
-        NamedCache<String, String>            cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String>            cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.addMapListener(listener, filter, false);
 
@@ -968,7 +975,7 @@ abstract class BaseNamedCacheServiceTests
             // subscribe to all events
             ByteString         filterBytes = BinaryHelper.toByteString(filter, serializer);
             long               nFilterId   = 19L;
-            MapListenerRequest request     = Requests.addFilterMapListener(sCacheName, serializerName, filterBytes,
+            MapListenerRequest request     = Requests.addFilterMapListener(sScope, sCacheName, serializerName, filterBytes,
                                                                            nFilterId, false, false,
                                                                            ByteString.EMPTY);
             requestObserver.onNext(request);
@@ -1017,12 +1024,12 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReceiveDeactivationEvent(String serializerName, Serializer serializer) throws Exception
+    public void shouldReceiveDeactivationEvent(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-destroy";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient service = createService();
@@ -1034,7 +1041,7 @@ abstract class BaseNamedCacheServiceTests
             {
             assertThat(requestObserver, is(notNullValue()));
 
-            MapListenerRequest request = Requests.initListenerChannel(sCacheName, serializerName);
+            MapListenerRequest request = Requests.initListenerChannel(sScope, sCacheName, serializerName);
             requestObserver.onNext(request);
 
             // wait for subscribed response
@@ -1048,7 +1055,7 @@ abstract class BaseNamedCacheServiceTests
             assertThat(response.getResponseTypeCase(), is(MapListenerResponse.ResponseTypeCase.SUBSCRIBED));
             assertThat(response.getSubscribed().getUid(), is(request.getUid()));
 
-            destroyCache(cache);
+            destroyCache(sScope, cache);
 
             // wait for the events
             responseObserver.await(1, TimeUnit.MINUTES);
@@ -1066,12 +1073,12 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReceiveTruncateEvent(String serializerName, Serializer serializer)
+    public void shouldReceiveTruncateEvent(String serializerName, Serializer serializer, String sScope)
         {
-        String                     sCacheName = "test-events";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        String                     sCacheName = "test-events-" + System.currentTimeMillis();
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("foo", "bar");
 
@@ -1084,7 +1091,7 @@ abstract class BaseNamedCacheServiceTests
             {
             assertThat(requestObserver, is(notNullValue()));
 
-            MapListenerRequest request = Requests.initListenerChannel(sCacheName, serializerName);
+            MapListenerRequest request = Requests.initListenerChannel(sScope, sCacheName, serializerName);
             requestObserver.onNext(request);
 
             // wait for subscribed response
@@ -1116,13 +1123,13 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldSubscribeToSingleEventForSingleKey(String serializerName, Serializer serializer)
+    public void shouldSubscribeToSingleEventForSingleKey(String serializerName, Serializer serializer, String sScope)
         {
-        String                                sCacheName = "test-events-02";
+        String                                sCacheName = "test-events-" + System.currentTimeMillis();
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
-        NamedCache<String, String>            cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String>            cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.addMapListener(listener, "key-2", false);
 
@@ -1137,7 +1144,7 @@ abstract class BaseNamedCacheServiceTests
 
             // subscribe to events for key-2
             ByteString         keyBytes = BinaryHelper.toByteString("key-2", serializer);
-            MapListenerRequest request = Requests.addKeyMapListener(sCacheName, serializerName, keyBytes,
+            MapListenerRequest request = Requests.addKeyMapListener(sScope, sCacheName, serializerName, keyBytes,
                                                                     false, false, ByteString.EMPTY);
             requestObserver.onNext(request);
 
@@ -1173,13 +1180,13 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldSubscribeToAllEventsForSingleKey(String serializerName, Serializer serializer)
+    public void shouldSubscribeToAllEventsForSingleKey(String serializerName, Serializer serializer, String sScope)
         {
-        String                                sCacheName = "test-events-02";
+        String                                sCacheName = "test-events-" + System.currentTimeMillis();
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
-        NamedCache<String, String>            cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String>            cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.addMapListener(listener, "key-2", false);
 
@@ -1194,7 +1201,7 @@ abstract class BaseNamedCacheServiceTests
 
             // subscribe to events for key-2
             ByteString         keyBytes = BinaryHelper.toByteString("key-2", serializer);
-            MapListenerRequest request  = Requests.addKeyMapListener(sCacheName, serializerName, keyBytes,
+            MapListenerRequest request  = Requests.addKeyMapListener(sScope, sCacheName, serializerName, keyBytes,
                                                                      false, false, ByteString.EMPTY);
             requestObserver.onNext(request);
 
@@ -1241,13 +1248,13 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldAddPrimingListenerForNonExistentKey(String serializerName, Serializer serializer)
+    public void shouldAddPrimingListenerForNonExistentKey(String serializerName, Serializer serializer, String sScope)
         {
-        String                     sCacheName = "test-events-03";
+        String                     sCacheName = "test-events-" + System.currentTimeMillis();
         String                     key        = "key-2";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         TestStreamObserver<MapListenerResponse> responseObserver = new TestStreamObserver<>();
@@ -1260,7 +1267,7 @@ abstract class BaseNamedCacheServiceTests
 
             // subscribe to events for key-2
             ByteString         keyBytes = BinaryHelper.toByteString(key, serializer);
-            MapListenerRequest request = Requests.addKeyMapListener(sCacheName, serializerName, keyBytes,
+            MapListenerRequest request = Requests.addKeyMapListener(sScope, sCacheName, serializerName, keyBytes,
                                                                     false, true, ByteString.EMPTY);
             requestObserver.onNext(request);
 
@@ -1293,13 +1300,13 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldAddPrimingListenerForExistingKey(String serializerName, Serializer serializer)
+    public void shouldAddPrimingListenerForExistingKey(String serializerName, Serializer serializer, String sScope)
         {
-        String                     sCacheName = "test-events-04";
+        String                     sCacheName = "test-events-" + System.currentTimeMillis();
         String                     key        = "key-2";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put(key, "value-2");
 
@@ -1314,7 +1321,7 @@ abstract class BaseNamedCacheServiceTests
             // subscribe to events for key-2
             ByteString         keyBytes = BinaryHelper.toByteString(key, serializer);
             MapListenerRequest request  = Requests
-                    .addKeyMapListener(sCacheName, serializerName, keyBytes, false, true, ByteString.EMPTY);
+                    .addKeyMapListener(sScope, sCacheName, serializerName, keyBytes, false, true, ByteString.EMPTY);
             requestObserver.onNext(request);
 
             // wait for the priming and subscribed responses
@@ -1345,12 +1352,12 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldAddMapTrigger(String serializerName, Serializer serializer)
+    public void shouldAddMapTrigger(String serializerName, Serializer serializer, String sScope)
         {
-        String                     sCacheName = "test-events-05";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        String                     sCacheName = "test-events-" + System.currentTimeMillis();
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         TestStreamObserver<MapListenerResponse> responseObserver = new TestStreamObserver<>();
@@ -1363,7 +1370,7 @@ abstract class BaseNamedCacheServiceTests
 
             String             sKey         = "iron-man";
             ByteString         triggerBytes = BinaryHelper.toByteString(new PersonMapTrigger(), serializer);
-            MapListenerRequest request      = Requests.addFilterMapListener(sCacheName, serializerName,
+            MapListenerRequest request      = Requests.addFilterMapListener(sScope, sCacheName, serializerName,
                                                                             ByteString.EMPTY,
                                                                        0L, false, false,
                                                                             triggerBytes);
@@ -1392,7 +1399,7 @@ abstract class BaseNamedCacheServiceTests
                     .assertValueCount(1);
 
             // Now remove the trigger
-            request = Requests.removeFilterMapListener(sCacheName, serializerName, ByteString.EMPTY, 0L, false, false, triggerBytes);
+            request = Requests.removeFilterMapListener(sScope, sCacheName, serializerName, ByteString.EMPTY, 0L, false, false, triggerBytes);
             requestObserver.onNext(request);
 
             // wait for unsubscribed response
@@ -1417,13 +1424,13 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldSubscribeToEventsForMultipleKeys(String serializerName, Serializer serializer)
+    public void shouldSubscribeToEventsForMultipleKeys(String serializerName, Serializer serializer, String sScope)
         {
-        String                                sCacheName = "test-events-06";
+        String                                sCacheName = "test-events-" + System.currentTimeMillis();
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
-        NamedCache<String, String>            cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String>            cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.addMapListener(listener, "key-2", false);
         cache.addMapListener(listener, "key-4", false);
@@ -1438,7 +1445,7 @@ abstract class BaseNamedCacheServiceTests
 
             // subscribe to events for key-2
             ByteString         keyBytes = BinaryHelper.toByteString("key-2", serializer);
-            MapListenerRequest request  = Requests.addKeyMapListener(sCacheName, serializerName, keyBytes,
+            MapListenerRequest request  = Requests.addKeyMapListener(sScope, sCacheName, serializerName, keyBytes,
                                                                      false, false, ByteString.EMPTY);
             requestObserver.onNext(request);
 
@@ -1455,7 +1462,7 @@ abstract class BaseNamedCacheServiceTests
 
             // subscribe to events for key-4
             keyBytes = BinaryHelper.toByteString("key-4", serializer);
-            request  = Requests.addKeyMapListener(sCacheName, serializerName, keyBytes, false,
+            request  = Requests.addKeyMapListener(sScope, sCacheName, serializerName, keyBytes, false,
                                                   false, ByteString.EMPTY);
             requestObserver.onNext(request);
 
@@ -1503,13 +1510,13 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldSubscribeToEventsForFilter(String serializerName, Serializer serializer)
+    public void shouldSubscribeToEventsForFilter(String serializerName, Serializer serializer, String sScope)
         {
-        String                                 sCacheName = "test-events-07";
+        String                                 sCacheName = "test-events-" + System.currentTimeMillis();
         CollectingMapListener<String, Integer> listener   = new CollectingMapListener<>();
-        NamedCache<String, Integer>            cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Integer>            cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         MapEventFilter<String, Integer> filter      = new MapEventFilter<>(Filters.less(Extractors.identity(), 10));
@@ -1526,7 +1533,7 @@ abstract class BaseNamedCacheServiceTests
 
             // subscribe to all events
             long               nFilterId = 19L;
-            MapListenerRequest request   = Requests.addFilterMapListener(sCacheName, serializerName, filterBytes,
+            MapListenerRequest request   = Requests.addFilterMapListener(sScope, sCacheName, serializerName, filterBytes,
                                                                          nFilterId, false, false,
                                                                          ByteString.EMPTY);
             requestObserver.onNext(request);
@@ -1576,15 +1583,15 @@ abstract class BaseNamedCacheServiceTests
         }
 
     //@Disabled
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldSubscribeToEventsForKeyAndFilter(String serializerName, Serializer serializer)
+    public void shouldSubscribeToEventsForKeyAndFilter(String serializerName, Serializer serializer, String sScope)
         {
-        String                                sCacheName = "test-events-08";
+        String                                sCacheName = "test-events-" + System.currentTimeMillis();
         String                                key         = "key-2";
         CollectingMapListener<String, Person> listenerOne = new CollectingMapListener<>();
         CollectingMapListener<String, Person> listenerTwo = new CollectingMapListener<>();
-        NamedCache<String, Person>            cache       = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person>            cache       = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         MapEventFilter<String, Person> filter      = new MapEventFilter<>(Filters.equal(
@@ -1604,10 +1611,10 @@ abstract class BaseNamedCacheServiceTests
 
             // subscribe to all events
             long               lFilterIdOne = 19L;
-            MapListenerRequest requestOne   = Requests.addFilterMapListener(sCacheName, serializerName, filterBytes,
+            MapListenerRequest requestOne   = Requests.addFilterMapListener(sScope, sCacheName, serializerName, filterBytes,
                                                                             lFilterIdOne, false, false,
                                                                             ByteString.EMPTY);
-            MapListenerRequest requestTwo   = Requests.addKeyMapListener(sCacheName, serializerName, keyBytes,
+            MapListenerRequest requestTwo   = Requests.addKeyMapListener(sScope, sCacheName, serializerName, keyBytes,
                                                                          false,false, ByteString.EMPTY);
             requestObserver.onNext(requestOne);
             requestObserver.onNext(requestTwo);
@@ -1648,14 +1655,14 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldSubscribeToEventsForMultipleFilter(String serializerName, Serializer serializer)
+    public void shouldSubscribeToEventsForMultipleFilter(String serializerName, Serializer serializer, String sScope)
         {
         String                                sCacheName  = "test-events-08";
         CollectingMapListener<String, Person> listenerOne = new CollectingMapListener<>();
         CollectingMapListener<String, Person> listenerTwo = new CollectingMapListener<>();
-        NamedCache<String, Person>            cache       = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person>            cache       = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         MapEventFilter<String, Person> filterOne      = new MapEventFilter<>(Filters.equal(
@@ -1678,10 +1685,10 @@ abstract class BaseNamedCacheServiceTests
             // subscribe to all events
             long               nFilterIdOne = 19L;
             long               nFilterIdTwo = 20L;
-            MapListenerRequest requestOne    = Requests.addFilterMapListener(sCacheName, serializerName,
+            MapListenerRequest requestOne    = Requests.addFilterMapListener(sScope, sCacheName, serializerName,
                                                                              filterBytesOne, nFilterIdOne,
                                                                              false, false, ByteString.EMPTY);
-            MapListenerRequest requestTwo    = Requests.addFilterMapListener(sCacheName, serializerName, filterBytesTwo,
+            MapListenerRequest requestTwo    = Requests.addFilterMapListener(sScope, sCacheName, serializerName, filterBytesTwo,
                                                                              nFilterIdTwo, false, false,
                                                                              ByteString.EMPTY);
             requestObserver.onNext(requestOne);
@@ -1725,12 +1732,12 @@ abstract class BaseNamedCacheServiceTests
             }
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldAddPrimingListenerWithFilter(String serializerName, Serializer serializer)
+    public void shouldAddPrimingListenerWithFilter(String serializerName, Serializer serializer, String sScope)
         {
-        String                     sCacheName = "test-events-09";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        String                     sCacheName = "test-events-" + System.currentTimeMillis();
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-4", "value-4");
 
@@ -1748,7 +1755,7 @@ abstract class BaseNamedCacheServiceTests
 
             // subscribe to all events
             long               nFilterId = 19L;
-            MapListenerRequest request   = Requests.addFilterMapListener(sCacheName, serializerName, filterBytes,
+            MapListenerRequest request   = Requests.addFilterMapListener(sScope, sCacheName, serializerName, filterBytes,
                                                                          nFilterId, false, true,
                                                                          ByteString.EMPTY);
             requestObserver.onNext(request);
@@ -1803,19 +1810,19 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Get ------------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldGetExistingKey(String serializerName, Serializer serializer) throws Exception
+    public void shouldGetExistingKey(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-1");
 
         NamedCacheClient               service  = createService();
         Binary                         binary   = ExternalizableHelper.toBinary("key-1", serializer);
         ByteString                     key      = BinaryHelper.toByteString(binary);
-        CompletionStage<OptionalValue> response = service.get(Requests.get(sCacheName, serializerName, key));
+        CompletionStage<OptionalValue> response = service.get(Requests.get(sScope, sCacheName, serializerName, key));
 
         assertThat(response, is(notNullValue()));
 
@@ -1826,19 +1833,19 @@ abstract class BaseNamedCacheServiceTests
         assertThat(fromByteString(value.getValue(), serializer, String.class), is("value-1"));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldGetExistingKeyMappedToNull(String serializerName, Serializer serializer) throws Exception
+    public void shouldGetExistingKeyMappedToNull(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", null);
 
         NamedCacheClient               service  = createService();
         Binary                         binary   = ExternalizableHelper.toBinary("key-1", serializer);
         ByteString                     key      = BinaryHelper.toByteString(binary);
-        CompletionStage<OptionalValue> response = service.get(Requests.get(sCacheName, serializerName, key));
+        CompletionStage<OptionalValue> response = service.get(Requests.get(sScope, sCacheName, serializerName, key));
 
         assertThat(response, is(notNullValue()));
 
@@ -1849,18 +1856,18 @@ abstract class BaseNamedCacheServiceTests
         assertThat(fromByteString(value.getValue(), serializer, String.class), is(nullValue()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldGetNonExistentKey(String serializerName, Serializer serializer) throws Exception
+    public void shouldGetNonExistentKey(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<Binary, Binary> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<Binary, Binary> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient               service  = createService();
         Binary                         binary   = ExternalizableHelper.toBinary("key-1", serializer);
         ByteString                     key      = BinaryHelper.toByteString(binary);
-        CompletionStage<OptionalValue> response = service.get(Requests.get(sCacheName, serializerName, key));
+        CompletionStage<OptionalValue> response = service.get(Requests.get(sScope, sCacheName, serializerName, key));
 
         assertThat(response, is(notNullValue()));
 
@@ -1873,57 +1880,57 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- GetAll ---------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldGetAllForEmptyKeyCollection(String serializerName, Serializer serializer) throws Exception
+    public void shouldGetAllForEmptyKeyCollection(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
-        assertGetAll(cache, serializerName, serializer, Collections.emptyList());
+        assertGetAll(cache, serializerName, serializer, sScope, Collections.emptyList());
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldGetAllWhenNoKeysMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldGetAllWhenNoKeysMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 4);
 
         Collection<String> colKeys = Arrays.asList("key-5", "key-6");
 
-        assertGetAll(cache, serializerName, serializer, colKeys);
+        assertGetAll(cache, serializerName, serializer, sScope, colKeys);
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldGetAllWhenAllKeysMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldGetAllWhenAllKeysMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 4);
 
         Collection<String> colKeys = Arrays.asList("key-2", "key-4");
 
-        assertGetAll(cache, serializerName, serializer, colKeys);
+        assertGetAll(cache, serializerName, serializer, sScope, colKeys);
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldGetAllWhenAllSomeKeysMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldGetAllWhenAllSomeKeysMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 4);
 
         Collection<String> colKeys = Arrays.asList("key-0", "key-2", "key-4", "key-5");
 
-        assertGetAll(cache, serializerName, serializer, colKeys);
+        assertGetAll(cache, serializerName, serializer, sScope, colKeys);
         }
 
-    void assertGetAll(NamedCache<String, String> cache, String serializerName, Serializer serializer, Collection<String> keys)
+    void assertGetAll(NamedCache<String, String> cache, String serializerName, Serializer serializer, String sScope, Collection<String> keys)
             throws Exception
         {
         Map<String, String> mapExpected = cache.getAll(keys);
@@ -1934,7 +1941,7 @@ abstract class BaseNamedCacheServiceTests
 
         NamedCacheClient          service  = createService();
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
-        service.getAll(Requests.getAll(cache.getCacheName(), serializerName, serializedKeys), observer);
+        service.getAll(Requests.getAll(sScope, cache.getCacheName(), serializerName, serializedKeys), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -1955,12 +1962,12 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Invoke ---------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallInvoke(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallInvoke(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         String                     sKey       = "bb";
         Person                     person     = new Person("bob", "builder", 25, "male");
         cache.put(sKey, person);
@@ -1968,7 +1975,7 @@ abstract class BaseNamedCacheServiceTests
         ValueExtractor<Person, String>                      extractor = new UniversalExtractor<>("lastName");
         InvocableMap.EntryProcessor<String, Person, String> processor = new ExtractorProcessor<>(extractor);
 
-        InvokeRequest request = Requests.invoke(sCacheName, serializerName,
+        InvokeRequest request = Requests.invoke(sScope, sCacheName, serializerName,
                                                 BinaryHelper.toByteString(sKey, serializer),
                                                 BinaryHelper.toByteString(processor, serializer));
 
@@ -1983,13 +1990,14 @@ abstract class BaseNamedCacheServiceTests
         assertThat(BinaryHelper.fromBytesValue(value, serializer), is(person.getLastName()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallInvokeWithMissingEntryProcessor(String serializerName, Serializer serializer)
+    public void shouldCallInvokeWithMissingEntryProcessor(String serializerName, Serializer serializer, String sScope)
         {
         String sCacheName = "people";
 
         InvokeRequest request = InvokeRequest.newBuilder()
+                .setScope(sScope)
                 .setCache(sCacheName)
                 .setFormat(serializerName)
                 .setKey(BinaryHelper.toByteString("foo", serializer))
@@ -2006,12 +2014,12 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- InvokeAll ------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallInvokeAllWithFilter(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallInvokeAllWithFilter(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2024,7 +2032,7 @@ abstract class BaseNamedCacheServiceTests
         InvocableMap.EntryProcessor<String, Person, String> processor = new ExtractorProcessor<>(extractor);
         Filter<Person>                                      filter    = Filters.equal("age", 25);
 
-        InvokeAllRequest request = Requests.invokeAll(sCacheName, serializerName,
+        InvokeAllRequest request = Requests.invokeAll(sScope, sCacheName, serializerName,
                                                       BinaryHelper.toByteString(filter, serializer),
                                                       BinaryHelper.toByteString(processor, serializer));
 
@@ -2045,12 +2053,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(map, hasEntry(person2.getLastName(), person2.getFirstName()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallInvokeAllWithNoFilterOrKeys(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallInvokeAllWithNoFilterOrKeys(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2062,7 +2070,9 @@ abstract class BaseNamedCacheServiceTests
         ValueExtractor<Person, String>                      extractor = new UniversalExtractor<>("firstName");
         InvocableMap.EntryProcessor<String, Person, String> processor = new ExtractorProcessor<>(extractor);
 
-        InvokeAllRequest request = InvokeAllRequest.newBuilder().setCache(sCacheName)
+        InvokeAllRequest request = InvokeAllRequest.newBuilder()
+                .setScope(sScope)
+                .setCache(sCacheName)
                 .setFormat(serializerName)
                 .setProcessor(BinaryHelper.toByteString(processor, serializer))
                 .build();
@@ -2085,12 +2095,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(map, hasEntry(person3.getLastName(), person3.getFirstName()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallInvokeAllWithKeys(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallInvokeAllWithKeys(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2105,7 +2115,7 @@ abstract class BaseNamedCacheServiceTests
         List<ByteString> listKeys = Arrays.asList(BinaryHelper.toByteString(person1.getLastName(), serializer),
                                                   BinaryHelper.toByteString(person2.getLastName(), serializer));
 
-        InvokeAllRequest request = Requests.invokeAll(sCacheName, serializerName,
+        InvokeAllRequest request = Requests.invokeAll(sScope, sCacheName, serializerName,
                                                       listKeys,
                                                       BinaryHelper.toByteString(processor, serializer));
 
@@ -2126,13 +2136,14 @@ abstract class BaseNamedCacheServiceTests
         assertThat(map, hasEntry(person2.getLastName(), person2.getFirstName()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallInvokeAllWithMissingProcessor(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallInvokeAllWithMissingProcessor(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String sCacheName = "people";
 
         InvokeAllRequest request = InvokeAllRequest.newBuilder()
+                .setScope(sScope)
                 .setCache(sCacheName)
                 .setFormat(serializerName)
                 .build();
@@ -2148,15 +2159,16 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- IsEmpty --------------------------------------------------------
 
-    @Test
-    public void shouldBeEmpty() throws Exception
+    @ParameterizedTest(name = "{index} scope={0}")
+    @MethodSource("getTestScopes")
+    public void shouldBeEmpty(String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient           service  = createService();
-        CompletionStage<BoolValue> response = service.isEmpty(Requests.isEmpty(sCacheName));
+        CompletionStage<BoolValue> response = service.isEmpty(Requests.isEmpty(sScope, sCacheName));
         assertThat(response, is(notNullValue()));
 
         CompletableFuture<BoolValue> future  = response.toCompletableFuture();
@@ -2165,15 +2177,16 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult.getValue(), is(true));
         }
 
-    @Test
-    public void shouldNotBeEmpty() throws Exception
+    @ParameterizedTest(name = "{index} scope={0}")
+    @MethodSource("getTestScopes")
+    public void shouldNotBeEmpty(String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
         NamedCacheClient           service  = createService();
-        CompletionStage<BoolValue> response = service.isEmpty(Requests.isEmpty(sCacheName));
+        CompletionStage<BoolValue> response = service.isEmpty(Requests.isEmpty(sScope, sCacheName));
         assertThat(response, is(notNullValue()));
 
         CompletableFuture<BoolValue> future  = response.toCompletableFuture();
@@ -2184,12 +2197,12 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- keySet(Filter) -------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallKeySetWithFilterWhenSomeEntriesMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallKeySetWithFilterWhenSomeEntriesMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2203,7 +2216,7 @@ abstract class BaseNamedCacheServiceTests
         List<String>                   listExpected = new ArrayList<>(cache.keySet(filter));
         ByteString                     filterBytes  = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer     = new TestStreamObserver<>();
-        service.keySet(Requests.keySet(sCacheName, serializerName, filterBytes), observer);
+        service.keySet(Requests.keySet(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -2218,12 +2231,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, containsInAnyOrder(listExpected.toArray()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallKeySetWithFilterWhenAllEntriesMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallKeySetWithFilterWhenAllEntriesMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2237,7 +2250,7 @@ abstract class BaseNamedCacheServiceTests
         List<String>                   listExpected = new ArrayList<>(cache.keySet(filter));
         ByteString                     filterBytes  = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer     = new TestStreamObserver<>();
-        service.keySet(Requests.keySet(sCacheName, serializerName, filterBytes), observer);
+        service.keySet(Requests.keySet(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -2252,12 +2265,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, containsInAnyOrder(listExpected.toArray()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallKeySetWithFilterWhenNoEntriesMatch(String serializerName, Serializer serializer) throws Exception
+    public void shouldCallKeySetWithFilterWhenNoEntriesMatch(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2270,7 +2283,7 @@ abstract class BaseNamedCacheServiceTests
         Filter<Person>                 filter      = new EqualsFilter<>("getAge", 100);
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
-        service.keySet(Requests.keySet(sCacheName, serializerName, filterBytes), observer);
+        service.keySet(Requests.keySet(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -2287,18 +2300,18 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Put ------------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldInsertNewEntry(String serializerName, Serializer serializer) throws Exception
+    public void shouldInsertNewEntry(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString("value-1", serializer);
-        CompletionStage<BytesValue> response = service.put(Requests.put(sCacheName, serializerName, key, value));
+        CompletionStage<BytesValue> response = service.put(Requests.put(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2309,19 +2322,19 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.get("key-1"), is("value-1"));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldUpdateEntry(String serializerName, Serializer serializer) throws Exception
+    public void shouldUpdateEntry(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String sCacheName = "test-cache";
-        NamedCache<String, String> cache = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-1");
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString("value-2", serializer);
-        CompletionStage<BytesValue> response = service.put(Requests.put(sCacheName, serializerName, key, value));
+        CompletionStage<BytesValue> response = service.put(Requests.put(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2333,19 +2346,19 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.get("key-1"), is("value-2"));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldUpdateEntryPreviouslyMappedToNull(String serializerName, Serializer serializer) throws Exception
+    public void shouldUpdateEntryPreviouslyMappedToNull(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", null);
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString("value-2", serializer);
-        CompletionStage<BytesValue> response = service.put(Requests.put(sCacheName, serializerName, key, value));
+        CompletionStage<BytesValue> response = service.put(Requests.put(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2357,19 +2370,19 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.get("key-1"), is("value-2"));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldUpdateEntryWithNullValue(String serializerName, Serializer serializer) throws Exception
+    public void shouldUpdateEntryWithNullValue(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-1");
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString(null, serializer);
-        CompletionStage<BytesValue> response = service.put(Requests.put(sCacheName, serializerName, key, value));
+        CompletionStage<BytesValue> response = service.put(Requests.put(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2383,12 +2396,12 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- PutAll ---------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldPutAll(String serializerName, Serializer serializer) throws Exception
+    public void shouldPutAll(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient service = createService();
@@ -2401,7 +2414,7 @@ abstract class BaseNamedCacheServiceTests
         listEntries.add(Entry.newBuilder().setKey(key1).setValue(value1).build());
         listEntries.add(Entry.newBuilder().setKey(key2).setValue(value2).build());
 
-        CompletionStage<Empty> response = service.putAll(Requests.putAll(sCacheName, serializerName, listEntries));
+        CompletionStage<Empty> response = service.putAll(Requests.putAll(sScope, sCacheName, serializerName, listEntries));
         assertThat(response, is(notNullValue()));
         CompletableFuture<Empty> future = response.toCompletableFuture();
         future.get(1, TimeUnit.MINUTES);
@@ -2410,18 +2423,18 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.get("key-2"), is("value-2"));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldPutAllWithZeroEntries(String serializerName, Serializer serializer) throws Exception
+    public void shouldPutAllWithZeroEntries(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient service     = createService();
         List<Entry>      listEntries = new ArrayList<>();
 
-        CompletionStage<Empty> response = service.putAll(Requests.putAll(sCacheName, serializerName, listEntries));
+        CompletionStage<Empty> response = service.putAll(Requests.putAll(sScope, sCacheName, serializerName, listEntries));
         assertThat(response, is(notNullValue()));
         CompletableFuture<Empty> future = response.toCompletableFuture();
         future.get(1, TimeUnit.MINUTES);
@@ -2430,19 +2443,19 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- PutIfAbsent ----------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldPutIfAbsentForNonExistentKey(String serializerName, Serializer serializer) throws Exception
+    public void shouldPutIfAbsentForNonExistentKey(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString("value-1", serializer);
         CompletionStage<BytesValue> response = service.putIfAbsent(
-                Requests.putIfAbsent(sCacheName, serializerName, key, value));
+                Requests.putIfAbsent(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2453,12 +2466,12 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.get("key-1"), is("value-1"));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldPutIfAbsentForExistingKey(String serializerName, Serializer serializer) throws Exception
+    public void shouldPutIfAbsentForExistingKey(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-1");
 
@@ -2466,7 +2479,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString("value-2", serializer);
         CompletionStage<BytesValue> response = service.putIfAbsent(
-                Requests.putIfAbsent(sCacheName, serializerName, key, value));
+                Requests.putIfAbsent(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2477,19 +2490,19 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.get("key-1"), is("value-1"));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldPutIfAbsentForExistingKeyMappedToNull(String serializerName, Serializer serializer) throws Exception
+    public void shouldPutIfAbsentForExistingKeyMappedToNull(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", null);
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString("value-2", serializer);
-        CompletionStage<BytesValue> response = service.putIfAbsent(Requests.putIfAbsent(sCacheName, serializerName, key, value));
+        CompletionStage<BytesValue> response = service.putIfAbsent(Requests.putIfAbsent(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2502,18 +2515,18 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Remove ---------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldRemoveOnNonExistentEntry(String serializerName, Serializer serializer) throws Exception
+    public void shouldRemoveOnNonExistentEntry(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         int count = 10;
         clearAndPopulate(cache, count);
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-100", serializer);
-        CompletionStage<BytesValue> response = service.remove(Requests.remove(sCacheName, serializerName, key));
+        CompletionStage<BytesValue> response = service.remove(Requests.remove(sScope, sCacheName, serializerName, key));
 
         assertThat(response, is(notNullValue()));
 
@@ -2524,19 +2537,19 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.size(), is(count));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnPreviousValueForRemoveOnExistingMapping(String serializerName, Serializer serializer)
+    public void shouldReturnPreviousValueForRemoveOnExistingMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         int cCount = 10;
         clearAndPopulate(cache, cCount);
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
-        CompletionStage<BytesValue> response = service.remove(Requests.remove(sCacheName, serializerName, key));
+        CompletionStage<BytesValue> response = service.remove(Requests.remove(sScope, sCacheName, serializerName, key));
 
         assertThat(response, is(notNullValue()));
 
@@ -2550,20 +2563,20 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Remove Value ---------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnFalseForRemoveMappingOnNonExistentMapping(String serializerName, Serializer serializer)
+    public void shouldReturnFalseForRemoveMappingOnNonExistentMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<Binary, Binary> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<Binary, Binary> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient           service  = createService();
         ByteString                 key      = toByteString("key-1", serializer);
         ByteString                 value    = toByteString("value-123", serializer);
         CompletionStage<BoolValue> response = service.removeMapping(
-                Requests.remove(sCacheName, serializerName, key, value));
+                Requests.remove(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2573,13 +2586,13 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult.getValue(), is(false));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnFalseForRemoveMappingOnNonMatchingMapping(String serializerName, Serializer serializer)
+    public void shouldReturnFalseForRemoveMappingOnNonMatchingMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-1");
 
@@ -2587,7 +2600,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                 key      = toByteString("key-1", serializer);
         ByteString                 value    = toByteString("value-123", serializer);
         CompletionStage<BoolValue> response = service.removeMapping(
-                Requests.remove(sCacheName, serializerName, key, value));
+                Requests.remove(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2597,13 +2610,13 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult.getValue(), is(false));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnTrueForRemoveMappingOnMatchingMapping(String serializerName, Serializer serializer)
+    public void shouldReturnTrueForRemoveMappingOnMatchingMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-123");
 
@@ -2611,7 +2624,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                 key      = toByteString("key-1", serializer);
         ByteString                 value    = toByteString("value-123", serializer);
         CompletionStage<BoolValue> response = service.removeMapping(
-                Requests.remove(sCacheName, serializerName, key, value));
+                Requests.remove(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2623,13 +2636,13 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- RemoveIndex ----------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
     @SuppressWarnings("unchecked")
-    public void shouldRemoveIndexWhenIndexExists(String serializerName, Serializer serializer) throws Exception
+    public void shouldRemoveIndexWhenIndexExists(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                        sCacheName = "add-index-cache";
-        NamedCache                    cache      = ensureEmptyCache(sCacheName);
+        NamedCache                    cache      = ensureEmptyCache(sScope, sCacheName);
         Map<ValueExtractor, MapIndex> indexMap   = removeIndexes(cache);
 
         ValueExtractor extractor    = new UniversalExtractor("foo");
@@ -2640,7 +2653,7 @@ abstract class BaseNamedCacheServiceTests
 
         NamedCacheClient       service  = createService();
         CompletionStage<Empty> response = service.removeIndex(
-                Requests.removeIndex(sCacheName, serializerName, binExtractor));
+                Requests.removeIndex(sScope, sCacheName, serializerName, binExtractor));
 
         assertThat(response, is(notNullValue()));
         CompletableFuture<Empty> future = response.toCompletableFuture();
@@ -2649,19 +2662,19 @@ abstract class BaseNamedCacheServiceTests
         assertThat(indexMap.isEmpty(), is(true));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldRemoveIndexWhenIndexDoesNotExist(String serializerName, Serializer serializer) throws Exception
+    public void shouldRemoveIndexWhenIndexDoesNotExist(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                        sCacheName = "add-index-cache";
-        NamedCache                    cache      = ensureEmptyCache(sCacheName);
+        NamedCache                    cache      = ensureEmptyCache(sScope, sCacheName);
         Map<ValueExtractor, MapIndex> indexMap   = removeIndexes(cache);
 
         ValueExtractor extractor    = new UniversalExtractor("foo");
         ByteString     binExtractor = toByteString(extractor, serializer);
 
         NamedCacheClient       service  = createService();
-        CompletionStage<Empty> response = service.removeIndex(Requests.removeIndex(sCacheName, serializerName, binExtractor));
+        CompletionStage<Empty> response = service.removeIndex(Requests.removeIndex(sScope, sCacheName, serializerName, binExtractor));
 
         assertThat(response, is(notNullValue()));
         CompletableFuture<Empty> future = response.toCompletableFuture();
@@ -2672,19 +2685,19 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Replace --------------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnNullValueForReplaceOnNonExistentMapping(String serializerName, Serializer serializer)
+    public void shouldReturnNullValueForReplaceOnNonExistentMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString("value-123", serializer);
-        CompletionStage<BytesValue> response = service.replace(Requests.replace(sCacheName, serializerName, key, value));
+        CompletionStage<BytesValue> response = service.replace(Requests.replace(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2695,20 +2708,20 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.get("key-1"), is(nullValue()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnNonNullForReplaceOnExistentMapping(String serializerName, Serializer serializer)
+    public void shouldReturnNonNullForReplaceOnExistentMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
         NamedCacheClient            service  = createService();
         ByteString                  key      = toByteString("key-1", serializer);
         ByteString                  value    = toByteString("value-123", serializer);
         CompletionStage<BytesValue> response = service.replace(
-                Requests.replace(sCacheName, serializerName, key, value));
+                Requests.replace(sScope, sCacheName, serializerName, key, value));
 
         assertThat(response, is(notNullValue()));
 
@@ -2721,13 +2734,13 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Replace Value --------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnFalseForReplaceMappingOnNonExistentMapping(String serializerName, Serializer serializer)
+    public void shouldReturnFalseForReplaceMappingOnNonExistentMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient           service   = createService();
@@ -2735,7 +2748,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                 prevValue = toByteString("value-1", serializer);
         ByteString                 newValue  = toByteString("value-123", serializer);
         CompletionStage<BoolValue> response  = service.replaceMapping(
-                Requests.replace(sCacheName, serializerName, key, prevValue, newValue));
+                Requests.replace(sScope, sCacheName, serializerName, key, prevValue, newValue));
 
         assertThat(response, is(notNullValue()));
 
@@ -2746,13 +2759,13 @@ abstract class BaseNamedCacheServiceTests
         assertThat(cache.get("key-1"), is(nullValue()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnFalseForReplaceMappingOnNonMatchingMapping(String serializerName, Serializer serializer)
+    public void shouldReturnFalseForReplaceMappingOnNonMatchingMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
         NamedCacheClient           service   = createService();
@@ -2760,7 +2773,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                 prevValue = toByteString("value-123", serializer);
         ByteString                 newValue  = toByteString("value-456", serializer);
         CompletionStage<BoolValue> response  = service.replaceMapping(
-                Requests.replace(sCacheName, serializerName, key, prevValue, newValue));
+                Requests.replace(sScope, sCacheName, serializerName, key, prevValue, newValue));
 
         assertThat(response, is(notNullValue()));
 
@@ -2772,13 +2785,13 @@ abstract class BaseNamedCacheServiceTests
         }
 
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReturnTrueForReplaceMappingOnMatchingMapping(String serializerName, Serializer serializer)
+    public void shouldReturnTrueForReplaceMappingOnMatchingMapping(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
         NamedCacheClient           service   = createService();
@@ -2786,7 +2799,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                 prevValue = toByteString("value-1", serializer);
         ByteString                 newValue  = toByteString("value-123", serializer);
         CompletionStage<BoolValue> response  = service.replaceMapping(
-                Requests.replace(sCacheName, serializerName, key, prevValue, newValue));
+                Requests.replace(sScope, sCacheName, serializerName, key, prevValue, newValue));
 
         assertThat(response, is(notNullValue()));
 
@@ -2799,15 +2812,16 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Size -----------------------------------------------------------
 
-    @Test
-    public void shouldGetSizeOfEmptyCache() throws Exception
+    @ParameterizedTest(name = "{index} scope={0}")
+    @MethodSource("getTestScopes")
+    public void shouldGetSizeOfEmptyCache(String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
         NamedCacheClient            service  = createService();
-        CompletionStage<Int32Value> response = service.size(Requests.size(sCacheName));
+        CompletionStage<Int32Value> response = service.size(Requests.size(sScope, sCacheName));
         assertThat(response, is(notNullValue()));
 
         CompletableFuture<Int32Value> future  = response.toCompletableFuture();
@@ -2816,15 +2830,16 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult.getValue(), is(0));
         }
 
-    @Test
-    public void shouldGetSizeOfPopulatedCache() throws Exception
+    @ParameterizedTest(name = "{index} scope={0}")
+    @MethodSource("getTestScopes")
+    public void shouldGetSizeOfPopulatedCache(String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
         NamedCacheClient            service  = createService();
-        CompletionStage<Int32Value> response = service.size(Requests.size(sCacheName));
+        CompletionStage<Int32Value> response = service.size(Requests.size(sScope, sCacheName));
         assertThat(response, is(notNullValue()));
 
         CompletableFuture<Int32Value> future  = response.toCompletableFuture();
@@ -2835,15 +2850,16 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- Truncate -------------------------------------------------------
 
-    @Test
-    public void shouldTruncate() throws Exception
+    @ParameterizedTest(name = "{index} scope={0}")
+    @MethodSource("getTestScopes")
+    public void shouldTruncate(String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
-        NamedCache<String, String> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
         NamedCacheClient       service  = createService();
-        CompletionStage<Empty> response = service.truncate(Requests.truncate(sCacheName));
+        CompletionStage<Empty> response = service.truncate(Requests.truncate(sScope, sCacheName));
 
         assertThat(response, is(notNullValue()));
         CompletableFuture<Empty> future = response.toCompletableFuture();
@@ -2854,13 +2870,13 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- values(Filter) -------------------------------------------------
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallValuesWithFilterWhenSomeEntriesMatch(String serializerName, Serializer serializer)
+    public void shouldCallValuesWithFilterWhenSomeEntriesMatch(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2875,7 +2891,7 @@ abstract class BaseNamedCacheServiceTests
 
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
-        service.values(Requests.values(sCacheName, serializerName, filterBytes), observer);
+        service.values(Requests.values(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -2890,13 +2906,13 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, containsInAnyOrder(colExpected.toArray()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallValuesWithFilterWhenAllEntriesMatch(String serializerName, Serializer serializer)
+    public void shouldCallValuesWithFilterWhenAllEntriesMatch(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2911,7 +2927,7 @@ abstract class BaseNamedCacheServiceTests
 
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
-        service.values(Requests.values(sCacheName, serializerName, filterBytes), observer);
+        service.values(Requests.values(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -2926,13 +2942,13 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, containsInAnyOrder(colExpected.toArray()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallValuesWithFilterWhenNoEntriesMatch(String serializerName, Serializer serializer)
+    public void shouldCallValuesWithFilterWhenNoEntriesMatch(String serializerName, Serializer serializer, String sScope)
             throws Exception
         {
         String                     sCacheName = "people";
-        NamedCache<String, Person> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
         Person person2 = new Person("Dirk", "Gently", 25, "male");
@@ -2946,7 +2962,7 @@ abstract class BaseNamedCacheServiceTests
         Collection<Person>             colExpected = cache.values(filter);
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
-        service.values(Requests.values(sCacheName, serializerName, filterBytes), observer);
+        service.values(Requests.values(sScope, sCacheName, serializerName, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -2961,15 +2977,16 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, containsInAnyOrder(colExpected.toArray()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
     @SuppressWarnings("unchecked")
-    public void shouldCallValuesWithFilterAndComparatorWhenSomeEntriesMatch(String serializerName,
-                                                                               Serializer serializer)
+    public void shouldCallValuesWithFilterAndComparatorWhenSomeEntriesMatch(String     serializerName,
+                                                                            Serializer serializer,
+                                                                            String     sScope)
             throws Exception
         {
         String                      sCacheName = "numbers";
-        NamedCache<String, Integer> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
             {
@@ -2983,7 +3000,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                     filterBytes     = BinaryHelper.toByteString(filter, serializer);
         ByteString                     comparatorBytes = BinaryHelper.toByteString(comparator, serializer);
         TestStreamObserver<BytesValue> observer        = new TestStreamObserver<>();
-        service.values(Requests.values(sCacheName, serializerName, filterBytes, comparatorBytes), observer);
+        service.values(Requests.values(sScope, sCacheName, serializerName, filterBytes, comparatorBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -2998,15 +3015,16 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, contains(expected.toArray()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
     @SuppressWarnings("unchecked")
-    public void shouldCallValuesWithFilterAndComparatorWhenAllEntriesMatch(String serializerName,
-                                                                              Serializer serializer)
+    public void shouldCallValuesWithFilterAndComparatorWhenAllEntriesMatch(String     serializerName,
+                                                                           Serializer serializer,
+                                                                           String     sScope)
             throws Exception
         {
         String                      sCacheName = "numbers";
-        NamedCache<String, Integer> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
             {
@@ -3020,7 +3038,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                     filterBytes     = BinaryHelper.toByteString(filter, serializer);
         ByteString                     comparatorBytes = BinaryHelper.toByteString(comparator, serializer);
         TestStreamObserver<BytesValue> observer        = new TestStreamObserver<>();
-        service.values(Requests.values(sCacheName, serializerName, filterBytes, comparatorBytes), observer);
+        service.values(Requests.values(sScope, sCacheName, serializerName, filterBytes, comparatorBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -3035,15 +3053,16 @@ abstract class BaseNamedCacheServiceTests
         assertThat(oResult, containsInAnyOrder(expected.toArray()));
         }
 
-    @ParameterizedTest(name = "{index} serializer={0}")
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
     @SuppressWarnings("unchecked")
-    public void shouldCallValuesWithFilterAndComparatorWhenNoEntriesMatch(String serializerName,
-                                                                             Serializer serializer)
+    public void shouldCallValuesWithFilterAndComparatorWhenNoEntriesMatch(String     serializerName,
+                                                                          Serializer serializer,
+                                                                          String     sScope)
             throws Exception
         {
         String                      sCacheName = "numbers";
-        NamedCache<String, Integer> cache      = ensureEmptyCache(sCacheName);
+        NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
             {
@@ -3057,7 +3076,7 @@ abstract class BaseNamedCacheServiceTests
         ByteString                     filterBytes     = BinaryHelper.toByteString(filter, serializer);
         ByteString                     comparatorBytes = BinaryHelper.toByteString(comparator, serializer);
         TestStreamObserver<BytesValue> observer        = new TestStreamObserver<>();
-        service.values(Requests.values(sCacheName, serializerName, filterBytes, comparatorBytes), observer);
+        service.values(Requests.values(sScope, sCacheName, serializerName, filterBytes, comparatorBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -3117,7 +3136,6 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- inner class: CollectingPrimingListener -------------------------
 
-    @SuppressWarnings("unchecked")
     protected static class CollectingPrimingListener<K, V>
             extends CollectingMapListener<K, V>
             implements MapListenerSupport.PrimingListener<K, V>
@@ -3126,29 +3144,48 @@ abstract class BaseNamedCacheServiceTests
 
     // ----- helper methods -------------------------------------------------
 
+    protected static Stream<Arguments> getTestScopes()
+        {
+        return Stream.of(Arguments.of(Scope.DEFAULT), Arguments.of("one"));
+        }
+
+    protected static String[] getTestScopeNames()
+        {
+        return getTestScopes()
+                .map(arg -> (String) arg.get()[0])
+                .toArray(String[]::new);
+        }
+
     /**
-     * Obtain the {@link Serializer} instances to use for parameterized
-     * test {@link Arguments}.
+     * Obtain the {@link Serializer} and {@link Scope} instances to use for
+     * parameterized test {@link Arguments}.
      *
-     * @return the {@link Serializer} instances to use for test
-     * {@link Arguments}
+     * @return the {@link Serializer} and {@link Scope} instances to use
+     * for test {@link Arguments}
      */
     protected static Stream<Arguments> serializers()
         {
-        TreeMap<String, Serializer> map = new TreeMap<>();
-
-        ClassLoader loader = Base.getContextClassLoader();
+        OperationalContext          ctx    = (OperationalContext) CacheFactory.getCluster();
+        TreeMap<String, Serializer> map    = new TreeMap<>();
+        ClassLoader                 loader = Base.getContextClassLoader();
 
         map.put("", new ConfigurablePofContext());
 
-        OperationalContext ctx = (OperationalContext) CacheFactory.getCluster();
         for (Map.Entry<String, SerializerFactory> entry : ctx.getSerializerMap().entrySet())
             {
             map.put(entry.getKey(), entry.getValue().createSerializer(loader));
             }
 
-        return map.entrySet().stream()
-                .map(e -> Arguments.of(e.getKey(), e.getValue()));
+        List<Arguments> list = new ArrayList<>();
+        for (String sScope : getTestScopeNames())
+            {
+            for (Map.Entry<String, Serializer> entry : map.entrySet())
+                {
+                list.add(Arguments.of(entry.getKey(), entry.getValue(), sScope));
+                }
+            }
+
+        return list.stream();
         }
 
 
@@ -3164,9 +3201,8 @@ abstract class BaseNamedCacheServiceTests
                                                                  Serializer serializer, long filterId)
         {
         List<MapEvent<K, V>> events = new ArrayList<>();
-        for (int i = 0; i < responses.size(); i++)
+        for (MapListenerResponse response : responses)
             {
-            MapListenerResponse response = responses.get(i);
             if (response.getResponseTypeCase() == MapListenerResponse.ResponseTypeCase.EVENT)
                 {
                 MapEventResponse event = response.getEvent();
@@ -3241,15 +3277,16 @@ abstract class BaseNamedCacheServiceTests
     /**
      * Obtain the specified {@link NamedCache}.
      *
-     * @param name the cache name
      * @param <K>  the type of the cache keys
      * @param <V>  the type of the cache values
      *
+     * @param sScope  the scope name of the cache
+     * @param name    the cache name
      * @return the specified {@link NamedCache}
      */
-    protected <K, V> NamedCache<K, V> ensureEmptyCache(String name)
+    protected <K, V> NamedCache<K, V> ensureEmptyCache(String sScope, String name)
         {
-        NamedCache<K, V> cache = ensureCache(name, Base.getContextClassLoader());
+        NamedCache<K, V> cache = ensureCache(sScope, name, Base.getContextClassLoader());
         cache.clear();
         return cache;
         }
@@ -3392,7 +3429,6 @@ abstract class BaseNamedCacheServiceTests
      *
      * @return the cache's index map
      */
-    @SuppressWarnings("unchecked")
     protected Map<ValueExtractor, MapIndex> removeIndexes(NamedCache cache)
         {
         cache.clear();

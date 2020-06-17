@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.ByteString;
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.EntrySetRequest;
 import com.oracle.coherence.grpc.InvokeAllRequest;
@@ -18,6 +19,7 @@ import com.oracle.coherence.grpc.PageRequest;
 import com.oracle.coherence.grpc.Requests;
 import com.oracle.coherence.grpc.ValuesRequest;
 
+import com.tangosol.internal.util.processor.BinaryProcessors;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -107,7 +109,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "addIndex";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.addIndex(Requests.addIndex(CACHE_NAME,
+        s_service.addIndex(Requests.addIndex(Scope.DEFAULT, CACHE_NAME,
                                              SERIALIZER_NAME,
                                              BinaryHelper.toByteString(Extractors.identity(), s_serializer)));
 
@@ -120,7 +122,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "aggregate";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.aggregate(Requests.aggregate(CACHE_NAME,
+        s_service.aggregate(Requests.aggregate(Scope.DEFAULT, CACHE_NAME,
                                                SERIALIZER_NAME,
                                                BinaryHelper.toByteString(Filters.equal(Extractors.identity(),
                                                                                        100), s_serializer),
@@ -135,7 +137,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "clear";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.clear(Requests.clear(CACHE_NAME));
+        s_service.clear(Requests.clear(Scope.DEFAULT, CACHE_NAME));
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -146,7 +148,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "containsEntry";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.containsEntry(Requests.containsEntry(CACHE_NAME,
+        s_service.containsEntry(Requests.containsEntry(Scope.DEFAULT, CACHE_NAME,
                                                        SERIALIZER_NAME,
                                                        BinaryHelper.toByteString("foo", s_serializer),
                                                        BinaryHelper.toByteString("bar", s_serializer)));
@@ -160,7 +162,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "containsKey";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.containsKey(Requests.containsKey(CACHE_NAME,
+        s_service.containsKey(Requests.containsKey(Scope.DEFAULT, CACHE_NAME,
                                                    SERIALIZER_NAME,
                                                    BinaryHelper.toByteString("foo", s_serializer)));
 
@@ -173,7 +175,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "containsValue";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.containsValue(Requests.containsValue(CACHE_NAME,
+        s_service.containsValue(Requests.containsValue(Scope.DEFAULT, CACHE_NAME,
                                                        SERIALIZER_NAME,
                                                        BinaryHelper.toByteString("foo", s_serializer)));
 
@@ -186,7 +188,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "destroy";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.destroy(Requests.destroy(CACHE_NAME));
+        s_service.destroy(Requests.destroy(Scope.DEFAULT, CACHE_NAME));
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -197,7 +199,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "entrySet";
         int    cBefore     = getMetric(sMetricName);
 
-        EntrySetRequest request = Requests.entrySet(CACHE_NAME,
+        EntrySetRequest request = Requests.entrySet(Scope.DEFAULT, CACHE_NAME,
                                                     SERIALIZER_NAME,
                                                     BinaryHelper.toByteString(Filters.equal(Extractors.identity(),
                                                                                             100), s_serializer));
@@ -225,7 +227,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "get";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.get(Requests.get(CACHE_NAME, SERIALIZER_NAME, BinaryHelper.toByteString("foo", s_serializer)));
+        s_service.get(Requests.get(Scope.DEFAULT, CACHE_NAME, SERIALIZER_NAME, BinaryHelper.toByteString("foo", s_serializer)));
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -237,7 +239,7 @@ class NamedCacheServiceMetricsIT
         int    cBefore     = getMetric(sMetricName);
 
         Iterable<ByteString> colKeys = Collections.singletonList(BinaryHelper.toByteString("foo", s_serializer));
-        s_service.getAll(Requests.getAll(CACHE_NAME, SERIALIZER_NAME, colKeys), NullStreamObserver.instance());
+        s_service.getAll(Requests.getAll(Scope.DEFAULT, CACHE_NAME, SERIALIZER_NAME, colKeys), NullStreamObserver.instance());
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -248,10 +250,10 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "invoke";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.invoke(Requests.invoke(CACHE_NAME,
+        s_service.invoke(Requests.invoke(Scope.DEFAULT, CACHE_NAME,
                                          SERIALIZER_NAME,
                                          BinaryHelper.toByteString("foo", s_serializer),
-                                         BinaryHelper.toByteString(Processors.get(), s_serializer)));
+                                         BinaryHelper.toByteString(BinaryProcessors.get(), s_serializer)));
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -263,10 +265,10 @@ class NamedCacheServiceMetricsIT
         int    cBefore     = getMetric(sMetricName);
 
         Iterable<ByteString> colKeys = Collections.singletonList(BinaryHelper.toByteString("foo", s_serializer));
-        InvokeAllRequest     request = Requests.invokeAll(CACHE_NAME,
+        InvokeAllRequest     request = Requests.invokeAll(Scope.DEFAULT, CACHE_NAME,
                                                           SERIALIZER_NAME,
                                                           colKeys,
-                                                          BinaryHelper.toByteString(Processors.get(), s_serializer));
+                                                          BinaryHelper.toByteString(BinaryProcessors.get(), s_serializer));
 
         s_service.invokeAll(request, NullStreamObserver.instance());
 
@@ -279,7 +281,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "isEmpty";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.isEmpty(Requests.isEmpty(CACHE_NAME));
+        s_service.isEmpty(Requests.isEmpty(Scope.DEFAULT, CACHE_NAME));
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -290,7 +292,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "keySet";
         int    cBefore     = getMetric(sMetricName);
 
-        KeySetRequest request = Requests.keySet(CACHE_NAME,
+        KeySetRequest request = Requests.keySet(Scope.DEFAULT, CACHE_NAME,
                                                 SERIALIZER_NAME,
                                                 BinaryHelper.toByteString(Filters.equal(Extractors.identity(),
                                                                                         100), s_serializer));
@@ -306,7 +308,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "nextEntrySetPage";
         int    cBefore     = getMetric(sMetricName);
 
-        PageRequest request = Requests.page(CACHE_NAME,
+        PageRequest request = Requests.page(Scope.DEFAULT, CACHE_NAME,
                                             SERIALIZER_NAME,
                                             ByteString.EMPTY);
 
@@ -321,7 +323,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "nextKeySetPage";
         int    cBefore     = getMetric(sMetricName);
 
-        PageRequest request = Requests.page(CACHE_NAME,
+        PageRequest request = Requests.page(Scope.DEFAULT, CACHE_NAME,
                                             SERIALIZER_NAME,
                                             ByteString.EMPTY);
 
@@ -336,7 +338,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "put";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.put(Requests.put(CACHE_NAME,
+        s_service.put(Requests.put(Scope.DEFAULT, CACHE_NAME,
                                    SERIALIZER_NAME,
                                    BinaryHelper.toByteString("foo", s_serializer),
                                    BinaryHelper.toByteString("bar", s_serializer)));
@@ -350,7 +352,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "putAll";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.putAll(Requests.putAll(CACHE_NAME, SERIALIZER_NAME, Collections.emptyList()));
+        s_service.putAll(Requests.putAll(Scope.DEFAULT, CACHE_NAME, SERIALIZER_NAME, Collections.emptyList()));
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -361,7 +363,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "putIfAbsent";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.putIfAbsent(Requests.putIfAbsent(CACHE_NAME,
+        s_service.putIfAbsent(Requests.putIfAbsent(Scope.DEFAULT, CACHE_NAME,
                                                    SERIALIZER_NAME,
                                                    BinaryHelper.toByteString("foo", s_serializer),
                                                    BinaryHelper.toByteString("bar", s_serializer)));
@@ -375,7 +377,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "remove";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.remove(Requests.remove(CACHE_NAME,
+        s_service.remove(Requests.remove(Scope.DEFAULT, CACHE_NAME,
                                          SERIALIZER_NAME,
                                          BinaryHelper.toByteString("foo", s_serializer)));
 
@@ -388,7 +390,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "removeIndex";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.removeIndex(Requests.removeIndex(CACHE_NAME,
+        s_service.removeIndex(Requests.removeIndex(Scope.DEFAULT, CACHE_NAME,
                                                    SERIALIZER_NAME,
                                                    BinaryHelper.toByteString(Extractors.identity(), s_serializer)));
 
@@ -401,7 +403,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "removeMapping";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.removeMapping(Requests.remove(CACHE_NAME,
+        s_service.removeMapping(Requests.remove(Scope.DEFAULT, CACHE_NAME,
                                                 SERIALIZER_NAME,
                                                 BinaryHelper.toByteString("foo", s_serializer),
                                                 BinaryHelper.toByteString("bar", s_serializer)));
@@ -415,7 +417,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "replace";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.replace(Requests.replace(CACHE_NAME,
+        s_service.replace(Requests.replace(Scope.DEFAULT, CACHE_NAME,
                                            SERIALIZER_NAME,
                                            BinaryHelper.toByteString("foo", s_serializer),
                                            BinaryHelper.toByteString("bar", s_serializer)));
@@ -429,7 +431,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "replaceMapping";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.replaceMapping(Requests.replace(CACHE_NAME,
+        s_service.replaceMapping(Requests.replace(Scope.DEFAULT, CACHE_NAME,
                                                   SERIALIZER_NAME,
                                                   BinaryHelper.toByteString("foo", s_serializer),
                                                   BinaryHelper.toByteString("old", s_serializer),
@@ -444,7 +446,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "size";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.size(Requests.size(CACHE_NAME));
+        s_service.size(Requests.size(Scope.DEFAULT, CACHE_NAME));
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -455,7 +457,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "truncate";
         int    cBefore     = getMetric(sMetricName);
 
-        s_service.truncate(Requests.truncate(CACHE_NAME));
+        s_service.truncate(Requests.truncate(Scope.DEFAULT, CACHE_NAME));
 
         eventuallyAssertMetric(sMetricName, cBefore);
         }
@@ -466,7 +468,7 @@ class NamedCacheServiceMetricsIT
         String sMetricName = "values";
         int    cBefore     = getMetric(sMetricName);
 
-        ValuesRequest request = Requests.values(CACHE_NAME,
+        ValuesRequest request = Requests.values(Scope.DEFAULT, CACHE_NAME,
                                                 SERIALIZER_NAME,
                                                 BinaryHelper.toByteString(Filters.equal(Extractors.identity(),
                                                                                         100), s_serializer));

@@ -6,8 +6,11 @@
  */
 package com.oracle.coherence.grpc.client;
 
+import com.oracle.coherence.cdi.Remote;
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SerializerProducer;
 
+import com.oracle.coherence.common.util.Options;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -67,17 +70,30 @@ public class GrpcRemoteSession
      */
     protected GrpcRemoteSession(Builder builder, BeanManager beanManager)
         {
-        this.f_beanManager          = beanManager;
-        this.f_sName                = builder.name();
-        this.f_channel              = builder.ensureChannel();
-        this.f_sSerializerFormat    = builder.ensureSerializerFormat();
-        this.f_serializer           = builder.ensureSerializer(this.f_sSerializerFormat);
-        this.f_tracing              = builder.ensureTracing();
-        this.f_mapCaches            = new ConcurrentHashMap<>();
-        this.f_deactivationListener = new ClientDeactivationListener<>();
+        f_beanManager          = beanManager;
+        f_sName                = builder.name();
+        f_sScopeName           = builder.scope();
+        f_channel              = builder.ensureChannel();
+        f_sSerializerFormat    = builder.ensureSerializerFormat();
+        f_serializer           = builder.ensureSerializer(f_sSerializerFormat);
+        f_tracing              = builder.ensureTracing();
+        f_mapCaches            = new ConcurrentHashMap<>();
+        f_deactivationListener = new ClientDeactivationListener<>();
         }
 
     // ----- public methods -------------------------------------------------
+
+    /**
+     * Obtain the scope name used to link this {@link RemoteSessions}
+     * to the {@link com.tangosol.net.ConfigurableCacheFactory} on the server
+     * that has the corresponding scope.
+     *
+     * @return the scope name for this {@link RemoteSessions}
+     */
+    public String getScope()
+        {
+        return f_sScopeName;
+        }
 
     /**
      * Create a default {@link GrpcRemoteSession}.
@@ -120,13 +136,22 @@ public class GrpcRemoteSession
         }
 
     /**
-     * Obtain the name of this session.
+     * Obtain the scope name of this session.
+     * <p>
+     * The scope name is used to identify the ConfigurableCacheFactory
+     * on the server that owns the resources that this session connects
+     * to, for example maps, caches and topics.
+     * <p>
+     * In most use cases the default scope name is used, but when the
+     * server has multiple scoped ConfigurableCacheFactory instances
+     * the scope name can be specified to link the session to a
+     * ConfigurableCacheFactory.
      *
-     * @return the name of this session
+     * @return the scope name of this session
      */
-    public String name()
+    public String scope()
         {
-        return f_sName;
+        return f_sScopeName;
         }
 
     /**
@@ -171,7 +196,7 @@ public class GrpcRemoteSession
     public String toString()
         {
         return "RemoteSession{"
-               + "name: \"" + f_sName + '"'
+               + "scope: \"" + f_sScopeName + '"'
                + ", serializerFormat \"" + f_sSerializerFormat + '"'
                + ", closed: " + m_fClosed
                + '}';
@@ -331,7 +356,7 @@ public class GrpcRemoteSession
         Channel tracedChannel = f_tracing.map(t -> t.intercept(f_channel))
                 .orElse(f_channel);
 
-        AsyncNamedCacheClient<?, ?> client = AsyncNamedCacheClient.builder(sCacheName)
+        AsyncNamedCacheClient<?, ?> client = AsyncNamedCacheClient.builder(f_sScopeName, sCacheName)
                 .channel(tracedChannel)
                 .serializer(f_serializer, f_sSerializerFormat)
                 .beanManager(f_beanManager)
@@ -376,10 +401,10 @@ public class GrpcRemoteSession
 
         private Builder(Config config)
             {
-            this.f_config = config;
-            this.m_sName = DEFAULT_NAME;
-            this.m_sChannelName = GrpcChannelsProvider.DEFAULT_CHANNEL_NAME;
-            this.m_beanManager = ensureBeanManager();
+            f_config       = config;
+            m_sName        = Remote.DEFAULT_NAME;
+            m_sChannelName = GrpcChannelsProvider.DEFAULT_CHANNEL_NAME;
+            m_beanManager  = ensureBeanManager();
             }
 
         // ----- public methods ---------------------------------------------
@@ -398,6 +423,19 @@ public class GrpcRemoteSession
             }
 
         /**
+         * Set the scope name of the session.
+         *
+         * @param name  the scope name of the session
+         *
+         * @return this {@link Builder}
+         */
+        public Builder scope(String name)
+            {
+            m_sScopeName = name;
+            return this;
+            }
+
+        /**
          * Set the name of the {@link io.grpc.Channel} that the session will use.
          *
          * @param name  the name of the {@link io.grpc.Channel} that the session will use
@@ -406,8 +444,8 @@ public class GrpcRemoteSession
          */
         public Builder channelName(String name)
             {
-            this.m_sChannelName = name;
-            this.m_channel = null;
+            m_sChannelName = name;
+            m_channel = null;
             return this;
             }
 
@@ -421,8 +459,8 @@ public class GrpcRemoteSession
          */
         public Builder channel(ManagedChannel channel)
             {
-            this.m_channel = channel;
-            this.m_sChannelName = null;
+            m_channel = channel;
+            m_sChannelName = null;
             return this;
             }
 
@@ -463,7 +501,7 @@ public class GrpcRemoteSession
          */
         public Builder serializer(Serializer serializer, String format)
             {
-            this.m_serializer = serializer;
+            m_serializer = serializer;
             m_sSerializerFormat = format;
             if (m_sSerializerFormat == null && serializer != null)
                 {
@@ -496,7 +534,7 @@ public class GrpcRemoteSession
          */
         public Builder beanManager(BeanManager beanManager)
             {
-            this.m_beanManager = beanManager;
+            m_beanManager = beanManager;
             return this;
             }
 
@@ -523,13 +561,28 @@ public class GrpcRemoteSession
             }
 
         /**
-         * Return the name of the session, or {@value DEFAULT_NAME} of one hasn't been provided.
+         * Return the name of the session, or {@value Remote#DEFAULT_NAME} of one hasn't been provided.
          *
-         * @return the name of the session, or {@value DEFAULT_NAME} of one hasn't been provided
+         * @return the name of the session, or {@value Remote#DEFAULT_NAME} of one hasn't been provided
          */
         protected String name()
             {
-            return m_sName == null || m_sName.isEmpty() ? DEFAULT_NAME : m_sName;
+            return m_sName == null || m_sName.isEmpty() ? Remote.DEFAULT_NAME : m_sName;
+            }
+
+        /**
+         * Return the scope name of the session, or {@link Scope#DEFAULT} of one hasn't been provided
+         * either to this builder of in config.
+         *
+         * @return the scope name of the session, or {@link Scope#DEFAULT} of one hasn't been provided
+         */
+        protected String scope()
+            {
+            if (m_sScopeName == null)
+                {
+                return sessionConfig().get("scope").asString().orElse(Scope.DEFAULT);
+                }
+            return m_sScopeName;
             }
 
         /**
@@ -691,6 +744,11 @@ public class GrpcRemoteSession
         protected String m_sName;
 
         /**
+         * The session scope name.
+         */
+        protected String m_sScopeName;
+
+        /**
          * The channel name.
          */
         protected String m_sChannelName;
@@ -744,17 +802,19 @@ public class GrpcRemoteSession
      */
     public static final String CFG_KEY_COHERENCE = "coherence";
 
-    /**
-     * The name for the default session and channel.
-     */
-    public static final String DEFAULT_NAME = "default";
-
     // ----- data members ---------------------------------------------------
 
     /**
      * The name of this session.
      */
     private final String f_sName;
+
+    /**
+     * The scope name to link this session to a
+     * {@link com.tangosol.net.ConfigurableCacheFactory}
+     * on the server.
+     */
+    private final String f_sScopeName;
 
     /**
      * The gRPC {@link Channel} used by this session.

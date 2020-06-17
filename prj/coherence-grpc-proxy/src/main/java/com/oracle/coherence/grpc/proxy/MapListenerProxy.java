@@ -92,7 +92,10 @@ class MapListenerProxy
             {
             if (m_holder == null)
                 {
-                m_holder = f_service.supplyHolderInternal(request, request.getCache(), request.getFormat());
+                m_holder = f_service.supplyHolderInternal(request,
+                                                          request.getScope(),
+                                                          request.getCache(),
+                                                          request.getFormat());
                 m_holder.getCache().addMapListener(f_listenerDeactivation);
                 }
             else if (!m_holder.getCacheName().equals(request.getCache()))

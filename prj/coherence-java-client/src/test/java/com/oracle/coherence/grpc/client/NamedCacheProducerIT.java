@@ -77,7 +77,7 @@ class NamedCacheProducerIT
     void shouldGetDynamicNamedCache()
         {
         Annotation           name     = Name.Literal.of("numbers");
-        Instance<NamedCache> instance = CDI.current().select(NamedCache.class, name, Remote.Literal.INSTANCE);
+        Instance<NamedCache> instance = CDI.current().select(NamedCache.class, name, Remote.Literal.DEFAULT);
 
         assertThat(instance.isResolvable(), is(true));
         assertThat(instance.get().getName(), is("numbers"));
@@ -415,15 +415,13 @@ class NamedCacheProducerIT
         protected AsyncNamedCache m_defaultCcfAsyncNumbers;
 
         @Inject
-        @Remote
+        @Remote("test")
         @Name("numbers")
-        @Scope("test")
         protected NamedCache m_specificCcfNumbers;
 
         @Inject
-        @Remote
+        @Remote("test")
         @Name("numbers")
-        @Scope("test")
         protected AsyncNamedCache m_specificCcfAsyncNumbers;
         }
 

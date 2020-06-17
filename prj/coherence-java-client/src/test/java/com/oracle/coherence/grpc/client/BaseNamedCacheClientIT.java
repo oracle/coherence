@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.grpc.client;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.io.json.JsonSerializer;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
@@ -107,7 +108,8 @@ abstract class BaseNamedCacheClientIT
      *
      * @return an instance of the {@link NamedCacheClient} to use for testing
      */
-    protected abstract <K, V> NamedCacheClient<K, V> createClient(String sCacheName, String sSerializerName,
+    protected abstract <K, V> NamedCacheClient<K, V> createClient(String sCacheName,
+                                                                  String sSerializerName,
                                                                   Serializer serializer);
 
     /**
@@ -1747,8 +1749,8 @@ abstract class BaseNamedCacheClientIT
         CollectingMapListener<String, String> listenerTest = new CollectingPrimingListener<>(2);
         service.addMapListener(listenerTest, "key-2", true);
 
-        assertThat(listenerExpected.getUpdateCount(), is(1));
-        assertThat(listenerTest.getUpdateCount(), is(1));
+        Eventually.assertDeferred(listenerExpected::getUpdateCount, is(1));
+        Eventually.assertDeferred(listenerTest::getUpdateCount, is(1));
 
         cache.put("key-1", "val-11");
         cache.put("key-2", "val-22");

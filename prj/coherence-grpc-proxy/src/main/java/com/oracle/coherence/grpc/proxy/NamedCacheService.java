@@ -13,6 +13,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SerializerProducer;
 
 import com.oracle.coherence.grpc.AddIndexRequest;
@@ -50,6 +51,7 @@ import com.oracle.coherence.grpc.ValuesRequest;
 
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
 
+import com.tangosol.internal.util.processor.BinaryProcessors;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 
@@ -107,21 +109,24 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.metrics.annotation.Metered;
 
-import static com.oracle.coherence.grpc.proxy.Processors.ContainsValueProcessor;
-import static com.oracle.coherence.grpc.proxy.Processors.RemoveBlindProcessor;
-import static com.oracle.coherence.grpc.proxy.Processors.RemoveProcessor;
-import static com.oracle.coherence.grpc.proxy.Processors.ReplaceMappingProcessor;
-import static com.oracle.coherence.grpc.proxy.Processors.ReplaceProcessor;
+import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryContainsValueProcessor;
+import static com.tangosol.internal.util.processor.BinaryProcessors.BinarySyntheticRemoveBlindProcessor;
+import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryRemoveProcessor;
+import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryReplaceMappingProcessor;
+import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryReplaceProcessor;
 
 /**
  * A gRPC NamedCache service.
@@ -154,17 +159,35 @@ public class NamedCacheService
      * Create a {@link NamedCacheService}.
      *
      * @param cluster     the Coherence {@link Cluster}
-     * @param ccf         the {@link ConfigurableCacheFactory} that will be used by this
-     *                    service to access Coherence resources
+     * @param beanManager the CDI {@link BeanManager}
      * @param serializer  the producer to use to lookup named {@link Serializer} instances
      * @param config      the {@link Config} to use to configure the service
      */
     @Inject
-    public NamedCacheService(Cluster cluster, ConfigurableCacheFactory ccf,
-                             SerializerProducer serializer, Config config)
+    public NamedCacheService(Cluster            cluster,
+                             BeanManager        beanManager,
+                             SerializerProducer serializer,
+                             Config             config)
         {
-        this.cacheFactory       = ccf;
-        this.serializerProducer = serializer;
+        this(cluster, new CdiCacheFactorySupplier(beanManager), serializer, config);
+        }
+
+    /**
+     * Create a {@link NamedCacheService}.
+     *
+     * @param cluster     the Coherence {@link Cluster}
+     * @param fn          The function used to obtain ConfigurableCacheFactory instances for a
+     *                    given scope name
+     * @param serializer  the producer to use to lookup named {@link Serializer} instances
+     * @param config      the {@link Config} to use to configure the service
+     */
+    public NamedCacheService(Cluster                                    cluster,
+                             Function<String, ConfigurableCacheFactory> fn,
+                             SerializerProducer                         serializer,
+                             Config                                     config)
+        {
+        this.serializerProducer   = serializer;
+        this.cacheFactorySupplier = fn;
 
         Config serviceConfig = config.get(CONFIG_PREFIX);
 
@@ -250,7 +273,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<Empty> addIndex(AddIndexRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(this::addIndex, executor);
         }
 
@@ -323,7 +346,7 @@ public class NamedCacheService
      */
     protected CompletionStage<BytesValue> aggregateWithFilter(AggregateRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::aggregateWithFilter, executor)
                 .handleAsync(this::handleError, executor);
         }
@@ -364,7 +387,7 @@ public class NamedCacheService
      */
     protected CompletionStage<BytesValue> aggregateWithKeys(AggregateRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::aggregateWithKeys, executor)
                 .handleAsync(this::handleError, executor);
         }
@@ -399,9 +422,9 @@ public class NamedCacheService
     @Override
     public CompletionStage<Empty> clear(ClearRequest request)
         {
-        return getAsyncCache(request.getCache())
+        return getAsyncCache(request.getScope(), request.getCache())
                 .thenComposeAsync(cache -> cache.invokeAll(AlwaysFilter.INSTANCE(),
-                                                           RemoveBlindProcessor.INSTANCE),
+                                                           BinarySyntheticRemoveBlindProcessor.INSTANCE),
                                   executor)
                 .thenApplyAsync(this::empty, executor);
         }
@@ -413,7 +436,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BoolValue> containsEntry(ContainsEntryRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::containsEntry, executor)
                 .thenApplyAsync(h -> toBoolValue(h.getResult(), h.getCacheSerializer()), executor);
         }
@@ -435,7 +458,7 @@ public class NamedCacheService
         Binary               key     = holder.convertKeyDown(request.getKey());
         Binary               value   = holder.convertDown(request.getValue());
 
-        EntryProcessor<Binary, Binary, Binary> processor = castProcessor(new ContainsValueProcessor(value));
+        EntryProcessor<Binary, Binary, Binary> processor = castProcessor(new BinaryContainsValueProcessor(value));
         return holder.runAsync(holder.getAsyncCache().invoke(key, processor));
         }
 
@@ -446,7 +469,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BoolValue> containsKey(ContainsKeyRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::containsKey, executor)
                 .thenApplyAsync(h -> BoolValue.of(h.getDeserializedResult()), executor);
         }
@@ -477,7 +500,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BoolValue> containsValue(ContainsValueRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::containsValue, executor)
                 .thenApplyAsync(h -> BoolValue.of(h.getResult() > 0), executor);
         }
@@ -509,7 +532,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<Empty> destroy(DestroyRequest request)
         {
-        return getAsyncCache(request.getCache())
+        return getAsyncCache(request.getScope(), request.getCache())
                 .thenApplyAsync(cache -> this.execute(() -> cache.getNamedCache().destroy()), executor);
         }
 
@@ -520,7 +543,7 @@ public class NamedCacheService
     @Override
     public void entrySet(EntrySetRequest request, StreamObserver<Entry> observer)
         {
-        createHolder(request, request.getCache(), request.getFormat())
+        createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> this.entrySet(h, observer), executor)
                 .handleAsync((v, err) -> this.handleError(err, observer), executor);
         }
@@ -571,7 +594,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<OptionalValue> get(GetRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::get, executor)
                 .thenApplyAsync(h -> h.toOptionalValue(h.getDeserializedResult()), executor);
         }
@@ -590,7 +613,7 @@ public class NamedCacheService
         {
         Binary key = holder.convertKeyDown(holder.getRequest().getKey());
 
-        EntryProcessor<Binary, Binary, Binary> processor = Processors.get();
+        EntryProcessor<Binary, Binary, Binary> processor = BinaryProcessors.get();
 
         return holder.runAsync(holder.getAsyncCache().invoke(key, processor));
         }
@@ -609,7 +632,7 @@ public class NamedCacheService
             }
         else
             {
-            createHolder(request, request.getCache(), request.getFormat())
+            createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                     .thenApplyAsync(h -> this.getAll(h, observer), executor)
                     .handleAsync((v, err) -> this.handleError(err, observer), executor);
             }
@@ -627,7 +650,7 @@ public class NamedCacheService
         {
         holder.runAsync(convertKeys(holder))
                 .thenComposeAsync(h -> h.runAsync(h.getAsyncCache().invokeAll(
-                        h.getResult(), Processors.get())), executor)
+                        h.getResult(), BinaryProcessors.get())), executor)
                 .handleAsync((h, err) -> handleMapOfEntries(h, err, observer, true), executor);
         return VOID;
         }
@@ -671,7 +694,7 @@ public class NamedCacheService
             return future;
             }
 
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::invoke, executor)
                 .thenApplyAsync(h -> BinaryHelper.toBytesValue(h.convertUp(h.getResult())), executor);
         }
@@ -747,7 +770,7 @@ public class NamedCacheService
      */
     protected CompletionStage<Void> invokeAllWithFilter(InvokeAllRequest request, StreamObserver<Entry> observer)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(h -> invokeAllWithFilter(h, observer), executor);
         }
 
@@ -790,7 +813,7 @@ public class NamedCacheService
      */
     protected CompletionStage<Void> invokeAllWithKeys(InvokeAllRequest request, StreamObserver<Entry> observer)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(h -> invokeAllWithKeys(h, observer), executor);
         }
 
@@ -826,7 +849,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BoolValue> isEmpty(IsEmptyRequest request)
         {
-        return getAsyncCache(request.getCache())
+        return getAsyncCache(request.getScope(), request.getCache())
                 .thenComposeAsync(AsyncNamedCache::isEmpty, executor)
                 .thenApplyAsync(BoolValue::of, executor);
         }
@@ -838,7 +861,7 @@ public class NamedCacheService
     @Override
     public void keySet(KeySetRequest request, StreamObserver<BytesValue> observer)
         {
-        createHolder(request, request.getCache(), request.getFormat())
+        createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> this.keySet(h, observer), executor)
                 .handleAsync((v, err) -> this.handleError(err, observer), executor);
         }
@@ -878,7 +901,7 @@ public class NamedCacheService
     @Override
     public void nextKeySetPage(PageRequest request, StreamObserver<BytesValue> observer)
         {
-        createHolder(request, request.getCache(), request.getFormat())
+        createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> PagedQueryHelper.keysPagedQuery(h, getTransferThreshold()), executor)
                 .handleAsync((stream, err) -> handleStream(stream, err, observer), executor)
                 .handleAsync((v, err) -> this.handleError(err, observer));
@@ -889,7 +912,7 @@ public class NamedCacheService
     @Override
     public void nextEntrySetPage(PageRequest request, StreamObserver<EntryResult> observer)
         {
-        createHolder(request, request.getCache(), request.getFormat())
+        createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> PagedQueryHelper.entryPagedQuery(h, getTransferThreshold()), executor)
                 .handleAsync((stream, err) -> handleStream(stream, err, observer), executor)
                 .handleAsync((v, err) -> this.handleError(err, observer));
@@ -902,7 +925,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BytesValue> put(PutRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::put, executor);
         }
 
@@ -920,7 +943,7 @@ public class NamedCacheService
         Binary     key     = holder.convertKeyDown(request.getKey());
         Binary     value   = holder.convertDown(request.getValue());
 
-        return holder.getAsyncCache().invoke(key, Processors.put(value, request.getTtl()))
+        return holder.getAsyncCache().invoke(key, BinaryProcessors.put(value, request.getTtl()))
                 .thenApplyAsync(holder::deserializeToBytesValue, executor);
         }
 
@@ -931,7 +954,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<Empty> putAll(PutAllRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::putAll, executor);
         }
 
@@ -1027,7 +1050,7 @@ public class NamedCacheService
      */
     protected CompletionStage<Empty> plainPutAll(AsyncNamedCache<Binary, Binary> cache, Map<Binary, Binary> map)
         {
-        return cache.invokeAll(map.keySet(), Processors.putAll(map))
+        return cache.invokeAll(map.keySet(), BinaryProcessors.putAll(map))
                 .thenApplyAsync(v -> BinaryHelper.EMPTY, executor);
         }
 
@@ -1038,7 +1061,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BytesValue> putIfAbsent(PutIfAbsentRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::putIfAbsent, executor);
         }
 
@@ -1056,7 +1079,7 @@ public class NamedCacheService
         Binary             key     = holder.convertKeyDown(request.getKey());
         Binary             value   = holder.convertDown(request::getValue);
 
-        return holder.getAsyncCache().invoke(key, Processors.putIfAbsent(value, request.getTtl()))
+        return holder.getAsyncCache().invoke(key, BinaryProcessors.putIfAbsent(value, request.getTtl()))
                 .thenApplyAsync(holder::deserializeToBytesValue, executor);
         }
 
@@ -1067,7 +1090,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BytesValue> remove(RemoveRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(h -> h.runAsync(remove(h)), executor)
                 .thenApplyAsync(h -> h.toBytesValue(h.getResult()), executor);
         }
@@ -1085,7 +1108,7 @@ public class NamedCacheService
         RemoveRequest request = holder.getRequest();
         Binary        key     = holder.convertKeyDown(request.getKey());
 
-        return holder.getAsyncCache().invoke(key, RemoveProcessor.INSTANCE)
+        return holder.getAsyncCache().invoke(key, BinaryRemoveProcessor.INSTANCE)
                 .thenApplyAsync(holder::fromCacheBinary, executor);
         }
 
@@ -1096,7 +1119,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<Empty> removeIndex(RemoveIndexRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(this::removeIndex, executor);
         }
 
@@ -1125,7 +1148,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BoolValue> removeMapping(RemoveMappingRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::removeMapping, executor)
                 .thenApplyAsync(h -> BoolValue.of(h.getDeserializedResult()), executor);
         }
@@ -1159,7 +1182,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BytesValue> replace(ReplaceRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(h -> h.runAsync(replace(h)), executor)
                 .thenApplyAsync(h -> h.toBytesValue(h.getResult()), executor);
         }
@@ -1178,7 +1201,7 @@ public class NamedCacheService
         Binary         key     = holder.convertKeyDown(request.getKey());
         Binary         value   = holder.convertDown(request.getValue());
 
-        return holder.getAsyncCache().invoke(key, castProcessor(new ReplaceProcessor(value)))
+        return holder.getAsyncCache().invoke(key, castProcessor(new BinaryReplaceProcessor(value)))
                 .thenApplyAsync(holder::fromCacheBinary, executor);
         }
 
@@ -1189,7 +1212,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<BoolValue> replaceMapping(ReplaceMappingRequest request)
         {
-        return createHolder(request, request.getCache(), request.getFormat())
+        return createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(h -> h.runAsync(replaceMapping(h)), executor)
                 .thenApplyAsync(h -> toBoolValue(h.getResult(), h.getCacheSerializer()), executor);
         }
@@ -1209,7 +1232,7 @@ public class NamedCacheService
         Binary                prevValue = holder.convertDown(request.getPreviousValue());
         Binary                newValue  = holder.convertDown(request.getNewValue());
 
-        return holder.getAsyncCache().invoke(key, castProcessor(new ReplaceMappingProcessor(prevValue, newValue)));
+        return holder.getAsyncCache().invoke(key, castProcessor(new BinaryReplaceMappingProcessor(prevValue, newValue)));
         }
 
     // ----- size -----------------------------------------------------------
@@ -1219,7 +1242,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<Int32Value> size(SizeRequest request)
         {
-        CompletionStage<Int32Value> s = getAsyncCache(request.getCache())
+        CompletionStage<Int32Value> s = getAsyncCache(request.getScope(), request.getCache())
                 .thenComposeAsync(AsyncNamedCache::size, executor)
                 .thenApplyAsync(Int32Value::of, executor);
         s.handle((sz, err) -> null);
@@ -1233,7 +1256,7 @@ public class NamedCacheService
     @Override
     public CompletionStage<Empty> truncate(TruncateRequest request)
         {
-        return getAsyncCache(request.getCache())
+        return getAsyncCache(request.getScope(), request.getCache())
                 .thenApplyAsync(cache -> this.execute(() -> cache.getNamedCache().truncate()), executor);
         }
 
@@ -1251,7 +1274,7 @@ public class NamedCacheService
     @Override
     public void values(ValuesRequest request, StreamObserver<BytesValue> observer)
         {
-        createHolder(request, request.getCache(), request.getFormat())
+        createHolder(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> this.values(h, observer), executor)
                 .handleAsync((v, err) -> this.handleError(err, observer), executor);
         }
@@ -1376,9 +1399,9 @@ public class NamedCacheService
      * @return always return {@link Void}
      */
     protected Void handleSetOfEntries(CacheRequestHolder<?, Set<Map.Entry<Binary, Binary>>> holder,
-                                    Throwable err,
-                                    StreamObserver<Entry> observer,
-                                    boolean fDeserialize)
+                                      Throwable err,
+                                      StreamObserver<Entry> observer,
+                                      boolean fDeserialize)
         {
         if (err == null)
             {
@@ -1637,37 +1660,40 @@ public class NamedCacheService
     /**
      * Obtain an {@link com.tangosol.net.AsyncNamedCache}.
      *
+     * @param scope      the scope name to use to obtain the CCF to get the cache from
      * @param cacheName  the name of the cache
      *
      * @return the {@link com.tangosol.net.AsyncNamedCache} with the specified name
      */
-    protected CompletionStage<AsyncNamedCache<Binary, Binary>> getAsyncCache(String cacheName)
+    protected CompletionStage<AsyncNamedCache<Binary, Binary>> getAsyncCache(String scope, String cacheName)
         {
-        return CompletableFuture.supplyAsync(() -> getPassThroughCache(cacheName).async(), executor);
+        return CompletableFuture.supplyAsync(() -> getPassThroughCache(scope, cacheName).async(), executor);
         }
 
     /**
      * Obtain an {@link com.tangosol.net.NamedCache}.
      *
+     * @param scope      the scope name to use to obtain the CCF to get the cache from
      * @param cacheName  the name of the cache
      *
      * @return the {@link com.tangosol.net.NamedCache} with the specified name
      */
-    protected NamedCache<Binary, Binary> getPassThroughCache(String cacheName)
+    protected NamedCache<Binary, Binary> getPassThroughCache(String scope, String cacheName)
         {
-        return getCache(cacheName, true);
+        return getCache(scope, cacheName, true);
         }
 
     /**
      * Obtain an {@link com.tangosol.net.NamedCache}.
      *
+     * @param scope      the scope name to use to obtain the CCF to get the cache from
      * @param cacheName  the name of the cache
      * @param passThru   {@code true} to use a binary pass-thru cache
      *
      * @return the {@link com.tangosol.net.NamedCache} with the specified name
      */
     @SuppressWarnings("unchecked")
-    protected NamedCache<Binary, Binary> getCache(String cacheName, boolean passThru)
+    protected NamedCache<Binary, Binary> getCache(String scope, String cacheName, boolean passThru)
         {
         if (cacheName == null || cacheName.trim().length() == 0)
             {
@@ -1676,9 +1702,9 @@ public class NamedCacheService
                     .asRuntimeException();
             }
 
-        ClassLoader loader = passThru ? NullImplementation.getClassLoader() : Base.getContextClassLoader();
-
-        NamedCache<Binary, Binary> cache  = cacheFactory.ensureCache(cacheName, loader);
+        ClassLoader                loader = passThru ? NullImplementation.getClassLoader() : Base.getContextClassLoader();
+        ConfigurableCacheFactory   ccf    = cacheFactorySupplier.apply(scope);
+        NamedCache<Binary, Binary> cache  = ccf.ensureCache(cacheName, loader);
 
         // optimize front-cache out of storage enabled proxies
         boolean near = cache instanceof NearCache;
@@ -1726,6 +1752,7 @@ public class NamedCacheService
      * Asynchronously create a {@link CacheRequestHolder} for a given request.
      *
      * @param request     the request object to add to the holder
+     * @param sScope      the scope name to use to identify the CCF to obtain the cache from
      * @param sCacheName  the name of the cache that the request executes against
      * @param format      the optional serialization format used by requests that contain a payload
      * @param <Req>       the type of the request
@@ -1733,9 +1760,12 @@ public class NamedCacheService
      * @return a {@link CompletionStage} that completes when the {@link CacheRequestHolder} has
      *         been created
      */
-    <Req> CompletionStage<CacheRequestHolder<Req, Void>> createHolder(Req request, String sCacheName, String format)
+    <Req> CompletionStage<CacheRequestHolder<Req, Void>> createHolder(Req request,
+                                                                      String sScope,
+                                                                      String sCacheName,
+                                                                      String format)
         {
-        return CompletableFuture.supplyAsync(() -> supplyHolderInternal(request, sCacheName, format), executor);
+        return CompletableFuture.supplyAsync(() -> supplyHolderInternal(request, sScope, sCacheName, format), executor);
         }
 
     /**
@@ -1743,12 +1773,13 @@ public class NamedCacheService
      *
      * @param <Req>       the type of the request
      * @param request     the request object to add to the holder
+     * @param sScope      the scope name to use to identify the CCF to obtain the cache from
      * @param sCacheName  the name of the cache that the request executes against
      * @param format      the optional serialization format used by requests that contain a payload
      *
      * @return the {@link CacheRequestHolder} holding the request
      */
-    <Req> CacheRequestHolder<Req, Void> supplyHolderInternal(Req request, String sCacheName, String format)
+    <Req> CacheRequestHolder<Req, Void> supplyHolderInternal(Req request, String sScope, String sCacheName, String format)
         {
         if (request == null)
             {
@@ -1764,8 +1795,8 @@ public class NamedCacheService
                     .asRuntimeException();
             }
 
-        NamedCache<Binary, Binary>      c               = getCache(sCacheName, true);
-        NamedCache<Binary, Binary>      nonPassThrough  = getCache(sCacheName, false);
+        NamedCache<Binary, Binary>      c               = getCache(sScope, sCacheName, true);
+        NamedCache<Binary, Binary>      nonPassThrough  = getCache(sScope, sCacheName, false);
         AsyncNamedCache<Binary, Binary> cache           = c.async();
         CacheService                    cacheService    = cache.getNamedCache().getCacheService();
         Serializer                      serializerCache = cacheService.getSerializer();
@@ -1805,6 +1836,102 @@ public class NamedCacheService
                                         serializerRequest, executor);
         }
 
+    // ----- inner class: CdiCacheFactorySupplier ---------------------------
+
+    public static class CdiCacheFactorySupplier
+            implements Function<String, ConfigurableCacheFactory>
+        {
+        public CdiCacheFactorySupplier(BeanManager beanManager)
+            {
+            f_beanManager = beanManager;
+            }
+
+        @Override
+        public ConfigurableCacheFactory apply(String scope)
+            {
+            if (scope == null)
+                {
+                scope = Scope.DEFAULT;
+                }
+
+            Instance<ConfigurableCacheFactory> instance = f_beanManager.createInstance()
+                    .select(ConfigurableCacheFactory.class, Scope.Literal.of(scope));
+
+            if (instance.isResolvable())
+                {
+                return instance.get();
+                }
+
+            throw Status.INVALID_ARGUMENT
+                    .withDescription("cannot locate ConfigurableCacheFactory with scope name "+ scope + " from CDI")
+                    .asRuntimeException();
+            }
+
+        private final BeanManager f_beanManager;
+        }
+
+    // ----- inner class: DefaultCacheFactorySupplier -----------------------
+
+    public static class DefaultCacheFactorySupplier
+            implements Function<String, ConfigurableCacheFactory>
+        {
+        @Override
+        public ConfigurableCacheFactory apply(String scope)
+            {
+            if (scope == null || Scope.DEFAULT.equals(scope))
+                {
+                return CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(Base.getContextClassLoader());
+                }
+
+            throw Status.INVALID_ARGUMENT
+                    .withDescription("cannot locate ConfigurableCacheFactory with scope name "+ scope + " from CDI")
+                    .asRuntimeException();
+            }
+        }
+
+
+    // ----- inner class: FixedCacheFactorySupplier -------------------------
+
+    public static class FixedCacheFactorySupplier
+            implements Function<String, ConfigurableCacheFactory>
+        {
+        public FixedCacheFactorySupplier(ConfigurableCacheFactory... ccfs)
+            {
+            Map<String, ConfigurableCacheFactory> map = new HashMap<>();
+            for (ConfigurableCacheFactory ccf : ccfs)
+                {
+                map.put(ccf.getScopeName(), ccf);
+                }
+            f_mapCCF = map;
+            }
+
+        @Override
+        public ConfigurableCacheFactory apply(String scope)
+            {
+            if (scope == null)
+                {
+                scope = Scope.DEFAULT;
+                }
+
+            ConfigurableCacheFactory ccf = f_mapCCF.get(scope);
+            if (ccf != null)
+                {
+                return ccf;
+                }
+
+            if (Scope.DEFAULT.equals(scope))
+                {
+                return CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(Base.getContextClassLoader());
+                }
+
+            throw Status.INVALID_ARGUMENT
+                    .withDescription("cannot locate ConfigurableCacheFactory with scope name "+ scope)
+                    .asRuntimeException();
+            }
+
+        private final Map<String, ConfigurableCacheFactory> f_mapCCF;
+        }
+
     // ----- inner class: Builder -------------------------------------------
 
     /**
@@ -1822,7 +1949,8 @@ public class NamedCacheService
          */
         protected Builder(Config config)
             {
-            this.m_config = config == null ? Config.empty() : config;
+            m_config = config == null ? Config.empty() : config;
+            m_cacheFactorySupplier = new DefaultCacheFactorySupplier();
             }
 
         // ----- Builder interface ------------------------------------------
@@ -1831,7 +1959,7 @@ public class NamedCacheService
         public NamedCacheService build()
             {
             return new NamedCacheService(ensureCluster(),
-                                         ensureConfigurableCacheFactory(),
+                                         m_cacheFactorySupplier,
                                          ensureSerializerProducer(),
                                          m_config);
             }
@@ -1841,13 +1969,34 @@ public class NamedCacheService
         /**
          * Set the {@link ConfigurableCacheFactory} used to obtain Coherence resources.
          *
-         * @param ccf  the {@link ConfigurableCacheFactory} to use
+         * @param fn  the function that will supply {@link ConfigurableCacheFactory}
+         *            instances for a given scope name
          *
          * @return this {@link Builder}
          */
-        public Builder configurableCacheFactory(ConfigurableCacheFactory ccf)
+        public Builder configurableCacheFactorySupplier(Function<String, ConfigurableCacheFactory> fn)
             {
-            this.m_ccf = ccf;
+            if (fn != null)
+                {
+                m_cacheFactorySupplier = fn;
+                }
+            else
+                {
+                m_cacheFactorySupplier = new DefaultCacheFactorySupplier();
+                }
+            return this;
+            }
+
+        /**
+         * Set the {@link ConfigurableCacheFactory} used to obtain Coherence resources.
+         *
+         * @param ccfs  the {@link ConfigurableCacheFactory} instances to use
+         *
+         * @return this {@link Builder}
+         */
+        public Builder configurableCacheFactories(ConfigurableCacheFactory... ccfs)
+            {
+            m_cacheFactorySupplier = new FixedCacheFactorySupplier(ccfs);
             return this;
             }
 
@@ -1865,20 +2014,6 @@ public class NamedCacheService
             }
 
         // ----- helper methods ---------------------------------------------
-
-        /**
-         * Returns a new or previously cached {@link ConfigurableCacheFactory}.
-         *
-         * @return a new or previously cached {@link ConfigurableCacheFactory}
-         */
-        protected ConfigurableCacheFactory ensureConfigurableCacheFactory()
-            {
-            if (m_ccf == null)
-                {
-                return CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(Base.getContextClassLoader());
-                }
-            return m_ccf;
-            }
 
         /**
          * Returns a new or previously cached {@link SerializerProducer}.
@@ -1911,9 +2046,10 @@ public class NamedCacheService
         // ----- data members -----------------------------------------------
 
         /**
-         * The {@link ConfigurableCacheFactory}.
+         * The function that will provide {@link ConfigurableCacheFactory} instances
+         * for a given scope name.
          */
-        protected ConfigurableCacheFactory m_ccf;
+        protected Function<String, ConfigurableCacheFactory> m_cacheFactorySupplier;
 
         /**
          * The Coherence {@link Cluster}.
@@ -1962,9 +2098,10 @@ public class NamedCacheService
     // ----- data members -----------------------------------------------
 
     /**
-     * The {@link ConfigurableCacheFactory} used to obtain caches.
+     * The function used to obtain ConfigurableCacheFactory instances for a
+     * given scope name.
      */
-    protected final ConfigurableCacheFactory cacheFactory;
+    protected final Function<String, ConfigurableCacheFactory> cacheFactorySupplier;
 
     /**
      * The producer to use to lookup named {@link Serializer} instances.
