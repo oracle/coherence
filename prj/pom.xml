@@ -17,7 +17,7 @@
 
   <name>Coherence Project</name>
   <description>Oracle Coherence Community Edition</description>
-  <url>https://coherence.community/</url>
+  <url>https://oracle.github.io/coherence/</url>
   <inceptionYear>2000</inceptionYear>
 
   <organization>
@@ -25,12 +25,57 @@
     <url>http://www.oracle.com</url>
   </organization>
 
-  <scm>
+  <scm child.scm.developerConnection.inherit.append.path="false"
+       child.scm.connection.inherit.append.path="false"
+       child.scm.url.inherit.append.path="false">
     <developerConnection>scm:git:git@github.com:oracle/coherence.git</developerConnection>
     <connection>scm:git:git@github.com:oracle/coherence.git</connection>
     <tag>HEAD</tag>
     <url>https://github.com/oracle/coherence</url>
   </scm>
+
+  <developers>
+    <developer>
+      <name>Harvey Raja</name>
+      <url>https://github.com/harveyraja</url>
+    </developer>
+    <developer>
+      <name>Aleks Seovic</name>
+      <url>https://github.com/aseovic</url>
+    </developer>
+    <developer>
+      <name>Jonathan Knight</name>
+      <url>https://github.com/thegridman</url>
+    </developer>
+    <developer>
+      <name>Patrick Fry</name>
+      <url>https://github.com/fryp</url>
+    </developer>
+    <developer>
+      <name>Bin Chen</name>
+      <url>https://github.com/bbcadela</url>
+    </developer>
+    <developer>
+      <name>Ryan Lubke</name>
+      <url>https://github.com/rlubke</url>
+    </developer>
+    <developer>
+      <name>Luk Ho</name>
+      <url>https://github.com/lsho</url>
+    </developer>
+    <developer>
+      <name>Joe Fialli</name>
+      <url>https://github.com/jfialli</url>
+    </developer>
+    <developer>
+      <name>Tim Middleton</name>
+      <url>https://github.com/tmiddlet2666</url>
+    </developer>
+    <developer>
+      <name>Chinmay Patel</name>
+      <url>https://github.com/chpatel3</url>
+    </developer>
+  </developers>
 
   <distributionManagement>
     <snapshotRepository>
@@ -853,6 +898,7 @@
     <javadoc.copyright.bottom>&lt;center&gt;${javadoc.copyright}&lt;/center&gt;</javadoc.copyright.bottom>
     <javadoc.locale>en_US</javadoc.locale>
     <javadoc.window.title>Java API Reference for Oracle&#174; Coherence Community Edition</javadoc.window.title>
+    <javadoc.doctitle>Coherence CE ${project.version.official} API</javadoc.doctitle>
   </properties>
 
   <build>
@@ -1203,6 +1249,8 @@
                   <url/>
                   <inceptionYear/>
                   <organization/>
+                  <scm/>
+                  <developers/>
                 </pomElements>
                 <updatePomFile>true</updatePomFile>
               </configuration>
@@ -1505,6 +1553,7 @@
           <show>protected</show>
           <locale>${javadoc.locale}</locale>
           <windowtitle>${javadoc.window.title}</windowtitle>
+          <doctitle>${javadoc.doctitle}</doctitle>
           <header>${javadoc.copyright.header}</header>
           <bottom>${javadoc.copyright.bottom}</bottom>
           <nodeprecatedlist>true</nodeprecatedlist>

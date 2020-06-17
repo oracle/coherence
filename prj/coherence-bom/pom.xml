@@ -18,9 +18,65 @@
 
   <name>Coherence BOM</name>
   <description>Oracle Coherence Bill of Materials</description>
+  <url>https://oracle.github.io/coherence/</url>
 
+  <organization>
+    <name>Oracle</name>
+    <url>http://www.oracle.com</url>
+  </organization>
+
+  <scm>
+    <developerConnection>scm:git:git@github.com:oracle/coherence.git</developerConnection>
+    <connection>scm:git:git@github.com:oracle/coherence.git</connection>
+    <tag>HEAD</tag>
+    <url>https://github.com/oracle/coherence</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>Harvey Raja</name>
+      <url>https://github.com/harveyraja</url>
+    </developer>
+    <developer>
+      <name>Aleks Seovic</name>
+      <url>https://github.com/aseovic</url>
+    </developer>
+    <developer>
+      <name>Jonathan Knight</name>
+      <url>https://github.com/thegridman</url>
+    </developer>
+    <developer>
+      <name>Patrick Fry</name>
+      <url>https://github.com/fryp</url>
+    </developer>
+    <developer>
+      <name>Bin Chen</name>
+      <url>https://github.com/bbcadela</url>
+    </developer>
+    <developer>
+      <name>Ryan Lubke</name>
+      <url>https://github.com/rlubke</url>
+    </developer>
+    <developer>
+      <name>Luk Ho</name>
+      <url>https://github.com/lsho</url>
+    </developer>
+    <developer>
+      <name>Joe Fialli</name>
+      <url>https://github.com/jfialli</url>
+    </developer>
+    <developer>
+      <name>Tim Middleton</name>
+      <url>https://github.com/tmiddlet2666</url>
+    </developer>
+    <developer>
+      <name>Chinmay Patel</name>
+      <url>https://github.com/chpatel3</url>
+    </developer>
+  </developers>
+  
   <properties>
-    <revision>14.1.2-20-06-SNAPSHOT</revision>
+    <revision>20.06-SNAPSHOT</revision>
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 
     <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
@@ -154,6 +210,11 @@
                 <name/>
                 <description/>
                 <dependencyManagement/>
+                <url/>
+                <inceptionYear/>
+                <organization/>
+                <scm/>
+                <developers/>
               </pomElements>
               <updatePomFile>true</updatePomFile>
             </configuration>
@@ -178,4 +239,43 @@
 
     </plugins>
   </build>
+
+  <licenses>
+    <license>
+      <name>Universal Permissive License v 1.0</name>
+      <url>http://oss.oracle.com/licenses/upl</url>
+      <distribution>repo</distribution>
+      <comments>
+        Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+        Licensed under the Universal Permissive License v 1.0 as shown at
+        http://oss.oracle.com/licenses/upl.
+      </comments>
+    </license>
+  </licenses>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <configuration>
+              <skip>false</skip>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <configuration>
+              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
