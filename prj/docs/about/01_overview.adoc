@@ -15,8 +15,8 @@ storing data. The product is used at scale, for both compute and raw storage, in
 critical financial trading systems, high performance telecommunication products, and eCommerce applications. 
 
 Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death
-detection, application data evolvability, and the robust, battle-hardened core of the product that enables it to be seamlessly deployed and 
-adapted within any ecosystem.
+detection, application data evolvability, and the robust, battle-hardened core of the product that enables it to be
+seamlessly deployed and adapted within any ecosystem.
 
 At a high level, Coherence provides an implementation of the familiar Map<K,V> interface but rather than storing
 the associated data in the local process, it is partitioned (or sharded) across a number of designated remote
