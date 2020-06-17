@@ -33,9 +33,9 @@ backend:
     name: "vuetify"
     homePage: "docs/about/01_overview.adoc"
     releases:
-        - "${project.version}"
+        - "${project.version.official}"
     navigation:
-      title: "Oracle Coherence"
+      title: "Oracle Coherence CE"
       glyph:
         type: "image"
         value: "docs/images/logo.png"
@@ -52,7 +52,7 @@ backend:
                     - "docs/about/*.adoc"
         - title: "Additional Resources"
           items:
-            - title: "Commercial Product Docs"
+            - title: "Official Documentation"
               glyph:
                 type: "icon"
                 value: "import_contacts"

@@ -1298,12 +1298,6 @@
       </plugin>
 
       <plugin>
-        <groupId>io.helidon.build-tools</groupId>
-        <artifactId>sitegen-maven-plugin</artifactId>
-        <extensions>true</extensions>
-      </plugin>
-
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
