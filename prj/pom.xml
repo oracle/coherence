@@ -712,6 +712,7 @@
     <javadoc.copyright.bottom>&lt;center&gt;${javadoc.copyright}&lt;/center&gt;</javadoc.copyright.bottom>
     <javadoc.locale>en_US</javadoc.locale>
     <javadoc.window.title>Java API Reference for Oracle&#174; Coherence Community Edition</javadoc.window.title>
+    <javadoc.doctitle>Coherence CE ${project.version.official} API</javadoc.doctitle>
   </properties>
 
   <build>
@@ -1334,6 +1335,7 @@
           <show>protected</show>
           <locale>${javadoc.locale}</locale>
           <windowtitle>${javadoc.window.title}</windowtitle>
+          <doctitle>${javadoc.doctitle}</doctitle>
           <header>${javadoc.copyright.header}</header>
           <bottom>${javadoc.copyright.bottom}</bottom>
           <nodeprecatedlist>true</nodeprecatedlist>
