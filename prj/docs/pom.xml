@@ -26,6 +26,12 @@
   <build>
     <plugins>
       <plugin>
+          <groupId>io.helidon.build-tools</groupId>
+          <artifactId>sitegen-maven-plugin</artifactId>
+          <extensions>true</extensions>
+      </plugin>
+
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
