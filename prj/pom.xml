@@ -34,6 +34,49 @@
     <url>https://github.com/oracle/coherence</url>
   </scm>
 
+  <developers>
+    <developer>
+      <name>Harvey Raja</name>
+      <url>https://github.com/harveyraja</url>
+    </developer>
+    <developer>
+      <name>Aleks Seovic</name>
+      <url>https://github.com/aseovic</url>
+    </developer>
+    <developer>
+      <name>Jonathan Knight</name>
+      <url>https://github.com/thegridman</url>
+    </developer>
+    <developer>
+      <name>Patrick Fry</name>
+      <url>https://github.com/fryp</url>
+    </developer>
+    <developer>
+      <name>Bin Chen</name>
+      <url>https://github.com/bbcadela</url>
+    </developer>
+    <developer>
+      <name>Ryan Lubke</name>
+      <url>https://github.com/rlubke</url>
+    </developer>
+    <developer>
+      <name>Luk Ho</name>
+      <url>https://github.com/lsho</url>
+    </developer>
+    <developer>
+      <name>Joe Fialli</name>
+      <url>https://github.com/jfialli</url>
+    </developer>
+    <developer>
+      <name>Tim Middleton</name>
+      <url>https://github.com/tmiddlet2666</url>
+    </developer>
+    <developer>
+      <name>Chinmay Patel</name>
+      <url>https://github.com/chpatel3</url>
+    </developer>
+  </developers>
+
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
@@ -1019,6 +1062,7 @@
                   <inceptionYear/>
                   <organization/>
                   <scm/>
+                  <developers/>
                 </pomElements>
               </configuration>
             </execution>
