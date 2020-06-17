@@ -1,4 +1,3 @@
-com.tangosol.application
 com.tangosol.coherence.config
 com.tangosol.coherence.config.builder
 com.tangosol.coherence.config.builder.storemanager
