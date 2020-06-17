@@ -1112,6 +1112,43 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.util.processor.CacheProcessors$ReplaceValue</class-name>
     </user-type>
 
+    <user-type>
+        <type-id>481</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryContainsValueProcessor</class-name>
+    </user-type>
+    <user-type>
+        <type-id>482</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryGetProcessor</class-name>
+    </user-type>
+    <user-type>
+        <type-id>483</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutIfAbsentProcessor</class-name>
+    </user-type>
+    <user-type>
+        <type-id>484</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutProcessor</class-name>
+    </user-type>
+    <user-type>
+        <type-id>485</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinarySyntheticRemoveBlindProcessor</class-name>
+    </user-type>
+    <user-type>
+        <type-id>487</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryRemoveProcessor</class-name>
+    </user-type>
+    <user-type>
+        <type-id>488</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceMappingProcessor</class-name>
+    </user-type>
+    <user-type>
+        <type-id>489</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceProcessor</class-name>
+    </user-type>
+    <user-type>
+        <type-id>490</type-id>
+        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllProcessor</class-name>
+    </user-type>
+
     <!-- com.tangosol.internal.util.aggregator package (990-999) -->
 
     <user-type>

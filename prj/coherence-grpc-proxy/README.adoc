@@ -28,7 +28,11 @@ In order to use Coherence gRPC Server, you need to declare it as a dependency in
 When used http://helidon.io[Helidon] Microprofile Server, Coherence will be automatically started, and
 the gRPC services will be detected and deployed.
 
-Here is a minimal example:
+The server can be started by just running the `main` method of the Helidon Microprofile CDI server
+`io.helidon.microprofile.cdi.Main`,
+The Coherence gRPC proxy service will be discovered by CDI and started.
+
+Alternatively it is possible to start the Helidon server from code, for example:
 [source,java]
 ----
 public class MyServer
@@ -67,11 +71,11 @@ INFO: WELD-000900: 3.1.3 (Final)
 Next, Coherence is started:
 [source,log]
 ----
-Oracle Coherence Version 14.1.2.0.0 (dev-rlubke) Build 0
+Oracle Coherence Version 20.06 Build 0
 Grid Edition: Development mode
 Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
 
-Oracle Coherence GE 14.1.2.0.0 (dev) <Info> (thread=main, member=n/a): Loaded cache configuration from "jar:file: ...
+Oracle Coherence GE 20.06 (dev) <Info> (thread=main, member=n/a): Loaded cache configuration from "jar:file: ...
 ...
 ----
 
@@ -101,8 +105,8 @@ The service is now ready to process requests from the `coherence-java-client`.
 
 === Configuration
 
-We recommend reviewing https://helidon.io/docs/v2/#/mp/guides/03_config[Helidon's Microprofile Documentation] if not familiar with
-how MP configuration works.
+We recommend reviewing https://helidon.io/docs/v2/#/mp/guides/03_config[Helidon's Microprofile Documentation] if not
+familiar with how MP configuration works.
 
 Here's a simple `application.yaml` changing the default gRPC listen port:
 
@@ -123,10 +127,11 @@ PM io.helidon.microprofile.grpc.server.GrpcServerCdiExtension lambda$startServer
 INFO: gRPC server started on localhost:9091 (and all other host addresses) in 301 milliseconds.
 ----
 
-See https://helidon.io/docs/v2/apidocs/io.helidon.grpc.server/io/helidon/grpc/server/GrpcServerConfiguration.html[here] for details about available configuration options for the gRPC proxy.
+See https://helidon.io/docs/v2/apidocs/io.helidon.grpc.server/io/helidon/grpc/server/GrpcServerConfiguration.html[here]
+for details about available configuration options for the gRPC proxy.
 
 === Custom gRPC Services
 
-See Helidon's https://helidon.io/docs/v2/#/mp/grpc/01_mp_server_side_services[guidelines] for developing gRPC services.  As long as the server
-implementation is annotated with `javax.enterprise.context.ApplicationScoped` and
+See Helidon's https://helidon.io/docs/v2/#/mp/grpc/01_mp_server_side_services[guidelines] for developing gRPC services.
+As long as the server implementation is annotated with `javax.enterprise.context.ApplicationScoped` and
 `io.helidon.microprofile.grpc.core.Grpc`, the gRPC proxy will deploy the service automatically.

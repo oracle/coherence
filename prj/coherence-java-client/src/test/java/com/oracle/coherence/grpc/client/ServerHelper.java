@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.oracle.coherence.grpc.client;
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.grpc.proxy.NamedCacheService;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
@@ -40,6 +41,25 @@ import java.util.concurrent.TimeUnit;
 public final class ServerHelper
     {
     /**
+     * Create a {@link ServerHelper}.
+     */
+    public ServerHelper()
+        {
+        this(Scope.DEFAULT);
+        }
+
+    /**
+     * Create a {@link ServerHelper} that uses the specified scope
+     * name for the CCF that it creates.
+     *
+     * @param sScope  the scope name to use
+     */
+    public ServerHelper(String sScope)
+        {
+        f_sScope = sScope;
+        }
+
+    /**
      * Start the server.
      *
      * @throws Exception if an error occurs
@@ -51,6 +71,7 @@ public final class ServerHelper
             return;
             }
 
+        System.setProperty("test.scope",            f_sScope);
         System.setProperty("coherence.ttl",         "0");
         System.setProperty("coherence.clustername", "NamedCacheServiceIT");
         System.setProperty("coherence.override",    "coherence-json-override.xml");
@@ -59,12 +80,17 @@ public final class ServerHelper
         DefaultCacheServer.startServerDaemon().waitForServiceStart();
 
         m_ccf = CacheFactory.getCacheFactoryBuilder()
-                .getConfigurableCacheFactory("coherence-cache-config.xml", null);
+                .getConfigurableCacheFactory("coherence-config.xml", null);
 
         m_channel = GrpcChannelsProvider.create(Config.empty()).channel("default");
 
+        NamedCacheService.FixedCacheFactorySupplier ccfSupplier = new NamedCacheService.FixedCacheFactorySupplier(m_ccf);
+
         // Deploy the server side gRPC service into a plain Helidon gRPC server
-        com.oracle.coherence.grpc.proxy.NamedCacheService service = com.oracle.coherence.grpc.proxy.NamedCacheService.create();
+        com.oracle.coherence.grpc.proxy.NamedCacheService service
+                = com.oracle.coherence.grpc.proxy.NamedCacheService.builder()
+                    .configurableCacheFactorySupplier(ccfSupplier)
+                    .build();
 
         ServiceDescriptor descriptor = GrpcServiceBuilder.create(NamedCacheService.class, () -> service, null).build();
         GrpcRouting       routing    = GrpcRouting.builder().register(descriptor).build();
@@ -92,7 +118,7 @@ public final class ServerHelper
                 {
                 }
             }
-        m_server.shutdown();
+        m_server.shutdown().toCompletableFuture().join();
         DefaultCacheServer.shutdown();
         }
 
@@ -109,6 +135,8 @@ public final class ServerHelper
         }
 
     // ----- data members ---------------------------------------------------
+
+    protected final String f_sScope;
 
     protected ConfigurableCacheFactory m_ccf;
 

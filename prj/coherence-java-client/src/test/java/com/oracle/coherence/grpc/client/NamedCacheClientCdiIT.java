@@ -8,7 +8,9 @@
 package com.oracle.coherence.grpc.client;
 
 import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.cdi.SerializerFormat;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheFactory;
@@ -48,13 +50,14 @@ class NamedCacheClientCdiIT
         {
         System.setProperty("coherence.ttl",         "0");
         System.setProperty("coherence.clustername", "NamedCacheServiceIT");
+        System.setProperty("coherence.cache.config",  "coherence-config.xml");
         System.setProperty("coherence.pof.config",  "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled", "true");
 
         s_server = Server.create().start();
 
         s_ccf = CacheFactory.getCacheFactoryBuilder()
-                .getConfigurableCacheFactory("coherence-cache-config.xml", null);
+                .getConfigurableCacheFactory("coherence-config.xml", null);
         }
 
     @AfterAll
@@ -73,19 +76,25 @@ class NamedCacheClientCdiIT
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected <K, V> NamedCacheClient<K, V> createClient(String sCacheName, String sSerializerName, Serializer serializer)
+    protected <K, V> NamedCacheClient<K, V> createClient(String sCacheName, String sSerializerFormat, Serializer serializer)
         {
-        String sessionName = "".equals(sSerializerName) ? "test" : "test-" + sSerializerName;
+        String sessionName = "".equals(sSerializerFormat) ? "test" : "test-" + sSerializerFormat;
 
         Instance<NamedCacheClient> cacheInstance = CDI.current().getBeanManager()
                 .createInstance()
                 .select(NamedCacheClient.class,
                         Name.Literal.of(sCacheName),
-                        Scope.Literal.of(sessionName));
+                        Remote.Literal.of(sessionName));
 
         assertThat(cacheInstance.isResolvable(), is(true));
 
         NamedCacheClient<K, V> client = cacheInstance.get();
+
+        if (!sSerializerFormat.isEmpty())
+            {
+            assertThat(client.getAsyncClient().getFormat(), is(sSerializerFormat));
+            }
+
         s_listClients.add(client);
         return client;
         }

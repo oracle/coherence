@@ -7,7 +7,12 @@
 
 package com.oracle.coherence.grpc.proxy;
 
+import com.oracle.coherence.cdi.ConfigUri;
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.cdi.ScopeInitializer;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import io.helidon.microprofile.grpc.client.GrpcProxy;
@@ -23,6 +28,7 @@ import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -74,16 +80,33 @@ class NamedCacheServiceCdiIT
         }
 
     @Override
-    protected <K, V> NamedCache<K, V> ensureCache(String name, ClassLoader loader)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected <K, V> NamedCache<K, V> ensureCache(String sScope, String name, ClassLoader loader)
         {
-        return CacheFactory.getCache(name, loader);
+        Instance<NamedCache> instance = CDI.current().select(NamedCache.class,
+                                                             Scope.Literal.of(sScope),
+                                                             Name.Literal.of(name));
+
+        return instance.get();
         }
 
     @Override
-    protected void destroyCache(NamedCache<?, ?> cache)
+    protected void destroyCache(String sScope, NamedCache<?, ?> cache)
         {
-        CacheFactory.destroyCache(cache);
+        cache.destroy();
         }
+
+    // ----- inner class: ScopedCacheFactory --------------------------------
+
+    /**
+     * A {@link ScopeInitializer} to supply the additional scoped CCF.
+     */
+    @ApplicationScoped
+    @Named("one")
+    @ConfigUri("coherence-config.xml")
+    public static class ScopedCacheFactory
+            implements ScopeInitializer
+        {}
 
     // ----- inner class: ClientBean ----------------------------------------
 

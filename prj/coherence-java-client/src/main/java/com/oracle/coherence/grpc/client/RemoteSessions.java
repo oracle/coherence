@@ -59,8 +59,8 @@ public class RemoteSessions
     @Inject
     protected RemoteSessions(BeanManager beanManager, Config config)
         {
-        this.f_beanManager = beanManager;
-        this.f_config      = config == null ? Config.empty() : config;
+        f_beanManager = beanManager;
+        f_config      = config == null ? Config.empty() : config;
         }
 
     // ----- SessionProvider interface --------------------------------------
@@ -69,8 +69,9 @@ public class RemoteSessions
     public GrpcRemoteSession createSession(Session.Option... options)
         {
         Options<Session.Option> sessionOptions = Options.from(Session.Option.class, options);
-        String name = sessionOptions.get(NameOption.class, NameOption.DEFAULT).getName();
-        return ensureSession(name);
+        String sName = sessionOptions.get(NameOption.class, NameOption.DEFAULT).getName();
+        String sScope = sessionOptions.get(ScopeOption.class, ScopeOption.DEFAULT).getScope();
+        return ensureSession(sName, sScope);
         }
 
     // ----- public methods -------------------------------------------------
@@ -111,32 +112,37 @@ public class RemoteSessions
     @PreDestroy
     public void shutdown()
         {
-        Iterator<Map.Entry<String, GrpcRemoteSession>> iterator = f_mapSessions.entrySet().iterator();
-        while (iterator.hasNext())
+        for (Map<String, GrpcRemoteSession> map : f_mapSessions.values())
             {
-            Map.Entry<String, GrpcRemoteSession> entry = iterator.next();
-            try
+            Iterator<Map.Entry<String, GrpcRemoteSession>> iterator = map.entrySet().iterator();
+            while (iterator.hasNext())
                 {
-                entry.getValue().close();
+                Map.Entry<String, GrpcRemoteSession> entry = iterator.next();
+                try
+                    {
+                    entry.getValue().close();
+                    }
+                catch (Throwable t)
+                    {
+                    t.printStackTrace();
+                    }
+                iterator.remove();
                 }
-            catch (Throwable t)
-                {
-                t.printStackTrace();
-                }
-            iterator.remove();
             }
         }
 
     /**
-     * Obtain a {@link Session.Option} to specify the name of the required {@link GrpcRemoteSession}.
+     * Obtain a {@link Session.Option} to specify the scope scope of the required {@link GrpcRemoteSession}.
+     * <p>
+     * A scope name of {@code null} will use the default scope name {@link Scope#DEFAULT}.
      *
-     * @param name the name of the {@link GrpcRemoteSession}
+     * @param scope  the scope name of the {@link GrpcRemoteSession}
      *
-     * @return a {@link Session.Option} to specify the name of the {@link GrpcRemoteSession}
+     * @return a {@link Session.Option} to specify the scope of the {@link GrpcRemoteSession}
      */
-    public static Session.Option name(String name)
+    public static Session.Option scope(String scope)
         {
-        return new NameOption(name);
+        return scope == null ? ScopeOption.DEFAULT : new ScopeOption(scope);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -153,38 +159,47 @@ public class RemoteSessions
      */
     @Produces
     @Remote
-    @Scope()
+    @Scope
     protected GrpcRemoteSession getSession(InjectionPoint injectionPoint)
         {
         String sName = injectionPoint.getQualifiers()
                 .stream()
+                .filter(q -> q.annotationType().isAssignableFrom(Remote.class))
+                .map(q -> ((Remote) q).value().trim())
+                .findFirst()
+                .orElse(Remote.DEFAULT_NAME);
+
+        String sScope = injectionPoint.getQualifiers()
+                .stream()
                 .filter(q -> q.annotationType().isAssignableFrom(Scope.class))
                 .map(q -> ((Scope) q).value().trim())
                 .findFirst()
-                .orElse(GrpcRemoteSession.DEFAULT_NAME);
+                .orElse(Scope.DEFAULT);
 
-        return ensureSession(sName);
+        return ensureSession(sName, sScope);
         }
 
     /**
      * Obtain a {@link GrpcRemoteSession}, creating a new instance if required.
      *
-     * @param name the name of the session
+     * @param sScope the scope name of the session
      *
      * @return a {@link GrpcRemoteSession} instance.
      */
-    GrpcRemoteSession ensureSession(String name)
+    GrpcRemoteSession ensureSession(String sName, String sScope)
         {
-        GrpcRemoteSession session = f_mapSessions.computeIfAbsent(name, k -> GrpcRemoteSession.builder(f_config)
-                .name(name)
-                .beanManager(f_beanManager)
-                .build());
+        Map<String, GrpcRemoteSession> map     = f_mapSessions.computeIfAbsent(sScope, k -> new ConcurrentHashMap<>());
+        GrpcRemoteSession              session = map.computeIfAbsent(sName, k -> GrpcRemoteSession.builder(f_config)
+                                                    .name(sName)
+                                                    .scope(sScope)
+                                                    .beanManager(f_beanManager)
+                                                    .build());
 
         if (session.isClosed())
             {
             // if the cached session has been closed then create a new session
-            f_mapSessions.remove(name);
-            return ensureSession(name);
+            map.remove(sName);
+            return ensureSession(sName, sScope);
             }
 
         return session;
@@ -193,8 +208,7 @@ public class RemoteSessions
     // ----- inner class: NameOption ----------------------------------------
 
     /**
-     * A {@link Session.Option} to use to specify the gRPC
-     * channel name for a session.
+     * A {@link Session.Option} to use to specify the name for a session.
      */
     protected static class NameOption
             implements Session.Option
@@ -207,9 +221,9 @@ public class RemoteSessions
             }
 
         /**
-         * Return the name, or {@value GrpcRemoteSession#DEFAULT_NAME} if {@code null}.
+         * Return the name, or {@value Remote#DEFAULT_NAME} if {@code null}.
          *
-         * @return the name, or {@value GrpcRemoteSession#DEFAULT_NAME} if {@code null}.
+         * @return the name, or {@value Remote#DEFAULT_NAME} if {@code null}.
          */
         protected String getName()
             {
@@ -221,7 +235,7 @@ public class RemoteSessions
         /**
          * Default session name.
          */
-        protected static final NameOption DEFAULT = new NameOption(GrpcRemoteSession.DEFAULT_NAME);
+        protected static final NameOption DEFAULT = new NameOption(Remote.DEFAULT_NAME);
 
         // ----- data members -----------------------------------------------
 
@@ -231,12 +245,50 @@ public class RemoteSessions
         protected final String f_sName;
         }
 
+    /**
+     * A {@link Session.Option} to use to specify the scope name for a session.
+     */
+    protected static class ScopeOption
+            implements Session.Option
+        {
+        // ----- constructors -----------------------------------------------
+
+        protected ScopeOption(String sScope)
+            {
+            f_sScope = sScope == null ? Scope.DEFAULT : sScope;
+            }
+
+        /**
+         * Return the scope name.
+         *
+         * @return the scope name.
+         */
+        protected String getScope()
+            {
+            return f_sScope;
+            }
+
+        // ----- constants --------------------------------------------------
+
+        /**
+         * Default session name.
+         */
+        protected static final ScopeOption DEFAULT = new ScopeOption(Scope.DEFAULT);
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The remote session name.
+         */
+        protected final String f_sScope;
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
      * A map of sessions stored by name.
      */
-    protected final Map<String, GrpcRemoteSession> f_mapSessions = new ConcurrentHashMap<>();
+    protected final Map<String, Map<String, GrpcRemoteSession>> f_mapSessions = new ConcurrentHashMap<>();
 
     /**
      * The CDI {@link javax.enterprise.inject.spi.BeanManager}.

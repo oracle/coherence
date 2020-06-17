@@ -69,6 +69,7 @@ class NamedCacheClient<K, V>
     public String toString()
         {
         return "NamedCacheClient{"
+               + "scope: \"" + f_asyncClient.getScopeName() + '"'
                + "name: \"" + f_asyncClient.getCacheName() + '"'
                + " format: \"" + f_asyncClient.getFormat() + '"'
                + '}';

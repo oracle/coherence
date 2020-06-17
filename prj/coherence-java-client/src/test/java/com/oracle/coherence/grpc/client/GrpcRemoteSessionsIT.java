@@ -134,9 +134,9 @@ class GrpcRemoteSessionsIT
     void shouldReturnSameSession()
         {
         RemoteSessions producer = getBean(RemoteSessions.class);
-        Session sessionOne = producer.createSession(RemoteSessions.name("default"));
+        Session sessionOne = producer.createSession(RemoteSessions.scope("default"));
         assertThat(sessionOne, is(notNullValue()));
-        Session sessionTwo = producer.createSession(RemoteSessions.name("default"));
+        Session sessionTwo = producer.createSession(RemoteSessions.scope("default"));
         assertThat(sessionTwo, is(notNullValue()));
         assertThat(sessionTwo, is(sameInstance(sessionOne)));
         }
@@ -146,9 +146,9 @@ class GrpcRemoteSessionsIT
         {
         RemoteSessions producerOne = getBean(RemoteSessions.class);
         RemoteSessions producerTwo = getBean(RemoteSessions.class);
-        Session sessionOne = producerOne.createSession(RemoteSessions.name("test-pof"));
+        Session sessionOne = producerOne.createSession(RemoteSessions.scope("test-pof"));
         assertThat(sessionOne, is(notNullValue()));
-        Session sessionTwo = producerTwo.createSession(RemoteSessions.name("test-pof"));
+        Session sessionTwo = producerTwo.createSession(RemoteSessions.scope("test-pof"));
         assertThat(sessionTwo, is(notNullValue()));
         assertThat(sessionTwo, is(sameInstance(sessionOne)));
         }
@@ -157,12 +157,12 @@ class GrpcRemoteSessionsIT
     void shouldNotReturnSameSessionIfOriginalSessionIsClosed() throws Exception
         {
         RemoteSessions producer = getBean(RemoteSessions.class);
-        Session sessionOne = producer.createSession(RemoteSessions.name("test-pof"));
+        Session sessionOne = producer.createSession(RemoteSessions.scope("test-pof"));
         assertThat(sessionOne, is(notNullValue()));
 
         sessionOne.close();
 
-        Session sessionTwo = producer.createSession(RemoteSessions.name("test-pof"));
+        Session sessionTwo = producer.createSession(RemoteSessions.scope("test-pof"));
         assertThat(sessionTwo, is(notNullValue()));
         assertThat(sessionTwo, is(not(sameInstance(sessionOne))));
         }
@@ -227,18 +227,15 @@ class GrpcRemoteSessionsIT
         // ----- data members -----------------------------------------------
 
         @Inject
-        @Remote
-        @Scope("test")
+        @Remote("test")
         private GrpcRemoteSession m_session;
 
         @Inject
-        @Remote
-        @Scope("test-java")
+        @Remote("test-java")
         private GrpcRemoteSession m_javaSession;
 
         @Inject
-        @Remote
-        @Scope("test-pof")
+        @Remote("test-pof")
         private GrpcRemoteSession m_pofSession;
         }
 

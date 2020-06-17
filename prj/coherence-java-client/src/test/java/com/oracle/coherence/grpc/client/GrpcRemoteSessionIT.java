@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.grpc.client;
 
+import com.oracle.coherence.cdi.Scope;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 
@@ -14,6 +15,7 @@ import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.net.NamedCache;
 
+import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 
 import io.helidon.config.Config;
@@ -54,7 +56,6 @@ class GrpcRemoteSessionIT
         System.setProperty("mp.initializer.allow",  "true");
         System.setProperty("coherence.ttl",         "0");
         System.setProperty("coherence.clustername", "RemoteSessionIT");
-        System.setProperty("coherence.pof.config",  "coherence-grpc-proxy-pof-config.xml");
         s_server = Server.create().start();
         }
 
@@ -248,13 +249,6 @@ class GrpcRemoteSessionIT
 
         assertThat(session, is(notNullValue()));
         assertThat(session.getChannel(), is(notNullValue()));
-        }
-
-    @Test
-    void shouldBuildSessionWithInvalidChannelName()
-        {
-        GrpcRemoteSession session = GrpcRemoteSession.builder().channelName("foo").build();
-        assertThat(session.name(), is(GrpcRemoteSession.DEFAULT_NAME));
         }
 
     @Test

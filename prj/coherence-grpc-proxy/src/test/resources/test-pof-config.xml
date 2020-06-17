@@ -13,7 +13,7 @@
         xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
     <user-type-list>
         <!-- by default just include coherence POF user types -->
-        <include>coherence-grpc-proxy-pof-config.xml</include>
+        <include>coherence-pof-config.xml</include>
 
         <user-type>
             <type-id>2001</type-id>

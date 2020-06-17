@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -33,20 +33,22 @@ public final class Requests
     /**
      * Create a {@link AddIndexRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      * @param format     the serialization format used
      * @param extractor  the serialized ValueExtractor to use to create the index
      *
      * @return a {@link AddIndexRequest}
      */
-    public static AddIndexRequest addIndex(String cacheName, String format, ByteString extractor)
+    public static AddIndexRequest addIndex(String scope, String cacheName, String format, ByteString extractor)
         {
-        return addIndex(cacheName, format, extractor, false, null);
+        return addIndex(scope, cacheName, format, extractor, false, null);
         }
 
     /**
      * Create a {@link AddIndexRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      * @param format     the serialization format used
      * @param extractor  the serialized ValueExtractor to use to create the index
@@ -54,14 +56,15 @@ public final class Requests
      *
      * @return a {@link AddIndexRequest}
      */
-    public static AddIndexRequest addIndex(String cacheName, String format, ByteString extractor, boolean sorted)
+    public static AddIndexRequest addIndex(String scope, String cacheName, String format, ByteString extractor, boolean sorted)
         {
-        return addIndex(cacheName, format, extractor, sorted, null);
+        return addIndex(scope, cacheName, format, extractor, sorted, null);
         }
 
     /**
      * Create a {@link AddIndexRequest}.
      *
+     * @param scope       the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache
      * @param format      the serialization format used
      * @param extractor   the serialized ValueExtractor to use to create the index
@@ -70,7 +73,7 @@ public final class Requests
      *
      * @return a {@link AddIndexRequest}
      */
-    public static AddIndexRequest addIndex(String cacheName, String format, ByteString extractor,
+    public static AddIndexRequest addIndex(String scope, String cacheName, String format, ByteString extractor,
                                            boolean sorted, ByteString comparator)
         {
 
@@ -81,6 +84,7 @@ public final class Requests
             }
 
         return AddIndexRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setExtractor(extractor)
@@ -95,17 +99,19 @@ public final class Requests
      * After this request has been sent the response observer will receive responses if the
      * underlying cache is released on the proxy, destroyed or truncated.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      * @param format     the serialization format used
      *
      * @return an {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      * for all entries in a cache
      */
-    public static MapListenerRequest initListenerChannel(String cacheName, String format)
+    public static MapListenerRequest initListenerChannel(String scope, String cacheName, String format)
         {
         validateRequest(cacheName);
 
         return MapListenerRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setUid(UUID.randomUUID().toString())
                 .setSubscribe(true)
@@ -118,6 +124,7 @@ public final class Requests
      * Create a {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      * for a single entry in a cache.
      *
+     * @param scope       the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache
      * @param format      the serialization format used
      * @param key         the serialized key that identifies the entry for which to raise events
@@ -130,7 +137,8 @@ public final class Requests
      * @return an {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      * for all entries in a cache
      */
-    public static MapListenerRequest addKeyMapListener(String cacheName,
+    public static MapListenerRequest addKeyMapListener(String scope,
+                                                       String cacheName,
                                                        String format,
                                                        ByteString key,
                                                        boolean lite,
@@ -144,6 +152,7 @@ public final class Requests
             }
 
         return MapListenerRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setUid(UUID.randomUUID().toString())
@@ -160,6 +169,7 @@ public final class Requests
      * Create a {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      * for all entries in a cache matching a filter.
      *
+     * @param scope       the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache
      * @param format      the serialization format used
      * @param filter      the serialized filter that identifies the entries for which to raise events
@@ -173,7 +183,8 @@ public final class Requests
      * @return an {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      * for all entries in a cache
      */
-    public static MapListenerRequest addFilterMapListener(String cacheName,
+    public static MapListenerRequest addFilterMapListener(String scope,
+                                                          String cacheName,
                                                           String format,
                                                           ByteString filter,
                                                           long filterId,
@@ -185,6 +196,7 @@ public final class Requests
         validateRequest(cacheName, format);
 
         return MapListenerRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setUid(UUID.randomUUID().toString())
@@ -201,6 +213,7 @@ public final class Requests
     /**
      * Create a {@link AggregateRequest}.
      *
+     * @param scope       the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache to clear
      * @param format      the serialization format used
      * @param filter      the serialized {@link com.tangosol.util.Filter} or
@@ -210,7 +223,7 @@ public final class Requests
      *
      * @return a {@link AggregateRequest}
      */
-    public static AggregateRequest aggregate(String cacheName, String format, ByteString filter, ByteString aggregator)
+    public static AggregateRequest aggregate(String scope, String cacheName, String format, ByteString filter, ByteString aggregator)
         {
         validateRequest(cacheName, format);
         if (aggregator == null || aggregator.isEmpty())
@@ -219,6 +232,7 @@ public final class Requests
             }
 
         return AggregateRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setFilter(ensureNotNull(filter))
@@ -229,6 +243,7 @@ public final class Requests
     /**
      * Create a {@link AggregateRequest}.
      *
+     * @param scope       the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache to clear
      * @param format      the serialization format used
      * @param keys        the serialized entry keys
@@ -236,7 +251,7 @@ public final class Requests
      *
      * @return a {@link AggregateRequest}
      */
-    public static AggregateRequest aggregate(String cacheName, String format, Iterable<ByteString> keys,
+    public static AggregateRequest aggregate(String scope, String cacheName, String format, Iterable<ByteString> keys,
                                              ByteString aggregator)
         {
         validateRequest(cacheName, format);
@@ -250,6 +265,7 @@ public final class Requests
             }
 
         return AggregateRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .addAllKeys(keys)
@@ -260,19 +276,24 @@ public final class Requests
     /**
      * Create a {@link ClearRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      *
      * @return a {@link ClearRequest}
      */
-    public static ClearRequest clear(String cacheName)
+    public static ClearRequest clear(String scope, String cacheName)
         {
         validateRequest(cacheName);
-        return ClearRequest.newBuilder().setCache(cacheName).build();
+        return ClearRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .build();
         }
 
     /**
      * Create a {@link ContainsEntryRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to check
      * @param format     the serialization format used
      * @param key        the key of the entry to check if the mapping exists
@@ -280,65 +301,87 @@ public final class Requests
      *
      * @return a {@link ContainsEntryRequest}
      */
-    public static ContainsEntryRequest containsEntry(String cacheName, String format, ByteString key, ByteString value)
+    public static ContainsEntryRequest containsEntry(String scope, String cacheName, String format, ByteString key, ByteString value)
         {
-        return ContainsEntryRequest.newBuilder().setCache(cacheName).setFormat(format).setKey(key)
-                .setValue(value).build();
+        return ContainsEntryRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .setKey(key)
+                .setValue(value)
+                .build();
         }
 
     /**
      * Create a {@link ClearRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      * @param format     the serialization format used
      * @param key        the key of the entry to check if the mapping exists
      *
      * @return a {@link ContainsKeyRequest}
      */
-    public static ContainsKeyRequest containsKey(String cacheName, String format, ByteString key)
+    public static ContainsKeyRequest containsKey(String scope, String cacheName, String format, ByteString key)
         {
         validateRequest(cacheName, format);
-        return ContainsKeyRequest.newBuilder().setCache(cacheName).setFormat(format).setKey(key).build();
+        return ContainsKeyRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .setKey(key)
+                .build();
         }
 
     /**
      * Create a {@link ContainsValueRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to check
      * @param format     the serialization format used
      * @param value      the value of the entry to check if the mapping exists
      *
      * @return a {@link ContainsValueRequest}
      */
-    public static ContainsValueRequest containsValue(String cacheName, String format, ByteString value)
+    public static ContainsValueRequest containsValue(String scope, String cacheName, String format, ByteString value)
         {
         validateRequest(cacheName, format);
-        return ContainsValueRequest.newBuilder().setCache(cacheName).setFormat(format).setValue(value).build();
+        return ContainsValueRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .setValue(value)
+                .build();
         }
 
     /**
      * Create a {@link DestroyRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      *
      * @return a {@link DestroyRequest}
      */
-    public static DestroyRequest destroy(String cacheName)
+    public static DestroyRequest destroy(String scope, String cacheName)
         {
         validateRequest(cacheName);
-        return DestroyRequest.newBuilder().setCache(cacheName).build();
+        return DestroyRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .build();
         }
 
     /**
      * Create an {@link EntrySetRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      * @param format     the serialization format used
      * @param filter     the serialized {@link com.tangosol.util.Filter}
      *
      * @return an {@link EntrySetRequest}
      */
-    public static EntrySetRequest entrySet(String cacheName, String format, ByteString filter)
+    public static EntrySetRequest entrySet(String scope, String cacheName, String format, ByteString filter)
         {
         validateRequest(cacheName, format);
         if (filter == null || filter.isEmpty())
@@ -346,6 +389,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized filter cannot be null or empty");
             }
         return EntrySetRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setFilter(filter)
@@ -355,6 +399,7 @@ public final class Requests
     /**
      * Create an {@link EntrySetRequest}.
      *
+     * @param scope       the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache
      * @param format      the serialization format used
      * @param filter      the serialized {@link com.tangosol.util.Filter}
@@ -362,7 +407,8 @@ public final class Requests
      *
      * @return an {@link EntrySetRequest}
      */
-    public static EntrySetRequest entrySet(String cacheName, String format, ByteString filter, ByteString comparator)
+    public static EntrySetRequest entrySet(String scope, String cacheName, String format,
+                                           ByteString filter, ByteString comparator)
         {
         validateRequest(cacheName, format);
         if (filter == null || filter.isEmpty())
@@ -374,6 +420,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized comparator cannot be null or empty");
             }
         return EntrySetRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setFilter(filter)
@@ -384,44 +431,57 @@ public final class Requests
     /**
      * Create a {@link GetRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      * @param format     the serialization format used
      * @param key        the key of the entry to get the value for
      *
      * @return a {@link GetRequest}
      */
-    public static GetRequest get(String cacheName, String format, ByteString key)
+    public static GetRequest get(String scope, String cacheName, String format, ByteString key)
         {
         validateRequest(cacheName, format);
         if (key == null || key.isEmpty())
             {
             throw new IllegalArgumentException("the serialized key cannot be null or empty");
             }
-        return GetRequest.newBuilder().setCache(cacheName).setFormat(format).setKey(key).build();
+        return GetRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .setKey(key)
+                .build();
         }
 
     /**
      * Create a {@link GetAllRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      * @param format     the serialization format used
      * @param keys       the keys of the entries to get the values for
      *
      * @return a {@link GetAllRequest}
      */
-    public static GetAllRequest getAll(String cacheName, String format, Iterable<ByteString> keys)
+    public static GetAllRequest getAll(String scope, String cacheName, String format, Iterable<ByteString> keys)
         {
         validateRequest(cacheName, format);
         if (keys == null)
             {
             throw new IllegalArgumentException("the keys iterable cannot be null or empty");
             }
-        return GetAllRequest.newBuilder().setCache(cacheName).setFormat(format).addAllKey(keys).build();
+        return GetAllRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .addAllKey(keys)
+                .build();
         }
 
     /**
      * Create a {@link InvokeRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      * @param format     the serialization format used
      * @param key        the serialized key of the entry to invoke the entry processor against
@@ -429,7 +489,7 @@ public final class Requests
      *
      * @return a {@link InvokeRequest}
      */
-    public static InvokeRequest invoke(String cacheName, String format, ByteString key, ByteString processor)
+    public static InvokeRequest invoke(String scope, String cacheName, String format, ByteString key, ByteString processor)
         {
         validateRequest(cacheName, format);
         if (key == null || key.isEmpty())
@@ -441,6 +501,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized processor cannot be null or empty");
             }
         return InvokeRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setKey(key)
@@ -451,6 +512,7 @@ public final class Requests
     /**
      * Create a {@link InvokeAllRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      * @param format     the serialization format used
      * @param keys       the serialized keys of the entries to invoke the entry processor against
@@ -458,7 +520,7 @@ public final class Requests
      *
      * @return a {@link InvokeAllRequest}
      */
-    public static InvokeAllRequest invokeAll(String cacheName, String format, Iterable<ByteString> keys,
+    public static InvokeAllRequest invokeAll(String scope, String cacheName, String format, Iterable<ByteString> keys,
                                              ByteString processor)
         {
         validateRequest(cacheName, format);
@@ -471,6 +533,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized processor cannot be null or empty");
             }
         return InvokeAllRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .addAllKeys(keys)
@@ -481,6 +544,7 @@ public final class Requests
     /**
      * Create a {@link InvokeAllRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      * @param format     the serialization format used
      * @param filter     the serialized filter to identify of the entries to invoke the entry processor against
@@ -488,7 +552,7 @@ public final class Requests
      *
      * @return a {@link InvokeAllRequest}
      */
-    public static InvokeAllRequest invokeAll(String cacheName, String format, ByteString filter, ByteString processor)
+    public static InvokeAllRequest invokeAll(String scope, String cacheName, String format, ByteString filter, ByteString processor)
         {
         validateRequest(cacheName, format);
         if (filter == null || filter.isEmpty())
@@ -500,6 +564,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized processor cannot be null or empty");
             }
         return InvokeAllRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setFilter(filter)
@@ -510,26 +575,31 @@ public final class Requests
     /**
      * Create a {@link IsEmptyRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      *
      * @return a {@link IsEmptyRequest}
      */
-    public static IsEmptyRequest isEmpty(String cacheName)
+    public static IsEmptyRequest isEmpty(String scope, String cacheName)
         {
         validateRequest(cacheName);
-        return IsEmptyRequest.newBuilder().setCache(cacheName).build();
+        return IsEmptyRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .build();
         }
 
     /**
      * Create an {@link KeySetRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      * @param format     the serialization format used
      * @param filter     the serialized {@link com.tangosol.util.Filter}
      *
      * @return an {@link KeySetRequest}
      */
-    public static KeySetRequest keySet(String cacheName, String format, ByteString filter)
+    public static KeySetRequest keySet(String scope, String cacheName, String format, ByteString filter)
         {
         validateRequest(cacheName, format);
         if (filter == null || filter.isEmpty())
@@ -537,6 +607,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized filter cannot be null or empty");
             }
         return KeySetRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setFilter(filter)
@@ -546,16 +617,21 @@ public final class Requests
     /**
      * Create a {@link PageRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      * @param format     the serialization format used
      * @param cookie     the opaque cookie used to track the page being requested
      *
      * @return a {@link PageRequest}
      */
-    public static PageRequest page(String cacheName, String format, ByteString cookie)
+    public static PageRequest page(String scope, String cacheName, String format, ByteString cookie)
         {
         validateRequest(cacheName, format);
-        PageRequest.Builder builder = PageRequest.newBuilder().setCache(cacheName).setFormat(format);
+        PageRequest.Builder builder = PageRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format);
+
         if (cookie != null && !cookie.isEmpty())
             {
             builder.setCookie(cookie);
@@ -566,6 +642,7 @@ public final class Requests
     /**
      * Create a {@link PutRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to put the value into
      * @param format     the serialization format used
      * @param key        the key of the entry to update
@@ -573,14 +650,15 @@ public final class Requests
      *
      * @return a {@link PutRequest} to update the value mapped to a key in a cache
      */
-    public static PutRequest put(String cacheName, String format, ByteString key, ByteString value)
+    public static PutRequest put(String scope, String cacheName, String format, ByteString key, ByteString value)
         {
-        return put(cacheName, format, key, value, 0L);
+        return put(scope, cacheName, format, key, value, 0L);
         }
 
     /**
      * Create a {@link PutRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to put the value into
      * @param format     the serialization format used
      * @param key        the key of the entry to update
@@ -589,7 +667,7 @@ public final class Requests
      *
      * @return a {@link PutRequest} to update the value mapped to a key in a cache
      */
-    public static PutRequest put(String cacheName, String format, ByteString key, ByteString value, long ttl)
+    public static PutRequest put(String scope, String cacheName, String format, ByteString key, ByteString value, long ttl)
         {
         validateRequest(cacheName, format);
         if (key == null || key.isEmpty())
@@ -601,6 +679,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized value cannot be null");
             }
         return PutRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setKey(key)
@@ -612,13 +691,14 @@ public final class Requests
     /**
      * Create a {@link PutAllRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to put the values into
      * @param format     the serialization format used
      * @param entries    the entries to put into the cache
      *
      * @return a {@link PutAllRequest}
      */
-    public static PutAllRequest putAll(String cacheName, String format, Iterable<Entry> entries)
+    public static PutAllRequest putAll(String scope, String cacheName, String format, Iterable<Entry> entries)
         {
         validateRequest(cacheName, format);
         if (entries == null)
@@ -626,6 +706,7 @@ public final class Requests
             throw new IllegalArgumentException("the entries parameter cannot be null");
             }
         return PutAllRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .addAllEntry(entries)
@@ -635,6 +716,7 @@ public final class Requests
     /**
      * Create a {@link PutIfAbsentRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to put the value into
      * @param format     the serialization format used
      * @param key        the key of the entry to update
@@ -643,7 +725,7 @@ public final class Requests
      * @return a {@link PutIfAbsentRequest} to update the value mapped to a key in a cache if no mapping
      *         exists for the key
      */
-    public static PutIfAbsentRequest putIfAbsent(String cacheName, String format, ByteString key, ByteString value)
+    public static PutIfAbsentRequest putIfAbsent(String scope, String cacheName, String format, ByteString key, ByteString value)
         {
         validateRequest(cacheName, format);
         if (key == null || key.isEmpty())
@@ -654,32 +736,43 @@ public final class Requests
             {
             throw new IllegalArgumentException("the serialized value cannot be null");
             }
-        return PutIfAbsentRequest.newBuilder().setCache(cacheName).setFormat(format).setKey(key)
+        return PutIfAbsentRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .setKey(key)
                 .setValue(value).build();
         }
 
     /**
      * Create a {@link RemoveRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to remove the value
      * @param format     the serialization format used
      * @param key        the key of the entry to remove
      *
      * @return a {@link RemoveRequest} to update the value mapped to a key in a cache if no mapping exists for the key
      */
-    public static RemoveRequest remove(String cacheName, String format, ByteString key)
+    public static RemoveRequest remove(String scope, String cacheName, String format, ByteString key)
         {
         validateRequest(cacheName, format);
         if (key == null || key.isEmpty())
             {
             throw new IllegalArgumentException("the serialized key cannot be null or empty");
             }
-        return RemoveRequest.newBuilder().setCache(cacheName).setFormat(format).setKey(key).build();
+        return RemoveRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .setKey(key)
+                .build();
         }
 
     /**
      * Create a {@link RemoveMappingRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to remove the mapping
      * @param format     the serialization format used
      * @param key        the key of the entry to remove
@@ -688,7 +781,8 @@ public final class Requests
      * @return a {@link RemoveMappingRequest} to update the value mapped to a key in a cache if no mapping
      *         exists for the key
      */
-    public static RemoveMappingRequest remove(String cacheName, String format, ByteString key, ByteString value)
+    public static RemoveMappingRequest remove(String scope, String cacheName, String format,
+                                              ByteString key, ByteString value)
         {
         validateRequest(cacheName, format);
         if (key == null || key.isEmpty())
@@ -699,33 +793,45 @@ public final class Requests
             {
             throw new IllegalArgumentException("the serialized value cannot be null");
             }
-        return RemoveMappingRequest.newBuilder().setCache(cacheName).setFormat(format).setKey(key)
-                .setValue(value).build();
+        return RemoveMappingRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .setKey(key)
+                .setValue(value)
+                .build();
         }
 
     /**
      * Create a {@link RemoveIndexRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      * @param format     the serialization format used
      * @param extractor  the serialized ValueExtractor to use to remove the index
      *
      * @return a {@link RemoveIndexRequest}
      */
-    public static RemoveIndexRequest removeIndex(String cacheName, String format, ByteString extractor)
+    public static RemoveIndexRequest removeIndex(String scope, String cacheName, String format, ByteString extractor)
         {
         validateRequest(cacheName, format);
         if (extractor == null || extractor.isEmpty())
             {
             throw new IllegalArgumentException("the serialized extractor cannot be null or empty");
             }
-        return RemoveIndexRequest.newBuilder().setCache(cacheName).setFormat(format).setExtractor(extractor).build();
+        return RemoveIndexRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .setFormat(format)
+                .setExtractor(extractor)
+                .build();
         }
 
     /**
      * Create a {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      * for a single entry in a cache.
      *
+     * @param scope       the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache
      * @param format      the serialization format used
      * @param key         the serialized key that identifies the entry for which to raise events
@@ -735,7 +841,8 @@ public final class Requests
      * @return an {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      *         for all entries in a cache
      */
-    public static MapListenerRequest removeKeyMapListener(String cacheName,
+    public static MapListenerRequest removeKeyMapListener(String scope,
+                                                          String cacheName,
                                                           String format,
                                                           ByteString key,
                                                           boolean priming,
@@ -749,6 +856,7 @@ public final class Requests
             }
 
         return MapListenerRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setSubscribe(false)
@@ -763,6 +871,7 @@ public final class Requests
      * Create a {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      * for all entries in a cache matching a filter.
      *
+     * @param scope       the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache
      * @param format      the serialization format used
      * @param filter      the serialized filter that identifies the entries for which to raise events
@@ -776,7 +885,8 @@ public final class Requests
      * @return an {@link MapListenerRequest} that will subscribe to {@link com.tangosol.util.MapEvent MapEvents}
      *         for all entries in a cache
      */
-    public static MapListenerRequest removeFilterMapListener(String cacheName,
+    public static MapListenerRequest removeFilterMapListener(String scope,
+                                                             String cacheName,
                                                              String format,
                                                              ByteString filter,
                                                              long filterId,
@@ -788,6 +898,7 @@ public final class Requests
         validateRequest(cacheName, format);
 
         return MapListenerRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setSubscribe(false)
@@ -803,6 +914,7 @@ public final class Requests
     /**
      * Create a {@link ReplaceRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to remove the mapping
      * @param format     the serialization format used
      * @param key        the key of the entry to remove
@@ -810,7 +922,7 @@ public final class Requests
      *
      * @return a {@link ReplaceRequest}to update the value mapped to a key in a cache if no mapping exists for the key
      */
-    public static ReplaceRequest replace(String cacheName, String format, ByteString key, ByteString value)
+    public static ReplaceRequest replace(String scope, String cacheName, String format, ByteString key, ByteString value)
         {
         validateRequest(cacheName, format);
         if (key == null || key.isEmpty())
@@ -822,6 +934,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized value cannot be null");
             }
         return ReplaceRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setKey(key)
@@ -832,6 +945,7 @@ public final class Requests
     /**
      * Create a {@link ReplaceMappingRequest}.
      *
+     * @param scope          the scope name to use to obtain the cache from.
      * @param cacheName      the name of the cache to remove the mapping
      * @param format         the serialization format used
      * @param key            the key of the entry to remove
@@ -841,7 +955,7 @@ public final class Requests
      * @return a {@link ReplaceMappingRequest} to update the value mapped to a key in a cache if no mapping
      *         exists for the key
      */
-    public static ReplaceMappingRequest replace(String cacheName, String format, ByteString key,
+    public static ReplaceMappingRequest replace(String scope, String cacheName, String format, ByteString key,
                                                 ByteString previousValue, ByteString newValue)
         {
         validateRequest(cacheName, format);
@@ -859,6 +973,7 @@ public final class Requests
             }
 
         return ReplaceMappingRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setKey(key)
@@ -870,39 +985,48 @@ public final class Requests
     /**
      * Create a {@link SizeRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache to clear
      *
      * @return a {@link SizeRequest}
      */
-    public static SizeRequest size(String cacheName)
+    public static SizeRequest size(String scope, String cacheName)
         {
         validateRequest(cacheName);
-        return SizeRequest.newBuilder().setCache(cacheName).build();
+        return SizeRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .build();
         }
 
     /**
      * Create a {@link TruncateRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      *
      * @return a {@link TruncateRequest}
      */
-    public static TruncateRequest truncate(String cacheName)
+    public static TruncateRequest truncate(String scope, String cacheName)
         {
         validateRequest(cacheName);
-        return TruncateRequest.newBuilder().setCache(cacheName).build();
+        return TruncateRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .build();
         }
 
     /**
      * Create a {@link ValuesRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName  the name of the cache
      * @param format     the serialization format used
      * @param filter     the serialized {@link com.tangosol.util.Filter}
      *
      * @return an {@link ValuesRequest}
      */
-    public static ValuesRequest values(String cacheName, String format, ByteString filter)
+    public static ValuesRequest values(String scope, String cacheName, String format, ByteString filter)
         {
         validateRequest(cacheName, format);
         if (filter == null || filter.isEmpty())
@@ -910,6 +1034,7 @@ public final class Requests
             throw new IllegalArgumentException("the serialized filter cannot be null or empty");
             }
         return ValuesRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setFilter(filter)
@@ -919,6 +1044,7 @@ public final class Requests
     /**
      * Create a {@link ValuesRequest}.
      *
+     * @param scope      the scope name to use to obtain the cache from.
      * @param cacheName   the name of the cache
      * @param format      the serialization format used
      * @param filter      the serialized {@link com.tangosol.util.Filter}
@@ -926,7 +1052,7 @@ public final class Requests
      *
      * @return an {@link ValuesRequest}
      */
-    public static ValuesRequest values(String cacheName, String format, ByteString filter, ByteString comparator)
+    public static ValuesRequest values(String scope, String cacheName, String format, ByteString filter, ByteString comparator)
         {
         validateRequest(cacheName, format);
         if (filter == null || filter.isEmpty())
@@ -935,6 +1061,7 @@ public final class Requests
             }
 
         return ValuesRequest.newBuilder()
+                .setScope(ensureScope(scope))
                 .setCache(cacheName)
                 .setFormat(format)
                 .setFilter(filter)
@@ -987,4 +1114,23 @@ public final class Requests
         {
         return b == null ? ByteString.EMPTY : b;
         }
+
+    /**
+     * Ensure the scope value is not null.
+     *
+     * @param scope  the scope value to check
+     *
+     * @return the scope value if not null otherwise the default scope value
+     */
+    private static String ensureScope(String scope)
+        {
+        return scope != null ? scope : DEFAULT_SCOPE;
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The default scope value.
+     */
+    public static final String DEFAULT_SCOPE = "";
     }

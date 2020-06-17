@@ -12,6 +12,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 
+import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SerializerProducer;
 
 import com.oracle.coherence.grpc.AggregateRequest;
@@ -36,6 +37,7 @@ import com.oracle.coherence.grpc.PutRequest;
 import com.oracle.coherence.grpc.Requests;
 import com.oracle.coherence.grpc.ValuesRequest;
 
+import com.tangosol.internal.util.processor.BinaryProcessors;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 
@@ -157,6 +159,9 @@ class NamedCacheServiceTest
         m_testAsyncCache = testCache.async();
 
         when(m_testCCF.ensureCache(eq(TEST_CACHE_NAME), any(ClassLoader.class))).thenReturn(testCache);
+        when(m_testCCF.getScopeName()).thenReturn(Scope.DEFAULT);
+
+        m_ccfSupplier = new NamedCacheService.FixedCacheFactorySupplier(m_testCCF);
         }
 
     // ----- test methods ---------------------------------------------------
@@ -164,10 +169,12 @@ class NamedCacheServiceTest
     @Test
     public void shouldCreateRequestHolder() throws Exception
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService service = new NamedCacheService(m_testCluster,
+                                                          m_ccfSupplier,
+                                                          s_serializerProducer,
                                                           defaultConfig());
 
-        CompletionStage<CacheRequestHolder<String, Void>> stage = service.createHolder("foo", TEST_CACHE_NAME, POF_FORMAT);
+        CompletionStage<CacheRequestHolder<String, Void>> stage = service.createHolder("foo", Scope.DEFAULT, TEST_CACHE_NAME, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
         CacheRequestHolder<String, Void> holder = stage.toCompletableFuture().get(1, TimeUnit.MINUTES);
@@ -183,10 +190,10 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotCreateRequestHolderIfRequestIsNull()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer, defaultConfig());
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer, defaultConfig());
 
         CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolder(null, TEST_CACHE_NAME, POF_FORMAT);
+                service.createHolder(null, Scope.DEFAULT, TEST_CACHE_NAME, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
         Throwable error = assertThrows(Throwable.class, () ->
@@ -200,11 +207,11 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotCreateRequestHolderIfCacheNameIsNull()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolder("foo", null, POF_FORMAT);
+                service.createHolder(Scope.DEFAULT, "foo", null, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
         Throwable error = assertThrows(Throwable.class, () -> stage.toCompletableFuture().get(1, TimeUnit.MINUTES));
@@ -218,11 +225,11 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotCreateRequestHolderIfCacheNameIsBlank()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolder("foo", "", POF_FORMAT);
+                service.createHolder(Scope.DEFAULT, "foo", "", POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
         Throwable error = assertThrows(Throwable.class, () ->
@@ -236,11 +243,11 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotCreateRequestHolderIfRequestSerializerNotFound()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolder("foo", TEST_CACHE_NAME, "BAD");
+                service.createHolder("foo", Scope.DEFAULT, TEST_CACHE_NAME, "BAD");
         assertThat(stage, is(notNullValue()));
 
         Throwable error = assertThrows(Throwable.class, () ->
@@ -257,7 +264,7 @@ class NamedCacheServiceTest
         {
         ValueExtractor<?, ?> extractor = new UniversalExtractor("foo");
         ByteString           bytes     = BinaryHelper.toByteString(extractor, SERIALIZER);
-        NamedCacheService    service   = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService    service   = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                defaultConfig());
         ValueExtractor<?, ?> result    = service.ensureValueExtractor(bytes, SERIALIZER);
         assertThat(result, is(notNullValue()));
@@ -267,7 +274,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldEnsureValueExtractorWhenByteStringIsNull()
         {
-        NamedCacheService      service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService      service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                               defaultConfig());
         StatusRuntimeException error   = assertThrows(StatusRuntimeException.class,
                                                       () -> service.ensureValueExtractor(null, SERIALIZER));
@@ -279,7 +286,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldEnsureValueExtractorWhenByteStringIsEmpty()
         {
-        NamedCacheService      service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService      service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                defaultConfig());
         StatusRuntimeException error   = assertThrows(StatusRuntimeException.class,
                                                       () -> service.ensureValueExtractor(ByteString.EMPTY, SERIALIZER));
@@ -293,7 +300,7 @@ class NamedCacheServiceTest
         {
         Filter            filter  = new EqualsFilter("foo", "bar");
         ByteString        bytes   = BinaryHelper.toByteString(filter, SERIALIZER);
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                           defaultConfig());
         Filter            result  = service.ensureFilter(bytes, SERIALIZER);
         assertThat(result, is(filter));
@@ -302,7 +309,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldEnsureFilterWhenByteStringIsNull()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                           defaultConfig());
         Filter            result  = service.ensureFilter(null, SERIALIZER);
         assertThat(result, is(instanceOf(AlwaysFilter.class)));
@@ -311,7 +318,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldEnsureFilterWhenByteStringIsEmpty()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                           defaultConfig());
         Filter            result  = service.ensureFilter(ByteString.EMPTY, SERIALIZER);
         assertThat(result, is(instanceOf(AlwaysFilter.class)));
@@ -323,7 +330,7 @@ class NamedCacheServiceTest
         {
         Comparator        comparator = new UniversalExtractor("foo");
         ByteString        bytes      = BinaryHelper.toByteString(comparator, SERIALIZER);
-        NamedCacheService service    = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService service    = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                              defaultConfig());
         Comparator        result     = service.deserializeComparator(bytes, SERIALIZER);
         assertThat(result, is(comparator));
@@ -332,7 +339,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldDeserializeComparatorWhenByteStringIsNull()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                           defaultConfig());
         Comparator        result  = service.deserializeComparator(null, SERIALIZER);
         assertThat(result, is(nullValue()));
@@ -341,7 +348,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldDeserializeComparatorWhenByteStringIsEmpty()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
         Comparator        result  = service.deserializeComparator(ByteString.EMPTY, SERIALIZER);
         assertThat(result, is(nullValue()));
@@ -352,7 +359,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteAggregateWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         AggregateRequest request = AggregateRequest.newBuilder()
@@ -372,10 +379,11 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteAggregateWithoutAggregator()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         AggregateRequest request = AggregateRequest.newBuilder()
+                .setScope(Scope.DEFAULT)
                 .setCache(TEST_CACHE_NAME)
                 .setFormat(JAVA_FORMAT)
                 .build();
@@ -399,11 +407,12 @@ class NamedCacheServiceTest
         ByteString                   serializedFilter     = BinaryHelper.toByteString(filter, SERIALIZER);
         InvocableMap.EntryAggregator aggregator           = new Count();
         ByteString                   serializedAggregator = BinaryHelper.toByteString(aggregator, SERIALIZER);
-        NamedCacheService            service              = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService            service              = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                   s_serializerProducer,
                                                                                   defaultConfig());
 
-        CompletionStage<BytesValue>   stage     = service.aggregate(Requests.aggregate(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BytesValue>   stage     = service.aggregate(Requests.aggregate(Scope.DEFAULT,
+                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                        serializedFilter,
                                                                                        serializedAggregator));
         CompletableFuture<BytesValue> future    = stage.toCompletableFuture();
@@ -422,11 +431,11 @@ class NamedCacheServiceTest
         ByteString                   serializedFilter     = BinaryHelper.toByteString(filter, SERIALIZER);
         InvocableMap.EntryAggregator aggregator           = new Count();
         ByteString                   serializedAggregator = BinaryHelper.toByteString(aggregator, SERIALIZER);
-        NamedCacheService            service              = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService            service              = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                   s_serializerProducer,
                                                                                   defaultConfig());
 
-        CompletionStage<BytesValue>   stage     = service.aggregate(Requests.aggregate(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BytesValue>   stage     = service.aggregate(Requests.aggregate(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                        serializedFilter,
                                                                                        serializedAggregator));
         CompletableFuture<BytesValue> future    = stage.toCompletableFuture();
@@ -443,11 +452,11 @@ class NamedCacheServiceTest
 
         InvocableMap.EntryAggregator aggregator           = new Count();
         ByteString                   serializedAggregator = BinaryHelper.toByteString(aggregator, SERIALIZER);
-        NamedCacheService            service              = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService            service              = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                   s_serializerProducer,
                                                                                   defaultConfig());
 
-        CompletionStage<BytesValue>   stage     = service.aggregate(Requests.aggregate(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BytesValue>   stage     = service.aggregate(Requests.aggregate(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                        s_byteStringList,
                                                                                        serializedAggregator));
         CompletableFuture<BytesValue> future    = stage.toCompletableFuture();
@@ -465,11 +474,11 @@ class NamedCacheServiceTest
 
         InvocableMap.EntryAggregator  aggregator           = new Count();
         ByteString                    serializedAggregator = BinaryHelper.toByteString(aggregator, SERIALIZER);
-        NamedCacheService             service              = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService             service              = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                   s_serializerProducer,
                                                                                   defaultConfig());
 
-        CompletionStage<BytesValue>   stage     = service.aggregate(Requests.aggregate(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BytesValue>   stage     = service.aggregate(Requests.aggregate(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                  s_byteStringList,
                                                                                  serializedAggregator));
         CompletableFuture<BytesValue> future    = stage.toCompletableFuture();
@@ -483,7 +492,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteClearWithoutCacheName()
         {
-        NamedCacheService        service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService        service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                  s_serializerProducer, defaultConfig());
         CompletionStage<Empty>   stage   = service.clear(ClearRequest.newBuilder().build());
         CompletableFuture<Empty> future  = stage.toCompletableFuture();
@@ -498,12 +507,12 @@ class NamedCacheServiceTest
     public void shouldHandleClearError()
         {
         when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
-                                        isA(Processors.RemoveBlindProcessor.class))).thenThrow(ERROR);
+                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<Empty>   stage     = service.clear(Requests.clear(TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.clear(Requests.clear(Scope.DEFAULT, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -516,12 +525,12 @@ class NamedCacheServiceTest
         CompletableFuture<Map<Binary, Void>> failed = failedFuture(ERROR);
 
         when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
-                                        isA(Processors.RemoveBlindProcessor.class))).thenReturn(failed);
+                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<Empty>   stage     = service.clear(Requests.clear(TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.clear(Requests.clear(Scope.DEFAULT, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -533,7 +542,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteContainsEntryWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<BoolValue>   stage  = service.containsEntry(ContainsEntryRequest.newBuilder().build());
@@ -548,12 +557,12 @@ class NamedCacheServiceTest
     @Test
     public void shouldHandleContainsEntryError()
         {
-        when(m_testAsyncCache.invoke(any(Binary.class), isA(Processors.ContainsValueProcessor.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.invoke(any(Binary.class), isA(BinaryProcessors.BinaryContainsValueProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BoolValue>   stage     = service.containsEntry(Requests.containsEntry(TEST_CACHE_NAME,
+        CompletionStage<BoolValue>   stage     = service.containsEntry(Requests.containsEntry(Scope.DEFAULT, TEST_CACHE_NAME,
                                                                                               JAVA_FORMAT, s_bytes1,
                                                                                               s_bytes2));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
@@ -567,11 +576,11 @@ class NamedCacheServiceTest
         {
         CompletableFuture<Boolean> failed = failedFuture(ERROR);
 
-        when(m_testAsyncCache.invoke(any(Binary.class), isA(Processors.ContainsValueProcessor.class))).thenReturn(failed);
+        when(m_testAsyncCache.invoke(any(Binary.class), isA(BinaryProcessors.BinaryContainsValueProcessor.class))).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer, defaultConfig());
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer, defaultConfig());
 
-        CompletionStage<BoolValue>   stage     = service.containsEntry(Requests.containsEntry(TEST_CACHE_NAME,
+        CompletionStage<BoolValue>   stage     = service.containsEntry(Requests.containsEntry(Scope.DEFAULT, TEST_CACHE_NAME,
                                                                                               JAVA_FORMAT, s_bytes1,
                                                                                               s_bytes2));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
@@ -585,7 +594,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteContainsKeyWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<BoolValue>   stage  = service.containsKey(ContainsKeyRequest.newBuilder().build());
@@ -602,10 +611,10 @@ class NamedCacheServiceTest
         {
         when(m_testAsyncCache.containsKey(any(Binary.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BoolValue>   stage     = service.containsKey(Requests.containsKey(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BoolValue>   stage     = service.containsKey(Requests.containsKey(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                           s_bytes1));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
@@ -620,10 +629,10 @@ class NamedCacheServiceTest
 
         when(m_testAsyncCache.containsKey(any(Binary.class))).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BoolValue>   stage     = service.containsKey(Requests.containsKey(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BoolValue>   stage     = service.containsKey(Requests.containsKey(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                           s_bytes1));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
@@ -636,7 +645,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteContainsValueWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<BoolValue>   stage  = service.containsValue(ContainsValueRequest.newBuilder().build());
@@ -653,10 +662,10 @@ class NamedCacheServiceTest
         {
         when(m_testAsyncCache.aggregate(any(Filter.class), isA(Count.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BoolValue>   stage     = service.containsValue(Requests.containsValue(TEST_CACHE_NAME,
+        CompletionStage<BoolValue>   stage     = service.containsValue(Requests.containsValue(Scope.DEFAULT, TEST_CACHE_NAME,
                                                                                               JAVA_FORMAT,
                                                                                               s_bytes1));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
@@ -672,10 +681,10 @@ class NamedCacheServiceTest
 
         when(m_testAsyncCache.aggregate(any(Filter.class), isA(Count.class))).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BoolValue>   stage     = service.containsValue(Requests.containsValue(TEST_CACHE_NAME,
+        CompletionStage<BoolValue>   stage     = service.containsValue(Requests.containsValue(Scope.DEFAULT, TEST_CACHE_NAME,
                                                                                              JAVA_FORMAT, s_bytes1));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
@@ -688,7 +697,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteDestroyWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<Empty>   stage  = service.destroy(DestroyRequest.newBuilder().build());
@@ -706,10 +715,10 @@ class NamedCacheServiceTest
         NamedCache cache = m_testAsyncCache.getNamedCache();
         doThrow(ERROR).when(cache).destroy();
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<Empty>   stage     = service.destroy(Requests.destroy(TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.destroy(Requests.destroy(Scope.DEFAULT, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -724,7 +733,7 @@ class NamedCacheServiceTest
         Filter                    filter      = new EqualsFilter("foo", "bar");
         ByteString                filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
-        NamedCacheService         service     = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service     = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                       defaultConfig());
 
         service.entrySet(EntrySetRequest.newBuilder().setFormat(JAVA_FORMAT).setFilter(filterBytes).build(), observer);
@@ -746,11 +755,11 @@ class NamedCacheServiceTest
 
         Filter<Binary>            filter      = new EqualsFilter<>("foo", "bar");
         ByteString                filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
-        NamedCacheService         service     = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service     = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                       defaultConfig());
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
 
-        service.entrySet(Requests.entrySet(TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.entrySet(Requests.entrySet(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -768,11 +777,11 @@ class NamedCacheServiceTest
 
         Filter                    filter      = new EqualsFilter("foo", "bar");
         ByteString                filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
-        NamedCacheService         service     = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service     = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                      defaultConfig());
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
 
-        service.entrySet(Requests.entrySet(TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.entrySet(Requests.entrySet(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -787,7 +796,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteGetWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<OptionalValue>   stage  = service.get(GetRequest.newBuilder().build());
@@ -802,12 +811,12 @@ class NamedCacheServiceTest
     @Test
     public void shouldHandleGetError()
         {
-        when(m_testAsyncCache.invoke(any(Binary.class), any(Processors.GetProcessor.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<OptionalValue>   stage     = service.get(Requests.get(TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1));
+        CompletionStage<OptionalValue>   stage     = service.get(Requests.get(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1));
         CompletableFuture<OptionalValue> future    = stage.toCompletableFuture();
         ExecutionException               exception = assertThrows(ExecutionException.class, future::get);
         Throwable                        cause     = rootCause(exception);
@@ -818,12 +827,12 @@ class NamedCacheServiceTest
     public void shouldHandleGetAsyncError()
         {
         CompletableFuture<Binary> failed = failedFuture(ERROR);
-        when(m_testAsyncCache.invoke(any(Binary.class), any(Processors.GetProcessor.class))).thenReturn(failed);
+        when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<OptionalValue>   stage     = service.get(Requests.get(TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1));
+        CompletionStage<OptionalValue>   stage     = service.get(Requests.get(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1));
         CompletableFuture<OptionalValue> future    = stage.toCompletableFuture();
         ExecutionException               exception = assertThrows(ExecutionException.class, future::get);
         Throwable                        cause     = rootCause(exception);
@@ -836,10 +845,12 @@ class NamedCacheServiceTest
     public void shouldExecuteGetAllWithNoKeys() throws Exception
         {
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
-        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                   defaultConfig());
 
-        service.getAll(GetAllRequest.newBuilder().setCache(TEST_CACHE_NAME).build(), observer);
+        service.getAll(GetAllRequest.newBuilder()
+                .setScope(Scope.DEFAULT)
+                .setCache(TEST_CACHE_NAME).build(), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -859,13 +870,13 @@ class NamedCacheServiceTest
         mapResults.put(serialize("five"),  doubleSerialize("value-5"));
 
         CompletableFuture<Map<Binary, Binary>> future = CompletableFuture.completedFuture(mapResults);
-        when(m_testAsyncCache.invokeAll(any(Collection.class), any(Processors.GetProcessor.class))).thenReturn(future);
+        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenReturn(future);
 
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
-        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                    defaultConfig());
 
-        service.getAll(Requests.getAll(TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
+        service.getAll(Requests.getAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -887,7 +898,7 @@ class NamedCacheServiceTest
     public void shouldNotExecuteGetAllWithoutCacheName() throws Exception
         {
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
-        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                    defaultConfig());
 
         service.getAll(GetAllRequest.newBuilder().addAllKey(s_byteStringList).build(), observer);
@@ -905,13 +916,13 @@ class NamedCacheServiceTest
     @Test
     public void shouldHandleGetAllError() throws Exception
         {
-        when(m_testAsyncCache.invokeAll(any(Collection.class), any(Processors.GetProcessor.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                    defaultConfig());
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
 
-        service.getAll(Requests.getAll(TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
+        service.getAll(Requests.getAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -925,13 +936,13 @@ class NamedCacheServiceTest
     public void shouldHandleGetAllAsyncError() throws Exception
         {
         CompletableFuture<Map<Binary, Binary>> failed = failedFuture(ERROR);
-        when(m_testAsyncCache.invokeAll(any(Collection.class), any(Processors.GetProcessor.class))).thenReturn(failed);
+        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenReturn(failed);
 
-        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                    defaultConfig());
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
 
-        service.getAll(Requests.getAll(TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
+        service.getAll(Requests.getAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -948,7 +959,7 @@ class NamedCacheServiceTest
         {
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                 s_serializerProducer,
                                                                                 defaultConfig());
 
@@ -965,11 +976,11 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteInvokeWithoutEntryProcessor()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<BytesValue>   stage  =
-                service.invoke(InvokeRequest.newBuilder().setCache(TEST_CACHE_NAME).build());
+                service.invoke(InvokeRequest.newBuilder().setScope(Scope.DEFAULT).setCache(TEST_CACHE_NAME).build());
         CompletableFuture<BytesValue> future = stage.toCompletableFuture();
         ExecutionException            error  = assertThrows(ExecutionException.class, future::get);
         Throwable                     cause  = rootCause(error);
@@ -985,11 +996,11 @@ class NamedCacheServiceTest
 
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                 s_serializerProducer,
                                                                                 defaultConfig());
 
-        CompletionStage<BytesValue>   stage  = service.invoke(Requests.invoke(TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+        CompletionStage<BytesValue>   stage  = service.invoke(Requests.invoke(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                                             serializedProcessor));
         CompletableFuture<BytesValue> future = stage.toCompletableFuture();
         ExecutionException            error  = assertThrows(ExecutionException.class, future::get);
@@ -1005,11 +1016,11 @@ class NamedCacheServiceTest
 
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                 s_serializerProducer,
                                                                                 defaultConfig());
 
-        CompletionStage<BytesValue>   stage  = service.invoke(Requests.invoke(TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+        CompletionStage<BytesValue>   stage  = service.invoke(Requests.invoke(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                                             serializedProcessor));
         CompletableFuture<BytesValue> future = stage.toCompletableFuture();
         ExecutionException            error  = assertThrows(ExecutionException.class, future::get);
@@ -1025,7 +1036,7 @@ class NamedCacheServiceTest
         TestStreamObserver<Entry>   observer            = new TestStreamObserver<>();
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                 s_serializerProducer,
                                                                                 defaultConfig());
 
@@ -1045,10 +1056,10 @@ class NamedCacheServiceTest
     public void shouldNotExecuteInvokeAllWithoutEntryProcessor() throws Exception
         {
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
-        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer,
+        NamedCacheService         service  = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer,
                                                                    defaultConfig());
 
-        service.invokeAll(InvokeAllRequest.newBuilder().setCache(TEST_CACHE_NAME).build(), observer);
+        service.invokeAll(InvokeAllRequest.newBuilder().setScope(Scope.DEFAULT).setCache(TEST_CACHE_NAME).build(), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -1068,10 +1079,10 @@ class NamedCacheServiceTest
         TestStreamObserver<Entry>   observer            = new TestStreamObserver<>();
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                 s_serializerProducer, defaultConfig());
 
-        service.invokeAll(Requests.invokeAll(TEST_CACHE_NAME, JAVA_FORMAT,
+        service.invokeAll(Requests.invokeAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                              s_filterBytes, serializedProcessor), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -1091,11 +1102,11 @@ class NamedCacheServiceTest
 
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                 s_serializerProducer,
                                                                                 defaultConfig());
 
-        service.invokeAll(Requests.invokeAll(TEST_CACHE_NAME, JAVA_FORMAT,
+        service.invokeAll(Requests.invokeAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                              s_filterBytes, serializedProcessor), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -1114,10 +1125,10 @@ class NamedCacheServiceTest
         TestStreamObserver<Entry>   observer            = new TestStreamObserver<>();
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                 s_serializerProducer, defaultConfig());
 
-        service.invokeAll(Requests.invokeAll(TEST_CACHE_NAME, JAVA_FORMAT,
+        service.invokeAll(Requests.invokeAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                              s_byteStringList, serializedProcessor), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -1137,11 +1148,11 @@ class NamedCacheServiceTest
 
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService           service             = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                                 s_serializerProducer,
                                                                                 defaultConfig());
 
-        service.invokeAll(Requests.invokeAll(TEST_CACHE_NAME, JAVA_FORMAT,
+        service.invokeAll(Requests.invokeAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                              s_byteStringList, serializedProcessor), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -1157,7 +1168,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecuteIsEmptyWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF, s_serializerProducer, defaultConfig());
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier, s_serializerProducer, defaultConfig());
 
         CompletionStage<BoolValue>   stage  = service.isEmpty(IsEmptyRequest.newBuilder().build());
         CompletableFuture<BoolValue> future = stage.toCompletableFuture();
@@ -1173,10 +1184,10 @@ class NamedCacheServiceTest
         {
         when(m_testAsyncCache.isEmpty()).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BoolValue>   stage     = service.isEmpty(Requests.isEmpty(TEST_CACHE_NAME));
+        CompletionStage<BoolValue>   stage     = service.isEmpty(Requests.isEmpty(Scope.DEFAULT, TEST_CACHE_NAME));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
         Throwable                    cause     = rootCause(exception);
@@ -1189,10 +1200,10 @@ class NamedCacheServiceTest
         CompletableFuture<Boolean> failed = failedFuture(ERROR);
         when(m_testAsyncCache.isEmpty()).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BoolValue>   stage     = service.isEmpty(Requests.isEmpty(TEST_CACHE_NAME));
+        CompletionStage<BoolValue>   stage     = service.isEmpty(Requests.isEmpty(Scope.DEFAULT, TEST_CACHE_NAME));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
         Throwable                    cause     = rootCause(exception);
@@ -1207,7 +1218,7 @@ class NamedCacheServiceTest
         Filter<Binary>                 filter      = new EqualsFilter<>("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
-        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                            s_serializerProducer, defaultConfig());
 
         service.keySet(KeySetRequest.newBuilder().setFormat(JAVA_FORMAT).setFilter(filterBytes).build(), observer);
@@ -1229,12 +1240,12 @@ class NamedCacheServiceTest
 
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
-        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                            s_serializerProducer,
                                                                            defaultConfig());
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
-        service.keySet(Requests.keySet(TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.keySet(Requests.keySet(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -1252,12 +1263,12 @@ class NamedCacheServiceTest
 
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
-        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                            s_serializerProducer,
                                                                            defaultConfig());
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
-        service.keySet(Requests.keySet(TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.keySet(Requests.keySet(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -1272,7 +1283,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecutePutWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         CompletionStage<BytesValue>   stage  =
@@ -1288,12 +1299,12 @@ class NamedCacheServiceTest
     @Test
     public void shouldHandlePutError()
         {
-        when(m_testAsyncCache.invoke(any(Binary.class), any(Processors.PutProcessor.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryPutProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BytesValue>   stage     = service.put(Requests.put(TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+        CompletionStage<BytesValue>   stage     = service.put(Requests.put(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                                            s_bytes2));
         CompletableFuture<BytesValue> future    = stage.toCompletableFuture();
         ExecutionException            exception = assertThrows(ExecutionException.class, future::get);
@@ -1305,12 +1316,12 @@ class NamedCacheServiceTest
     public void shouldHandlePutAsyncError()
         {
         CompletableFuture<Binary> failed = failedFuture(ERROR);
-        when(m_testAsyncCache.invoke(any(Binary.class), any(Processors.PutProcessor.class))).thenReturn(failed);
+        when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryPutProcessor.class))).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BytesValue>   stage     = service.put(Requests.put(TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+        CompletionStage<BytesValue>   stage     = service.put(Requests.put(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                                            s_bytes2));
         CompletableFuture<BytesValue> future    = stage.toCompletableFuture();
         ExecutionException            exception = assertThrows(ExecutionException.class, future::get);
@@ -1324,7 +1335,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecutePutAllWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         List<Entry> entries = Arrays.asList(Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build());
@@ -1344,12 +1355,12 @@ class NamedCacheServiceTest
         {
         when(m_testAsyncCache.invokeAll(anyCollection(), any(InvocableMap.EntryProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         List<Entry>              listEntries =
                 Collections.singletonList(Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build());
-        CompletionStage<Empty>   stage       = service.putAll(Requests.putAll(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<Empty>   stage       = service.putAll(Requests.putAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                              listEntries));
         CompletableFuture<Empty> future      = stage.toCompletableFuture();
         ExecutionException       exception   = assertThrows(ExecutionException.class, future::get);
@@ -1367,12 +1378,12 @@ class NamedCacheServiceTest
         when(m_testCCF.ensureCache(eq(sCacheName), any(ClassLoader.class))).thenReturn(testCache);
         when(asyncCache.invokeAll(anyCollection(), any(InvocableMap.EntryProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         List<Entry>              listEntries =
                 Collections.singletonList(Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build());
-        CompletionStage<Empty>   stage       = service.putAll(Requests.putAll(sCacheName, JAVA_FORMAT, listEntries));
+        CompletionStage<Empty>   stage       = service.putAll(Requests.putAll(Scope.DEFAULT, sCacheName, JAVA_FORMAT, listEntries));
         CompletableFuture<Empty> future      = stage.toCompletableFuture();
         ExecutionException       exception   = assertThrows(ExecutionException.class, future::get);
         Throwable                cause       = rootCause(exception);
@@ -1385,12 +1396,12 @@ class NamedCacheServiceTest
         CompletableFuture<Map<Binary, Binary>> failed = failedFuture(ERROR);
         when(m_testAsyncCache.invokeAll(anyCollection(), any(InvocableMap.EntryProcessor.class))).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         List<Entry>              listEntries =
                 Collections.singletonList(Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build());
-        CompletionStage<Empty>   stage       = service.putAll(Requests.putAll(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<Empty>   stage       = service.putAll(Requests.putAll(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                               listEntries));
         CompletableFuture<Empty> future      = stage.toCompletableFuture();
         ExecutionException       exception   = assertThrows(ExecutionException.class, future::get);
@@ -1409,12 +1420,12 @@ class NamedCacheServiceTest
         when(m_testCCF.ensureCache(eq(sCacheName), any(ClassLoader.class))).thenReturn(testCache);
         when(asyncCache.invokeAll(anyCollection(), any(InvocableMap.EntryProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         List<Entry>              listEntries =
                 Collections.singletonList(Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build());
-        CompletionStage<Empty>   stage       = service.putAll(Requests.putAll(sCacheName, JAVA_FORMAT, listEntries));
+        CompletionStage<Empty>   stage       = service.putAll(Requests.putAll(Scope.DEFAULT, sCacheName, JAVA_FORMAT, listEntries));
         CompletableFuture<Empty> future      = stage.toCompletableFuture();
         ExecutionException       exception   = assertThrows(ExecutionException.class, future::get);
         Throwable                cause       = rootCause(exception);
@@ -1427,7 +1438,7 @@ class NamedCacheServiceTest
     @Test
     public void shouldNotExecutePutIfAbsentWithoutCacheName()
         {
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
         PutIfAbsentRequest            request =
@@ -1444,12 +1455,12 @@ class NamedCacheServiceTest
     @Test
     public void shouldHandlePutIfAbsentError()
         {
-        when(m_testAsyncCache.invoke(any(Binary.class), any(Processors.PutIfAbsentProcessor.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryPutIfAbsentProcessor.class))).thenThrow(ERROR);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BytesValue>   stage     = service.putIfAbsent(Requests.putIfAbsent(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BytesValue>   stage     = service.putIfAbsent(Requests.putIfAbsent(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                            s_bytes1, s_bytes2));
         CompletableFuture<BytesValue> future    = stage.toCompletableFuture();
         ExecutionException            exception = assertThrows(ExecutionException.class, future::get);
@@ -1461,12 +1472,12 @@ class NamedCacheServiceTest
     public void shouldHandlePutIfAbsentAsyncError()
         {
         CompletableFuture<Binary> failed = failedFuture(ERROR);
-        when(m_testAsyncCache.invoke(any(Binary.class), any(Processors.PutIfAbsentProcessor.class))).thenReturn(failed);
+        when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryPutIfAbsentProcessor.class))).thenReturn(failed);
 
-        NamedCacheService service = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService service = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                           s_serializerProducer, defaultConfig());
 
-        CompletionStage<BytesValue>   stage     = service.putIfAbsent(Requests.putIfAbsent(TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BytesValue>   stage     = service.putIfAbsent(Requests.putIfAbsent(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                            s_bytes1, s_bytes2));
         CompletableFuture<BytesValue> future    = stage.toCompletableFuture();
         ExecutionException            exception = assertThrows(ExecutionException.class, future::get);
@@ -1483,7 +1494,7 @@ class NamedCacheServiceTest
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
-        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                            s_serializerProducer, defaultConfig());
 
         service.values(ValuesRequest.newBuilder().setFormat(JAVA_FORMAT).setFilter(filterBytes).build(), observer);
@@ -1505,12 +1516,12 @@ class NamedCacheServiceTest
 
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
-        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                            s_serializerProducer,
                                                                            defaultConfig());
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
-        service.values(Requests.values(TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.values(Requests.values(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -1529,12 +1540,12 @@ class NamedCacheServiceTest
 
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
-        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_testCCF,
+        NamedCacheService              service     = new NamedCacheService(m_testCluster, m_ccfSupplier,
                                                                            s_serializerProducer,
                                                                            defaultConfig());
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
-        service.values(Requests.values(TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.values(Requests.values(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -1681,6 +1692,8 @@ class NamedCacheServiceTest
 
     private static SerializerProducer s_serializerProducer;
 
+    private static NamedCacheService.FixedCacheFactorySupplier m_ccfSupplier;
+    
     private static ByteString s_bytes1;
 
     private static ByteString s_bytes2;

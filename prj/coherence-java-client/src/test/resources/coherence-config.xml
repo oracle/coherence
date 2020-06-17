@@ -12,6 +12,8 @@
         xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
         xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
 
+    <scope-name system-property="test.scope"/>
+
     <defaults>
         <serializer>pof</serializer>
     </defaults>
