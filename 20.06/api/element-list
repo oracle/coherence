@@ -1,7 +1,12 @@
 com.oracle.coherence.cdi
+com.oracle.coherence.cdi.events
+com.oracle.coherence.cdi.server
 com.oracle.coherence.common.base
+com.oracle.coherence.grpc
+com.oracle.coherence.grpc.client
 com.oracle.coherence.grpc.proxy
 com.oracle.coherence.mp.config
+com.oracle.coherence.mp.metrics
 com.tangosol.coherence.config
 com.tangosol.coherence.config.builder
 com.tangosol.coherence.config.builder.storemanager
