@@ -1129,6 +1129,87 @@
           </configuration>
         </plugin>
 
+        <!-- license-maven-plugin -->
+        <plugin>
+          <groupId>com.mycila</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>${maven.license.plugin.version}</version>
+          <configuration>
+            <header>${top.parent.basedir}/etc/header.txt</header>
+            <validHeaders>
+              <validHeader>${top.parent.basedir}/etc/header-2000-2020.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2000-2020-2.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2012-2020.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2013-2020.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2013-2020-2.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2017-2020.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2018-2020.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2018-2020-2.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2019-2020.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2019-2020-2.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2020.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-2020-2.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-genson.txt</validHeader>
+              <validHeader>${top.parent.basedir}/etc/header-genson-2.txt</validHeader>
+            </validHeaders>
+            <headerDefinitions>
+               <headerDefinition>${top.parent.basedir}/etc/header-definitions.xml</headerDefinition>
+            </headerDefinitions>
+            <mapping>
+              <adoc>ADOC_STYLE</adoc>
+              <mjs>SLASHSTAR_STYLE</mjs>
+              <proto>SLASHSTAR_STYLE</proto>
+            </mapping>
+            <aggregate>true</aggregate>
+            <excludes>
+              <exclude>**/*.iml</exclude>
+              <exclude>.p4ignore</exclude>
+              <exclude>etc/**</exclude>
+              <exclude>**/package.html</exclude>
+              <exclude>settings.xml</exclude>
+              <exclude>**/test-security.policy</exclude>
+              <exclude>**/*.css</exclude>
+              <exclude>**/*.data</exclude>
+              <exclude>**/*.gar</exclude>
+              <exclude>**/*.pem</exclude>
+              <exclude>**/*.p12</exclude>
+              <exclude>**/*.csr</exclude>
+              <exclude>**/*.jks</exclude>
+              <exclude>**/*.mf</exclude>
+              <exclude>**/*.ser</exclude>
+              <exclude>**/*flattened-pom.xml</exclude>
+              <exclude>**/keypass.txt</exclude>
+              <exclude>**/storepass.txt</exclude>
+              <exclude>**/trustpass.txt</exclude>
+              <exclude>**/login.config</exclude>
+              <exclude>**/login.configRsa</exclude>
+              <exclude>**/tools/copyright.txt</exclude>
+              <exclude>**/tools/copyright.*.txt</exclude>
+              <exclude>**/META-INF/services/*.bnd</exclude>
+              <exclude>**/coherence-jvisualvm/license.txt</exclude>
+              <exclude>**/coherence-testing-support/src/main/resources/data/java/**.data</exclude>
+              <exclude>**/coherence-testing-support/src/main/resources/data/dotnet/**.data</exclude>
+              <exclude>**/docs/sitegen.yaml</exclude>
+              <exclude>**/src/main/java/com/tangosol/coherence/http/netty/NettyInputStream.java</exclude>
+              <exclude>**/test/distribution/jcache-compliance/src/test/resources/ExcludeList</exclude>
+              <exclude>**/test/functional/filter/src/test/resources/**.ptn</exclude>
+              <exclude>**/test/functional/ssl/src/test/resources/**.chain</exclude>
+              <exclude>**/test/functional/reporter/src/test/resources/*.txt</exclude>
+              <exclude>**/test/functional/logging/src/test/java/org/slf4j/helpers/**.java</exclude>
+              <exclude>**/test/functional/logging/src/test/java/org/slf4j/helpers/**.java</exclude>
+              <exclude>**/test/functional/logging/src/test/java/org/slf4j/impl/**.java</exclude>
+            </excludes>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <phase>validate</phase>
+            </execution>
+          </executions>
+        </plugin>
+
         <!-- maven-dependency-plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1765,83 +1846,17 @@
       </activation>
       <build>
           <plugins>
-            <!-- license-maven-plugin -->
+            <!-- license-maven-plugin using Git to validate copyright dates -->
             <plugin>
               <groupId>com.mycila</groupId>
               <artifactId>license-maven-plugin</artifactId>
-              <version>${maven.license.plugin.version}</version>
-              <configuration>
-                <header>${top.parent.basedir}/etc/header.txt</header>
-                <headerDefinitions>
-                   <headerDefinition>${top.parent.basedir}/etc/header-definitions.xml</headerDefinition>
-                </headerDefinitions>
-                <mapping>
-                  <mjs>SLASHSTAR_STYLE</mjs>
-                  <jdk11>SCRIPT_STYLE</jdk11>
-                </mapping>
-                <aggregate>true</aggregate>
-                <properties>
-                  <com.perforce.p4java.server>${env.P4PORT}</com.perforce.p4java.server>
-                  <com.perforce.p4java.clientName>${env.P4CLIENT}</com.perforce.p4java.clientName>
-                  <com.perforce.p4java.userName>${env.P4USER}</com.perforce.p4java.userName>
-                  <com.perforce.p4java.password>${env.P4PASSWD}</com.perforce.p4java.password>
-                </properties>
-                <excludes>
-                  <exclude>**/*.iml</exclude>
-                  <exclude>.p4ignore</exclude>
-                  <exclude>etc/**</exclude>
-                  <exclude>**/package.html</exclude>
-                  <exclude>settings.xml</exclude>
-                  <exclude>**/test-security.policy</exclude>
-                  <exclude>**/*.gar</exclude>
-                  <exclude>**/*.pem</exclude>
-                  <exclude>**/*.p12</exclude>
-                  <exclude>**/*.csr</exclude>
-                  <exclude>**/*.jks</exclude>
-                  <exclude>**/*.mf</exclude>
-                  <exclude>**/*flattened-pom.xml</exclude>
-                  <exclude>**/keypass.txt</exclude>
-                  <exclude>**/storepass.txt</exclude>
-                  <exclude>**/trustpass.txt</exclude>
-                  <exclude>**/login.config</exclude>
-                  <exclude>**/login.configRsa</exclude>
-                  <exclude>**/tools/copyright.txt</exclude>
-                  <exclude>**/tools/copyright.*.txt</exclude>
-                  <exclude>**/META-INF/services/*.bnd</exclude>
-                  <exclude>**/coherence-docker/src/main/docker/Dockerfile*</exclude>
-                  <exclude>**/coherence-jvisualvm/license.txt</exclude>
-                  <exclude>**/coherence-testing-support/src/main/resources/data/java/**.data</exclude>
-                  <exclude>**/coherence-testing-support/src/main/resources/data/dotnet/**.data</exclude>
-                  <exclude>**/src/main/java/com/tangosol/coherence/http/netty/NettyInputStream.java</exclude>
-                  <exclude>**/test/distribution/jcache-compliance/src/test/resources/ExcludeList</exclude>
-                  <exclude>**/test/functional/filter/src/test/resources/**.ptn</exclude>
-                  <exclude>**/test/functional/ssl/src/test/resources/**.chain</exclude>
-                  <exclude>**/test/functional/reporter/src/test/resources/*.txt</exclude>
-                  <exclude>**/test/functional/logging/src/test/java/org/slf4j/helpers/**.java</exclude>
-                  <exclude>**/test/functional/logging/src/test/java/org/slf4j/helpers/**.java</exclude>
-                  <exclude>**/test/functional/logging/src/test/java/org/slf4j/impl/**.java</exclude>
-                </excludes>
-              </configuration>
-              <executions>
-                <execution>
-                  <goals>
-                    <goal>check</goal>
-                  </goals>
-                  <phase>validate</phase>
-                </execution>
-              </executions>
-              <dependencies>
-                <dependency>
-                  <groupId>com.oracle.bedrock</groupId>
-                  <artifactId>bedrock-runtime-maven</artifactId>
-                  <version>${oracle.bedrock.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.perforce</groupId>
-                    <artifactId>p4java</artifactId>
-                    <version>2019.1.1889202</version>
-                </dependency>
-              </dependencies>
+<!--              <dependencies>-->
+<!--                <dependency>-->
+<!--                  <groupId>com.mycila</groupId>-->
+<!--                  <artifactId>license-maven-plugin-git</artifactId>-->
+<!--                  <version>${maven.license.plugin.version}</version>-->
+<!--                </dependency>-->
+<!--              </dependencies>-->
             </plugin>
           </plugins>
       </build>
