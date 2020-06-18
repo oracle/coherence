@@ -16,8 +16,8 @@
   <packaging>pom</packaging>
 
   <name>Coherence Project</name>
-  <description>Oracle Coherence Data Grid</description>
-  <url>http://www.oracle.com/us/products/middleware/cloud-app-foundation/coherence/overview/index.html/coherence</url>
+  <description>Oracle Coherence Community Edition</description>
+  <url>https://oracle.github.io/coherence/</url>
   <inceptionYear>2000</inceptionYear>
 
   <organization>
