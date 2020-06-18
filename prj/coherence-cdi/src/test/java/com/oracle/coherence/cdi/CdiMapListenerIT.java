@@ -24,7 +24,9 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -61,6 +63,12 @@ class CdiMapListenerIT
                                                           .addBeanClass(ConfigurableCacheFactoryProducer.class)
                                                           .addBeanClass(EventsScope.class)
                                                           .addBeanClass(CdiMapListenerManager.class)
+                                                          .addBeanClass(ExtractorProducer.class)
+                                                          .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
+                                                          .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
+                                                          .addBeanClass(FilterProducer.class)
+                                                          .addBeanClass(FilterProducer.WhereFilterSupplier.class)
+                                                          .addBeanClass(MapEventTransformerProducer.class)
                                                           .addBeanClass(TestListener.class));
 
     @ApplicationScoped
@@ -91,14 +99,38 @@ class CdiMapListenerIT
         people.invoke("homer", new Uppercase());
         people.invoke("bart", new Uppercase());
 
+        people.remove("bart");
         people.remove("marge");
         people.remove("lisa");
         people.remove("maggie");
 
         assertThat(listener.getEvents(MapEvent.ENTRY_INSERTED), is(5));
         assertThat(listener.getEvents(MapEvent.ENTRY_UPDATED), is(2));
-        assertThat(listener.getEvents(MapEvent.ENTRY_DELETED), is(3));
+        assertThat(listener.getEvents(MapEvent.ENTRY_DELETED), is(4));
+
+        // There should be an insert and an update for Bart.
+        // The delete for Bart does not match the filter because the lastName
+        // had been changed to uppercase.
+        List<MapEvent<String, Person>> filteredEvents = listener.getFilteredEvents();
+        assertThat(filteredEvents.size(), is(2));
+        MapEvent<String, Person> eventOne = filteredEvents.get(0);
+        MapEvent<String, Person> eventTwo = filteredEvents.get(1);
+        assertThat(eventOne.getId(), is(MapEvent.ENTRY_INSERTED));
+        assertThat(eventOne.getKey(), is("bart"));
+        assertThat(eventTwo.getId(), is(MapEvent.ENTRY_UPDATED));
+        assertThat(eventTwo.getKey(), is("bart"));
+        assertThat(eventTwo.getNewValue().getLastName(), is("SIMPSON"));
+
+        // Transformed events should just be inserts with the person's firstName as the new value
+        List<MapEvent<String, String>> transformedEvents = listener.getTransformedEvents();
+        assertThat(transformedEvents.size(), is(5));
+        assertThat(transformedEvents.get(0).getNewValue(), is("Homer"));
+        assertThat(transformedEvents.get(1).getNewValue(), is("Marge"));
+        assertThat(transformedEvents.get(2).getNewValue(), is("Bart"));
+        assertThat(transformedEvents.get(3).getNewValue(), is("Lisa"));
+        assertThat(transformedEvents.get(4).getNewValue(), is("Maggie"));
         }
+
 
     // ---- helper classes --------------------------------------------------
 
@@ -120,9 +152,23 @@ class CdiMapListenerIT
         {
         private final Map<Integer, Integer> events = new HashMap<>();
 
+        private final List<MapEvent<String, Person>> filteredEvents = new ArrayList<>();
+
+        private final List<MapEvent<String, String>> transformedEvents = new ArrayList<>();
+
         Integer getEvents(int id)
             {
             return events.get(id);
+            }
+
+        public List<MapEvent<String, Person>> getFilteredEvents()
+            {
+            return filteredEvents;
+            }
+
+        public List<MapEvent<String, String>> getTransformedEvents()
+            {
+            return transformedEvents;
             }
 
         private void record(MapEvent<String, Person> event)
@@ -150,7 +196,20 @@ class CdiMapListenerIT
         private void onPersonDeleted(@Observes @Deleted @CacheName("people") MapEvent<String, Person> event)
             {
             record(event);
-            assertThat(event.getOldValue().getLastName(), is("Simpson"));
+            }
+
+        @Synchronous
+        @WhereFilter("firstName = 'Bart' and lastName = 'Simpson'")
+        private void onHomer(@Observes  @CacheName("people") MapEvent<String, Person> event)
+            {
+            filteredEvents.add(event);
+            }
+
+        @Synchronous
+        @PropertyExtractor("firstName")
+        private void onPersonInsertedTransformed(@Observes @Inserted @MapName("people") MapEvent<String, String> event)
+            {
+            transformedEvents.add(event);
             }
         }
     }

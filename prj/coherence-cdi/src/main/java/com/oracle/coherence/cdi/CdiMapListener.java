@@ -16,13 +16,17 @@ import com.oracle.coherence.cdi.events.ServiceName;
 import com.oracle.coherence.cdi.events.Synchronous;
 import com.oracle.coherence.cdi.events.Updated;
 
+import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.MapEvent;
+import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.MapListener;
 
 import java.lang.annotation.Annotation;
 import java.util.EnumSet;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.enterprise.inject.spi.ObserverMethod;
 
 /**
@@ -84,6 +88,20 @@ class CdiMapListener<K, V>
             m_fSync = true;
             }
 
+        m_setAnnFilter = annotations.stream()
+                .filter(a -> a.annotationType().isAnnotationPresent(FilterBinding.class))
+                .collect(Collectors.toSet());
+
+        m_annExtractor = annotations.stream()
+                .filter(a -> a.annotationType().isAnnotationPresent(ExtractorBinding.class))
+                .findFirst()
+                .orElse(null);
+
+        m_annTransformer = annotations.stream()
+                .filter(a -> a.annotationType().isAnnotationPresent(MapEventTransformerBinding.class))
+                .findFirst()
+                .orElse(null);
+
         m_sCacheName   = sCache;
         m_sServiceName = sService;
         m_sScopeName   = sScope;
@@ -110,6 +128,78 @@ class CdiMapListener<K, V>
         }
 
     // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Returns {@code true} if this listener has a filter annotation to resolve.
+     *
+     * @return  {@code true} if this listener has a filter annotation to resolve
+     */
+    boolean hasFilterAnnotation()
+        {
+        return m_setAnnFilter != null && !m_setAnnFilter.isEmpty();
+        }
+
+    /**
+     * Resolve this listener's filter annotation into a {@link Filter} instance.
+     *
+     * @param producer  the {@link FilterProducer} to use to resolve the {@link Filter}
+     */
+    void resolveFilter(FilterProducer producer)
+        {
+        if (m_setAnnFilter != null && !m_setAnnFilter.isEmpty())
+            {
+            m_filter = producer.resolve(m_setAnnFilter);
+            }
+        }
+
+    /**
+     * Returns {@code true} if this listener has a transformer annotation to resolve.
+     *
+     * @return  {@code true} if this listener has a transformer annotation to resolve
+     */
+    boolean hasTransformerAnnotation()
+        {
+        return m_annTransformer != null || m_annExtractor != null;
+        }
+
+    /**
+     * Resolve this listener's transformer annotation into a {@link MapEventTransformer} instance.
+     *
+     * @param producer  the {@link MapEventTransformerProducer} to use to resolve
+     *                  the {@link MapEventTransformer}
+     */
+    void resolveTransformer(MapEventTransformerProducer producer)
+        {
+        if (m_annTransformer != null)
+            {
+            m_transformer = producer.resolve(m_annTransformer);
+            }
+        else if (m_annExtractor != null)
+            {
+            m_transformer = producer.resolve(m_annExtractor);
+            }
+        }
+
+    /**
+     * Obtain the {@link Filter} that should be used when registering this listener.
+     *
+     * @return the {@link Filter} that should be used when registering this listener
+     */
+    Filter<?> getFilter()
+        {
+        return m_filter;
+        }
+
+    /**
+     * Obtain the {@link MapEventTransformer} that should be used when registering this listener.
+     *
+     * @return the {@link MapEventTransformer} that should be used when registering this listener
+     */
+    @SuppressWarnings("rawtypes")
+    MapEventTransformer getTransformer()
+        {
+        return m_transformer;
+        }
 
     /**
      * Return the name of the cache this listener is for, or {@code '*'} if
@@ -222,11 +312,61 @@ class CdiMapListener<K, V>
      */
     private final ObserverMethod<MapEvent<K, V>> m_observer;
 
+    /**
+     * The name of the cache to observe map events for.
+     */
     private final String m_sCacheName;
+
+    /**
+     * The name of the cache service owing the cache to observe map events for.
+     */
     private final String m_sServiceName;
+
+    /**
+     * The scope name of the cache factory owning the cache to observer map events for.
+     */
     private final String m_sScopeName;
+
+    /**
+     * The types of map event to observe.
+     */
     private final EnumSet<Type> m_setTypes = EnumSet.noneOf(Type.class);
 
+    /**
+     * The optional annotation specifying the filter to use to filter events.
+     */
+    private final Set<Annotation> m_setAnnFilter;
+
+    /**
+     * The optional annotation specifying the map event transformer to use to
+     * transform observed map events.
+     */
+    private final Annotation m_annTransformer;
+
+    /**
+     * The optional annotation specifying the value extractor to use to
+     * transform observed map events.
+     */
+    private final Annotation m_annExtractor;
+
+    /**
+     * A flag indicating whether to subscribe to lite-events.
+     */
     private boolean m_fLite;
+
+    /**
+     * A flag indicating whether the observer is synchronous.
+     */
     private boolean m_fSync;
+
+    /**
+     * An optional {@link Filter} to use to filter observed map events.
+     */
+    private Filter<?> m_filter;
+
+
+    /**
+     * An optional {@link MapEventTransformer} to use to transform observed map events.
+     */
+    private MapEventTransformer<K, V, ?> m_transformer;
     }
