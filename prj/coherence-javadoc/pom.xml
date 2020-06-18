@@ -368,14 +368,11 @@
                   <skip>false</skip>
                   <sourceFileIncludes>
                     <include>com/oracle/coherence/common/base/*.java</include>
-                    <include>com/oracle/coherence/cdi/*.java</include>
+                    <include>com/oracle/coherence/cdi/**/*.java</include>
 
-                    <include>com/oracle/coherence/mp/config/*.java</include>
-                    <include>com/oracle/coherence/mp/messaging/*.java</include>
+                    <include>com/oracle/coherence/mp/**/*.java</include>
 
-                    <include>com/oracle/coherence/grpc/proxy/*.java</include>
-                    <include>com/oracle/coherence/grpc/proxy/client/*.java</include>
-                    <include>com/oracle/coherence/cache/grpc/client/*.java</include>
+                    <include>com/oracle/coherence/grpc/**/*.java</include>
 
                     <include>com/tangosol/coherence/commonj/*.java</include>
 
@@ -553,7 +550,7 @@
                     </group>
                     <group>
                       <title>gRPC</title>
-                      <packages>com.oracle.coherence.grpc*:com.oracle.coherence.cache.grpc.client*</packages>
+                      <packages>com.oracle.coherence.grpc*</packages>
                     </group>
                   </groups>
                 </configuration>
