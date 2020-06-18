@@ -75,7 +75,7 @@
   </developers>
   
   <properties>
-    <revision>20.06</revision>
+    <revision>20.06-SNAPSHOT</revision>
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 
     <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
