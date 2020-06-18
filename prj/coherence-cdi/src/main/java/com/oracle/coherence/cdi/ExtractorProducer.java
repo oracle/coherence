@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -67,40 +68,47 @@ class ExtractorProducer
      * @return an instance of a {@link ValueExtractor}
      */
     @Produces
-    @SuppressWarnings("unchecked")
     <T, E> ValueExtractor<T, E> getValueExtractor(InjectionPoint injectionPoint)
         {
-        List<ValueExtractor> list      = new ArrayList<>();
-        Annotated            annotated = injectionPoint.getAnnotated();
+        Annotated annotated = injectionPoint.getAnnotated();
 
         if (annotated != null)
             {
-            for (Annotation annotation : annotated.getAnnotations())
+            return resolve(annotated.getAnnotations());
+            }
+        return null;
+        }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    <T, E> ValueExtractor<T, E> resolve(Set<Annotation> annotations)
+        {
+        List<ValueExtractor> list = new ArrayList<>();
+
+        for (Annotation annotation : annotations)
+            {
+            if (annotation.annotationType().isAnnotationPresent(ExtractorBinding.class))
                 {
-                if (annotation.annotationType().isAnnotationPresent(ExtractorBinding.class))
+                Class<? extends ExtractorFactory> clazz = f_extractorFactoryResolver.resolve(annotation);
+                if (clazz != null)
                     {
-                    Class<? extends ExtractorFactory> clazz = f_extractorFactoryResolver.resolve(annotation);
-                    if (clazz != null)
+                    ExtractorFactory supplier = f_beanManager.createInstance().select(clazz).get();
+                    if (supplier != null)
                         {
-                        ExtractorFactory supplier = f_beanManager.createInstance().select(clazz).get();
-                        if (supplier != null)
+                        ValueExtractor extractor = supplier.create(annotation);
+                        if (extractor instanceof MultiExtractor)
                             {
-                            ValueExtractor extractor = supplier.create(annotation);
-                            if (extractor instanceof MultiExtractor)
-                                {
-                                Collections.addAll(list, ((MultiExtractor) extractor).getExtractors());
-                                }
-                            else
-                                {
-                                list.add(extractor);
-                                }
+                            Collections.addAll(list, ((MultiExtractor) extractor).getExtractors());
+                            }
+                        else
+                            {
+                            list.add(extractor);
                             }
                         }
-                    else
-                        {
-                        throw new DefinitionException(
-                                "unsatisfied dependency - no ValueExtractorFactory bean found annotated with " + annotation);
-                        }
+                    }
+                else
+                    {
+                    throw new DefinitionException(
+                            "unsatisfied dependency - no ValueExtractorFactory bean found annotated with " + annotation);
                     }
                 }
             }

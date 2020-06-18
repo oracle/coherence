@@ -32,19 +32,28 @@ In order to use Coherence CDI, you need to declare it as a dependency in your `p
 
 Once the necessary dependency is in place, you can start using CDI to inject Coherence objects into managed CDI beans, and vice versa, as the following sections describe.
 
-* <<injecting-coherence-objects-into-cdi-beans,Injecting Coherence Objects into CDI Beans>>
- ** <<injecting--namedcache--and-related-objects,Injecting `NamedCache` and related objects>>
- ** <<injecting--namedtopic--and-related-objects,Injecting `NamedTopic` and related objects>>
- ** <<other-supported-injection-points,Other Supported Injection Points>>
-  *** <<cluster--and--operationalcontext--injection,`Cluster` and `OperationalContext` Injection>>
-  *** <<configurablecachefactory--and--session--injection,`ConfigurableCacheFactory` and `Scope` Injection>>
-  *** <<serializer--injection,`Serializer` Injection>>
-* <<injecting-cdi-beans-into-coherence-managed-objects,Injecting CDI Beans into Coherence-managed Objects>>
- ** <<using-cdi-observers-to-handle-coherence-server-side-events,Using CDI Observers to Handle Coherence Server-Side Events>>
-  *** <<using-asynchronous-observers,Using Asynchronous Observers>>
-* <<injecting-cdi-beans-into-transient-objects,Injecting CDI Beans into Transient Objects>>
- ** <<making-transient-classes--injectable-,Making transient classes `Injectable`>>
+* <<inject-coherence-objects,Injecting Coherence Objects into CDI Beans>>
+ ** <<inject-namedmap,Injecting `NamedCache` and related objects>>
+  *** <<inject-views,Injecting `NamedCache` or `NamedMap` Views>>
+ ** <<inject-namedtopic,Injecting `NamedTopic` and related objects>>
+ ** <<other-injection-points,Other Supported Injection Points>>
+  *** <<inject-cluster,`Cluster` and `OperationalContext` Injection>>
+  *** <<inject-ccf,`ConfigurableCacheFactory` and `Scope` Injection>>
+  *** <<inject-serializer,`Serializer` Injection>>
+* <<inject-into-coherence,Injecting CDI Beans into Coherence-managed Objects>>
+ ** <<cdi-events,Using CDI Observers to Handle Coherence Server-Side Events>>
+  *** <<cdi-event-types,Observer specific event types>>
+  *** <<cdi-events-filter,Filter the events to be observed>>
+  *** <<cdi-events-transform,Transform the events to be observed>>
+  *** <<cdi-events-scopes,Observe events for maps and caches in specific scopes or services>>
+  *** <<cdi-events-async,Using Asynchronous Observers>>
+* <<inject-transient,Injecting CDI Beans into Transient Objects>>
+ ** <<transient-injectable,Making transient classes `Injectable`>>
+* <<custom-filters,Custom Filter Binding Annotations>>
+* <<custom-extractor,Custom Extractor Binding Annotations>>
+* <<custom-transformer,Custom MapEventTransformer Binding Annotations>>
 
+[#inject-coherence-objects]
 === Injecting Coherence Objects into CDI Beans
 
 CDI, and dependency injection in general, make it easy for application classes to declare the dependencies they need and let the runtime provide them when necessary.
@@ -52,6 +61,7 @@ This makes the applications easier to develop, test and reason about, and the co
 
 Coherence CDI allows you to do the same for Coherence objects, such as `Cluster`, `Session`, `NamedMap`,`NamedCache`, `ContinuousQueryCache`, `ConfigurableCacheFactory`, etc.
 
+[#inject-namedmap]
 ==== Injecting `NamedMap`, `NamedCache` and related objects
 
 In order to inject an instance of a `NamedMap` into your CDI bean, you simply need to define an injection point for it:
@@ -87,8 +97,9 @@ public void setPeople(@Name("people") NamedMap<Long, Person> people) {
 }
 ----
 
-All of the examples above assume that you want to use the default scope, which is often, but not always the case.
-For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have multiple scopes.
+All the examples above assume that you want to use the default scope, which is often, but not always the case.
+For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have
+multiple scopes.
 
 In this case you would use `@Scope` qualifier to specify the scope name, or the URI of the  configuration file to use:
 
@@ -103,7 +114,8 @@ private NamedCache<Long, Product> products;
 private NamedCache<Long, Customer> customers;
 ----
 
-You can replace `NamedMap` or `NamedCache` in any of the examples above with `AsyncNamedCache` and `AsyncNamedCache` respectively, in order to inject  asynchronous variant of those APIs:
+You can replace `NamedMap` or `NamedCache` in any of the examples above with `AsyncNamedCache` and `AsyncNamedCache`
+respectively, in order to inject  asynchronous variant of those APIs:
 
 [source,java]
 ----
@@ -115,6 +127,8 @@ private AsyncNamedMap<Long, Person> people;
 private AsyncNamedCache<Long, Person> Product;
 ----
 
+[#inject-views]
+===== Inject Views
 You can also inject *views*, by simply adding `View` qualifier to either `NamedMap` or `NamedCache`:
 
 [source,java]
@@ -128,8 +142,10 @@ private NamedMap<Long, Person> people;
 private NamedCache<Long, Product> products;
 ----
 
-The examples above are equivalent, and both will bring *all* the data from the backing map into a local view, as they will use `AlwaysFilter` when constructing a view.
-If you want to limit the data in the view to a subset, you can implement a custom xref:./doc/filter-bindings.adoc[filter binding] (recommended), or use a built-in `@WhereFilter` for convenience, which allows you to specify a filter using CohQL:
+The examples above are equivalent, and both will bring *all* the data from the backing map into a local view, as they
+will use `AlwaysFilter` when constructing a view.
+If you want to limit the data in the view to a subset, you can implement a <<custom-filters,Custom FilterBinding>>
+(recommended), or use a built-in `@WhereFilter` for convenience, which allows you to specify a filter using CohQL:
 
 [source,java]
 ----
@@ -149,7 +165,8 @@ private NamedMap<Long, Person> women;
 The  *views* also support transformation of the entry values on the server, in order to reduce both the amount of data stored locally, and the amount of data transferred over the network.
 For example, you may have a complex `Person` objects in the backing map, but only need their names in order to populate a drop down on the client UI.
 
-In that case, you can implement a custom xref:./doc/extractor-bindings.adoc[extractor binding] (recommended), or use a built-in `@PropertyExtractor` for convenience:
+In that case, you can implement a custom <<custom-extractor,ExtractorBinding>> (recommended), or use a built-in
+`@PropertyExtractor` for convenience:
 
 [source,java]
 ----
@@ -162,6 +179,7 @@ private NamedMap<Long, String> names;
 
 Note that the value type in the example above has changed from `Person` to `String`, due to server-side transformation caused by the specified `@PropertyExtractor`.
 
+[#inject-namedtopic]
 ==== Injecting `NamedTopic` and related objects
 
 In order to inject an instance of a `NamedTopic` into your CDI bean, you simply need to define an injection point for it:
@@ -258,11 +276,13 @@ Additionally, if you want to place your ``Subscriber``s into a subscriber group 
 private Subscriber<Order> orders;
 ----
 
+[#other-injection-points]
 ==== Other Supported Injection Points
 
 While the injection of a `NamedMap`, `NamedCache`, `NamedTopic`, and related instances, as shown above,  is probably the single most used feature of Coherence CDI, it is certainly not the only one.
 The following sections describe other Coherence artifacts that can be injected using Coherence CDI.
 
+[#inject-cluster]
 ===== `Cluster` and `OperationalContext` Injection
 
 If you need an instance of a `Cluster` interface somewhere in your application, you can easily obtain it via injection:
@@ -281,6 +301,7 @@ You can do the same if you need an instance of an `OperationalContext`:
 private OperationalContext ctx;
 ----
 
+[#inject-ccf]
 ===== `ConfigurableCacheFactory` and `Session` Injection
 
 On rare occasions when you need to use either of these directly, Coherence CDI makes it trivial to do so.
@@ -309,6 +330,7 @@ private ConfigurableCacheFactory ccf;
 private ConfigurableCacheFactory session;
 ----
 
+[#inject-serializer]
 ===== `Serializer` Injection
 
 While in most cases you won't have to deal with serializers directly, Coherence CDI makes it simple to obtain named serializers (and to register new ones) when you need.
@@ -356,6 +378,7 @@ it would be automatically discovered and registered by the CDI, and you would th
 private Serializer jsonSerializer;
 ----
 
+[#inject-into-coherence]
 === Injecting CDI Beans into Coherence-managed Objects
 
 Coherence has a number of server-side extension points, which allow users to customize application  behavior in different ways, typically by configuring their extensions within various sections of the  cache configuration file.
@@ -459,11 +482,13 @@ For example, because we've used wildcard `*` as a cache name within the cache ma
 This is typically fine, as the event itself provides the details about the context that raised it, including cache name and the service it was raised from, but it does imply that any shared state that you may have within your listener class shouldn't be context-specific and it must be safe for concurrent access from multiple threads.
 If you can't guarantee the latter, you may want to declare the `onEvent` method as `synchronized`, to ensure only one thread at a time can access any shared state you may have.
 
+[#cdi-events]
 ==== Using CDI Observers to Handle Coherence Server-Side Events
 
 While the above examples show that you can implement any Coherence `EventInterceptor` as a CDI bean and register it using `<cdi:bean>` element within the cache configuration file, Coherence CDI  also provides a much simpler way to accomplish the same goal using standard CDI Events and Observers.
 
-For example, to observe  events raised by some `NamedMap`, you would define a CDI observer such as this one:
+For example, to observe events raised by a `NamedMap` with the name `people`, with keys of type `Long` and values of type
+`Person`, you would define a CDI observer such as this one:
 
 [source,java]
 ----
@@ -472,7 +497,11 @@ private void onMapChange(@Observes @MapName("people") EntryEvent<Long, Person> e
 }
 ----
 
-The observer method above will receive all events for the `people` map, but you can also control the types of events received using event qualifiers:
+[#cdi-event-types]
+===== Observe Specific Event Types
+
+The observer method above will receive all events for the `people` map, but you can also control the types of events
+received using event qualifiers:
 
 [source,java]
 ----
@@ -485,7 +514,77 @@ private void onChange(@Observes @Inserted @Updated @Removed @MapName("people") E
 }
 ----
 
-In addition `@MapName` qualifier, you can also use `@ServiceName` and `@ScopeName` as a way to limit the events received.
+[#cdi-events-filter]
+===== Filter Observed Events
+
+The events observed can be restricted further by using a Coherence `Filter`.
+If a filter has been specified, the events will be filtered on the server and will never be sent to the client.
+The filter that will be used is specified using a qualifier annotation that is itself annotated with `@FilterBinding`.
+
+You can implement a <<custom-filters,Custom FilterBinding>> (recommended), or use a built-in `@WhereFilter` for
+convenience, which allows you to specify a filter using CohQL.
+
+For example to receive all event types in the `people` map, but only for `People` with a `lastName` property value of
+`Smith`, the built-in `@WhereFilter` annotation can be used:
+
+[source,java]
+----
+@WhereFilter("lastName = 'Smith'")
+private void onMapChange(@Observes @MapName("people") EntryEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+
+[#cdi-events-transform]
+===== Transform Observed Events
+
+When an event observer does not want to receive the full cache or map value in an event, the event can be transformed
+into a different value to be observed. This is achieved using a `MapEventTransformer` that is applied to the observer
+method using either an `ExtractorBinding` annotation or a `MapEventTransformerBinding` annotation.
+Transformation of events happens on the server so can make observer's more efficient as they do not need to receive
+the original event with the full old and new values.
+
+*Transforming Events Using ExtractorBinding Annotations*
+
+An `ExtractorBinding` annotation is an annotation that represents a Coherence `ValueExtractor`.
+When an observer method has been annotated with an `ExtractorBinding` annotation the resulting `ValueExtractor` is
+applied to the event's values and a new event will be returned to the observer containing just the extracted
+properties.
+
+For example, an event observer that is observing events from a map named `people`, but only requires the last name,
+the built in `@PropertyExtractor` annotation can be used.
+
+[source,java]
+----
+@PropertyExtractor("lastName")
+private void onMapChange(@Observes @MapName("people") EntryEvent<Long, String> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+Unlike the previous examples above the received events of type `EntryEvent<Long, Person>` this method will receive
+events of type `EntryEvent<Long, String>` because the property extractor will be applied to the `Person`
+values in the original event to extract just the `lastName` proeprty, creating a new event with `String` values.
+
+There are a number of built in `ExtractorBinding` annotations and it is also possible to create custom
+`ExtractorBinding` annotation - see the <<custom-extractor,Custom ExtractorBinding Annotations>> section below.
+
+*Transforming Events Using MapEventTransformerBinding Annotations*
+
+If more complex event transformations are required that just extracitng properties from event values, a custom
+`MapEventTransformerBinding` can be created that will produce a custom `MapEventTransformer` instance that will be
+applied to the observer's events.
+See the <<custom-transformer,Custom MapEventTransformerBinding Annotations>> section below for details on how to create
+`MapEventTransformerBinding` annotations.
+
+
+
+[#cdi-events-scopes]
+===== Observe Events for Maps and Caches in Specific Services and Scopes
+
+In addition, to the `@MapName` qualifier, you can also use `@ServiceName` and `@ScopeName` qualifiers as a way to limit
+the events received.
 
 The examples above show only how to handle ``EntryEvent``s, but the same applies to all other server-side event types:
 
@@ -504,9 +603,10 @@ private void onExecuted(@Observes @Executed @MapName("people") @Processor(Upperc
 }
 ----
 
+[#cdi-events-async]
 ===== Using Asynchronous Observers
 
-All of the examples above used synchronous observers by specifying `@Observes` qualifier for each observer method.
+All the examples above used synchronous observers by specifying `@Observes` qualifier for each observer method.
 However, Coherence CDI fully supports asynchronous CDI observers as well.
 All you need to do is replace `@Observes` with `@ObservesAsync` in any of the examples above.
 
@@ -534,6 +634,7 @@ All of the events whose name ends  with `"ing"`, such as `Inserting`, `Updating`
 That means that you can _observe_ them using asynchronous CDI observers, but if you want to mutate the set of entries that are part of the event payload, or veto the event by throwing an exception, you must use synchronous CDI observer.
 ====
 
+[#inject-transient]
 === Injecting CDI Beans into Transient Objects
 
 Using CDI to inject Coherence objects into your application classes, and CDI beans into Coherence-managed objects will allow you to support many use cases where dependency injection may be useful, but it doesn't cover an important use case that is somewhat specific to Coherence.
@@ -546,6 +647,7 @@ Similarly, while the data is stored in a serialized, binary format, it may need 
 
 While these transient objects are not managed by the CDI container, Coherence CDI does support their injection during deserialization, but for performance reasons requires that you explicitly opt-in by implementing `com.oracle.coherence.cdi.Injectable` interface.
 
+[#transient-injectable]
 ==== Making transient classes `Injectable`
 
 While not technically a true marker interface, `Injectable` can be treated as such for all intents and purposes.
@@ -595,3 +697,92 @@ You should note that the above functionality is not dependent on the serializati
 
 While the deserialized transient objects are not true CDI managed beans, being able to inject CDI managed dependencies into them upon deserialization will likely satisfy most dependency injection requirements you will ever have in those application components.
 We hope you'll find it useful.
+
+
+[#custom-filters]
+=== Custom FilterBinding Annotations
+
+As already mentioned above, when creating views or subscribing to events, the view or events can be modified using `Filters`.
+The exact `Filter` implementation injected will be determined by the view or event observers qualifiers.
+Specifically any qualifier annotation that is itself annotated with the `@FilterBinding` annotation.
+This should be a familiar pattern to anyone who has worked with CDI interceptors.
+
+For example, if there is an injection point for a view that is a filtered view of an underlying map, but the filter required
+is more complex than those provided by the build in qualifiers, or is some custom filter implementation. The steps required are:
+
+* Create a custom annotation class to represent the required `Filter`.
+* Create a bean class implementing `com.oracle.coherence.cdi.FilterFactory` annotated with the custom annotation that
+will be the factory for producing instances of the custom `Filter`.
+* Annotate the view injection point with the custom annotation.
+
+==== Create the Custom Filter Annotation
+
+Creating the filter annotation is simply creating a normal Java annotation class that is annotated with
+the `@com.oracle.coherence.cdi.FilterBinding` annotation.
+
+[source,java]
+----
+@Inherited
+@FilterBinding  // <1>
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CustomFilter {
+}
+----
+<1> The most important part is that this new annotation is annotated with `FilterBinding` so that the Coherence CDI
+extensions can recognise that it represents a `Filter`.
+
+==== Create the Custom Filter Factory
+
+Once the custom annotation has been created a `FilterFactory` implementation can be created that will be responsible
+for producing instances of the required `Filter`.
+
+[source,java]
+----
+@ApplicationScoped    // <1>
+@CustomFilter         // <2>
+static class CustomFilterSupplier
+        implements FilterFactory<CustomFilter, Object>
+    {
+    @Override
+    public Filter<Object> create(CustomFilter annotation)
+        {
+        return new CustomComplexFilter(); // <3>
+        }
+    }
+----
+<1> The `CustomFilterSupplier` class has been annotated with `@ApplicationScoped` to make is discoverable by CDI.
+<2> The `CustomFilterSupplier` class has been annotated with the new filter binding annotation `@CustomFilter`
+so that the Coherence CDI extension can locate it when it needs to create `Filters`.
+<3> The `CustomFilterSupplier` implements the `FilterFactory` interface's `create` method where it creates the
+custom `Filter` implementation.
+
+==== Annotate the Injection Point
+
+Now there is both a custom annotation, and an annotated `FilterFactory`, the injection point requiring the `Filter`
+can be annotated with the new annotation.
+
+[source,java]
+----
+@Inject
+@View
+@CustomFilter
+private NamedMap<Long, Person> people;
+----
+
+As well as views, custom filter binding annotations can also be used for event observers.
+For example if there is an event observer method that should only receive events matching the same custom `Filter`
+then the method can be annotated with the same custom filter annotation.
+
+[source,java]
+----
+@CustomFilter
+private void onPerson(@Observes @MapName("people") EntryEvent<Long, Person> event) {
+----
+
+[#custom-extractor]
+=== Custom ExtractorBinding Annotations
+
+
+[#custom-transformer]
+=== Custom MapEventTransformerBinding Annotations

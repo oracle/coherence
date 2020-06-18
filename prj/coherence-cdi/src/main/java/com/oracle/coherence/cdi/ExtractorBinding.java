@@ -19,7 +19,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *
  * <pre>
  * &#064;Inherited
- * &#064;ValueExtractorBinding
+ * &#064;ExtractorBinding
  * &#064;Target({TYPE, METHOD, CONSTRUCTOR})
  * &#064;Retention(RUNTIME)
  * public &#064;interface CustomerNameExtractor {}

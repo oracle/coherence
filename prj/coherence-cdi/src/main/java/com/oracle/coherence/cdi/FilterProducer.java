@@ -15,6 +15,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -43,13 +44,13 @@ class FilterProducer
      * Construct {@code FilterProducer} instance.
      * 
      * @param beanManager  a {@code BeanManager} to use
-     * @param filterFactoryResolver     a {@code FilterFactoryResolver} to use
+     * @param resolver     a {@code FilterFactoryResolver} to use
      */
     @Inject
-    FilterProducer(BeanManager beanManager, FilterFactoryResolver filterFactoryResolver)
+    FilterProducer(BeanManager beanManager, FilterFactoryResolver resolver)
         {
         f_beanManager           = beanManager;
-        f_filterFactoryResolver = filterFactoryResolver;
+        f_filterFactoryResolver = resolver;
         }
 
     // ---- producer methods ------------------------------------------------
@@ -63,31 +64,37 @@ class FilterProducer
      * @return a {@link Filter} instance
      */
     @Produces
-    @SuppressWarnings("unchecked")
     <T> com.tangosol.util.Filter<T> getFilter(InjectionPoint injectionPoint)
         {
-        List<Filter<?>> list = new ArrayList<>();
         Annotated annotated = injectionPoint.getAnnotated();
-
         if (annotated != null)
             {
-            for (Annotation annotation : annotated.getAnnotations())
+            return resolve(annotated.getAnnotations());
+            }
+        return Filters.always();
+        }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    <T> com.tangosol.util.Filter<T> resolve(Set<Annotation> annotations)
+        {
+        List<Filter<?>> list = new ArrayList<>();
+
+        for (Annotation annotation : annotations)
+            {
+            if (annotation.annotationType().isAnnotationPresent(FilterBinding.class))
                 {
-                if (annotation.annotationType().isAnnotationPresent(FilterBinding.class))
+                Class<? extends FilterFactory> clazz = f_filterFactoryResolver.resolve(annotation);
+                if (clazz != null)
                     {
-                    Class<? extends FilterFactory> clazz = f_filterFactoryResolver.resolve(annotation);
-                    if (clazz != null)
+                    FilterFactory supplier = f_beanManager.createInstance().select(clazz).get();
+                    if (supplier != null)
                         {
-                        FilterFactory supplier = f_beanManager.createInstance().select(clazz).get();
-                        if (supplier != null)
-                            {
-                            list.add(supplier.create(annotation));
-                            }
+                        list.add(supplier.create(annotation));
                         }
-                    else
-                        {
-                        throw new DefinitionException("Unsatisfied dependency - no FilterFactory bean found annotated with " + annotation);
-                        }
+                    }
+                else
+                    {
+                    throw new DefinitionException("Unsatisfied dependency - no FilterFactory bean found annotated with " + annotation);
                     }
                 }
             }

@@ -13,7 +13,10 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
+import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.MapListener;
+import com.tangosol.util.filter.MapEventFilter;
+import com.tangosol.util.filter.MapEventTransformerFilter;
 
 import java.util.Set;
 
@@ -44,17 +47,36 @@ public class CdiMapListenerManager
             String sScope = listener.getScopeName();
             if (sScope == null || sScope.equals(sEventScope))
                 {
-                // TODO: get filter from a listener definition, if available
-                Filter filter = Filters.always();
+                Filter mapEventFilter;
+                Filter filter = listener.getFilter();
+                if (filter instanceof MapEventFilter)
+                    {
+                    mapEventFilter = filter;
+                    }
+                else if (filter != null)
+                    {
+                    mapEventFilter = new MapEventFilter(MapEventFilter.E_ALL, filter);
+                    }
+                else
+                    {
+                    mapEventFilter = Filters.always();
+                    }
+
+                MapEventTransformer transformer = listener.getTransformer();
+                if (transformer != null)
+                    {
+                    mapEventFilter = new MapEventTransformerFilter(mapEventFilter, transformer);
+                    }
+
                 boolean fLite = listener.isLite();
 
                 if (listener.isSynchronous())
                     {
-                    cache.addMapListener(listener.synchronous(), filter, fLite);
+                    cache.addMapListener(listener.synchronous(), mapEventFilter, fLite);
                     }
                 else
                     {
-                    cache.addMapListener(listener, filter, fLite);
+                    cache.addMapListener(listener, mapEventFilter, fLite);
                     }
                 }
             }

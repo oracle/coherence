@@ -41,12 +41,14 @@ import com.tangosol.util.MapEvent;
 import com.tangosol.util.RegistrationBehavior;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -58,6 +60,7 @@ import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeShutdown;
+import javax.enterprise.inject.spi.DefinitionException;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.ProcessObserverMethod;
@@ -212,6 +215,23 @@ public class CoherenceExtension
         }
 
     /**
+     * Process {@link MapEventTransformerFactory} beans annotated with {@link MapEventTransformerBinding}.
+     *
+     * @param event  the event to process
+     * @param <T>    the declared type of the injection point
+     */
+    private <T extends MapEventTransformerFactory<?, ?, ?, ?>> void processMapEventTransformerInjectionPoint(
+            @Observes @WithAnnotations(MapEventTransformerBinding.class) ProcessAnnotatedType<T> event)
+        {
+        AnnotatedType<T> type = event.getAnnotatedType();
+        type.getAnnotations()
+                .stream()
+                .filter(a -> a.annotationType().isAnnotationPresent(MapEventTransformerBinding.class))
+                .map(AnnotationInstance::create)
+                .forEach(a -> m_mapMapEventTransformerSupplier.put(a, type.getJavaClass()));
+        }
+
+    /**
      * Register dynamic beans for this extension.
      *
      * @param event  the event to use for dynamic bean registration
@@ -236,6 +256,16 @@ public class CoherenceExtension
                 .qualifiers(Default.Literal.INSTANCE)
                 .scope(ApplicationScoped.class)
                 .beanClass(ExtractorProducer.ValueExtractorFactoryResolver.class);
+
+        // Register the MapEventTransformer producer bean that knows about all of the MapEventTransformerFactory beans
+        MapEventTransformerProducer.MapEventTransformerFactoryResolver mapEventTransformerResolver
+                = new MapEventTransformerProducer.MapEventTransformerFactoryResolver(m_mapMapEventTransformerSupplier);
+        event.addBean()
+                .produceWith(i -> mapEventTransformerResolver)
+                .types(MapEventTransformerProducer.MapEventTransformerFactoryResolver.class)
+                .qualifiers(Default.Literal.INSTANCE)
+                .scope(ApplicationScoped.class)
+                .beanClass(MapEventTransformerProducer.MapEventTransformerFactoryResolver.class);
         }
 
     // ---- lifecycle support -----------------------------------------------
@@ -251,6 +281,50 @@ public class CoherenceExtension
         {
         m_beanManager = beanManager;
         CacheFactoryBuilder cfb = m_cacheFactoryBuilder = new CdiCacheFactoryBuilder();
+
+        // Resolve the filters for any event listeners that need them
+        List<CdiMapListener<?, ?>> listFilterListeners = m_mapListeners.values()
+                                                                .stream()
+                                                                .flatMap(m -> m.values().stream())
+                                                                .flatMap(Collection::stream)
+                                                                .filter(CdiMapListener::hasFilterAnnotation)
+                                                                .collect(Collectors.toList());
+
+        if (listFilterListeners.size() > 0)
+            {
+            Instance<FilterProducer> instance = beanManager
+                    .createInstance()
+                    .select(FilterProducer.class);
+
+            if (!instance.isResolvable())
+                {
+                throw new DefinitionException("Unsatisfied dependency - no FilterProducer bean found");
+                }
+            FilterProducer producer = instance.get();
+            listFilterListeners.forEach(l -> l.resolveFilter(producer));
+            }
+
+        // Resolve the transformers for any event listeners that need them
+        List<CdiMapListener<?, ?>> listTransformerListeners = m_mapListeners.values()
+                                                                    .stream()
+                                                                    .flatMap(m -> m.values().stream())
+                                                                    .flatMap(Collection::stream)
+                                                                    .filter(CdiMapListener::hasTransformerAnnotation)
+                                                                    .collect(Collectors.toList());
+
+        if (listTransformerListeners.size() > 0)
+            {
+            Instance<MapEventTransformerProducer> instance = beanManager
+                    .createInstance()
+                    .select(MapEventTransformerProducer.class);
+
+            if (!instance.isResolvable())
+                {
+                throw new DefinitionException("Unsatisfied dependency - no MapEventTransformerProducer bean found");
+                }
+            MapEventTransformerProducer producer = instance.get();
+            listTransformerListeners.forEach(l -> l.resolveTransformer(producer));
+            }
 
         // start system CCF
         ConfigurableCacheFactory ccfSys = m_ccfSys = cfb.getConfigurableCacheFactory("coherence-system-config.xml", null);
@@ -546,5 +620,13 @@ public class CoherenceExtension
      * A map of {@link ExtractorBinding} annotation to {@link
      * ExtractorFactory} bean class.
      */
-    private final Map<AnnotationInstance, Class<? extends ExtractorFactory<?, ?, ?>>> m_mapExtractorSupplier = new HashMap<>();
+    private final Map<AnnotationInstance, Class<? extends ExtractorFactory<?, ?, ?>>>
+            m_mapExtractorSupplier = new HashMap<>();
+
+    /**
+     * A map of {@link MapEventTransformerBinding} annotation to {@link MapEventTransformerFactory} bean class.
+     */
+    private final Map<AnnotationInstance, Class<? extends MapEventTransformerFactory<?, ?, ?, ?>>>
+            m_mapMapEventTransformerSupplier = new HashMap<>();
+
     }
