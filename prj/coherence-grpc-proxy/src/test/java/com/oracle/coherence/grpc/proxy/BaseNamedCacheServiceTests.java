@@ -1659,7 +1659,7 @@ abstract class BaseNamedCacheServiceTests
     @MethodSource("serializers")
     public void shouldSubscribeToEventsForMultipleFilter(String serializerName, Serializer serializer, String sScope)
         {
-        String                                sCacheName  = "test-events-08";
+        String                                sCacheName  = "test-events-" + System.currentTimeMillis();
         CollectingMapListener<String, Person> listenerOne = new CollectingMapListener<>();
         CollectingMapListener<String, Person> listenerTwo = new CollectingMapListener<>();
         NamedCache<String, Person>            cache       = ensureEmptyCache(sScope, sCacheName);
