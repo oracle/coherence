@@ -1,79 +1,74 @@
 ///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2020, Oracle and/or its affiliates.
 
-    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
-
 ///////////////////////////////////////////////////////////////////////////////
-
 = Introduction
-
-== Introduction
 
 First and foremost, Coherence provides a fundamental service that is responsible for all facets of clustering and is a
 common denominator / building block for all other Coherence services.
-This service, referred to as 'service 0' internally, ensures the mesh of members is maintained and responsive,
-taking action to collaboratively evict, shun, or in some cases voluntarily depart the cluster when deemed necessary.
-As members join and leave the cluster, other Coherence services are notified thus allows those services to react accordingly.
+This service, referred to as 'service 0' internally, ensures that the mesh of members is maintained and responsive,
+taking action to collaboratively evict, shun, or in some cases, voluntarily depart the cluster when deemed necessary.
+As members join and leave the cluster, other Coherence services are notified, thus enabling those services to react accordingly.
 
-NOTE: This part of the Coherence product has been in production for 10+ years, being the subject of some extensive and
+NOTE: This part of the Coherence product has been in production for more than 10 years, being the subject of some extensive and
 imaginative testing.
-While it has been discussed here it certainly is not something that customers, generally, interact with directly but is
-valuable to be aware of.
+While this feature has been discussed here, it certainly is not something that customers, generally, interact with directly, but is
+important to be aware of.
 
-Coherence services build on top of the clustering service, with the key implementations to be aware of are
-PartitionedService, InvocationService, and ProxyService.
+Coherence services build on top of the clustering service. The key implementations to be aware of are PartitionedService, InvocationService, and ProxyService.
 
-In the majority of cases customers will deal with caches;
-a cache will be represented by an implementation of `NamedCache<K,V>`.
+In the majority of cases, customers will deal with caches;
+a cache is represented by an implementation of `NamedCache<K,V>`.
 Cache is an unfortunate name, as many Coherence customers use Coherence as a system-of-record rather than a lossy store of data.
-A cache is hosted by a service, generally the PartitionedService, and is the entry point to storing, retrieving,
-aggregating, querying, and streaming data.
-There are a number of features that caches provide:
+A cache is hosted by a service, generally the PartitionedService, and is the entry point to store, retrieve, aggregate, query, and stream data.
 
-* Fundamental *key-based access*: get/put getAll/putAll
-* Client-side and storage-side events
- ** *MapListeners* to asynchronously notify clients of changes to data
- ** *EventInterceptors* (either sync or async) to be notified storage level events, including mutations, partition transfer, failover, etc
-* *NearCaches* - locally cached data based on previous requests with local content invalidated upon changes in storage tier
-* *ViewCaches* - locally stored view of remote data that can be a subset based on a predicate and is kept in sync real time
-* *Queries* - distributed, parallel query evaluation to return matching key, values or entries with potential to optimize performance with indices
-* *Aggregations* - a map/reduce style aggregation where data is aggregated in parallel on all storage nodes and results streamed back to the client for aggregation of those results to produce a final result
-* *Data local processing* - an ability to send a function to the relevant storage node to execute processing logic for the appropriate entries with exclusive access
-* *Partition local transactions* - an ability to perform scalable transactions by associating data (thus being on the same partition) and manipulating other entries on the same partition potentially across caches
+Caches provide a number of features:
+
+* Fundamental *key-based access*: get/put getAll/putAll.
+* Client-side and storage-side events:
+ ** *MapListeners* to asynchronously notify clients of changes to data.
+ ** *EventInterceptors* (either sync or async) to notify storage level events, including mutations, partition transfer, failover, and so on.
+* *NearCaches* - Locally cached data based on previous requests with local content invalidated upon changes in the storage tier.
+* *ViewCaches* - Locally stored view of remote data that can be a subset based on a predicate and is kept in sync, real time.
+* *Queries* - Distributed, parallel query evaluation to return matching key, values, or entries with potential to optimize performance with indices.
+* *Aggregations* - A map/reduce style aggregation where data is aggregated in parallel on all storage nodes, and results streamed back to the client for aggregation of those results to produce a final result.
+* *Data local processing* - Ability to send a function to the relevant storage node to execute processing logic for the appropriate entries with exclusive access.
+* *Partition local transactions* - Ability to perform scalable transactions by associating data (thus being on the same partition) and manipulating other entries on the same partition, potentially across caches.
 * *Non-blocking / async NamedCache API*
-* *C{pp} and .NET clients* - access the same NamedCache API from either C{pp} or .NET
-* *Portable Object Format* - optimized serialization format, with the ability to navigate the serialized form for optimized queries, aggregations, or data processing
-* *Integration with Databases* - Database & third party data integration with CacheStores including both synchronous or asynchronous writes
-* *CohQL* - ansi-style query language with a console for adhoc queries
-* *Topics* - distributed topics implementation offering pub/sub messaging with the storage capacity the cluster and parallelizable subscribers
+* *C{pp} and .NET clients* - Access the same NamedCache API from either C{pp} or .NET.
+* *Portable Object Format* - Optimized serialization format, with the ability to navigate the serialized form for optimized queries, aggregations, or data processing.
+* *Integration with Databases* - Database and third party data integration with CacheStores, including synchronous or asynchronous writes.
+* *CohQL* - Ansi-style query language with a console for adhoc queries.
+* *Topics* - Distributed topics implementation that offers pub/sub messaging with the storage capacity, the cluster, and parallelizable subscribers.
 
-There are also a number of non-functional features that Coherence provides:
+Coherence also provides a number of non-functional features:
 
-* *Rock solid clustering* - highly tuned and robust clustering stack that allows Coherence to scale to thousands of members in a cluster with thousands of partitions and terabytes of data being accessed, mutated, queried and aggregated concurrently
-* *Safety first* - resilient data management that ensures backup copies are on distinct machines, racks, or sites and the ability to maintain multiple backups
-* *24/7 Availability* - zero down time with rolling redeploy of cluster members to upgrade application or product versions
- ** Backwards and forwards compatibility of product upgrades, including major versions
-* *Persistent Caches* - with the ability to use local file system persistence (thus avoid extra network hops) and leverage Coherence consensus protocols to perform distributed disk recovery when appropriate
-* *Distributed State Snapshot* - ability to perform distributed point-in-time snapshot of cluster state, and recover snapshot in this or a different cluster (leverages persistence feature)
-* *Lossy redundancy* - ability to reduce the redundancy guarantee by making backups and/or persistence asynchronous from a client perspective
-* *Single Mangement View* - provides insight into the cluster  with a single JMX server that provides a view of all members of the cluster
-* *Management over REST* - all JMX data and operations can be performed over REST, including cluster wide thread dumps and heapdumps
-* *Non-cluster Access* - access to the cluster from the outside via proxies, for distant (high latency) clients and for non-java languages such as C{pp} and .NET
-* *Kubernetes friendly* - seamlessly and safely deploy applications to k8s with our own https://github.com/oracle/coherence-operator[operator]
+* *Rock solid clustering* - Highly tuned and robust clustering stack that enables Coherence to scale to thousands of members in a cluster with thousands of partitions and terabytes of data being accessed, mutated, queried, and aggregated concurrently
+* *Safety first* - Resilient data management that ensures backup copies are on distinct machines, racks, or sites, and the ability to maintain multiple backups.
+* *24/7 Availability* - Zero downtime with rolling redeployment of cluster members to upgrade application or product versions.
+ ** Backward and forward compatibility of product upgrades, including major versions.
+* *Persistent Caches* - Ability to use local file system persistence (thus avoid extra network hops) and leverage Coherence consensus protocols to perform distributed disk recovery when appropriate.
+* *Distributed State Snapshot* - Ability to perform distributed point-in-time snapshot of cluster state, and recover snapshot in this or a different cluster (leverages persistence feature).
+* *Lossy redundancy* - Ability to reduce the redundancy guarantee by making backups and/or persistence asynchronous from a client perspective.
+* *Single Mangement View* - Provides insight into the cluster  with a single JMX server that provides a view of all members of the cluster.
+* *Management over REST* - All JMX data and operations can be performed over REST, including cluster wide thread dumps and heapdumps.
+* *Non-cluster Access* - Provides access to the cluster from the outside via proxies, for distant (high latency) clients and for non-java languages such as C{pp} and .NET.
+* *Kubernetes friendly* - Enables seemless and safe deployment of applications to k8s with our own https://github.com/oracle/coherence-operator[operator].
 
 
-== Coherence Community Edition Disabled and Excluded Functionality
+== Features Not Included in Coherence Community Edition
 
-Coherence Community Edition does not include the following Oracle Coherence commercial edition functionality
+The following Oracle Coherence features are not included in Coherence Community Edition:
 
 * Management of Coherence via the Oracle WebLogic Management Framework
-* WebLogic Server Multi-tenancy support
+* WebLogic Server Multitenancy Support
 * Deployment of Grid Archives (GARs)
-* HTTP session management for application servers (Coherence*Web)
+* HTTP Session Management for Application Servers (Coherence*Web)
 * GoldenGate HotCache
 * TopLink-based CacheLoaders and CacheStores
 * Elastic Data
-* Federation and WAN (wide area network) support
+* Federation and WAN (wide area network) Support
 * Transaction Framework
-* CommonJ work manager
+* CommonJ Work Manager

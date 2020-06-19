@@ -1,21 +1,17 @@
 ///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2020, Oracle and/or its affiliates.
 
-    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
-
 ///////////////////////////////////////////////////////////////////////////////
-
 = Coherence Documentation Module
-
-== Coherence Documentation Module
 
 This is the module that builds the Coherence documentation.
 The module is not part of the default build and must be built separately.
 
 === Build the Docs
 
-To build the docs run the following Maven command from the top-level `prj/` directory:
+To build the docs, run the following Maven command from the top-level `prj/` directory:
 
 [source,shell]
 ----
@@ -24,12 +20,12 @@ mvn clean install -DskipTests -P docs -pl docs
 
 === View the Docs
 
-To view the documentation to see what it looks like after building run the following command from the top-level `prj/` directory:
+To view the documentation after building it, run the following command from the top-level `prj/` directory:
 
 [source,shell]
 ----
 mvn exec:exec -P docs -pl docs
 ----
 
-NOTE: This requires Python to be installed and runs a small Pythin http server from the directory where the docs
-have been built to.
+NOTE: The installation requires you to install Python, which runs a small Pythin http server from the directory where the docs
+are built.

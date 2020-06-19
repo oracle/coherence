@@ -1,23 +1,20 @@
 ///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2020, Oracle and/or its affiliates.
 
-    Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
-
 ///////////////////////////////////////////////////////////////////////////////
-
 = Quick Start
-
-== Quick Start
 
 === Prerequisites
 
 . Java - jdk8 or higher
+. Maven - 3.6.3 or higher
 
-=== How to Get Coherence Community Edition
+=== Downloading Coherence Community Edition
 
-In the majority of use-cases Coherence will be embedded into an application with the application using Coherence APIs,
-thus the natural place to start is downloading Coherence from maven central:
+As Coherence is generally embedded into an application by using Coherence APIs,
+the natural place to consume this dependency is from Maven:
 
 [source,xml]
 .pom.xml
@@ -31,19 +28,19 @@ thus the natural place to start is downloading Coherence from maven central:
 </dependencies>
 ----
 
-Other forms of acquiring Coherence include the official https://hub.docker.com/_/oracle-coherence-12c[Docker image],
-other language clients (http://github.com/oracle/coherence-cpp-extend-client[C{pp}] and
-http://github.com/oracle/coherence-dotnet-extend-client[.NET]), and for non community edition features of the product
-please take a look at the https://www.oracle.com/middleware/technologies/coherence-downloads.html[Oracle Technology Network].
+You can also get Coherence from the official https://hub.docker.com/_/oracle-coherence-12c[Docker image].
+For other language clients, use     (http://github.com/oracle/coherence-cpp-extend-client[C{pp}] and
+http://github.com/oracle/coherence-dotnet-extend-client[.NET]), and for the non-community edition, see https://www.oracle.com/middleware/technologies/coherence-downloads.html[Oracle Technology Network].
 
 == CLI Hello Coherence
 
-The following example illustrated starting a *storage enabled* Coherence Server, followed by a *storage disabled*
+The following example illustrates the procedure to start a *storage enabled* Coherence Server, followed by a *storage disabled*
 Coherence Console.
-Using the console data can be inserted, retrieved, the console can be terminated and started and data once again
-retrieved to illustrate the permanence of the data.
+Using the console, data is
+inserted, retrieved, and then the console is terminated. The console is restarted
+and data is once again retrieved to illustrate the permanence of the data.
 
-NOTE: this example uses the out-of-the-box cache configuration and therefore explicitly specifying the console is
+NOTE: This example uses the out-of-the-box cache configuration and therefore, explicitly specifying that the console is
 storage disabled is unnecessary.
 
 NOTE: Coherence cluster members discover each other via one of two mechanisms;
@@ -156,7 +153,7 @@ The `HelloCoherence` application inserts and retrieves data from the Coherence s
 
 === Build `HelloCoherence`
 
-. Create a maven project either manually or using an archetype such as maven-archetype-quickstart
+. Create a maven project either manually or by using an archetype such as maven-archetype-quickstart
 . Add a dependency to the pom file:
 
 
@@ -197,7 +194,7 @@ public class HelloCoherence
 mvn package
 ----
 
-. Start a cache Server
+. Start a cache server
 +
 [source,shell]
 ----
@@ -211,7 +208,7 @@ mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
 mvn exec:java -Dexec.mainClass="HelloCoherence"
 ----
 
-. Confirm you see output including the following:
+. Confirm that you see the output including the following:
 +
 [source,shell]
 ----
@@ -221,7 +218,7 @@ ConverterEntry{Key="spanish", Value="Hola"}
 ConverterEntry{Key="english", Value="Hello"}
 ----
 
-. Kill the cache server started previously:
+. Kill the cache server started earlier:
 +
 [source,shell]
 ----
@@ -245,9 +242,9 @@ $> mvn clean install -DskipTests
 # build a specific module, including all dependent modules and run tests
 $> mvn -am -pl test/functional/persistence clean verify
 
-# only build coherence.jar without running tests
+# build only coherence.jar without running tests
 $> mvn -am -pl coherence clean install -DskipTests
 
-# only build coherence.jar and skip compilation of CDBs and tests
+# build only coherence.jar and skip compilation of CDBs and tests
 $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 ----
