@@ -7,8 +7,15 @@
 package com.tangosol.io.pof;
 
 import com.tangosol.io.Evolvable;
-
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.SimpleEvolvable;
+
+import com.tangosol.util.ExternalizableHelper;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +27,7 @@ import java.util.Set;
  * @since  12.2.1
  */
 public class EvolvableHolder
+        implements ExternalizableLite
     {
     /**
      * Return an {@link Evolvable} for the specified type id.
@@ -51,6 +59,20 @@ public class EvolvableHolder
     public boolean isEmpty()
         {
         return m_mapEvolvable.isEmpty();
+        }
+
+    // ---- ExternalizableLite implementation -------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        ExternalizableHelper.readMap(in, m_mapEvolvable, null);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeMap(out, m_mapEvolvable);
         }
 
     // ---- data members ----------------------------------------------------
