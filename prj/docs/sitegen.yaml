@@ -67,14 +67,15 @@ backend:
                     - "coherence-mp/config/README.adoc"
                     - "coherence-mp/metrics/README.adoc"
             - title: "Coherence gRPC"
-              pathprefix: "/coherence-grpc-proxy"
+              pathprefix: "/coherence-grpc"
               glyph:
                 type: "icon"
                 value: "settings_ethernet"
               items:
                 - includes:
-                    - "coherence-grpc-proxy/README.adoc"
                     - "coherence-grpc/README.adoc"
+                    - "coherence-grpc-proxy/README.adoc"
+                    - "coherence-java-client/README.adoc"
         - title: "Additional Resources"
           items:
             - title: "Official Documentation"

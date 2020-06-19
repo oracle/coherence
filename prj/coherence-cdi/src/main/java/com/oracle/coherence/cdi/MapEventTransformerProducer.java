@@ -7,7 +7,6 @@
 package com.oracle.coherence.cdi;
 
 import com.tangosol.util.MapEventTransformer;
-import com.tangosol.util.QueryHelper;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.transformer.ExtractorEventTransformer;
 
@@ -19,8 +18,9 @@ import javax.enterprise.inject.spi.DefinitionException;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
-import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * A CDI bean that produces {@link MapEventTransformer} instances
@@ -70,24 +70,23 @@ class MapEventTransformerProducer
 
         if (annotated != null)
             {
-            for (Annotation annotation : annotated.getAnnotations())
-                {
-                MapEventTransformer<K, V, U> transformer = resolve(annotation);
-                if (transformer != null)
-                    {
-                    return transformer;
-                    }
-                }
+            return resolve(annotated.getAnnotations());
             }
 
         return null;
         }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    <K, V, U> MapEventTransformer<K, V, U> resolve(Annotation annotation)
+    <K, V, U> MapEventTransformer<K, V, U> resolve(Set<Annotation> annotations)
         {
-        if (annotation.annotationType().isAnnotationPresent(MapEventTransformerBinding.class))
+        Optional<Annotation> optional = annotations.stream()
+                .filter(a -> a.annotationType().isAnnotationPresent(MapEventTransformerBinding.class))
+                .findFirst();
+
+        if (optional.isPresent())
             {
+            // there is MapEventTransformerBinding annotation
+            Annotation annotation = optional.get();
             Class<? extends MapEventTransformerFactory> clazz = f_resolver.resolve(annotation);
             if (clazz != null)
                 {
@@ -102,11 +101,14 @@ class MapEventTransformerProducer
                 throw new DefinitionException("Unsatisfied dependency - no MapEventTransformerFactory bean found annotated with " + annotation);
                 }
             }
-        else if (annotation.annotationType().isAnnotationPresent(ExtractorBinding.class))
+        else if (annotations.stream().anyMatch(a -> a.annotationType().isAnnotationPresent(ExtractorBinding.class)))
             {
-            ValueExtractor<Object, Object> extractor = f_extractorProducer.resolve(Collections.singleton(annotation));
+            // there is one or more ExtractorBinding annotations
+            ValueExtractor<Object, Object> extractor = f_extractorProducer.resolve(annotations);
             return new ExtractorEventTransformer(extractor);
             }
+
+        // there are no transformer or extractor annotations.
         return null;
         }
 

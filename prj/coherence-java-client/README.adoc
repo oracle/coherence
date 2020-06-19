@@ -1,0 +1,245 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence Java Client
+
+== Coherence gRPC Java Client
+
+
+== Usage
+
+The Coherence gRPC Java client is a CDI enabled library that allows a CDI application to inject Coherence objects
+into CDI beans.
+
+In order to use Coherence gRPC Java client, you need to declare it as a dependency in your `pom.xml`
+
+[source,xml]
+----
+    <dependency>
+        <groupId>com.oracle.coherence.ce</groupId>
+        <artifactId>coherence-java-client</artifactId>
+        <version>${coherence.version}</version>
+    </dependency>
+----
+
+NOTE: Using the Coherence gRPC Java client assumes that there is a corresponding server process running that is
+using the Coherence gRPC proxy to expose the required gRPC services.
+
+
+Once the necessary dependency is in place, the simplest way to start using it is to just inject Coherence resources
+into the application's beans. A lot of the annotations and qualifiers are identical to those described in the
+<<coherence-cdi/README.adoc,Coherence CDI>> documentation. The major difference being that the `@Remote` qualifier
+is used to indicate that the Coherence beans to be injected connect remotely (in this case using gRPC) to a
+Coherence server.
+
+The following sections describe different injection points in more detail.
+
+* <<connections,Configuring gRPC Connections>>
+* <<sessions,Configuring Coherence Remote Sessions>>
+* <<inject-coherence-objects,Injecting Coherence Objects into CDI Beans>>
+ ** <<inject-namedmap,Injecting `NamedMap`, `NamedCache`, and related objects>>
+ ** <<inject-session,`Session` Injection>>
+
+
+[#connections]
+=== Remote Connections
+
+The Coherence gRPC client will attempt to connect to a default server endpoint on `localhost:1409` if no other channel
+has been configured. This is fine for development and testing but in most real-world applications the client will need
+to know the endpoint to connect to. Most applications would only require a channel to connect to a single Coherence
+cluster but there are use-cases where clients connect to multiple clusters, and the Coherence gRPC Java client supports
+these use-cases too.
+
+The Coherence gRPC client has been built on top of the
+https://helidon.io/docs/v2/#/mp/grpc/02_mp_clients[Helidon Microprofile gRPC] library and uses it to provide gRPC
+channels.
+
+==== Configure gRPC Channels
+
+Remote gRPC connections are configured using Helidon configuration, typically this would be a configuration file, but
+Helidon supports many ways to provide the configuration, or override the configuration with System properties or
+environment variables. The examples here will just use a configuration file.
+
+All gRPC channels are configured in the `grpc.channels` section of the application configuration.
+The example below is a simple configuration for a gRPC channel:
+
+[source,yaml]
+----
+grpc:
+  channels:
+    default:                   # <1>
+      host: storage.acme.com   # <2>
+      port: 1408               # <3>
+----
+<1> The name of the channel is `default`.
+<2> The host name of the gRPC server is `storage.acme.com`
+<3> The port which the server is listening on is `1408`
+
+The `default` channel name is a special case that the Coherence gRPC client will use to locate a channel configuration
+if no channel name has been specified in CDI injection points.
+
+The example below shows a configuration with multiple channels, one named `test` and one named `prod`.
+[source,yaml]
+----
+grpc:
+  channels:
+    test:
+      host: test.storage.acme.com
+      port: 1408
+    prod:
+      host: storage.acme.com
+      port: 1408
+----
+
+The configuration may contain as many channels as required, the only stipulation being that each has a unique name.
+
+[#sessions]
+=== Coherence Sessions
+
+Coherence uses the concept of a `Session` to manage a set of related Coherence resources, such as maps, caches,
+topics, etc. When using the Coherence Java gRPC client a `Session` connects to a specific gRPC channel (described above)
+and uses a specific serialization format to marshal requests and responses. This means that different sessions
+using different serializers may connect to the same server endpoint. Typically, for efficiency the client and server
+would be configured to use matching serialization formats to avoid deserialization of data on the server but this does
+not have to be the case. If the server is using a different serializer for the server side caches it must be able
+to deserialize the client's requests, so there must be a serializer configured on the server to match that used by the
+client.
+
+As with gRPC channels above, Coherence Sessions can be configured using Helidon configuration.
+Coherence sessions are configured in the `coherence.sessions` section of the configuration.
+Each session has its own entry in the configuration hierarchy, as shown below:
+
+[source,yaml]
+----
+coherence:
+  sessions:
+    default:
+      serializer: pof
+      channel: default
+----
+
+The example above shows configuration for the `default` Coherence session, this is the session that will be used to
+provide Coherence beans when no session name has been specified for an injection point.
+In this example, the default session will use POF serialization and connect to the server using the `default` gRPC
+channel.
+
+The default session, if not configured, will use the `default` channel and will use Java serialization.
+
+As with channels, multiple sessions can be configured:
+
+[source,yaml]
+----
+coherence:
+  sessions:
+    test:
+      serializer: pof
+      channel: test
+    prod:
+      serializer: pof
+      channel: prod
+
+grpc:
+  channels:
+    test:
+      host: test.storage.acme.com
+      port: 1408
+    prod:
+      host: storage.acme.com
+      port: 1408
+----
+
+In the example above, there are two Coherence sessions configured and two corresponding gRPC channels.
+
+
+==== Referring to Sessions at Injection Points
+
+Coherence CDI uses the `@Remote` qualifier to indicate that the Coherence bean to be injected refers to a remote
+resource. In the case of the gRPC client, the value set when using the `@Remote` qualifier refers to the name of the
+name of the Coherence session to use.
+
+For example:
+[source,java]
+----
+@Remote // <1>
+----
+<1> The `@Remote` annotation has no value, so the Coherence gRPC client CDI extensions will look-up the configuration
+for the Session named `default`.
+
+[source,java]
+----
+@Remote("test") // <1>
+----
+<1> The `@Remote` annotation here has a value of `test`, so the Coherence gRPC client CDI extensions will look-up the
+configuration for a session named `test`.
+
+
+[#inject-coherence-objects]
+=== Injecting Coherence Objects into CDI Beans
+
+A number of commonly used Coherence objects can be injected when using Java gRPC client.
+
+[#inject-namedmap]
+=== Injecting NamedMap NamedCache and Related Objects
+
+In order to inject an instance of a `NamedMap` into your gRPC client CDI bean, you simply need to define an injection
+point for it:
+
+[source,java]
+----
+@Inject
+@Remote  // <1>
+private NamedMap<Long, Person> people;
+----
+<1> The important annotation here is the `@Remote` qualifier that tell's the Coherence CDI extensions that the map to be
+injected is remote. In this case the `NamedMap` will come from the `default` Coherence session as the `@Remote`
+annotation does not specify a session name.
+
+[source,java]
+----
+@Inject
+@Remote("products")  // <1>
+private NamedMap<Long, Product> products;
+----
+<1> In this example the Coherence CDI extensions will use the `products` session to provide the client side `NamedMap`
+backed on the server by a `NamedMap` called `products`.
+
+Other remote resources, such a `NamedCache` can be injected the same way:
+[source,java]
+----
+@Inject
+@Remote
+private NamedCache<Long, Product> products;
+----
+
+The <<coherence-cdi/README.adoc,Coherence CDI>> documentation covers the different types of resources supported by CDI.
+When using them with the gRPC Java client, remember to also include the `@Remote` qualifier on the injection point.
+
+[#inject-session]
+=== Injecting Sessions
+
+If an application bean requires multiple maps or caches where the names will only be known at runtime then a
+Coherence `com.tangosol.net.Session` can be injected instead of other specific named resources.
+The required maps or caches can then be obtained from the `Session` by calling methods such as `Session.getMap` or
+`Session.getCache`, etc.
+
+[source,java]
+----
+@Inject
+@Remote   // <1>
+private Session session;
+----
+<1> The plain `@Remote` qualifier has been used, so the default `Session` will be injected here.
+
+
+[source,java]
+----
+@Inject
+@Remote("products")   // <1>
+private Session session;
+----
+<1> The `@Remote` qualifier has the value `products`, so the `Session` injected here will be configured from the
+`coherence.sessions.products` session configuration.
+

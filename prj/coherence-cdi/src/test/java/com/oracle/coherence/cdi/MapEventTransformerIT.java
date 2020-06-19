@@ -44,6 +44,10 @@ public class MapEventTransformerIT
                                                   .addBeanClass(TestTransformerFactory.class)
                                                   .addBeanClass(MapEventTransformerProducer.class)
                                                   .addBeanClass(ExtractorProducer.class)
+                                                  .addBeanClass(ExtractorProducer.ChainedExtractorSupplier.class)
+                                                  .addBeanClass(ExtractorProducer.ChainedExtractorsSupplier.class)
+                                                  .addBeanClass(ExtractorProducer.PofExtractorSupplier.class)
+                                                  .addBeanClass(ExtractorProducer.PofExtractorsSupplier.class)
                                                   .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
                                                   .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
                                                   .addExtension(new CoherenceExtension()));
@@ -152,7 +156,8 @@ public class MapEventTransformerIT
 
         @Inject
         @PropertyExtractor("one")
-        @PropertyExtractor("two")
+        @ChainedExtractor({"two", "three"})
+        @PofExtractor(index = 10)
         private MapEventTransformer<String, String, String> m_transformerFour;
         }
 

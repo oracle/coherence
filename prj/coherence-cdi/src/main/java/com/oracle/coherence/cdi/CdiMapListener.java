@@ -92,15 +92,13 @@ class CdiMapListener<K, V>
                 .filter(a -> a.annotationType().isAnnotationPresent(FilterBinding.class))
                 .collect(Collectors.toSet());
 
-        m_annExtractor = annotations.stream()
+        m_setAnnExtractor = annotations.stream()
                 .filter(a -> a.annotationType().isAnnotationPresent(ExtractorBinding.class))
-                .findFirst()
-                .orElse(null);
+                .collect(Collectors.toSet());
 
-        m_annTransformer = annotations.stream()
+        m_setAnnTransformer = annotations.stream()
                 .filter(a -> a.annotationType().isAnnotationPresent(MapEventTransformerBinding.class))
-                .findFirst()
-                .orElse(null);
+                .collect(Collectors.toSet());
 
         m_sCacheName   = sCache;
         m_sServiceName = sService;
@@ -159,7 +157,7 @@ class CdiMapListener<K, V>
      */
     boolean hasTransformerAnnotation()
         {
-        return m_annTransformer != null || m_annExtractor != null;
+        return !m_setAnnTransformer.isEmpty() || !m_setAnnExtractor.isEmpty();
         }
 
     /**
@@ -170,13 +168,13 @@ class CdiMapListener<K, V>
      */
     void resolveTransformer(MapEventTransformerProducer producer)
         {
-        if (m_annTransformer != null)
+        if (!m_setAnnTransformer.isEmpty())
             {
-            m_transformer = producer.resolve(m_annTransformer);
+            m_transformer = producer.resolve(m_setAnnTransformer);
             }
-        else if (m_annExtractor != null)
+        else if (!m_setAnnExtractor.isEmpty())
             {
-            m_transformer = producer.resolve(m_annExtractor);
+            m_transformer = producer.resolve(m_setAnnExtractor);
             }
         }
 
@@ -338,16 +336,16 @@ class CdiMapListener<K, V>
     private final Set<Annotation> m_setAnnFilter;
 
     /**
-     * The optional annotation specifying the map event transformer to use to
+     * The optional annotations specifying the map event transformers to use to
      * transform observed map events.
      */
-    private final Annotation m_annTransformer;
+    private final Set<Annotation> m_setAnnTransformer;
 
     /**
-     * The optional annotation specifying the value extractor to use to
+     * The optional annotations specifying the value extractors to use to
      * transform observed map events.
      */
-    private final Annotation m_annExtractor;
+    private final Set<Annotation> m_setAnnExtractor;
 
     /**
      * A flag indicating whether to subscribe to lite-events.
