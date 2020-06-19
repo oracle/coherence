@@ -99,61 +99,61 @@ and is the entry point to store, retrieve, aggregate, query, and stream data.
 
 Caches provide a number of features:
 
-* Fundamental **key-based access**: get/put getAll/putAll
-* Client-side and storage-side events
-  * **MapListeners** to asynchronously notify clients of changes to data
+* Fundamental **key-based access**: get/put getAll/putAll.
+* Client-side and storage-side events:
+  * **MapListeners** to asynchronously notify clients of changes to data.
   * **EventInterceptors** (either sync or async) to be notified storage level events, including
-mutations, partition transfer, failover, etc
-* **NearCaches** - locally cached data based on previous requests with local content
-invalidated upon changes in storage tier
-* **ViewCaches** - locally stored view of remote data that can be a subset based on a
-predicate and is kept in sync real time
-* **Queries** - distributed, parallel query evaluation to return matching key, values
-or entries with potential to optimize performance with indices
-* **Aggregations** - a map/reduce style aggregation where data is aggregated in parallel
-on all storage nodes and results streamed back to the client for aggregation of
-those results to produce a final result
-* **Data local processing** - an ability to send a function to the relevant storage node
-to execute processing logic for the appropriate entries with exclusive access
-* **Partition local transactions** - an ability to perform scalable transactions by
+mutations, partition transfer, failover, and so on.
+* **NearCaches** - Locally cached data based on previous requests with local content
+invalidated upon changes in the storage tier.
+* **ViewCaches** - Locally stored view of remote data that can be a subset based on a
+predicate and is kept in sync, real time.
+* **Queries** - Distributed, parallel query evaluation to return matching key, values,
+or entries with potential to optimize performance with indices.
+* **Aggregations** - A map/reduce style aggregation where data is aggregated in parallel
+on all storage nodes, and results streamed back to the client for aggregation of
+those results to produce a final result.
+* **Data local processing** - Ability to send a function to the relevant storage node
+to execute processing logic for the appropriate entries with exclusive access.
+* **Partition local transactions** - Ability to perform scalable transactions by
 associating data (thus being on the same partition) and manipulating other entries
-on the same partition potentially across caches
+on the same partition, potentially across caches.
 * **Non-blocking / async NamedCache API**
-* **C++ and .NET clients** - access the same NamedCache API from either C++ or .NET
-* **Portable Object Format** - optimized serialization format, with the ability to
-navigate the serialized form for optimized queries, aggregations, or data processing
-* **Integration with Databases** - Database & third party data integration with
-CacheStores including both synchronous or asynchronous writes
-* **CohQL** - ansi-style query language with a console for adhoc queries
-* **Topics** - distributed topics implementation offering pub/sub messaging with
-the storage capacity the cluster and parallelizable subscribers
+* **C++ and .NET clients** - Access the same NamedCache API from either C++ or .NET.
+* **Portable Object Format** - Optimized serialization format, with the ability to
+navigate the serialized form for optimized queries, aggregations, or data processing.
+* **Integration with Databases** - Database and third party data integration with
+CacheStores, including both synchronous or asynchronous writes.
+* **CohQL** - Ansi-style query language with a console for adhoc queries.
+* **Topics** - Distributed topics implementation that offers pub/sub messaging with
+the storage capacity, the cluster, and parallelizable subscribers.
 
-There are also a number of non-functional features that Coherence provides:
+Coherence also provides a number of non-functional features:
 
-* **Rock solid clustering** - highly tuned and robust clustering stack that allows
+* **Rock solid clustering** - Highly tuned and robust clustering stack that enables
 Coherence to scale to thousands of members in a cluster with thousands of partitions
-and terabytes of data being accessed, mutated, queried and aggregated concurrently
-* **Safety first** - resilient data management that ensures backup copies are
-on distinct machines, racks, or sites and the ability to maintain multiple backups
-* **24/7 Availability** - zero down time with rolling redeploy of cluster members
-to upgrade application or product versions
-  * Backwards and forwards compatibility of product upgrades, including major versions
-* **Persistent Caches** - with the ability to use local file system persistence (thus
+and terabytes of data being accessed, mutated, queried, and aggregated concurrently.
+* **Safety first** - Resilient data management that ensures backup copies are
+on distinct machines, racks, or sites, and the ability to maintain multiple backups.
+* **24/7 Availability** - Zero downtime with rolling redeployment of cluster members
+to upgrade application or product versions.
+  * Backward and forward compatibility of product upgrades, including major versions.
+* **Persistent Caches** - Ability to use local file system persistence (thus
 avoid extra network hops) and leverage Coherence consensus protocols to perform
-distributed disk recovery when appropriate
-* **Distributed State Snapshot** - ability to perform distributed point-in-time
+distributed disk recovery when appropriate.
+* **Distributed State Snapshot** - Ability to perform distributed point-in-time
 snapshot of cluster state, and recover snapshot in this or a different cluster
-(leverages persistence feature)
-* **Lossy redundancy** - ability to reduce the redundancy guarantee by making backups
-and/or persistence asynchronous from a client perspective
-* **Single Mangement View** - provides insight into the cluster  with a single
-JMX server that provides a view of all members of the cluster
-* **Management over REST** - all JMX data and operations can be performed over REST,
-including cluster wide thread dumps and heapdumps
-* **Non-cluster Access** - access to the cluster from the outside via proxies,
-for distant (high latency) clients and for non-java languages such as C++ and .NET
-* **Kubernetes friendly** - seamlessly and safely deploy applications to k8s with
-our own [operator](https://github.com/oracle/coherence-operator)
+(leverages persistence feature).
+* **Lossy redundancy** - Ability to reduce the redundancy guarantee by making backups
+and/or persistence asynchronous from a client perspective.
+* **Single Mangement View** - Provides insight into the cluster  with a single
+JMX server that provides a view of all members of the cluster.
+* **Management over REST** - All JMX data and operations can be performed over REST,
+including cluster wide thread dumps and heapdumps.
+* **Non-cluster Access** - Provides access to the cluster from the outside via proxies,
+for distant (high latency) clients and for non-java languages such as C++ and .NET.
+* **Kubernetes friendly** - Enables seamless and safe deployment of applications to k8s with
+our own [operator](https://github.com/oracle/coherence-operator).
 
 ## <a name="get-started"></a>Hello Coherence
 
