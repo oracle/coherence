@@ -73,7 +73,20 @@
       <url>https://github.com/chpatel3</url>
     </developer>
   </developers>
-  
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <name>Coherence Snapshot Repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <name>Coherence Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+ 
   <properties>
     <revision>20.12-SNAPSHOT</revision>
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
