@@ -35,7 +35,9 @@ Should be overridden by the application.
       <scheme-name>default-storage</scheme-name>
       <service-name>${coherence.service.prefix Storage}Service</service-name>
       <backing-map-scheme>
-        <local-scheme/>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
       </backing-map-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
