@@ -81,7 +81,6 @@ server()
 console()
     {
     PROPS="${PROPS} -Dcoherence.localstorage=false"
-    CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/jline.jar"
     MAIN_CLASS="com.tangosol.net.CacheFactory"
     start
     }
@@ -89,7 +88,6 @@ console()
 queryPlus()
     {
     PROPS="${PROPS} -Dcoherence.localstorage=false"
-    CLASSPATH="${CLASSPATH}:${COHERENCE_HOME}/lib/jline.jar"
     MAIN_CLASS="com.tangosol.coherence.dslquery.QueryPlus"
     start
     }

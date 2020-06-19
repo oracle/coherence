@@ -44,12 +44,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- jline -->
-    <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
-    </dependency>
-
     <!-- test dependencies -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>

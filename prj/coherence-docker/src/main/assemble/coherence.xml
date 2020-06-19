@@ -19,7 +19,6 @@
       <outputDirectory>coherence/lib</outputDirectory>
       <scope>compile</scope>
       <includes>
-        <include>jline:jline</include>
         <include>${coherence.group.id}:coherence</include>
         <include>${coherence.group.id}:coherence-management</include>
         <include>${coherence.group.id}:coherence-metrics</include>
@@ -34,7 +33,6 @@
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
       <excludes>
         <exclude>${coherence.group.id}:*</exclude>
-        <exclude>jline:jline</exclude>
       </excludes>
       <fileMode>755</fileMode>
     </dependencySet>
