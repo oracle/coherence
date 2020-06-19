@@ -281,6 +281,15 @@
             <configuration>
               <skip>false</skip>
             </configuration>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
 
           <plugin>
@@ -291,7 +300,9 @@
             <configuration>
               <serverId>ossrh</serverId>
               <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
               <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+              <skipLocalStaging>true</skipLocalStaging>
             </configuration>
           </plugin>
         </plugins>
