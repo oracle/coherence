@@ -4,13 +4,13 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.io.pof;
-
 
 import com.tangosol.io.Evolvable;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
+
+import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.LongArray;
@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import java.util.HashMap;
 import java.util.Map;
-
 
 /**
  * Basic {@link PofContext} implementation.
@@ -253,6 +252,46 @@ public class SimplePofContext
     // ----- user type registration -----------------------------------------
 
     /**
+     * Register {@link PortableType}.
+     *
+     * @param clz  the portable type to register with this PofContext; must
+     *             not be null, and must be annotated with {@link PortableType}
+     *             annotation
+     *
+     * @throws IllegalArgumentException on invalid type identifer, class, or
+     *                                  PofSerializer
+     */
+    public <T> SimplePofContext registerPortableType(Class<T> clz)
+        {
+        PortableType pt = clz.getAnnotation(PortableType.class);
+        if (pt == null)
+            {
+            throw new IllegalArgumentException("Class " + clz.getName() + " is not annotated with @PortableType");
+            }
+        registerUserType(pt.id(), clz, new PortableTypeSerializer<>(pt.id(), clz));
+        return this;
+        }
+
+    /**
+     * Register multiple {@link PortableType}s.
+     *
+     * @param aClz  the array of portable types to register with this PofContext;
+     *              each specified class must be annotated with {@link PortableType}
+     *              annotation
+     *
+     * @throws IllegalArgumentException if any of the specified classes is not a valid
+     *                                  {@link PortableType}
+     */
+    public SimplePofContext registerPortableTypes(Class<?>... aClz)
+        {
+        for (Class<?> aClass : aClz)
+            {
+            registerPortableType(aClass);
+            }
+        return this;
+        }
+
+    /**
      * Associate a user type with a type identifier and {@link PofSerializer}.
      *
      * @param nTypeId    the type identifier of the specified user type; must be
@@ -266,7 +305,7 @@ public class SimplePofContext
      * @throws IllegalArgumentException on invalid type identifer, class, or
      *                                  PofSerializer
      */
-    public void registerUserType(int nTypeId, Class clz, PofSerializer serializer)
+    public <T> void registerUserType(int nTypeId, Class<T> clz, PofSerializer<T> serializer)
         {
         validateTypeId(nTypeId);
         if (clz == null)

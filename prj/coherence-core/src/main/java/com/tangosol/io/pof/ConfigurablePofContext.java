@@ -17,6 +17,7 @@ import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.annotation.Portable;
 
+import com.tangosol.io.pof.schema.annotation.PortableType;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlConfigurable;
 import com.tangosol.run.xml.XmlElement;
@@ -998,7 +999,7 @@ public class ConfigurablePofContext
             final Integer ITypeId = Integer.valueOf(nTypeId);
 
             // load the class for the user type, and register it
-            final Class clz;
+            final Class<?> clz;
             try
                 {
                 clz = loadClass(sClass);
@@ -1035,7 +1036,9 @@ public class ConfigurablePofContext
                 {
                 if (PortableObject.class.isAssignableFrom(clz))
                     {
-                    serializer = new PortableObjectSerializer(nTypeId);
+                    serializer = clz.isAnnotationPresent(PortableType.class)
+                                 ? new PortableTypeSerializer<>(nTypeId, clz)
+                                 : new PortableObjectSerializer(nTypeId);
                     }
                 else if (clz.getAnnotation(Portable.class) == null)
                     {
