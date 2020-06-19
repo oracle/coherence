@@ -194,7 +194,7 @@ public class DefaultCacheServerTest
 
         ServiceMonitor mon = server.m_serviceMon;
         assertTrue(mon.isMonitoring());
-        server.shutdownServer();
+        stopDCS(server);
         assertFalse(mon.isMonitoring());
 
         t.interrupt();
@@ -241,7 +241,7 @@ public class DefaultCacheServerTest
 
         server.waitForServiceStart();
 
-        server.shutdownServer();
+        stopDCS(server);
         t.interrupt();
 
         verify(eccf).activate();
@@ -282,6 +282,8 @@ public class DefaultCacheServerTest
         cache = ((CacheService) serviceAfterRestart).ensureCache("dist-cache", cl);
         cache.put("A", 1);
         assertEquals(1, cache.get("A"));
+
+        stopDCS(cacheServer);
         }
 
     // ----- helpers --------------------------------------------------------
@@ -359,5 +361,24 @@ public class DefaultCacheServerTest
         when(schemes.getElementList()).thenReturn(elements);
 
         return factory;
+        }
+
+    /**
+     * Stop DefaultCacheServer ensuring that the ServiceMonitor is fully stopped.
+     *
+     * @param server  the DefaultCacheServer
+     */
+    protected void stopDCS(DefaultCacheServer server)
+        {
+        ServiceMonitor monitor       = server.m_serviceMon;
+        Thread         threadMonitor = monitor == null ? null : monitor.getThread();
+
+        server.shutdownServer();
+
+        // the ServiceMonitor thread may be alive briefly after DCS.shutdownServer() returns
+        if (threadMonitor != null)
+            {
+            Eventually.assertDeferred(() -> threadMonitor.isAlive(), is(false));
+            }
         }
     }
