@@ -4,7 +4,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.grpc.client;
 
 import com.google.protobuf.BoolValue;
@@ -15,7 +14,6 @@ import com.google.protobuf.Int32Value;
 import com.google.protobuf.UnsafeByteOperations;
 
 import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.SerializerProducer;
 
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.ContainsEntryRequest;
@@ -39,12 +37,10 @@ import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
-
 import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
-
 import com.tangosol.net.cache.CacheMap;
 
 import com.tangosol.util.Base;

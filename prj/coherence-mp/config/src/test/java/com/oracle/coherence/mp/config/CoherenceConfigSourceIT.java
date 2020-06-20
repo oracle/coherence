@@ -7,8 +7,10 @@
 package com.oracle.coherence.mp.config;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.coherence.cdi.CdiMapListenerManager;
+
 import com.oracle.coherence.cdi.CoherenceExtension;
+import com.oracle.coherence.cdi.server.CdiMapListenerManager;
+import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -49,6 +51,7 @@ class CoherenceConfigSourceIT
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
+                                                          .addExtension(new CoherenceServerExtension())
                                                           .addBeanClass(CdiMapListenerManager.class)
                                                           .addBeanClass(TestObserver.class)
                                                           .addBeanClass(CoherenceConfigSource.class));

@@ -31,7 +31,7 @@ import java.util.Set;
  * @since 20.06
  */
 @ApplicationScoped
-class MapEventTransformerProducer
+public class MapEventTransformerProducer
     {
     // ---- constructors ----------------------------------------------------
 
@@ -64,7 +64,7 @@ class MapEventTransformerProducer
      * @return a {@link MapEventTransformer} instance
      */
     @Produces
-    <K, V, U> MapEventTransformer<K, V, U> getTransformer(InjectionPoint ip)
+    public <K, V, U> MapEventTransformer<K, V, U> getTransformer(InjectionPoint ip)
         {
         Annotated annotated = ip.getAnnotated();
 

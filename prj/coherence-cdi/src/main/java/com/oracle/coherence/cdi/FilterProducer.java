@@ -36,7 +36,7 @@ import javax.inject.Inject;
  * @since 20.06
  */
 @ApplicationScoped
-class FilterProducer
+public class FilterProducer
     {
     // ---- constructors ----------------------------------------------------
 
@@ -64,7 +64,7 @@ class FilterProducer
      * @return a {@link Filter} instance
      */
     @Produces
-    <T> com.tangosol.util.Filter<T> getFilter(InjectionPoint injectionPoint)
+    public <T> com.tangosol.util.Filter<T> getFilter(InjectionPoint injectionPoint)
         {
         Annotated annotated = injectionPoint.getAnnotated();
         if (annotated != null)
@@ -123,7 +123,7 @@ class FilterProducer
      */
     @AlwaysFilter
     @ApplicationScoped
-    static class AlwaysFilterSupplier
+    public static class AlwaysFilterSupplier
             implements FilterFactory<AlwaysFilter, Object>
         {
         @Override
@@ -141,7 +141,7 @@ class FilterProducer
      */
     @WhereFilter("")
     @ApplicationScoped
-    static class WhereFilterSupplier
+    public static class WhereFilterSupplier
             implements FilterFactory<WhereFilter, Object>
         {
         @Override
