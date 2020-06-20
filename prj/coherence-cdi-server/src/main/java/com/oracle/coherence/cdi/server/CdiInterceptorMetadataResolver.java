@@ -9,8 +9,6 @@ package com.oracle.coherence.cdi.server;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorMetadataResolver;
 
-import org.jboss.weld.proxy.WeldClientProxy;
-
 /**
  * An implementation of {@link com.tangosol.net.events.InterceptorMetadataResolver}
  * that knows how to extract interceptor metadata from a Weld proxy.
@@ -26,7 +24,7 @@ public class CdiInterceptorMetadataResolver
     public Class<? extends EventInterceptor> getInterceptorClass(EventInterceptor eventInterceptor)
         {
         Class<? extends EventInterceptor> clazz = eventInterceptor.getClass();
-        if (eventInterceptor instanceof WeldClientProxy)
+        if (clazz.getName().endsWith("WeldClientProxy"))
             {
             clazz = (Class<? extends EventInterceptor>) clazz.getSuperclass();
             }

@@ -25,11 +25,12 @@ import javax.enterprise.inject.spi.CDI;
  * @author Aleks Seovic  2019.10.02
  * @since 20.06
  */
+@SuppressWarnings("deprecation")
 public class BeanBuilder
         implements ParameterizedBuilder<Object>,
                    ParameterizedBuilder.ReflectionSupport
     {
-    private Expression<String> m_exprBeanName;
+    private final Expression<String> m_exprBeanName;
 
     /**
      * Construct {@code BeanBuilder} instance.
