@@ -11,10 +11,7 @@ import com.oracle.coherence.cdi.ConfigUri;
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.ScopeInitializer;
-import com.tangosol.io.Serializer;
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.ConfigurableCacheFactory;
+import com.oracle.coherence.cdi.server.ScopeInitializer;
 import com.tangosol.net.NamedCache;
 import io.helidon.microprofile.server.Server;
 import org.junit.jupiter.api.AfterAll;
@@ -26,8 +23,6 @@ import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -45,8 +40,8 @@ class ScopedNamedCacheClientCdiIT
     static void setupBaseTest()
         {
         System.setProperty("coherence.ttl",         "0");
-        System.setProperty("coherence.clustername", "ScopedNamedCacheClientCdiIT");
-        System.setProperty("coherence.cache.config", "coherence-config.xml");
+        System.setProperty("coherence.cluster", "ScopedNamedCacheClientCdiIT");
+        System.setProperty("coherence.cacheconfig", "coherence-config.xml");
         System.setProperty("coherence.pof.config",  "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled", "true");
 

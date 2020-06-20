@@ -10,9 +10,7 @@ package com.oracle.coherence.grpc.proxy;
 import com.oracle.coherence.cdi.ConfigUri;
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.ScopeInitializer;
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.ConfigurableCacheFactory;
+import com.oracle.coherence.cdi.server.ScopeInitializer;
 import com.tangosol.net.NamedCache;
 
 import io.helidon.microprofile.grpc.client.GrpcProxy;

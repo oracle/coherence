@@ -8,6 +8,7 @@ package com.oracle.coherence.cdi;
 
 import com.oracle.coherence.cdi.data.Account;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.InvocableMap;
@@ -39,22 +40,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InjectableIT
     {
-
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
-                                                          .addExtension(new CoherenceExtension())
-                                                          .addBeanClass(CacheFactoryUriResolver.Default.class)
-                                                          .addBeanClass(ConfigurableCacheFactoryProducer.class)
                                                           .addBeanClass(CurrencyConverter.class)
                                                           .addBeanClass(TestObservers.class));
-
-    @Inject
-    @Scope("injectable-config.xml")
-    private ConfigurableCacheFactory ccf;
 
     @Test
     void testNsfWithdrawal()
         {
+        ConfigurableCacheFactory ccf = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("injectable-config.xml", null);
         ccf.activate();
 
         NamedCache<String, Account> accounts = ccf.ensureCache("accounts", null);

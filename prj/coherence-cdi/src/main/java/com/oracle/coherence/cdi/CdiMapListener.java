@@ -36,7 +36,7 @@ import javax.enterprise.inject.spi.ObserverMethod;
  * @author Aleks Seovic  2020.04.14
  * @since 20.06
  */
-class CdiMapListener<K, V>
+public class CdiMapListener<K, V>
         implements MapListener<K, V>
     {
     CdiMapListener(ObserverMethod<MapEvent<K, V>> observer, Set<Annotation> annotations)
@@ -134,7 +134,7 @@ class CdiMapListener<K, V>
      *
      * @return  {@code true} if this listener has a filter annotation to resolve
      */
-    boolean hasFilterAnnotation()
+    public boolean hasFilterAnnotation()
         {
         return m_setAnnFilter != null && !m_setAnnFilter.isEmpty();
         }
@@ -144,7 +144,7 @@ class CdiMapListener<K, V>
      *
      * @param producer  the {@link FilterProducer} to use to resolve the {@link Filter}
      */
-    void resolveFilter(FilterProducer producer)
+    public void resolveFilter(FilterProducer producer)
         {
         if (m_setAnnFilter != null && !m_setAnnFilter.isEmpty())
             {
@@ -157,7 +157,7 @@ class CdiMapListener<K, V>
      *
      * @return  {@code true} if this listener has a transformer annotation to resolve
      */
-    boolean hasTransformerAnnotation()
+    public boolean hasTransformerAnnotation()
         {
         return m_annTransformer != null || m_annExtractor != null;
         }
@@ -168,7 +168,7 @@ class CdiMapListener<K, V>
      * @param producer  the {@link MapEventTransformerProducer} to use to resolve
      *                  the {@link MapEventTransformer}
      */
-    void resolveTransformer(MapEventTransformerProducer producer)
+    public void resolveTransformer(MapEventTransformerProducer producer)
         {
         if (m_annTransformer != null)
             {
@@ -185,7 +185,7 @@ class CdiMapListener<K, V>
      *
      * @return the {@link Filter} that should be used when registering this listener
      */
-    Filter<?> getFilter()
+    public Filter<?> getFilter()
         {
         return m_filter;
         }
@@ -196,7 +196,7 @@ class CdiMapListener<K, V>
      * @return the {@link MapEventTransformer} that should be used when registering this listener
      */
     @SuppressWarnings("rawtypes")
-    MapEventTransformer getTransformer()
+    public MapEventTransformer getTransformer()
         {
         return m_transformer;
         }
@@ -207,7 +207,7 @@ class CdiMapListener<K, V>
      *
      * @return the name of the cache this listener is for
      */
-    String getCacheName()
+    public String getCacheName()
         {
         return m_sCacheName;
         }
@@ -218,7 +218,7 @@ class CdiMapListener<K, V>
      *
      * @return the name of the cache this listener is for
      */
-    String getServiceName()
+    public String getServiceName()
         {
         return m_sServiceName;
         }
@@ -229,7 +229,7 @@ class CdiMapListener<K, V>
      *
      * @return the name of the cache this listener is for
      */
-    String getScopeName()
+    public String getScopeName()
         {
         return m_sScopeName;
         }
@@ -363,7 +363,6 @@ class CdiMapListener<K, V>
      * An optional {@link Filter} to use to filter observed map events.
      */
     private Filter<?> m_filter;
-
 
     /**
      * An optional {@link MapEventTransformer} to use to transform observed map events.

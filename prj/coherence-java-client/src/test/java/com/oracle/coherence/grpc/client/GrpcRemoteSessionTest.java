@@ -8,8 +8,11 @@
 package com.oracle.coherence.grpc.client;
 
 import com.oracle.coherence.cdi.Scope;
+
 import io.helidon.config.Config;
 import io.helidon.config.MapConfigSource;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;

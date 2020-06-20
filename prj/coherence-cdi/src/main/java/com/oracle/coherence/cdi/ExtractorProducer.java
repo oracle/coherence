@@ -38,7 +38,7 @@ import javax.inject.Inject;
  * @since 20.06
  */
 @ApplicationScoped
-class ExtractorProducer
+public class ExtractorProducer
     {
     // ---- constructors ----------------------------------------------------
 
@@ -68,7 +68,7 @@ class ExtractorProducer
      * @return an instance of a {@link ValueExtractor}
      */
     @Produces
-    <T, E> ValueExtractor<T, E> getValueExtractor(InjectionPoint injectionPoint)
+    public <T, E> ValueExtractor<T, E> getValueExtractor(InjectionPoint injectionPoint)
         {
         Annotated annotated = injectionPoint.getAnnotated();
 
@@ -136,7 +136,7 @@ class ExtractorProducer
      */
     @PropertyExtractor("")
     @ApplicationScoped
-    static class UniversalExtractorSupplier
+    public static class UniversalExtractorSupplier
             implements ExtractorFactory<PropertyExtractor, Object, Object>
         {
         @Override
@@ -156,7 +156,7 @@ class ExtractorProducer
      */
     @PropertyExtractor.Extractors({})
     @ApplicationScoped
-    static class UniversalExtractorsSupplier
+    public static class UniversalExtractorsSupplier
             implements ExtractorFactory<PropertyExtractor.Extractors, Object, Object>
         {
         @Override
@@ -185,7 +185,7 @@ class ExtractorProducer
      */
     @ChainedExtractor("")
     @ApplicationScoped
-    static class ChainedExtractorSupplier
+    public static class ChainedExtractorSupplier
             implements ExtractorFactory<ChainedExtractor, Object, Object>
         {
         @Override
@@ -205,7 +205,7 @@ class ExtractorProducer
      */
     @ChainedExtractor.Extractors({})
     @ApplicationScoped
-    static class ChainedExtractorsSupplier
+    public static class ChainedExtractorsSupplier
             implements
             ExtractorFactory<ChainedExtractor.Extractors, Object, Object>
         {
@@ -235,7 +235,7 @@ class ExtractorProducer
      */
     @PofExtractor()
     @ApplicationScoped
-    static class PofExtractorSupplier
+    public static class PofExtractorSupplier
             implements ExtractorFactory<PofExtractor, Object, Object>
         {
         @Override
@@ -277,7 +277,7 @@ class ExtractorProducer
      */
     @PofExtractor.Extractors({})
     @ApplicationScoped
-    static class PofExtractorsSupplier
+    public static class PofExtractorsSupplier
             implements
             ExtractorFactory<PofExtractor.Extractors, Object, Object>
         {

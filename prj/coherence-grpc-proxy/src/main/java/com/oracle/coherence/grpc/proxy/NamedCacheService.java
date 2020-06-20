@@ -14,7 +14,7 @@ import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
 import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.SerializerProducer;
+import com.oracle.coherence.cdi.server.SerializerProducer;
 
 import com.oracle.coherence.grpc.AddIndexRequest;
 import com.oracle.coherence.grpc.AggregateRequest;

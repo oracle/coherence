@@ -8,9 +8,7 @@ package com.oracle.coherence.grpc.client;
 
 import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.SerializerProducer;
 
-import com.oracle.coherence.common.util.Options;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;

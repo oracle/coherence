@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2020 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns:cdi="class://com.oracle.coherence.cdi.server.CdiNamespaceHandler"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <interceptors>
+    <interceptor>
+      <instance>
+        <cdi:bean>registrationListener</cdi:bean>
+      </instance>
+    </interceptor>
+    <interceptor>
+      <instance>
+        <cdi:bean>activationListener</cdi:bean>
+      </instance>
+    </interceptor>
+  </interceptors>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>distributed-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>numbers</cache-name>
+      <scheme-name>distributed-scheme</scheme-name>
+      <interceptors>
+        <interceptor>
+          <instance>
+            <cdi:bean>cacheListener</cdi:bean>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>distributed-scheme</scheme-name>
+      <service-name>TestCache</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true
+      </local-storage>
+      <partition-listener>
+        <cdi:bean>partitionListener</cdi:bean>
+      </partition-listener>
+      <member-listener>
+        <cdi:bean>memberListener</cdi:bean>
+      </member-listener>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <cdi:bean>cacheStore</cdi:bean>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+      <interceptors>
+        <interceptor>
+          <instance>
+            <cdi:bean>storageListener</cdi:bean>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>

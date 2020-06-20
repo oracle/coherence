@@ -53,6 +53,13 @@
 
     <!-- test dependencies -->
 
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-cdi-server</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- this will pull in things like JUnit, Hamcrest, Mockito etc... -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
