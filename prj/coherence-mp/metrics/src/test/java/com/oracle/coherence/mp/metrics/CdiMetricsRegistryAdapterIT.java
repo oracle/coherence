@@ -7,6 +7,7 @@
 package com.oracle.coherence.mp.metrics;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
+import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
@@ -39,6 +40,7 @@ class CdiMetricsRegistryAdapterIT
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
+                                                          .addExtension(new CoherenceServerExtension())
                                                           .addBeanClass(TestAdapter.class));
 
     @Inject
