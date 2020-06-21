@@ -5,7 +5,7 @@ name: Deploy to Synoki Nexus
 
 on:
   push:
-    branches: [ master ]
+    branches: [ v20.06 ]
 
 jobs:
   build:
