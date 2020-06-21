@@ -724,7 +724,7 @@ public class ManagementInfoResourceTests
     public void testJfrWithAllNodes()
             throws Exception
         {
-        // This test requires Flight Recorder and only runs on ORacle JVMs
+        // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
         Response response = getBaseTarget().path(DIAGNOSTIC_CMD)
@@ -786,7 +786,7 @@ public class ManagementInfoResourceTests
     public void testJfrWithRole()
             throws Exception
         {
-        // This test requires Flight Recorder and only runs on ORacle JVMs
+        // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
         String  sFilePath = "target" + File.separator + "test-output"  + File.separator + "functional" + File.separator;
@@ -815,6 +815,9 @@ public class ManagementInfoResourceTests
     public void testMemberJfr()
             throws Exception
         {
+        // This test requires Flight Recorder and only runs on Oracle JVMs
+        CheckJDK.assumeOracleJDK();
+
         File     folder   = s_tempFolder.newFolder();
         String   sJfr1    = folder.getCanonicalPath() + File.separator + "foo1.jfr";
         String   sJfr2    = folder.getCanonicalPath() + File.separator + "foo2.jfr";
@@ -889,6 +892,9 @@ public class ManagementInfoResourceTests
     public void testJmxJfr()
             throws Exception
         {
+        // This test requires Flight Recorder and only runs on Oracle JVMs
+        CheckJDK.assumeOracleJDK();
+
         MBeanServerConnection mBeanServer;
         ObjectName            oName;
 
