@@ -174,22 +174,22 @@ class CdiMapListenerIT
 
         private final List<MapEvent<String, String>> transformedEvents = new ArrayList<>();
 
-        Integer getEvents(int id)
+        synchronized Integer getEvents(int id)
             {
             return events.get(id);
             }
 
-        public List<MapEvent<String, Person>> getFilteredEvents()
+        synchronized public List<MapEvent<String, Person>> getFilteredEvents()
             {
             return filteredEvents;
             }
 
-        public List<MapEvent<String, String>> getTransformedEvents()
+        synchronized public List<MapEvent<String, String>> getTransformedEvents()
             {
             return transformedEvents;
             }
 
-        private void record(MapEvent<String, Person> event)
+        synchronized private void record(MapEvent<String, Person> event)
             {
             System.out.println(event);
             events.compute(event.getId(), (k, v) -> v == null ? 1 : v + 1);
