@@ -29,9 +29,6 @@ import com.tangosol.net.SimpleServiceMonitor;
 
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.application.LifecycleEvent;
-import com.tangosol.net.events.federation.FederatedChangeEvent;
-import com.tangosol.net.events.federation.FederatedConnectionEvent;
-import com.tangosol.net.events.federation.FederatedPartitionEvent;
 import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.net.events.partition.UnsolicitedCommitEvent;
@@ -148,49 +145,6 @@ public class CoherenceServerExtension
         {
         m_listInterceptors.add(new UnsolicitedCommitEventHandler(event.getObserverMethod()));
         }
-
-    // >>>> COMMERCIAL FEATURE ----------------------------------------------
-
-    /**
-      * Process observer methods for {@link FederatedConnectionEvent}s.
-      *
-      * @param event  the event to process
-      */
-     private void processFederatedConnectionEventObservers(
-             @Observes ProcessObserverMethod<FederatedConnectionEvent, ?> event)
-         {
-         FederationEventHandlers.FederatedConnectionEventHandler eventHandler =
-                 new FederationEventHandlers.FederatedConnectionEventHandler(event.getObserverMethod());
-         m_listInterceptors.add(eventHandler);
-         }
-
-    /**
-      * Process observer methods for {@link FederatedChangeEvent}s.
-      *
-      * @param event  the event to process
-      */
-     private void processFederatedChangeEventObservers(
-             @Observes ProcessObserverMethod<FederatedChangeEvent, ?> event)
-         {
-         FederationEventHandlers.FederatedChangeEventHandler eventHandler =
-                 new FederationEventHandlers.FederatedChangeEventHandler(event.getObserverMethod());
-         m_listInterceptors.add(eventHandler);
-         }
-
-    /**
-      * Process observer methods for {@link FederatedPartitionEvent}s.
-      *
-      * @param event  the event to process
-      */
-     private void processFederatedPartitionEventObservers(
-             @Observes ProcessObserverMethod<FederatedPartitionEvent, ?> event)
-         {
-         FederationEventHandlers.FederatedPartitionEventHandler eventHandler =
-                 new FederationEventHandlers.FederatedPartitionEventHandler(event.getObserverMethod());
-         m_listInterceptors.add(eventHandler);
-         }
-
-    // <<<< COMMERCIAL FEATURE ----------------------------------------------
 
     // ---- lifecycle support -----------------------------------------------
 
