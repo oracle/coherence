@@ -30,11 +30,6 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-cdi</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
     <!--
       additional compile and runtime dependencies, marked as
@@ -59,6 +54,12 @@
 
     <!-- test dependencies -->
 
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-cdi-server</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-mp-config</artifactId>
