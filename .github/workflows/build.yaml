@@ -44,10 +44,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Set up JDK
-      uses: actions/setup-java@v1
-      with:
-        java-version: '11'
+    - name: Install OpenJDK 11
+      run: apt-get install default-jdk
+
+    - name: Print Maven & Java version
+      run: mvn -version
 
     - name: Cache Maven packages
       uses: actions/cache@v1
