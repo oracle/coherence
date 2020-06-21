@@ -11,6 +11,7 @@ name: CI Build
 on:
   push:		
     branches-ignore:
+    - gh-pages
     - p4-integ*
     - last-p4-*
   pull_request:
@@ -45,16 +46,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Download OpenJDK 14
-      uses: sormuras/download-jdk@v1
-      with:
-        feature: 14
-        
-    - name: Setup OpenJDK 14
+    - name: Set up JDK
       uses: actions/setup-java@v1
       with:
-        java-version: ${{ env.JDK_VERSION }}
-        jdkFile: ${{ env.JDK_FILE }}
+        java-version: 11
 
     - name: Print Maven & Java version
       run: mvn -version
@@ -66,24 +61,18 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2-
 
-      # First run a simple compile and unit tests
+      # First run a simple compile without tests
     - name: Build
       shell: bash
-      env:
-        MAVEN_USER: ${{ secrets.MavenUser }}
-        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml -U --batch-mode -e -s .github/maven/synoki.xml -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -DskipTests clean install
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
       shell: bash
-      env:
-        MAVEN_USER: ${{ secrets.MavenUser }}
-        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
+        mvn --file prj/pom.xml --batch-mode -e -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
     
