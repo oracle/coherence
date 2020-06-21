@@ -44,8 +44,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Install OpenJDK 11
-      run: apt-get install default-jdk
+    - name: Download OpenJDK 11
+      uses: sormuras/download-jdk@v1
+      with:
+        feature: 11
+        
+    - name: Setup OpenJDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ env.JDK_VERSION }}
+        jdkFile: ${{ env.JDK_FILE }}
 
     - name: Print Maven & Java version
       run: mvn -version
