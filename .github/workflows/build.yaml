@@ -83,14 +83,14 @@ jobs:
         mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
 
     # Upload build artifacts for diagnosing failures
-    - name: Build Artifacts: test logs
+    - name: Build Artifacts test logs
       uses: actions/upload-artifact@v2
       if: failure()
       with:
         name: test-output
         path: prj/**/target/test-output/**/*
 
-    - name: Build Artifacts: test reports
+    - name: Build Artifacts test reports
       uses: actions/upload-artifact@v2
       if: failure()
       with:
