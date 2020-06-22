@@ -55,41 +55,9 @@ public class SimpleRecoveryDynamicQuorumTests
     @BeforeClass
     public static void _startup()
         {
-        try
-            {
-            s_fileActive   = FileHelper.createTempDir();
-            s_fileSnapshot = FileHelper.createTempDir();
-            s_fileTrash    = FileHelper.createTempDir();
+        System.setProperty("tangosol.coherence.cacheconfig", CFG_FILE);
 
-            System.setProperty("test.persistence.active.dir",    s_fileActive.getAbsolutePath());
-            System.setProperty("test.persistence.snapshot.dir",  s_fileSnapshot.getAbsolutePath());
-            System.setProperty("test.persistence.trash.dir",     s_fileTrash.getAbsolutePath());
-            System.setProperty("tangosol.coherence.cacheconfig", CFG_FILE);
-
-            AbstractFunctionalTest._startup();
-            }
-        catch (IOException e)
-            {
-            throw ensureRuntimeException(e);
-            }
-        }
-
-    /**
-     * Shutdown the test class.
-     */
-    @AfterClass
-    public static void shutdown()
-        {
-        try
-            {
-            FileHelper.deleteDir(s_fileActive);
-            FileHelper.deleteDir(s_fileSnapshot);
-            FileHelper.deleteDir(s_fileTrash);
-            }
-        catch (IOException e)
-            {
-            // ignore
-            }
+        AbstractFunctionalTest._startup();
         }
 
     // ----- tests ----------------------------------------------------------
@@ -130,6 +98,14 @@ public class SimpleRecoveryDynamicQuorumTests
         {
         try
             {
+            s_fileActive   = FileHelper.createTempDir();
+            s_fileSnapshot = FileHelper.createTempDir();
+            s_fileTrash    = FileHelper.createTempDir();
+
+            props.setProperty("test.persistence.active.dir",    s_fileActive.getAbsolutePath());
+            props.setProperty("test.persistence.snapshot.dir",  s_fileSnapshot.getAbsolutePath());
+            props.setProperty("test.persistence.trash.dir",     s_fileTrash.getAbsolutePath());
+
             NamedCache              cache       = getNamedCache("dynamic-quorum");
             DistributedCacheService service     = (DistributedCacheService) cache.getCacheService();
             String                  sServerName = "testDynamic_" + sTest;
@@ -183,9 +159,13 @@ public class SimpleRecoveryDynamicQuorumTests
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
             CacheFactory.shutdown();
 
-            FileHelper.deleteDir(s_fileActive);
-            FileHelper.deleteDir(s_fileSnapshot);
-            FileHelper.deleteDir(s_fileTrash);
+            FileHelper.deleteDirSilent(s_fileActive);
+            FileHelper.deleteDirSilent(s_fileSnapshot);
+            FileHelper.deleteDirSilent(s_fileTrash);
+
+            Eventually.assertDeferred(() -> s_fileActive.exists(), is(false));
+            Eventually.assertDeferred(() -> s_fileSnapshot.exists(), is(false));
+            Eventually.assertDeferred(() -> s_fileSnapshot.exists(), is(false));
             }
         }
 
