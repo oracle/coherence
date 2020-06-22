@@ -2824,36 +2824,44 @@ public class ManagementInfoResourceTests
         }
 
     protected LinkedHashMap readEntity(WebTarget target, Response response, Entity entity)
-            throws ProcessingException
+            throws RuntimeException
         {
-        ProcessingException pe;
-        
+        RuntimeException re;
+
         try
             {
             return response.readEntity(LinkedHashMap.class);
             }
-        catch (ProcessingException e)
+        catch (RuntimeException e)
             {
-            // try again
-            if (e.getCause() instanceof SocketException)
-                {
-                if (entity == null)
-                    {
-                    response = target.request().get();
-                    }
-                else
-                    {
-                    response = target.request().post(entity);
-                    }
-                assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            CacheFactory.log(getClass().getName() + ".readEntity() got an exception: " + e
+                    + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_WARN);
 
+            // try again
+            if (entity == null)
+                {
+                response = target.request().get();
+                }
+            else
+                {
+                response = target.request().post(entity);
+                }
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+            try
+                {
                 return response.readEntity(LinkedHashMap.class);
                 }
+            catch (RuntimeException e2)
+                {
+                CacheFactory.log(getClass().getName() + ".readEntity() got exception again: " + e
+                        + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_ERR);
+                }
 
-            pe = e;
+            re = e;
             }
 
-        throw pe;
+        throw re;
         }
 
     // ----- static helpers -------------------------------------------------
