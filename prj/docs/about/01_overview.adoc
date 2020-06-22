@@ -8,22 +8,23 @@
 :description: Oracle Coherence documentation
 :keywords: coherence, java, documentation
 
-== Overview
-
 Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably
-storing data. The product is used at scale, for both compute and raw storage, in a vast array of industries including
-critical financial trading systems, high performance telecommunication products and eCommerce applications to name but
-a few. Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death
-detection, application data evolvability, and the robust, battle-hardened core of the product allowing it to be seamlessly
-deployed and adapt within any ecosystem.
+storing data. The product is used at scale, for both compute and raw storage, in a vast array of industries such as
+critical financial trading systems, high performance telecommunication products, and eCommerce applications. 
 
-At a high level, Coherence provides an implementation of the all too familiar Map<K,V> interface but rather than storing
-the associated data in the local process it is partitioned (or sharded if you prefer) across a number of designated remote
-nodes. This allows applications to not only distribute (and therefore scale) their storage across multiple processes,
-machines, racks, and data centers but also to perform grid-based processing to truly harness the cpu resources of the
-machines. The Coherence interface NamedCache<K,V> (an extension of Map<K,V) provides methods to query, aggregate
-(map/reduce style) and compute (send functions to storage nodes for locally executed mutations) the data set.
-These capabilities, in addition to numerous other features, allows Coherence to be used as a framework to write robust,
+Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death
+detection, application data evolvability, and the robust, battle-hardened core of the product that enables it to be
+seamlessly deployed and adapted within any ecosystem.
+
+At a high level, Coherence provides an implementation of the familiar Map<K,V> interface but rather than storing
+the associated data in the local process, it is partitioned (or sharded) across a number of designated remote
+nodes. This partitioning enables applications to not only distribute (and therefore scale) their storage across multiple processes,
+machines, racks, and data centers, but also to perform grid-based processing to truly harness the CPU resources of the
+machines. 
+
+The Coherence interface 'NamedCache<K,V>' (an extension of 'Map<K,V>' provides methods to query, aggregate
+(map/reduce style), and compute (send functions to storage nodes for locally executed mutations) the data set.
+These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust,
 distributed applications.
 
 == Get Going
@@ -34,7 +35,7 @@ distributed applications.
 .Coherence
 [icon=explore,link=docs/about/02_introduction.adoc]
 --
-What is Oracle Coherence.
+What is Oracle Coherence?
 --
 
 [CARD]

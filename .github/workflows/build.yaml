@@ -81,4 +81,18 @@ jobs:
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
         mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
-    
+
+    # Upload build artifacts for diagnosing failures
+    - name: Build Artifacts: test logs
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: test-output
+        path: prj/**/target/test-output/**/*
+
+    - name: Build Artifacts: test reports
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: test-reports
+        path: prj/**/target/*-reports/**/*
