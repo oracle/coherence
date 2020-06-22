@@ -1156,7 +1156,7 @@ public class ReadWriteBackingMapTests
         NamedCache           cache       = getNamedCache(sCacheName);
         TestBinaryCacheStore store       = (TestBinaryCacheStore) getStore(cache);
         ReadWriteBackingMap  rwbm        = getReadWriteBackingMap(cache);
-        long                 cDelay      = rwbm.isWriteBehind() ?  rwbm.getWriteBehindMillis() + 100 : 0;
+        long                 cDelay      = rwbm.isWriteBehind() ?  rwbm.getWriteBehindMillis() + 500 : 0;
         LocalCache           mapInternal = (LocalCache) rwbm.getInternalCache();
 
         cache.clear();
@@ -1248,7 +1248,7 @@ public class ReadWriteBackingMapTests
         NamedCache           cache    = getNamedCache(sCacheName);
         TestBinaryCacheStore store    = (TestBinaryCacheStore) getStore(cache);
         ReadWriteBackingMap  rwbm     = getReadWriteBackingMap(cache);
-        long                 cDelay   = rwbm.isWriteBehind() ? rwbm.getWriteBehindMillis() + 100 : 0;
+        long                 cDelay   = rwbm.isWriteBehind() ? rwbm.getWriteBehindMillis() + 500 : 0;
 
         cache.clear();
         store.getStorageMap().clear();
@@ -1320,7 +1320,7 @@ public class ReadWriteBackingMapTests
         NamedCache           cache    = getNamedCache(sCacheName);
         TestBinaryCacheStore store    = (TestBinaryCacheStore) getStore(cache);
         ReadWriteBackingMap  rwbm     = getReadWriteBackingMap(cache);
-        long                 cDelay   = rwbm.isWriteBehind() ? rwbm.getWriteBehindMillis() + 100 : 0;
+        long                 cDelay   = rwbm.isWriteBehind() ? rwbm.getWriteBehindMillis() + 500 : 0;
         Converter            convDown = cache.getCacheService()
                                                 .getBackingMapManager().getContext().getKeyToInternalConverter();
 
@@ -1532,7 +1532,7 @@ public class ReadWriteBackingMapTests
         LocalCache           mapInternal = (LocalCache) rwbm.getInternalCache();
 
         long cDelay = rwbm.isWriteBehind() ?
-                rwbm.getWriteBehindMillis() + 100 : 0;
+                rwbm.getWriteBehindMillis() + 500 : 0;
 
         cache.clear();
         store.getStorageMap().clear();
@@ -1614,7 +1614,7 @@ public class ReadWriteBackingMapTests
         long                 cExpiryMillis = 2000L;
 
         long cDelay = rwbm.isWriteBehind() ?
-                rwbm.getWriteBehindMillis() + 250 : 0;
+                rwbm.getWriteBehindMillis() + 500 : 0;
 
         cache.clear();
         store.getStorageMap().clear();
@@ -2072,7 +2072,7 @@ public class ReadWriteBackingMapTests
         ReadWriteBackingMap  rwbm  = getReadWriteBackingMap(cache);
 
         long cDelay = rwbm.isWriteBehind()
-                        ? rwbm.getWriteBehindMillis() + 100 : 0;
+                        ? rwbm.getWriteBehindMillis() + 500 : 0;
 
         cache.clear();
         store.getStorageMap().clear();
@@ -2110,7 +2110,7 @@ public class ReadWriteBackingMapTests
         ReadWriteBackingMap  rwbm  = getReadWriteBackingMap(cache);
 
         long cDelay = rwbm.isWriteBehind()
-                ? rwbm.getWriteBehindMillis() + 100 : 0;
+                ? rwbm.getWriteBehindMillis() + 500 : 0;
 
         cache.clear();
         map.clear();
