@@ -38,13 +38,23 @@ public interface CacheLifecycleEvent
         }
 
     /**
-     * The name cache that thi event is associated with.
+     * The name cache that this event is associated with.
      *
      * @return the cache that this event is associated with
      */
     public default NamedCache getCache()
         {
         return getService().ensureCache(getCacheName(), null);
+        }
+
+    /**
+     * The scope name that this event is associated with.
+     *
+     * @return the scope name that this event is associated with
+     */
+    public default String getScope()
+        {
+        return getService().getBackingMapManager().getCacheFactory().getScopeName();
         }
 
     // ----- constants ------------------------------------------------------

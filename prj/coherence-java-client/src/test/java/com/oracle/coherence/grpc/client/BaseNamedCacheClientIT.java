@@ -1467,7 +1467,7 @@ abstract class BaseNamedCacheClientIT
     @MethodSource("serializers")
     void shouldSubscribeToEventsForSingleKey(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-01";
+        String                     cacheName = "test-events-" + System.currentTimeMillis();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1500,7 +1500,7 @@ abstract class BaseNamedCacheClientIT
     @MethodSource("serializers")
     void shouldSubscribeToEventsForMultipleKeys(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-02";
+        String                     cacheName = "test-events-" + System.currentTimeMillis();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1534,7 +1534,7 @@ abstract class BaseNamedCacheClientIT
     @MethodSource("serializers")
     void shouldSubscribeToEventsForAllKeys(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-03";
+        String                     cacheName = "test-events-" + System.currentTimeMillis();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1567,7 +1567,7 @@ abstract class BaseNamedCacheClientIT
     @MethodSource("serializers")
     void shouldSubscribeToEventsForFilter(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                      cacheName = "test-events-04";
+        String                      cacheName = "test-events-" + System.currentTimeMillis();
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1603,7 +1603,7 @@ abstract class BaseNamedCacheClientIT
     @Disabled
     void shouldSubscribeToEventsForKeyAndFilter(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                      cacheName = "test-events-04";
+        String                      cacheName = "test-events-" + System.currentTimeMillis();
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
 

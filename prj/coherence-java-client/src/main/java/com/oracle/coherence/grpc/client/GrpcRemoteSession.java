@@ -7,22 +7,25 @@
 package com.oracle.coherence.grpc.client;
 
 import com.oracle.coherence.cdi.Remote;
+import com.oracle.coherence.cdi.RemoteMapLifecycleEvent;
 import com.oracle.coherence.cdi.Scope;
 
+import com.oracle.coherence.cdi.SerializerProducer;
+import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
 import com.tangosol.net.NamedMap;
-import com.tangosol.net.OperationalContext;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
 
+import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
 
+import com.tangosol.util.MapEvent;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 
@@ -77,6 +80,23 @@ public class GrpcRemoteSession
         f_tracing              = builder.ensureTracing();
         f_mapCaches            = new ConcurrentHashMap<>();
         f_deactivationListener = new ClientDeactivationListener<>();
+        f_truncateListener     = new TruncateListener();
+
+        Instance<RemoteMapLifecycleEvent.Dispatcher> instance = null;
+        if (beanManager != null)
+            {
+            Instance<Object> in = beanManager.createInstance();
+            instance = in == null ? null : in.select(RemoteMapLifecycleEvent.Dispatcher.class);
+            }
+
+        if (instance != null && instance.isResolvable())
+            {
+            f_eventDispatcher = instance.get();
+            }
+        else
+            {
+            f_eventDispatcher = RemoteMapLifecycleEvent.Dispatcher.nullImplementation();
+            }
         }
 
     // ----- public methods -------------------------------------------------
@@ -360,6 +380,13 @@ public class GrpcRemoteSession
                 .beanManager(f_beanManager)
                 .build();
 
+        f_eventDispatcher.dispatch(client.getNamedMap(),
+                                   f_sScopeName,
+                                   f_sName,
+                                   null,
+                                   RemoteMapLifecycleEvent.Type.Created);
+
+        client.addDeactivationListener(f_truncateListener);
         client.addDeactivationListener(f_deactivationListener);
         return (AsyncNamedCacheClient<K, V>) client;
         }
@@ -374,6 +401,7 @@ public class GrpcRemoteSession
             implements DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>>
         {
         // ----- DeactivationListener interface -----------------------------
+
         @Override
         public void released(AsyncNamedCacheClient<? super K, ? super V> client)
             {
@@ -383,7 +411,40 @@ public class GrpcRemoteSession
         @Override
         public void destroyed(AsyncNamedCacheClient<? super K, ? super V> client)
             {
-            GrpcRemoteSession.this.f_mapCaches.remove(client.getCacheName());
+            AsyncNamedCacheClient<?, ?> removed = GrpcRemoteSession.this.f_mapCaches.remove(client.getCacheName());
+            if (removed != null)
+                {
+                GrpcRemoteSession.this.f_eventDispatcher.dispatch(removed.getNamedMap(),
+                                                                  f_sScopeName,
+                                                                  f_sName,
+                                                                  null,
+                                                                  RemoteMapLifecycleEvent.Type.Destroyed);
+                }
+            }
+        }
+
+    // ----- inner class: TruncateListener ----------------------------------
+
+    /**
+     * A {@link DeactivationListener} that cleans up the internal caches map
+     * as clients are released or destroyed.
+     */
+    @SuppressWarnings("rawtypes")
+    private class TruncateListener
+            extends AbstractMapListener
+            implements NamedCacheDeactivationListener
+
+        {
+        // ----- NamedCacheDeactivationListener interface -------------------
+
+        @Override
+        public void entryUpdated(MapEvent evt)
+            {
+            GrpcRemoteSession.this.f_eventDispatcher.dispatch((NamedMap<?, ?>) evt.getMap(),
+                                                              f_sScopeName,
+                                                              f_sName,
+                                                              null,
+                                                              RemoteMapLifecycleEvent.Type.Truncated);
             }
         }
 
@@ -627,7 +688,7 @@ public class GrpcRemoteSession
             else
                 {
                 GrpcChannelsProvider provider = GrpcChannelsProvider.builder(f_config.get("grpc")).build();
-                return (ManagedChannel) provider.channel(channel);
+                return provider.channel(channel);
                 }
             }
 
@@ -699,7 +760,6 @@ public class GrpcRemoteSession
             else
                 {
                 return SerializerProducer.builder()
-                        .context((OperationalContext) CacheFactory.getCluster())
                         .beanManager(m_beanManager)
                         .build()
                         .getNamedSerializer(format, Base.getContextClassLoader());
@@ -835,6 +895,11 @@ public class GrpcRemoteSession
     private final BeanManager f_beanManager;
 
     /**
+     * The producer to fire remote map lifecycle events.
+     */
+    private final RemoteMapLifecycleEvent.Dispatcher f_eventDispatcher;
+
+    /**
      * The {@link AsyncNamedCacheClient} instances managed by this session.
      */
     private final Map<String, AsyncNamedCacheClient<?, ?>> f_mapCaches;
@@ -845,6 +910,12 @@ public class GrpcRemoteSession
      */
     @SuppressWarnings("rawtypes")
     private final ClientDeactivationListener f_deactivationListener;
+
+    /**
+     * The {@link TruncateListener} that will raise lifecycle events when
+     * a map is truncated.
+     */
+    private final TruncateListener f_truncateListener;
 
     /**
      * A list of {@link DeactivationListener} instances to be notified if this

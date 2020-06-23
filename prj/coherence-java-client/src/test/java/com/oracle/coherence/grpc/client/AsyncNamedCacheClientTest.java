@@ -16,7 +16,6 @@ import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
 import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
 
-import com.oracle.coherence.grpc.Requests;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.Serializer;

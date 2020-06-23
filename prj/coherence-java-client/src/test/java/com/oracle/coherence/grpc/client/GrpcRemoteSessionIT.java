@@ -22,6 +22,7 @@ import io.helidon.config.Config;
 
 import io.helidon.microprofile.server.Server;
 
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.BeanManager;
 
 import javax.enterprise.inject.spi.CDI;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.CoreMatchers.any;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -55,7 +57,7 @@ class GrpcRemoteSessionIT
         {
         System.setProperty("mp.initializer.allow",  "true");
         System.setProperty("coherence.ttl",         "0");
-        System.setProperty("coherence.clustername", "RemoteSessionIT");
+        System.setProperty("coherence.clustername", "GrpcRemoteSessionIT");
         s_server = Server.create().start();
         }
 
@@ -154,6 +156,8 @@ class GrpcRemoteSessionIT
         ManagedChannel channel     = mock(ManagedChannel.class);
         BeanManager    beanManager = mock(BeanManager.class);
 
+        when(beanManager.createInstance()).thenReturn(null);
+
         GrpcRemoteSession session = GrpcRemoteSession.builder()
                 .serializer(serializer, format)
                 .channel(channel)
@@ -177,6 +181,8 @@ class GrpcRemoteSessionIT
         BeanManager    beanManager = mock(BeanManager.class);
         Config         config      = Config.builder().build();
 
+        when(beanManager.createInstance()).thenReturn(null);
+
         GrpcRemoteSession session = GrpcRemoteSession.builder(config)
                 .serializer(serializer, format)
                 .channel(channel)
@@ -198,6 +204,8 @@ class GrpcRemoteSessionIT
         String         format      = "foo";
         ManagedChannel channel     = mock(ManagedChannel.class);
         BeanManager    beanManager = mock(BeanManager.class);
+
+        when(beanManager.createInstance()).thenReturn(null);
 
         GrpcRemoteSession session = GrpcRemoteSession.builder(null)
                 .serializer(serializer, format)
@@ -259,6 +267,7 @@ class GrpcRemoteSessionIT
         ManagedChannel channel     = mock(ManagedChannel.class);
         BeanManager    beanManager = mock(BeanManager.class);
 
+        when(beanManager.createInstance()).thenReturn(null);
         when(serializer.getName()).thenReturn("foo");
 
         GrpcRemoteSession session = GrpcRemoteSession.builder()

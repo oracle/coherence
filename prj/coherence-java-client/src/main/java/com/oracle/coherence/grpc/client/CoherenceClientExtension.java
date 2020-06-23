@@ -21,7 +21,7 @@ import javax.enterprise.inject.spi.Extension;
  * @author Jonathan Knight  2020.01.10
  * @since 20.06
  */
-public class ClientCdiExtension
+public class CoherenceClientExtension
         implements Extension
     {
     /**

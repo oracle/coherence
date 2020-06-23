@@ -49,7 +49,7 @@ class NamedCacheClientCdiIT
     static void setupBaseTest()
         {
         System.setProperty("coherence.ttl",         "0");
-        System.setProperty("coherence.clustername", "NamedCacheServiceIT");
+        System.setProperty("coherence.clustername", "NamedCacheClientCdiIT");
         System.setProperty("coherence.cache.config",  "coherence-config.xml");
         System.setProperty("coherence.pof.config",  "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled", "true");

@@ -13,8 +13,10 @@ import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.UnsafeByteOperations;
 
+import com.oracle.coherence.cdi.RemoteMapLifecycleEvent;
 import com.oracle.coherence.cdi.Scope;
 
+import com.oracle.coherence.cdi.SerializerProducer;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.ContainsEntryRequest;
 import com.oracle.coherence.grpc.Entry;
@@ -123,11 +125,11 @@ public class AsyncNamedCacheClient<K, V>
      * @param serializer  the {@link Serializer} to use
      * @param sFormat     the name of the serialization format
      */
-    AsyncNamedCacheClient(String            sScopeName,
-                          String            sCacheName,
-                          NamedCacheService service,
-                          Serializer        serializer,
-                          String            sFormat)
+    AsyncNamedCacheClient(String                             sScopeName,
+                          String                             sCacheName,
+                          NamedCacheService                  service,
+                          Serializer                         serializer,
+                          String                             sFormat)
         {
         f_sScopeName                = sScopeName == null ? Scope.DEFAULT : sScopeName;
         f_sCacheName                = sCacheName;
@@ -1177,15 +1179,15 @@ public class AsyncNamedCacheClient<K, V>
                 .setType(MapListenerRequest.RequestType.INIT)
                 .build();
 
-        this.m_evtResponseObserver = new EventStreamObserver(request.getUid());
-        this.m_evtRequestObserver  = f_service.events(m_evtResponseObserver);
-        this.m_listenerSupport     = new MapListenerSupport();
-        this.m_aEvtFilter          = new SparseArray<>();
+        m_evtResponseObserver = new EventStreamObserver(request.getUid());
+        m_evtRequestObserver  = f_service.events(m_evtResponseObserver);
+        m_listenerSupport     = new MapListenerSupport();
+        m_aEvtFilter          = new SparseArray<>();
         // initialise the bi-directional stream so that this client will receive
         // destroy and truncate events
-        this.m_evtRequestObserver.onNext(request);
+        m_evtRequestObserver.onNext(request);
         // wait for the init request to complete
-        this.m_evtResponseObserver.whenSubscribed().toCompletableFuture().join();
+        m_evtResponseObserver.whenSubscribed().toCompletableFuture().join();
         }
 
     /**
@@ -1503,6 +1505,27 @@ public class AsyncNamedCacheClient<K, V>
         if (listener != null)
             {
             f_listDeactivationListeners.add(listener);
+            }
+        }
+
+    /**
+     * Add a {@link NamedCacheDeactivationListener} that will be notified when this
+     * {@link AsyncNamedCacheClient} is released or destroyed.
+     *
+     * @param listener  the listener to add
+     */
+    protected synchronized void addDeactivationListener(NamedCacheDeactivationListener listener)
+        {
+        if (listener != null)
+            {
+            if (m_fReleased || m_fDestroyed)
+                {
+                listener.entryDeleted(createDeactivationEvent(m_fDestroyed));
+                }
+            else
+                {
+                f_listCacheDeactivationListeners.add(listener);
+                }
             }
         }
 
@@ -1901,7 +1924,7 @@ public class AsyncNamedCacheClient<K, V>
         protected FutureStreamObserver(CompletableFuture<R> future, R initialResult, BiFunction<T, R, R> function)
             {
             f_future = future;
-            this.m_result = initialResult;
+            m_result = initialResult;
             f_function = function;
             }
 
@@ -2103,7 +2126,6 @@ public class AsyncNamedCacheClient<K, V>
                             }
 
                         }
-                    LOGGER.log(Level.INFO, "Cache " + response.getTruncated().getCache() + " is truncated! ");
                     break;
                 case RESPONSETYPE_NOT_SET:
                     LOGGER.log(Level.INFO, "Received unexpected event without response type! ");
@@ -2154,7 +2176,7 @@ public class AsyncNamedCacheClient<K, V>
          */
         protected WrapperDeactivationListener(MapListener<? super K, ? super V> listener)
             {
-            this.m_listener = listener;
+            m_listener = listener;
             }
 
         // ----- DeactivationListener interface -----------------------------
@@ -2208,11 +2230,11 @@ public class AsyncNamedCacheClient<K, V>
             f_config     = config;
             try
                 {
-                this.m_beanManager = CDI.current().getBeanManager();
+                m_beanManager = CDI.current().getBeanManager();
                 }
             catch (IllegalStateException e)
                 {
-                this.m_beanManager = null;
+                m_beanManager = null;
                 }
             }
 
@@ -2225,7 +2247,7 @@ public class AsyncNamedCacheClient<K, V>
          */
         public Builder<K, V> channel(Channel channel)
             {
-            this.m_channel = channel;
+            m_channel = channel;
             return this;
             }
 
@@ -2234,7 +2256,7 @@ public class AsyncNamedCacheClient<K, V>
          *
          * @param beanManager  the optional {@link BeanManager} to use in a CDI environment
          *
-         * @return the optional {@link BeanManager} to use in a CDI environment
+         * @return this {@link Builder}
          */
         public Builder<K, V> beanManager(BeanManager beanManager)
             {
@@ -2254,8 +2276,8 @@ public class AsyncNamedCacheClient<K, V>
          */
         public Builder<K, V> serializer(Serializer serializer)
             {
-            this.m_serializer = serializer;
-            this.m_format     = serializer == null ? null : serializer.getName();
+            m_serializer = serializer;
+            m_format     = serializer == null ? null : serializer.getName();
             return this;
             }
 
@@ -2269,26 +2291,29 @@ public class AsyncNamedCacheClient<K, V>
          */
         public Builder<K, V> serializer(Serializer serializer, String sFormat)
             {
-            this.m_serializer = serializer;
-            this.m_format     = sFormat;
+            m_serializer = serializer;
+            m_format     = sFormat;
             return this;
             }
 
         @Override
         public AsyncNamedCacheClient<K, V> build()
             {
-            Channel           chan    = getChannel().orElseGet(() -> GrpcChannelsProvider.create(f_config).channel("default"));
-            NamedCacheService service = GrpcProxyBuilder.create(chan, NamedCacheService.class).build();
-            String            fmt     = getFormat().orElse("java");
+            Channel           channel    = getChannel().orElseGet(() -> GrpcChannelsProvider.create(f_config).channel("default"));
+            NamedCacheService service    = GrpcProxyBuilder.create(channel, NamedCacheService.class).build();
+            String            format     = getFormat().orElse("java");
+            Serializer        serializer = getSerializer().orElse(buildSerializer(format));
 
-            SerializerProducer serializerProducer = SerializerProducer.builder().beanManager(m_beanManager).build();
-            Serializer         ser                = getSerializer().orElse(
-                    serializerProducer.getNamedSerializer(fmt, Base.getContextClassLoader()));
-
-            return new AsyncNamedCacheClient<>(f_sScopeName, f_sCacheName, service, ser, fmt);
+            return new AsyncNamedCacheClient<>(f_sScopeName, f_sCacheName, service, serializer, format);
             }
 
         // ----- helper methods ---------------------------------------------
+
+        private Serializer buildSerializer(String format)
+            {
+            SerializerProducer serializerProducer = SerializerProducer.builder().beanManager(m_beanManager).build();
+            return serializerProducer.getNamedSerializer(format, Base.getContextClassLoader());
+            }
 
         /**
          * Return the {@link Channel}, if any.

@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.cdi.server;
+package com.oracle.coherence.cdi;
 
 import com.oracle.coherence.cdi.Name;
 
+import com.oracle.coherence.cdi.SerializerProducer;
+import com.oracle.coherence.cdi.data.Person;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.WriteBuffer;
@@ -30,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -42,14 +45,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @ExtendWith(WeldJunit5Extension.class)
 class SerializerProducerIT
     {
-
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addBeanClass(CustomSerializer.class)
                                                           .addBeanClass(CtorBean.class)
                                                           .addBeanClass(SerializerFieldsBean.class)
-                                                          .addBeanClass(SerializerProducer.class)
-                                                          .addBeanClass(ClusterProducer.class));
+                                                          .addBeanClass(SerializerProducer.class));
 
     @Test
     void shouldGetDynamicSerializer()
@@ -83,6 +84,18 @@ class SerializerProducerIT
         SerializerFieldsBean bean = weld.select(SerializerFieldsBean.class).get();
         assertThat(bean.getPof(), is(notNullValue()));
         assertThat(bean.getPof(), is(instanceOf(ConfigurablePofContext.class)));
+        }
+
+    @Test
+    void shouldInjectPofSerializerWithConfigUsingFieldName()
+        {
+        SerializerFieldsBean bean = weld.select(SerializerFieldsBean.class).get();
+        Serializer serializer = bean.getPofWithURI();
+        assertThat(serializer, is(notNullValue()));
+        assertThat(serializer, is(instanceOf(ConfigurablePofContext.class)));
+        ConfigurablePofContext pofContext = (ConfigurablePofContext) serializer;
+        int id = pofContext.getUserTypeIdentifier(Person.class);
+        assertThat(id, is(not(0)));
         }
 
     @Test
@@ -120,6 +133,11 @@ class SerializerProducerIT
         private Serializer pof;
 
         @Inject
+        @Name("pof")
+        @ConfigUri("test-pof-config.xml")
+        private Serializer pofWithURI;
+
+        @Inject
         @Name("custom")
         private Serializer custom;
 
@@ -136,6 +154,11 @@ class SerializerProducerIT
         Serializer getPof()
             {
             return pof;
+            }
+
+        Serializer getPofWithURI()
+            {
+            return pofWithURI;
             }
 
         Serializer getCustom()
