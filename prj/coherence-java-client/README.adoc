@@ -42,7 +42,13 @@ The following sections describe different injection points in more detail.
 * <<inject-coherence-objects,Injecting Coherence Objects into CDI Beans>>
  ** <<inject-namedmap,Injecting `NamedMap`, `NamedCache`, and related objects>>
  ** <<inject-session,`Session` Injection>>
-
+* <<cdi-events,Using CDI Observers to Handle Coherence Map or Cache Events>>
+ ** <<cdi-event-types,Observer specific event types>>
+ ** <<cdi-events-filter,Filter the events to be observed>>
+ ** <<cdi-events-transform,Transform the events to be observed>>
+ ** <<cdi-events-session,Observe events for maps and caches owned by a specific `Session`>>
+ ** <<cdi-events-scopes,Observe events for maps and caches in specific scopes or services>>
+ ** <<cdi-events-async,Using Asynchronous Observers>>
 
 [#connections]
 === Remote Connections
@@ -243,3 +249,215 @@ private Session session;
 <1> The `@Remote` qualifier has the value `products`, so the `Session` injected here will be configured from the
 `coherence.sessions.products` session configuration.
 
+
+[#cdi-events]
+=== Using CDI Observers to Handle Map Entry Events
+
+The Coherence `NamedMap` and `NamedCache` APIs allow implementations of `MapListener` to be added that will then
+receive events as map/cache entries get inserted, updated or deleted. When using CDI it is possible to subscribe
+to the same events using CDI observer methods.
+
+
+For example, to observe events raised by a `NamedMap` with the name `people`, with keys of type `Long` and values of
+type `Person`, you would define a CDI observer such as this one:
+
+[source,java]
+----
+private void onMapChange(@Observes
+                         @Remote
+                         @MapName("people") EntryEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+NOTE: The important qualifier here is the `@Remote` annotation. This tells the Coherence CDI extensions that the map
+or cache to be observed is a remote cache.
+
+The `Observes` qualifier is what makes this method a standard CDI observer.
+
+The `MapName` qualifier determines which map/cache to observer. If this qualifier is not present events from all caches
+will be observed.
+
+[#cdi-event-types]
+==== Observe Specific Event Types
+
+The observer method above will receive all events for the `people` map, but you can also control the types of events
+received using event type qualifiers.
+
+
+|===
+|Qualifier |Description
+
+|`@Inserted`
+|Observes insert events, raised when new entries are added to a map or cache.
+
+|`@Updated`
+|Observes update events, raised when entries in a map or cache are modified.
+
+|`@Removed`
+|Observes removed events, raised when entries are removed from a map or cache.
+|===
+
+For example:
+
+[source,java]
+----
+private void onUpdate(@Observes @Updated @MapName("people") EntryEvent<Long, Person> event) {
+    // handle UPDATED events raised by the 'people' map/cache
+}
+
+private void onAddOrRemove(@Observes @Inserted @Removed @MapName("people") EntryEvent<?, ?> event) {
+    // handle INSERTED and REMOVED events raised by the 'people' map/cache
+}
+----
+
+The first observer method above will observe only update events.
+Multiple event type qualifiers can be added, so the second observer method will observer insert or delete events.
+
+
+[#cdi-events-filter]
+==== Filter Observed Events
+
+The events observed can be restricted further by using a Coherence `Filter`.
+If a filter has been specified, the events will be filtered on the server and will never be sent to the client.
+The filter that will be used is specified using a qualifier annotation that is itself annotated with `@FilterBinding`.
+
+You can implement a <<filter-bindings,Custom FilterBinding>> (recommended), or use a built-in `@WhereFilter` for
+convenience, which allows you to specify a filter using CohQL.
+
+For example to receive all event types in the `people` map, but only for `People` with a `lastName` property value of
+`Smith`, the built-in `@WhereFilter` annotation can be used:
+
+[source,java]
+----
+@WhereFilter("lastName = 'Smith'")
+private void onMapChange(@Observes @Remote @MapName("people") EntryEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+
+[#cdi-events-transform]
+==== Transform Observed Events
+
+When an event observer does not want to receive the full cache or map value in an event, the event can be transformed
+into a different value to be observed. This is achieved using a `MapEventTransformer` that is applied to the observer
+method using either an `ExtractorBinding` annotation or a `MapEventTransformerBinding` annotation.
+Transformation of events happens on the server so can make observer's more efficient as they do not need to receive
+the original event with the full old and new values.
+
+*Transforming Events Using ExtractorBinding Annotations*
+
+An `ExtractorBinding` annotation is an annotation that represents a Coherence `ValueExtractor`.
+When an observer method has been annotated with an `ExtractorBinding` annotation the resulting `ValueExtractor` is
+applied to the event's values, and a new event will be returned to the observer containing just the extracted
+properties.
+
+For example, an event observer that is observing events from a map named `people`, but only requires the last name,
+the built in `@PropertyExtractor` annotation can be used.
+
+[source,java]
+----
+@PropertyExtractor("lastName")
+private void onMapChange(@Observes @Remote @MapName("people") EntryEvent<Long, String> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+Unlike the previous examples above the received events of type `EntryEvent<Long, Person>` this method will receive
+events of type `EntryEvent<Long, String>` because the property extractor will be applied to the `Person`
+values in the original event to extract just the `lastName` property, creating a new event with `String` values.
+
+There are a number of built in `ExtractorBinding` annotations, and it is also possible to create custom
+`ExtractorBinding` annotation - see the <<custom-extractor,Custom ExtractorBinding Annotations>> section below.
+
+Multiple extractor binding annotations can be added to an injection point, in which case multiple properties will be
+extracted, and the event will contain a `List` of the extracted property values.
+
+For example, if the `Person` also contains an `address` field of type `Address` that contains a `city` field, this
+can be extracted with a `@ChainedExtractor` annotation. By combining this with the `@PropertyExtractor` in the
+example above both the `lastName` and `city` can be observed in the event.
+[source,java]
+----
+@PropertyExtractor("lastName")
+@ChainedExtractor({"address", "city"})
+private void onMapChange(@Observes @Remote @MapName("people") EntryEvent<Long, List<String>> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+Note, now the event is of type `EntryEvent<Long, List<String>>` because multiple extracted values will be returned the
+event value is a `List` and in this case both properties are of tyep `String`, so the value can be `List<String>`.
+
+
+*Transforming Events Using MapEventTransformerBinding Annotations*
+
+If more complex event transformations are required than just extracting properties from event values, a custom
+`MapEventTransformerBinding` can be created that will produce a custom `MapEventTransformer` instance that will be
+applied to the observer's events.
+See the <<custom-transformer,Custom MapEventTransformerBinding Annotations>> section below for details on how to create
+`MapEventTransformerBinding` annotations.
+
+
+
+[#cdi-events-session]
+==== Observe Events for Maps and Caches from Specific Sessions
+
+In addition, to the `@MapName` qualifier, you can also specify a `Session` name as a way to limit the events received
+to maps or caches from a specific `Session`. This is achieved by specifying a value for the `@Remote` qualifier.
+See the <<sessions,Sessions>> section for more details on multiple `Session`s.
+
+For example:
+
+[source,java]
+----
+private void onMapChange(@ObservesAsync
+                         @Remote("test")
+                         @MapName("people") EntryEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache owned by the test Session.
+}
+----
+
+In the example above the `@Remote` qualifier has a value `test`, so the events will only be observed from the `people`
+map owned by the `Session` named `test`.
+
+
+[#cdi-events-scopes]
+==== Observe Events for Maps and Caches from Specific Server-side Scopes
+
+In addition, to the `@MapName` qualifier, you can also specify a scope name as a way to limit the events received
+to maps or caches from a specific server-side scope name.
+This is achieved by specifying a value for the `@Scope` qualifier.
+See the <<sessions,Sessions>> section for more details on multiple `Session`s.
+
+For example:
+
+[source,java]
+----
+private void onMapChange(@ObservesAsync
+                         @Remote
+                         @Scope("employees")
+                         @MapName("people") EntryEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache owned by the employees scope.
+}
+----
+
+In the example above the `@Scope` qualifier has a value `employees`, so the events will only be observed from the
+`people` map in by the scope named `employees` on the server.
+
+
+[#cdi-events-async]
+==== Using Asynchronous Observers
+
+All the examples above used synchronous observers by specifying the `@Observes` qualifier for each observer method.
+However, Coherence CDI fully supports asynchronous CDI observers as well.
+All you need to do is replace `@Observes` with `@ObservesAsync` in any of the examples above.
+
+[source,java]
+----
+private void onMapChange(@ObservesAsync
+                         @Remote
+                         @MapName("people") EntryEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----

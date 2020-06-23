@@ -206,7 +206,7 @@ private NamedTopic<Order> orders;
 ----
 
 In the example above we've assumed that the topic name you want to inject is the same as the name of the field you are
-injecting into, in this case ``orders``.
+injecting into, in this case `orders`.
 If that's not the case, you  can use `@Name` qualifier to specify the name of the topic you want to obtain explicitly:
 
 [source,java]
@@ -231,7 +231,7 @@ public void setOrdersTopic(@Name("orders") NamedTopic<Order> orders) {
 }
 ----
 
-All of the examples above assume that you want to use the default scope, which is often, but not always the case.
+All the examples above assume that you want to use the default scope, which is often, but not always the case.
 For example, you may have an Extend client that connects to multiple Coherence clusters, in which case you would have
 multiple scopes.
 
@@ -287,7 +287,7 @@ Topic metadata, such as topic name (based on either injection point name or the 
 scope and message type, will be used under the hood to retrieve the `NamedTopic`, and to obtain `Publisher` or
 `Subscriber` from it.
 
-Additionally, if you want to place your ``Subscriber``s into a subscriber group (effectively turning a topic into a
+Additionally, if you want to place your `Subscriber`s into a subscriber group (effectively turning a topic into a
 queue), you can easily accomplish that by adding `@SubscriberGroup` qualifier to the injection point:
 
 [source,java]
@@ -329,7 +329,7 @@ private OperationalContext ctx;
 On rare occasions when you need to use either of these directly, Coherence CDI makes it trivial to do so.
 
 To obtain an instance of a default `ConfigurableCacheFactory` or `Session`, all you need to do is inject them into the
-class that needs to use them:
+class which needs to use them:
 
 [source,java]
 ----
@@ -341,7 +341,7 @@ private Session session;
 ----
 
 If you need a specific `ConfigurableCacheFactory` or `Session` you can simply qualify them using `@Scope` qualifier and
-specifying the scope name or the URI of the configuration file to use:
+specifying the scope name, or the URI, of the configuration file to use:
 
 [source,java]
 ----
@@ -405,6 +405,21 @@ as the named serializers defined in the operational config:
 @Name("json")
 private Serializer jsonSerializer;
 ----
+
+===== Inject a POF `Serializer` With a Specific POF Configuration
+
+POF serializers can be injected by using both the `@Name` and `@ConfigUri` qualifiers to inject a POF serializer
+which uses a specific POF configuration file.
+
+[source,java]
+----
+@Inject
+@Name("pof")
+@ConfigUri("test-pof-config.xml")
+private Serializer pofSerializer;
+----
+
+The code above will inject a POF serializer that uses `test-pof-config.xml` as its configuration file.
 
 [#inject-into-coherence]
 === Injecting CDI Beans into Coherence-managed Objects
@@ -509,12 +524,12 @@ public class MyCacheListener
 ----
 
 Also keep in mind that only `@ApplicationScoped` beans can be injected, which implies that they  may be shared.
-For example, because we've used wildcard `*` as a cache name within the cache mapping in the example above, the same
+For example, because we've used a wildcard, `*`, as a cache name within the cache mapping in the example above, the same
 instance of `cacheListener` will receive events from multiple caches.
 
-This is typically fine, as the event itself provides the details about the context that raised it, including cache name
+This is typically fine, as the event itself provides the details about the context that raised it, including cache name,
 and the service it was raised from, but it does imply that any shared state that you may have within your listener class
-shouldn't be context-specific and it must be safe for concurrent access from multiple threads.
+shouldn't be context-specific, and it must be safe for concurrent access from multiple threads.
 If you can't guarantee the latter, you may want to declare the `onEvent` method as `synchronized`, to ensure only one
 thread at a time can access any shared state you may have.
 
@@ -604,9 +619,9 @@ private void onMapChange(@Observes @MapName("people") EntryEvent<Long, String> e
 
 Unlike the previous examples above the received events of type `EntryEvent<Long, Person>` this method will receive
 events of type `EntryEvent<Long, String>` because the property extractor will be applied to the `Person`
-values in the original event to extract just the `lastName` proeprty, creating a new event with `String` values.
+values in the original event to extract just the `lastName` property, creating a new event with `String` values.
 
-There are a number of built in `ExtractorBinding` annotations and it is also possible to create custom
+There are a number of built in `ExtractorBinding` annotations, and it is also possible to create custom
 `ExtractorBinding` annotation - see the <<custom-extractor,Custom ExtractorBinding Annotations>> section below.
 
 Multiple extractor binding annotations can be added to an injection point, in which case multiple properties will be
@@ -625,12 +640,12 @@ private void onMapChange(@Observes @MapName("people") EntryEvent<Long, List<Stri
 ----
 
 Note, now the event is of type `EntryEvent<Long, List<String>>` because multiple extracted values will be returned the
-event value is a `List` and in this case both properties are of tyep `String` so the value can be `List<String>`.
+event value is a `List` and in this case both properties are of tyep `String`, so the value can be `List<String>`.
 
 
 *Transforming Events Using MapEventTransformerBinding Annotations*
 
-If more complex event transformations are required that just extracitng properties from event values, a custom
+If more complex event transformations are required than just extracting properties from event values, a custom
 `MapEventTransformerBinding` can be created that will produce a custom `MapEventTransformer` instance that will be
 applied to the observer's events.
 See the <<custom-transformer,Custom MapEventTransformerBinding Annotations>> section below for details on how to create
@@ -687,7 +702,7 @@ private void onExecuted(@ObservesAsync @Executed @MapName("people") @Processor(U
 ====
 
 Coherence events fall into two categories: pre- and post-commit events.
-All of the events whose name ends  with `"ing"`, such as `Inserting`, `Updating`, `Removing` or `Executing` are
+All the events whose name ends  with `"ing"`, such as `Inserting`, `Updating`, `Removing` or `Executing` are
 pre-commit, which means that they can either modify the data or even veto the operation by throwing an exception,
 but in  order to do so they must be synchronous to ensure that they are executed on the same thread that is
 executing the operation that triggered the event.
@@ -749,7 +764,7 @@ public class InjectableBean
 ----
 
 Assuming that you have the following `Converter` service implementation in your application, it will be injected
-into `InjectableBean` during deserialization and the `getConvertedText` method will return the value of the `text`
+into `InjectableBean` during deserialization, and the `getConvertedText` method will return the value of the `text`
 field converted to upper case:
 
 [source,java]
