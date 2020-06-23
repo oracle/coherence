@@ -55,6 +55,10 @@ p {
     color: #939699!important;
 }
 
+.navigation-drawer > .list > .list--group__container > .list--group:after {
+ content: none;
+}
+
 pre, code {
     display: inline;
     word-break: break-word;
@@ -171,6 +175,27 @@ ul.ulist {
 .navLogo img{
     width:32px!important;
     height:32px!important;
+}
+
+.docNav {
+    overflow-y: scroll;
+}
+
+.docNav .list__tile:after {
+  content: none!important;
+}
+
+.docNav .list--group:after {
+  content: none!important;
+}
+
+ul.navGroups {
+    display: block!important;
+    box-shadow: none!important;
+}
+
+ul.navGroups > li.expansion-panel__container > div.expansion-panel__header {
+    padding: 0!important;
 }
 
 .vuetify .list__tile__avatar img{

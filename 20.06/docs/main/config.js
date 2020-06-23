@@ -1,9 +1,9 @@
 function createConfig() {
     return {
         home: "docs/about/01_overview",
-        release: "14.1.2-0-0-SNAPSHOT",
+        release: "20.06",
         releases: [
-            "14.1.2-0-0-SNAPSHOT"
+            "20.06"
         ],
         pathColors: {
             "*": "blue-grey"
@@ -17,7 +17,7 @@ function createConfig() {
             success: '#4CAF50',
             warning: '#FFC107'
         },
-        navTitle: 'Oracle Coherence',
+        navTitle: 'Oracle Coherence CE',
         navIcon: null,
         navLogo: 'docs/images/logo.png'
     };
@@ -65,19 +65,6 @@ function createRoutes(){
             component: loadPage('docs-about-03_quickstart', '/docs/about/03_quickstart', {})
         },
         {
-            path: '/coherence-cdi/README',
-            meta: {
-                h1: 'Coherence CDI',
-                title: 'Coherence CDI',
-                h1Prefix: null,
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: true
-            },
-            component: loadPage('coherence-cdi-README', '/coherence-cdi/README', {})
-        },
-        {
             path: '/coherence-mp/README',
             meta: {
                 h1: 'Coherence MP',
@@ -117,6 +104,19 @@ function createRoutes(){
             component: loadPage('coherence-mp-metrics-README', '/coherence-mp/metrics/README', {})
         },
         {
+            path: '/coherence-grpc/README',
+            meta: {
+                h1: 'Coherence gRPC',
+                title: 'Coherence gRPC',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('coherence-grpc-README', '/coherence-grpc/README', {})
+        },
+        {
             path: '/coherence-grpc-proxy/README',
             meta: {
                 h1: 'Coherence gRPC Server',
@@ -130,17 +130,30 @@ function createRoutes(){
             component: loadPage('coherence-grpc-proxy-README', '/coherence-grpc-proxy/README', {})
         },
         {
-            path: '/coherence-grpc-proxy-client/README',
+            path: '/coherence-java-client/README',
             meta: {
-                h1: 'Coherence gRPC Client',
-                title: 'Coherence gRPC Client',
+                h1: 'Coherence Java Client',
+                title: 'Coherence Java Client',
                 h1Prefix: null,
                 description: null,
                 keywords: null,
                 customLayout: null,
                 hasNav: true
             },
-            component: loadPage('coherence-grpc-proxy-client-README', '/coherence-grpc-proxy-client/README', {})
+            component: loadPage('coherence-java-client-README', '/coherence-java-client/README', {})
+        },
+        {
+            path: '/coherence-cdi-server/README',
+            meta: {
+                h1: 'Coherence CDI',
+                title: 'Coherence CDI',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: false
+            },
+            component: loadPage('coherence-cdi-server-README', '/coherence-cdi-server/README', {})
         },
         {
             path: '/docs/README',
@@ -166,7 +179,11 @@ function createRoutes(){
 
 function createNav(){
     return [
-        { header: 'Core documentation' },
+        {
+            groups: [
+            ]
+        }
+        ,{ header: 'Core documentation' },
         {
             title: 'About',
             action: 'assistant',
@@ -182,7 +199,6 @@ function createNav(){
             action: 'extension',
             group: '/coherence-cdi',
             items: [
-                { href: '/coherence-cdi/README', title: 'Coherence CDI' }
             ]
         },
         {
@@ -198,16 +214,16 @@ function createNav(){
         {
             title: 'Coherence gRPC',
             action: 'settings_ethernet',
-            group: '/coherence-grpc-proxy',
+            group: '/coherence-grpc',
             items: [
+                { href: '/coherence-grpc/README', title: 'Coherence gRPC' },
                 { href: '/coherence-grpc-proxy/README', title: 'Coherence gRPC Server' },
-                { href: '/coherence-grpc-proxy-client/README', title: 'Coherence gRPC Client' }
+                { href: '/coherence-java-client/README', title: 'Coherence Java Client' }
             ]
         },
-        { divider: true },
-        { header: 'Additional Resources' },
+        ,{ header: 'Additional Resources' },
         {
-            title: 'Commercial Product Docs',
+            title: 'Official Documentation',
             action: 'import_contacts',
             href: 'https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html',
             target: '_blank'

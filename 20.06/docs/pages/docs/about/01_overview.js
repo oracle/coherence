@@ -1,24 +1,39 @@
 <doc-view>
 
-<h2 id="_overview">Overview</h2>
-<div class="section">
-<p>Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably
-storing data. The product is used at scale, for both compute and raw storage, in a vast array of industries including
-critical financial trading systems, high performance telecommunication products and eCommerce applications to name but
-a few. Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death
-detection, application data evolvability, and the robust, battle-hardened core of the product allowing it to be seamlessly
-deployed and adapt within any ecosystem.</p>
+<v-layout row wrap>
+<v-flex xs12 sm10 lg10>
+<v-card class="section-def" v-bind:color="$store.state.currentColor">
+<v-card-text class="pa-3">
+<v-card class="section-def__card">
+<v-card-text>
+<dl>
+<dt slot=title>Overview</dt>
+<dd slot="desc"><p>Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably
+storing data. The product is used at scale, for both compute and raw storage, in a vast array of industries such as
+critical financial trading systems, high performance telecommunication products, and eCommerce applications.</p>
 
-<p>At a high level, Coherence provides an implementation of the all too familiar Map&lt;K,V&gt; interface but rather than storing
-the associated data in the local process it is partitioned (or sharded if you prefer) across a number of designated remote
-nodes. This allows applications to not only distribute (and therefore scale) their storage across multiple processes,
-machines, racks, and data centers but also to perform grid-based processing to truly harness the cpu resources of the
-machines. The Coherence interface NamedCache&lt;K,V&gt; (an extension of Map&lt;K,V) provides methods to query, aggregate
-(map/reduce style) and compute (send functions to storage nodes for locally executed mutations) the data set.
-These capabilities, in addition to numerous other features, allows Coherence to be used as a framework to write robust,
+<p>Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death
+detection, application data evolvability, and the robust, battle-hardened core of the product that enables it to be
+seamlessly deployed and adapted within any ecosystem.</p>
+
+<p>At a high level, Coherence provides an implementation of the familiar Map&lt;K,V&gt; interface but rather than storing
+the associated data in the local process, it is partitioned (or sharded) across a number of designated remote
+nodes. This partitioning enables applications to not only distribute (and therefore scale) their storage across multiple processes,
+machines, racks, and data centers, but also to perform grid-based processing to truly harness the CPU resources of the
+machines.</p>
+
+<p>The Coherence interface 'NamedMap&lt;K,V&gt;' (an extension of 'Map&lt;K,V&gt;' provides methods to query, aggregate
+(map/reduce style), and compute (send functions to storage nodes for locally executed mutations) the data set.
+These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust,
 distributed applications.</p>
-
-</div>
+</dd>
+</dl>
+</v-card-text>
+</v-card>
+</v-card-text>
+</v-card>
+</v-flex>
+</v-layout>
 
 <h2 id="_get_going">Get Going</h2>
 <div class="section">
@@ -43,7 +58,7 @@ distributed applications.</p>
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>What is Oracle Coherence.</p>
+<p>What is Oracle Coherence?</p>
 </v-card-text>
 </v-card>
 </v-flex>
@@ -124,7 +139,7 @@ distributed applications.</p>
 <v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="/coherence-cdi/README"><div class="card__link-hover"/>
+<router-link to="#coherence-cdi/README.adoc" @click.native="this.scrollFix('#coherence-cdi/README.adoc')"><div class="card__link-hover"/>
 </router-link>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">
