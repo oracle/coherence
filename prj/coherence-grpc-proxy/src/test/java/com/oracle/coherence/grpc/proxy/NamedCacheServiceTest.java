@@ -13,7 +13,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 
 import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.server.SerializerProducer;
+import com.oracle.coherence.cdi.SerializerProducer;
 
 import com.oracle.coherence.grpc.AggregateRequest;
 import com.oracle.coherence.grpc.BinaryHelper;

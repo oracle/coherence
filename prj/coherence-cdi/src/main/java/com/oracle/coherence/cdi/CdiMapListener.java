@@ -17,7 +17,6 @@ import com.oracle.coherence.cdi.events.Synchronous;
 import com.oracle.coherence.cdi.events.Updated;
 
 import com.tangosol.util.Filter;
-import com.tangosol.util.Filters;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.MapListener;
@@ -77,6 +76,10 @@ public class CdiMapListener<K, V>
                 {
                 addType(Type.DELETED);
                 }
+            else if (a instanceof Remote)
+                {
+                m_sRemoteSession = ((Remote) a).value();
+                }
             }
 
         if (annotations.contains(Lite.Literal.INSTANCE))
@@ -128,6 +131,27 @@ public class CdiMapListener<K, V>
     // ---- helpers ---------------------------------------------------------
 
     /**
+     * Returns {@code true} if this listener is for a remote resource.
+     *
+     * @return  {@code true} if this listener is for a remote resource
+     */
+    public boolean isRemote()
+        {
+        return m_sRemoteSession != null;
+        }
+
+    /**
+     * Return the name of the remote session this listener is for, or {@code null} if
+     * it should be registered regardless of the session name.
+     *
+     * @return  the name of the remote session this listener is for
+     */
+    public String getRemoteSessionName()
+        {
+        return m_sRemoteSession;
+        }
+
+    /**
      * Returns {@code true} if this listener has a filter annotation to resolve.
      *
      * @return  {@code true} if this listener has a filter annotation to resolve
@@ -139,12 +163,14 @@ public class CdiMapListener<K, V>
 
     /**
      * Resolve this listener's filter annotation into a {@link Filter} instance.
+     * <p>
+     * If this listener's filter has already been resolved this operation is a no-op.
      *
      * @param producer  the {@link FilterProducer} to use to resolve the {@link Filter}
      */
     public void resolveFilter(FilterProducer producer)
         {
-        if (m_setAnnFilter != null && !m_setAnnFilter.isEmpty())
+        if (m_filter == null && m_setAnnFilter != null && !m_setAnnFilter.isEmpty())
             {
             m_filter = producer.resolve(m_setAnnFilter);
             }
@@ -162,12 +188,19 @@ public class CdiMapListener<K, V>
 
     /**
      * Resolve this listener's transformer annotation into a {@link MapEventTransformer} instance.
+     * <p>
+     * If this listener's transformer has already been resolved this method is a no-op
      *
      * @param producer  the {@link MapEventTransformerProducer} to use to resolve
      *                  the {@link MapEventTransformer}
      */
     public void resolveTransformer(MapEventTransformerProducer producer)
         {
+        if (m_transformer != null)
+            {
+            return;
+            }
+
         if (!m_setAnnTransformer.isEmpty())
             {
             m_transformer = producer.resolve(m_setAnnTransformer);
@@ -346,6 +379,12 @@ public class CdiMapListener<K, V>
      * transform observed map events.
      */
     private final Set<Annotation> m_setAnnExtractor;
+
+    /**
+     * The name of the remote session if this listener is for a remote resource
+     * or {@code null} if this listener is for a local resource.
+     */
+    private String m_sRemoteSession;
 
     /**
      * A flag indicating whether to subscribe to lite-events.

@@ -4,13 +4,11 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.cdi.server;
+package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.cdi.CdiMapListener;
-import com.oracle.coherence.cdi.CoherenceExtension;
 import com.oracle.coherence.cdi.events.Created;
 
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.Filter;
@@ -38,17 +36,43 @@ import javax.inject.Inject;
 @ApplicationScoped
 public class CdiMapListenerManager
     {
-    private void registerListeners(@Observes @Created CacheLifecycleEvent event)
+    private void registerCacheListeners(@Observes @Created CacheLifecycleEvent event)
         {
-        Set<CdiMapListener<?, ?>> setListeners = m_extension.getMapListeners(removeScope(event.getServiceName()), event.getCacheName());
+        registerListeners(event.getCache(), event.getScope(), null, event.getServiceName());
+        }
 
-        NamedCache cache       = event.getCache();
-        String     sEventScope = cache.getCacheService().getBackingMapManager().getCacheFactory().getScopeName();
+    private void registerRemoteListeners(@Observes @Created RemoteMapLifecycleEvent event)
+        {
+        registerListeners(event.getMap(), event.getScope(), event.getSessionName(), event.getServiceName());
+        }
+
+    private void registerListeners(NamedMap cache, String sEventScope, String sEventSession, String sEventService)
+        {
+        Set<CdiMapListener<?, ?>> setListeners = m_extension
+                .getMapListeners(removeScope(sEventService), cache.getName());
 
         for (CdiMapListener<?, ?> listener : setListeners)
             {
-            String sScope = listener.getScopeName();
-            if (sScope == null || sScope.equals(sEventScope))
+            if (listener.hasFilterAnnotation())
+                {
+                // ensure that the listener's filter has been resolved as this
+                // was not possible as discovery time.
+                listener.resolveFilter(m_filterProducer);
+                }
+
+            if (listener.hasTransformerAnnotation())
+                {
+                // ensure that the listener's transformer has been resolved as this
+                // was not possible as discovery time.
+                listener.resolveTransformer(m_transformerProducer);
+                }
+
+            String  sScope     = listener.getScopeName();
+            boolean fScopeOK   = sScope == null || sScope.equals(sEventScope);
+            String  sSession   = listener.getRemoteSessionName();
+            boolean fSessionOK = sSession == null || sSession.equals(sEventSession);
+
+            if (fScopeOK || fSessionOK)
                 {
                 Filter mapEventFilter;
                 Filter filter = listener.getFilter();
@@ -96,6 +120,10 @@ public class CdiMapListenerManager
      */
     private String removeScope(String sServiceName)
         {
+        if (sServiceName == null)
+            {
+            return "";
+            }
         int nIndex = sServiceName.indexOf(':');
         return nIndex > -1 ? sServiceName.substring(nIndex + 1) : sServiceName;
         }
@@ -104,4 +132,10 @@ public class CdiMapListenerManager
 
     @Inject
     private CoherenceExtension m_extension;
+
+    @Inject
+    private FilterProducer m_filterProducer;
+
+    @Inject
+    private MapEventTransformerProducer m_transformerProducer;
     }

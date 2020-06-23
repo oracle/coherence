@@ -5,4 +5,4 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-com.oracle.coherence.grpc.client.ClientCdiExtension
+com.oracle.coherence.grpc.client.CoherenceClientExtension

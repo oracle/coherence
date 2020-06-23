@@ -45,7 +45,7 @@ class GrpcRemoteSessionsIT
     static void setup()
         {
         System.setProperty("coherence.ttl", "0");
-        System.setProperty("coherence.clustername", "NamedCacheServiceCdiIT");
+        System.setProperty("coherence.clustername", "GrpcRemoteSessionsIT");
 
         s_server = Server.create().start();
         }

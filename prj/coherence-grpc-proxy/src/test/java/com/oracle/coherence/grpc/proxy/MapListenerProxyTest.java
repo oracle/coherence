@@ -10,7 +10,7 @@ package com.oracle.coherence.grpc.proxy;
 import com.google.protobuf.ByteString;
 
 import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.server.SerializerProducer;
+import com.oracle.coherence.cdi.SerializerProducer;
 
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.MapEventResponse;

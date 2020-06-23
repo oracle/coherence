@@ -6,6 +6,8 @@
  */
 package com.oracle.coherence.cdi.server;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.coherence.cdi.CdiMapListenerManager;
 import com.oracle.coherence.cdi.CoherenceExtension;
 import com.oracle.coherence.cdi.ConfigUri;
 import com.oracle.coherence.cdi.ExtractorProducer;
@@ -53,9 +55,11 @@ import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import util.EventsHelper;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
  * Integration test for the {@link CdiInterceptorSupport} using the Weld JUnit
@@ -98,9 +102,12 @@ class CdiMapListenerIT
     private TestListener listener;
 
     @Test
-    void testEvents()
+    void testEvents() throws Exception
         {
         NamedCache<String, Person> people = ccf.ensureCache("people", null);
+
+        // Wait for the listener registration as it is async
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(people), is(greaterThanOrEqualTo(3)));
 
         people.put("homer", new Person("Homer", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("marge", new Person("Marge", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
@@ -120,10 +127,6 @@ class CdiMapListenerIT
         assertThat(listener.getEvents(MapEvent.ENTRY_UPDATED), is(2));
         assertThat(listener.getEvents(MapEvent.ENTRY_DELETED), is(4));
 
-        /*
-          as: commented out until we add transformer support that was
-              removed from the server extension back in where appropriate
-              
         // There should be an insert and an update for Bart.
         // The delete for Bart does not match the filter because the lastName
         // had been changed to uppercase.
@@ -145,10 +148,7 @@ class CdiMapListenerIT
         assertThat(transformedEvents.get(2).getNewValue(), is("Bart"));
         assertThat(transformedEvents.get(3).getNewValue(), is("Lisa"));
         assertThat(transformedEvents.get(4).getNewValue(), is("Maggie"));
-
-         */
         }
-
 
     // ---- helper classes --------------------------------------------------
 
@@ -191,7 +191,7 @@ class CdiMapListenerIT
 
         synchronized private void record(MapEvent<String, Person> event)
             {
-            System.out.println(event);
+            System.out.println("Received event: " + event);
             events.compute(event.getId(), (k, v) -> v == null ? 1 : v + 1);
             }
 

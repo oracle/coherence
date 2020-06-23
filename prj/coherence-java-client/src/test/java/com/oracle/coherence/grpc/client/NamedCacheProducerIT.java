@@ -9,7 +9,6 @@ package com.oracle.coherence.grpc.client;
 
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
-import com.oracle.coherence.cdi.Scope;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 
@@ -59,7 +58,7 @@ class NamedCacheProducerIT
     static void setup()
         {
         System.setProperty("coherence.ttl",         "0");
-        System.setProperty("coherence.clustername", "NamedCacheServiceCdiIT");
+        System.setProperty("coherence.clustername", "NamedCacheProducerIT");
 
         s_server = Server.create().start();
         }

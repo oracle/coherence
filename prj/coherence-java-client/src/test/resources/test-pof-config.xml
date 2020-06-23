@@ -17,5 +17,10 @@
             <class-name>com.oracle.coherence.grpc.client.Person</class-name>
         </user-type>
 
+        <user-type>
+            <type-id>2002</type-id>
+            <class-name>com.oracle.coherence.grpc.client.Uppercase</class-name>
+        </user-type>
+
     </user-type-list>
 </pof-config>

@@ -9,7 +9,10 @@ package com.oracle.coherence.mp.config;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
-import com.oracle.coherence.cdi.server.CdiMapListenerManager;
+import com.oracle.coherence.cdi.CdiMapListenerManager;
+import com.oracle.coherence.cdi.ExtractorProducer;
+import com.oracle.coherence.cdi.FilterProducer;
+import com.oracle.coherence.cdi.MapEventTransformerProducer;
 import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -53,6 +56,9 @@ class CoherenceConfigSourceIT
                                                           .addExtension(new CoherenceExtension())
                                                           .addExtension(new CoherenceServerExtension())
                                                           .addBeanClass(CdiMapListenerManager.class)
+                                                          .addBeanClass(FilterProducer.class)
+                                                          .addBeanClass(ExtractorProducer.class)
+                                                          .addBeanClass(MapEventTransformerProducer.class)
                                                           .addBeanClass(TestObserver.class)
                                                           .addBeanClass(CoherenceConfigSource.class));
 
