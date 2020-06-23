@@ -49,7 +49,7 @@
                     </name-service-addresses>
                 </tcp-initiator>
                 <outgoing-message-handler>
-                    <request-timeout>30s</request-timeout>
+                    <request-timeout>60s</request-timeout>
                 </outgoing-message-handler>
             </initiator-config>
         </remote-cache-scheme>
