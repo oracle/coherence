@@ -47,7 +47,7 @@ applications to not only distribute (and therefore scale) their storage across m
 processes, machines, racks, and data centers but also to perform grid-based processing
 to truly harness the CPU resources of the machines. 
 
-The Coherence interface `NamedCache<K,V>` (an extension of `Map<K,V>`) provides methods
+The Coherence interface `NamedMap<K,V>` (an extension of `Map<K,V>`) provides methods
 to query, aggregate (map/reduce style) and compute (send functions to storage nodes
 for locally executed mutations) the data set. These capabilities, in addition to 
 numerous other features, enable Coherence to be used as a framework for writing robust,
@@ -63,12 +63,12 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>14.1.1-0-1</version>
+        <version>20.06</version>
     </dependency>
 </dependencies>
 ```
 
-You can also get Coherence from the official [Docker site](https://hub.docker.com/_/oracle-coherence-12c).
+You can also get Coherence from the official [Docker site](https://hub.docker.com/r/oraclecoherence/coherence-ce).
 For other language clients, use [C++](https://github.com/oracle/coherence-cpp-extend-client) and
 [.NET](https://github.com/oracle/coherence-dotnet-extend-client) and for the non-community
 edition, see [Oracle Technology Network](https://www.oracle.com/middleware/technologies/coherence-downloads.html).
@@ -91,13 +91,12 @@ thus enabling those services to react accordingly.
 Coherence services build on top of the cluster service. The key implementations
 to be aware of are PartitionedService, InvocationService, and ProxyService.
 
-In the majority of cases, customers deal with caches. A cache is represented 
-by an implementation of `NamedCache<K,V>`. Cache is an unfortunate name, as 
-many Coherence customers use Coherence as a system-of-record rather than a lossy
-store of data. A cache is hosted by a service, generally the PartitionedService, 
-and is the entry point to store, retrieve, aggregate, query, and stream data. 
+In the majority of cases, customers deal with maps. A map is represented 
+by an implementation of `NamedMap<K,V>`. A `NamedMap` is hosted by a service, 
+generally the PartitionedService, and is the entry point to store, retrieve, 
+aggregate, query, and stream data.
 
-Caches provide a number of features:
+Coherence Maps provide a number of features:
 
 * Fundamental **key-based access**: get/put getAll/putAll.
 * Client-side and storage-side events:
@@ -117,9 +116,9 @@ those results to produce a final result.
 to execute processing logic for the appropriate entries with exclusive access.
 * **Partition local transactions** - Ability to perform scalable transactions by
 associating data (thus being on the same partition) and manipulating other entries
-on the same partition, potentially across caches.
-* **Non-blocking / async NamedCache API**
-* **C++ and .NET clients** - Access the same NamedCache API from either C++ or .NET.
+on the same partition, potentially across different maps.
+* **Non-blocking / async NamedMap API**
+* **C++ and .NET clients** - Access the same NamedMap API from either C++ or .NET.
 * **Portable Object Format** - Optimized serialization format, with the ability to
 navigate the serialized form for optimized queries, aggregations, or data processing.
 * **Integration with Databases** - Database and third party data integration with
@@ -138,7 +137,7 @@ on distinct machines, racks, or sites, and the ability to maintain multiple back
 * **24/7 Availability** - Zero downtime with rolling redeployment of cluster members
 to upgrade application or product versions.
   * Backward and forward compatibility of product upgrades, including major versions.
-* **Persistent Caches** - Ability to use local file system persistence (thus
+* **Persistent Maps** - Ability to use local file system persistence (thus
 avoid extra network hops) and leverage Coherence consensus protocols to perform
 distributed disk recovery when appropriate.
 * **Distributed State Snapshot** - Ability to perform distributed point-in-time
@@ -182,9 +181,9 @@ and data is once again retrieved to illustrate the permanence of the data.
 
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.06 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-1/coherence-14.1.1-0-1.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.06/coherence-20.06.jar
 
 $> java -jar $COH_JAR &
 
@@ -221,9 +220,9 @@ $> kill %1
 #### <a name="coh-console"></a>Coherence Console
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.06 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-1/coherence-14.1.1-0-1.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.06/coherence-20.06.jar
 
 $> java -jar $COH_JAR &
 
@@ -281,13 +280,13 @@ inserts and retrieves data from the Coherence server.
     <dependency>
      <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>coherence</artifactId>
-    <version>14.1.1-0-1</version>
+    <version>20.06</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
 ```java
     import com.tangosol.net.CacheFactory;
-    import com.tangosol.net.NamedCache;
+    import com.tangosol.net.NamedMap;
 
     public class HelloCoherence
         {
@@ -295,18 +294,18 @@ inserts and retrieves data from the Coherence server.
 
     public static void main(String[] asArgs)
         {
-        NamedCache<String, String> cache = CacheFactory.getCache("welcomes");
+        NamedMap<String, String> map = CacheFactory.getCache("welcomes");
 
-        System.out.printf("Accessing cache \"%s\" containing %d entries\n",
-                cache.getCacheName(),
-                cache.size());
+        System.out.printf("Accessing map \"%s\" containing %d entries\n",
+                map.getName(),
+                map.size());
 
-        cache.put("english", "Hello");
-        cache.put("spanish", "Hola");
-        cache.put("french" , "Bonjour");
+        map.put("english", "Hello");
+        map.put("spanish", "Hola");
+        map.put("french" , "Bonjour");
 
         // list
-        cache.entrySet().forEach(System.out::println);
+        map.entrySet().forEach(System.out::println);
         }
     }
 ```
@@ -314,7 +313,7 @@ inserts and retrieves data from the Coherence server.
 ```shell
      mvn package
 ```
-5. Start a cache Server
+5. Start a Storage Server
 ```shell
    mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
 ```
@@ -329,7 +328,7 @@ inserts and retrieves data from the Coherence server.
     ConverterEntry{Key="spanish", Value="Hola"}
     ConverterEntry{Key="english", Value="Hello"}
 ```
-8. Kill the cache server started previously:
+8. Kill the storage server started previously:
 ```shell
      kill %1
 ```
@@ -372,7 +371,6 @@ Oracle Coherence product documentation is available
 The following Oracle Coherence features are not included in Coherence Community Edition:
 
 * Management of Coherence via the Oracle WebLogic Management Framework
-* WebLogic Server Multitenancy Support
 * Deployment of Grid Archives (GARs)
 * HTTP Session Management for Application Servers (Coherence*Web)
 * GoldenGate HotCache

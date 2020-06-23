@@ -23,12 +23,12 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>14.1.1-0-1</version>
+        <version>20.06</version>
     </dependency>
 </dependencies>
 ----
 
-You can also get Coherence from the official https://hub.docker.com/_/oracle-coherence-12c[Docker image].
+You can also get Coherence from the official https://hub.docker.com/r/oraclecoherence/coherence-ce[Docker image].
 For other language clients, use     (http://github.com/oracle/coherence-cpp-extend-client[C{pp}] and
 http://github.com/oracle/coherence-dotnet-extend-client[.NET]), and for the non-community edition, see https://www.oracle.com/middleware/technologies/coherence-downloads.html[Oracle Technology Network].
 
@@ -55,9 +55,9 @@ To run a CohQL console:
 [source,shell]
 ----
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.06 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-1/coherence-14.1.1-0-1.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.06/coherence-20.06.jar
 
 $> java -jar $COH_JAR &
 
@@ -99,9 +99,9 @@ To run the Coherence console:
 [source,shell]
 ----
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=14.1.1-0-1 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.06 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/14.1.1-0-1/coherence-14.1.1-0-1.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.06/coherence-20.06.jar
 
 $> java -jar $COH_JAR &
 
@@ -155,15 +155,22 @@ The `HelloCoherence` application inserts and retrieves data from the Coherence s
 
 . Create a maven project either manually or by using an archetype such as maven-archetype-quickstart
 . Add a dependency to the pom file:
+[source,xml]
+----
+<dependency>
+  <groupId>com.oracle.coherence.ce</groupId>
+  <artifactId>coherence</artifactId>
+  <version>20.06</version>
+</dependency>
+----
 
-
-1. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
+. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
 
 [source,java]
 .HelloCoherence.java
 ----
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 
 public class HelloCoherence
     {
@@ -171,18 +178,18 @@ public class HelloCoherence
 
     public static void main(String[] asArgs)
         {
-        NamedCache<String, String> cache = CacheFactory.getCache("welcomes");
+        NamedMap<String, String> map = CacheFactory.getCache("welcomes");
 
-        System.out.printf("Accessing cache \"%s\" containing %d entries\n",
-                cache.getCacheName(),
-                cache.size());
+        System.out.printf("Accessing map \"%s\" containing %d entries\n",
+                map.getName(),
+                map.size());
 
-        cache.put("english", "Hello");
-        cache.put("spanish", "Hola");
-        cache.put("french" , "Bonjour");
+        map.put("english", "Hello");
+        map.put("spanish", "Hola");
+        map.put("french" , "Bonjour");
 
         // list
-        cache.entrySet().forEach(System.out::println);
+        map.entrySet().forEach(System.out::println);
         }
     }
 ----
@@ -194,7 +201,7 @@ public class HelloCoherence
 mvn package
 ----
 
-. Start a cache server
+. Start a Storage server
 +
 [source,shell]
 ----
@@ -218,7 +225,7 @@ ConverterEntry{Key="spanish", Value="Hola"}
 ConverterEntry{Key="english", Value="Hello"}
 ----
 
-. Kill the cache server started earlier:
+. Kill the storage server started earlier:
 +
 [source,shell]
 ----
