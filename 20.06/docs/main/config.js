@@ -179,11 +179,7 @@ function createRoutes(){
 
 function createNav(){
     return [
-        {
-            groups: [
-            ]
-        }
-        ,{ header: 'Core documentation' },
+        { header: 'Core documentation' },
         {
             title: 'About',
             action: 'assistant',
@@ -221,7 +217,8 @@ function createNav(){
                 { href: '/coherence-java-client/README', title: 'Coherence Java Client' }
             ]
         },
-        ,{ header: 'Additional Resources' },
+        { divider: true },
+        { header: 'Additional Resources' },
         {
             title: 'Official Documentation',
             action: 'import_contacts',
