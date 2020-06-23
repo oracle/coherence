@@ -102,6 +102,16 @@ public class GrpcRemoteSession
     // ----- public methods -------------------------------------------------
 
     /**
+     * Obtain the name of this session.
+     *
+     * @return  the name of this session
+     */
+    public String getName()
+        {
+        return f_sName;
+        }
+
+    /**
      * Obtain the scope name used to link this {@link RemoteSessions}
      * to the {@link com.tangosol.net.ConfigurableCacheFactory} on the server
      * that has the corresponding scope.
@@ -295,7 +305,7 @@ public class GrpcRemoteSession
      *
      * @return the communication channel
      */
-    protected Channel getChannel()
+    protected ManagedChannel getChannel()
         {
         return f_channel;
         }
@@ -614,9 +624,30 @@ public class GrpcRemoteSession
          */
         protected Config sessionConfig()
             {
-            return this.f_config.get(CFG_KEY_COHERENCE)
-                    .get("sessions")
-                    .get(name());
+            String sName       = name();
+            Config cfgSessions = f_config.get(CFG_KEY_COHERENCE).get("sessions");
+
+            if (!cfgSessions.exists())
+                {
+                return Config.empty();
+                }
+
+            Config cfg = cfgSessions.get(sName);
+
+            if (!cfg.exists())
+                {
+                for (Config cfgNode : cfgSessions.asNodeList().get())
+                    {
+                    Config cfgName = cfgNode.get("name");
+                    if (cfgName.exists() && cfgName.asString().get().equals(sName))
+                        {
+                        cfg = cfgNode;
+                        break;
+                        }
+                    }
+                }
+
+            return cfg;
             }
 
         /**
@@ -666,30 +697,38 @@ public class GrpcRemoteSession
                         .orElse(GrpcChannelsProvider.DEFAULT_CHANNEL_NAME);
                 }
 
-            if (m_beanManager != null)
-                {
-                Instance<Channel> instance = m_beanManager.createInstance()
-                        .select(Channel.class, GrpcChannelLiteral.of(channel));
-                if (instance.isResolvable())
-                    {
-                    return (ManagedChannel) instance.get();
-                    }
-                else if (instance.isAmbiguous())
-                    {
-                    throw new IllegalStateException("Cannot discover Channel for name '" + channel
-                                                    + " bean lookup results in ambiguous bean instances");
-                    }
-                else
-                    {
-                    throw new IllegalStateException("Cannot discover Channel for name '" + channel
-                                                    + " name is unresolvable");
-                    }
-                }
-            else
-                {
-                GrpcChannelsProvider provider = GrpcChannelsProvider.builder(f_config.get("grpc")).build();
-                return provider.channel(channel);
-                }
+// ----- Temporary work around start: ---------------------------------------
+            // ToDo: The line of code below replaces the commented out code due to an
+            // issue in the final 2.0.0 release of Helidon that broke the Helidon GrpcChannelsProvider
+            // when it reads configuration running in an MP environment.
+            return GrpcChannelBuilder.builder(f_config).build().channel(channel);
+
+//            if (m_beanManager != null)
+//                {
+//                Instance<Channel> instance = m_beanManager.createInstance()
+//                        .select(Channel.class, GrpcChannelLiteral.of(channel));
+//                if (instance.isResolvable())
+//                    {
+//                    return (ManagedChannel) instance.get();
+//                    }
+//                else if (instance.isAmbiguous())
+//                    {
+//                    throw new IllegalStateException("Cannot discover Channel for name '" + channel
+//                                                    + " bean lookup results in ambiguous bean instances");
+//                    }
+//                else
+//                    {
+//                    throw new IllegalStateException("Cannot discover Channel for name '" + channel
+//                                                    + " name is unresolvable");
+//                    }
+//                }
+//            else
+//                {
+//                GrpcChannelsProvider provider = GrpcChannelsProvider.builder(f_config.get("grpc")).build();
+//                return provider.channel(channel);
+//                }
+// ----- Temporary work around end: -----------------------------------------
+
             }
 
         /**

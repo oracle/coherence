@@ -72,7 +72,7 @@ public class CdiMapListenerManager
             String  sSession   = listener.getRemoteSessionName();
             boolean fSessionOK = sSession == null || sSession.equals(sEventSession);
 
-            if (fScopeOK || fSessionOK)
+            if (fScopeOK && fSessionOK)
                 {
                 Filter mapEventFilter;
                 Filter filter = listener.getFilter();
@@ -87,12 +87,6 @@ public class CdiMapListenerManager
                 else
                     {
                     mapEventFilter = Filters.always();
-                    }
-
-                MapEventTransformer transformer = listener.getTransformer();
-                if (transformer != null)
-                    {
-                    mapEventFilter = new MapEventTransformerFilter(mapEventFilter, transformer);
                     }
 
                 boolean fLite = listener.isLite();

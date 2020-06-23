@@ -62,7 +62,7 @@ public @interface Scope
          */
         private Literal(String sValue)
             {
-            m_sValue = sValue;
+            m_sValue = sValue == null ? Scope.DEFAULT : sValue;
             }
 
         /**

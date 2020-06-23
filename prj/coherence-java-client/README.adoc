@@ -76,7 +76,7 @@ The example below is a simple configuration for a gRPC channel:
 ----
 grpc:
   channels:
-    default:                   # <1>
+    - name: default            # <1>
       host: storage.acme.com   # <2>
       port: 1408               # <3>
 ----
@@ -92,10 +92,10 @@ The example below shows a configuration with multiple channels, one named `test`
 ----
 grpc:
   channels:
-    test:
+    - name: test
       host: test.storage.acme.com
       port: 1408
-    prod:
+    - name: prod
       host: storage.acme.com
       port: 1408
 ----
@@ -122,7 +122,7 @@ Each session has its own entry in the configuration hierarchy, as shown below:
 ----
 coherence:
   sessions:
-    default:
+    - name: default
       serializer: pof
       channel: default
 ----
@@ -140,19 +140,19 @@ As with channels, multiple sessions can be configured:
 ----
 coherence:
   sessions:
-    test:
+    - name: test
       serializer: pof
       channel: test
-    prod:
+    - name: prod
       serializer: pof
       channel: prod
 
 grpc:
   channels:
-    test:
+    - name: test
       host: test.storage.acme.com
       port: 1408
-    prod:
+    - name: prod
       host: storage.acme.com
       port: 1408
 ----
@@ -251,7 +251,7 @@ private Session session;
 
 
 [#cdi-events]
-=== Using CDI Observers to Handle Map Entry Events
+=== Using CDI Observers to Handle MapEvents
 
 The Coherence `NamedMap` and `NamedCache` APIs allow implementations of `MapListener` to be added that will then
 receive events as map/cache entries get inserted, updated or deleted. When using CDI it is possible to subscribe
@@ -265,7 +265,7 @@ type `Person`, you would define a CDI observer such as this one:
 ----
 private void onMapChange(@Observes
                          @Remote
-                         @MapName("people") EntryEvent<Long, Person> event) {
+                         @MapName("people") MapEvent<Long, Person> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----
@@ -284,7 +284,6 @@ will be observed.
 The observer method above will receive all events for the `people` map, but you can also control the types of events
 received using event type qualifiers.
 
-
 |===
 |Qualifier |Description
 
@@ -294,25 +293,114 @@ received using event type qualifiers.
 |`@Updated`
 |Observes update events, raised when entries in a map or cache are modified.
 
-|`@Removed`
-|Observes removed events, raised when entries are removed from a map or cache.
+|`@Deleted`
+|Observes deleted events, raised when entries are deleted from a map or cache.
 |===
 
 For example:
 
 [source,java]
 ----
-private void onUpdate(@Observes @Updated @MapName("people") EntryEvent<Long, Person> event) {
+private void onUpdate(@Observes @Updated @MapName("people") MapEvent<Long, Person> event) {
     // handle UPDATED events raised by the 'people' map/cache
 }
 
-private void onAddOrRemove(@Observes @Inserted @Removed @MapName("people") EntryEvent<?, ?> event) {
-    // handle INSERTED and REMOVED events raised by the 'people' map/cache
+private void onAddOrRemove(@Observes @Inserted @Deleted @MapName("people") MapEvent<?, ?> event) {
+    // handle INSERTED and DELETED events raised by the 'people' map/cache
 }
 ----
 
 The first observer method above will observe only update events.
 Multiple event type qualifiers can be added, so the second observer method will observer insert or delete events.
+
+[NOTE]
+====
+The client supports connecting to a server using different named `Sessions` and different named `Scopes`.
+The observer methods above are not qualified with either session name or scope name so will observe events for
+*all* maps or caches with the name `people` in *all* sessions and scopes.
+
+In most Coherence use-cases that only use a single client session and a single default server side scope this is not
+an issue but is something to be aware of if using multiple sessiosn or scopes.
+
+See the following sections on how to qualify the observer to restrict the maps and caches it observes.
+====
+
+
+
+[#cdi-events-session]
+==== Observe Events for Maps and Caches from Specific Sessions
+
+In addition, to the `@MapName` qualifier, you can also specify a `Session` name as a way to limit the events received
+to maps or caches from a specific `Session`. This is achieved by specifying a value for the `@Remote` qualifier.
+See the <<sessions,Sessions>> section for more details on multiple `Session`s.
+
+For example:
+
+[source,java]
+----
+private void onMapChange(@Observes
+                         @Remote("test")
+                         @MapName("people") MapEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache owned by the test Session.
+}
+----
+
+In the example above the `@Remote` qualifier has a value `test`, so the events will only be observed from the `people`
+map on the server that corresponds to the map of the same name owned by the client side `Session` named `test`.
+
+[NOTE]
+====
+Maps or caches in different client side `Sessions` may correspond to the same server side map or cache and hence
+events in one server side map or cache can be observed by multiple client side observers.
+
+For example: +
+Suppose a Map named `people` has been created in the default scope on the server. +
+On the client there are two `Sessions` configured, `session-one` and `session-two` but both of these connect to the
+same server and have the same default scope.
+
+The two observers below are on the client:
+[source,java]
+----
+private void onMapChange(@Observes
+                         @Remote("session-one")
+                         @MapName("people") MapEvent<Long, Person> event) {
+    //...
+}
+
+private void onMapChange(@Observes
+                         @Remote("session-two")
+                         @MapName("people") MapEvent<Long, Person> event) {
+    //...
+}
+----
+
+In this case both observer methods are actually observing the same server-side map and will receive the same events
+event though they have different qualifiers.
+====
+
+
+[#cdi-events-scopes]
+==== Observe Events for Maps and Caches from Specific Server-side Scopes
+
+In addition, to the `@MapName` qualifier, you can also specify a scope name as a way to limit the events received
+to maps or caches from a specific server-side scope name.
+This is achieved by specifying a value for the `@ScopeName` qualifier.
+See the <<sessions,Sessions>> section for more details on multiple `Session`s.
+
+For example:
+
+[source,java]
+----
+private void onMapChange(@ObservesAsync
+                         @Remote
+                         @ScopeName("employees")
+                         @MapName("people") MapEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache owned by the employees scope.
+}
+----
+
+In the example above the `@ScopeName` qualifier has a value `employees`, so the events will only be observed from the
+`people` map in by the scope named `employees` on the server.
 
 
 [#cdi-events-filter]
@@ -331,7 +419,7 @@ For example to receive all event types in the `people` map, but only for `People
 [source,java]
 ----
 @WhereFilter("lastName = 'Smith'")
-private void onMapChange(@Observes @Remote @MapName("people") EntryEvent<Long, Person> event) {
+private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, Person> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----
@@ -359,13 +447,13 @@ the built in `@PropertyExtractor` annotation can be used.
 [source,java]
 ----
 @PropertyExtractor("lastName")
-private void onMapChange(@Observes @Remote @MapName("people") EntryEvent<Long, String> event) {
+private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, String> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----
 
-Unlike the previous examples above the received events of type `EntryEvent<Long, Person>` this method will receive
-events of type `EntryEvent<Long, String>` because the property extractor will be applied to the `Person`
+Unlike the previous examples above the received events of type `MapEvent<Long, Person>` this method will receive
+events of type `MapEvent<Long, String>` because the property extractor will be applied to the `Person`
 values in the original event to extract just the `lastName` property, creating a new event with `String` values.
 
 There are a number of built in `ExtractorBinding` annotations, and it is also possible to create custom
@@ -381,12 +469,12 @@ example above both the `lastName` and `city` can be observed in the event.
 ----
 @PropertyExtractor("lastName")
 @ChainedExtractor({"address", "city"})
-private void onMapChange(@Observes @Remote @MapName("people") EntryEvent<Long, List<String>> event) {
+private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, List<String>> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----
 
-Note, now the event is of type `EntryEvent<Long, List<String>>` because multiple extracted values will be returned the
+Note, now the event is of type `MapEvent<Long, List<String>>` because multiple extracted values will be returned the
 event value is a `List` and in this case both properties are of tyep `String`, so the value can be `List<String>`.
 
 
@@ -397,53 +485,6 @@ If more complex event transformations are required than just extracting properti
 applied to the observer's events.
 See the <<custom-transformer,Custom MapEventTransformerBinding Annotations>> section below for details on how to create
 `MapEventTransformerBinding` annotations.
-
-
-
-[#cdi-events-session]
-==== Observe Events for Maps and Caches from Specific Sessions
-
-In addition, to the `@MapName` qualifier, you can also specify a `Session` name as a way to limit the events received
-to maps or caches from a specific `Session`. This is achieved by specifying a value for the `@Remote` qualifier.
-See the <<sessions,Sessions>> section for more details on multiple `Session`s.
-
-For example:
-
-[source,java]
-----
-private void onMapChange(@ObservesAsync
-                         @Remote("test")
-                         @MapName("people") EntryEvent<Long, Person> event) {
-    // handle all events raised by the 'people' map/cache owned by the test Session.
-}
-----
-
-In the example above the `@Remote` qualifier has a value `test`, so the events will only be observed from the `people`
-map owned by the `Session` named `test`.
-
-
-[#cdi-events-scopes]
-==== Observe Events for Maps and Caches from Specific Server-side Scopes
-
-In addition, to the `@MapName` qualifier, you can also specify a scope name as a way to limit the events received
-to maps or caches from a specific server-side scope name.
-This is achieved by specifying a value for the `@Scope` qualifier.
-See the <<sessions,Sessions>> section for more details on multiple `Session`s.
-
-For example:
-
-[source,java]
-----
-private void onMapChange(@ObservesAsync
-                         @Remote
-                         @Scope("employees")
-                         @MapName("people") EntryEvent<Long, Person> event) {
-    // handle all events raised by the 'people' map/cache owned by the employees scope.
-}
-----
-
-In the example above the `@Scope` qualifier has a value `employees`, so the events will only be observed from the
-`people` map in by the scope named `employees` on the server.
 
 
 [#cdi-events-async]
@@ -457,7 +498,7 @@ All you need to do is replace `@Observes` with `@ObservesAsync` in any of the ex
 ----
 private void onMapChange(@ObservesAsync
                          @Remote
-                         @MapName("people") EntryEvent<Long, Person> event) {
+                         @MapName("people") MapEvent<Long, Person> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----

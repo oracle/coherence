@@ -8,40 +8,37 @@
 grpcserver:
   port: 1408
 
-#grpc:
-#  channels:
-#    default:
-#      host: localhost
-#      port: 1408
-#    test:
-#      host: localhost
-#      port: 1408
+grpc:
+  channels:
+    - name: test
+      host: localhst
+      port: 1408
 
 coherence:
   sessions:
 #   test session using the default serializer
-    test:
-#      channel: test
+    - name: test
+      channel: test
       tracing:
         enabled: true
         verbose: true
 #   test session using the Java serializer
-    test-java:
-#      channel: test
+    - name: test-java
+      channel: test
       serializer: java
       tracing:
         enabled: true
         verbose: true
 #   test session using the POF serializer
-    test-pof:
-#      channel: test
+    - name: test-pof
+      channel: test
       serializer: pof
       tracing:
         enabled: true
         verbose: true
 #   test session using the json serializer
-    test-json:
-#      channel: test
+    - name: test-json
+      channel: test
       serializer: json
       tracing:
         enabled: true
