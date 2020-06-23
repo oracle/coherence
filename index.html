@@ -41,7 +41,7 @@
 		<link href="assets/css/color_scheme/red.css" rel="stylesheet" type="text/css" id="color_scheme" />
 
         <!-- Prism CSS (syntax hilighting) -->
-        <link href="assers/css/prism.css" rel="stylesheet" />
+        <link href="assets/css/prism.css" rel="stylesheet" />
 		
         <!-- Modernizr -->
 		<script type="text/javascript" src="assets/plugins/modernizr.min.js"></script>
@@ -541,9 +541,17 @@
 					<div class="row">
 
                         <a name="quickstart"></a>
-						<div class="col-md-6"><!-- title + shortdesc -->
+						<div class="col-md-9"><!-- title + shortdesc -->
                             <h2>Quick <strong>Start</strong></h2>
 							<h4>Did we convince you to <strong>give Coherence a try?</strong></h4>
+                            <p>
+                                The following sections will walk you through the implementation of a simple
+                                To Do List application using Coherence and Helidon, show you how to package
+                                it into a Docker image, run it, and prove that it works.
+                            </p>
+                            <p>
+                                We could've done a simpler, "Hello World"-style app, but where is the fun in that?
+                            </p>
 						</div>
 
 					</div>
@@ -555,144 +563,251 @@
             <section>
                 <div class="container">
                 
-                    <div class="row">
-                        <div class="col-md-5">
-                            <h3><i class="fa fa-play-circle styleColor"></i> Add Dependencies to <code>pom.xml</code></h3>
-                            <p>Coherence lorem ipsum</p>
+                    <div class="row featured-box-minimal">
+                        <div class="col-md-4">
+                            <h4><i class="fa fa-play-circle styleColor"></i> Create Maven Project</h4>
+                            <p>
+                                The <code>pom.xml</code> file is a good starting point for Helidon microservices
+                                that use Coherence as a data store.
+                            </p>
+                            <p>Few things are worth pointing out:</p>
+                            <ol>
+                                <li>
+                                    The parent POM is set to <code>io.helidon.applications:helidon-mp</code> and
+                                    we add Helidon MicroProfile bundle and JSON Binding support as dependencies.
+                                    This ensures that all necessary Helidon dependencies are imported correctly.
+                                </li>
+                                <li>
+                                    We add Coherence CDI Server as a dependency, which ensures that Coherence server
+                                    is started within Helidon application via CDI extension.
+                                </li>
+                                <li>
+                                    We add Coherence MicroProfile Config as a dependency, which allows us to configure
+                                    Coherence using Helidon MP Configuration and changes Coherence logging defaults
+                                    to align Coherence log output with Helidon logging format.
+                                </li>
+                                <li>
+                                    We configure Jandex plugin to index any CDI beans we may have, in order to speed
+                                    up application startup.
+                                </li>
+                                <li>
+                                    We configure Jib plugin within a <code>docker</code> profile, which allows us to
+                                    create Docker image for our service within Maven build, without the need for a
+                                    separate <code>Dockerfile</code>.
+                                </li>
+                            </ol>
                         </div>
                         
-                        <div class="col-md-7">
-                            <p>Embed Gist</p>
+                        <div class="col-md-8">
+                            <pre class="line-numbers" data-src="quickstart/pom.xml"></pre>
                         </div>
                     </div>
                     <hr/>
 
-                    <div class="row">
-                        <div class="col-md-5">
-                            <h3><i class="fa fa-play-circle styleColor"></i> Configure Coherence</h3>
-                            <p>Coherence lorem ipsum</p>
+                    <div class="row featured-box-minimal">
+                        <div class="col-md-4">
+                            <h4><i class="fa fa-play-circle styleColor"></i> Implement Data Model</h4>
+                            <p>
+                                The <code>Task</code> class on the right represents data model for our to-do
+                                items that is used both within REST API (as a way to marshal JSON requests and
+                                responses) and as a storage data model class in Coherence. It is a very simple,
+                                serializable POJO.
+                            </p>
+                            <p>
+                                Coherence provides more efficient serialization mechanisms as well, but
+                                in this example we are using plain Java serialization for simplicity.
+                            </p>
                         </div>
                         
-                        <div class="col-md-7">
-                            <p>Embed Gist</p>
+                        <div class="col-md-8">
+                            <pre class="line-numbers" data-src="quickstart/src/main/java/com/oracle/coherence/examples/todo/Task.java"></pre>
                         </div>
                     </div>
                     <hr/>
 
-                    <div class="row">
-                        <div class="col-md-5">
-                            <h3><i class="fa fa-play-circle styleColor"></i> Implement <code>Person</code> Class</h3>
-                            <p>Coherence lorem ipsum</p>
+                    <div class="row featured-box-minimal">
+                        <div class="col-md-4">
+                            <h4><i class="fa fa-play-circle styleColor"></i> Implement REST API</h4>
+                            <p>
+                                The REST API is implemented as a JAX-RS resource that will be automatically
+                                discovered and deployed by Helidon.
+                            </p>
+                            <p>
+                                Coherence <code>NamedMap</code> instance is injected as a dependency by CDI,
+                                and is used to implement data access logic in the various resource methods.
+                            </p>
+                            <p>
+                                Some of the resource methods, such as <code>createTask</code> and
+                                <code>deleteTask</code> are fairly simple and perform familiar <code>Map.put</code>
+                                and <code>Map.remove</code> operations against Coherence <code>NamedMap</code>.
+                            </p>
+                            <p>
+                                The remaining two methods are a bit more interesting and demonstrate some of
+                                the additional features of <code>NamedMap</code>. The <code>getTasks</code>
+                                method shows usage of Coherence Query API, and calls <code>NamedMap.values</code>
+                                to retrieve filtered, sorted set of results.
+                            </p>
+                            <p>
+                                The <code>updateTask</code> method on the other hand shows an example of
+                                entry processor execution against a single entry by sending a lambda to a
+                                storage member that owns the task with a given identifier, and updating
+                                the task in-place.
+                            </p>
                         </div>
                         
-                        <div class="col-md-7">
-                            <p>Embed Gist</p>
+                        <div class="col-md-8">
+                            <pre class="line-numbers" data-src="quickstart/src/main/java/com/oracle/coherence/examples/todo/ToDoResource.java"></pre>
                         </div>
                     </div>
                     <hr/>
 
-                    <div class="row">
-                        <div class="col-md-5">
-                            <h3><i class="fa fa-play-circle styleColor"></i> Implement <code>Main</code> Class</h3>
-                            <p>Coherence lorem ipsum</p>
+                    <div class="row featured-box-minimal">
+                        <div class="col-md-4">
+                            <h4><i class="fa fa-play-circle styleColor"></i> Enable CDI</h4>
+                            <p>
+                                Our service is a CDI Bean Archive, so we need to make sure it is treated
+                                that way by adding <code>beans.xml</code> file to the <code>resources/META-INF</code>
+                                directory.
+                            </p>
                         </div>
                         
-                        <div class="col-md-7">
-                            <p>Embed Gist</p>
+                        <div class="col-md-8">
+                            <pre class="line-numbers" data-src="quickstart/src/main/resources/META-INF/beans.xml"></pre>
                         </div>
                     </div>
                     <hr/>
 
-                    <div class="row">
-                        <div class="col-md-5">
-                            <h3><i class="fa fa-play-circle styleColor"></i> Run the Application</h3>
-                            <p>Coherence lorem ipsum</p>
+                    <div class="row featured-box-minimal">
+                        <div class="col-md-4">
+                            <h4><i class="fa fa-play-circle styleColor"></i> Configure Logging</h4>
+                            <p>
+                                Both Coherence and Helidon are configured to use Java Logging, so we need
+                                to provide necessary Java Logging configuration by adding <code>logging.properties</code>
+                                file on the right to the <code>resources</code> directory.
+                            </p>
                         </div>
                         
-                        <div class="col-md-7">
-                            <p>Embed Gist</p>
+                        <div class="col-md-8">
+                            <pre class="line-numbers" data-src="quickstart/src/main/resources/logging.properties"></pre>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row featured-box-minimal">
+                        <div class="col-md-4">
+                            <h4><i class="fa fa-play-circle styleColor"></i> Build the Service</h4>
+                            <p>
+                                With all the pieces in place, we are now ready to compile the service and
+                                create a Docker image for it.
+                            </p>
+                        </div>
+
+                        <div class="col-md-8">
+                            <pre class="command-line" data-user="user" data-host="localhost">
+                                <code class="language-bash">
+                                    mvn clean install
+                                    mvn package -P docker
+                                </code>
+                            </pre>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row featured-box-minimal">
+                        <div class="col-md-4">
+                            <h4><i class="fa fa-play-circle styleColor"></i> Run the Service</h4>
+                            <p>
+                                Once the Docker image is created, you can run the service locally.
+                            </p>
+                        </div>
+
+                        <div class="col-md-8">
+                            <pre class="command-line" data-user="user" data-host="localhost">
+                                <code class="language-bash">
+                                    docker run -m 200MB -p 7001:7001 coherence/quickstart
+                                </code>
+                            </pre>
+                        </div>
+                    </div>
+                    <hr/>
+
+                    <div class="row featured-box-minimal">
+                        <div class="col-md-4">
+                            <h4><i class="fa fa-play-circle styleColor"></i> Test the Service</h4>
+                            <p>
+                                Now that the service is up and running, you can make HTTP request
+                                to the API endpoints using HTTP client of your choice. We strongly
+                                recommend <a href="https://www.postman.com" target="_blank">Postman</a>
+                                but <code>curl</code> will do.
+                            </p>
+                        </div>
+
+                        <div class="col-md-8">
+                            <pre class="command-line" data-user="user" data-host="localhost" data-filter-output="(out)">
+                                <code class="language-bash">
+                                    curl -i -X POST -H "Content-Type: application/json" -d '{"description": "Learn Coherence"}' http://localhost:7001/tasks
+                                    (out)HTTP/1.1 204 No Content
+                                    (out)Date: Tue, 23 Jun 2020 10:40:57 GMT
+                                    (out)connection: keep-alive
+                                    (out)
+                                    curl -X GET -H "Accept: application/json" http://localhost:7001/tasks
+                                    (out)[{"completed":false,"description":"Learn Coherence","id":"155512ed-bf79-4515-a92a-734f65e721d0"}]
+                                    (out)
+                                    curl -X PUT -H "Content-Type: application/json" -d '{"completed": true}' http://localhost:7001/tasks/155512ed-bf79-4515-a92a-734f65e721d0
+                                    (out){"completed":true,"description":"Learn Coherence","id":"155512ed-bf79-4515-a92a-734f65e721d0"}
+                                    (out)
+                                    curl -i -X DELETE http://localhost:7001/tasks/155512ed-bf79-4515-a92a-734f65e721d0
+                                    (out)HTTP/1.1 204 No Content
+                                    (out)Date: Tue, 23 Jun 2020 10:50:05 GMT
+                                    (out)connection: keep-alive
+                                </code>
+                            </pre>
                         </div>
                     </div>
 
                 </div>
             </section>
             <!-- /QUICKSTART -->
-            
-			<!-- TESTIMONIALS ->
+            <!-- QUICKSTART CALLOUT -->
+            <div class="callout styleBackgroundColor"><!-- add "styleBackgroundColor" class for colored background and white text OR "dark" for a dark callout -->
+                <div class="container">
+
+                    <div class="row">
+
+                        <div class="col-md-9"><!-- title + shortdesc -->
+                             <h2><strong>Congratulations!</strong></h2>
+                             <h4>You've just implemented your first stateful service using Coherence and Helidon</h4>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- /QUICKSTART CALLOUT -->
+
+			<!-- TESTIMONIALS -->
 			<section>
 				<div class="container">
 					
 					
 					<header class="text-center">
-						<h2>Wow, Incredible Theme I've ever seen</h2>
+						<h2>What are our users saying?</h2>
 						<blockquote class="noborder nopadding nomargin">
-							<i>This is the Best Theme I have ever seen. I am a full time web dev, and this theme blows me away. I wanted to thank you for all your hard work. I am really looking forward to building my new site! I think you thought of everything and then some.</i>
-							<cite class="block">Dorin Grigoras</cite>
+							<p>
+                                Stateless systems are extremely data hungry, and state management (at scale) is one of the biggest
+                                challenges we've faced. At our scale, no traditional data layer would've worked. Coherence allows
+                                us to manage 9 terabytes of data in memory, in a format easily consumable by our services, which
+                                allows us to handle 1.3 billion calls and produce 300 million events per day across 5,600 microservices.
+                            </p>
+							<cite class="block">Arun Giri, Union Pacific Railroad</cite>
 						</blockquote>
 
 						<div class="divider half-margins"></div>
 
 					</header>
 
-					
-					<div class="row">
-						<div class="col-md-4">
-							<div class="testimonial classic female animate_from_bottom">
-								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
-								<cite><strong>John Doe</strong>, Customer</cite>
-							</div>
-						</div>
-						<div class="col-md-4">
-							<div class="testimonial classic male animate_from_bottom">
-								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
-								<cite><strong>John Doe</strong>, Customer</cite>
-							</div>
-						</div>
-						<div class="col-md-4">
-							<div class="testimonial classic male animate_from_bottom">
-								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
-								<cite><strong>John Doe</strong>, Customer</cite>
-							</div>
-						</div>
-					</div>
-
-					<div class="row">
-						<div class="col-md-6">
-							<div class="testimonial classic female animate_from_bottom">
-								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
-								<cite><strong>John Doe</strong>, Customer</cite>
-							</div>
-						</div>
-						<div class="col-md-6">
-							<div class="testimonial classic male animate_from_bottom">
-								<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
-								<cite><strong>John Doe</strong>, Customer</cite>
-							</div>
-						</div>
-					</div>
-
-					<div class="owl-carousel animate_from_bottom text-center" data-plugin-options='{"items": 1, "singleItem": true, "navigation": false, "pagination": true, "autoPlay": true, "transitionStyle":"fadeUp"}'><!-- transitionStyle: fade, backSlide, goDown, fadeUp,  ->
-						<div class="testimonial">
-							<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
-							<cite><strong>John Doe</strong>, Customer</cite>
-						</div>
-
-						<div class="testimonial">
-							<p>Donec tellus massa, tristique sit amet condim vel, facilisis quis sapien. Praesent id enim sit amet odio vulputate eleifend in in tortor. Donec tellus massa.</p>
-							<cite><strong>Jessica Doe</strong>, Customer</cite>
-						</div>
-
-						<div class="testimonial">
-							<p>Praesent est laborum dolo rumes fugats untras. Etha rums ser quidem rerum facilis dolores nemis onis fugats vitaes nemo minima rerums unsers sadips amets.</p>
-							<cite><strong>Dorin Doe</strong>, Customer</cite>
-						</div>
-
-						<div class="testimonial">
-							<p>Donec tellus massa, tristique sit amet condim vel, facilisis quis sapien. Praesent id enim sit amet odio vulputate eleifend in in tortor. Donec tellus massa.</p>
-							<cite><strong>Melissa Doe</strong>, Customer</cite>
-						</div>
-
-					</div>
+                    <div class="row">
+                        <video controls class="shadow" src="assets/video/arun-giri-interview.mp4" width="1200"/>
+                    </div>
 
 				</div>
 			</section>
@@ -807,7 +922,8 @@
 		<script type="text/javascript" src="assets/plugins/revolution-slider/js/jquery.themepunch.revolution.min.js"></script>
 		<script type="text/javascript" src="assets/js/revolution_slider.js"></script>
 		
-        <script type="text/javascript" src="prism.js"></script>
+        <!-- PRISM -->
+        <script type="text/javascript" src="assets/js/prism.js"></script>
 
 		<script type="text/javascript" src="assets/js/scripts.js"></script>
 	</body>

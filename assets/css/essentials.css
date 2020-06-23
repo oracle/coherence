@@ -229,6 +229,7 @@ a, a:focus, a:hover, a:active {
 /** 05. Commons
  **************************************************************** **/
 pre {
+	max-height: 45em;
 	color: #666;
 	padding: 16px;
 	font-size: 12px;
