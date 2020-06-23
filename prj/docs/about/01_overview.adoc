@@ -22,7 +22,7 @@ nodes. This partitioning enables applications to not only distribute (and theref
 machines, racks, and data centers, but also to perform grid-based processing to truly harness the CPU resources of the
 machines. 
 
-The Coherence interface 'NamedCache<K,V>' (an extension of 'Map<K,V>' provides methods to query, aggregate
+The Coherence interface 'NamedMap<K,V>' (an extension of 'Map<K,V>' provides methods to query, aggregate
 (map/reduce style), and compute (send functions to storage nodes for locally executed mutations) the data set.
 These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust,
 distributed applications.
