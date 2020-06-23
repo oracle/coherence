@@ -7,7 +7,6 @@
 package com.oracle.coherence.grpc.client;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.PropertyExtractor;
 import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.WhereFilter;
@@ -29,7 +28,6 @@ import util.EventsHelper;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +36,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
  * Integration test CDI remote map events.
@@ -70,35 +69,32 @@ class CdiMapListenerIT
         }
 
     @Test
-    void testEvents() throws Exception
+    void testEvents()
         {
-        NamedCache<Object, Object> cache = ensureCache("people");
-        int count = EventsHelper.getTotalListenerCount(cache);
+        NamedCache<String, Person> cache = s_ccf.ensureCache("people", null);
 
-        NamedCacheClient<String, Person> people = createClient("people");
+        // Wait for the listeners to be registered as it happens async
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cache), is(greaterThanOrEqualTo(2)));
 
-        // Wait for the listeners
-        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cache), is(count + 3));
+        cache.put("homer", new Person("Homer", "Simpson", 45, "male"));
+        cache.put("marge", new Person("Marge", "Simpson", 43, "female"));
+        cache.put("bart", new Person("Bart", "Simpson", 12, "male"));
+        cache.put("lisa", new Person("Lisa", "Simpson", 10, "female"));
+        cache.put("maggie", new Person("Maggie", "Simpson", 2, "female"));
 
-        people.put("homer", new Person("Homer", "Simpson", 45, "male"));
-        people.put("marge", new Person("Marge", "Simpson", 43, "female"));
-        people.put("bart", new Person("Bart", "Simpson", 12, "male"));
-        people.put("lisa", new Person("Lisa", "Simpson", 10, "female"));
-        people.put("maggie", new Person("Maggie", "Simpson", 2, "female"));
+        cache.invoke("homer", new Uppercase());
+        cache.invoke("bart", new Uppercase());
 
-        people.invoke("homer", new Uppercase());
-        people.invoke("bart", new Uppercase());
-
-        people.remove("bart");
-        people.remove("marge");
-        people.remove("lisa");
-        people.remove("maggie");
+        cache.remove("bart");
+        cache.remove("marge");
+        cache.remove("lisa");
+        cache.remove("maggie");
 
         TestListener listener = getListener();
 
-        assertThat(listener.getEvents(MapEvent.ENTRY_INSERTED), is(5));
-        assertThat(listener.getEvents(MapEvent.ENTRY_UPDATED), is(2));
-        assertThat(listener.getEvents(MapEvent.ENTRY_DELETED), is(4));
+        Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_INSERTED), is(5));
+        Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_UPDATED), is(2));
+        Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_DELETED), is(4));
 
         // There should be an insert and an update for Bart.
         // The delete for Bart does not match the filter because the lastName
@@ -128,32 +124,6 @@ class CdiMapListenerIT
     TestListener getListener()
         {
         return CDI.current().select(TestListener.class).get();
-        }
-
-
-    int getEvents(int id)
-        {
-        TestListener l = getListener();
-        return l == null ? 0 : l.getEvents(id);
-        }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    protected <K, V> NamedCacheClient<K, V> createClient(String sCacheName)
-        {
-        Instance<NamedCacheClient> cacheInstance = CDI.current().getBeanManager()
-                .createInstance()
-                .select(NamedCacheClient.class,
-                        Name.Literal.of(sCacheName),
-                        Remote.Literal.of("test"));
-
-        assertThat(cacheInstance.isResolvable(), is(true));
-
-        return (NamedCacheClient<K, V>) cacheInstance.get();
-        }
-
-    protected <K, V> NamedCache<K, V> ensureCache(String sName)
-        {
-        return s_ccf.ensureCache(sName, null);
         }
 
     // ---- helper classes --------------------------------------------------
@@ -192,15 +162,12 @@ class CdiMapListenerIT
         private void onPersonInserted(@Observes @Remote("test") @Inserted @MapName("people") MapEvent<String, Person> event)
             {
             record(event);
-            assertThat(event.getNewValue().getLastName(), is("Simpson"));
             }
 
         @Synchronous
         private void onPersonUpdated(@Observes @Remote @Updated @MapName("people") MapEvent<String, Person> event)
             {
             record(event);
-            assertThat(event.getOldValue().getLastName(), is("Simpson"));
-            assertThat(event.getNewValue().getLastName(), is("SIMPSON"));
             }
 
         @Synchronous
@@ -211,7 +178,7 @@ class CdiMapListenerIT
 
         @Synchronous
         @WhereFilter("firstName = 'Bart' and lastName = 'Simpson'")
-        private void onHomer(@Observes @Remote @CacheName("people") MapEvent<String, Person> event)
+        private void onBart(@Observes @Remote @MapName("people") MapEvent<String, Person> event)
             {
             filteredEvents.add(event);
             }
@@ -223,7 +190,6 @@ class CdiMapListenerIT
             transformedEvents.add(event);
             }
         }
-
 
     // ----- data members ---------------------------------------------------
 

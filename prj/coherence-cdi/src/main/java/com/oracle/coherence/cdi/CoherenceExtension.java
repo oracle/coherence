@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -178,6 +179,24 @@ public class CoherenceExtension
         collectMapListeners(setResults, serviceName, cacheName);
 
         return setResults;
+        }
+
+    /**
+     * Return all map listeners that should be registered against a specific
+     * remote cache or map.
+     *
+     * @return  all map listeners that should be registered against a
+     *          specific remote cache or map
+     */
+    public Set<CdiMapListener<?, ?>> getRemoteMapListeners()
+        {
+        return m_mapListeners.values()
+                             .stream()
+                             .flatMap(map -> map.values().stream())
+                             .flatMap(Set::stream)
+                             .filter(CdiMapListener::isRemote)
+                             .filter(listener -> !listener.isWildCardCacheName())
+                             .collect(Collectors.toSet());
         }
 
     /**

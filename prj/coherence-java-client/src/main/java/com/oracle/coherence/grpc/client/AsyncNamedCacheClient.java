@@ -13,7 +13,6 @@ import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.UnsafeByteOperations;
 
-import com.oracle.coherence.cdi.RemoteMapLifecycleEvent;
 import com.oracle.coherence.cdi.Scope;
 
 import com.oracle.coherence.cdi.SerializerProducer;
@@ -1881,8 +1880,8 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected void dispatch(MapEventResponse response)
         {
-        MapEvent event = createMapEvent(response);
-        getMapListenerSupport().fireEvent(event, true);
+        MapEvent<?, ?> event = createMapEvent(response);
+        getMapListenerSupport().fireEvent(event, false);
         }
 
     /**

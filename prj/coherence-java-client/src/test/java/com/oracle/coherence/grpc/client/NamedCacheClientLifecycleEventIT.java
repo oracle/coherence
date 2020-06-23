@@ -21,6 +21,7 @@ import io.helidon.microprofile.server.Server;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import util.EventsHelper;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -72,14 +73,16 @@ class NamedCacheClientLifecycleEventIT
         }
 
     @Test
-    public void shouldObserveEvents()
+    public void shouldObserveEvents() throws Exception
         {
-        String                           sName  = "foo";
+        Listener listener = getListener();
+        listener.clear();
+
+        String                           sName  = "foo-" + System.currentTimeMillis();
         NamedCache<String, String>       cache  = ensureCache(sName);
         NamedCacheClient<String, String> client = createClient(sName);
         RemoteMapLifecycleEvent          event;
 
-        Listener listener = getListener();
 
         Eventually.assertDeferred(listener::getEventCount, is(1));
         Eventually.assertDeferred(listener::getAsyncEventCount, is(1));

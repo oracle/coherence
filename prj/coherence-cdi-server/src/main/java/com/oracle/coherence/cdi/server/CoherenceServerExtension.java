@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
@@ -155,7 +156,7 @@ public class CoherenceServerExtension
      * @param event the event fired once the CDI container is initialized
      */
     @SuppressWarnings("unused")
-    synchronized void startServer(@Observes @Initialized(ApplicationScoped.class) Object event, BeanManager beanManager)
+    synchronized void startServer(@Observes @Priority(1) @Initialized(ApplicationScoped.class) Object event, BeanManager beanManager)
         {
         m_beanManager = beanManager;
         CacheFactoryBuilder cfb = m_cacheFactoryBuilder = new CdiCacheFactoryBuilder();

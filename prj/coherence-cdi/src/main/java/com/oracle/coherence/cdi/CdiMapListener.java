@@ -42,8 +42,8 @@ public class CdiMapListener<K, V>
         {
         m_observer = observer;
 
-        String sCache   = "*";
-        String sService = "*";
+        String sCache   = WILD_CARD;
+        String sService = WILD_CARD;
         String sScope   = null;
 
         for (Annotation a : observer.getObservedQualifiers())
@@ -244,6 +244,16 @@ public class CdiMapListener<K, V>
         }
 
     /**
+     * Return {@code true} if this listener is for a wild-card cache name.
+     *
+     * @return  {@code true} if this listener is for a wild-card cache name
+     */
+    public boolean isWildCardCacheName()
+        {
+        return WILD_CARD.equals(m_sCacheName);
+        }
+
+    /**
      * Return the name of the service this listener is for, or {@code '*'} if
      * it should be registered regardless of the service name.
      *
@@ -252,6 +262,16 @@ public class CdiMapListener<K, V>
     public String getServiceName()
         {
         return m_sServiceName;
+        }
+
+    /**
+     * Return {@code true} if this listener is for a wild-card cache name.
+     *
+     * @return  {@code true} if this listener is for a wild-card cache name
+     */
+    public boolean isWildCardServiceName()
+        {
+        return WILD_CARD.equals(m_sServiceName);
         }
 
     /**
@@ -320,7 +340,15 @@ public class CdiMapListener<K, V>
         {
         if (isSupported(type))
             {
-            m_observer.notify(event);
+            if (m_transformer == null)
+                {
+                m_observer.notify(event);
+                }
+            else
+                {
+                MapEvent transformed = m_transformer.transform(event);
+                m_observer.notify(transformed);
+                }
             }
         }
 
@@ -335,6 +363,13 @@ public class CdiMapListener<K, V>
         UPDATED,
         DELETED
         }
+
+    // ---- constants -------------------------------------------------------
+
+    /**
+     * The wild-card value for cache and service names;
+     */
+    public static final String WILD_CARD = "*";
 
     // ---- data members ----------------------------------------------------
 

@@ -107,7 +107,7 @@ class CdiMapListenerIT
         NamedCache<String, Person> people = ccf.ensureCache("people", null);
 
         // Wait for the listener registration as it is async
-        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(people), is(greaterThanOrEqualTo(3)));
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(people), is(greaterThanOrEqualTo(2)));
 
         people.put("homer", new Person("Homer", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("marge", new Person("Marge", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
