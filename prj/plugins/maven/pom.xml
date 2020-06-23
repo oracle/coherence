@@ -16,7 +16,6 @@
     <version>${revision}</version>
   </parent>
 
-  <groupId>com.oracle.coherence.maven</groupId>
   <artifactId>maven</artifactId>
   <packaging>pom</packaging>
   

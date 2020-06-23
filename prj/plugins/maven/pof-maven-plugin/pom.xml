@@ -11,7 +11,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.oracle.coherence.maven</groupId>
+    <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>maven</artifactId>
     <version>${revision}</version>
   </parent>
@@ -20,6 +20,10 @@
   <packaging>maven-plugin</packaging>
 
   <name>Coherence POF Maven Plugin</name>
+  <description>
+    Maven plugin that instruments classes at build time in order to implement
+    support for POF serialization
+  </description>
 
   <dependencies>
     <!-- Coherence dependency -->
