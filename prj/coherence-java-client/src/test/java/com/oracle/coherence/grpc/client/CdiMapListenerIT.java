@@ -108,7 +108,7 @@ class CdiMapListenerIT
         // The delete for Bart does not match the filter because the lastName
         // had been changed to uppercase.
         List<MapEvent<String, Person>> filteredEvents = listener.getFilteredEvents();
-        assertThat(filteredEvents.size(), is(2));
+        Eventually.assertDeferred(filteredEvents::size, is(2));
         MapEvent<String, Person> eventOne = filteredEvents.get(0);
         MapEvent<String, Person> eventTwo = filteredEvents.get(1);
         assertThat(eventOne.getId(), is(MapEvent.ENTRY_INSERTED));
@@ -120,7 +120,7 @@ class CdiMapListenerIT
         // TODO: uncomment once we fix transformer support on the proxy
         // Transformed events should just be inserts with the person's firstName as the new value
         //List<MapEvent<String, String>> transformedEvents = listener.getTransformedEvents();
-        //assertThat(transformedEvents.size(), is(5));
+        //Eventually.assertDeferred(transformedEvents::size, is(5));
         //assertThat(transformedEvents.get(0).getNewValue(), is("Homer"));
         //assertThat(transformedEvents.get(1).getNewValue(), is("Marge"));
         //assertThat(transformedEvents.get(2).getNewValue(), is("Bart"));
