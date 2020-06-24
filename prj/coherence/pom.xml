@@ -237,6 +237,9 @@
                 <relocation>
                   <pattern>javax.json</pattern>
                   <shadedPattern>com.tangosol.internal.json</shadedPattern>
+                  <includes>
+                    <includes>javax.json.*</includes>
+                  </includes>
                   <excludes>
                     <exclude>javax.json.bind.*</exclude>
                   </excludes>
