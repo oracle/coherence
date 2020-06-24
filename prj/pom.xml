@@ -805,6 +805,7 @@
     <graal.version>19.3.1</graal.version>
     <grpc.version>1.27.1</grpc.version>
     <helidon.version>2.0.0</helidon.version>
+    <helidon.sitegen.version>2.0.0-RC1</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
     <jackson.version>2.10.2</jackson.version>
@@ -1396,7 +1397,7 @@
         <plugin>
           <groupId>io.helidon.build-tools</groupId>
           <artifactId>sitegen-maven-plugin</artifactId>
-          <version>${helidon.version}</version>
+          <version>${helidon.sitegen.version}</version>
           <configuration>
             <siteConfigFile>${top.parent.basedir}/docs/sitegen.yaml</siteConfigFile>
             <siteSourceDirectory>${top.parent.basedir}</siteSourceDirectory>
