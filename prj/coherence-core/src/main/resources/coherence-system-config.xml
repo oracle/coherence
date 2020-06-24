@@ -18,7 +18,7 @@ It will be loaded automatically when CDI integration is used.
 
   <caching-scheme-mapping>
     <cache-mapping>
-      <cache-name>config</cache-name>
+      <cache-name>sys$config</cache-name>
       <scheme-name>config</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
@@ -28,12 +28,13 @@ It will be loaded automatically when CDI integration is used.
       <scheme-name>config</scheme-name>
       <service-name>Config</service-name>
       <thread-count>0</thread-count>
-      <partition-count system-property="coherence.config.partition.count">3</partition-count>
       <backing-map-scheme>
-        <local-scheme/>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
       </backing-map-scheme>
       <persistence>
-        <environment system-property="coherence.config.persistence">default-active</environment>
+        <environment>default-${coherence.config.persistence on-demand}</environment>
       </persistence>
       <autostart>true</autostart>
     </distributed-scheme>
