@@ -8,6 +8,7 @@ package com.oracle.coherence.grpc.client;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.cdi.PropertyExtractor;
 import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.WhereFilter;
 import com.oracle.coherence.cdi.events.CacheName;
@@ -59,11 +60,11 @@ class CdiMapListenerIT
     @BeforeAll
     static void setupBaseTest()
         {
-        System.setProperty("coherence.ttl",         "0");
-        System.setProperty("coherence.clustername", "CdiMapListenerIT");
-        System.setProperty("coherence.cache.config",  "coherence-config.xml");
-        System.setProperty("coherence.pof.config",  "test-pof-config.xml");
-        System.setProperty("coherence.pof.enabled", "true");
+        System.setProperty("coherence.ttl",          "0");
+        System.setProperty("coherence.clustername",  "CdiMapListenerIT");
+        System.setProperty("coherence.cache.config", "coherence-config.xml");
+        System.setProperty("coherence.pof.config",   "test-pof-config.xml");
+        System.setProperty("coherence.pof.enabled",  "true");
 
         s_server = Server.create().start();
         s_ccf    = CacheFactory.getCacheFactoryBuilder()
@@ -77,7 +78,7 @@ class CdiMapListenerIT
         }
 
     @Test
-    void testEvents()
+    void testEvents() throws Exception
         {
         NamedCache<String, Person> cache = s_ccf.ensureCache("people", null);
 
@@ -99,7 +100,6 @@ class CdiMapListenerIT
         cache.remove("maggie");
 
         TestListener listener = getListener();
-
         Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_INSERTED), is(5));
         Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_UPDATED), is(2));
         Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_DELETED), is(4));
@@ -117,15 +117,14 @@ class CdiMapListenerIT
         assertThat(eventTwo.getKey(), is("bart"));
         assertThat(eventTwo.getNewValue().getLastName(), is("SIMPSON"));
 
-        // TODO: uncomment once we fix transformer support on the proxy
         // Transformed events should just be inserts with the person's firstName as the new value
-        //List<MapEvent<String, String>> transformedEvents = listener.getTransformedEvents();
-        //Eventually.assertDeferred(transformedEvents::size, is(5));
-        //assertThat(transformedEvents.get(0).getNewValue(), is("Homer"));
-        //assertThat(transformedEvents.get(1).getNewValue(), is("Marge"));
-        //assertThat(transformedEvents.get(2).getNewValue(), is("Bart"));
-        //assertThat(transformedEvents.get(3).getNewValue(), is("Lisa"));
-        //assertThat(transformedEvents.get(4).getNewValue(), is("Maggie"));
+        List<MapEvent<String, String>> transformedEvents = listener.getTransformedEvents();
+        Eventually.assertDeferred(transformedEvents::size, is(5));
+        assertThat(transformedEvents.get(0).getNewValue(), is("Homer"));
+        assertThat(transformedEvents.get(1).getNewValue(), is("Marge"));
+        assertThat(transformedEvents.get(2).getNewValue(), is("Bart"));
+        assertThat(transformedEvents.get(3).getNewValue(), is("Lisa"));
+        assertThat(transformedEvents.get(4).getNewValue(), is("Maggie"));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -185,20 +184,17 @@ class CdiMapListenerIT
             record(event);
             }
 
-        @Synchronous
         @WhereFilter("firstName = 'Bart' and lastName = 'Simpson'")
         private void onBart(@Observes @Remote @MapName("people") MapEvent<String, Person> event)
             {
             filteredEvents.add(event);
             }
 
-        // TODO: uncomment once we fix transformer support on the proxy
-        //@Synchronous
-        //@PropertyExtractor("firstName")
-        //private void onPersonInsertedTransformed(@Observes @Remote @Inserted @MapName("people") MapEvent<String, String> event)
-        //    {
-        //    transformedEvents.add(event);
-        //    }
+        @PropertyExtractor("firstName")
+        private void onPersonInsertedTransformed(@Observes @Remote @Inserted @MapName("people") MapEvent<String, String> event)
+            {
+            transformedEvents.add(event);
+            }
         }
 
     // ----- data members ---------------------------------------------------

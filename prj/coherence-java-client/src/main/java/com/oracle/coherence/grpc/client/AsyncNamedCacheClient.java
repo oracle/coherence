@@ -35,6 +35,7 @@ import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.AsyncNamedCache;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
@@ -48,6 +49,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.Listeners;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.LongArray.Iterator;
 import com.tangosol.util.MapEvent;
@@ -56,6 +58,7 @@ import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.MapTriggerListener;
 import com.tangosol.util.SimpleMapEntry;
 import com.tangosol.util.SparseArray;
+import com.tangosol.util.SynchronousListener;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.filter.AlwaysFilter;
@@ -73,6 +76,7 @@ import io.helidon.microprofile.grpc.client.GrpcProxyBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +90,8 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -118,23 +124,16 @@ public class AsyncNamedCacheClient<K, V>
      * Creates a {@link NamedCacheClient} with the specified cache name
      * and {@link NamedCacheService}.
      * 
-     * @param sScopeName  the scope name to use to obtain the CCF to get caches.
-     * @param sCacheName  the cache name
-     * @param service     the {@link NamedCacheService} to delegate calls
-     * @param serializer  the {@link Serializer} to use
-     * @param sFormat     the name of the serialization format
+     * @param builder  the {@link Builder} to configure this {@link NamedCacheService}.
      */
-    AsyncNamedCacheClient(String                             sScopeName,
-                          String                             sCacheName,
-                          NamedCacheService                  service,
-                          Serializer                         serializer,
-                          String                             sFormat)
+    AsyncNamedCacheClient(Builder<K, V> builder)
         {
-        f_sScopeName                = sScopeName == null ? Scope.DEFAULT : sScopeName;
-        f_sCacheName                = sCacheName;
-        f_service                   = service;
-        f_serializer                = serializer;
-        f_sFormat                   = sFormat;
+        f_sScopeName                = builder.getScopeName().orElse(Scope.DEFAULT);
+        f_sCacheName                = builder.getCacheName();
+        f_service                   = builder.ensureServiceProxy();
+        f_serializer                = builder.ensureSerializer();
+        f_sFormat                   = builder.getFormat();
+        f_executor                  = builder.ensureExecutor();
         f_synchronousCache          = new NamedCacheClient<>(this);
         f_listDeactivationListeners = new ArrayList<>();
         initEvents();
@@ -1699,7 +1698,7 @@ public class AsyncNamedCacheClient<K, V>
                         .addKeyMapListener(f_sScopeName, f_sCacheName, f_sFormat, toByteString(key),
                                            fLite, priming, ByteString.EMPTY);
                 uid = request.getUid();
-                m_mapFuture.put(uid, future);
+                f_mapFuture.put(uid, future);
                 m_evtRequestObserver.onNext(request);
                 }
             catch (RuntimeException e)
@@ -1707,7 +1706,7 @@ public class AsyncNamedCacheClient<K, V>
                 synchronized (support)
                     {
                     support.removeListener(listener, key);
-                    m_mapFuture.remove(uid);
+                    f_mapFuture.remove(uid);
                     }
                 future.completeExceptionally(e);
                 }
@@ -1819,12 +1818,12 @@ public class AsyncNamedCacheClient<K, V>
             MapListenerRequest request = Requests
                     .addFilterMapListener(f_sScopeName, f_sCacheName, f_sFormat, filterBytes, nFilterId, fLite, false, triggerBytes);
             uid = request.getUid();
-            m_mapFuture.put(uid, future);
+            f_mapFuture.put(uid, future);
             m_evtRequestObserver.onNext(request);
             }
         catch (RuntimeException e)
             {
-            m_mapFuture.remove(uid);
+            f_mapFuture.remove(uid);
             future.completeExceptionally(e);
             }
 
@@ -1875,29 +1874,158 @@ public class AsyncNamedCacheClient<K, V>
 
     /**
      * Dispatch the received {@link MapEventResponse} for processing by local listeners.
+     * <p>
+     * This method is taken from code in the TDE RemoteNamedCache.
      *
      * @param response  the {@link MapEventResponse} to process
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected void dispatch(MapEventResponse response)
         {
-        MapEvent<?, ?> event = createMapEvent(response);
-        getMapListenerSupport().fireEvent(event, false);
+        List<Long>          listFilterIds  = response.getFilterIdsList();
+        int                 nEventId       = response.getId();
+        Object              oKey           = fromByteString(response.getKey());
+        Object              oValueOld      = fromByteString(response.getOldValue());
+        Object              oValueNew      = fromByteString(response.getNewValue());
+        boolean             fSynthetic     = response.getSynthetic();
+        boolean             fPriming       = response.getPriming();
+        MapListenerSupport  support        = getMapListenerSupport();
+        int                 cFilters       = listFilterIds == null ? 0 : listFilterIds.size();
+        TransformationState transformState = TransformationState.valueOf(response.getTransformationState().toString());
+        CacheEvent<?, ?>    evt            = null;
+
+        // collect key-based listeners
+        Listeners listeners = transformState == TransformationState.TRANSFORMED ? null : support.getListeners(oKey);
+        if (cFilters > 0)
+            {
+            LongArray<Filter<?>> laFilters   = m_aEvtFilter;
+            List<Filter<?>>      listFilters = null;
+
+            // collect filter-based listeners
+            synchronized (support)
+                {
+                for (int i = 0; i < cFilters; i++)
+                    {
+                    long lFilterId = listFilterIds.get(i);
+                    if (laFilters.exists(lFilterId))
+                        {
+                        Filter<?> filter = laFilters.get(lFilterId);
+                        if (listFilters == null)
+                            {
+                            listFilters = new ArrayList<>(cFilters - i);
+
+                            // clone the key listeners before merging filter listeners
+                            Listeners listenersTemp = new Listeners();
+                            listenersTemp.addAll(listeners);
+                            listeners = listenersTemp;
+                            }
+
+                        listFilters.add(filter);
+                        listeners.addAll(support.getListeners(filter));
+                        }
+                    }
+                }
+
+            if (listFilters != null)
+                {
+                Filter<?>[] aFilters = new Filter[listFilters.size()];
+                aFilters = listFilters.toArray(aFilters);
+
+                evt = new MapListenerSupport.FilterEvent(getNamedMap(), nEventId, oKey, oValueOld, oValueNew,
+                                                         fSynthetic, transformState, fPriming, aFilters);
+                }
+            }
+
+        if (listeners == null || listeners.isEmpty())
+            {
+            // we cannot safely remove the orphaned listener because of the following
+            // race condition: if another thread registers a listener for the same key
+            // or filter associated with the event between the time that this thread
+            // detected the orphaned listener, but before either sends a message to the
+            // server, it is possible for this thread to inadvertently remove the new
+            // listener
+            //
+            // since it is only possible for synchronous listeners to be leaked (due to
+            // the extra synchronization in the SafeNamedCache), let's err on the side
+            // of leaking a listener than possibly incorrectly removing a listener
+            //
+            // there is also a valid scenario of a client thread removing an asyn
+            // listener while the event is already on the wire; hence no logging makes sense
+            }
+        else
+            {
+            if (evt == null)
+                {
+                evt = new CacheEvent(getNamedMap(), nEventId, oKey, oValueOld, oValueNew, fSynthetic, transformState, fPriming);
+                }
+
+
+            for (EventListener listener : listeners.listeners())
+                {
+                EventTask task = new EventTask(evt, (MapListener) listener);
+                if (listener instanceof SynchronousListener)
+                    {
+                    task.run();
+                    }
+                else
+                    {
+                    f_executor.execute(task);
+                    }
+                }
+            }
         }
 
+    // ----- inner class: EventTask -----------------------------------------
+
     /**
-     * Construct a {@link MapEvent} from the provided {@link MapEventResponse}.
-     *
-     * @param response  the {@link MapEventResponse}
-     *
-     * @return a {@link MapEvent} from the provided {@link MapEventResponse}
+     * A simple {@link Runnable} to dispatch an event to a listener.
      */
-    protected MapEvent<K, V> createMapEvent(MapEventResponse response)
+    @SuppressWarnings("rawtypes")
+    static class EventTask
+            implements Runnable
         {
-        return new CacheEvent<>(getNamedCache(), response.getId(), fromByteString(response.getKey()),
-                                fromByteString(response.getOldValue()),
-                                fromByteString(response.getNewValue()), response.getSynthetic(),
-                                TransformationState.valueOf(response.getTransformationState().toString()),
-                                response.getPriming());
+        /**
+         * Create an {@link EventTask}.
+         *
+         * @param event     the event to dispatch
+         * @param listener  the listener to dispatch the event to
+         */
+        EventTask(CacheEvent<?, ?> event, MapListener listener)
+            {
+            f_event    = event;
+            f_listener = listener;
+            }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void run()
+            {
+            NamedCache<?, ?> cache = (NamedCache<?, ?>) f_event.getSource();
+            if (cache.isActive())
+                {
+                try
+                    {
+                    f_event.dispatch(f_listener);
+                    }
+                catch (Throwable thrown)
+                    {
+                    CacheFactory.err("Caught exception dispatching event to listener");
+                    CacheFactory.err(thrown);
+                    }
+                }
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The event to dispatch.
+         */
+        private final CacheEvent<?, ?> f_event;
+
+        /**
+         * The listener to dispatch the event to.
+         */
+        private final MapListener f_listener;
         }
 
     // ----- inner class: FutureStreamObserver ------------------------------
@@ -2069,7 +2197,7 @@ public class AsyncNamedCacheClient<K, V>
                         {
                         f_future.complete(VOID);
                         }
-                    future = m_mapFuture.remove(responseUid);
+                    future = f_mapFuture.remove(responseUid);
                     if (future != null)
                         {
                         future.complete(null);
@@ -2077,7 +2205,7 @@ public class AsyncNamedCacheClient<K, V>
                     break;
                 case UNSUBSCRIBED:
                     MapListenerUnsubscribedResponse unsubscribed = response.getUnsubscribed();
-                    future = m_mapFuture.remove(unsubscribed.getUid());
+                    future = f_mapFuture.remove(unsubscribed.getUid());
                     if (future != null)
                         {
                         future.complete(null);
@@ -2089,7 +2217,7 @@ public class AsyncNamedCacheClient<K, V>
                     break;
                 case ERROR:
                     MapListenerErrorResponse error = response.getError();
-                    future = m_mapFuture.remove(error.getUid());
+                    future = f_mapFuture.remove(error.getUid());
                     if (future != null)
                         {
                         future.completeExceptionally(new RuntimeException(error.getMessage()));
@@ -2295,15 +2423,37 @@ public class AsyncNamedCacheClient<K, V>
             return this;
             }
 
+        /**
+         * Set the {@link NamedCacheService} proxy to be used by the cache.
+         * 
+         * @param proxy  the {@link NamedCacheService} proxy to use
+         *
+         * @return this {@link Builder}
+         */
+        public Builder<K, V> serviceProxy(NamedCacheService proxy)
+            {
+            m_serviceProxy = proxy;
+            return this;
+            }
+
+        /**
+         * Set the {@link Executor} to be used by the cache for
+         * dispatching events.
+         * 
+         * @param executor  the {@link Executor} to be used by the cache
+         *
+         * @return this {@link Builder}
+         */
+        public Builder<K, V> executor(Executor executor)
+            {
+            m_executor = executor;
+            return this;
+            }
+
         @Override
         public AsyncNamedCacheClient<K, V> build()
             {
-            Channel           channel    = getChannel().orElseGet(() -> GrpcChannelsProvider.create(f_config).channel("default"));
-            NamedCacheService service    = GrpcProxyBuilder.create(channel, NamedCacheService.class).build();
-            String            format     = getFormat().orElse("java");
-            Serializer        serializer = getSerializer().orElse(buildSerializer(format));
-
-            return new AsyncNamedCacheClient<>(f_sScopeName, f_sCacheName, service, serializer, format);
+            return new AsyncNamedCacheClient<>(this);
             }
 
         // ----- helper methods ---------------------------------------------
@@ -2315,33 +2465,89 @@ public class AsyncNamedCacheClient<K, V>
             }
 
         /**
-         * Return the {@link Channel}, if any.
-         *
-         * @return the {@link Channel}, if any
-         */
-        protected Optional<Channel> getChannel()
-            {
-            return Optional.ofNullable(m_channel);
-            }
-
-        /**
          * Return the {@link Serializer}, if any.
          *
          * @return the {@link Serializer}, if any
          */
-        protected Optional<Serializer> getSerializer()
+        protected Serializer ensureSerializer()
             {
-            return Optional.ofNullable(m_serializer);
+            if (m_serializer == null)
+                {
+                m_serializer = buildSerializer(getFormat());
+                }
+            return m_serializer;
             }
 
         /**
-         * Return the serialization format, if any.
+         * Return the serialization format.
          *
-         * @return the serialization format, if any
+         * @return the serialization format
          */
-        protected Optional<String> getFormat()
+        protected String getFormat()
             {
-            return Optional.ofNullable(m_format);
+            return m_format == null ? "java" : m_format;
+            }
+
+        /**
+         * Return the cache name, if any.
+         *
+         * @return the cache name, if any
+         */
+        protected String getCacheName()
+            {
+            return f_sCacheName;
+            }
+
+        /**
+         * Return the scope name, if any.
+         *
+         * @return the scope name, if any
+         */
+        protected Optional<String> getScopeName()
+            {
+            return Optional.ofNullable(f_sScopeName);
+            }
+
+        /**
+         * Obtain the {@link Executor} to be used by the cache.
+         *
+         * @return  the {@link Executor} to be used by the cache
+         */
+        protected Executor ensureExecutor()
+            {
+            if (m_executor == null)
+                {
+                m_executor = Executors.newSingleThreadExecutor();
+                }
+            return m_executor;
+            }
+
+        /**
+         * Return the gRPC {@link Channel} to use.
+         * 
+         * @return  the gRPC {@link Channel} to use
+         */
+        protected Channel ensureChannel() 
+            {
+            if (m_channel == null)
+                {
+                m_channel = GrpcChannelsProvider.create(f_config).channel("default");
+                }
+            return m_channel;
+            }
+
+        /**
+         * Create the gRPC service proxy.
+         * 
+         * @return the gRPC service proxy
+         */
+        protected NamedCacheService ensureServiceProxy()
+            {
+            if (m_serviceProxy == null) 
+                {
+                m_serviceProxy = GrpcProxyBuilder.create(ensureChannel(), NamedCacheService.class).build();
+                }
+            return m_serviceProxy;
             }
 
         // ----- data members -----------------------------------------------
@@ -2380,6 +2586,16 @@ public class AsyncNamedCacheClient<K, V>
          * The CDI {@link BeanManager}.
          */
         protected BeanManager m_beanManager;
+
+        /**
+         * The {@link NamedCacheService} proxy;
+         */
+        protected NamedCacheService m_serviceProxy;
+
+        /**
+         * The {@link Executor} to be used by the cache.
+         */
+        protected Executor m_executor;
         }
 
     // ----- constants ------------------------------------------------------
@@ -2448,6 +2664,11 @@ public class AsyncNamedCacheClient<K, V>
     protected final List<NamedCacheDeactivationListener> f_listCacheDeactivationListeners = new ArrayList<>();
 
     /**
+     * The {@link Executor} to use to dispatch events.
+     */
+    protected final Executor f_executor;
+
+    /**
      * The client channel for events observer.
      */
     protected StreamObserver<MapListenerRequest> m_evtRequestObserver;
@@ -2470,5 +2691,5 @@ public class AsyncNamedCacheClient<K, V>
     /**
      * The map of future keyed by request id.
      */
-    protected Map<String, CompletableFuture<Void>> m_mapFuture = new ConcurrentHashMap<>();
+    protected final Map<String, CompletableFuture<Void>> f_mapFuture = new ConcurrentHashMap<>();
     }
