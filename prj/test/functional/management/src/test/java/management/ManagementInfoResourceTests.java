@@ -2397,9 +2397,10 @@ public class ManagementInfoResourceTests
      */
     public LinkedHashMap getReporterResponse(String sMember)
         {
-        Response response = getBaseTarget().path(REPORTERS).path(sMember).request().get();
+        WebTarget target   = getBaseTarget().path(REPORTERS).path(sMember);
+        Response  response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         return mapResponse;
@@ -2818,21 +2819,19 @@ public class ManagementInfoResourceTests
         }
 
     protected LinkedHashMap readEntity(WebTarget target, Response response)
-            throws ProcessingException
+            throws ProcessingException, IllegalStateException
         {
         return readEntity(target, response, null);
         }
 
     protected LinkedHashMap readEntity(WebTarget target, Response response, Entity entity)
-            throws RuntimeException
+            throws ProcessingException, IllegalStateException
         {
-        RuntimeException re;
-
         try
             {
             return response.readEntity(LinkedHashMap.class);
             }
-        catch (RuntimeException e)
+        catch (ProcessingException | IllegalStateException e)
             {
             CacheFactory.log(getClass().getName() + ".readEntity() got an exception: " + e
                     + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_WARN);
@@ -2852,16 +2851,14 @@ public class ManagementInfoResourceTests
                 {
                 return response.readEntity(LinkedHashMap.class);
                 }
-            catch (RuntimeException e2)
+            catch (ProcessingException | IllegalStateException e2)
                 {
-                CacheFactory.log(getClass().getName() + ".readEntity() got exception again: " + e
-                        + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_ERR);
+                CacheFactory.log(getClass().getName() + ".readEntity() got exception again: " + e2
+                        + ", cause: " + e2.getCause().getLocalizedMessage(), CacheFactory.LOG_ERR);
                 }
 
-            re = e;
+            throw e;
             }
-
-        throw re;
         }
 
     // ----- static helpers -------------------------------------------------
