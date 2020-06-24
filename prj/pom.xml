@@ -1629,6 +1629,7 @@
           <minmemory>512m</minmemory>
           <maxmemory>512m</maxmemory>
           <verbose>false</verbose>
+          <additionalJOption>--no-module-directories</additionalJOption>
 
           <overview>src/main/javadoc/overview.html</overview>
           <show>protected</show>
