@@ -9,10 +9,9 @@ package com.oracle.coherence.mp.config;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.events.Activated;
 import com.oracle.coherence.cdi.events.CacheName;
-import com.oracle.coherence.cdi.events.Inserted;
+import com.oracle.coherence.cdi.events.MapName;
 import com.oracle.coherence.cdi.events.ScopeName;
 
-import com.oracle.coherence.cdi.events.Updated;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.events.application.LifecycleEvent;
 
@@ -101,7 +100,7 @@ public class CoherenceConfigSource
      * @param sKey    configuration property key
      * @param sValue  the new value to set
      *
-     * @return the old value of the specified configuration property
+     * @return the previous value of the specified configuration property
      */
     public String setValue(String sKey, String sValue)
         {
@@ -115,7 +114,7 @@ public class CoherenceConfigSource
 
     // ---- property change notification ------------------------------------
 
-    void onPropertyChange(@Observes @ScopeName(Scope.SYSTEM) @CacheName("config") MapEvent<String, String> event)
+    void onPropertyChange(@Observes @ScopeName(Scope.SYSTEM) @MapName(MAP_NAME) MapEvent<String, String> event)
         {
         ConfigPropertyChanged changed = new ConfigPropertyChanged(event);
         m_propertyChanged.fireAsync(changed);
@@ -126,7 +125,7 @@ public class CoherenceConfigSource
 
     void onSystemScopeActivated(@Observes @ScopeName(Scope.SYSTEM) @Activated LifecycleEvent e)
         {
-        m_configMap = e.getConfigurableCacheFactory().ensureCache("config", null);
+        m_configMap = e.getConfigurableCacheFactory().ensureCache(MAP_NAME, null);
         }
 
     /**
@@ -140,6 +139,11 @@ public class CoherenceConfigSource
         }
 
     // ---- data members ----------------------------------------------------
+
+    /**
+     * The name of the map that is used to store configuration properties.
+     */
+    private static final String MAP_NAME = "sys$config";
 
     /**
      * Default ordinal for this {@link ConfigSource}.
