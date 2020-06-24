@@ -711,7 +711,7 @@
       Note that this property has to be named 'revision' and that it has
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
-    <revision>20.06.1-SNAPSHOT</revision>
+    <revision>20.06-SNAPSHOT</revision>
     <project.version.prefix>14.1.1</project.version.prefix>
 
     <!-- The groupId of the Coherence product -->
