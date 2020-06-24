@@ -65,7 +65,7 @@ Browse the Coherence CE JavaDocs.
 ====
 [CARD]
 .CDI
-[icon=extension,link=coherence-cdi/README.adoc]
+[icon=extension,link=coherence-cdi-server/README.adoc]
 --
 Coherence CDI extensions.
 --

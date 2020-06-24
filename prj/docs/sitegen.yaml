@@ -13,7 +13,7 @@ engine:
 assets:
   - target: "/"
     includes:
-      - "css/*.css"
+      - "docs/css/*.css"
   - target: "/"
     includes:
       - "docs/images/**/*"
@@ -49,13 +49,13 @@ backend:
                 - includes:
                     - "docs/about/*.adoc"
             - title: "CDI"
-              pathprefix: "/coherence-cdi"
+              pathprefix: "/coherence-cdi-server"
               glyph:
                 type: "icon"
                 value: "extension"
               items:
                 - includes:
-                    - "coherence-cdi/README.adoc"
+                    - "coherence-cdi-server/README.adoc"
             - title: "Microprofile"
               pathprefix: "/coherence-mp"
               glyph:

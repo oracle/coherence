@@ -26,9 +26,10 @@
   <build>
     <plugins>
       <plugin>
-          <groupId>io.helidon.build-tools</groupId>
-          <artifactId>sitegen-maven-plugin</artifactId>
-          <extensions>true</extensions>
+        <groupId>io.helidon.build-tools</groupId>
+        <artifactId>sitegen-maven-plugin</artifactId>
+        <version>${helidon.sitegen.version}</version>
+        <extensions>true</extensions>
       </plugin>
 
       <plugin>
