@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation;
 import java.util.EnumSet;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.enterprise.inject.spi.ObserverMethod;
 
@@ -340,14 +341,17 @@ public class CdiMapListener<K, V>
         {
         if (isSupported(type))
             {
-            if (m_transformer == null)
+            if (m_observer.isAsync())
                 {
-                m_observer.notify(event);
+                CompletableFuture.supplyAsync(() ->
+                                              {
+                                              m_observer.notify(event);
+                                              return event;
+                                              });
                 }
             else
                 {
-                MapEvent transformed = m_transformer.transform(event);
-                m_observer.notify(transformed);
+                m_observer.notify(event);
                 }
             }
         }

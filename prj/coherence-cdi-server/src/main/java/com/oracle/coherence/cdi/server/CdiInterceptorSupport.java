@@ -53,7 +53,9 @@ import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
 import java.lang.annotation.Annotation;
+
 import java.util.EnumSet;
+import java.util.concurrent.CompletableFuture;
 
 import javax.enterprise.inject.spi.ObserverMethod;
 
@@ -125,7 +127,18 @@ class CdiInterceptorSupport
 
                 if (sObserverScope == null || sEventScope == null || sObserverScope.equals(sEventScope))
                     {
-                    m_observer.notify(event);
+                    if (m_observer.isAsync())
+                        {
+                        CompletableFuture.supplyAsync(() ->
+                                                      {
+                                                      m_observer.notify(event);
+                                                      return event;
+                                                      });
+                        }
+                    else
+                        {
+                        m_observer.notify(event);
+                        }
                     }
                 }
             }

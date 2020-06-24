@@ -29,6 +29,7 @@ import com.oracle.coherence.cdi.events.Updated;
 import com.oracle.coherence.cdi.server.data.Person;
 import com.oracle.coherence.cdi.server.data.PhoneNumber;
 
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -38,7 +39,7 @@ import com.tangosol.util.MapEvent;
 import java.time.LocalDate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -168,28 +169,28 @@ class CdiMapListenerIT
     @ApplicationScoped
     public static class TestListener
         {
-        private final Map<Integer, Integer> events = new HashMap<>();
+        private final Map<Integer, Integer> events = new ConcurrentHashMap<>();
 
-        private final List<MapEvent<String, Person>> filteredEvents = new ArrayList<>();
+        private final List<MapEvent<String, Person>> filteredEvents = Collections.synchronizedList(new ArrayList<>());
 
-        private final List<MapEvent<String, String>> transformedEvents = new ArrayList<>();
+        private final List<MapEvent<String, String>> transformedEvents = Collections.synchronizedList(new ArrayList<>());
 
-        synchronized Integer getEvents(int id)
+        Integer getEvents(int id)
             {
             return events.get(id);
             }
 
-        synchronized public List<MapEvent<String, Person>> getFilteredEvents()
+        public List<MapEvent<String, Person>> getFilteredEvents()
             {
             return filteredEvents;
             }
 
-        synchronized public List<MapEvent<String, String>> getTransformedEvents()
+        public List<MapEvent<String, String>> getTransformedEvents()
             {
             return transformedEvents;
             }
 
-        synchronized private void record(MapEvent<String, Person> event)
+        private void record(MapEvent<String, Person> event)
             {
             System.out.println("Received event: " + event);
             events.compute(event.getId(), (k, v) -> v == null ? 1 : v + 1);
