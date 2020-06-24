@@ -9,11 +9,13 @@ package com.oracle.coherence.grpc.client;
 import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.RemoteMapLifecycleEvent;
 import com.oracle.coherence.cdi.Scope;
-
 import com.oracle.coherence.cdi.SerializerProducer;
+
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
+
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
+
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.net.NamedCache;
@@ -24,8 +26,8 @@ import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
-
 import com.tangosol.util.MapEvent;
+
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 
@@ -45,6 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
 import javax.enterprise.inject.Instance;
 
@@ -77,6 +80,7 @@ public class GrpcRemoteSession
         f_channel              = builder.ensureChannel();
         f_sSerializerFormat    = builder.ensureSerializerFormat();
         f_serializer           = builder.ensureSerializer(f_sSerializerFormat);
+        m_executor             = builder.ensureExecutor();
         f_tracing              = builder.ensureTracing();
         f_mapCaches            = new ConcurrentHashMap<>();
         f_deactivationListener = new ClientDeactivationListener<>();
@@ -91,11 +95,11 @@ public class GrpcRemoteSession
 
         if (instance != null && instance.isResolvable())
             {
-            f_eventDispatcher = instance.get();
+            f_lifecycleEventDispatcher = instance.get();
             }
         else
             {
-            f_eventDispatcher = RemoteMapLifecycleEvent.Dispatcher.nullImplementation();
+            f_lifecycleEventDispatcher = RemoteMapLifecycleEvent.Dispatcher.nullImplementation();
             }
         }
 
@@ -388,13 +392,14 @@ public class GrpcRemoteSession
                 .channel(tracedChannel)
                 .serializer(f_serializer, f_sSerializerFormat)
                 .beanManager(f_beanManager)
+                .executor(m_executor)
                 .build();
 
-        f_eventDispatcher.dispatch(client.getNamedMap(),
-                                   f_sScopeName,
-                                   f_sName,
-                                   null,
-                                   RemoteMapLifecycleEvent.Type.Created);
+        f_lifecycleEventDispatcher.dispatch(client.getNamedMap(),
+                                            f_sScopeName,
+                                            f_sName,
+                                            null,
+                                            RemoteMapLifecycleEvent.Type.Created);
 
         client.addDeactivationListener(f_truncateListener);
         client.addDeactivationListener(f_deactivationListener);
@@ -424,11 +429,11 @@ public class GrpcRemoteSession
             AsyncNamedCacheClient<?, ?> removed = GrpcRemoteSession.this.f_mapCaches.remove(client.getCacheName());
             if (removed != null)
                 {
-                GrpcRemoteSession.this.f_eventDispatcher.dispatch(removed.getNamedMap(),
-                                                                  f_sScopeName,
-                                                                  f_sName,
-                                                                  null,
-                                                                  RemoteMapLifecycleEvent.Type.Destroyed);
+                GrpcRemoteSession.this.f_lifecycleEventDispatcher.dispatch(removed.getNamedMap(),
+                                                                           f_sScopeName,
+                                                                           f_sName,
+                                                                           null,
+                                                                           RemoteMapLifecycleEvent.Type.Destroyed);
                 }
             }
         }
@@ -450,11 +455,11 @@ public class GrpcRemoteSession
         @Override
         public void entryUpdated(MapEvent evt)
             {
-            GrpcRemoteSession.this.f_eventDispatcher.dispatch((NamedMap<?, ?>) evt.getMap(),
-                                                              f_sScopeName,
-                                                              f_sName,
-                                                              null,
-                                                              RemoteMapLifecycleEvent.Type.Truncated);
+            GrpcRemoteSession.this.f_lifecycleEventDispatcher.dispatch((NamedMap<?, ?>) evt.getMap(),
+                                                                       f_sScopeName,
+                                                                       f_sName,
+                                                                       null,
+                                                                       RemoteMapLifecycleEvent.Type.Truncated);
             }
         }
 
@@ -604,6 +609,20 @@ public class GrpcRemoteSession
         public Builder beanManager(BeanManager beanManager)
             {
             m_beanManager = beanManager;
+            return this;
+            }
+
+        /**
+         * Set the {@link Executor} to be used by the session for
+         * dispatching events.
+         *
+         * @param executor  the {@link Executor} to be used by the session
+         *
+         * @return this {@link Builder}
+         */
+        public Builder eventDispatcher(Executor executor)
+            {
+            m_executor = executor;
             return this;
             }
 
@@ -828,6 +847,23 @@ public class GrpcRemoteSession
             return defaultBeanManager.orElse(null);
             }
 
+        /**
+         * Obtain the {@link Executor} to be used by the session.
+         *
+         * @return  the {@link Executor} to be used by the session
+         */
+        Executor ensureExecutor()
+            {
+            if (m_executor == null)
+                {
+                Config             config = sessionConfig().get("executor");
+                DaemonPoolExecutor pool   = DaemonPoolExecutor.builder(config).name(name()).build();
+                pool.start();
+                m_executor = pool;
+                }
+            return m_executor;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -869,6 +905,11 @@ public class GrpcRemoteSession
          * The {@link BeanManager}.
          */
         protected BeanManager m_beanManager;
+
+        /**
+         * The {@link Executor} to be used by the session.
+         */
+        protected Executor m_executor;
 
         /**
          * The session configuration.
@@ -936,7 +977,7 @@ public class GrpcRemoteSession
     /**
      * The producer to fire remote map lifecycle events.
      */
-    private final RemoteMapLifecycleEvent.Dispatcher f_eventDispatcher;
+    private final RemoteMapLifecycleEvent.Dispatcher f_lifecycleEventDispatcher;
 
     /**
      * The {@link AsyncNamedCacheClient} instances managed by this session.
@@ -971,4 +1012,9 @@ public class GrpcRemoteSession
      * A flag indicating whether this session has been closed.
      */
     protected boolean m_fClosed;
+
+    /**
+     * The {@link Executor} to use to dispatch events.
+     */
+    protected Executor m_executor;
     }
