@@ -74,30 +74,27 @@ public class CdiMapListenerManager
 
             if (fScopeOK && fSessionOK)
                 {
-                Filter mapEventFilter;
                 Filter filter = listener.getFilter();
-                if (filter instanceof MapEventFilter)
+                if (filter != null && !(filter instanceof MapEventFilter))
                     {
-                    mapEventFilter = filter;
+                    filter = new MapEventFilter(MapEventFilter.E_ALL, filter);
                     }
-                else if (filter != null)
+
+                MapEventTransformer transformer = listener.getTransformer();
+                if (transformer != null)
                     {
-                    mapEventFilter = new MapEventFilter(MapEventFilter.E_ALL, filter);
-                    }
-                else
-                    {
-                    mapEventFilter = Filters.always();
+                    filter = new MapEventTransformerFilter(filter, transformer);
                     }
 
                 boolean fLite = listener.isLite();
 
                 if (listener.isSynchronous())
                     {
-                    cache.addMapListener(listener.synchronous(), mapEventFilter, fLite);
+                    cache.addMapListener(listener.synchronous(), filter, fLite);
                     }
                 else
                     {
-                    cache.addMapListener(listener, mapEventFilter, fLite);
+                    cache.addMapListener(listener, filter, fLite);
                     }
                 }
             }
