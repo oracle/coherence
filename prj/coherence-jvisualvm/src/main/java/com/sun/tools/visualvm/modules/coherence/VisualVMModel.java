@@ -330,9 +330,18 @@ public class VisualVMModel
                                     // manual check as version numbering changed after 35
                                     nVersion = 353;
                                     }
+                                else if (sCoherenceVersion.startsWith("2"))
+                                    {
+                                    // check for versions such as 20.06 or 20.06.01 and convert them to an ever increasing number
+                                    // 20.06    -> 2006000
+                                    // 20.06.1  -> 2006100
+                                    // 20.06.10 -> 2006100
+                                    String sStrippedVersion = sCoherenceVersion.replaceAll("\\.", "");
+                                    nVersion = Integer.parseInt(sStrippedVersion) * (int) Math.pow(10, 7 - sStrippedVersion.length());
+                                    }
                                 else
                                     {
-                                    nVersion = new Integer(sCoherenceVersion.replaceAll("\\.", ""));
+                                    nVersion = Integer.parseInt(sCoherenceVersion.replaceAll("\\.", ""));
                                     }
 
                                 if (nVersion >= 121300)
