@@ -237,11 +237,9 @@
                 <relocation>
                   <pattern>javax.json</pattern>
                   <shadedPattern>com.tangosol.internal.json</shadedPattern>
-                  <includes>
-                    <include>javax.json.*.*</include>
-                    <include>javax.json.spi.*</include>
-                    <include>javax.json.stream.*</include>
-                  </includes>
+                  <excludes>
+                    <exclude>javax.json.bind.*</exclude>
+                  </excludes>
                 </relocation>
               </relocations>
               <transformers>
