@@ -65,6 +65,19 @@ function createRoutes(){
             component: loadPage('docs-about-03_quickstart', '/docs/about/03_quickstart', {})
         },
         {
+            path: '/coherence-cdi-server/README',
+            meta: {
+                h1: 'Coherence CDI',
+                title: 'Coherence CDI',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('coherence-cdi-server-README', '/coherence-cdi-server/README', {})
+        },
+        {
             path: '/coherence-mp/README',
             meta: {
                 h1: 'Coherence MP',
@@ -143,19 +156,6 @@ function createRoutes(){
             component: loadPage('coherence-java-client-README', '/coherence-java-client/README', {})
         },
         {
-            path: '/coherence-cdi-server/README',
-            meta: {
-                h1: 'Coherence CDI',
-                title: 'Coherence CDI',
-                h1Prefix: null,
-                description: null,
-                keywords: null,
-                customLayout: null,
-                hasNav: false
-            },
-            component: loadPage('coherence-cdi-server-README', '/coherence-cdi-server/README', {})
-        },
-        {
             path: '/docs/README',
             meta: {
                 h1: 'Coherence Documentation Module',
@@ -193,8 +193,9 @@ function createNav(){
         {
             title: 'CDI',
             action: 'extension',
-            group: '/coherence-cdi',
+            group: '/coherence-cdi-server',
             items: [
+                { href: '/coherence-cdi-server/README', title: 'Coherence CDI' }
             ]
         },
         {

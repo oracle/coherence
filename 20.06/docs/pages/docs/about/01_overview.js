@@ -139,7 +139,7 @@ distributed applications.</p>
 <v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
-<router-link to="#coherence-cdi/README.adoc" @click.native="this.scrollFix('#coherence-cdi/README.adoc')"><div class="card__link-hover"/>
+<router-link to="/coherence-cdi-server/README"><div class="card__link-hover"/>
 </router-link>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">
