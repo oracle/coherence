@@ -108,7 +108,7 @@ class CdiMapListenerIT
         NamedCache<String, Person> people = ccf.ensureCache("people", null);
 
         // Wait for the listener registration as it is async
-        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(people), is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(people), is(greaterThanOrEqualTo(3)));
 
         people.put("homer", new Person("Homer", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("marge", new Person("Marge", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
@@ -124,15 +124,15 @@ class CdiMapListenerIT
         people.remove("lisa");
         people.remove("maggie");
 
-        assertThat(listener.getEvents(MapEvent.ENTRY_INSERTED), is(5));
-        assertThat(listener.getEvents(MapEvent.ENTRY_UPDATED), is(2));
-        assertThat(listener.getEvents(MapEvent.ENTRY_DELETED), is(4));
+        Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_INSERTED), is(5));
+        Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_UPDATED), is(2));
+        Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_DELETED), is(4));
 
         // There should be an insert and an update for Bart.
         // The delete for Bart does not match the filter because the lastName
         // had been changed to uppercase.
         List<MapEvent<String, Person>> filteredEvents = listener.getFilteredEvents();
-        assertThat(filteredEvents.size(), is(2));
+        Eventually.assertDeferred(filteredEvents::size, is(2));
         MapEvent<String, Person> eventOne = filteredEvents.get(0);
         MapEvent<String, Person> eventTwo = filteredEvents.get(1);
         assertThat(eventOne.getId(), is(MapEvent.ENTRY_INSERTED));
@@ -143,7 +143,7 @@ class CdiMapListenerIT
 
         // Transformed events should just be inserts with the person's firstName as the new value
         List<MapEvent<String, String>> transformedEvents = listener.getTransformedEvents();
-        assertThat(transformedEvents.size(), is(5));
+        Eventually.assertDeferred(transformedEvents::size, is(5));
         assertThat(transformedEvents.get(0).getNewValue(), is("Homer"));
         assertThat(transformedEvents.get(1).getNewValue(), is("Marge"));
         assertThat(transformedEvents.get(2).getNewValue(), is("Bart"));
