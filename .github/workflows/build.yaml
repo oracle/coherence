@@ -37,10 +37,10 @@ jobs:
          - stage7
          - stage8
          - stage9
-         - stage10
          - stage11
          - stage12
          - stage13
+#         - stage10   comment out for now, until OpenJDK SSL hang bug is fixed
 
     steps:
     - name: Checkout
