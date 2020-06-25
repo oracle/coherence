@@ -6,6 +6,8 @@
  */
 package com.tangosol.net;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Base;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -186,7 +189,7 @@ public class DefaultCacheServerTest
 
         ServiceMonitor mon = server.m_serviceMon;
         assertTrue(mon.isMonitoring());
-        server.shutdownServer();
+        stopDCS(server);
         assertFalse(mon.isMonitoring());
 
         t.interrupt();
@@ -234,7 +237,7 @@ public class DefaultCacheServerTest
 
         Blocking.sleep(cHeartbeatMillis * cIterations + cHeartbeatMillis);
 
-        server.shutdownServer();
+        stopDCS(server);
         t.interrupt();
 
         verify(eccf).activate();
@@ -315,5 +318,24 @@ public class DefaultCacheServerTest
         when(schemes.getElementList()).thenReturn(elements);
 
         return factory;
+        }
+
+    /**
+     * Stop DefaultCacheServer ensuring that the ServiceMonitor is fully stopped.
+     *
+     * @param server  the DefaultCacheServer
+     */
+    protected void stopDCS(DefaultCacheServer server)
+        {
+        ServiceMonitor monitor       = server.m_serviceMon;
+        Thread         threadMonitor = monitor == null ? null : monitor.getThread();
+
+        server.shutdownServer();
+
+        // the ServiceMonitor thread may be alive briefly after DCS.shutdownServer() returns
+        if (threadMonitor != null)
+            {
+            Eventually.assertDeferred(() -> threadMonitor.isAlive(), is(false));
+            }
         }
     }
