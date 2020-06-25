@@ -75,6 +75,9 @@
             <!-- Use NameService -->
             <acceptor-config>
                 <tcp-acceptor />
+                <outgoing-message-handler>
+                    <request-timeout>60s</request-timeout>
+                </outgoing-message-handler>
             </acceptor-config>
             <autostart>true</autostart>
         </proxy-scheme>
