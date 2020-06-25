@@ -162,10 +162,6 @@ public class SimpleRecoveryDynamicQuorumTests
             FileHelper.deleteDirSilent(s_fileActive);
             FileHelper.deleteDirSilent(s_fileSnapshot);
             FileHelper.deleteDirSilent(s_fileTrash);
-
-            Eventually.assertDeferred(() -> s_fileActive.exists(), is(false));
-            Eventually.assertDeferred(() -> s_fileSnapshot.exists(), is(false));
-            Eventually.assertDeferred(() -> s_fileSnapshot.exists(), is(false));
             }
         }
 
