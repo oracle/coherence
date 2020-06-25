@@ -101,7 +101,7 @@
         <configuration>
           <systemPropertyVariables>
             <project.version>${project.version}</project.version>
-            <project.version.next>${project.version}</project.version.next>
+            <project.version.next>${project.version.next}</project.version.next>
           </systemPropertyVariables>
         </configuration>
       </plugin>
