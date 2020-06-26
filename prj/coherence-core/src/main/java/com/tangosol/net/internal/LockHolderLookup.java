@@ -8,8 +8,9 @@
 package com.tangosol.net.internal;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.AbstractPriorityTask;
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.InvocableMap;
@@ -79,8 +80,7 @@ public class LockHolderLookup
             }
         catch (Exception e)
             {
-            CacheFactory.log("Could not get lease information for " +
-                    entry.getKey() + ": " + e, 4);
+            Logger.config("Could not get lease information for " + entry.getKey() + ": " + e);
             }
         return IHolderId;
         }

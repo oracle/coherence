@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.jcache.partitionedcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.CoherenceBasedCache;
 import com.tangosol.coherence.jcache.common.JCacheContext;
 import com.tangosol.coherence.jcache.common.JCacheIdentifier;
@@ -16,10 +18,7 @@ import com.tangosol.config.annotation.Injectable;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
-import com.tangosol.net.CacheFactory;
-
 import com.tangosol.util.AbstractMapListener;
-import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.MapEvent;
@@ -60,8 +59,6 @@ public class PartitionedCacheConfigurationMapListener
     @Override
     public void entryDeleted(MapEvent evt)
         {
-        final int CLOSE_EXCEPTION_LOG_LEVEL = CacheFactory.LOG_DEBUG;
-
         JCacheIdentifier jcacheId = getJCacheIdentifierFromKey(evt);
         JCacheContext    ctx      = JCacheContext.getContext(m_registry, jcacheId);
 
@@ -76,11 +73,7 @@ public class PartitionedCacheConfigurationMapListener
                     }
                 catch (IOException e)
                     {
-                    if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                        {
-                        CacheFactory.log("handled unexpected exception in closable CacheLoader : "
-                                + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                        }
+                    Logger.fine("Unexpected exception in closable CacheLoader: ", e);
                     }
                 }
 
@@ -93,11 +86,7 @@ public class PartitionedCacheConfigurationMapListener
                     }
                 catch (IOException e)
                     {
-                    if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                        {
-                        CacheFactory.log("handled unexpected exception in closable CacheWriter : "
-                                + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                        }
+                    Logger.fine("Unexpected exception in closable CacheWriter: ", e);
                     }
                 }
 
@@ -109,26 +98,21 @@ public class PartitionedCacheConfigurationMapListener
                     }
                 catch (IOException e)
                     {
-                    if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                        {
-                        CacheFactory.log("handled unexpected exception in closable ExpiryPolicy : "
-                                + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                        }
+                    Logger.fine("Unexpected exception in closable ExpiryPolicy: ", e);
                     }
                 }
 
             JCacheContext.unregister(m_registry, jcacheId);
             }
 
-        if (CacheFactory.isLogEnabled(Base.LOG_MAX))
+        if (Logger.isEnabled(Logger.FINEST))
             {
             String unregisterLogMessage = ctx == null
                                           ? " no JCacheContext found in registry " + m_registry
                                           : " unregister JCacheContext from resource registry " + m_registry;
 
-            CacheFactory.log("PartitionedCacheConfigurationMap: entryDeleted event JCacheId=" + jcacheId
-                             + unregisterLogMessage + " configuration=" + evt.getOldValue(), Base.LOG_MAX);
-
+            Logger.finest("PartitionedCacheConfigurationMap: entryDeleted event JCacheId=" + jcacheId
+                             + unregisterLogMessage + " configuration=" + evt.getOldValue());
             }
         }
 

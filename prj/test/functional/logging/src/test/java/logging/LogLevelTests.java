@@ -10,8 +10,6 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import common.AbstractFunctionalTest;
 
-import com.tangosol.net.CacheFactory;
-
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,8 +63,8 @@ public class LogLevelTests extends AbstractFunctionalTest
 
         // Default log level for JDK logging is INFO
         // with JDK logging configured, it should override
-        // default coherence log level (LOG_DEBUG).
-        assertFalse(CacheFactory.isLogEnabled(LOG_DEBUG));
+        // default coherence log level.
+        assertFalse(com.oracle.coherence.common.base.Logger.isEnabled(5));
 
         // FINEST level message should not be logged
         m_logger.log(Level.FINEST, sMessage_finest);

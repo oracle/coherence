@@ -6,12 +6,12 @@
  */
 package com.tangosol.run.xml;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.dev.compiler.CompilerException;
 import com.tangosol.dev.compiler.SyntaxException;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ErrorList;
@@ -57,7 +57,7 @@ public class SimpleParser
         boolean fDisable = Config.getBoolean("coherence.xml.validation.disable");
         if (fDisable && fValidate)
             {
-            CacheFactory.log("XML validation disabled", CacheFactory.LOG_INFO);
+            Logger.info("XML validation disabled");
             }
         m_fValidate = !fDisable && fValidate;
         }
@@ -147,8 +147,7 @@ public class SimpleParser
                 catch (UnsupportedEncodingException e)
                     {
                     // proceeding with parsed document
-                    CacheFactory.log("Could not parse XML with encoding " + sEncoding,
-                            CacheFactory.LOG_WARN);
+                    Logger.warn("Could not parse XML with encoding " + sEncoding);
                     }
                 }
             }

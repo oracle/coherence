@@ -10,12 +10,11 @@ package com.tangosol.coherence.metrics.internal;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.metrics.MBeanMetric;
-
-import com.tangosol.util.Base;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -195,8 +194,7 @@ public class MetricsResource
             }
         catch (Throwable t)
             {
-            CacheFactory.log("Exception in MetricsResource.getMetrics()"
-                             + Base.printStackTrace(t), Base.LOG_ERR);
+            Logger.err("Exception in MetricsResource.getMetrics():", t);
             throw t;
             }
         }

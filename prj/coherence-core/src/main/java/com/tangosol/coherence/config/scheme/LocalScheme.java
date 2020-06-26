@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config.scheme;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.util.Duration.Magnitude;
 
 import com.tangosol.coherence.config.CacheConfig;
@@ -38,8 +40,6 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.ResourceResolver;
 import com.tangosol.util.ResourceResolverHelper;
-
-import static com.tangosol.util.ResourceResolverHelper.resourceResolverFrom;
 
 /**
  * The {@link LocalScheme} class is responsible for building a fully
@@ -201,7 +201,7 @@ public class LocalScheme
                     sText += "\n(The exception has been logged and will be ignored.)";
                     }
 
-                CacheFactory.log(sText, CacheFactory.LOG_WARN);
+                Logger.warn(sText);
 
                 if (e instanceof Error)
                     {

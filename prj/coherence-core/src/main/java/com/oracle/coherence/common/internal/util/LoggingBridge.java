@@ -6,13 +6,10 @@
  */
 package com.oracle.coherence.common.internal.util;
 
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
+import com.oracle.coherence.common.base.Logger;
 
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import java.util.logging.StreamHandler;
 
 /**
@@ -27,41 +24,36 @@ public class LoggingBridge
      *
      * @return a bridge logger
      */
-    public static Logger createBridge()
+    public static java.util.logging.Logger createBridge()
         {
-        Logger logger = Logger.getAnonymousLogger();
-
-        int nLevel = 0;
-        for (; nLevel < 9 && CacheFactory.isLogEnabled(nLevel); ++nLevel)
-            {
-            }
+        java.util.logging.Logger logger = java.util.logging.Logger.getAnonymousLogger();
 
         Level level;
-        if (CacheFactory.isLogEnabled(9))
+        if (Logger.isEnabled(Logger.FINEST))
             {
-            level = Level.ALL;
+            level = Level.FINEST;
             }
-        else if (CacheFactory.isLogEnabled(7))
+        else if (Logger.isEnabled(Logger.FINER))
             {
             level = Level.FINER;
             }
-        else if (CacheFactory.isLogEnabled(5))
+        else if (Logger.isEnabled(Logger.FINE))
             {
             level = Level.FINE;
             }
-        else if (CacheFactory.isLogEnabled(4))
+        else if (Logger.isEnabled(Logger.CONFIG))
             {
             level = Level.CONFIG;
             }
-        else if (CacheFactory.isLogEnabled(Base.LOG_INFO))
+        else if (Logger.isEnabled(Logger.INFO))
             {
             level = Level.INFO;
             }
-        else if (CacheFactory.isLogEnabled(Base.LOG_WARN))
+        else if (Logger.isEnabled(Logger.WARNING))
             {
             level = Level.WARNING;
             }
-        else // if (CacheFactory.isLogEnabled(Base.LOG_ERR))
+        else // if (Logger.isEnabled(Logger.ERROR))
             {
             level = Level.SEVERE;
             }
@@ -75,25 +67,24 @@ public class LoggingBridge
             public void publish(LogRecord record)
                 {
                 int nLevelSrc = record.getLevel().intValue();
-                int nLevelDst = nLevelSrc <= FINEST  ? 9
-                              : nLevelSrc <= FINER   ? 7
-                              : nLevelSrc <= FINE    ? 5
-                              : nLevelSrc <= CONFIG  ? 4
-                              : nLevelSrc <= INFO    ? CacheFactory.LOG_INFO
-                              : nLevelSrc <= WARNING ? CacheFactory.LOG_WARN
-                              :            /*SEVERE*/  CacheFactory.LOG_ERR;
+                int nLevelDst = nLevelSrc <= FINEST  ? Logger.FINEST
+                              : nLevelSrc <= FINER   ? Logger.FINER
+                              : nLevelSrc <= FINE    ? Logger.FINE
+                              : nLevelSrc <= CONFIG  ? Logger.CONFIG
+                              : nLevelSrc <= INFO    ? Logger.INFO
+                              : nLevelSrc <= WARNING ? Logger.WARNING
+                              :            /*SEVERE*/  Logger.ERROR;
 
-                if (CacheFactory.isLogEnabled(nLevelDst))
+                if (Logger.isEnabled(nLevelDst))
                     {
                     Throwable ex = record.getThrown();
                     if (ex == null)
                         {
-                        CacheFactory.log(getFormatter().formatMessage(record), nLevelDst);
+                        Logger.log(getFormatter().formatMessage(record), nLevelDst);
                         }
                     else
                         {
-                        CacheFactory.log(getFormatter().formatMessage(record) + "\n" +
-                                Base.printStackTrace(ex), nLevelDst);
+                        Logger.log(getFormatter().formatMessage(record), ex, nLevelDst);
                         }
                     }
                 }

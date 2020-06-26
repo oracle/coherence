@@ -8,6 +8,8 @@ package com.tangosol.coherence.memcached.server;
 
 import com.oracle.coherence.common.base.Disposable;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.internal.net.socketbus.SharedBuffer;
 import com.oracle.coherence.common.internal.net.socketbus.SharedBuffer.Disposer;
 import com.oracle.coherence.common.internal.net.socketbus.SharedBuffer.Segment;
@@ -26,7 +28,6 @@ import com.tangosol.io.MultiBufferWriteBuffer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.ReadBuffer.BufferInput;
 import com.tangosol.io.WriteBuffer.BufferOutput;
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 
@@ -168,7 +169,7 @@ public class BinaryConnection
             }
         catch (Throwable thr)
             {
-            CacheFactory.log(Base.printStackTrace(thr), CacheFactory.LOG_ERR);
+            Logger.err(thr);
             throw Base.ensureRuntimeException(thr);
             }
         }
@@ -907,7 +908,7 @@ public class BinaryConnection
             catch (Throwable thr)
                 {
                 fClose = true;
-                CacheFactory.log("Exception while writing response: "+Base.printStackTrace(thr), CacheFactory.LOG_ERR);
+                Logger.err("Exception while writing response:", thr);
                 }
             finally
                 {

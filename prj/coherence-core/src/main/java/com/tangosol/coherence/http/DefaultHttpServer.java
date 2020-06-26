@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.http;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -14,8 +16,6 @@ import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsExchange;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.DaemonThreadFactory;
@@ -351,10 +351,7 @@ public class DefaultHttpServer
                 }
             catch (Exception e)
                 {
-                CacheFactory.log(
-                        "Caught unhandled exception while processing an HTTP request: "
-                        + Base.printStackTrace(e)
-                );
+                Logger.err("Caught unhandled exception while processing an HTTP request:", e);
                 exchange.getResponseHeaders().clear();
                 exchange.sendResponseHeaders(500, -1);
                 incrementErrors();
@@ -537,9 +534,7 @@ public class DefaultHttpServer
                     }
                 catch (IOException e)
                     {
-                    CacheFactory.log("Unable to send a failure response: "
-                            + Base.printStackTrace(e), CacheFactory.LOG_WARN);
-
+                    Logger.warn("Unable to send a failure response:", e);
                     }
                 finally
                     {

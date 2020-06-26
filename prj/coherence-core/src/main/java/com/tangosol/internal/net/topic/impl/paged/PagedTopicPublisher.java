@@ -7,6 +7,7 @@
 package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.base.Converter;
+import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.util.MemorySize;
 import com.oracle.coherence.common.util.Options;
@@ -23,7 +24,6 @@ import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage.Key;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.FlowControl;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
@@ -367,7 +367,7 @@ public class PagedTopicPublisher<V>
                 {
                 // too long to wait for completion; force all outstanding futures to complete exceptionally
                 flushInternal(FLUSH_CLOSE_EXCEPTIONALLY).join();
-                CacheFactory.log("Publisher.close: timeout after waiting " + CLOSE_TIMEOUT_SECS + " seconds for completion with flush.join(), forcing complete exceptionally", Base.LOG_WARN);
+                Logger.warn("Publisher.close: timeout after waiting " + CLOSE_TIMEOUT_SECS + " seconds for completion with flush.join(), forcing complete exceptionally");
                 }
             catch (ExecutionException | InterruptedException e)
                 {
@@ -387,8 +387,8 @@ public class PagedTopicPublisher<V>
                     }
                 catch (Throwable t)
                     {
-                    CacheFactory.log(this.getClass().getName() + ".close(): handled onClose exception: " +
-                        t.getClass().getCanonicalName() + ": " + t.getMessage(), Base.LOG_QUIET);
+                    Logger.fine(this.getClass().getName() + ".close(): handled onClose exception: " +
+                        t.getClass().getCanonicalName() + ": " + t.getMessage());
                     }
                 });
             }
@@ -857,9 +857,9 @@ public class PagedTopicPublisher<V>
         public void entryDeleted(MapEvent evt)
             {
             // destroy/disconnect event
-            CacheFactory.log("Detected destroy of topic "
+            Logger.fine("Detected destroy of topic "
                              + f_sTopicName + ", closing publisher "
-                             + PagedTopicPublisher.this, CacheFactory.LOG_QUIET);
+                             + PagedTopicPublisher.this);
             closeInternal(true);
             }
         }

@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config.scheme;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.net.InetAddresses;
 import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.MemorySize;
@@ -41,7 +43,6 @@ import com.tangosol.net.security.StorageAccessAuthorizer;
 
 import com.tangosol.net.topic.NamedTopic;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.ResourceResolver;
 import com.tangosol.util.ResourceResolverHelper;
@@ -419,7 +420,7 @@ public class PagedTopicScheme
         configuration.setElementExpiryMillis(expiryDelayMillis);
         configuration.setMaxBatchSizeBytes(Math.min(cbPage, nMaxBatchSizeBytes));
         configuration.setRetainConsumed(fRetainConsumed);
-        CacheFactory.log("PagedTopicScheme configuration: " + configuration, Base.LOG_QUIET);
+        Logger.finer("PagedTopicScheme configuration: " + configuration);
         return configuration;
         }
 

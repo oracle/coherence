@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config.builder;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.net.SocketProvider;
 
 import com.tangosol.coherence.config.ParameterList;
@@ -17,10 +19,10 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.PasswordProvider;
 import com.tangosol.net.SocketProviderFactory;
 import com.tangosol.net.security.SecurityProvider;
+
 import com.tangosol.util.Base;
 
 import java.io.IOException;
@@ -458,7 +460,7 @@ public class SSLSocketProviderDependenciesBuilder
                              : aKeyManager != null && aTrustManager == null ? "one-way server" : "two-way";
 
             deps.setDescription(sbDesc.insert(0, "SSLSocketProvider(auth=" + sAuth + ", ").append(')').toString());
-            CacheFactory.log("instantiated SSLSocketProviderDependencies: " + sbDesc.toString(), Base.LOG_DEBUG);
+            Logger.fine("instantiated SSLSocketProviderDependencies: " + sbDesc.toString());
             m_fRealized = true;
             }
         catch (GeneralSecurityException e)

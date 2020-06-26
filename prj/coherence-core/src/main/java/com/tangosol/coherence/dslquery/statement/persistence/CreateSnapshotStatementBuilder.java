@@ -7,6 +7,8 @@
 package com.tangosol.coherence.dslquery.statement.persistence;
 
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.StatementResult;
@@ -16,7 +18,6 @@ import com.tangosol.coherence.dslquery.statement.DefaultStatementResult;
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 
 import com.tangosol.config.expression.ParameterResolver;
-import com.tangosol.net.CacheFactory;
 
 import java.io.PrintWriter;
 
@@ -116,7 +117,7 @@ public class CreateSnapshotStatementBuilder
                         sErrorMsg = "A snapshot named '" + f_sSnapshotName + "' already exists for " +
                                     "service '" + f_sServiceName + "'";
                         }
-                    CacheFactory.log(sErrorMsg + ": " + helper.listSnapshots(), CacheFactory.LOG_WARN);
+                    Logger.warn(sErrorMsg + ": " + helper.listSnapshots());
                     Blocking.sleep(250L);
                     }
 

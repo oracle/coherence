@@ -16,7 +16,6 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
 import com.tangosol.net.BackingMapManagerContext;
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
@@ -130,14 +129,6 @@ public class PutProcessor<K>
             binEntry.updateBinaryValue(binValue);
 
             stats.registerPuts(1, ldtStart);
-            }
-        else
-            {
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-                {
-                CacheFactory.log("PutProcessor: expired entry with key " + entry.getKey() + " value=" + m_binValue,
-                                 CacheFactory.LOG_QUIET);
-                }
             }
 
         return null;

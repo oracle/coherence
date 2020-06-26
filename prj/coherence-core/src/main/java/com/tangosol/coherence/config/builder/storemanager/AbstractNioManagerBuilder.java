@@ -6,6 +6,7 @@
  */
 package com.tangosol.coherence.config.builder.storemanager;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.MemorySize;
 import com.oracle.coherence.common.util.MemorySize.Magnitude;
 
@@ -98,13 +99,11 @@ public abstract class AbstractNioManagerBuilder<T>
         // warn about changes to configured values
         if (cbInitSize != cbInit)
             {
-            CacheFactory.log("Invalid NIO manager initial-size changed to: "
-                    + cbInitSize + " bytes", CacheFactory.LOG_WARN);
+            Logger.warn("Invalid NIO manager initial-size changed to: " + cbInitSize + " bytes");
             }
         if (cbMaxSize != cbMax)
             {
-            CacheFactory.log("Invalid NIO manager maximum-size changed to: "
-                    + cbMaxSize + " bytes", CacheFactory.LOG_WARN);
+            Logger.warn("Invalid NIO manager maximum-size changed to: " + cbMaxSize + " bytes");
             }
 
         m_exprMaxSize     = new LiteralExpression<Megabytes>(new Megabytes(new MemorySize(cbMaxSize, Magnitude.BYTES)));

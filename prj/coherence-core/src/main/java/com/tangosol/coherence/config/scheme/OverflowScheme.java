@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config.scheme;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.util.Duration.Magnitude;
 
 import com.tangosol.coherence.config.SimpleParameterList;
@@ -18,7 +20,6 @@ import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.LiteralExpression;
 import com.tangosol.config.expression.ParameterResolver;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.OverflowMap;
 import com.tangosol.net.cache.SimpleOverflowMap;
 
@@ -101,33 +102,33 @@ public class OverflowScheme
 
             if (mapMisses != null)
                 {
-                CacheFactory.log("Cache " + sCacheName + " of scheme " + getSchemeName()
-                                 + " has a \"miss-cache-scheme\" configured; since"
-                                 + " the default OverflowMap implementation has been"
-                                 + " selected, the miss cache will not be used.", CacheFactory.LOG_WARN);
+                Logger.warn("Cache " + sCacheName + " of scheme " + getSchemeName()
+                            + " has a \"miss-cache-scheme\" configured; since"
+                            + " the default OverflowMap implementation has been"
+                            + " selected, the miss cache will not be used.");
                 }
             }
         else if (map instanceof SimpleOverflowMap)
             {
             if (fExpiryEnabled)
                 {
-                CacheFactory.log("Cache " + sCacheName + " of scheme " + getSchemeName()
-                                 + " has \"expiry-enabled\" set to true or"
-                                 + " \"expiry-delay\" configured; these settings will"
-                                 + " have no effect, and expiry will not work,"
-                                 + " because the scheme explicitly ues a"
-                                 + " SimpleOverflowMap.", CacheFactory.LOG_WARN);
+                Logger.warn("Cache " + sCacheName + " of scheme " + getSchemeName()
+                            + " has \"expiry-enabled\" set to true or"
+                            + " \"expiry-delay\" configured; these settings will"
+                            + " have no effect, and expiry will not work,"
+                            + " because the scheme explicitly ues a"
+                            + " SimpleOverflowMap.");
                 }
 
             if (mapBack instanceof ObservableMap)
                 {
-                CacheFactory.log("Cache " + sCacheName + " of scheme " + getSchemeName()
-                                 + " has a \"back-scheme\" that is observable;"
-                                 + " the events from the back map will be ignored"
-                                 + " because the scheme explicitly uses a"
-                                 + " SimpleOverflowMap, and this could result in"
-                                 + " missing events if the back map actively expires"
-                                 + " and/or evicts its entries.", CacheFactory.LOG_WARN);
+                Logger.warn("Cache " + sCacheName + " of scheme " + getSchemeName()
+                            + " has a \"back-scheme\" that is observable;"
+                            + " the events from the back map will be ignored"
+                            + " because the scheme explicitly uses a"
+                            + " SimpleOverflowMap, and this could result in"
+                            + " missing events if the back map actively expires"
+                            + " and/or evicts its entries.");
                 }
             }
         else

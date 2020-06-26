@@ -6,21 +6,19 @@
  */
 package com.tangosol.coherence.jcache.common;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.CoherenceBasedCachingProvider;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.application.LifecycleEvent;
 
-import com.tangosol.util.Base;
-
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.cache.CacheManager;
 import javax.cache.Caching;
 
 import javax.cache.spi.CachingProvider;

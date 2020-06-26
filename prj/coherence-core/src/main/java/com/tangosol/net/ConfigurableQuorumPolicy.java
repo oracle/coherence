@@ -8,6 +8,8 @@
 package com.tangosol.net;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.util.GridComponent;
 
 import com.tangosol.net.CacheService.CacheAction;
@@ -1132,7 +1134,7 @@ public abstract class ConfigurableQuorumPolicy
                     }
                 }
 
-            CacheFactory.log(sb.toString(), CacheFactory.LOG_WARN);
+            Logger.warn(sb.toString());
 
             m_ldtLastReport = ldtNow;
             }

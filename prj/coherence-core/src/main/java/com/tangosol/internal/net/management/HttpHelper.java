@@ -6,13 +6,14 @@
  */
 package com.tangosol.internal.net.management;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.grid.LegacyXmlProxyServiceHelper;
 
 import com.tangosol.internal.net.service.grid.ProxyServiceDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.HttpAcceptorDependencies;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.ProxyService;
@@ -94,8 +95,7 @@ public abstract class HttpHelper
         catch (Throwable t)
             {
             // don't bother logging the stack trace as having a stack trace in the logs can be alarming to administrators
-            CacheFactory.log("One or more libraries are missing for management over HTTP: " + t,
-                CacheFactory.LOG_MAX);
+            Logger.finest("One or more libraries are missing for management over HTTP: " + t);
 
             return false;
             }
@@ -150,8 +150,8 @@ public abstract class HttpHelper
 
                 if (tCause instanceof ClassNotFoundException)
                     {
-                    CacheFactory.log("Management over HTTP is not available most likely due to this member missing "
-                        + "the necessary libraries to run the service. Handled exception: " + tCause.getClass().getCanonicalName() + ": " + tCause.getLocalizedMessage(), Base.LOG_ERR);
+                    Logger.err("Management over HTTP is not available most likely due to this member missing "
+                        + "the necessary libraries to run the service. Handled exception: " + tCause.getClass().getCanonicalName() + ": " + tCause.getLocalizedMessage());
                     return false;
                     }
                 else
@@ -159,15 +159,15 @@ public abstract class HttpHelper
                     // could be IOException for address in use or SecurityException or IllegalArgumentException for Configuration Errors
                     HttpAcceptorDependencies depsHttpAcceptor = (HttpAcceptorDependencies) deps.getAcceptorDependencies();
 
-                    CacheFactory.log("failed to start service " + HttpHelper.getServiceName() + " at address " + depsHttpAcceptor.getLocalAddress() + ":" +
-                        depsHttpAcceptor.getLocalPort() + " due to " + tCause.getClass().getSimpleName() + " : " + tCause.getLocalizedMessage(), Base.LOG_ERR);
+                    Logger.err("failed to start service " + HttpHelper.getServiceName() + " at address " + depsHttpAcceptor.getLocalAddress() + ":" +
+                        depsHttpAcceptor.getLocalPort() + " due to " + tCause.getClass().getSimpleName() + " : " + tCause.getLocalizedMessage());
                     return false;
                     }
                 }
             }
         else
             {
-            CacheFactory.log("Management over HTTP is not available most likely due to missing classes", CacheFactory.LOG_ERR);
+            Logger.err("Management over HTTP is not available most likely due to missing classes");
             return false;
             }
         }

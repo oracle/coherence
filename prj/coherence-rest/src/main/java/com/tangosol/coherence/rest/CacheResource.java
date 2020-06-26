@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.rest;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.rest.config.DirectQuery;
 import com.tangosol.coherence.rest.config.NamedQuery;
 import com.tangosol.coherence.rest.config.QueryConfig;
@@ -27,7 +29,6 @@ import com.tangosol.coherence.rest.util.aggregator.AggregatorRegistry;
 
 import com.tangosol.coherence.rest.util.processor.ProcessorRegistry;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.InvocableMap;
@@ -377,8 +378,7 @@ public class CacheResource
                 }
             catch (Exception e)
                 {
-                CacheFactory.log("Failed to convert the key \"" + sKey + "\" to a "
-                        + m_clzKey, 2);
+                Logger.warn("Failed to convert the key \"" + sKey + "\" to a " + m_clzKey);
                 throw new NotFoundException();
                 }
             return InjectionBinder.inject(instantiateEntryResource(m_cache, oKey, m_clzValue), m_serviceLocator);
@@ -408,8 +408,7 @@ public class CacheResource
                 }
             catch (Exception e)
                 {
-                CacheFactory.log("Failed to convert the key \"" + sKey + "\" to a "
-                        + m_clzKey, 2);
+                Logger.warn("Failed to convert the key \"" + sKey + "\" to a " + m_clzKey);
                 }
             }
 

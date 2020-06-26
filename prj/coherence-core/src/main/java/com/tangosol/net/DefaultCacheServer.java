@@ -7,6 +7,7 @@
 package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.internal.net.service.LegacyXmlServiceHelper;
@@ -114,7 +115,7 @@ public class DefaultCacheServer
                 // running within a container, we should try to wait
                 // a bit and do another attempt. In the worst case
                 // they will see tons of restart attempts in the log.
-                CacheFactory.log("Failed to start services: " + e, CacheFactory.LOG_ERR);
+                Logger.err("Failed to start services: " + e);
                 Runtime.getRuntime().removeShutdownHook(m_threadShutdown);
                 try
                     {
@@ -320,8 +321,11 @@ public class DefaultCacheServer
         dcs = ensureInstance(getConfigurableCacheFactory());
         if (asTenant != null)
             {
-            CacheFactory.log("Multi-tenancy is only supported for a GAR deployment",
-                CacheFactory.LOG_WARN);
+            dcs = ensureInstance(getConfigurableCacheFactory());
+            if (asTenant != null)
+                {
+                Logger.warn("Multi-tenancy is only supported for a GAR deployment");
+                }
             }
         dcs.startAndMonitor(cWaitMillis);
         }
@@ -409,9 +413,8 @@ public class DefaultCacheServer
      */
     protected void reportStarted()
         {
-        CacheFactory.log(getServiceBanner(CacheFactory.getCluster()) +
-                '\n' + "Started " + getClass().getSimpleName() + "...\n",
-            CacheFactory.LOG_INFO);
+        Logger.info(getServiceBanner(CacheFactory.getCluster()) +
+                '\n' + "Started " + getClass().getSimpleName() + "...\n");
         }
 
     /**

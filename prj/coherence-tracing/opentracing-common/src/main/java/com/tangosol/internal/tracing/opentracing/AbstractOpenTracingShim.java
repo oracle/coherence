@@ -6,10 +6,10 @@
  */
 package com.tangosol.internal.tracing.opentracing;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.TracingShim;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 
@@ -26,6 +26,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 import java.util.Objects;
+import java.util.function.Supplier;
+
 
 /**
  * Base class for {@code OpenTracing} {@link TracingShim shims}.
@@ -109,12 +111,7 @@ public abstract class AbstractOpenTracingShim
                         }
                     catch (Exception e)
                         {
-                        if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                            {
-                            CacheFactory.log("Unexpected exception during Tracer registration: " + e,
-                                             CacheFactory.LOG_MAX);
-                            CacheFactory.log(Base.printStackTrace(e), CacheFactory.LOG_MAX);
-                            }
+                        Logger.finest(() -> "Unexpected exception during Tracer registration:", e);
                         return null;
                         }
                     }
@@ -122,10 +119,7 @@ public abstract class AbstractOpenTracingShim
 
             final Tracer tracerFin = GlobalTracer.get();
 
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                {
-                CacheFactory.log("Initialized TracingShim: " + toString(), CacheFactory.LOG_MAX);
-                }
+            Logger.finest(() -> "Initialized TracingShim: " + toString());
 
             return new TracingShim.Control()
                 {
@@ -143,13 +137,9 @@ public abstract class AbstractOpenTracingShim
                                 }
                             catch (IOException e)
                                 {
-                                if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                                    {
-                                    String sMsg = String.format("Exception raised closing tracer [%s]: %s",
-                                                                tracerFin.getClass().getName(), e.toString());
-                                    CacheFactory.log(sMsg, CacheFactory.LOG_MAX);
-                                    CacheFactory.log(Base.printStackTrace(e), CacheFactory.LOG_MAX);
-                                    }
+                                Supplier<String> supplierMsg = () ->
+                                        String.format("Exception raised closing tracer [%s]:", tracerFin.getClass().getName());
+                                Logger.finest(supplierMsg, e);
                                 }
                             }
 

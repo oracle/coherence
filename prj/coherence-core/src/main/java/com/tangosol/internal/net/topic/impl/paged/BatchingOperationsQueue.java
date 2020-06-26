@@ -6,9 +6,9 @@
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
-import com.tangosol.internal.net.DebouncedFlowControl;
+import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -216,7 +216,7 @@ public class BatchingOperationsQueue<F>
 
             if (throwable != null)
                 {
-                CacheFactory.log("Caught asynchronous error " + throwable.getClass().getName() + " - action is " + action, Base.LOG_QUIET);
+                Logger.fine("Caught asynchronous error " + throwable.getClass().getName() + " - action is " + action);
                 }
 
             switch(action)

@@ -6,9 +6,10 @@
  */
 package com.tangosol.coherence.jcache.partitionedcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.common.CoherenceCacheEntryEvent;
 import com.tangosol.coherence.jcache.common.CoherenceCacheEventEventDispatcher;
-import com.tangosol.coherence.jcache.partitionedcache.processors.AbstractEntryProcessor;
 import com.tangosol.coherence.jcache.partitionedcache.processors.BinaryEntryHelper;
 
 import com.tangosol.io.pof.PofReader;
@@ -16,14 +17,12 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.BackingMapManagerContext;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.CacheEvent;
 
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ConverterCollections;
-import com.tangosol.util.Filter;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.filter.EntryFilter;
 
@@ -183,10 +182,9 @@ public class PartitionedCacheSyntheticDeleteMapListener<K, V>
                                 || BinaryEntryHelper.JCACHE_SYNTHETIC_EXPIRY_EVENT_FOR_ORIGINAL_VALUES.equals(
                                     jcacheSyntheticKind);
 
-                    if (fResult && CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
+                    if (fResult)
                         {
-                        CacheFactory.log("jacheSyntheticKind=" + jcacheSyntheticKind + " event=" + o,
-                                         CacheFactory.LOG_QUIET);
+                        Logger.fine(() -> "jacheSyntheticKind=" + jcacheSyntheticKind + " event=" + o);
                         }
                     }
                 }

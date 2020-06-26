@@ -6,15 +6,19 @@
  */
 package com.tangosol.io.pof.generator;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.dev.tools.CommandLineTool;
+
 import com.tangosol.io.pof.generator.PofConfigGenerator.Dependencies;
-import com.tangosol.net.CacheFactory;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.ListMap;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -90,14 +94,14 @@ public class Executor
             .setPackages(setPackages)
             .setStartTypeId(ITypeId);
 
-        CacheFactory.log("Generating POF Configuration...", CacheFactory.LOG_ALWAYS);
+        Logger.fine("Generating POF Configuration...");
         PofConfigGenerator generator = createPofConfigGenerator(deps);
         generator.generate();
 
         try
             {
-            CacheFactory.log("POF Configuration generated: "
-                    + new File(generator.getWrittenPath()).getCanonicalPath(), CacheFactory.LOG_ALWAYS);
+            Logger.fine("POF Configuration generated: "
+                    + new File(generator.getWrittenPath()).getCanonicalPath());
             }
         catch (IOException e)
             {
@@ -195,7 +199,7 @@ public class Executor
           .append("  -startTypeId    the user type id to start allocations from\n")
           .append("  -help           show this help\n");
 
-        CacheFactory.log(sb.toString(), CacheFactory.LOG_ALWAYS);
+        Logger.log(sb.toString(), Logger.ALWAYS);
         }
 
     // ----- constants ------------------------------------------------------

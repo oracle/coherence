@@ -8,6 +8,8 @@
 package com.tangosol.net;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.util.Base;
@@ -729,11 +731,11 @@ public class TcpDatagramSocket
                                 if ((status.m_cRxPacket & 0x0F) != ((nHead & 0x0F0) >>> 4))
                                     {
                                     // indicates that we have a corrupted stream
-                                    CacheFactory.log("Recovering corrupted "
+                                    Logger.info("Recovering corrupted "
                                             + "packet stream from "
                                             + status.m_addr + " detected at packet "
                                             + status.m_cRxPacket + ", last packet"
-                                            + " length " + status.m_cbBody, CacheFactory.LOG_INFO);
+                                            + " length " + status.m_cbBody);
                                     throw new IOException();
                                     }
                                 // fall through
@@ -787,14 +789,14 @@ public class TcpDatagramSocket
                                 case 0xFFFFFFFF: // int
                                     if (status.m_cbBody < 4)
                                         {
-                                        CacheFactory.log("Recovering corrupted"
+                                        Logger.info("Recovering corrupted"
                                                 + " packet stream from "
                                                 + status.m_addr + " detected at"
                                                 + " packet " + status.m_cRxPacket
                                                 + ", with packet length "
                                                 + status.m_cbBody + ", buffer "
                                                 + "capacity "
-                                                + status.m_body.capacity(), CacheFactory.LOG_INFO);
+                                                + status.m_body.capacity());
                                         throw new IOException();
                                         }
 
@@ -1484,18 +1486,18 @@ public class TcpDatagramSocket
         protected void logException(SocketAddress addr, IOException e)
             {
             int nLevel = e instanceof SSLException
-                    ? CacheFactory.LOG_WARN // all security exceptions are logged
+                    ? Logger.WARNING // all security exceptions are logged
                     : IO_EXCEPTIONS_LOG_LEVEL;
-            if (nLevel >= 0 && CacheFactory.isLogEnabled(nLevel))
+            if (nLevel >= 0 && Logger.isEnabled(nLevel))
                 {
-                CacheFactory.log(this + ", exception regarding peer "
+                Logger.log(this + ", exception regarding peer "
                         + addr + ", " + Base.getDeepMessage(e, "; "), nLevel);
 
                 if (IO_EXCEPTIONS_LOG_LEVEL >= 0
-                        && CacheFactory.isLogEnabled(IO_EXCEPTIONS_LOG_LEVEL))
+                        && Logger.isEnabled(IO_EXCEPTIONS_LOG_LEVEL))
                     {
                     // full stack traces are only logged if explictly requested
-                    CacheFactory.err(e);
+                    Logger.err(e);
                     }
                 }
             }
@@ -1513,9 +1515,9 @@ public class TcpDatagramSocket
             long ldtNow = Base.getSafeTimeMillis();
             if (ldtNow - m_ldtLastWarn > 10000)
                 {
-                CacheFactory.log("Unexpected protocol header " + nMagic
+                Logger.warn("Unexpected protocol header " + nMagic
                         + " in state " + status.m_state + " received from "
-                        + addr + " dropping connection", CacheFactory.LOG_WARN);
+                        + addr + " dropping connection");
                 m_ldtLastWarn = ldtNow;
                 }
             }

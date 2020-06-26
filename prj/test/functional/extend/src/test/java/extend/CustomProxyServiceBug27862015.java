@@ -6,12 +6,13 @@
  */
 package extend;
 
+import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.WrapperCacheService;
 import com.tangosol.net.cache.WrapperNamedCache;
+
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
@@ -24,7 +25,7 @@ import java.util.Map;
  * @author tam  2018.04.18
  */
 public class CustomProxyServiceBug27862015
-	extends WrapperCacheService
+        extends WrapperCacheService
     {
     /**
      * Create a new WrapperCacheService that delegates to the given
@@ -131,7 +132,7 @@ public class CustomProxyServiceBug27862015
 
     private static void log(String sMessage)
         {
-        CacheFactory.log("LOG: " + sMessage, CacheFactory.LOG_INFO);
+        Logger.info("LOG: " + sMessage);
         }
 
     }

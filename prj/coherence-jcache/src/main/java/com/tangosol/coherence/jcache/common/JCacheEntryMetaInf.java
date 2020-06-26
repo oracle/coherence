@@ -6,14 +6,14 @@
  */
 package com.tangosol.coherence.jcache.common;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.Constants;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 
@@ -89,9 +89,8 @@ public class JCacheEntryMetaInf
             // default if JCache client provided expiry policy throws an exception.
             duration = Constants.DEFAULT_EXPIRY_DURATION;
 
-            CacheFactory
-                .log("defaulting to implemention-specifc ExpiryForCreation default due to handling unexpected exception in user-provided ExpiryPolicy:\n"
-                     + Base.printStackTrace(e), CacheFactory.LOG_WARN);
+            Logger.warn("defaulting to implemention-specifc ExpiryForCreation default due to handling unexpected exception in user-provided ExpiryPolicy:\n"
+                        + Base.printStackTrace(e));
             }
 
         m_ldtExpiry = duration.getAdjustedTime(ldtCreated);
@@ -234,8 +233,7 @@ public class JCacheEntryMetaInf
             // leave the expiry time untouched if expiry policy throws an exception
             duration = null;
 
-            CacheFactory.log("handled unexpected exception in user-provided ExpiryPolicy:\n" + Base.printStackTrace(e),
-                             Base.LOG_WARN);
+            Logger.warn("handled unexpected exception in user-provided ExpiryPolicy:", e);
             }
 
         if (duration != null)
@@ -266,8 +264,7 @@ public class JCacheEntryMetaInf
             // default expiry policy being followed.
             duration = null;
 
-            CacheFactory.log("handled unexpected exception in user-provided ExpiryPolicy:\n" + Base.printStackTrace(e),
-                             Base.LOG_WARN);
+            Logger.warn("handled unexpected exception in user-provided ExpiryPolicy:", e);
             }
 
         if (duration != null)

@@ -6,12 +6,13 @@
  */
 package com.tangosol.coherence.jcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.coherence.jcache.localcache.LocalCacheConfiguration;
 
 import com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheConfiguration;
-
 import com.tangosol.coherence.jcache.passthroughcache.PassThroughCacheConfiguration;
 
 import com.tangosol.coherence.jcache.remotecache.RemoteCacheConfiguration;
@@ -116,8 +117,7 @@ public class CoherenceBasedCachingProvider
             }
         else
             {
-            CacheFactory.log("getCacheManager found existing CacheManager uri=" + uri + " classloader=" + cldr,
-                             Base.LOG_MAX);
+            Logger.finest("getCacheManager found existing CacheManager uri=" + uri + " classloader=" + cldr);
             }
 
         if (!m_mapClzldrToMgrMap.containsKey(cldr))
@@ -330,16 +330,16 @@ public class CoherenceBasedCachingProvider
 
         try
             {
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
+            if (Logger.isEnabled(Logger.FINER))
                 {
-                CacheFactory.log("ConfigurableCacheFactory being configured using configuration file=[" + sURI
-                                 + "] classloader=" + classLoader, CacheFactory.LOG_QUIET);
+                Logger.finer("ConfigurableCacheFactory being configured using configuration file=[" + sURI
+                                 + "] classloader=" + classLoader);
                 }
 
             ccf = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(sURI, classLoader);
 
-            CacheFactory.log("getConfigurableCacheFactory returned ccf=" + ccf + " classLoader Hierarchy="
-                             + toStringClassLoaderHierachy(classLoader), Base.LOG_INFO);
+            Logger.info("getConfigurableCacheFactory returned ccf=" + ccf + " classLoader Hierarchy="
+                             + toStringClassLoaderHierachy(classLoader));
 
             assert(ccf != null);
 
@@ -451,10 +451,10 @@ public class CoherenceBasedCachingProvider
             }
         else
             {
-            CacheFactory.log("CoherenceBasedCachingProvider: Ignoring unknown configuration class "
+            Logger.warn("CoherenceBasedCachingProvider: Ignoring unknown configuration class "
                 + cfg.getClass().getCanonicalName() + " defaulting"
                 + " to basic javax.cache.configuration.MutableConfiguration initialized with base javax.cache.configuration.Configuration "
-                + "values taken from configuration parameter.", CacheFactory.LOG_WARN);
+                + "values taken from configuration parameter.");
 
             // the provided configuration is unknown to this provider so lets instead create a MutableConfiguration
             MutableConfiguration<K, V> cfgMutable = new MutableConfiguration<K, V>();
@@ -504,9 +504,8 @@ public class CoherenceBasedCachingProvider
 
             if (result)
                 {
-                CacheFactory
-                    .log("Mapping general javax.cache.Configuration implementation to CoherenceBased JCacheConfiguration of "
-                         + sClassName, CacheFactory.LOG_INFO);
+                Logger.info("Mapping general javax.cache.Configuration implementation to "
+                            + "CoherenceBased JCacheConfiguration of " + sClassName);
                 }
             }
 

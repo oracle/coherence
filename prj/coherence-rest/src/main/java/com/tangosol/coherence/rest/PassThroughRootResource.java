@@ -6,13 +6,13 @@
  */
 package com.tangosol.coherence.rest;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.rest.config.DirectQuery;
 import com.tangosol.coherence.rest.config.QueryConfig;
 import com.tangosol.coherence.rest.config.ResourceConfig;
 
 import com.tangosol.coherence.rest.util.StaticContent;
-
-import com.tangosol.net.CacheFactory;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -51,7 +51,7 @@ public class PassThroughRootResource
             configResource.setMaxResults(Integer.MAX_VALUE);
 
             m_config.getResources().put(sName, configResource);
-            CacheFactory.log("Configured pass-through resource for cache: " + sName, CacheFactory.LOG_INFO);
+            Logger.info("Configured pass-through resource for cache: " + sName);
             }
 
         return instantiateCacheResourceInternal(configResource);

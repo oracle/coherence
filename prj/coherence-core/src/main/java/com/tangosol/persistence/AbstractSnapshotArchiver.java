@@ -6,6 +6,8 @@
  */
 package com.tangosol.persistence;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistentStore;
@@ -16,8 +18,6 @@ import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.persistence.bdb.BerkeleyDBEnvironment;
 
@@ -322,7 +322,7 @@ public abstract class AbstractSnapshotArchiver
           .append(m_cMillisMax)
           .append("ms");
 
-        CacheFactory.log(sb.toString(), CacheFactory.LOG_QUIET);
+        Logger.finer(sb.toString());
         }
 
     // ----- Object methods -------------------------------------------------
@@ -400,8 +400,8 @@ public abstract class AbstractSnapshotArchiver
     protected PersistenceEnvironment<ReadBuffer> createTempEnvironment(File fileBaseDir, String sStorageFormat)
                 throws IOException
         {
-        CacheFactory.log("Creating temporary PersistenceEnvironment under " + fileBaseDir.getAbsolutePath()
-                         + " using format " + sStorageFormat, CacheFactory.LOG_DEBUG);
+        Logger.finer("Creating temporary PersistenceEnvironment under " + fileBaseDir.getAbsolutePath()
+                         + " using format " + sStorageFormat);
 
         if (sStorageFormat == null || sStorageFormat.isEmpty())
             {

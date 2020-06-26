@@ -6,13 +6,12 @@
  */
 package com.tangosol.coherence.reporter.extractor;
 
-import com.tangosol.coherence.reporter.Constants;
+import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.coherence.reporter.Constants;
 
 import com.tangosol.net.management.MBeanHelper;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.ValueExtractor;
 
 import java.lang.reflect.Array;
@@ -81,8 +80,7 @@ public class OperationExtractor
             }
         catch (Exception e)
             {
-            CacheFactory.log("OperationExtractor.extract: handled exception while invoking an MBean operation"
-                    + "\nStack trace:" + Base.printStackTrace(e), Base.LOG_ERR);
+            Logger.err("OperationExtractor.extract: handled exception while invoking an MBean operation", e);
             // reporter extractors does not seem to throw the exception further,
             // rather they are just returning default values
             }

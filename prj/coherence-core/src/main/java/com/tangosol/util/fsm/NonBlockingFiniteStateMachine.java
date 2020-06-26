@@ -7,19 +7,18 @@
 package com.tangosol.util.fsm;
 
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.util.DaemonPoolDependencies;
 import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.PriorityTask;
 
 import com.tangosol.net.cache.KeyAssociation;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.SafeHashSet;
 
 import com.tangosol.util.fsm.Instruction.ProcessEvent;
@@ -267,9 +266,9 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                 catch (InterruptedException e)
                     {
                     Thread.interrupted();
-                    CacheFactory.log(String.format(
-                            "[%s]: Thread interrupted while quiescing; stopping immediately", f_sName));
-                    CacheFactory.log(toString());
+                    Logger.log(String.format(
+                            "[%s]: Thread interrupted while quiescing; stopping immediately", f_sName), Logger.ALWAYS);
+                    Logger.log(toString(), Logger.ALWAYS);
                     break;
                     }
                 }
@@ -339,8 +338,8 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
             if (preparedEvent == null)
                 {
                 // uncomment log when need to troubleshoot problem with FSM
-                // CacheFactory.log(String.format("[%s]: Ignoring event %s as it vetoed being prepared",
-                //        f_sName, event), 9);
+                // Logger.finest(String.format("[%s]: Ignoring event %s as it vetoed being prepared",
+                //        f_sName, event));
                 }
             else
                 {
@@ -350,9 +349,9 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
         else
             {
             // uncomment log when need to troubleshoot problem with FSM
-            // CacheFactory.log(String.format("[%s]: Ignoring request to process the event %s in %d %s as the " +
+            // Logger.finest(String.format("[%s]: Ignoring request to process the event %s in %d %s as the " +
             //                 "machine is no longer accepting new transitions",
-            //                f_sName, event, duration, timeUnit), 9);
+            //                f_sName, event, duration, timeUnit));
             }
         }
 
@@ -629,8 +628,8 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                 {
                 // do nothing for the event
                 // uncomment log when need to troubleshoot problem with FSM
-                // CacheFactory.log(String.format("[%s]: Ignoring event %s as it produced a null desired state.",
-                //                f_sName, event), 9);
+                // Logger.finest(String.format("[%s]: Ignoring event %s as it produced a null desired state.",
+                //                f_sName, event));
 
                 // no more events to process
                 event = null;
@@ -653,8 +652,8 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                         // there's no transition from the current state to the
                         // desired state, so ignore the request
                         // uncomment log when need to troubleshoot problem with FSM
-                        // CacheFactory.log(String.format("[%s]: Can't find a valid transition from %s to %s. " +
-                        //     "Ignoring event %s.", f_sName, stateCurrent, stateDesired, event), 9);
+                        // Logger.finest(String.format("[%s]: Can't find a valid transition from %s to %s. " +
+                        //     "Ignoring event %s.", f_sName, stateCurrent, stateDesired, event));
 
                         event = null;
                         }
@@ -679,23 +678,23 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                                 }
                             catch (RollbackTransitionException e)
                                 {
-                                CacheFactory.log(String.format("[%s]: Transition for event %s from " +
+                                Logger.log(String.format("[%s]: Transition for event %s from " +
                                         "%s to %s has been rolled back due to:\n%s", f_sName, event,
-                                                stateCurrent, stateDesired, e));
+                                                stateCurrent, stateDesired, e), Logger.ALWAYS);
 
                                 event = null;
                                 }
                             catch (RuntimeException e)
                                 {
                                 // todo: temporary, redo this when we redo all logging
-                                CacheFactory.log(e);
+                                Logger.log(e, Logger.ALWAYS);
 
                                 if (m_fIgnoreExceptions)
                                     {
-                                    CacheFactory.log(String.format("[%s]: Transition Action %s for event %s " +
+                                    Logger.finest(String.format("[%s]: Transition Action %s for event %s " +
                                             "from %s to %s raised runtime exception (continuing with " +
                                             "transition and ignoring the exception):\n%s", f_sName,
-                                            actionTransition, event, stateCurrent, stateDesired, e), 7);
+                                            actionTransition, event, stateCurrent, stateDesired, e));
                                     }
                                 else
                                     {
@@ -708,10 +707,10 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                                     e.printStackTrace(writerPrint);
                                     writerPrint.close();
 
-                                    CacheFactory.log(String.format("[%s]: Stopping the machine as the " +
+                                    Logger.log(String.format("[%s]: Stopping the machine as the " +
                                             "Transition Action %s for event %s from %s to %s raised "+
                                             "runtime exception %s:\n%s", f_sName, actionTransition, event,
-                                            stateCurrent, stateDesired, e, writerString .toString()));
+                                            stateCurrent, stateDesired, e, writerString .toString()), Logger.ALWAYS);
 
                                     break;
                                     }
@@ -746,11 +745,11 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                                 {
                                 if (m_fIgnoreExceptions)
                                     {
-                                    CacheFactory.log(String
+                                    Logger.warn(String
                                             .format("[%s]: State Exit Action %s for event %s from %s to %s " +
                                                     "raised runtime exception (continuing with transition " +
                                                     "and ignoring the exception):\n%s", f_sName, actionExit,
-                                                    event, stateCurrent, stateDesired, e), Base.LOG_WARN);
+                                                    event, stateCurrent, stateDesired, e));
                                     }
                                 else
                                     {
@@ -763,11 +762,11 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                                     e.printStackTrace(writerPrint);
                                     writerPrint.close();
 
-                                    CacheFactory.log(String
+                                    Logger.err(String
                                             .format("[%s]: Stopping the machine as the State Exit Action %s "+
                                                     "for event %s from %s to %s raised runtime exception %s:\n%s",
                                                     f_sName, actionExit, event, stateCurrent,
-                                                    stateDesired, e, writerString.toString()), Base.LOG_ERR);
+                                                    stateDesired, e, writerString.toString()));
 
                                     break;
                                     }
@@ -776,8 +775,8 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                         else
                             {
                             // uncomment log when need to troubleshoot problem with FSM
-                            //   CacheFactory.log(String.format("[%s]: No Exit Action defined for %s",
-                            //           f_sName, stateCurrent), 9);
+                            //   Logger.finest(String.format("[%s]: No Exit Action defined for %s",
+                            //           f_sName, stateCurrent));
                             }
                         }
 
@@ -799,8 +798,7 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                             }
                         catch (RuntimeException e)
                             {
-                            CacheFactory.log("Exception occurred in FiniteStateMachineListener " +
-                                             CacheFactory.getStackTrace(e), Base.LOG_WARN);
+                            Logger.warn("Exception occurred in FiniteStateMachineListener", e);
                             }
                         }
 
@@ -821,10 +819,10 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                             {
                             if (m_fIgnoreExceptions)
                                 {
-                                CacheFactory.log(String
+                                Logger.finest(String
                                         .format("[%s]: State Entry Action %s for event %s from %s to %s raised runtime " +
                                                 "exception (continuing and ignoring the exception):\n%s",
-                                                f_sName, actionEntry, event, stateCurrent, stateDesired, e), 7);
+                                                f_sName, actionEntry, event, stateCurrent, stateDesired, e));
                                 }
                             else
                                 {
@@ -837,11 +835,11 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                                 e.printStackTrace(writerPrint);
                                 writerPrint.close();
 
-                                CacheFactory.log(String
+                                Logger.log(String
                                         .format("[%s]: Stopping the machine as the State Entry Action %s for event %s " +
                                                 "from %s to %s raised runtime exception %s:\n%s",
                                                 f_sName, actionEntry, event, stateCurrent,
-                                                stateDesired, e, writerString.toString()));
+                                                stateDesired, e, writerString.toString()), Logger.ALWAYS);
 
                                 break;
                                 }
@@ -851,8 +849,8 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                     else
                         {
                         // uncomment log when need to troubleshoot problem with FSM
-                        // CacheFactory.log(String.format("[%s]: No Entry Action defined for %s",
-                        //        f_sName, stateDesired), Base.LOG_DEBUG);
+                        // Logger.fine(String.format("[%s]: No Entry Action defined for %s",
+                        //        f_sName, stateDesired));
                         }
 
                     // now perform the appropriate instruction based on the entry action
@@ -906,9 +904,9 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                         }
                     else
                         {
-                        CacheFactory.log(String.format("[%s]: Ignoring Instruction [%s] returned as part of "
+                        Logger.warn(String.format("[%s]: Ignoring Instruction [%s] returned as part of "
                                 + "transition to %s as it an unknown type for this Finite State Machine.",
-                                   f_sName, instruction, stateDesired), Base.LOG_WARN);
+                                   f_sName, instruction, stateDesired));
                         }
                     }
                 }
@@ -1535,9 +1533,9 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
             else
                 {
                 // uncomment log when need to troubleshoot problem with FSM
-                // CacheFactory.log(String.format("[%s]: Skipping event %s since another event " +
+                // Logger.finest(String.format("[%s]: Skipping event %s since another event " +
                 //        "was interleaved between when it was scheduled and when it was processed",
-                //         context.getName(), this), 9);
+                //         context.getName(), this));
 
 
                 // by returning null we skip the processing of the event

@@ -6,13 +6,11 @@
  */
 package com.tangosol.internal.tracing.opentracing33;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.tracing.TracingShim;
 
 import com.tangosol.internal.tracing.opentracing.AbstractOpenTracingShim;
-
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
 
 import io.opentracing.Tracer;
 
@@ -61,12 +59,7 @@ public class OpenTracingShim
             }
         catch (IllegalStateException | IllegalAccessException e)
             {
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                {
-                CacheFactory.log("Unexpected exception resetting GlobalTracer: " + e,
-                                 CacheFactory.LOG_MAX);
-                CacheFactory.log(Base.printStackTrace(e), CacheFactory.LOG_MAX);
-                }
+            Logger.finest("Unexpected exception resetting GlobalTracer: ", e);
             }
         }
 
@@ -103,12 +96,8 @@ public class OpenTracingShim
         catch (NoSuchFieldException e)
             {
             // this shouldn't happen as the loader would qualify the environment before this code is executed
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_ERR))
-                {
-                String sMsg = "An incompatible version of the OpenTracing API has been detected "
-                              + "on the classpath.  Tracing will be disabled.";
-                CacheFactory.log(sMsg, CacheFactory.LOG_ERR);
-                }
+            Logger.err("An incompatible version of the OpenTracing API has been detected "
+                       + "on the classpath. Tracing will be disabled.");
             }
         GLOBAL_TRACER_REGISTERED_FIELD = fieldRegistered;
         }

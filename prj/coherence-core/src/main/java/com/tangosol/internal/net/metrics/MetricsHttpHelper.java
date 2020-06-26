@@ -6,6 +6,8 @@
  */
 package com.tangosol.internal.net.metrics;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.grid.LegacyXmlProxyServiceHelper;
@@ -115,7 +117,7 @@ public abstract class MetricsHttpHelper
         catch (Throwable t)
             {
             // don't bother logging the stack trace as having a stack trace in the logs can be alarming to administrators
-            CacheFactory.log("One or more libraries are missing for Metrics over HTTP: " + t, CacheFactory.LOG_MAX);
+            Logger.finest("One or more libraries are missing for Metrics over HTTP: " + t);
 
             return false;
             }
@@ -140,7 +142,7 @@ public abstract class MetricsHttpHelper
             Cluster cluster = CacheFactory.ensureCluster();
             if (cluster.getManagement() == null)
                 {
-                CacheFactory.log("Metrics over HTTP is not available due to management not being enabled", Base.LOG_ERR);
+                Logger.err("Metrics over HTTP is not available due to management not being enabled");
                 }
             else
                 {
@@ -166,8 +168,8 @@ public abstract class MetricsHttpHelper
 
                         if (tCause instanceof ClassNotFoundException)
                             {
-                            CacheFactory.log("Metrics over HTTP is not available most likely due to this member missing "
-                                + "the necessary libraries to run the service. Handled exception: " + tCause.getClass().getSimpleName() + ": " + tCause.getLocalizedMessage(), Base.LOG_ERR);
+                            Logger.err("Metrics over HTTP is not available most likely due to this member missing "
+                                + "the necessary libraries to run the service. Handled exception: " + tCause.getClass().getSimpleName() + ": " + tCause.getLocalizedMessage());
                             return;
                             }
                         else
@@ -175,15 +177,15 @@ public abstract class MetricsHttpHelper
                             // could be IOException for address in use or SecurityException or IllegalArgumentException for Configuration Errors
                             HttpAcceptorDependencies depsHttpAcceptor = (HttpAcceptorDependencies) deps.getAcceptorDependencies();
 
-                            CacheFactory.log("failed to start service " + MetricsHttpHelper.getServiceName() + " at address " + depsHttpAcceptor.getLocalAddress() + ":" +
-                                depsHttpAcceptor.getLocalPort() + " due to " + tCause.getClass().getSimpleName() + " : " + Base.getDeepMessage(tCause, ":"), Base.LOG_ERR);
+                            Logger.err("failed to start service " + MetricsHttpHelper.getServiceName() + " at address " + depsHttpAcceptor.getLocalAddress() + ":" +
+                                depsHttpAcceptor.getLocalPort() + " due to " + tCause.getClass().getSimpleName() + " : " + Base.getDeepMessage(tCause, ":"));
                             return;
                             }
                         }
                     }
                 else
                     {
-                    CacheFactory.log("Metrics over HTTP is not available most likely due to missing the necessary libraries to run the service ", Base.LOG_ERR);
+                    Logger.err("Metrics over HTTP is not available most likely due to missing the necessary libraries to run the service ");
                     }
                 }
             }

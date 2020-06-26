@@ -13,6 +13,7 @@ import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Hasher;
 import com.oracle.coherence.common.base.HashHelper;
 import com.oracle.coherence.common.base.Formatting;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Objects;
 import com.oracle.coherence.common.base.Randoms;
 import com.oracle.coherence.common.base.Reads;
@@ -2486,7 +2487,7 @@ public abstract class Base
                 {
                 String s = out.toString();
                 out.reset();
-                CacheFactory.log(s, m_nSev);
+                Logger.log(s, m_nSev);
                 }
             }
 

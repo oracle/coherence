@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
@@ -15,8 +17,6 @@ import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
@@ -181,9 +181,9 @@ public class ParameterMacroExpression<T>
                         }
                     catch (Exception e)
                         {
-                        CacheFactory.log("ParameterMacroExpression evaluation "
-                                + "resulted in a toString Exception for class "
-                                + value.get().getClass().getName(), CacheFactory.LOG_WARN);
+                        Logger.warn("ParameterMacroExpression evaluation "
+                                   + "resulted in a toString Exception for class "
+                                   + value.get().getClass().getName());
                         throw Base.ensureRuntimeException(e);
                         }
                     }

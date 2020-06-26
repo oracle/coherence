@@ -8,6 +8,8 @@ package extend;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.Serializer;
 
@@ -3483,7 +3485,7 @@ public abstract class AbstractExtendTests
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            CacheFactory.log("entrytype is " + entry.getClass().getName());
+            Logger.log("entrytype is " + entry.getClass().getName(), LOG_ALWAYS);
             entry.setValue("EPSetValue", true);
             return "OK";
             }

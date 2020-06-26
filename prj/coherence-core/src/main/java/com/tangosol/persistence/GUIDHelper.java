@@ -6,7 +6,8 @@
  */
 package com.tangosol.persistence;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.Member;
 
 import com.tangosol.net.partition.PartitionSet;
@@ -289,8 +290,8 @@ public class GUIDHelper
 
             if (setDistinctStores.size() != setAssignedGUIDs.size())
                 {
-                CacheFactory.log("Unexpected number of distinct stores\nassigned: " + setAssignedGUIDs +
-                        "\npassed: " + sb.toString(), CacheFactory.LOG_ERR);
+                Logger.err("Unexpected number of distinct stores\nassigned: " + setAssignedGUIDs +
+                        "\npassed: " + sb.toString());
                 throw new IllegalStateException(sMsg);
                 }
 

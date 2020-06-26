@@ -6,6 +6,7 @@
  */
 package com.tangosol.coherence.jcache.partitionedcache;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Duration;
 
 import com.tangosol.coherence.config.Config;
@@ -26,7 +27,6 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.partition.SimplePartitionKey;
 
@@ -302,9 +302,9 @@ public class PartitionedJCacheStatistics
                 }
             catch (IllegalArgumentException e)
                 {
-                CacheFactory.log("Invalid value \"" + durationStringValue + "\" for system property \""
+                Logger.warn("Invalid value \"" + durationStringValue + "\" for system property \""
                                  + PARTITIONED_CACHE_STATISTICS_REFRESHTIME_SYSTEM_PROPERTY + "\" using default of "
-                                 + DEFAULT_PARTITIONED_CACHE_STATISTICS_REFRESHTIME, CacheFactory.LOG_WARN);
+                                 + DEFAULT_PARTITIONED_CACHE_STATISTICS_REFRESHTIME);
                 duration = new Duration(DEFAULT_PARTITIONED_CACHE_STATISTICS_REFRESHTIME);
                 }
 
@@ -430,12 +430,6 @@ public class PartitionedJCacheStatistics
                 JCacheContext ctx = BinaryEntryHelper.getContext(m_id, binEntry);
 
                 result = ctx != null ? ctx.getStatistics() : null;
-
-                if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                    {
-                    CacheFactory.log("CacheStatisticsExtractor id=" + m_id.getCanonicalCacheName() + " statistics="
-                                     + result.toString(), CacheFactory.LOG_MAX);
-                    }
                 }
 
             return result;
@@ -544,12 +538,6 @@ public class PartitionedJCacheStatistics
         @Override
         public Object finalizeResult()
             {
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                {
-                CacheFactory.log("PartitionedCacheStatisticsAggregator.finalizeResult: m_stats=" + m_stats,
-                                 CacheFactory.LOG_MAX);
-                }
-
             return m_stats;
             }
 
@@ -563,26 +551,9 @@ public class PartitionedJCacheStatistics
 
         protected void process(Object o)
             {
-            final ContextJCacheStatistics stats = o instanceof ContextJCacheStatistics
-                                                  ? (ContextJCacheStatistics) o : null;
-
-            if (stats == null)
+            if (o instanceof ContextJCacheStatistics)
                 {
-                if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                    {
-                    CacheFactory.log("PartitionedCacheStatisticsAggregator.process: unexpected null parameter o:" + o,
-                                     CacheFactory.LOG_MAX);
-                    }
-                }
-            else
-                {
-                if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                    {
-                    CacheFactory.log("PartitionedCacheStatisticsAggregator.process: parameter o:" + o,
-                                     CacheFactory.LOG_MAX);
-                    }
-
-                m_stats.add(stats);
+                m_stats.add((ContextJCacheStatistics) o);
                 }
             }
 

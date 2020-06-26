@@ -6,9 +6,10 @@
  */
 package events.common;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
@@ -18,11 +19,8 @@ import com.tangosol.util.BinaryEntry;
 
 import java.io.Serializable;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * Test EventInterceptor for non mutable events
+ * Test EventInterceptor for non mutable events.
  * @author nsa 2011.08.13
  * @since 3.7.1
  */
@@ -45,7 +43,7 @@ public class NonMutatingInterceptor
      */
     public void onEvent(EntryEvent<?, ?> entryEvent)
         {
-        CacheFactory.log("onEvent for: " + entryEvent);
+        Logger.log("onEvent for: " + entryEvent, Logger.ALWAYS);
         NamedCache results    = CacheFactory.getCache("results");
 
         for (BinaryEntry entry : entryEvent.getEntrySet())
@@ -60,7 +58,8 @@ public class NonMutatingInterceptor
                 case INSERTED:
                 case UPDATED:
                     {
-                    CacheFactory.log("Putting k=" + entry.getKey() + " v=" + entry.getValue() + "into results cache");
+                    Logger.log("Putting k=" + entry.getKey() + " v=" + entry.getValue() + "into results cache",
+                               Logger.ALWAYS);
                     results.put(entry.getKey(), entry.getValue());
                     break;
                     }
@@ -68,7 +67,7 @@ public class NonMutatingInterceptor
                     {
                     results = CacheFactory.getCache("results");
                         {
-                        CacheFactory.log("Putting k=" + entry.getKey() + " v=Removed into results cache");
+                        Logger.log("Putting k=" + entry.getKey() + " v=Removed into results cache", Logger.ALWAYS);
                         results.put(entry.getKey(), "Removed");
                         }
                     }

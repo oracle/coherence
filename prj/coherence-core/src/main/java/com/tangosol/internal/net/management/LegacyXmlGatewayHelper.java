@@ -6,9 +6,10 @@
  */
 package com.tangosol.internal.net.management;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.reporter.ReportBatch;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.management.MBeanServerFinder;
 import com.tangosol.net.management.Registry;
 
@@ -52,7 +53,7 @@ public class LegacyXmlGatewayHelper
         deps.setReadOnly(xml.getSafeElement("read-only").getBoolean(deps.isReadOnly()));
         if (!Registry.SERVICE_NAME.equals(xml.getSafeElement("service-name").getString()))
             {
-            CacheFactory.log("The \"management-config/service-name\" element value is ignored");
+            Logger.info("The \"management-config/service-name\" element value is ignored");
             }
         deps.setDefaultDomain(xml.getSafeElement("default-domain-name").getString(deps.getDefaultDomain()));
         deps.setExtendedMBeanName(xml.getSafeElement("extended-mbean-name").getBoolean(deps.isExtendedMBeanName()));

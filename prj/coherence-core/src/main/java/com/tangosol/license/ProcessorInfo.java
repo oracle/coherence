@@ -8,12 +8,12 @@
 package com.tangosol.license;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.UID;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.SimpleParser;
@@ -1075,7 +1075,7 @@ public class ProcessorInfo
         // all issues are logged at a rather high debug level as we'll always
         // fallback on assuming that the number of sockets is equal to the
         // JVMs CPU count.
-        CacheFactory.log(sMsg, 7);
+        Logger.finest(sMsg);
         }
 
     /**

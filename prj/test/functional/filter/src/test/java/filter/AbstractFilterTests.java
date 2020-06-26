@@ -8,7 +8,8 @@
 package filter;
 
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
@@ -363,7 +364,7 @@ public abstract class AbstractFilterTests
                 }
             catch (RuntimeException e)
                 {
-                CacheFactory.log("Failed entry set" + cacheTest.entrySet().toString(), 1);
+                Logger.err("Failed entry set" + cacheTest.entrySet().toString());
                 throw ensureRuntimeException(e, "Filter1 " + filter1 + "; filter2=" + filter2);
                 }
             }

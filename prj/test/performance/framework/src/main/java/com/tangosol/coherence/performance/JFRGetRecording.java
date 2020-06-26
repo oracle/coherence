@@ -8,7 +8,11 @@ package com.tangosol.coherence.performance;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.JavaApplication;
+
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.CacheFactory;
+
 import com.tangosol.util.Base;
 
 import java.io.BufferedInputStream;
@@ -30,7 +34,7 @@ public class JFRGetRecording
     @Override
     public byte[] call()
         {
-        CacheFactory.log("Getting JFR recording at " + m_sFileName);
+        Logger.log("Getting JFR recording at " + m_sFileName, Logger.ALWAYS);
 
         byte[] bytes = null;
 

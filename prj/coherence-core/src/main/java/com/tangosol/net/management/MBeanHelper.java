@@ -6,6 +6,8 @@
  */
 package com.tangosol.net.management;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.net.TcpSocketProvider;
 
 import com.tangosol.internal.net.management.DefaultGatewayDependencies;
@@ -299,8 +301,7 @@ public abstract class MBeanHelper
             }
         catch (Throwable e)
             {
-            CacheFactory.log("Failed to register cache \"" +
-                    sCacheName + "\"; " + e, CacheFactory.LOG_WARN);
+            Logger.warn("Failed to register cache \"" + sCacheName + "\"; " + e);
             }
         }
 

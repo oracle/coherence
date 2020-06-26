@@ -37,6 +37,7 @@ import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.net.CacheFactory;
@@ -1317,7 +1318,7 @@ public abstract class AbstractTestInfrastructure
                 {
                 String sMsg = "Different size: result=" +
                 setResult.size() + "; template=" + setTemplate.size();
-                CacheFactory.log(sMsg, 1);
+                Logger.err(sMsg);
                 return false;
                 }
             err("Different size: result=\n" + setResult +
@@ -1347,7 +1348,7 @@ public abstract class AbstractTestInfrastructure
                 if (fDebug)
                     {
                     String sMsg = "Missing results " + setT;
-                    CacheFactory.log(sMsg, 1);
+                    Logger.err(sMsg);
                     return false;
                     }
                 fail("Missing results " + setT);
@@ -1357,7 +1358,7 @@ public abstract class AbstractTestInfrastructure
                 if (fDebug)
                     {
                     String sMsg = "Missing results " + setR;
-                    CacheFactory.log(sMsg, 1);
+                    Logger.err(sMsg);
                     return false;
                     }
                 fail("Extra results " + setR);
@@ -1396,7 +1397,7 @@ public abstract class AbstractTestInfrastructure
                 {
                 String sMsg = "Different size: result=" +
                 setResult.size() + "; template=" + setTemplate.size();
-                CacheFactory.log(sMsg, 1);
+                Logger.err(sMsg);
                 return false;
                 }
             err("Different size: result=\n" + setResult +
@@ -1442,7 +1443,7 @@ public abstract class AbstractTestInfrastructure
                 if (fDebug)
                     {
                     String sMsg = "Missing results " + mapT;
-                    CacheFactory.log(sMsg, 1);
+                    Logger.err(sMsg);
                     return false;
                     }
                 fail("Missing results " + mapT);
@@ -1452,7 +1453,7 @@ public abstract class AbstractTestInfrastructure
                 if (fDebug)
                     {
                     String sMsg = "Missing results " + mapR;
-                    CacheFactory.log(sMsg, 1);
+                    Logger.err(sMsg);
                     return false;
                     }
                 fail("Extra results " + mapR);

@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config.xml.processor;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.builder.AddressProviderBuilder;
 import com.tangosol.coherence.config.builder.CustomAddressProviderBuilder;
 import com.tangosol.coherence.config.builder.FactoryBasedAddressProviderBuilder;
@@ -94,10 +96,9 @@ public class AddressProviderBuilderProcessor
 
                     if (factory == null)
                         {
-                        CacheFactory
-                                .log("The address provider named '" + sName + "', specified in [" + xmlElement
-                                        + "], cannot be found. Please ensure that the address provider is correctly defined "
-                                    + "in the operational configuration override file", Base.LOG_WARN);
+                        Logger.warn("The address provider named '" + sName + "', specified in [" + xmlElement
+                                    + "], cannot be found. Please ensure that the address provider is correctly defined "
+                                    + "in the operational configuration override file");
 
                         // return null.  All 3 @Injectable("address-provider") methods can handle null as an AddressProviderBuilder.
                         // DefaultTcpAcceptorDependencies.getLoaderAddressProviderBuilder() defaults to NS local address.

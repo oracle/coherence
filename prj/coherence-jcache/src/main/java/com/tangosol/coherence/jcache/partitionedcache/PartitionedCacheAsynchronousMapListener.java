@@ -11,7 +11,6 @@ import com.tangosol.coherence.jcache.common.CoherenceCacheEntryListenerRegistrat
 import com.tangosol.coherence.jcache.common.CoherenceCacheEventEventDispatcher;
 import com.tangosol.coherence.jcache.partitionedcache.processors.BinaryEntryHelper;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.CacheEvent;
 
 import com.tangosol.util.AbstractMapListener;
@@ -55,12 +54,6 @@ public class PartitionedCacheAsynchronousMapListener<K, V>
     @Override
     public void entryInserted(MapEvent evt)
         {
-        if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-            {
-            CacheFactory.log("entryInserted event entry=" + evt.getKey() + " value=" + evt.getNewValue(),
-                             CacheFactory.LOG_QUIET);
-            }
-
         CoherenceCacheEventEventDispatcher<K, V> dispatcher = new CoherenceCacheEventEventDispatcher<K, V>();
         CoherenceCacheEntryEvent<K, V> createdEntry = new CoherenceCacheEntryEvent<K, V>(m_cacheSource,
                                                           EventType.CREATED, (K) evt.getKey(), (V) evt.getNewValue());
@@ -72,12 +65,6 @@ public class PartitionedCacheAsynchronousMapListener<K, V>
     @Override
     public void entryUpdated(MapEvent evt)
         {
-        if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-            {
-            CacheFactory.log("entryUpdated event entry=" + evt.getKey() + " old value=" + evt.getOldValue()
-                             + " new value=" + evt.getNewValue(), CacheFactory.LOG_QUIET);
-            }
-
         CoherenceCacheEventEventDispatcher<K, V> dispatcher = new CoherenceCacheEventEventDispatcher<K, V>();
         CoherenceCacheEntryEvent<K, V> updatedEntry = new CoherenceCacheEntryEvent<K, V>(m_cacheSource,
                                                           EventType.UPDATED, (K) evt.getKey(), (V) evt.getNewValue(),
@@ -90,12 +77,6 @@ public class PartitionedCacheAsynchronousMapListener<K, V>
     @Override
     public void entryDeleted(MapEvent evt)
         {
-        if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-            {
-            CacheFactory.log("entryDeleted event entry=" + evt.getKey() + " value=" + evt.getOldValue(),
-                             CacheFactory.LOG_QUIET);
-            }
-
         CoherenceCacheEventEventDispatcher<K, V> dispatcher   = new CoherenceCacheEventEventDispatcher<K, V>();
         CoherenceCacheEntryEvent<K, V>           deletedEntry = new CoherenceCacheEntryEvent<K, V>(m_cacheSource,
                 EventType.REMOVED, (K) evt.getKey(), null, (V) evt.getOldValue());

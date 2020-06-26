@@ -6,14 +6,13 @@
  */
 package com.tangosol.config.expression;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 
 import java.io.DataInput;
@@ -101,8 +100,9 @@ public class ValueMacroExpression
 
                     if (sPropValue.contains("${" + sProp) && sPropValue.contains("}") || nCount > MAX_MACRO_EXPANSIONS)
                         {
-                        CacheFactory.log("SystemPropertyPreprocessor: using default value of \"" + sDefault + "\", detected recursive macro definition in system property " +
-                                         sProp + " with the value of \"" + sPropValue + "\" ", Base.LOG_ERR);
+                        Logger.err("SystemPropertyPreprocessor: using default value of \"" + sDefault + "\", detected "
+                                   + "recursive macro definition in system property "
+                                   + sProp + " with the value of \"" + sPropValue + "\" ");
                         sPropValue = sDefault;
                         }
                     sValue = sValue.replace(sMacro, sPropValue);

@@ -6,15 +6,13 @@
  */
 package com.tangosol.coherence.jcache.serialization;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.Constants;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofSerializer;
 import com.tangosol.io.pof.PofWriter;
-
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
 
 import java.io.IOException;
 
@@ -50,8 +48,7 @@ public class ExpiryPolicyPofSerializer
                 }
             catch (Throwable e)
                 {
-                CacheFactory.log("handled unexpected exception in user-provided ExpiryPolicy:\n"
-                                 + Base.printStackTrace(e), Base.LOG_WARN);
+                Logger.warn("Unexpected exception in user-provided ExpiryPolicy:", e);
                 }
 
             pofWriter.writeObject(1, d);
@@ -66,8 +63,7 @@ public class ExpiryPolicyPofSerializer
                 }
             catch (Throwable e)
                 {
-                CacheFactory.log("handled unexpected exception in user-provided ExpiryPolicy:\n"
-                                 + Base.printStackTrace(e), Base.LOG_WARN);
+                Logger.warn("Unexpected exception in user-provided ExpiryPolicy:", e);
                 }
 
             pofWriter.writeObject(1, d);
@@ -86,8 +82,7 @@ public class ExpiryPolicyPofSerializer
                 }
             catch (Throwable e)
                 {
-                CacheFactory.log("handled unexpected exception in user-provided ExpiryPolicy:\n"
-                                 + Base.printStackTrace(e), Base.LOG_WARN);
+                Logger.warn("Unexpected exception in user-provided ExpiryPolicy:", e);
                 }
 
             pofWriter.writeObject(1, d);
@@ -104,9 +99,8 @@ public class ExpiryPolicyPofSerializer
                 {
                 // default if JCache client provided expiry policy throws an exception.
                 d = Constants.DEFAULT_EXPIRY_DURATION;
-                CacheFactory
-                    .log("defaulting to implemention-specifc ExpiryForCreation default due to handling unexpected exception in user-provided ExpiryPolicy:\n"
-                         + Base.printStackTrace(e), CacheFactory.LOG_WARN);
+                Logger.warn("Defaulting to implemention-specifc ExpiryForCreation default "
+                            + "due to handling unexpected exception in user-provided ExpiryPolicy:", e);
                 }
 
             pofWriter.writeObject(1, d);

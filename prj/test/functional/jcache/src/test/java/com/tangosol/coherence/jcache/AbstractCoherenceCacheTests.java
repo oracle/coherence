@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.jcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.common.MBeanServerRegistrationUtility;
 
 import com.tangosol.coherence.jcache.localcache.LocalCache;
@@ -17,8 +19,6 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.coherence.jcache.common.CoherenceCacheEntryListenerRegistration;
 
 import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -162,7 +162,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createAndAccessCacheWithSimpleValues()
         {
-        CacheFactory.log("start createAndAccessCacheWithSimpleValues", Base.LOG_INFO);
+        Logger.info("start createAndAccessCacheWithSimpleValues");
         ssConfiguration = extraSetup(ssConfiguration);
         ssCache         = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), ssConfiguration);
         assertNotNull(ssCache);
@@ -284,7 +284,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void putAllWithComplexValues()
         {
-        CacheFactory.log("start putAllWithComplexValues", Base.LOG_INFO);
+        Logger.info("start putAllWithComplexValues");
 
         spConfiguration = extraSetup(spConfiguration);
         spCache         = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), spConfiguration);
@@ -322,7 +322,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createPutCloseCreateCache()
         {
-        CacheFactory.log("start createPutCloseGetCache", Base.LOG_INFO);
+        Logger.info("start createPutCloseGetCache");
 
         spCache         = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), spConfiguration);
 
@@ -389,7 +389,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createPutCloseGetCache()
         {
-        CacheFactory.log("start createPutCloseGetCache", Base.LOG_INFO);
+        Logger.info("start createPutCloseGetCache");
 
         spCache         = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), spConfiguration);
 
@@ -462,7 +462,7 @@ public abstract class AbstractCoherenceCacheTests
             throws MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException,
             InstanceNotFoundException, InterruptedException
         {
-        CacheFactory.log("start accessStatistics_regressionCOH12332", Base.LOG_INFO);
+        Logger.info("start accessStatistics_regressionCOH12332");
 
         if (ssConfiguration instanceof CoherenceBasedCompleteConfiguration)
             {
@@ -613,7 +613,7 @@ public abstract class AbstractCoherenceCacheTests
     public void testCOH12332() throws AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException
         {
         // setup cache with JCache Statistics MBEAN enabled
-        CacheFactory.log("start testCOH12332", Base.LOG_INFO);
+        Logger.info("start testCOH12332");
 
         if (ssConfiguration instanceof CoherenceBasedCompleteConfiguration)
             {
@@ -681,7 +681,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createAndClearCacheWithSimpleValues()
         {
-        CacheFactory.log("start createAndClearCacheWithSimpleValues", Base.LOG_INFO);
+        Logger.info("start createAndClearCacheWithSimpleValues");
 
         ssConfiguration = extraSetup(ssConfiguration);
         ssCache         = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), ssConfiguration);
@@ -737,7 +737,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createAndAccessCacheWithLongKeyStringValues()
         {
-        CacheFactory.log("start createAndAccessCacheWithLongKeyStringValues", Base.LOG_INFO);
+        Logger.info("start createAndAccessCacheWithLongKeyStringValues");
 
         long now = System.currentTimeMillis();
 
@@ -829,7 +829,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createAndAccessCacheWithComplexValues()
         {
-        CacheFactory.log("start createAndAccessCacheWithComplexValues", Base.LOG_INFO);
+        Logger.info("start createAndAccessCacheWithComplexValues");
 
         snpConfiguration = extraSetup(snpConfiguration);
         snpCache         = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), snpConfiguration);
@@ -891,7 +891,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createAndAccessCacheWithPofComplexValues()
         {
-        CacheFactory.log("start createAndAccessCacheWithPofComplexValues", Base.LOG_INFO);
+        Logger.info("start createAndAccessCacheWithPofComplexValues");
 
         spConfiguration = extraSetup(spConfiguration);
         spCache         = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), spConfiguration);
@@ -961,7 +961,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void customConfigurationWithNullExpiryFactory()
         {
-        CacheFactory.log("start customConfigurationWithNullExpiryFactory", Base.LOG_INFO);
+        Logger.info("start customConfigurationWithNullExpiryFactory");
 
         CompleteConfiguration<String, String> config = getConfiguration();
 
@@ -989,7 +989,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void jcache96Regression()
         {
-        CacheFactory.log("start jcache96Regression", Base.LOG_INFO);
+        Logger.info("start jcache96Regression");
 
         spCache = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), spConfiguration);
 
@@ -1017,7 +1017,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void jcache103Regression()
         {
-        CacheFactory.log("start jcache103Regression", Base.LOG_INFO);
+        Logger.info("start jcache103Regression");
 
         spCache = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), spConfiguration);
 
@@ -1045,7 +1045,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void jcache102Regression()
         {
-        CacheFactory.log("start jcache102Regression", Base.LOG_INFO);
+        Logger.info("start jcache102Regression");
 
         spCache = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), spConfiguration);
 
@@ -1072,7 +1072,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void dynamicCacheEntryListenerRegistration_regressionCOH11488()
         {
-        CacheFactory.log("start dynamicCacheEntryListenerRegistration_regressionCOH11488", Base.LOG_INFO);
+        Logger.info("start dynamicCacheEntryListenerRegistration_regressionCOH11488");
 
         listener = new CacheListenerTests.MyCacheEntryListener();
 
@@ -1135,7 +1135,7 @@ public abstract class AbstractCoherenceCacheTests
             throws MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException,
                    InstanceNotFoundException, InterruptedException
         {
-        CacheFactory.log("start accessStatistics", Base.LOG_INFO);
+        Logger.info("start accessStatistics");
 
         if (ssConfiguration instanceof CoherenceBasedCompleteConfiguration)
             {
@@ -1267,7 +1267,7 @@ public abstract class AbstractCoherenceCacheTests
     public void loadAll_1Found1Not()
             throws Exception
         {
-        CacheFactory.log("start loadAll_1Found1Not", Base.LOG_INFO);
+        Logger.info("start loadAll_1Found1Not");
 
         loader = new SimpleCacheLoader<Integer>();
 
@@ -1320,7 +1320,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void getTypedCacheWithoutTypedGetCache()
         {
-        CacheFactory.log("start getTypedCacheWithoutTypedGetCache", Base.LOG_INFO);
+        Logger.info("start getTypedCacheWithoutTypedGetCache");
 
         iiCache = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), iiConfiguration);
 
@@ -1339,7 +1339,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createAndAccessCollectionsTest()
         {
-        CacheFactory.log("start createAndAccessCollectionsTest", Base.LOG_INFO);
+        Logger.info("start createAndAccessCollectionsTest");
 
         slCache = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), slConfiguration);
 
@@ -1380,7 +1380,7 @@ public abstract class AbstractCoherenceCacheTests
     @Test
     public void createAndAccessMapTest()
         {
-        CacheFactory.log("start createAndAccessMapTest", Base.LOG_INFO);
+        Logger.info("start createAndAccessMapTest");
 
         smCache = getJcacheTestContext().configureCache(cacheMgr, getTestCacheName(), smConfiguration);
 

@@ -6,9 +6,9 @@
  */
 package com.tangosol.dev.introspect;
 
-import com.tangosol.io.ClassLoaderAware;
+import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.io.ClassLoaderAware;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
@@ -397,8 +397,7 @@ public class ClassPathResourceDiscoverer
             URI         uriRoot      = toURI(urlRoot);
             if (uriRoot == null)
                 {
-                CacheFactory.log("FileBasedResourceDiscoverer requires a non-null and non-empty root directory",
-                        CacheFactory.LOG_WARN);
+                Logger.warn("FileBasedResourceDiscoverer requires a non-null and non-empty root directory");
                 return setResources;
                 }
 
@@ -476,17 +475,17 @@ public class ClassPathResourceDiscoverer
             {
             if (!root.isDirectory())
                 {
-                CacheFactory.log(String.format(
+                Logger.warn(String.format(
                         "FileBasedResourceDiscoverer root directory should be a valid directory [rootDir: %s]",
-                        root.getAbsolutePath()), CacheFactory.LOG_WARN);
+                        root.getAbsolutePath()));
                 return null;
                 }
 
             if (!root.canRead())
                 {
-                CacheFactory.log(String.format(
+                Logger.warn(String.format(
                         "FileBasedResourceDiscoverer root directory should be a readable directory [rootDir: %s]",
-                        root.getAbsolutePath()), CacheFactory.LOG_WARN);
+                        root.getAbsolutePath()));
                 return null;
                 }
 
@@ -598,10 +597,10 @@ public class ClassPathResourceDiscoverer
                 }
             catch (IOException e)
                 {
-                CacheFactory.log(String.format(
+                Logger.warn(String.format(
                         "JarFileBasedResourceDiscoverer could not open a connection to the resource [url: %s]"
                         + ", hence this resource will not be used",
-                        urlRoot.toExternalForm()), CacheFactory.LOG_WARN);
+                        urlRoot.toExternalForm()));
                 }
             return setResources;
             }

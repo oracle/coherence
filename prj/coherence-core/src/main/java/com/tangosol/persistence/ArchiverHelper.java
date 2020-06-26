@@ -6,7 +6,7 @@
  */
 package com.tangosol.persistence;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.util.Base;
 
@@ -60,12 +60,12 @@ public class ArchiverHelper
                 String sMessage = "Number of unique stores is " + asStoresAll.length
                                 + " and does not match partition count of " + cPartitions
                                 + ". This means that some stores are missing or the snapshot is corrupted.";
-                CacheFactory.log(sMessage, CacheFactory.LOG_ERR);
+                Logger.err(sMessage);
 
-                CacheFactory.log("Dumping distinct store list because of error", CacheFactory.LOG_WARN);
+                Logger.warn("Dumping distinct store list because of error");
                 for (String sStore : asStoresAll)
                     {
-                    CacheFactory.log(sStore,CacheFactory.LOG_WARN);
+                    Logger.warn(sStore);
                     }
 
                 throw new IllegalArgumentException(sMessage);

@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.memcached.server;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.memcached.Request;
 import com.tangosol.coherence.memcached.RequestHandler;
 import com.tangosol.coherence.memcached.Response;
@@ -14,8 +16,6 @@ import com.tangosol.coherence.memcached.Response.ResponseCode;
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.cache.KeyAssociation;
-
-import com.tangosol.util.Base;
 
 import java.io.IOException;
 
@@ -283,8 +283,7 @@ public class Task
                     }
                 default:
                     {
-                    CacheFactory.log("Memcached adapter received unknown request: " +
-                        request.getOpCode(), CacheFactory.LOG_ERR);
+                    Logger.err("Memcached adapter received unknown request: " + request.getOpCode());
                     response.setResponseCode(Response.ResponseCode.NOT_SUPPORTED.getCode());
                     }
                 }
@@ -292,8 +291,7 @@ public class Task
         catch (Throwable thr)
             {
             fFlush = true;
-            CacheFactory.log("Exception in handling memcached request: " +
-                Base.printStackTrace(thr), CacheFactory.LOG_ERR);
+            Logger.err("Exception in handling memcached request:", thr);
             response.setResponseCode(Response.ResponseCode.INTERNAL_ERROR.getCode());
             }
         finally

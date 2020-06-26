@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.rest.config;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.CacheMapping;
 import com.tangosol.coherence.config.Config;
 
@@ -87,8 +89,7 @@ public class RestConfig
             }
         catch (Exception e) // FileNotFoundException
             {
-            CacheFactory.log("Failed to load REST configuration file "
-                    + DESCRIPTOR_NAME + " " + e, 1);
+            Logger.warn("Failed to load REST configuration file " + DESCRIPTOR_NAME, e);
             throw Base.ensureRuntimeException(e);
             }
         }

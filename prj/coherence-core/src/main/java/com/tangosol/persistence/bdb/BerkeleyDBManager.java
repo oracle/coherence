@@ -6,6 +6,8 @@
  */
 package com.tangosol.persistence.bdb;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.persistence.ConcurrentAccessException;
 import com.oracle.coherence.persistence.FatalAccessException;
 import com.oracle.coherence.persistence.PersistenceException;
@@ -44,7 +46,6 @@ import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Guardian;
 import com.tangosol.net.cache.KeyAssociation;
@@ -53,7 +54,6 @@ import com.tangosol.persistence.AbstractPersistenceManager;
 import com.tangosol.persistence.CachePersistenceHelper;
 import com.tangosol.persistence.SafePersistenceWrappers;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Unsafe;
 
@@ -88,7 +88,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * PersistenceManager implementation that uses BerkeleyDB.
@@ -124,11 +123,11 @@ public class BerkeleyDBManager
             {
             // our remote FS detection is far from perfect and the performance cost is high if we set this when we
             // don't need it, so let the user know.  Note the cost of not setting it is potential data corruption.
-            CacheFactory.log("\"" + fileData + "\" appears to reference a remote file-system and as such " +
+            Logger.info("\"" + fileData + "\" appears to reference a remote file-system and as such " +
                     "Coherence persistence is enabling \"" + SYS_PROP_PREFIX + sProp + "\" in order ensure the " +
                     "integrity of remote commits. As this may impact write performance you may explicitly set the " +
                     "system property to \"false\" to override this decision; though this is only recommended if the " +
-                    "location is actually a local file-system.", CacheFactory.LOG_INFO);
+                    "location is actually a local file-system.");
             }
         }
 
@@ -556,9 +555,9 @@ public class BerkeleyDBManager
                         if (eTop instanceof EnvironmentFailureException &&
                             EnvironmentFailureReason.FOUND_COMMITTED_TXN == ((EnvironmentFailureException) eTop).getReason())
                             {
-                            CacheFactory.log("The persistence store " + FileHelper.getPath(f_dirStore) +
+                            Logger.err("The persistence store " + FileHelper.getPath(f_dirStore) +
                                     " appears to be corrupt and could only be partially read\n" +
-                                    eTop.getMessage() + '\n' + Base.getStackTrace(eTop), CacheFactory.LOG_ERR);
+                                    eTop.getMessage() + '\n', eTop);
 
                             // the config param below will ensure we do not receive
                             // the same exception again
@@ -1242,9 +1241,8 @@ public class BerkeleyDBManager
                     }
                 catch (Throwable e)
                     {
-                    CacheFactory.log("Error maintaining the BerkeleyDB environment in directory "
-                            + store.f_dirStore + "\": " + printStackTrace(e),
-                            CacheFactory.LOG_WARN);
+                    Logger.warn("Error maintaining the BerkeleyDB environment in directory "
+                            + store.f_dirStore + "\":", e);
                     }
                 finally
                     {
@@ -1255,12 +1253,11 @@ public class BerkeleyDBManager
                 // display maintenance debug info if enabled and it was performed
                 if (ldtStart != -1  && (f_fCheckpoint || f_fClean || f_fCompress))
                     {
-                    CacheFactory.log("Maintenance of BDB Environment: Store=" +  BerkeleyDBStore.this.getId() +
+                    Logger.fine("Maintenance of BDB Environment: Store=" +  BerkeleyDBStore.this.getId() +
                                 ", Clean=" + f_fClean +
                                 ", Checkpoint=" + f_fCheckpoint + ", Compress="  +
                                 f_fCompress + " took " + (getSafeTimeMillis() - ldtStart) + " ms" +
-                                (ldtLastCompress == -1 ? "" : ", last compress=" + new Date(ldtLastCompress)),
-                                 CacheFactory.LOG_DEBUG);
+                                (ldtLastCompress == -1 ? "" : ", last compress=" + new Date(ldtLastCompress)));
                     }
                 }
 
@@ -1505,7 +1502,7 @@ public class BerkeleyDBManager
         // set the JE logging level to WARNING
         // see: http://docs.oracle.com/cd/E17277_02/html/GettingStartedGuide/managelogging.html
         Level logLevel = Level.parse(System.getProperty("com.sleepycat.je.level", Level.WARNING.getName()));
-        Logger.getLogger("com.sleepycat.je").setLevel(logLevel);
+        java.util.logging.Logger.getLogger("com.sleepycat.je").setLevel(logLevel);
 
         // initialize environment configuration propagating any JVM settings
         // intended for BDB

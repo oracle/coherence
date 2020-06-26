@@ -6,9 +6,9 @@
  */
 package com.tangosol.coherence.management.internal.resources;
 
-import com.tangosol.coherence.management.internal.EntityMBeanResponse;
+import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
@@ -81,8 +81,7 @@ public class ClusterResource
             }
         catch (IOException e)
             {
-            CacheFactory.log("Exception occurred while returning Swagger resource " + SWAGGER_RESOURCE
-                              + "." + e.getMessage() + "\n" + CacheFactory.getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while returning Swagger resource " + SWAGGER_RESOURCE, e);
             throw new WebApplicationException();
             }
         }

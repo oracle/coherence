@@ -6,13 +6,14 @@
  */
 package com.tangosol.coherence.rest;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.rest.config.QueryConfig;
 import com.tangosol.coherence.rest.config.ResourceConfig;
 import com.tangosol.coherence.rest.config.RestConfig;
 
 import com.tangosol.coherence.rest.server.InjectionBinder;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 
@@ -92,7 +93,7 @@ public class DefaultRootResource
             }
         catch (Exception e)
             {
-            CacheFactory.log(e.getMessage(), CacheFactory.LOG_ERR);
+            Logger.err(e);
             throw new NotFoundException(e.getMessage());
             }
         }

@@ -6,14 +6,18 @@
  */
 package events.common;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.partition.cache.EntryEvent;
+
 import com.tangosol.util.BinaryEntry;
 
 import java.io.Serializable;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -39,7 +43,7 @@ public class UnnamedInterceptor
      */
     public void onEvent(EntryEvent<?, ?> entryEvent)
         {
-        CacheFactory.log("onEvent for: " + entryEvent);
+        Logger.log("onEvent for: " + entryEvent, Logger.ALWAYS);
 
         for (BinaryEntry entry : entryEvent.getEntrySet())
             {
@@ -52,7 +56,7 @@ public class UnnamedInterceptor
                     {
                     NamedCache results = CacheFactory.getCache("results");
                     String sKey = this.getClass().getName() + m_nKeySuffix.incrementAndGet();
-                    CacheFactory.log("Putting k=" + sKey + " v=" + entry.getValue() + "into results cache");
+                    Logger.log("Putting k=" + sKey + " v=" + entry.getValue() + "into results cache", Logger.ALWAYS);
                     results.put(sKey, entry.getValue());
                     break;
                     }

@@ -6,9 +6,9 @@
  */
 package com.tangosol.io.pof;
 
-import com.tangosol.io.Evolvable;
+import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.io.Evolvable;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -51,9 +51,7 @@ public class PortableTypeSerializer<T>
         Base.azzert(nTypeId >= 0, "user type identifier cannot be negative");
         if (!PortableObject.class.isAssignableFrom(clazz))
             {
-            CacheFactory.log("Class [" + clazz +
-                             "] does not implement a PortableObject interface",
-                             CacheFactory.LOG_ERR);
+            Logger.err("Class [" + clazz + "] does not implement a PortableObject interface");
             }
         m_nTypeId = nTypeId;
         }

@@ -7,6 +7,8 @@
 
 package com.tangosol.net.management;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.dev.tools.CommandLineTool;
@@ -14,7 +16,6 @@ import com.tangosol.dev.tools.CommandLineTool;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 
 import java.io.IOException;
@@ -317,9 +318,7 @@ public class MBeanConnector
                 }
             catch (Throwable e)
                 {
-                CacheFactory.log("Failed to instantiate custom JMXAuthenticator class "
-                        + sAuthenticator + ". " + Base.printStackTrace(e),
-                        CacheFactory.LOG_ERR);
+                Logger.err("Failed to instantiate custom JMXAuthenticator class " + sAuthenticator, e);
                 }
             }
         return null;

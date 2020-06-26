@@ -8,6 +8,7 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Disposable;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.coherence.config.CacheConfig;
@@ -208,7 +209,7 @@ public class ExtensibleConfigurableCacheFactory
             dispatcherReg.registerEventDispatcher(f_dispatcher);
             }
 
-        CacheFactory.log("Created cache factory " + this.getClass().getName(), CacheFactory.LOG_INFO);
+        Logger.info("Created cache factory " + this.getClass().getName());
         }
 
     // ----- ConfigurableCacheFactory interface -----------------------------
@@ -1032,8 +1033,8 @@ public class ExtensibleConfigurableCacheFactory
 
         if (that != this && !Base.equals(xmlLegacyConfig, this.f_xmlLegacyConfig))
             {
-            CacheFactory.log("This configurable cache factory config: " + this.f_xmlLegacyConfig, Base.LOG_INFO);
-            CacheFactory.log("Other configurable cache factory config: " + xmlLegacyConfig, Base.LOG_INFO);
+            Logger.info("This configurable cache factory config: " + this.f_xmlLegacyConfig);
+            Logger.info("Other configurable cache factory config: " + xmlLegacyConfig);
 
             throw new IllegalStateException("Service \"" + service.getInfo().getServiceName()
                 + "\" has been started by a different configurable cache factory.");
@@ -1946,7 +1947,7 @@ public class ExtensibleConfigurableCacheFactory
                 }
             catch (Exception e)
                 {
-                CacheFactory.log("Failed to invalidate backing map: " + e, CacheFactory.LOG_WARN);
+                Logger.warn("Failed to invalidate backing map: " + e);
                 }
             }
 

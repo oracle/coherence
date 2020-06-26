@@ -7,7 +7,7 @@
 package com.tangosol.run.xml;
 
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
@@ -291,10 +291,10 @@ public class SaxParser
                     // property not supported, warn once and don't attempt to set property again
                     if (ATTEMPT_RESTRICT_EXTERNAL.compareAndSet(true, false))
                         {
-                        CacheFactory.log("Validator does not support JAXP 1.5 properties to restrict access to external XML DTDs and Schemas." + System.lineSeparator() +
+                        Logger.warn("Validator does not support JAXP 1.5 properties to restrict access to external XML DTDs and Schemas." + System.lineSeparator() +
                             "To guard against XXE vulnerabilities, ensure provided XML parser is secure." + System.lineSeparator() +
                             "Validator: " + validator.getClass().getCanonicalName() + System.lineSeparator() +
-                            "Error: " + e.getLocalizedMessage(), Base.LOG_WARN);
+                            "Error: " + e.getLocalizedMessage());
                         }
                     }
                 }
@@ -387,8 +387,7 @@ public class SaxParser
                 throws SAXException
             {
             // Don't fail on warning,  display message
-            CacheFactory.log("Warning " + e.toString() + " - line  "
-                    + e.getLineNumber(), CacheFactory.LOG_WARN);
+            Logger.warn("Warning " + e.toString() + " - line  " + e.getLineNumber());
             }
 
         /**
@@ -404,8 +403,7 @@ public class SaxParser
                 throws SAXException
             {
             // Display all errors before failing
-            CacheFactory.log("Error " + e.toString() + " - line "
-                    + e.getLineNumber(), CacheFactory.LOG_ERR);
+            Logger.err("Error " + e.toString() + " - line " + e.getLineNumber());
             m_cError++;
             if (m_eParser == null)
                 {
@@ -425,8 +423,7 @@ public class SaxParser
         public void fatalError(SAXParseException e)
                 throws SAXException
             {
-            CacheFactory.log("Fatal Error " + e.toString() + " - line "
-                    + e.getLineNumber(), CacheFactory.LOG_ERR);
+            Logger.err("Fatal Error " + e.toString() + " - line " + e.getLineNumber());
             throw e;
             }
 

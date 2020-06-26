@@ -6,6 +6,8 @@
  */
 package com.tangosol.internal.tracing;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Member;
@@ -74,12 +76,8 @@ public final class TracingHelper
                         }
                     catch (Throwable t) // most likely a configuration issue with the tracing provider
                         {
-                        if (CacheFactory.isLogEnabled(Base.LOG_ERR))
-                            {
-                            CacheFactory.log("Error invoking TracingShimLoader.loadTracingShim().  "
-                                             + "Continuing to search for a valid tracing shim: " + t, Base.LOG_ERR);
-                            CacheFactory.log(t);
-                            }
+                        Logger.err("Error invoking TracingShimLoader.loadTracingShim().  "
+                                       + "Continuing to search for a valid tracing shim: ", t);
                         continue;
                         }
 
@@ -94,21 +92,19 @@ public final class TracingHelper
                 }
             catch (Throwable t) // exceptions here are from the ServiceLoader itself
                 {
-                if (CacheFactory.isLogEnabled(Base.LOG_WARN))
+                if (Logger.isEnabled(Logger.WARNING))
                     {
-                    String msg = "Error loading tracing shim using the %s classloader: %s";
+                    String msg = "Error loading tracing shim using the %s classloader:";
                     if (i == 0)
                         {
-                        CacheFactory.log(String.format(msg, "context", t), Base.LOG_WARN);
-                        CacheFactory.log("Attempting to load tracing shim using the fallback classloader.",
-                                         Base.LOG_WARN);
+                        Logger.warn(String.format(msg, "context"), t);
+                        Logger.warn("Attempting to load tracing shim using the fallback classloader.");
                         }
                     else
                         {
-                        CacheFactory.log(String.format(msg, "fallback", t), Base.LOG_WARN);
-                        CacheFactory.log("Tracing failed to initialize.", Base.LOG_WARN);
+                        Logger.warn(String.format(msg, "fallback"), t);
+                        Logger.warn("Tracing failed to initialize.");
                         }
-                    CacheFactory.log(t);
                     }
                 }
             }

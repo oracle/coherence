@@ -6,14 +6,13 @@
  */
 package com.tangosol.coherence.jcache.passthroughcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapEvent;
@@ -21,8 +20,6 @@ import com.tangosol.util.MapEvent;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.cache.configuration.Factory;
 
@@ -105,7 +102,7 @@ public class PassThroughFilterAdapter<K, V>
     public void readExternal(PofReader reader)
             throws IOException
         {
-        m_factoryCacheEntryEventFilter = (Factory<CacheEntryEventFilter<? super K, ? super V>>) reader.readObject(0);
+        m_factoryCacheEntryEventFilter = reader.readObject(0);
         }
 
     @Override
@@ -138,10 +135,8 @@ public class PassThroughFilterAdapter<K, V>
                 if (!m_logged)
                     {
                     m_logged = true;
-                    CacheFactory
-                        .log("no CacheEntryEventFilter."
-                             + " handled unexpected exception while attempting to create CacheEntryEventFilter:\n"
-                             + Base.printStackTrace(e), CacheFactory.LOG_WARN);
+                    Logger.warn("no CacheEntryEventFilter."
+                                + " handled unexpected exception while attempting to create CacheEntryEventFilter:", e);
 
                     }
                 }

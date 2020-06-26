@@ -6,12 +6,12 @@
  */
 package com.tangosol.coherence.rest.io;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.rest.DefaultKeyConverter;
 
 import com.tangosol.coherence.rest.util.JsonMap;
 import com.tangosol.coherence.rest.util.StaticContent;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 
@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-
 
 /**
  * Registry for marshaller instances.
@@ -254,9 +253,8 @@ public class MarshallerRegistry
         Class clzDefaultMarshaller = m_mapDefaultMarshallers.get(sMediaType);
         if (clzDefaultMarshaller == null)
             {
-                CacheFactory.log("Default marshaller for media type "
-                        + sMediaType + " is not registered.", 3);
-                return NULL_MARSHALLER;
+            Logger.warn("Default marshaller for media type " + sMediaType + " is not registered.");
+            return NULL_MARSHALLER;
             }
 
         return createMarshaller(clzRoot, sMediaType, clzDefaultMarshaller);
@@ -276,8 +274,7 @@ public class MarshallerRegistry
         {
         if (clzMarshaller == null || !Marshaller.class.isAssignableFrom(clzMarshaller))
             {
-            throw new IllegalArgumentException("invalid marshaller: "
-                    + clzMarshaller);
+            throw new IllegalArgumentException("invalid marshaller: " + clzMarshaller);
             }
 
         Constructor ctor = null;

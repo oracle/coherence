@@ -7,6 +7,8 @@
 
 package com.tangosol.coherence.reporter;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.management.MBeanHelper;
@@ -40,8 +42,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 
 import java.text.DateFormat;
-
-import javax.management.ObjectName;
 
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
@@ -885,7 +885,7 @@ public class Reporter
                 if (!sToken.equals("}"))
                     {
                     // Error - un-matched {}
-                    Base.log("Error processing string \"" + sTemplate + "\". Unmatched brace {." );
+                    Logger.err("Error processing string \"" + sTemplate + "\". Unmatched brace {.");
                     return null;
                     }
                 }
@@ -911,8 +911,7 @@ public class Reporter
             ofEnd = sTemplate.indexOf('}', ofStart);
             if (ofEnd < 0)
                 {
-                CacheFactory.log("Invalid attribute format: "
-                        + sTemplate, CacheFactory.LOG_ERR);
+                Logger.err("Invalid attribute format: " + sTemplate);
                 break;
                 }
 

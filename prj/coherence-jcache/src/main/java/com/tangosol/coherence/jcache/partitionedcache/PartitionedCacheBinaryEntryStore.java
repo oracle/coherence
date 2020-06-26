@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.jcache.partitionedcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.common.Helper;
 import com.tangosol.coherence.jcache.common.JCacheContext;
 import com.tangosol.coherence.jcache.common.JCacheEntryMetaInf;
@@ -13,7 +15,6 @@ import com.tangosol.coherence.jcache.common.JCacheIdentifier;
 import com.tangosol.coherence.jcache.partitionedcache.processors.BinaryEntryHelper;
 
 import com.tangosol.net.BackingMapManagerContext;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.BinaryEntryStore;
 
 import com.tangosol.util.Binary;
@@ -87,20 +88,10 @@ public class PartitionedCacheBinaryEntryStore<K, V>
      */
     public PartitionedCacheBinaryEntryStore(String sName, BackingMapManagerContext mgrCtx, ClassLoader classLoader)
         {
-        if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-            {
-            CacheFactory.log("Begin PartitionedCacheBinaryEntryStore ctor start for sName=" + sName
-                             + " backingMapManagerCtx=" + mgrCtx.toString() + " classLoader=" + classLoader
-                             + " xmlConfig=" + mgrCtx.getConfig(), CacheFactory.LOG_QUIET);
-            }
-
         m_cacheId = new JCacheIdentifier(sName);
 
-        if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-            {
-            CacheFactory.log("End PartitionedCacheBinaryEntryStore ctor sName=" + sName + " JCacheId="
-                             + m_cacheId.getCanonicalCacheName(), CacheFactory.LOG_QUIET);
-            }
+        Logger.finest(() -> "Created PartitionedCacheBinaryEntryStore for [name=" + sName
+                            + " JCacheId=" + m_cacheId.getCanonicalCacheName() + "]");
         }
 
     // ----- BinaryEntryStore methods ---------------------------------------
@@ -115,11 +106,11 @@ public class PartitionedCacheBinaryEntryStore<K, V>
         if (loader != null)
             {
             /* Too verbose. But keep in case need to debug native loading in future.
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
+            if (Logger.isEnabled(Logger.FINEST))
                 {
-                CacheFactory.log("PartitionedCacheBinaryEntryStore.load called for binaryEntry key="
+                Logger.finest("PartitionedCacheBinaryEntryStore.load called for binaryEntry key="
                                  + binaryEntry.getKey()
-                                 + Base.printStackTrace(new Exception("stacktrace")), CacheFactory.LOG_MAX);
+                                 + Base.printStackTrace(new Exception("stacktrace")));
                 }
             */
             Object oValue = loader.load(binaryEntry.getKey());
@@ -138,11 +129,8 @@ public class PartitionedCacheBinaryEntryStore<K, V>
 
                 binaryEntry.updateBinaryValue(binValue);
 
-                if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-                    {
-                    CacheFactory.log("PartitionedCacheBinaryEntryStore.load loaded key=" + binaryEntry.getKey()
-                                     + " value=" + oValue, CacheFactory.LOG_QUIET);
-                    }
+                Logger.finest(() -> "PartitionedCacheBinaryEntryStore.load loaded key=" + binaryEntry.getKey()
+                                 + " value=" + oValue);
                 }
             }
         }
@@ -203,25 +191,12 @@ public class PartitionedCacheBinaryEntryStore<K, V>
             {
             boolean fJCacheSynthetic = BinaryEntryHelper.isJCacheSyntheticOrLoaded(binaryEntry);
 
-            if (fJCacheSynthetic)
-                {
-                if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-                    {
-                    CacheFactory
-                        .log("PartitionedCacheBinaryEntryStore.store not calling CacheWriter.write since fJCacheSynthetic="
-                             + fJCacheSynthetic, CacheFactory.LOG_QUIET);
-                    }
-                }
-            else
-
-                // ! fJCacheSynthetic or just read-through loaded
+            if (!fJCacheSynthetic)
                 {
                 Cache.Entry entry = new CacheEntry(binaryEntry);
-
                 writer.write(entry);
                 }
             }
-
         }
 
     @Override
@@ -291,12 +266,9 @@ public class PartitionedCacheBinaryEntryStore<K, V>
 
         if (writer != null)
             {
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-                {
-                CacheFactory.log("PartitionedCacheBinaryEntryStore.erase calling CacheWriter.delete on key="
-                                 + binaryEntry.getKey() + "CacheWriter class="
-                                 + writer.getClass().getCanonicalName(), CacheFactory.LOG_QUIET);
-                }
+            Logger.finest(() -> "PartitionedCacheBinaryEntryStore.erase calling CacheWriter.delete on key="
+                             + binaryEntry.getKey() + "CacheWriter class="
+                             + writer.getClass().getCanonicalName());
 
             try
                 {

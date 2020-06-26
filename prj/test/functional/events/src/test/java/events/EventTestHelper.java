@@ -6,6 +6,8 @@
  */
 package events;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -142,11 +144,11 @@ public class EventTestHelper
                     new ObjectName(String.format("Coherence:type=Service,name=%s,nodeId=%s", sName, nId)),
                     "OwnedPartitionsPrimary");
 
-            CacheFactory.log(String.format("Member %s owns %s partitions", member, c), 6);
+            Logger.finer(String.format("Member %s owns %s partitions", member, c));
             }
         catch (Exception e)
             {
-            CacheFactory.log(e);
+            Logger.err(e);
             }
 
         return c;

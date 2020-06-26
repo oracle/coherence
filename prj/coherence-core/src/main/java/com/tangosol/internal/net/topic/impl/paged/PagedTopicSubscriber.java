@@ -6,6 +6,8 @@
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.coherence.config.Config;
@@ -26,7 +28,6 @@ import com.tangosol.internal.util.Primes;
 
 import com.tangosol.io.Serializer;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.FlowControl;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.topic.Subscriber;
@@ -862,8 +863,8 @@ public class PagedTopicSubscriber<V>
                         }
                     catch (Throwable t)
                         {
-                        CacheFactory.log(this.getClass().getName() + ".close(): handled onClose exception: " +
-                            t.getClass().getCanonicalName() + ": " + t.getMessage(), Base.LOG_QUIET);
+                        Logger.fine(this.getClass().getName() + ".close(): handled onClose exception: " +
+                            t.getClass().getCanonicalName() + ": " + t.getMessage());
                         }
                     });
                     }
@@ -1030,9 +1031,9 @@ public class PagedTopicSubscriber<V>
         public void entryDeleted(MapEvent evt)
             {
             // destroy/disconnect event
-            CacheFactory.log("Detected destroy of topic "
+            Logger.fine("Detected destroy of topic "
                 + f_caches.getTopicName() + ", closing subscriber "
-                + PagedTopicSubscriber.this, CacheFactory.LOG_QUIET);
+                + PagedTopicSubscriber.this);
             closeInternal(true);
             }
         }
@@ -1050,9 +1051,9 @@ public class PagedTopicSubscriber<V>
         public void entryDeleted(MapEvent evt)
             {
             // destroy subscriber group
-            CacheFactory.log("Detected removal of subscriber group "
+            Logger.fine("Detected removal of subscriber group "
                 + f_subscriberGroupId.getGroupName() + ", closing subscriber "
-                + PagedTopicSubscriber.this, CacheFactory.LOG_QUIET);
+                + PagedTopicSubscriber.this);
             closeInternal(true);
             }
         }

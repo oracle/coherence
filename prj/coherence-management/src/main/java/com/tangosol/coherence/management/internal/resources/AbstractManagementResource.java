@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.management.internal.resources;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.management.internal.Converter;
 import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 import com.tangosol.coherence.management.internal.MBeanResponse;
@@ -55,9 +57,6 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
-import static com.tangosol.net.CacheFactory.getStackTrace;
-import static com.tangosol.net.CacheFactory.log;
 
 /**
  * The base resource for Coherence management resources.
@@ -155,9 +154,7 @@ public abstract class AbstractManagementResource
             }
         catch (Exception e)
             {
-            CacheFactory.log("Exception occurred while updating an MBean with query "
-                + bldrQuery.toString() + ", " + e + '\n'
-                + Base.getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while updating an MBean with query " + bldrQuery.toString(), e);
 
             if (e instanceof WebApplicationException)
                 {
@@ -252,8 +249,8 @@ public abstract class AbstractManagementResource
             }
         catch (Exception e)
             {
-            log("Exception occurred while getting response body for MBean with query "
-                    + bldrQuery.build() + "\n" + getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while getting response body for MBean with query "
+                        + bldrQuery.build(), e);
             if (e instanceof WebApplicationException)
                 {
                 throw (WebApplicationException) e;
@@ -292,8 +289,8 @@ public abstract class AbstractManagementResource
             }
         catch (RuntimeException e)
             {
-            log("Exception occurred while executing an Mbean operation on query "
-                            + bldrQuery.build() + ", and operationName " + sOperationName + "\n" + getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while executing an Mbean operation on query "
+                            + bldrQuery.build() + ", and operationName " + sOperationName, e);
 
             if (e instanceof WebApplicationException)
                 {
@@ -381,8 +378,8 @@ public abstract class AbstractManagementResource
             }
         catch (RuntimeException e)
             {
-            log("Exception occurred while executing an Mbean operation on query" + bldrQuery.toString()
-                    + "and operationName " + sOperationName + "\n" + getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while executing an Mbean operation on query" + bldrQuery.toString()
+                    + "and operationName " + sOperationName, e);
 
             if (e instanceof WebApplicationException)
                 {
@@ -479,8 +476,8 @@ public abstract class AbstractManagementResource
             }
         catch (Exception e)
             {
-            log("Exception occurred while getting response for an MBean collection with query " + bldrQuery.build().getQuery() +
-                    "\n" + getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while getting response for an MBean collection with query "
+                        + bldrQuery.build().getQuery(), e);
             throw new WebApplicationException();
             }
         }
@@ -545,8 +542,8 @@ public abstract class AbstractManagementResource
             }
         catch (Exception e)
             {
-            log("Exception occurred while getting response for an MBean collection with query " +
-                    bldrQuery.build() + "\n" + getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while getting response for an MBean collection with query " +
+                    bldrQuery.build(), e);
             throw new WebApplicationException();
             }
         }
@@ -609,8 +606,8 @@ public abstract class AbstractManagementResource
             }
         catch (Exception e)
             {
-            log("Exception occurred while getting response for an MBean collection with query " + bldrQuery.build() +
-                    getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while getting response for an MBean collection with query "
+                        + bldrQuery.build(), e);
             throw new WebApplicationException();
             }
         }
@@ -658,8 +655,8 @@ public abstract class AbstractManagementResource
             }
         catch (Exception e)
             {
-            log("Exception occurred while getting response for an MBean collection with query " + bldrQuery.build()
-                    + "\n" + getStackTrace(e), CacheFactory.LOG_ERR);
+            Logger.warn("Exception occurred while getting response for an MBean collection with query "
+                        + bldrQuery.build(), e);
             throw new WebApplicationException();
             }
         }
@@ -737,8 +734,8 @@ public abstract class AbstractManagementResource
                 }
             else
                 {
-                log("Exception occurred while aggregating metrics with query "
-                        + bldrQuery.build() + "\n" + getStackTrace(e), CacheFactory.LOG_ERR);
+                Logger.warn("Exception occurred while aggregating metrics with query "
+                        + bldrQuery.build(), e);
                 throw new WebApplicationException();
                 }
             }

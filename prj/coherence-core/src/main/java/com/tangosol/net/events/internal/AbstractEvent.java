@@ -6,6 +6,7 @@
  */
 package com.tangosol.net.events.internal;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.tracing.Scope;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.TracingHelper;
@@ -148,9 +149,7 @@ public abstract class AbstractEvent<T extends Enum<T>>
                     }
                 else
                     {
-                    CacheFactory.log("Exception caught while dispatching to \""
-                                     + interceptor + "\": "
-                                     + Base.printStackTrace(e), Base.LOG_ERR);
+                    Logger.err("Exception caught while dispatching to \"" + interceptor + "\": ", e);
                     }
                 }
             finally

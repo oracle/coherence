@@ -7,6 +7,7 @@
 package com.tangosol.coherence.memcached;
 
 import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.memcached.Response.ResponseCode;
 
@@ -33,7 +34,6 @@ import com.tangosol.net.Session;
 import com.tangosol.net.security.IdentityAsserter;
 import com.tangosol.net.security.UsernameAndPassword;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 
 import com.tangosol.util.InvocableMap.EntryProcessor;
@@ -417,7 +417,7 @@ public class DefaultRequestHandler
                 }
             catch (Throwable thr)
                 {
-                CacheFactory.log("Memcached authentication failure. " + thr, CacheFactory.LOG_ERR);
+                Logger.err("Memcached authentication failure: " + thr);
                 nResponseCode = ResponseCode.AUTH_ERROR.getCode();
                 }
             }
@@ -714,8 +714,7 @@ public class DefaultRequestHandler
                     }
                 catch (Throwable thr)
                     {
-                    CacheFactory.log("Memcached adapter failed to get cache " + f_sCacheName + ": " +
-                            Base.printStackTrace(thr), CacheFactory.LOG_ERR);
+                    Logger.warn("Memcached adapter failed to get cache:" + f_sCacheName, thr);
                     }
                 finally
                     {

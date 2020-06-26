@@ -8,6 +8,8 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Disposable;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.CacheConfig;
 import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.SchemeMappingRegistry;
@@ -227,7 +229,7 @@ public class DefaultConfigurableCacheFactory
         setConfigClassLoader(loader);
         setConfig(xmlConfig);
 
-        CacheFactory.log("Created cache factory " + this.getClass().getName(), CacheFactory.LOG_INFO);
+        Logger.info("Created cache factory " + this.getClass().getName());
         }
 
 
@@ -1471,8 +1473,8 @@ public class DefaultConfigurableCacheFactory
                 NearCache cacheNear;
                 if (nStrategy == Integer.MIN_VALUE)
                     {
-                    CacheFactory.log("Invalid invalidation strategy of '" + sStrategy +
-                            "'; proceeding with default of 'auto'", CacheFactory.LOG_WARN);
+                    Logger.warn("Invalid invalidation strategy of '" + sStrategy +
+                            "'; proceeding with default of 'auto'");
                     nStrategy = NearCache.LISTEN_AUTO;
                     }
 
@@ -1860,10 +1862,10 @@ public class DefaultConfigurableCacheFactory
 
         if (!fRethrow)
             {
-            CacheFactory.log("The rollback-cachestore-failures setting is explicitly " +
+            Logger.warn("The rollback-cachestore-failures setting is explicitly " +
                     "configured to prevent CacheStore exceptions from being " +
                     "propagated to the client; this setting is not recommended " +
-                    "and has been deprecated", CacheFactory.LOG_WARN);
+                    "and has been deprecated");
             }
 
         // get the write behind delay; if the "write-delay" element exists, try
@@ -2114,10 +2116,10 @@ public class DefaultConfigurableCacheFactory
 
         if (!fRethrow)
             {
-            CacheFactory.log("The rollback-cachestore-failures setting is explicitly " +
+            Logger.warn("The rollback-cachestore-failures setting is explicitly " +
                     "configured to prevent CacheStore exceptions from being " +
                     "propagated to the client; this setting is not recommended " +
-                    "and has been deprecated", CacheFactory.LOG_WARN);
+                    "and has been deprecated");
             }
 
         // get the write behind delay; if the "write-delay" element exists, try
@@ -2320,7 +2322,7 @@ public class DefaultConfigurableCacheFactory
                     {
                     sText += "\n(The exception has been logged and will be ignored.)";
                     }
-                CacheFactory.log(sText, CacheFactory.LOG_WARN);
+                Logger.warn(sText);
                 if (e instanceof Error)
                     {
                     throw (Error) e;
@@ -2507,39 +2509,36 @@ public class DefaultConfigurableCacheFactory
 
             if (mapMisses != null)
                 {
-                CacheFactory.log("Cache " + info.getCacheName()
+                Logger.warn("Cache " + info.getCacheName()
                         + " of scheme " + info.getSchemeName()
                         + " has a \"miss-cache-scheme\" configured; since"
                         + " the default OverflowMap implementation has been"
-                        + " selected, the miss cache will not be used.",
-                        CacheFactory.LOG_WARN);
+                        + " selected, the miss cache will not be used.");
                 }
             }
         else if (mapOverflow instanceof SimpleOverflowMap)
             {
             if (fExpiry)
                 {
-                CacheFactory.log("Cache " + info.getCacheName()
+                Logger.warn("Cache " + info.getCacheName()
                         + " of scheme " + info.getSchemeName()
                         + " has \"expiry-enabled\" set to true or"
                         + " \"expiry-delay\" configured; these settings will"
                         + " have no effect, and expiry will not work,"
                         + " because the scheme explicitly ues a"
-                        + " SimpleOverflowMap.",
-                        CacheFactory.LOG_WARN);
+                        + " SimpleOverflowMap.");
                 }
 
             if (fObservable)
                 {
-                CacheFactory.log("Cache " + info.getCacheName()
+                Logger.warn("Cache " + info.getCacheName()
                         + " of scheme " + info.getSchemeName()
                         + " has a \"back-scheme\" that is observable;"
                         + " the events from the back map will be ignored"
                         + " because the scheme explicitly uses a"
                         + " SimpleOverflowMap, and this could result in"
                         + " missing events if the back map actively expires"
-                        + " and/or evicts its entries.",
-                        CacheFactory.LOG_WARN);
+                        + " and/or evicts its entries.");
                 }
             }
 
@@ -2940,15 +2939,13 @@ public class DefaultConfigurableCacheFactory
                 // warn about changes to configured values
                 if (cbInitSize != cbInit)
                     {
-                    CacheFactory.log("Invalid initial-size specified for " +
-                            sType + "; changed to: " + cbInitSize + " bytes",
-                            CacheFactory.LOG_WARN);
+                    Logger.warn("Invalid initial-size specified for " +
+                            sType + "; changed to: " + cbInitSize + " bytes");
                     }
                 if (cbMaxSize != cbMax)
                     {
-                    CacheFactory.log("Invalid maximum-size specified for " +
-                            sType + "; changed to: " + cbMaxSize + " bytes",
-                            CacheFactory.LOG_WARN);
+                    Logger.warn("Invalid maximum-size specified for " +
+                            sType + "; changed to: " + cbMaxSize + " bytes");
                     }
                 }
 
@@ -4176,10 +4173,8 @@ public class DefaultConfigurableCacheFactory
     protected void reportConversionError(XmlValue xmlValue, String sType,
             String sDefault, RuntimeException e)
         {
-        CacheFactory.log("Error converting " + xmlValue +
-                " to " + sType + "; proceeding with default value of "
-                + sDefault + "\n" + getStackTrace(e),
-            CacheFactory.LOG_WARN);
+        Logger.warn("Error converting " + xmlValue + " to " + sType + "; proceeding with default value of "
+                    + sDefault + '\n', e);
         }
 
     // ----- inner classes --------------------------------------------------
@@ -4411,8 +4406,7 @@ public class DefaultConfigurableCacheFactory
                         ofEnd = sText.indexOf('}', ofStart);
                         if (ofEnd < 0)
                             {
-                            CacheFactory.log("Invalid attribute format: "
-                                    + sText, CacheFactory.LOG_ERR);
+                            Logger.err("Invalid attribute format: " + sText);
                             fReplace = false;
                             break;
                             }
@@ -4438,9 +4432,9 @@ public class DefaultConfigurableCacheFactory
                                  && !sAttribute.equals(SCHEME_REF)
                                  && !sAttribute.equals(CACHE_REF))
                                     {
-                                    CacheFactory.log("Missing parameter definition: "
+                                    Logger.warn("Missing parameter definition: "
                                         + sAttribute + " for cache \""
-                                        + getCacheName() + '"', CacheFactory.LOG_WARN);
+                                        + getCacheName() + '"');
                                     }
                                 fReplace = false;
                                 break;

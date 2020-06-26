@@ -6,12 +6,12 @@
  */
 package com.tangosol.internal.net.service.grid;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.DecorationOnlyDeltaCompressor;
 import com.tangosol.io.DeltaCompressor;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 
@@ -189,9 +189,9 @@ public class DefaultPartitionedCacheDependencies
 
         if (cBackupsOpt != cBackups && cBackupsOpt > 0)
             {
-            CacheFactory.log("Valid values for the <backup-count-after-writebehind> " + "element are 0 or " + cBackups
-                             + " (the value from the " + "<backup-count> element); defaulting to " + cBackups
-                             + " for the service.", CacheFactory.LOG_WARN);
+            Logger.warn("Valid values for the <backup-count-after-writebehind> " + "element are 0 or " + cBackups
+                        + " (the value from the " + "<backup-count> element); defaulting to " + cBackups
+                        + " for the service.");
             setBackupCountAfterWriteBehind(cBackups);
             }
         }

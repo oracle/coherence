@@ -7,13 +7,14 @@
 package com.tangosol.run.xml;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.coherence.config.xml.preprocessor.SystemPropertyPreprocessor;
+
 import com.tangosol.io.Base64InputStream;
 import com.tangosol.io.Base64OutputStream;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -429,7 +430,7 @@ public abstract class XmlHelper extends Base
                 sb.append("; this document does not refer to any schema " +
                           "definition and has not been validated.");
                 }
-            CacheFactory.log(sb.toString(), CacheFactory.LOG_INFO);
+            Logger.info(sb.toString());
 
             return xml;
             }
@@ -1401,8 +1402,8 @@ public abstract class XmlHelper extends Base
         int    cch = sUri.length();
         int    cb  = cch + 2;
         byte[] ab  = new byte[cb];
-	    ab[0] = (byte) ((cch >>> 8) & 0xFF);
-	    ab[1] = (byte) ((cch      ) & 0xFF);
+        ab[0] = (byte) ((cch >>> 8) & 0xFF);
+        ab[1] = (byte) ((cch      ) & 0xFF);
         sUri.getBytes(0, cch, ab, 2);
 
         // read as String

@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config.scheme;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
 
@@ -13,7 +15,6 @@ import com.tangosol.config.annotation.Injectable;
 
 import com.tangosol.config.expression.ParameterResolver;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Service;
 import com.tangosol.net.ServiceDependencies;
@@ -64,11 +65,10 @@ public abstract class AbstractServiceScheme<D extends ServiceDependencies>
                 // instance would most likely behave quite erratically or crash.
                 String sServicePrev = servicePrev.getInfo().getServiceName();
 
-                CacheFactory.log("This scheme is used to create an instance "
+                Logger.err("This scheme is used to create an instance "
                     + "of service \"" + sService + "\", while another service \""
                     + sServicePrev + "\" created by the same scheme is already running. "
-                    + "This could lead to extremely dangerous side effects.",
-                    CacheFactory.LOG_ERR);
+                    + "This could lead to extremely dangerous side effects.");
                 }
             else
                 {
@@ -234,8 +234,8 @@ public abstract class AbstractServiceScheme<D extends ServiceDependencies>
                     {
                     // injectScopeNameIntoService() should only be called with a SafeService
                     // which has an inner RemoteService that has the setScopeName() method on it.
-                    CacheFactory.log("Unable to pass scope name \"" + sScopeName + "\" to service \"" + service
-                        + "\". The service wrapped by the safe service is null", CacheFactory.LOG_ERR);
+                    Logger.err("Unable to pass scope name \"" + sScopeName + "\" to service \"" + service
+                        + "\". The service wrapped by the safe service is null");
 
                     return;
                     }
@@ -246,8 +246,8 @@ public abstract class AbstractServiceScheme<D extends ServiceDependencies>
                 {
                 // injectScopeNameIntoService() should only be called with a SafeService
                 // which has an inner RemoteService that has the setScopeName() method on it.
-                CacheFactory.log("Unable to pass scope name \"" + sScopeName + "\" to service \""
-                    + service + "\": " + e, CacheFactory.LOG_ERR);
+                Logger.err("Unable to pass scope name \"" + sScopeName + "\" to service \""
+                    + service + "\": " + e);
                 }
             }
         }

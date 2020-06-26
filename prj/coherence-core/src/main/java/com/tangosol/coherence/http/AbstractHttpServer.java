@@ -6,10 +6,11 @@
  */
 package com.tangosol.coherence.http;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.oracle.coherence.common.net.SocketProvider;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 
@@ -312,7 +313,7 @@ public abstract class AbstractHttpServer
               .append(' ');
             }
 
-        CacheFactory.log(sb.toString(), CacheFactory.LOG_INFO);
+        Logger.info(sb.toString());
         }
 
     // ----- abstract methods -----------------------------------------------

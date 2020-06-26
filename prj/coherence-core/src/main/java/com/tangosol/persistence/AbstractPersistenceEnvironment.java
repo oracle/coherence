@@ -7,6 +7,7 @@
 package com.tangosol.persistence;
 
 import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistenceManager;
@@ -18,8 +19,6 @@ import com.tangosol.internal.util.DaemonPool;
 
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
@@ -71,8 +70,7 @@ public abstract class AbstractPersistenceEnvironment
         {
         if (fileActive != null && !fileActive.exists())
             {
-            CacheFactory.log("Creating persistence active directory \""
-                    + fileActive.getAbsolutePath() + '"', CacheFactory.LOG_INFO);
+            Logger.info("Creating persistence active directory \"" + fileActive.getAbsolutePath() + '"');
             }
 
         f_fileActive   = fileActive == null ? null : FileHelper.ensureDir(fileActive);
@@ -166,8 +164,7 @@ public abstract class AbstractPersistenceEnvironment
         // create the snapshot directory
         if (!f_fileSnapshot.exists())
             {
-            CacheFactory.log("Creating persistence snapshot directory \""
-                    + f_fileSnapshot.getAbsolutePath() + '"', CacheFactory.LOG_INFO);
+            Logger.info("Creating persistence snapshot directory \"" + f_fileSnapshot.getAbsolutePath() + '"');
             }
         File fileSnapshot;
         try
@@ -476,7 +473,7 @@ public abstract class AbstractPersistenceEnvironment
             String sMsg = "Unable to remove snapshot directory " + FileHelper.getPath(fileDest) +
                     "; subsequent snapshot creations will not succeed with the name: " + sSnapshot + '\n' +
                     e + '\n' + Base.getStackTrace(e);
-            CacheFactory.log(sMsg, CacheFactory.LOG_ERR);
+            Logger.err(sMsg);
 
             throw CachePersistenceHelper.ensurePersistenceException(e, sMsg);
             }

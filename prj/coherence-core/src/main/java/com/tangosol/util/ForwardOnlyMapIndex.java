@@ -8,8 +8,9 @@
 package com.tangosol.util;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.BackingMapContext;
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.filter.IndexAwareFilter;
 
@@ -183,11 +184,9 @@ public class ForwardOnlyMapIndex
                 }
             catch (RuntimeException e)
                 {
-                CacheFactory.log("An Exception occurred during index update for key " + entry.getKey()
+                Logger.warn("An Exception occurred during index update for key " + entry.getKey()
                     + ". The entry will be excluded from the index"
-                    + (f_ctx == null ? "" : " for cache " + f_ctx.getCacheName()) + ".\n",
-                    CacheFactory.LOG_WARN);
-                CacheFactory.log(e + ":\n" + Base.getStackTrace(e), CacheFactory.LOG_WARN);
+                    + (f_ctx == null ? "" : " for cache " + f_ctx.getCacheName()) + ".\n" + e + ":\n", e);
 
                 f_mapForward.remove(oKey);
                 }

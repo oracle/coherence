@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.management.internal;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -194,8 +194,8 @@ public class Converter
             }
         catch (Exception e)
             {
-            CacheFactory.log("Exception occurred while converting object of class type " +
-                    oObject.getClass().getName() + "\n" + CacheFactory.getStackTrace(e));
+            Logger.err("Exception occurred while converting object of class type " +
+                    oObject.getClass().getName() + '\n', e);
             }
         return oObject;
         }

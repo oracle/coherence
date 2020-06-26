@@ -6,7 +6,8 @@
  */
 package com.tangosol.net;
 
-import com.tangosol.util.Base;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.util.Resources;
 
 import java.io.BufferedReader;
@@ -44,7 +45,7 @@ public class FileBasedPasswordProvider implements PasswordProvider
             if (in == null)
                 {
                 // log an error message.
-                CacheFactory.log("Failed to load password from file: " + m_sFile, Base.LOG_ERR);
+                Logger.err("Failed to load password from file: " + m_sFile);
                 return EMPTY_STRING.toCharArray();
                 }
 
@@ -53,7 +54,7 @@ public class FileBasedPasswordProvider implements PasswordProvider
             }
         catch (IOException e)
             {
-            CacheFactory.log("Error loading password from file: " + m_sFile + ", with exception: " + e.getMessage(), Base.LOG_ERR);
+            Logger.err("Error loading password from file: " + m_sFile + ", with exception: " + e.getMessage());
             return EMPTY_STRING.toCharArray();
             }
         finally

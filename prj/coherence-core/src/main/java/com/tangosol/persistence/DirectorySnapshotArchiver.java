@@ -6,13 +6,14 @@
  */
 package com.tangosol.persistence;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistenceManager;
 
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.GuardSupport;
 
 import java.io.File;
@@ -94,7 +95,7 @@ public class DirectorySnapshotArchiver
 
         for (String sStore : snapshot.listStores())
             {
-            CacheFactory.log("Archiving store " + sStore + " for snapshot " + sSnapshotName, CacheFactory.LOG_QUIET);
+            Logger.finer("Archiving store " + sStore + " for snapshot " + sSnapshotName);
             recordStartTime();
 
             try
@@ -154,7 +155,7 @@ public class DirectorySnapshotArchiver
 
         for (String sStore : snapshot.listStores())
             {
-            CacheFactory.log("Retrieving store " + sStore + " for snapshot " + sSnapshotName, CacheFactory.LOG_QUIET);
+            Logger.finer("Retrieving store " + sStore + " for snapshot " + sSnapshotName);
             recordStartTime();
 
             try
@@ -228,8 +229,7 @@ public class DirectorySnapshotArchiver
             }
         catch (IOException ioe)
             {
-            CacheFactory.log("Unable to delete directory " + fileSnapshot + " " + ioe.getMessage(),
-                             CacheFactory.LOG_WARN);
+            Logger.warn("Unable to delete directory " + fileSnapshot + " " + ioe.getMessage());
 
             return false;
             }

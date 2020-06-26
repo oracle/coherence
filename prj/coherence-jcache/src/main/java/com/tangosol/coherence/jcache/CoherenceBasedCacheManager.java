@@ -7,6 +7,7 @@
 package com.tangosol.coherence.jcache;
 
 import com.oracle.coherence.common.base.Disposable;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.jcache.common.JCacheIdentifier;
 import com.tangosol.coherence.jcache.localcache.LocalCache;
@@ -459,8 +460,7 @@ public class CoherenceBasedCacheManager
                 }
             catch (Exception e)
                 {
-                CacheFactory.log("Error stopping cache " + cache + ": " + Base.printStackTrace(e),
-                                 CacheFactory.LOG_WARN);
+                Logger.warn("Error stopping cache " + cache + ": " + Base.printStackTrace(e));
                 }
             }
 
@@ -625,8 +625,8 @@ public class CoherenceBasedCacheManager
                 if (config == null)
                     {
                     result = false;
-                    CacheFactory.log("CoherenceBasedCacheManager.validate failed.  No mapping for JCache " + cacheId
-                                     + " in meta mapping of jcacheId to configuration.", CacheFactory.LOG_WARN);
+                    Logger.warn("CoherenceBasedCacheManager.validate failed.  No mapping for JCache " + cacheId
+                                     + " in meta mapping of jcacheId to configuration.");
                     break;
                     }
                 else if (!config.equals(cache.getConfiguration(CompleteConfiguration.class)))
@@ -636,10 +636,9 @@ public class CoherenceBasedCacheManager
                     CoherenceBasedCompleteConfiguration inMemoryConfiguration =
                         cache.getConfiguration(CoherenceBasedCompleteConfiguration.class);
 
-                    CacheFactory
-                        .log("CoherenceBasedCacheManager.validate failed due to differing Configurations. JCache "
+                    Logger.warn("CoherenceBasedCacheManager.validate failed due to differing Configurations. JCache "
                              + cacheId + "\nInMemory Configuration is:\n" + inMemoryConfiguration
-                             + "\n replicated meta cache configuration is:\n" + config, CacheFactory.LOG_WARN);
+                             + "\n replicated meta cache configuration is:\n" + config);
                     break;
                     }
                 }

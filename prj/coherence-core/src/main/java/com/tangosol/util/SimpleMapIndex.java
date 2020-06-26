@@ -8,8 +8,9 @@
 package com.tangosol.util;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.BackingMapContext;
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.ConfigurableCacheMap.UnitCalculator;
@@ -342,11 +343,9 @@ public class SimpleMapIndex
             }
         catch (RuntimeException e)
             {
-            CacheFactory.log("An Exception occurred during index update for key " + entry.getKey()
-                           + ". The entry will be excluded from the index"
-                           + (m_ctx == null ? "" : " for cache " + m_ctx.getCacheName()) + ".\n",
-                             CacheFactory.LOG_WARN);
-            CacheFactory.log(e + ":\n" + getStackTrace(e), CacheFactory.LOG_WARN);
+            Logger.warn("An Exception occurred during index update for key " + entry.getKey()
+                        + ". The entry will be excluded from the index"
+                        + (m_ctx == null ? "" : " for cache " + m_ctx.getCacheName()) + ".\n" + e + ":\n", e);
 
             return NO_VALUE;
             }
@@ -1263,7 +1262,7 @@ public class SimpleMapIndex
                                 + " estimate the index size using serialization,"
                                 + " which could impact its performance";
                             }
-                        CacheFactory.log(sMsg, CacheFactory.LOG_INFO);
+                        Logger.info(sMsg);
                         m_state = state;
                         break;
                         }

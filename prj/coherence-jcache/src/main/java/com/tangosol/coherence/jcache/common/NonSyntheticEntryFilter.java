@@ -11,10 +11,8 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.CacheEvent;
 
-import com.tangosol.util.Filter;
 import com.tangosol.util.filter.EntryFilter;
 
 import java.io.DataInput;
@@ -47,35 +45,11 @@ public abstract class NonSyntheticEntryFilter<T>
 
             if (evt.isSynthetic())
                 {
-                if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-                    {
-                    try
-                        {
-                        CacheFactory.log("filter out a synthetic event" + o);
-                        }
-                    catch (Throwable e)
-                        {
-                        // ignore if user class missing.
-                        }
-                    }
-
                 return false;
                 }
             else if (evt.getId() == CacheEvent.ENTRY_UPDATED)
                 {
                 fResult = !isJCacheSynthetic(evt);
-                }
-            }
-
-        if (CacheFactory.isLogEnabled(CacheFactory.LOG_QUIET))
-            {
-            try
-                {
-                CacheFactory.log("NonSyntheticEntryFilter.evaluate result=" + fResult + " event=" + o,
-                                 CacheFactory.LOG_QUIET);
-                }
-            catch (Throwable e)
-                {
                 }
             }
 

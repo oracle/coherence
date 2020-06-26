@@ -6,8 +6,9 @@
  */
 package com.tangosol.net.security;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.BackingMapContext;
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.BinaryEntry;
 
@@ -103,13 +104,12 @@ public class AuditingAuthorizer
      */
     protected void logEntryRequest(BinaryEntry entry, Subject subject, boolean fWrite, int nReason)
         {
-        CacheFactory.log('"' + (fWrite ? "Write" : "Read") + "\" request for key=\""
+        Logger.info('"' + (fWrite ? "Write" : "Read") + "\" request for key=\""
             + entry.getKey()
             + (subject == null ?
                 "\" from unidentified user" :
                 "\" on behalf of " + subject.getPrincipals())
-            + " caused by \"" + StorageAccessAuthorizer.reasonToString(nReason) + "\""
-            , CacheFactory.LOG_INFO);
+            + " caused by \"" + StorageAccessAuthorizer.reasonToString(nReason) + "\"");
         }
 
     /**
@@ -122,13 +122,12 @@ public class AuditingAuthorizer
      */
     protected void logMapRequest(BackingMapContext context, Subject subject, boolean fWrite, int nReason)
         {
-        CacheFactory.log('"' + (fWrite ? "Write-any" : "Read-any") + "\" request for cache \""
+        Logger.info('"' + (fWrite ? "Write-any" : "Read-any") + "\" request for cache \""
             + context.getCacheName() + '"'
             + (subject == null ?
                 " from unidentified user" :
                 " on behalf of " + subject.getPrincipals())
-            + " caused by \"" + StorageAccessAuthorizer.reasonToString(nReason) + "\""
-            , CacheFactory.LOG_INFO);
+            + " caused by \"" + StorageAccessAuthorizer.reasonToString(nReason) + "\"");
         }
 
 

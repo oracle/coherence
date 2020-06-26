@@ -6,6 +6,8 @@
  */
 package com.tangosol.io.pof.reflect.internal;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.io.pof.reflect.Codec;
 
 import com.tangosol.io.pof.reflect.internal.ClassMetadata.ClassAttribute;
@@ -13,8 +15,6 @@ import com.tangosol.io.pof.reflect.internal.ClassMetadata.ClassKey;
 import com.tangosol.io.pof.reflect.internal.TypeMetadata.AttributeMetadata;
 import com.tangosol.io.pof.reflect.internal.TypeMetadata.TypeKey;
 import com.tangosol.io.pof.reflect.internal.Visitor.Recipient;
-
-import com.tangosol.net.CacheFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -126,17 +126,14 @@ public class ClassMetadataBuilder<T>
 
                 if (iProp != iAttr)
                     {
-                    if (CacheFactory.isLogEnabled(CacheFactory.LOG_DEBUG))
-                        {
-                        CacheFactory.log(String.format("The requested index "
-                                + "%d on a PortableProperty annotation "
-                                + "for [typeId=%d, version=%d, property-name=%s] is "
-                                + "already allocated to an existing PortableProperty. "
-                                + "Allocated index %d instead.",
-                                iAttr, key.getTypeId(), key.getVersionId(),
-                                attr.getName(), iProp),
-                                CacheFactory.LOG_DEBUG);
-                        }
+                    final int nProp = iProp;
+                    Logger.fine(() -> String.format("The requested index "
+                                              + "%d on a PortableProperty annotation "
+                                              + "for [typeId=%d, version=%d, property-name=%s] is "
+                                              + "already allocated to an existing PortableProperty. "
+                                              + "Allocated index %d instead.",
+                                              iAttr, key.getTypeId(), key.getVersionId(),
+                                              attr.getName(), nProp));
                     attr.setIndex(iProp);
                     }
                 setReserved.add(iProp);

@@ -8,6 +8,8 @@
 package com.tangosol.util;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.Lambdas;
@@ -47,7 +49,6 @@ import com.tangosol.io.pof.RawDate;
 import com.tangosol.io.pof.RawDateTime;
 import com.tangosol.io.pof.RawTime;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheMap;
@@ -4019,14 +4020,14 @@ public abstract class ExternalizableHelper
     public static void reportIncompatibleSerializers(NamedCache cache,
             String sService, Serializer serializer)
         {
-        CacheFactory.log("The serializer used by cache \"" + cache.getCacheName() + "\" ("
+        Logger.warn("The serializer used by cache \"" + cache.getCacheName() + "\" ("
              + cache.getCacheService().getSerializer() + ") is incompatible with the"
              + " serializer configured for service \""
              + sService + "\" (" + serializer
              + "); therefore, cached keys and values will be"
              + " converted via serialization. This will result in"
              + " increased CPU and memory utilization. If possible,"
-             + " consider reconfiguring either serializer.", LOG_WARN);
+             + " consider reconfiguring either serializer.");
         }
 
 

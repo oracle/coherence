@@ -8,6 +8,8 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Blocking;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.application.ContainerHelper;
 
 import com.tangosol.net.management.Registry;
@@ -235,8 +237,7 @@ public class SimpleServiceMonitor
                 }
             catch (RuntimeException e)
                 {
-                CacheFactory.log("Failed to restart services: " + Base.getStackTrace(e),
-                    CacheFactory.LOG_ERR);
+                Logger.err("Failed to restart services: ", e);
                 }
             catch (InterruptedException e)
                 {

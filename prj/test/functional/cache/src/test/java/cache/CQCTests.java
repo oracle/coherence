@@ -10,13 +10,14 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
@@ -556,7 +557,7 @@ public class CQCTests
             }
         catch (Exception expected)
             {
-            CacheFactory.log("This error is expected: " + expected.toString(), CacheFactory.LOG_INFO);
+            Logger.info("This error is expected: " + expected.toString());
             }
 
         cacheCQC.unlockState();

@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.memcached.processor;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.memcached.Request;
 import com.tangosol.coherence.memcached.RequestHandler;
 import com.tangosol.coherence.memcached.Response;
@@ -13,9 +15,6 @@ import com.tangosol.coherence.memcached.Response.ResponseCode;
 
 import com.tangosol.coherence.memcached.server.Task;
 
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
 import com.tangosol.util.InvocableMap.EntryProcessor;
 
 import com.tangosol.util.processor.AsynchronousProcessor;
@@ -218,16 +217,15 @@ public class MemcachedAsyncProcessor
                     }
                 default:
                     {
-                    CacheFactory.log("Memcached adapter received unknown request in EP response: " +
-                        request.getOpCode(), CacheFactory.LOG_ERR);
+                    Logger.err("Memcached adapter received unknown request in EP response: " +
+                                request.getOpCode());
                     response.setResponseCode(Response.ResponseCode.INTERNAL_ERROR.getCode());
                     }
                 }
             }
         catch (Throwable thr)
             {
-            CacheFactory.log("Exception in handling memcached async response: "+
-                Base.printStackTrace(thr), CacheFactory.LOG_ERR);
+            Logger.err("Exception in handling memcached async response:", thr);
             response.setResponseCode(Response.ResponseCode.INTERNAL_ERROR.getCode());
             fQuiet = false;
             }

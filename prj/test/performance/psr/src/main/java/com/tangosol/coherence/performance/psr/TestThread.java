@@ -8,7 +8,7 @@
 package com.tangosol.coherence.performance.psr;
 
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.util.Base;
 
@@ -87,7 +87,7 @@ public class TestThread
             }
         catch (Exception e)
             {
-            CacheFactory.log(e);
+            Logger.err(e);
             }
         finally
             {

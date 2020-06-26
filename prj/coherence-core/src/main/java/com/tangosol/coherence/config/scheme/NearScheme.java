@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config.scheme;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.ParameterList;
 import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.builder.NamedCacheBuilder;
@@ -19,7 +21,6 @@ import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.net.BackingMapManager;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -85,8 +86,7 @@ public class NearScheme
 
         if (nStrategy == Integer.MIN_VALUE)
             {
-            CacheFactory.log("Invalid invalidation strategy of '" + sStrategy + "'; proceeding with default of 'auto'",
-                             CacheFactory.LOG_WARN);
+           Logger.warn("Invalid invalidation strategy of '" + sStrategy + "'; proceeding with default of 'auto'");
             nStrategy = NearCache.LISTEN_AUTO;
             }
 

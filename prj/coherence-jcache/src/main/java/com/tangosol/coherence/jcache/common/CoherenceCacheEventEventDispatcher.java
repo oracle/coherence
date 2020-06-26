@@ -7,17 +7,12 @@
 
 package com.tangosol.coherence.jcache.common;
 
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
+import com.oracle.coherence.common.base.Logger;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
-import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.event.CacheEntryCreatedListener;
 import javax.cache.event.CacheEntryEvent;
 import javax.cache.event.CacheEntryEventFilter;
@@ -238,11 +233,8 @@ public class CoherenceCacheEventEventDispatcher<K, V>
      */
     private void logListenerException(CacheEntryListener listener, Throwable e, String sDescription)
         {
-        if (CacheFactory.isLogEnabled(Base.LOG_WARN))
-            {
-            CacheFactory.log("handled unexpected exception in registered " + sDescription + ": "
-                             + listener.getClass().getCanonicalName() + "\n" + Base.printStackTrace(e), Base.LOG_WARN);
-            }
+        Logger.warn("handled unexpected exception in registered " + sDescription + ": "
+                    + listener.getClass().getCanonicalName(), e);
         }
 
     // ----- data members ---------------------------------------------------

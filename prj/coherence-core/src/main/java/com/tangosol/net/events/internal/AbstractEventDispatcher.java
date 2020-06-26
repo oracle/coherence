@@ -7,9 +7,8 @@
 package com.tangosol.net.events.internal;
 
 import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Predicate;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventDispatcher;
@@ -150,7 +149,7 @@ public class AbstractEventDispatcher
                         {
                         if (o instanceof Throwable)
                             {
-                            CacheFactory.log("An EventInterceptor veto'd the registration of " + event.getInterceptor()
+                            Logger.fine("An EventInterceptor veto'd the registration of " + event.getInterceptor()
                                              + " for the event types " + event.getEventTypes());
                             throw Base.ensureRuntimeException((Throwable) o);
                             }

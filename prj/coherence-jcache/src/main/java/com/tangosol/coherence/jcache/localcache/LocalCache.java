@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.jcache.localcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.AbstractCoherenceBasedCache;
 import com.tangosol.coherence.jcache.CoherenceBasedCache;
 import com.tangosol.coherence.jcache.CoherenceBasedCacheManager;
@@ -33,11 +35,9 @@ import com.tangosol.coherence.jcache.localcache.processors.SyntheticDeleteProces
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.PartitionedService;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
@@ -222,8 +222,6 @@ public class LocalCache<K, V>
     @Override
     public void onBeforeClosing()
         {
-        final int CLOSE_EXCEPTION_LOG_LEVEL = CacheFactory.LOG_DEBUG;
-
         // close the configured CacheLoader
         if (m_ctx.getCacheLoader() instanceof Closeable)
             {
@@ -233,11 +231,7 @@ public class LocalCache<K, V>
                 }
             catch (IOException e)
                 {
-                if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                    {
-                    CacheFactory.log("handled unexpected exception in closable CacheLoader : "
-                                     + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                    }
+                Logger.fine("Unexpected exception in closable CacheLoader: ", e);
                 }
             }
 
@@ -250,11 +244,7 @@ public class LocalCache<K, V>
                 }
             catch (IOException e)
                 {
-                if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                    {
-                    CacheFactory.log("handled unexpected exception in closable CacheWriter : "
-                                     + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                    }
+                Logger.fine("Unexpected exception in closable CacheWriter: ", e);
                 }
             }
 
@@ -266,11 +256,7 @@ public class LocalCache<K, V>
                 }
             catch (IOException e)
                 {
-                if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                    {
-                    CacheFactory.log("handled unexpected exception in closable ExpiryPolicy : "
-                                     + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                    }
+                Logger.fine("Unexpected exception in closable ExpiryPolicy: ", e);
                 }
 
             }
@@ -287,11 +273,7 @@ public class LocalCache<K, V>
                     }
                 catch (IOException e)
                     {
-                    if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                        {
-                        CacheFactory.log("handled unexpected exception in closable Asynchronous CacheEntryListener : "
-                                         + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                        }
+                    Logger.fine("Unexpected exception in closable Asynchronous CacheEntryListener: ", e);
                     }
                 }
             }
@@ -308,11 +290,7 @@ public class LocalCache<K, V>
                     }
                 catch (IOException e)
                     {
-                    if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                        {
-                        CacheFactory.log("handled unexpected exception in closable Synchronous CacheEntryListener : "
-                                         + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                        }
+                    Logger.fine("Unexpected exception in closable Synchronous CacheEntryListener: ", e);
                     }
                 }
             }

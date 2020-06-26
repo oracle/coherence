@@ -6,14 +6,14 @@
  */
 package com.tangosol.coherence.management.internal.resources;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 
 import com.tangosol.coherence.management.internal.MBeanResponse;
 
 import com.tangosol.net.management.MBeanAccessor;
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Filter;
 
@@ -224,8 +224,7 @@ public class ServicesResource extends AbstractManagementResource
             }
         catch (Exception e)
             {
-            CacheFactory.log("Exception occurred while getting response for an MBean collection for Services"
-                    + "\n" + CacheFactory.getStackTrace(e));
+            Logger.err("Exception occurred while getting response for an MBean collection for Services\n", e);
             throw new WebApplicationException();
             }
         }

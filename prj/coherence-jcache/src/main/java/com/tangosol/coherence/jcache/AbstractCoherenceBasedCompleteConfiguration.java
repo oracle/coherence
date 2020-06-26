@@ -6,14 +6,14 @@
  */
 package com.tangosol.coherence.jcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.util.ObjectFormatter;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
@@ -402,7 +402,7 @@ public abstract class AbstractCoherenceBasedCompleteConfiguration<K, V>
                 }
             catch (ClassNotFoundException e)
                 {
-                CacheFactory.log(description + " not found: " + className, CacheFactory.LOG_WARN);
+                Logger.warn(description + " not found: " + className);
                 }
 
             }
@@ -456,64 +456,42 @@ public abstract class AbstractCoherenceBasedCompleteConfiguration<K, V>
     public void readExternal(PofReader in)
             throws IOException
         {
-        try
-            {
-            ClassLoader loader       = Base.getContextClassLoader();
-            String      keyClassName = in.readString(0);
+        ClassLoader loader       = Base.getContextClassLoader();
+        String      keyClassName = in.readString(0);
 
-            m_clzKey = loadClass(loader, keyClassName, "keyClass");
+        m_clzKey = loadClass(loader, keyClassName, "keyClass");
 
-            String valueClassName = in.readString(1);
+        String valueClassName = in.readString(1);
 
-            m_clzValue = loadClass(loader, valueClassName, "valueClass");
+        m_clzValue = loadClass(loader, valueClassName, "valueClass");
 
-            in.readCollection(2, m_listListenerConfigurations);
+        in.readCollection(2, m_listListenerConfigurations);
 
-            m_factoryCacheLoader = (Factory<CacheLoader<K, V>>) in.readObject(3);
-            m_factoryCacheWriter = (Factory<CacheWriter<? super K, ? super V>>) in.readObject(4);
-            setExpiryPolicyFactory((Factory<? extends ExpiryPolicy>) in.readObject(5));
-            m_fReadThrough       = in.readBoolean(6);
-            m_fWriteThrough      = in.readBoolean(7);
-            m_fStatisticsEnabled = in.readBoolean(8);
-            m_fStoreByValue      = in.readBoolean(9);
-            m_fManagementEnabled = in.readBoolean(10);
-            }
-        catch (Throwable e)
-            {
-            CacheFactory.log("handled unexpected exception in " + this.getClass().getCanonicalName()
-                             + ".readExternal config=\n" + this + "\nstack trace: \n"
-                             + Base.printStackTrace(e), Base.LOG_WARN);
-
-            throw e;
-            }
+        m_factoryCacheLoader = in.readObject(3);
+        m_factoryCacheWriter = in.readObject(4);
+        setExpiryPolicyFactory(in.readObject(5));
+        m_fReadThrough       = in.readBoolean(6);
+        m_fWriteThrough      = in.readBoolean(7);
+        m_fStatisticsEnabled = in.readBoolean(8);
+        m_fStoreByValue      = in.readBoolean(9);
+        m_fManagementEnabled = in.readBoolean(10);
         }
 
     @Override
     public void writeExternal(PofWriter out)
             throws IOException
         {
-        try
-            {
-            out.writeString(0, m_clzKey.getCanonicalName());
-            out.writeString(1, m_clzValue.getCanonicalName());
-            out.writeCollection(2, m_listListenerConfigurations);
-            out.writeObject(3, m_factoryCacheLoader);
-            out.writeObject(4, m_factoryCacheWriter);
-            out.writeObject(5, m_factoryExpiryPolicy);
-            out.writeBoolean(6, m_fReadThrough);
-            out.writeBoolean(7, m_fWriteThrough);
-            out.writeBoolean(8, m_fStatisticsEnabled);
-            out.writeBoolean(9, m_fStoreByValue);
-            out.writeBoolean(10, m_fManagementEnabled);
-            }
-        catch (Throwable e)
-            {
-            CacheFactory.log("handled unexpected exception in " + this.getClass().getCanonicalName()
-                             + ".writeExternal config=\n" + this + "\nstack trace: \n"
-                             + Base.printStackTrace(e), Base.LOG_WARN);
-
-            throw e;
-            }
+        out.writeString(0, m_clzKey.getCanonicalName());
+        out.writeString(1, m_clzValue.getCanonicalName());
+        out.writeCollection(2, m_listListenerConfigurations);
+        out.writeObject(3, m_factoryCacheLoader);
+        out.writeObject(4, m_factoryCacheWriter);
+        out.writeObject(5, m_factoryExpiryPolicy);
+        out.writeBoolean(6, m_fReadThrough);
+        out.writeBoolean(7, m_fWriteThrough);
+        out.writeBoolean(8, m_fStatisticsEnabled);
+        out.writeBoolean(9, m_fStoreByValue);
+        out.writeBoolean(10, m_fManagementEnabled);
         }
 
     // ------ data members --------------------------------------------------

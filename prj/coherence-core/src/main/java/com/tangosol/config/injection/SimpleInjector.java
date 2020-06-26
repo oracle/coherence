@@ -6,11 +6,10 @@
  */
 package com.tangosol.config.injection;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.config.annotation.Injectable;
 
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
 import com.tangosol.util.ResourceResolver;
 
 import java.lang.reflect.Method;
@@ -70,24 +69,25 @@ public class SimpleInjector
                             catch (Exception e)
                                 {
                                 oResource = null;
-                                CacheFactory.log(String.format(
+                                Logger.warn(String.format(
                                         "Failed to lookup resource %s resource-type %s for method %s due to %s",
                                         sResourceName, clsResource.getCanonicalName(),
-                                        method, e), Base.LOG_WARN);
+                                        method, e));
                                 }
                             }
 
                         // null resources are not injectable
-                        if (oResource != null) {
+                        if (oResource != null)
+                            {
                             try
                                 {
                                 method.invoke(object, oResource);
                                 }
                             catch (Exception e)
                                 {
-                                CacheFactory.log(String.format(
+                                Logger.warn(String.format(
                                     "Failed to inject resource %s into %s using method %s due to %s", oResource, object,
-                                    method, e), Base.LOG_WARN);
+                                    method, e));
                                 }
                             }
                         }

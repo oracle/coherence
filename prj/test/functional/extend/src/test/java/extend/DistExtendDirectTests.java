@@ -325,7 +325,7 @@ public class DistExtendDirectTests
                 }
             catch (Exception e)
                 {
-                CacheFactory.log(Base.printStackTrace(e));
+                CacheFactory.err(e);
                 throw e;
                 }
             }

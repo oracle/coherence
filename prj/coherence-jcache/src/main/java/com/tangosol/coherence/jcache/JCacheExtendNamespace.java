@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.jcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.CacheConfig;
 import com.tangosol.coherence.config.CacheMapping;
 import com.tangosol.coherence.config.Config;
@@ -27,12 +29,10 @@ import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.internal.net.service.extend.remote.DefaultRemoteCacheServiceDependencies;
 import com.tangosol.internal.net.service.peer.initiator.DefaultTcpInitiatorDependencies;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.events.InterceptorRegistry;
 
 import com.tangosol.run.xml.XmlElement;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
 
@@ -147,9 +147,8 @@ public class JCacheExtendNamespace
                 String nameserviceAddress = (String) Config.getProperty("coherence.remote.address", "127.0.0.1");
                 int clusterport = Config.getInteger("coherence.clusterport", 7574);
 
-                CacheFactory
-                    .log("JCacheExtendNamespace.onEndNamespace processing: nameservice address and port looked up via system properties:"
-                         + nameserviceAddress + ":" + clusterport, Base.LOG_INFO);
+                Logger.info("JCacheExtendNamespace.onEndNamespace processing: nameservice address and port looked up via system properties:"
+                            + nameserviceAddress + ":" + clusterport);
 
                 ListBasedAddressProviderBuilder bldr = new ListBasedAddressProviderBuilder().add(nameserviceAddress, clusterport);
                 initiatorDependencies.setNameServiceAddressProviderBuilder(bldr);

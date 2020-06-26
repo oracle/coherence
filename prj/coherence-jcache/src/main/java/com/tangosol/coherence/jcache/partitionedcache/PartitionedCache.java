@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.jcache.partitionedcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.AbstractCoherenceBasedCache;
 import com.tangosol.coherence.jcache.CoherenceBasedCache;
 import com.tangosol.coherence.jcache.CoherenceBasedCacheManager;
@@ -37,12 +39,10 @@ import com.tangosol.coherence.jcache.partitionedcache.processors.ReplaceProcesso
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.partition.PartitionSet;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
@@ -121,25 +121,16 @@ public class PartitionedCache<K, V>
         super(manager, sJCacheName, configuration);
 
         m_cacheId = new JCacheIdentifier(manager.getURI().toString(), sJCacheName);
-
-        if (CacheFactory.isLogEnabled(Base.LOG_QUIET))
-            {
-            CacheFactory.log("PartitionedCache ctor cacheName=" + m_cacheId + " configuration=" + configuration,
-                             CacheFactory.LOG_QUIET);
-            }
+        Logger.finest(() -> "PartitionedCache ctor cacheName=" + m_cacheId + " configuration=" + configuration);
 
         m_manager.putCacheToConfigurationMapping(m_cacheId, configuration);
         m_namedCache = getNamedCache(manager, m_cacheId);
-
         m_stats      = new PartitionedJCacheStatistics(this);
 
         m_fStats.set(configuration.isStatisticsEnabled());
 
         m_loader = getContext().getCacheLoader();
-
         m_mxbean = new CoherenceCacheMXBean<K, V>(this);
-
-        // establish the appropriate key and value converters
 
         // establish the required Serializer using the SerializerFactory in the ResourceRegistry
         ClassLoader              classLoader       = manager.getClassLoader();
@@ -826,8 +817,6 @@ public class PartitionedCache<K, V>
     @Override
     public void onBeforeClosing()
         {
-        final int CLOSE_EXCEPTION_LOG_LEVEL = CacheFactory.LOG_DEBUG;
-
         // close the configured CacheLoader
         if (m_loader instanceof Closeable)
             {
@@ -837,11 +826,7 @@ public class PartitionedCache<K, V>
                 }
             catch (IOException e)
                 {
-                if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                    {
-                    CacheFactory.log("handled unexpected exception in closable CacheLoader : "
-                                     + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                    }
+                Logger.fine("Unexpected exception in closable CacheLoader: ", e);
                 }
             }
 
@@ -859,11 +844,7 @@ public class PartitionedCache<K, V>
                     }
                 catch (IOException e)
                     {
-                    if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                        {
-                        CacheFactory.log("handled unexpected exception in closable Asynchronous CacheEntryListener : "
-                                         + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                        }
+                    Logger.fine("Unexpected exception in closable Asynchronous CacheEntryListener: ", e);
                     }
                 }
             }
@@ -880,11 +861,7 @@ public class PartitionedCache<K, V>
                     }
                 catch (IOException e)
                     {
-                    if (CacheFactory.isLogEnabled(CLOSE_EXCEPTION_LOG_LEVEL))
-                        {
-                        CacheFactory.log("handled unexpected exception in closable Synchronous CacheEntryListener : "
-                                         + Base.printStackTrace(e), CLOSE_EXCEPTION_LOG_LEVEL);
-                        }
+                    Logger.fine("Unexpected exception in closable Synchronous CacheEntryListener: ", e);
                     }
                 }
             }

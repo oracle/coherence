@@ -6,11 +6,11 @@
  */
 package com.tangosol.coherence.jcache.passthroughcache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.jcache.CoherenceBasedCache;
 import com.tangosol.coherence.jcache.CoherenceBasedCacheManager;
 import com.tangosol.coherence.jcache.CoherenceBasedConfiguration;
-import com.tangosol.net.CacheFactory;
-import com.tangosol.util.Base;
 
 import javax.cache.Cache;
 
@@ -72,10 +72,10 @@ public class PassThroughCacheConfiguration<K, V>
 
         final String CONFIG_CLASS_NAME = configuration.getClass().getCanonicalName();
 
-        CacheFactory.log("WARNING: Lossy conversion of configuration " + CONFIG_CLASS_NAME
-                + " to a PassThroughConfiguration. " + "Most properties from class " + CONFIG_CLASS_NAME
-                + " are ignored. "
-                + "Configure PassThroughCache using native Coherence configuration methodologies.", Base.LOG_WARN);
+        Logger.warn("WARNING: Lossy conversion of configuration " + CONFIG_CLASS_NAME
+                    + " to a PassThroughConfiguration. " + "Most properties from class " + CONFIG_CLASS_NAME
+                    + " are ignored. "
+                    + "Configure PassThroughCache using native Coherence configuration methodologies.");
         }
 
     /**

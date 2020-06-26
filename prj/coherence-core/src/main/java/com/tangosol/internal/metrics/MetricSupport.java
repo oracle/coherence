@@ -6,6 +6,8 @@
  */
 package com.tangosol.internal.metrics;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.discovery.Discovery;
 
 import com.tangosol.net.CacheFactory;
@@ -59,8 +61,6 @@ import java.util.Set;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static com.tangosol.util.Base.LOG_WARN;
 
 /**
  * A helper class to provide support for registering and un-registering
@@ -152,21 +152,19 @@ public class MetricSupport
                     {
                     list.clear();
 
-                    if (CacheFactory.isLogEnabled(Base.LOG_WARN))
+                    if (Logger.isEnabled(Logger.WARNING))
                         {
-                        String msg = "Error loading MetricRegistryAdapter using the %s classloader: %s";
+                        String msg = "Error loading MetricRegistryAdapter using the %s classloader:";
                         if (i == 0)
                             {
-                            CacheFactory.log(String.format(msg, "context", t), Base.LOG_WARN);
-                            CacheFactory.log("Attempting to load adapters using the fallback classloader.",
-                                             Base.LOG_WARN);
+                            Logger.warn(String.format(msg, "context"), t);
+                            Logger.warn("Attempting to load adapters using the fallback classloader.");
                             }
                         else
                             {
-                            CacheFactory.log(String.format(msg, "fallback", t), Base.LOG_WARN);
-                            CacheFactory.log("Metrics failed to initialize.", Base.LOG_WARN);
+                            Logger.warn(String.format(msg, "fallback"), t);
+                            Logger.warn("Metrics failed to initialize.");
                             }
-                        CacheFactory.log(t);
                         }
                     }
                 }
@@ -241,10 +239,10 @@ public class MetricSupport
                             {
                             adapter.remove(metric.getIdentifier());
                             }
-                        catch (Exception e)
+                        catch (Throwable e)
                             {
-                            CacheFactory.log("Caught exception removing metrics for "
-                                             + sMBeanName + " from " + adapter);
+                            Logger.warn("Caught exception removing metrics for "
+                                             + sMBeanName + " from " + adapter + ": " + e.getLocalizedMessage());
                             }
                         }
                     }
@@ -286,10 +284,10 @@ public class MetricSupport
                         {
                         adapter.register(metric);
                         }
-                    catch (Throwable t)
+                    catch (Throwable e)
                         {
-                        CacheFactory.log("Caught exception registering metric "
-                                + metric.getIdentifier() + " with " + adapter, LOG_WARN);
+                        Logger.warn("Caught exception registering metric "
+                                + metric.getIdentifier() + " with " + adapter + ": " + e.getLocalizedMessage());
                         }
                     }
                 }

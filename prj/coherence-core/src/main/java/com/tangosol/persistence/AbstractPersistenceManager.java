@@ -7,8 +7,9 @@
 package com.tangosol.persistence;
 
 import com.oracle.coherence.common.base.Collector;
-
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.persistence.AsyncPersistenceException;
 import com.oracle.coherence.persistence.ConcurrentAccessException;
 import com.oracle.coherence.persistence.FatalAccessException;
@@ -25,8 +26,6 @@ import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.cache.KeyAssociation;
 
@@ -237,8 +236,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                             return true;
                             }
 
-                        CacheFactory.log("Skipping incompatible persistent store directory \""
-                                + fileEnv + "\"", CacheFactory.LOG_WARN);
+                        Logger.warn("Skipping incompatible persistent store directory \"" + fileEnv + "\"");
                         }
                     else
                         {
@@ -1370,8 +1368,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 catch (Throwable e)
                     {
                     // guard against any unexpected throwable
-                    CacheFactory.log("Caught an exception while aborting transaction for token \""
-                            + oToken + "\": " + printStackTrace(e), CacheFactory.LOG_QUIET);
+                    Logger.fine("Caught an exception while aborting transaction for token \"" + oToken + "\":", e);
                     }
                 }
             }
@@ -1539,8 +1536,8 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                             // create the trash directory
                             if (!fileTrash.exists())
                                 {
-                                CacheFactory.log("Creating persistence trash directory \""
-                                        + fileTrash.getAbsolutePath() + '"', CacheFactory.LOG_INFO);
+                                Logger.info("Creating persistence trash directory \""
+                                        + fileTrash.getAbsolutePath() + '"');
                                 fileTrash = FileHelper.ensureDir(fileTrash);
                                 }
 
@@ -2148,8 +2145,8 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                     boolean fNewStore = store.open(f_storeFrom);
                     if (fNewStore)
                         {
-                        CacheFactory.log("Created persistent store " + FileHelper.getPath(store.f_dirStore)
-                                + (f_storeFrom == null ? "" : " from " + f_storeFrom), CacheFactory.LOG_INFO);
+                        Logger.info("Created persistent store " + FileHelper.getPath(store.f_dirStore)
+                                + (f_storeFrom == null ? "" : " from " + f_storeFrom));
                         }
                     }
                 catch (PersistenceException e)
@@ -2535,9 +2532,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                         }
                     catch (Throwable e)
                         {
-                        CacheFactory.log("Error adding an item to collector \""
-                                + f_collector + "\": " + printStackTrace(e),
-                                CacheFactory.LOG_ERR);
+                        Logger.err("Error adding an item to collector \"" + f_collector + "\":", e);
                         }
                     }
                 }

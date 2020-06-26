@@ -10,7 +10,7 @@ package common;
 
 import com.oracle.coherence.common.base.Blocking;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
@@ -190,7 +190,7 @@ public abstract class AbstractTestStore
         {
         if (fVerbose)
             {
-            CacheFactory.log(getClassName() + " (" + new Date() + "): " + sMsg);
+            Logger.log(getClassName() + " (" + new Date() + "): " + sMsg, Logger.ALWAYS);
             }
         }
 

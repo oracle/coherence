@@ -6,11 +6,10 @@
  */
 package com.tangosol.internal.util.extractor;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.util.Base;
 import com.tangosol.util.CopyOnWriteMap;
 import com.tangosol.util.Filter;
 
@@ -137,10 +136,9 @@ public class ReflectionAllowedFilter
             }
         catch (Throwable t)
             {
-            CacheFactory.log("Detected invalid pattern " + t.getMessage() +
+            Logger.warn("Detected invalid pattern " + t.getMessage() +
                 " for system property \"" + REFLECT_FILTER_PROPERTY +
-                "\"=\"" + sPattern + "\"; using default pattern: \"" + DEFAULT_FILTER_LIST +
-                "\"", Base.LOG_WARN);
+                "\"=\"" + sPattern + "\"; using default pattern: \"" + DEFAULT_FILTER_LIST + "\"");
             return ensureFilter(DEFAULT_FILTER_LIST);
             }
         }

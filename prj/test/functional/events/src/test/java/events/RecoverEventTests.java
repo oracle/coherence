@@ -8,7 +8,10 @@ package events;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.internal.util.HeapDump;
+
 import com.tangosol.coherence.dslquery.internal.PersistenceToolsHelper;
 
 import com.tangosol.net.CacheFactory;
@@ -23,6 +26,7 @@ import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.management.MBeanServerProxy;
+
 import common.AbstractFunctionalTest;
 
 import events.common.AbstractTestInterceptor.Expectations;
@@ -45,7 +49,9 @@ import java.io.PrintWriter;
 import java.util.Collections;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+
 import static org.hamcrest.Matchers.is;
+
 import static org.junit.Assert.*;
 
 /**
@@ -309,11 +315,11 @@ public class RecoverEventTests
             }
         catch (AssertionError | RuntimeException t)
             {
-            CacheFactory.log("Could not find MBean (" + sPersistenceMBean + "); following has been registered:\n" +
-                    proxy.queryNames("type=Persistence,*", null), CacheFactory.LOG_INFO);
+            Logger.info("Could not find MBean (" + sPersistenceMBean + "); following has been registered:\n" +
+                    proxy.queryNames("type=Persistence,*", null));
 
             String sOut = HeapDump.dumpHeap();
-            CacheFactory.log("Dumping heap for analysis here :\n" + sOut, CacheFactory.LOG_INFO);
+            Logger.info("Dumping heap for analysis here :\n" + sOut);
 
             throw t;
             }

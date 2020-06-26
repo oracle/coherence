@@ -6,6 +6,8 @@
  */
 package com.tangosol.net;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.coherence.config.ResourceMapping;
@@ -57,9 +59,9 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
                 {
                 if (mapping.usesRawTypes())
                     {
-                    CacheFactory.log("The topic \"" + sName + "\" is configured without an element type "
+                    Logger.fine("The topic \"" + sName + "\" is configured without an element type "
                             + "but the application is requesting "
-                            + clsElement.getName(), CacheFactory.LOG_DEBUG);
+                            + clsElement.getName());
                     }
                 else
                     {

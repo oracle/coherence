@@ -7,7 +7,8 @@
 package com.tangosol.coherence.rest.events;
 
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Filter;
@@ -159,9 +160,9 @@ public class MapEventOutput<K, V>
             }
 
         REGISTRY.add(this);
-        if (CacheFactory.isLogEnabled(9))
+        if (Logger.isEnabled(Logger.FINEST))
             {
-            CacheFactory.log("Registered listener: " + this, 9);
+            Logger.finest("Registered listener: " + this);
             }
         }
 
@@ -184,9 +185,9 @@ public class MapEventOutput<K, V>
             }
 
         REGISTRY.remove(this);
-        if (CacheFactory.isLogEnabled(9))
+        if (Logger.isEnabled(Logger.FINEST))
             {
-            CacheFactory.log("Unregistered listener: " + this, 9);
+            Logger.finest("Unregistered listener: " + this);
             }
         }
 

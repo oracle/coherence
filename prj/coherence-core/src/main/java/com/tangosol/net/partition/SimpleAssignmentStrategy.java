@@ -7,9 +7,10 @@
 
 package com.tangosol.net.partition;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.ServiceInfo;
@@ -432,10 +433,10 @@ public class SimpleAssignmentStrategy
                         // the strength as a fail-safe to prevent an infinite loop;
                         // reschedule the next analysis relatively soon and
                         // log a soft-assert, as this shouldn't really happen
-                        CacheFactory.log("Failed to find a partition assignment to satisfy "
+                        Logger.err("Failed to find a partition assignment to satisfy "
                             + strengthOrig + " among the member-set "
                             + ctx.getOwnershipMembers()
-                            + "; weakening the backup-strength", CacheFactory.LOG_ERR);
+                            + "; weakening the backup-strength");
 
                         ctx.setBackupStrength(strengthOrig.getWeaker());
                         strengthOrig  = null;
@@ -771,7 +772,7 @@ public class SimpleAssignmentStrategy
                 sb.replace(sb.length() - 1, sb.length(), "]")
                   .append("\nPartition Id: ").append(iPart);
 
-                CacheFactory.log(sb.toString(), CacheFactory.LOG_ERR);
+                Logger.err(sb.toString());
                 throw Base.ensureRuntimeException(t);
                 }
 
@@ -3450,9 +3451,8 @@ public class SimpleAssignmentStrategy
                         Member memberBackup = getMember(nOwner);
                         if (member == null || memberBackup == null)
                             {
-                            CacheFactory.log(String.format("%s is null for %s",
-                                    member == null ? "Slot in member target array" : "Backup owner",
-                                    owners), CacheFactory.LOG_ERR);
+                            Logger.err(String.format("%s is null for %s",
+                                    member == null ? "Slot in member target array" : "Backup owner", owners));
                             }
 
                         int n = getDistance(member, getMember(nOwner));

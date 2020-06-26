@@ -6,10 +6,10 @@
  */
 package com.tangosol.internal.tracing.opentracing33;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.tracing.TracingShim;
 import com.tangosol.internal.tracing.TracingShimLoader;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 
@@ -67,11 +67,8 @@ public class OpenTracingShimLoader
 
         if (listMissingDeps != null)
             {
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                {
-                CacheFactory.log("Tracing support will not be enabled.  The following dependencies appear " +
-                                 "to be missing: " + listMissingDeps.toString(), CacheFactory.LOG_MAX);
-                }
+            Logger.warn("Tracing support will not be enabled.  The following dependencies appear " +
+                        "to be missing: " + listMissingDeps.toString());
             return false;
             }
 
@@ -84,11 +81,8 @@ public class OpenTracingShimLoader
             }
         catch (NoSuchMethodException e)
             {
-            if (CacheFactory.isLogEnabled(CacheFactory.LOG_MAX))
-                {
-                CacheFactory.log("Detected incompatible OpenTracing artifacts on the classpath.  Coherence supports"
-                                 + " OpenTracing 0.32.0 or later.", CacheFactory.LOG_MAX);
-                }
+            Logger.warn("Detected incompatible OpenTracing artifacts on the classpath."
+                        + " Coherence supports OpenTracing 0.32.0 or later.");
             return false;
             }
         catch (ClassNotFoundException ignored)

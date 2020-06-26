@@ -6,7 +6,7 @@
  */
 package com.tangosol.internal.net.logging;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.util.Base;
 
@@ -178,14 +178,14 @@ public class DefaultLoggingDependencies
         // log level
         if (m_nSeverityLevel < Base.LOG_MIN)
             {
-            CacheFactory.log("Logging.Dependencies: Minimum severity is " + Base.LOG_MIN
-                    + " (overriding setting of " + m_nSeverityLevel + ")", CacheFactory.LOG_WARN);
-            m_nSeverityLevel = Base.LOG_MIN;
+            Logger.fine("Logging.Dependencies: Minimum severity is " + Logger.ALWAYS
+                    + " (overriding setting of " + m_nSeverityLevel + ")");
+            m_nSeverityLevel = Logger.ALWAYS;
             }
         else if (m_nSeverityLevel > Base.LOG_MAX)
             {
-            CacheFactory.log("Logging.Dependencies: Maximum severity is " + Base.LOG_MAX
-                    + " (overriding setting of " + m_nSeverityLevel + ")", CacheFactory.LOG_WARN);
+            Logger.fine("Logging.Dependencies: Maximum severity is " + Base.LOG_MAX
+                    + " (overriding setting of " + m_nSeverityLevel + ")");
             m_nSeverityLevel = Base.LOG_MAX;
             }
 

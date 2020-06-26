@@ -6,7 +6,7 @@
  */
 package com.tangosol.coherence.jcache.common;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Builder;
@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.cache.configuration.CompleteConfiguration;
 import javax.cache.configuration.Factory;
 
-import javax.cache.expiry.EternalExpiryPolicy;
 import javax.cache.expiry.ExpiryPolicy;
 
 import javax.cache.integration.CacheLoader;
@@ -47,8 +46,8 @@ public class JCacheContext
 
         if (config == null)
             {
-            CacheFactory.log("JCacheContext constructor called with null configuration\n" + "Stack Trace: "
-                             + Base.printStackTrace(new Exception("stack trace")), Base.LOG_WARN);
+            Logger.warn("JCacheContext constructor called with null configuration\n" + "Stack Trace: "
+                        + Base.printStackTrace(new Exception("stack trace")));
 
             throw new NullPointerException("configuration passed to JCacheContext can not be null");
             }
@@ -83,9 +82,8 @@ public class JCacheContext
 
                 if (factory == null)
                     {
-                    CacheFactory
-                        .log("JcacheContext:getExpiryPolicy: ExpiryPolicyFactory unexpectedly null, using default ExpiryPolicy\n"
-                             + " cacheid=" + m_id + " configuration=" + m_cfgComplete, Base.LOG_WARN);
+                    Logger.warn("JcacheContext:getExpiryPolicy: ExpiryPolicyFactory unexpectedly null, using default ExpiryPolicy\n"
+                             + " cacheid=" + m_id + " configuration=" + m_cfgComplete);
 
                     throw new NullPointerException("JCacheContext.getExpiryPolicy: factory unexpectedly is null");
                     }

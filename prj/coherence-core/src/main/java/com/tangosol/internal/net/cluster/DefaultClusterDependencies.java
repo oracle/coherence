@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.cluster;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Predicate;
 
 import com.oracle.coherence.common.internal.Platform;
@@ -28,7 +29,6 @@ import com.tangosol.io.WrapperStreamFactory;
 
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.AddressProviderFactory;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.MemberIdentity;
 import com.tangosol.net.SocketProviderFactory;
 
@@ -953,8 +953,8 @@ public class DefaultClusterDependencies
                 if (sName == null || sName.isEmpty())
                     {
                     sName = makeClusterName();
-                    CacheFactory.log("The cluster name has not been configured, a value of \"" + sName + "\" has been automatically generated",
-                            getMode() == LICENSE_MODE_PRODUCTION ? CacheFactory.LOG_WARN : CacheFactory.LOG_INFO);
+                    Logger.log("The cluster name has not been configured, a value of \"" + sName + "\" has been automatically generated",
+                            getMode() == LICENSE_MODE_PRODUCTION ? Logger.WARNING : Logger.INFO);
                     setClusterName(sName);
                     }
                 return sName;
@@ -2077,12 +2077,12 @@ public class DefaultClusterDependencies
             setGuardTimeoutMillis(getPublisherResendTimeoutMillis());
             setServiceFailurePolicyBuilder(new ServiceFailurePolicyBuilder(DefaultServiceFailurePolicy.POLICY_LOGGING));
 
-            CacheFactory.log("Disabling the service-guardian by setting a timeout of 0 has "
+            Logger.warn("Disabling the service-guardian by setting a timeout of 0 has "
                 + "been deprecated. Instead, please configure a "
                 + "\"service-failure-policy\" of \"logging\" which will perform "
                 + "non-invasive monitoring of Coherence services.\n Configuring "
                 + "the Guardian to use the \"logging\" policy with a timeout of "
-                + getGuardTimeoutMillis() + "ms", CacheFactory.LOG_WARN);
+                + getGuardTimeoutMillis() + "ms");
             }
         }
 

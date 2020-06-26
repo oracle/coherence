@@ -9,6 +9,7 @@ package com.tangosol.net;
 
 
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.net.cache.TypeAssertion;
 import com.tangosol.net.security.LocalPermission;
@@ -728,7 +729,11 @@ public abstract class CacheFactory
     *                   0=default, 1=error; 2=warning; 3=info; 4-9=debug
     *
     * @since Coherence 2.0
+    *
+    * @deprecated since Coherence 14.1.2, and may be removed in a future version;
+    *             use one of {@link Logger} methods instead.
     */
+    @Deprecated
     public static void log(String sMessage, int nSeverity)
         {
         try
@@ -750,32 +755,6 @@ public abstract class CacheFactory
         }
 
     /**
-     * Log a message using Coherence logging facility which is driven by
-     * the "logging-config" element located in the tangosol-coherence.xml
-     * configuration file.
-     *
-     * @param supplierMessage  the {@link Supplier} that will be evaluated
-     *                         if the severity is being logged
-     * @param nSeverity        the severity of the logged message;
-     *                         0=default, 1=error; 2=warning; 3=info; 4-9=debug
-     *
-     * @throws IllegalArgumentException if {@code supplierMessage} is {@code null}
-     *
-     * @since 20.06
-     */
-    public static void log(Supplier<String> supplierMessage, int nSeverity)
-        {
-        if (supplierMessage == null)
-            {
-            throw new IllegalArgumentException("supplierMessage cannot be null");
-            }
-        if (isLogEnabled(nSeverity))
-            {
-            log(supplierMessage.get(), nSeverity);
-            }
-        }
-
-    /**
     * Check if a message of the specified severity level will be logged using
     * the Coherence logging facility.
     *
@@ -786,7 +765,11 @@ public abstract class CacheFactory
     *
     * @see #log
     * @since Coherence 3.2
+    *
+    * @deprecated since Coherence 14.1.2, and may be removed in a future version;
+    *             use {@link Logger#isEnabled(int)} method instead.
     */
+    @Deprecated
     public static boolean isLogEnabled(int nSeverity)
         {
         try

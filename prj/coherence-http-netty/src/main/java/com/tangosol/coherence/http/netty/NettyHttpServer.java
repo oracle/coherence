@@ -7,10 +7,10 @@
 package com.tangosol.coherence.http.netty;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.http.AbstractHttpServer;
 import com.tangosol.coherence.http.HttpServer;
-
-import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 
@@ -685,7 +685,7 @@ public class NettyHttpServer
                     }
                 catch (Exception e)
                     {
-                    CacheFactory.log("NettyServerHandler.channelRead()->handleRequest(), Caught an exception: " + e.getMessage(), Base.LOG_ERR);
+                    Logger.err("NettyServerHandler.channelRead()->handleRequest(), Caught an exception: " + e.getMessage());
                     }
                 });
                 }
@@ -713,9 +713,7 @@ public class NettyHttpServer
             incrementErrors();
             if (cause != null)
                 {
-                CacheFactory.log(String.format("Unexpected exception processing request: %s", cause.toString()),
-                                 Base.LOG_ERR);
-                CacheFactory.log(Base.getStackTrace(cause), Base.LOG_ERR);
+                Logger.err(String.format("Unexpected exception processing request: %s", cause.toString()), cause);
                 }
             ctx.close();
             }
@@ -953,7 +951,7 @@ public class NettyHttpServer
                         }
                     catch (Exception e)
                         {
-                        CacheFactory.log("Caught an exception obtaining request security details: " + e.getMessage(), Base.LOG_ERR);
+                        Logger.err("Caught an exception obtaining request security details: " + e.getMessage());
                         }
                     }
 
@@ -1137,7 +1135,7 @@ public class NettyHttpServer
             {
             if (m_fResponseCommitted)
                 {
-                CacheFactory.log("NettyHttpServer.writeResponseStatusAndHeaders(): response already written.", Base.LOG_DEBUG);
+                Logger.fine("NettyHttpServer.writeResponseStatusAndHeaders(): response already written.");
                 return null;
                 }
 

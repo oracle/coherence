@@ -8,11 +8,12 @@
 package com.tangosol.net.security;
 
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.dev.tools.CommandLineTool;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ClusterPermission;
 
 import com.tangosol.run.xml.SimpleParser;
@@ -419,8 +420,7 @@ public final class DefaultController
             catch (Throwable e)
                 {
                 // just log the error; try to find a valid permission anyway
-                CacheFactory.log("Invalid permission element: " + xmlPermission +
-                    "\nreason: " + e, 2);
+                Logger.warn("Invalid permission element: " + xmlPermission + "\nreason: " + e);
                 // continue
                 }
             }
@@ -545,8 +545,7 @@ public final class DefaultController
                 }
             else
                 {
-                CacheFactory.log("Unsupported credentials: " +
-                    oCred.getClass(), 2);
+                Logger.warn("Unsupported credentials: " + oCred.getClass());
                 }
             }
         return setCerts;
@@ -605,9 +604,9 @@ public final class DefaultController
     protected void logPermissionRequest(
             ClusterPermission permission, Subject subject, boolean fAllowed)
         {
-        CacheFactory.log((fAllowed ? "Allowed" : "Denied")
+        Logger.info((fAllowed ? "Allowed" : "Denied")
             + " request for " + permission + " on behalf of "
-            + subject.getPrincipals(), CacheFactory.LOG_INFO);
+            + subject.getPrincipals());
         }
 
 

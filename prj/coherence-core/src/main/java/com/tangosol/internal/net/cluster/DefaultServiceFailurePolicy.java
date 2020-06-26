@@ -6,7 +6,8 @@
  */
 package com.tangosol.internal.net.cluster;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.Cluster;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Guardable;
@@ -55,7 +56,7 @@ public class DefaultServiceFailurePolicy
              case POLICY_EXIT_CLUSTER:
              case POLICY_EXIT_PROCESS:
                  // default policies simply delegate recover()
-                 CacheFactory.log("Attempting recovery of " + guardable, CacheFactory.LOG_WARN);
+                 Logger.warn("Attempting recovery of " + guardable);
                  guardable.recover();
                  break;
 
@@ -63,7 +64,7 @@ public class DefaultServiceFailurePolicy
                  // issue a synthetic heartbeat here that will cause the
                  // guardable to become "healthy" once again.  This allows
                  // the guardable to remain guarded after logging.
-                 CacheFactory.log("Logging stacktrace due to soft-timeout", CacheFactory.LOG_WARN);
+                 Logger.warn("Logging stacktrace due to soft-timeout");
 
                  // COH-3420: the guardable could have been already abandoned/released
                  //           by its guardian
@@ -91,7 +92,7 @@ public class DefaultServiceFailurePolicy
              case POLICY_EXIT_CLUSTER:
              case POLICY_EXIT_PROCESS:
                  // default policies simply delegate terminate()
-                 CacheFactory.log("Terminating " + guardable, CacheFactory.LOG_WARN);
+                 Logger.warn("Terminating " + guardable);
                  guardable.terminate();
                  break;
 

@@ -6,6 +6,8 @@
  */
 package com.tangosol.net.cache;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.coherence.config.CacheMapping;
@@ -145,9 +147,9 @@ public interface TypeAssertion<K, V> extends NamedCache.Option
                 {
                 if (fLog)
                     {
-                    CacheFactory.log("The cache \"" + sCacheName + "\" is configured without key and/or value types "
+                    Logger.info("The cache \"" + sCacheName + "\" is configured without key and/or value types "
                             + "but the application is requesting NamedCache<" + getKeyClassName() + ","
-                            + getValueClassName() + ">", CacheFactory.LOG_INFO);
+                            + getValueClassName() + ">");
                     return false;
                     }
                 }

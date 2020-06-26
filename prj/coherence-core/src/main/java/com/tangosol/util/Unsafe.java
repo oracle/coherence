@@ -8,6 +8,7 @@
 package com.tangosol.util;
 
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.net.CacheFactory;
@@ -100,11 +101,10 @@ public class Unsafe
             }
         else if (Config.getBoolean("coherence.unsafe"))
             {
-            CacheFactory.log("Usage of the Unsafe class is not supported "
+            Logger.warn("Usage of the Unsafe class is not supported "
                                      + " and may result in corrupted or lost data, "
                                      + " and other non-deterministic behavior. \n"
-                                     + Base.getStackTrace(),
-                             Base.LOG_WARN);
+                                     + Base.getStackTrace());
 
             return INSTANCE;
             }

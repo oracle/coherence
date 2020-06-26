@@ -7,6 +7,7 @@
 package com.tangosol.coherence.memcached.server;
 
 import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.io.BufferManager;
 import com.oracle.coherence.common.io.BufferManagers;
 
@@ -19,7 +20,6 @@ import com.tangosol.coherence.memcached.DefaultRequestHandler;
 import com.tangosol.coherence.memcached.Request;
 import com.tangosol.coherence.memcached.RequestHandler;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Service;
 import com.tangosol.net.security.IdentityAsserter;
 
@@ -326,7 +326,7 @@ public class MemcachedServer
                 }
             catch (IOException ioe)
                 {
-                CacheFactory.log("Failed to resume writes. Closing channel.", CacheFactory.LOG_ERR);
+                Logger.err("Failed to resume writes. Closing channel.");
                 closeChannel(channel);
                 }
             }
@@ -354,7 +354,7 @@ public class MemcachedServer
                 }
             catch (IOException ioe)
                 {
-                CacheFactory.log("Failed to resume read. Closing channel.", CacheFactory.LOG_ERR);
+                Logger.err("Failed to resume read. Closing channel.");
                 closeChannel(channel);
                 }
             }

@@ -6,6 +6,8 @@
  */
 package events.common;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
@@ -47,7 +49,7 @@ public class MutatingInterceptor
      */
     public void onEvent(EntryEvent<?, ?> entryEvent)
         {
-        CacheFactory.log("Mutating onEvent for: " + entryEvent);
+        Logger.log("Mutating onEvent for: " + entryEvent, Logger.ALWAYS);
 
         for (BinaryEntry entry : entryEvent.getEntrySet())
             {
