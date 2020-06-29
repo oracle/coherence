@@ -12,6 +12,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.management.internal.resources.AbstractManagementResource;
 import com.tangosol.coherence.management.internal.resources.ClusterMemberResource;
 
@@ -2827,14 +2829,31 @@ public class ManagementInfoResourceTests
     protected LinkedHashMap readEntity(WebTarget target, Response response, Entity entity)
             throws ProcessingException, IllegalStateException
         {
-        try
+        int i = 0;
+        while (true)
             {
-            return response.readEntity(LinkedHashMap.class);
-            }
-        catch (ProcessingException | IllegalStateException e)
-            {
-            CacheFactory.log(getClass().getName() + ".readEntity() got an exception: " + e
-                    + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_WARN);
+            try
+                {
+                LinkedHashMap mapReturned = response.readEntity(LinkedHashMap.class);
+                if (mapReturned == null)
+                    {
+                    Logger.log(getClass().getName() + ".readEntity() returned null"
+                            + ", target: " + target + ", response: " + response,  CacheFactory.LOG_WARN);
+                    }
+                else
+                    {
+                    return mapReturned;
+                    }
+                }
+            catch (ProcessingException | IllegalStateException e)
+                {
+                Logger.log(getClass().getName() + ".readEntity() got an exception: " + e
+                        + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_WARN);
+                if (i > 1)
+                    {
+                    throw e;
+                    }
+                }
 
             // try again
             if (entity == null)
@@ -2847,17 +2866,7 @@ public class ManagementInfoResourceTests
                 }
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-            try
-                {
-                return response.readEntity(LinkedHashMap.class);
-                }
-            catch (ProcessingException | IllegalStateException e2)
-                {
-                CacheFactory.log(getClass().getName() + ".readEntity() got exception again: " + e2
-                        + ", cause: " + e2.getCause().getLocalizedMessage(), CacheFactory.LOG_ERR);
-                }
-
-            throw e;
+            i++;
             }
         }
 
