@@ -19,6 +19,7 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.tangosol.config.ConfigurationException;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
@@ -160,6 +161,7 @@ public class CoherenceServerExtension
         {
         m_beanManager = beanManager;
         CacheFactoryBuilder cfb = m_cacheFactoryBuilder = new CdiCacheFactoryBuilder();
+        CacheFactory.setCacheFactoryBuilder(cfb);
 
         // start system CCF
         ConfigurableCacheFactory ccfSys = m_ccfSys = cfb.getConfigurableCacheFactory("coherence-system-config.xml", null);
