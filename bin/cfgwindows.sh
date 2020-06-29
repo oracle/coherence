@@ -11,7 +11,7 @@
 # This script sets all environment variables necessary to build Coherence.
 #
 # Command line:
-#     . ./cfglinux.sh [-reset]
+#     . ./cfgwindows.sh [-reset]
 #
 # see cfgcommon.sh
 
@@ -25,11 +25,7 @@ _JAVA_HOME_CMD="get_java_home"
 
 function get_java_home
   {
-  if [ -d /usr/java/jdk$_VERSION_REQUIRED ]; then
-    echo "/usr/java/jdk$_VERSION_REQUIRED"
-  elif [ -d /usr/local/packages/jdk8 ]; then
-    echo "/usr/local/packages/jdk8"
-  fi
+  echo Not Supported
   }
 
 # determine the scripts directory, assuming all scripts are in the same directory
@@ -48,8 +44,8 @@ cd `dirname $SCRIPT_PATH`
 SCRIPTS_DIR=`pwd`
 cd - &>/dev/null
 
-if [ -f $SCRIPTS_DIR/../tools/internal/bin/cfglinux.sh ]; then
-  source $SCRIPTS_DIR/../tools/internal/bin/cfglinux.sh
+if [ -f $SCRIPTS_DIR/../tools/internal/bin/cfgwindows.sh ]; then
+  source $SCRIPTS_DIR/../tools/internal/bin/cfgwindows.sh
 fi
 
 source $SCRIPTS_DIR/cfgcommon.sh

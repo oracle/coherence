@@ -29,6 +29,9 @@ case $(uname) in
   SunOS*)
     . $SCRIPTS_DIR/cfgsolaris.sh
      ;;
+  Windows*)
+    . $SCRIPTS_DIR/cfgwindows.sh
+     ;;
   *)
     . $SCRIPTS_DIR/cfglinux.sh
      ;;
