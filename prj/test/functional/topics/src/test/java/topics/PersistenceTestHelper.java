@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Member;
@@ -33,6 +34,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
@@ -41,9 +43,15 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import org.hamcrest.CoreMatchers;
+
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -375,6 +383,11 @@ public class PersistenceTestHelper
     public static void validateData(NamedTopic nt, String sGroup, int cMax)
             throws ExecutionException, InterruptedException
         {
+        if (cMax > 0)
+            {
+            Eventually.assertDeferred("Topic " + nt.getName() + " must have existing subscriber group " + sGroup + " since expecting " + cMax + " messages",
+                () -> nt.getSubscriberGroups().contains(sGroup), CoreMatchers.is(true));
+            }
         try (Subscriber<Integer> countSubscriber = nt.createSubscriber(CompleteOnEmpty.enabled(), Subscriber.Name.of(sGroup)))
             {
             for (int i = 0; i < cMax; i++)
@@ -413,6 +426,69 @@ public class PersistenceTestHelper
                 // fail-safe in case cluster never registered
                 throw new RuntimeException("MBean " + sObjectName + " was not registered after 30 seconds.");
                 }
+            }
+        }
+
+    /**
+     * Log Topic MBean statistics for debug purposes
+     *
+     * @param topic   topic to get statistics for
+     *
+     * @throws MalformedObjectNameException
+     */
+    public static void logTopicMBeanStats(NamedTopic topic)
+        {
+        try
+            {
+            MBeanServer         server            = MBeanHelper.findMBeanServer();
+            String              elementsCacheName = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(topic.getName());
+            Set<ObjectInstance> setMBean          = server.queryMBeans(new ObjectName("Coherence:type=Cache,*"), null);
+
+            int  cSize    = 0;
+            int  cUnits   = 0;
+            long nReceive = 0L;
+            long nPublish = 0L;
+
+            for (ObjectInstance inst : setMBean)
+                {
+                String sNameMBean = inst.getObjectName().toString();
+
+                if (sNameMBean.contains(elementsCacheName))
+                    {
+                    int units      = (int) server.getAttribute(inst.getObjectName(), "Units");
+                    int unitFactor = (int) server.getAttribute(inst.getObjectName(), "UnitFactor");
+
+                    cUnits         += (units * unitFactor);
+                    cSize          += (int) server.getAttribute(inst.getObjectName(), "Size");
+                    nReceive       += (long) server.getAttribute(inst.getObjectName(), "TotalGets");
+                    nPublish       += (long) server.getAttribute(inst.getObjectName(), "TotalPuts");
+                    }
+                }
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("TopicStats: Topic: " + topic.getName());
+
+            Set<String> setGroup = topic.getSubscriberGroups();
+            if (!setGroup.isEmpty())
+                {
+                sb.append(" SubscriberGroups=[");
+                for (String sGroup : setGroup)
+                    {
+                    sb.append(sGroup).append(",");
+                    }
+                sb.deleteCharAt(sb.lastIndexOf(","));
+                sb.append("]");
+                }
+            sb.append(" Totals: Unconsumed Messages=").append(cSize);
+            sb.append(" Unconsumed Messages in Bytes=").append(cUnits);
+            sb.append(" Published Messages to Topic=").append(nPublish);
+            sb.append(" Received Messages from Topic=").append(nReceive);
+            CacheFactory.log(sb.toString(), Base.LOG_INFO);
+            }
+        catch (Throwable t)
+            {
+            // ignore
             }
         }
 
