@@ -159,25 +159,21 @@
         <groupId>io.opentracing</groupId>
         <artifactId>opentracing-api</artifactId>
         <version>${opentracing.version}</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.opentracing</groupId>
         <artifactId>opentracing-util</artifactId>
         <version>${opentracing.version}</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.opentracing</groupId>
         <artifactId>opentracing-noop</artifactId>
         <version>${opentracing.version}</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.opentracing.contrib</groupId>
         <artifactId>opentracing-tracerresolver</artifactId>
         <version>${opentracing.tracerresolver.version}</version>
-        <scope>provided</scope>
       </dependency>
 
       <!-- Jaeger Client -->
@@ -248,6 +244,11 @@
         <version>${helidon.version}</version>
       </dependency>
       <dependency>
+        <groupId>io.helidon.microprofile.bundles</groupId>
+        <artifactId>helidon-microprofile-core</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
         <groupId>io.helidon.microprofile.metrics</groupId>
         <artifactId>helidon-microprofile-metrics</artifactId>
         <version>${helidon.version}</version>
@@ -281,11 +282,15 @@
         <groupId>io.helidon.grpc</groupId>
         <artifactId>helidon-grpc-core</artifactId>
         <version>${helidon.version}</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.helidon.tracing</groupId>
         <artifactId>helidon-tracing-jaeger</artifactId>
+        <version>${helidon.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.helidon.microprofile.cdi</groupId>
+        <artifactId>helidon-microprofile-cdi</artifactId>
         <version>${helidon.version}</version>
       </dependency>
 

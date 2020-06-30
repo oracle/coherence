@@ -8,6 +8,8 @@
 :description: Oracle Coherence documentation
 :keywords: coherence, java, documentation
 
+== Overview
+
 Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably
 storing data. The product is used at scale, for both compute and raw storage, in a vast array of industries such as
 critical financial trading systems, high performance telecommunication products, and eCommerce applications. 
@@ -88,6 +90,17 @@ Coherence gRPC server and client.
 .plugins
 [icon=fa-plug,link=plugins/maven/pof-maven-plugin/README.adoc]
 --
+Build tool plugins to aid Coherence application development.
+--
+====
+
+[PILLARS]
+====
+[CARD]
+.Images
+[icon=fa-th,link=coherence-docker/README.adoc]
+--
+Example Coherence OCI container images.
 Plugins.
 --
 ====
