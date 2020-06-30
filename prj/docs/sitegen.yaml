@@ -76,6 +76,14 @@ backend:
                     - "coherence-grpc/README.adoc"
                     - "coherence-grpc-proxy/README.adoc"
                     - "coherence-java-client/README.adoc"
+            - title: "Plugins"
+              pathprefix: "/plugins"
+              glyph:
+                type: "icon"
+                value: "fa-plug"
+              items:
+                - includes:
+                    - "plugins/maven/pof-maven-plugin/README.adoc"
         - title: "Additional Resources"
           items:
             - title: "Official Documentation"
