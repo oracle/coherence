@@ -24,7 +24,7 @@
         <tcp-initiator>
           <remote-addresses>
             <socket-address>
-                <address system-property="test.extend.host"/>
+                <address system-property="test.extend.host">127.0.0.1</address>
                 <port system-property="test.extend.port"/>
             </socket-address>
           </remote-addresses>

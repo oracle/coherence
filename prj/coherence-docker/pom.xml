@@ -23,7 +23,15 @@
 
   <properties>
     <docker.registry>oraclecoherence</docker.registry>
-    <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
+    <docker.image.name>${docker.registry}/coherence-ce:${project.version.official}</docker.image.name>
+
+    <!-- The class that will be run by the JVM in the image -->
+    <main-class>com.tangosol.coherence.docker.Runner</main-class>
+
+    <port.grpc>1408</port.grpc>
+    <port.extend>20000</port.extend>
+    <port.management>30000</port.management>
+    <port.metrics>7001</port.metrics>
   </properties>
 
   <dependencies>
@@ -31,7 +39,6 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -40,21 +47,47 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-metrics</artifactId>
+      <artifactId>coherence-grpc-proxy</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-mp-metrics</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.helidon.microprofile.cdi</groupId>
+      <artifactId>helidon-microprofile-cdi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.grpc</groupId>
+      <artifactId>helidon-grpc-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.microprofile.bundles</groupId>
+      <artifactId>helidon-microprofile-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.microprofile.metrics</groupId>
+      <artifactId>helidon-microprofile-metrics</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.tracing</groupId>
+      <artifactId>helidon-tracing-jaeger</artifactId>
+    </dependency>
+
 
     <!-- test dependencies -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-rest</artifactId>
+      <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-testing-support</artifactId>
+      <artifactId>coherence-java-client</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -127,76 +160,65 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <version>2.4.0</version>
             <executions>
               <execution>
-                <id>distribution</id>
-                <phase>prepare-package</phase>
                 <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <finalName>docker-build</finalName>
-                  <appendAssemblyId>false</appendAssemblyId>
-                  <descriptors>
-                    <descriptor>src/main/assemble/coherence.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-image</id>
-                <goals>
-                  <goal>exec</goal>
+                  <goal>dockerBuild</goal>
                 </goals>
                 <phase>package</phase>
                 <configuration>
-                  <workingDirectory>${project.build.directory}/docker-build</workingDirectory>
-                  <executable>docker</executable>
-                  <arguments>
-                    <argument>build</argument>
-                    <argument>-t</argument>
-                    <argument>${docker.image.name}</argument>
-                    <argument>.</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>docker-push</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>push-image</id>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <executable>docker</executable>
-                  <arguments>
-                    <argument>push</argument>
-                    <argument>${docker.image.name}</argument>
-                  </arguments>
+                  <from>
+                    <image>docker://gcr.io/distroless/java:11</image>
+                  </from>
+                  <to>
+                    <image>${docker.image.name}</image>
+                  </to>
+                  <extraDirectories>
+                    <paths>
+                      <path>
+                        <from>${project.basedir}/src/main/args</from>
+                        <into>/args</into>
+                      </path>
+                    </paths>
+                  </extraDirectories>
+                  <container>
+                    <mainClass>${main-class}</mainClass>
+                    <environment>
+                      <!-- Setting the COH_MAIN_CLASS environment variable will make the Coherence K8s Operator use
+                           the correct main class without needing to specify it the class name in the Coherence
+                           resource yaml -->
+                      <COH_MAIN_CLASS>${main-class}</COH_MAIN_CLASS>
+                      <!-- Jaeger tracing variables -->
+                      <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
+                      <JAEGER_SAMPLER_PARAM>1</JAEGER_SAMPLER_PARAM>
+                      <JAEGER_SERVICE_NAME>coherence</JAEGER_SERVICE_NAME>
+                    </environment>
+                    <extraClasspath>
+                      <classpath>/coherence/ext/conf</classpath>
+                      <classpath>/coherence/ext/lib/*</classpath>
+                    </extraClasspath>
+                    <jvmFlags>
+                      <jvmFlag>-XshowSettings:all</jvmFlag>
+                      <jvmFlag>-XX:+PrintCommandLineFlags</jvmFlag>
+                      <jvmFlag>-XX:+PrintFlagsFinal</jvmFlag>
+                      <jvmFlag>-Dcoherence.log=jdk</jvmFlag>
+                      <jvmFlag>-Dcoherence.management.http=all</jvmFlag>
+                      <jvmFlag>-Dcoherence.management.http.port=${port.management}</jvmFlag>
+                      <jvmFlag>-Dcoherence.extend.port=${port.extend}</jvmFlag>
+                      <jvmFlag>-Dcoherence.ttl=0</jvmFlag>
+                      <jvmFlag>-Dcoherence.tracing.ratio=1</jvmFlag>
+                      <jvmFlag>@/args/jvm-args.txt</jvmFlag>
+                    </jvmFlags>
+                    <ports>
+                      <port>${port.grpc}</port>
+                      <port>${port.metrics}</port>
+                      <port>${port.management}</port>
+                      <port>${port.extend}</port>
+                    </ports>
+                  </container>
                 </configuration>
               </execution>
             </executions>
@@ -222,10 +244,11 @@
               <skip>false</skip>
               <skipTests>false</skipTests>
               <systemProperties>
-                <project.version.pom>${project.version.pom}</project.version.pom>
                 <docker.image.name>${docker.image.name}</docker.image.name>
-                <maven.executable.location>${root.path}/tools/maven/bin</maven.executable.location>
-                <console.output.folder>${project.build.directory}/test-output/functional</console.output.folder>
+                <port.grpc>${port.grpc}</port.grpc>
+                <port.extend>${port.extend}</port.extend>
+                <port.management>${port.management}</port.management>
+                <port.metrics>${port.metrics}</port.metrics>
               </systemProperties>
             </configuration>
           </plugin>
@@ -237,13 +260,11 @@
               <systemProperties>
                 <skip>false</skip>
                 <skipTests>false</skipTests>
-                <project.version.dist>${project.version.dist}</project.version.dist>
-                <project.version.release>${project.version.release}</project.version.release>
-                <project.version.short>${project.version.short}</project.version.short>
-                <project.version.pom>${project.version.pom}</project.version.pom>
                 <docker.image.name>${docker.image.name}</docker.image.name>
-                <maven.executable.location>${root.path}/tools/maven/bin</maven.executable.location>
-                <console.output.folder>${project.build.directory}/test-output/functional</console.output.folder>
+                <port.grpc>${port.grpc}</port.grpc>
+                <port.extend>${port.extend}</port.extend>
+                <port.management>${port.management}</port.management>
+                <port.metrics>${port.metrics}</port.metrics>
               </systemProperties>
             </configuration>
           </plugin>
