@@ -83,4 +83,11 @@ Coherence Microprofile support.
 --
 Coherence gRPC server and client.
 --
+
+[CARD]
+.plugins
+[icon=fa-plug,link=plugins/maven/pof-maven-plugin/README.adoc]
+--
+Plugins.
+--
 ====
