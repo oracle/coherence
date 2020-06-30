@@ -94,8 +94,8 @@ public class MultiserverMetricsTests
         props.put("test.extend.address.local", "0.0.0.0");
         props.put("test.extend.multiservertests.enabled", "true");
 
-        AvailablePortIterator ports      = new com.oracle.bedrock.runtime.network.AvailablePortIterator(9990, 10000);
-        AvailablePortIterator proxyPorts = new com.oracle.bedrock.runtime.network.AvailablePortIterator(11000, 11010);
+        AvailablePortIterator ports      = new com.oracle.bedrock.runtime.network.AvailablePortIterator(9613, 10100);
+        AvailablePortIterator proxyPorts = new com.oracle.bedrock.runtime.network.AvailablePortIterator(30100, 30200);
 
         for (int i = 0; i < N_SERVERS; i++)
             {

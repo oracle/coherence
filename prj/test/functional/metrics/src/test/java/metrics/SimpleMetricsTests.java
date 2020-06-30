@@ -181,9 +181,9 @@ public class SimpleMetricsTests
    // ----- data members ----------------------------------------------------
 
     /**
-     * Default port for ManagementHttpProxy.
+     * Default port for metrics http proxy.
      */
     static int metricsHttpPort;
 
-    static AvailablePortIterator s_portIterator = new AvailablePortIterator(9999, 10000);
+    static AvailablePortIterator s_portIterator = new AvailablePortIterator(9613, 10000);
     }
