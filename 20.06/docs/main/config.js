@@ -156,6 +156,19 @@ function createRoutes(){
             component: loadPage('coherence-java-client-README', '/coherence-java-client/README', {})
         },
         {
+            path: '/plugins/maven/pof-maven-plugin/README',
+            meta: {
+                h1: 'POF Maven Plugin',
+                title: 'POF Maven Plugin',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('plugins-maven-pof-maven-plugin-README', '/plugins/maven/pof-maven-plugin/README', {})
+        },
+        {
             path: '/docs/README',
             meta: {
                 h1: 'Coherence Documentation Module',
@@ -216,6 +229,14 @@ function createNav(){
                 { href: '/coherence-grpc/README', title: 'Coherence gRPC' },
                 { href: '/coherence-grpc-proxy/README', title: 'Coherence gRPC Server' },
                 { href: '/coherence-java-client/README', title: 'Coherence Java Client' }
+            ]
+        },
+        {
+            title: 'Plugins',
+            action: 'fa-plug',
+            group: '/plugins',
+            items: [
+                { href: '/plugins/maven/pof-maven-plugin/README', title: 'POF Maven Plugin' }
             ]
         },
         { divider: true },
