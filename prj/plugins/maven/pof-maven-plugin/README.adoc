@@ -75,7 +75,7 @@ public class Person
     String name;
     Address address;
 
-    // getters and setters ommitted for brevity
+    // getters and setters omitted for brevity
     }
 ----
 
