@@ -23,7 +23,7 @@
 
   <properties>
     <docker.registry>oraclecoherence</docker.registry>
-    <docker.image.name>${docker.registry}/coherence-ce:${project.version.official}</docker.image.name>
+    <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
 
     <port.grpc>1408</port.grpc>
     <port.extend>20000</port.extend>
