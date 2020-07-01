@@ -25,13 +25,11 @@
     <docker.registry>oraclecoherence</docker.registry>
     <docker.image.name>${docker.registry}/coherence-ce:${project.version.official}</docker.image.name>
 
-    <!-- The class that will be run by the JVM in the image -->
-    <main-class>com.tangosol.coherence.docker.Runner</main-class>
-
     <port.grpc>1408</port.grpc>
     <port.extend>20000</port.extend>
     <port.management>30000</port.management>
-    <port.metrics>7001</port.metrics>
+    <port.metrics>9612</port.metrics>
+    <port.mp.metrics>7001</port.mp.metrics>
   </properties>
 
   <dependencies>
@@ -53,6 +51,11 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-mp-metrics</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-metrics</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -185,12 +188,12 @@
                     </paths>
                   </extraDirectories>
                   <container>
-                    <mainClass>${main-class}</mainClass>
+                    <mainClass>com.tangosol.coherence.docker.Runner</mainClass>
                     <environment>
                       <!-- Setting the COH_MAIN_CLASS environment variable will make the Coherence K8s Operator use
                            the correct main class without needing to specify it the class name in the Coherence
                            resource yaml -->
-                      <COH_MAIN_CLASS>${main-class}</COH_MAIN_CLASS>
+                      <COH_MAIN_CLASS>io.helidon.microprofile.cdi.Main</COH_MAIN_CLASS>
                       <!-- Jaeger tracing variables -->
                       <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
                       <JAEGER_SAMPLER_PARAM>1</JAEGER_SAMPLER_PARAM>
@@ -215,6 +218,7 @@
                     <ports>
                       <port>${port.grpc}</port>
                       <port>${port.metrics}</port>
+                      <port>${port.mp.metrics}</port>
                       <port>${port.management}</port>
                       <port>${port.extend}</port>
                     </ports>

@@ -43,12 +43,12 @@ import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.grpc.client.AsyncNamedCacheClient;
 import com.tangosol.internal.net.management.HttpHelper;
 
-import com.tangosol.io.ExternalizableLite;
+import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.util.InvocableMap;
 import io.helidon.grpc.client.GrpcChannelDescriptor;
 import io.helidon.grpc.client.GrpcChannelsProvider;
 
@@ -61,8 +61,6 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 
 import java.io.BufferedReader;
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -80,7 +78,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.UUID;
 
 import java.util.concurrent.TimeUnit;
 
@@ -92,6 +89,7 @@ import static org.hamcrest.CoreMatchers.both;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
@@ -139,6 +137,25 @@ public class DockerImageTests
         }
 
     @Test
+    public void shouldStartDefaultCacheServer()
+        {
+        verifyTestAssumptions();
+
+        Platform platform = LocalPlatform.get();
+
+        try (Application app = platform.launch(Run.image(IMAGE_NAME)
+                                                       .detached()
+                                                       .env("COH_MAIN_CLASS", DefaultCacheServer.class.getName()),
+                                               new DumpLogsOnClose(),
+                                               ContainerCloseBehaviour.remove()))
+            {
+            DockerContainer container = app.get(DockerContainer.class);
+            assertStarted(platform, container, "Started DefaultCacheServer...");
+            assertThat(tailLogs(platform, container, 50), not(hasItem(containsString(STARTED_MESSAGE))));
+            }
+        }
+
+    @Test
     public void shouldStartContainerWithExtend()
         {
         verifyTestAssumptions();
@@ -170,7 +187,7 @@ public class DockerImageTests
         }
 
     @Test
-    public void shouldStartWithJavaOpts() throws Exception
+    public void shouldStartWithJavaOpts()
         {
         verifyTestAssumptions();
 
@@ -284,7 +301,49 @@ public class DockerImageTests
         }
 
     @Test
-    public void shouldStartMetricsServer() throws Exception
+    public void shouldStartCoherenceMetricsServer() throws Exception
+        {
+        verifyTestAssumptions();
+
+        Platform platform = LocalPlatform.get();
+
+        try (Application app = platform.launch(Run.image(IMAGE_NAME)
+                                                       .detached()
+                                                       .env(MetricsHttpHelper.PROP_METRICS_ENABLED, "true")
+                                                       .env("coherence.metrics.http.port", METRICS_PORT)
+                                                       .publishAll(),
+                                               new DumpLogsOnClose(),
+                                               ContainerCloseBehaviour.remove()))
+            {
+            DockerContainer container = app.get(DockerContainer.class);
+            assertStarted(platform, container);
+
+            int               port = findPortMapping(container, METRICS_PORT);
+            URI               uri  = URI.create("http://127.0.0.1:" + port + "/metrics/Coherence.Cluster.Size.txt");
+            HttpURLConnection con  = (HttpURLConnection) uri.toURL().openConnection();
+
+            con.setRequestMethod("GET");
+            assertThat(con.getResponseCode(), is(200));
+
+            StringBuilder sbResponse = new StringBuilder();
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream())))
+                {
+                String inputLine;
+
+                while ((inputLine = in.readLine()) != null)
+                    {
+                    sbResponse.append(inputLine).append("\n");
+                    }
+                }
+
+            String response = sbResponse.toString();
+            assertThat(response, is(notNullValue()));
+            assertThat(response, containsString("vendor:coherence_cluster_size{"));
+            }
+        }
+
+    @Test
+    public void shouldStartMicroprofileMetricsServer() throws Exception
         {
         verifyTestAssumptions();
 
@@ -297,7 +356,7 @@ public class DockerImageTests
             DockerContainer container = app.get(DockerContainer.class);
             assertStarted(platform, container);
 
-            int               port = findPortMapping(container, METRICS_PORT);
+            int               port = findPortMapping(container, MP_METRICS_PORT);
             URI               uri  = URI.create("http://127.0.0.1:" + port + "/metrics/vendor/Coherence.Cluster.Size");
             HttpURLConnection con  = (HttpURLConnection) uri.toURL().openConnection();
 
@@ -323,7 +382,7 @@ public class DockerImageTests
 
 
     @Test
-    public void shouldStartGrpcServer() throws Exception
+    public void shouldStartGrpcServer()
         {
         verifyTestAssumptions();
 
@@ -402,8 +461,13 @@ public class DockerImageTests
 
     private void assertStarted(Platform platform, DockerContainer container)
         {
+        assertStarted(platform, container, STARTED_MESSAGE);
+        }
+
+    private void assertStarted(Platform platform, DockerContainer container, String sMessage)
+        {
         Eventually.assertThat(invoking(this).tailLogs(platform, container, 50),
-            hasItem(containsString(STARTED_MESSAGE)),
+            hasItem(containsString(sMessage)),
             InitialDelay.of(10, TimeUnit.SECONDS),
             Timeout.after(2, TimeUnit.MINUTES),
             MaximumRetryDelay.of(10, TimeUnit.SECONDS),
@@ -546,8 +610,9 @@ public class DockerImageTests
         assertThat(lines.size(), is(greaterThanOrEqualTo(1)));
 
         String line = lines.poll();
-        String sPort = line.substring(line.lastIndexOf(":") + 1);
+        assertThat(line, is(notNullValue()));
 
+        String sPort = line.substring(line.lastIndexOf(":") + 1);
         return Integer.parseInt(sPort);
         }
 
@@ -655,18 +720,14 @@ public class DockerImageTests
     private static final String IMAGE_NAME = System.getProperty("docker.image.name");
 
     /**
-     * The network name to use.
-     */
-    private static final String NET_NAME = UUID.randomUUID().toString();
-
-    /**
      * COHERENCE_HOME inside coherence docker image.
      */
     private static final String COHERENCE_HOME = System.getProperty("docker.coherence.home", "/coherence");
 
     public static final int GRPC_PORT = Integer.getInteger("port.grpc", 1408);
-    public static final int MANAGEMENT_PORT = Integer.getInteger("port.management", 30000);
-    public static final int METRICS_PORT = Integer.getInteger("port.metrics",7001);
+    public static final int MANAGEMENT_PORT = Integer.getInteger("port.management", HttpHelper.DEFAULT_MANAGEMENT_OVER_REST_PORT);
+    public static final int METRICS_PORT = Integer.getInteger("port.metrics", MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT);
+    public static final int MP_METRICS_PORT = Integer.getInteger("port.mp.metrics", 7001);
     public static final int EXTEND_PORT = Integer.getInteger("port.extend",20000);
 
     public static final String STARTED_MESSAGE = "Server started on http://localhost:7001";
