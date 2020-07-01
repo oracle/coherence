@@ -30,7 +30,6 @@ public class CustomExtensibleConfigurableCacheFactoryTest
     @Test
     public void testCustomExtensibleConfigurableCacheFactory()
         {
-        System.setProperty("coherence.wka", "127.0.0.1");
         ConfigurableCacheFactory ccf = getCustomCacheFactory();
         assertNotNull(ccf);
         assertTrue("Failed to get required Configured CacheFactory instance.",
