@@ -51,12 +51,20 @@ class NamedCacheClientIT
         clients.values()
                 .stream()
                 .flatMap(m -> m.values().stream())
-                .forEach(client -> {
-                if (client.isActiveInternal())
+                .forEach(client ->
                     {
-                    client.destroy().join();
-                    }
-                });
+                    try
+                        {
+                        if (client.isActiveInternal())
+                            {
+                            client.destroy().join();
+                            }
+                        }
+                    catch (Exception e)
+                        {
+                        // ignored - we're done anyway.
+                        }
+                    });
         serverHelper.shutdown();
         }
 
