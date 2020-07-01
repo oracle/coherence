@@ -24,6 +24,13 @@
   <properties>
     <docker.registry>oraclecoherence</docker.registry>
     <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
+
+    <!-- The class that will be run by the JVM in the image -->
+    <main-class>com.tangosol.coherence.docker.Runner</main-class>
+
+    <port.extend>20000</port.extend>
+    <port.management>30000</port.management>
+    <port.metrics>9612</port.metrics>
   </properties>
 
   <dependencies>
@@ -31,7 +38,6 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -44,20 +50,12 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- jline -->
     <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
+      <groupId>io.jaegertracing</groupId>
+      <artifactId>jaeger-client</artifactId>
     </dependency>
 
     <!-- test dependencies -->
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-rest</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
@@ -133,76 +131,62 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <version>2.4.0</version>
             <executions>
               <execution>
-                <id>distribution</id>
-                <phase>prepare-package</phase>
                 <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <finalName>docker-build</finalName>
-                  <appendAssemblyId>false</appendAssemblyId>
-                  <descriptors>
-                    <descriptor>src/main/assemble/coherence.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-image</id>
-                <goals>
-                  <goal>exec</goal>
+                  <goal>dockerBuild</goal>
                 </goals>
                 <phase>package</phase>
                 <configuration>
-                  <workingDirectory>${project.build.directory}/docker-build</workingDirectory>
-                  <executable>docker</executable>
-                  <arguments>
-                    <argument>build</argument>
-                    <argument>-t</argument>
-                    <argument>${docker.image.name}</argument>
-                    <argument>.</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>docker-push</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>push-image</id>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <executable>docker</executable>
-                  <arguments>
-                    <argument>push</argument>
-                    <argument>${docker.image.name}</argument>
-                  </arguments>
+                  <from>
+                    <image>docker://gcr.io/distroless/java:11</image>
+                  </from>
+                  <to>
+                    <image>${docker.image.name}</image>
+                  </to>
+                  <extraDirectories>
+                    <paths>
+                      <path>
+                        <from>${project.basedir}/src/main/args</from>
+                        <into>/args</into>
+                      </path>
+                    </paths>
+                  </extraDirectories>
+                  <container>
+                    <mainClass>${main-class}</mainClass>
+                    <environment>
+                      <!-- Jaeger tracing variables -->
+                      <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
+                      <JAEGER_SAMPLER_PARAM>1</JAEGER_SAMPLER_PARAM>
+                      <JAEGER_SERVICE_NAME>coherence</JAEGER_SERVICE_NAME>
+                    </environment>
+                    <extraClasspath>
+                      <classpath>/coherence/ext/conf</classpath>
+                      <classpath>/coherence/ext/lib/*</classpath>
+                    </extraClasspath>
+                    <jvmFlags>
+                      <jvmFlag>-XshowSettings:all</jvmFlag>
+                      <jvmFlag>-XX:+PrintCommandLineFlags</jvmFlag>
+                      <jvmFlag>-XX:+PrintFlagsFinal</jvmFlag>
+                      <jvmFlag>-Dcoherence.log=jdk</jvmFlag>
+                      <jvmFlag>-Dcoherence.management.http=all</jvmFlag>
+                      <jvmFlag>-Dcoherence.management.http.port=${port.management}</jvmFlag>
+                      <jvmFlag>-Dcoherence.extend.port=${port.extend}</jvmFlag>
+                      <jvmFlag>-Dcoherence.metrics.http.enabled=true</jvmFlag>
+                      <jvmFlag>-Dcoherence.metrics.http.port=${port.metrics}</jvmFlag>
+                      <jvmFlag>-Dcoherence.ttl=0</jvmFlag>
+                      <jvmFlag>-Dcoherence.tracing.ratio=1</jvmFlag>
+                      <jvmFlag>@/args/jvm-args.txt</jvmFlag>
+                    </jvmFlags>
+                    <ports>
+                      <port>${port.metrics}</port>
+                      <port>${port.management}</port>
+                      <port>${port.extend}</port>
+                    </ports>
+                  </container>
                 </configuration>
               </execution>
             </executions>
@@ -228,14 +212,10 @@
               <skip>false</skip>
               <skipTests>false</skipTests>
               <systemProperties>
-                <project.version.dist>${project.version.dist}</project.version.dist>
-                <project.version.pom>${project.version.pom}</project.version.pom>
-                <project.version.release>${project.version.release}</project.version.release>
-                <project.version.short>${project.version.short}</project.version.short>
-                <project.version.pom>${project.version.pom}</project.version.pom>
                 <docker.image.name>${docker.image.name}</docker.image.name>
-                <maven.executable.location>${root.path}/tools/maven/bin</maven.executable.location>
-                <console.output.folder>${project.build.directory}/test-output/functional</console.output.folder>
+                <port.extend>${port.extend}</port.extend>
+                <port.management>${port.management}</port.management>
+                <port.metrics>${port.metrics}</port.metrics>
               </systemProperties>
             </configuration>
           </plugin>
@@ -247,13 +227,10 @@
               <systemProperties>
                 <skip>false</skip>
                 <skipTests>false</skipTests>
-                <project.version.dist>${project.version.dist}</project.version.dist>
-                <project.version.pom>${project.version.pom}</project.version.pom>
-                <project.version.release>${project.version.release}</project.version.release>
-                <project.version.short>${project.version.short}</project.version.short>
                 <docker.image.name>${docker.image.name}</docker.image.name>
-                <maven.executable.location>${root.path}/tools/maven/bin</maven.executable.location>
-                <console.output.folder>${project.build.directory}/test-output/functional</console.output.folder>
+                <port.extend>${port.extend}</port.extend>
+                <port.management>${port.management}</port.management>
+                <port.metrics>${port.metrics}</port.metrics>
               </systemProperties>
             </configuration>
           </plugin>

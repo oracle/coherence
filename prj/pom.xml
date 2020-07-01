@@ -151,25 +151,62 @@
         <groupId>io.opentracing</groupId>
         <artifactId>opentracing-api</artifactId>
         <version>${opentracing.version}</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.opentracing</groupId>
         <artifactId>opentracing-util</artifactId>
         <version>${opentracing.version}</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.opentracing</groupId>
         <artifactId>opentracing-noop</artifactId>
         <version>${opentracing.version}</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>io.opentracing.contrib</groupId>
         <artifactId>opentracing-tracerresolver</artifactId>
         <version>${opentracing.tracerresolver.version}</version>
-        <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>io.jaegertracing</groupId>
+        <artifactId>jaeger-client</artifactId>
+        <version>${opentracing.jaeger.version}</version>
+      </dependency>
+
+      <!-- oui -->
+      <dependency>
+        <groupId>com.oracle.cie</groupId>
+        <artifactId>repo-bootstrap</artifactId>
+        <version>${carbgen-locator.version}</version>
+      </dependency>
+
+      <!-- coherence-jpa -->
+      <dependency>
+        <groupId>com.oracle.toplink</groupId>
+        <artifactId>coherence-jpa</artifactId>
+        <version>${toplink.grid.version}</version>
+      </dependency>
+
+      <!-- dms -->
+      <dependency>
+        <groupId>com.oracle.core</groupId>
+        <artifactId>dms</artifactId>
+        <version>${dms.version}</version>
+      </dependency>
+
+      <!-- EclipseLink -->
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>eclipselink</artifactId>
+        <version>${eclipselink.version}</version>
+      </dependency>
+
+      <!-- EclipseLink javax.persistence -->
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>javax.persistence</artifactId>
+        <version>${javax.persistence.version}</version>
       </dependency>
 
       <!-- felix -->

@@ -50,6 +50,14 @@ backend:
               items:
                 - includes:
                     - "docs/about/*.adoc"
+            - title: "Coherence OCI Images"
+              pathprefix: "/coherence-docker"
+              glyph:
+                type: "icon"
+                value: "fa-th"
+              items:
+                - includes:
+                    - "coherence-docker/README.adoc"
         - title: "Additional Resources"
           items:
             - title: "Official Documentation"
