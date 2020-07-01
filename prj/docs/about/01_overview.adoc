@@ -100,7 +100,6 @@ Build tool plugins to aid Coherence application development.
 .Images
 [icon=fa-th,link=coherence-docker/README.adoc]
 --
-Example Coherence OCI container images.
-Plugins.
+Example Coherence OCI container (Docker) images.
 --
 ====

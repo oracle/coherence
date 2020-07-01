@@ -9,6 +9,8 @@ package com.tangosol.coherence.docker;
 
 import io.helidon.microprofile.cdi.Main;
 
+import java.lang.reflect.Method;
+
 import java.util.Map;
 import java.util.Properties;
 
@@ -41,7 +43,18 @@ public class Runner
                 .filter(e -> !props.containsKey(e.getKey()))
                 .forEach(Runner::setProperty);
 
-        Main.main(args);
+        String mainClass = System.getenv("COH_MAIN_CLASS");
+        if (mainClass == null || Main.class.getName().equals(mainClass))
+            {
+            Main.main(args);
+            }
+        else
+            {
+            System.out.println("Executing main class " + mainClass);
+            Class<?> cls    = Class.forName(mainClass);
+            Method   method = cls.getMethod("main", String[].class);
+            method.invoke(null, (Object) args);
+            }
         }
     
     // ----- helper methods -------------------------------------------------
