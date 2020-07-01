@@ -1902,6 +1902,7 @@
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
         <module>coherence-bom</module>
+        <module>plugins</module>
       </modules>
 
       <build>
