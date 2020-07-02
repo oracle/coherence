@@ -315,6 +315,7 @@
                  <goals>
                    <goal>exec</goal>
                  </goals>
+                 <phase>install</phase>
                  <configuration>
                    <executable>docker</executable>
                    <arguments>
