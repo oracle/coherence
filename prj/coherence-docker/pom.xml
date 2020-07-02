@@ -25,8 +25,8 @@
     <docker.registry>oraclecoherence</docker.registry>
     <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
 
-    <!-- The class that will be run by the JVM in the image -->
-    <main-class>com.tangosol.coherence.docker.Runner</main-class>
+    <!-- The base image for the Coherence image - usually a distroless OpenJDK image -->
+    <docker.base.image.name>gcr.io/distroless/java:11</docker.base.image.name>
 
     <port.extend>20000</port.extend>
     <port.management>30000</port.management>
@@ -124,16 +124,33 @@
       <id>docker</id>
       <activation>
         <activeByDefault>false</activeByDefault>
-        <property>
-          <name>project.docker</name>
-        </property>
       </activation>
       <build>
         <plugins>
           <plugin>
+             <groupId>org.codehaus.mojo</groupId>
+             <artifactId>exec-maven-plugin</artifactId>
+             <executions>
+               <execution>
+                 <id>pull-base-image</id>
+                 <goals>
+                   <goal>exec</goal>
+                 </goals>
+                 <phase>prepare-package</phase>
+                 <configuration>
+                   <executable>docker</executable>
+                   <arguments>
+                     <argument>pull</argument>
+                     <argument>${docker.base.image.name}</argument>
+                   </arguments>
+                 </configuration>
+               </execution>
+             </executions>
+           </plugin>
+
+          <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
-            <version>2.4.0</version>
             <executions>
               <execution>
                 <goals>
@@ -142,7 +159,7 @@
                 <phase>package</phase>
                 <configuration>
                   <from>
-                    <image>docker://gcr.io/distroless/java:11</image>
+                    <image>docker://${docker.base.image.name}</image>
                   </from>
                   <to>
                     <image>${docker.image.name}</image>
@@ -156,7 +173,7 @@
                     </paths>
                   </extraDirectories>
                   <container>
-                    <mainClass>${main-class}</mainClass>
+                    <mainClass>com.tangosol.coherence.docker.Runner</mainClass>
                     <environment>
                       <!-- Jaeger tracing variables -->
                       <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
@@ -199,9 +216,6 @@
       <id>docker-test</id>
       <activation>
         <activeByDefault>false</activeByDefault>
-        <property>
-          <name>project.docker</name>
-        </property>
       </activation>
       <build>
         <plugins>
@@ -234,6 +248,36 @@
               </systemProperties>
             </configuration>
           </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>docker-push</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+             <groupId>org.codehaus.mojo</groupId>
+             <artifactId>exec-maven-plugin</artifactId>
+             <executions>
+               <execution>
+                 <id>push-image</id>
+                 <goals>
+                   <goal>exec</goal>
+                 </goals>
+                 <configuration>
+                   <executable>docker</executable>
+                   <arguments>
+                     <argument>push</argument>
+                     <argument>${docker.image.name}</argument>
+                   </arguments>
+                 </configuration>
+               </execution>
+             </executions>
+           </plugin>
         </plugins>
       </build>
     </profile>

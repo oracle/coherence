@@ -634,7 +634,6 @@
     <maven.dependency.plugin.version>2.8</maven.dependency.plugin.version>
     <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
     <maven.directory.plugin.version>0.1</maven.directory.plugin.version>
-    <maven.docker.plugin.version>0.15.7</maven.docker.plugin.version>
     <maven.enforcer.plugin.version>3.0.0-M2</maven.enforcer.plugin.version>
     <maven.exec.plugin.version>1.4.0</maven.exec.plugin.version>
     <maven.flatten.plugin.version>1.2.2</maven.flatten.plugin.version>
@@ -645,6 +644,7 @@
     <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
     <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
     <maven.javadoc.plugin.version>3.0.1</maven.javadoc.plugin.version>
+    <maven.jib.plugin.version>2.4.0</maven.jib.plugin.version>
     <maven.license.plugin.version>3.0</maven.license.plugin.version>
     <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
     <maven.release.plugin.version>2.4</maven.release.plugin.version>
@@ -1025,11 +1025,11 @@
           </configuration>
         </plugin>
 
-        <!-- maven docker plugin-->
+        <!-- maven JIB plugin for building OCI images -->
         <plugin>
-          <groupId>io.fabric8</groupId>
-          <artifactId>docker-maven-plugin</artifactId>
-          <version>${maven.docker.plugin.version}</version>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${maven.jib.plugin.version}</version>
         </plugin>
 
         <!-- maven-enforcer-plugin -->
