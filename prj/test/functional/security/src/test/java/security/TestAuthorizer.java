@@ -35,11 +35,10 @@ public class TestAuthorizer implements Authorizer
         {
         String sServiceName = permission.getServiceName();
         String sAction      = permission.getActions();
-        String sClusterName = permission.getClusterName();
 
-        if (sClusterName == null || sServiceName == null || sAction == null)
+        if (sServiceName == null || sAction == null)
             {
-            throw new IllegalArgumentException("cluster, service, and action must not be null");
+            throw new IllegalArgumentException("service=" + sServiceName +" and/or action=" + sAction + " must not be null");
             }
 
         return null;
