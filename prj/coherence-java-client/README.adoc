@@ -6,8 +6,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence Java Client
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
 == Coherence gRPC Java Client
-
 
 == Usage
 

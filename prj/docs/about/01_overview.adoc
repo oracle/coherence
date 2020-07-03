@@ -8,6 +8,8 @@
 :description: Oracle Coherence documentation
 :keywords: coherence, java, documentation
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
 == Overview
 
 Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably

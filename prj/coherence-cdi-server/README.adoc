@@ -6,6 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence CDI
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
 == Coherence CDI
 
 Coherence CDI provides support for http://cdi-spec.org/[CDI] (Contexts and Dependency  Injection) within Coherence
