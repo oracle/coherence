@@ -6,6 +6,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence Documentation Module
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Coherence Documentation Module
+
 This is the module that builds the Coherence documentation.
 The module is not part of the default build and must be built separately.
 

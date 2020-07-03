@@ -6,6 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence OCI Image
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
 == Coherence OCI Image
 
 This module builds an example Coherence OCI compatible image.
@@ -68,7 +70,7 @@ The name of the image produced comes from properties in the `coherence-docker` m
 
 `${docker.registry}/coherence-ce:<version>`
 
-Where `<version>` is the version of the product from the `pom.xml` file without any `-SNAPSHOT` suffix.
+Where `<version>` is the version of the product from the `pom.xml` file.
 The `${docker.registry}` property is the name of the registry that the image will be published to, by default
 this is `oraclecoherence`.
 

@@ -6,6 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence gRPC Server
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
 == Coherence gRPC Server
 
 Coherence gRPC Server is the server-side implementation of the services defined within the `Coherence gRPC` module.

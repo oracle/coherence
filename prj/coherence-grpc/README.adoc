@@ -6,6 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence gRPC
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
 == Coherence gRPC
 
 Coherence gRPC provides the protobuf definitions necessary to interact with a Coherence data management services over gRPC.
