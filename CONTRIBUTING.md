@@ -44,7 +44,7 @@ signed the OCA can be accepted.
 1. Fork this repository
 1. Create a branch in your fork to implement the changes. We recommend using
 the issue number as part of your branch name, e.g. `1234-fixes`
-1. Ensure that all changes comply to project coding conventions
+1. Ensure that all changes comply to project coding conventions as documented [here](DEV-GUIDELINES.md)
 1. Ensure that there is at least one test that would fail without the fix and
 passes post fix
 1. A full build including test execution is required for the PR
