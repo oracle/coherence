@@ -11,7 +11,7 @@ engine:
       - "asciidoctor-diagram"
     attributes:
       plantumlconfig: "_plantuml-config.txt"
-      operator-version: "${project.version}"
+      project-version: "${project.version}"
 assets:
   - target: "/"
     includes:

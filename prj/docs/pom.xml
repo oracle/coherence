@@ -28,6 +28,7 @@
       <plugin>
         <groupId>io.helidon.build-tools</groupId>
         <artifactId>sitegen-maven-plugin</artifactId>
+        <version>${helidon.sitegen.version}</version>
         <extensions>true</extensions>
       </plugin>
 
@@ -47,7 +48,7 @@
           <arguments>
             <argument>-m</argument>
             <argument>SimpleHTTPServer</argument>
-            <argument>8081</argument>
+            <argument>8080</argument>
           </arguments>
         </configuration>
       </plugin>

@@ -666,7 +666,7 @@
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <felix.version>6.0.3</felix.version>
     <graal.version>19.1.1</graal.version>
-    <helidon-build-tools.version>2.0.0-M4</helidon-build-tools.version>
+    <helidon.sitegen.version>2.0.0-RC1</helidon.sitegen.version>
     <jackson.version>2.10.2</jackson.version>
     <jackson.databind.version>${jackson.version}</jackson.databind.version>
     <jacoco.version>0.8.5</jacoco.version>
@@ -1151,7 +1151,7 @@
         <plugin>
           <groupId>io.helidon.build-tools</groupId>
           <artifactId>sitegen-maven-plugin</artifactId>
-          <version>${helidon-build-tools.version}</version>
+          <version>${helidon.sitegen.version}</version>
           <configuration>
             <siteConfigFile>${top.parent.basedir}/docs/sitegen.yaml</siteConfigFile>
             <siteSourceDirectory>${top.parent.basedir}</siteSourceDirectory>
