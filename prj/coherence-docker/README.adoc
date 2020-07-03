@@ -214,6 +214,10 @@ any classes and resource files in the `/dev/my-app/classes` directory will now b
 Multiple containers can be started to form a cluster. By default, Coherence uses multi-cast for cluster discovery but
 in containers this either will not work, or is not reliable, so well-known-addressing can be used.
 
+This example is going to use basic Docker commands and links between containers.
+There are other ways to achieve the same sort of functionality depending on the network configurations you want to
+use in Docker.
+
 First, determine the name to be used for the first container, in this example it will be `storage-1`.
 
 Next, create a `
@@ -234,6 +238,9 @@ The container sets the WKA host name to `storage-1` using `-e coherence.wka=stor
 System property `coherence.wka=storage-1` see <<coherence-properties,Specifying Coherence System Properties>> above).
 The container sets the Coherence cluster name to `testing` using `-e coherence.cluster=testing` (this will be converted
 to the System property `coherence.cluster=testing` see <<coherence-properties,Specifying Coherence System Properties>> above).
+
+NOTE: The important part here is that the container has a name, and the `--hostname` option has also been set.
+This will allow the subsequent cluster members to find this container.
 
 Now, subsequent containers can be started using the same cluster name and WKA host name, but with different container
 names and a link to the first container, all the containers will form a single Coherence cluster:
@@ -256,6 +263,8 @@ docker run -d -P \
 ----
 
 Two more containers, `storage-2` and `storage-3` will now be part of the cluster.
+
+NOTE: All the members must have a `--link` option to the first container and have the same WKA and cluster name properties.
 
 
 [#tracing]
@@ -282,7 +291,7 @@ docker run -d --name jaeger \
 
 The Jaeger UI will be available to browse to at http://127.0.0.1:16686
 
-Jaeger has been started with a container name of `jaeger` so it will be discoverable using that host name by the Coherence
+Jaeger has been started with a container name of `jaeger`, so it will be discoverable using that host name by the Coherence
 containers. Start the Coherence container with a link to the Jaeger container and set the `JAEGER_AGENT_HOST`
 environment variable to `jaeger`:
 
