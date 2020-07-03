@@ -68,12 +68,12 @@ The name of the image produced comes from properties in the `coherence-docker` m
 
 `${docker.registry}/coherence-ce:<version>`
 
-Where `<version>` is the version of the product from the `pom.xml` file without any `-SNAPSHOT` suffix.
+Where `<version>` is the version of the product from the `pom.xml` file.
 The `${docker.registry}` property is the name of the registry that the image will be published to, by default
 this is `oraclecoherence`.
 
-So, if the version in the `pom.xml` is `20.06-SNAPSHOT` the image produced will be
-`oraclecoherence/coherence-ce:20.06`
+So, if the version in the `pom.xml` is `20.12-SNAPSHOT` the image produced will be
+`oraclecoherence/coherence-ce:20.12-SNAPSHOT`
 
 To change the registry name the image can be built by specifying the `docker.registry` property, for example:
 [source,bash]
@@ -81,7 +81,7 @@ To change the registry name the image can be built by specifying the `docker.reg
 mvn clean install -P docker -pl coherence-docker -Ddocker.registry=foo
 ----
 
-The example above would build an image named `foo/coherence:20.06`
+The example above would build an image named `foo/coherence:20.12-SNAPSHOT`
 
 
 === Run the image
@@ -89,7 +89,7 @@ The example above would build an image named `foo/coherence:20.06`
 Run the image just like any other image. In Docker this command would be:
 [source,bash]
 ----
-docker run -d -P oraclecoherence/coherence-ce:20.06
+docker run -d -P oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 The `-P` parameter will ensure that the Extend, gRPC, management and metrics ports will all be exposed.
@@ -102,7 +102,7 @@ add `-e COH_MAIN_CLASS=com.tangosol.net.DefaultCacheServer` to the Docker comman
 ----
 docker run -d -P \
     -e COH_MAIN_CLASS=com.tangosol.net.DefaultCacheServer \
-    oraclecoherence/coherence-ce:20.06
+    oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 NOTE: Not running the CDI main class will disable any functionality relying on CDI, for example MP metrics,
@@ -129,7 +129,7 @@ prefixed with `coherence.` into a System property before it starts Coherence.
 docker run -d -P \
     -e coherence.cluster=testing \
     -e coherence.role=storage \
-    oraclecoherence/coherence-ce:20.06
+    oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 The example above sets two environment variables, `coherence.cluster=testing` and `coherence.role=storage`.
@@ -165,7 +165,7 @@ command:
 
 [source,bash]
 ----
-docker run -d -P -v /home/oracle/test-args:/args oraclecoherence/coherence-ce:20.06
+docker run -d -P -v /home/oracle/test-args:/args oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 This will cause Docker to mount the local `/home/oracle/test-args` directory to the `/args` directory in the container
@@ -191,7 +191,7 @@ container classpath.
 
 [source,bash]
 ----
-docker run -d -P -v /dev/my-app/lib:/coherence/ext/lib oraclecoherence/coherence-ce:20.06
+docker run -d -P -v /dev/my-app/lib:/coherence/ext/lib oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 The command above maps the local directory `/dev/my-app/lib` to the `/coherence/ext/lib` in the container so that any
@@ -202,7 +202,7 @@ application resources to be added to the container classpath.
 
 [source,bash]
 ----
-docker run -d -P -v /dev/my-app/classes:/coherence/ext/conf oraclecoherence/coherence-ce:20.06
+docker run -d -P -v /dev/my-app/classes:/coherence/ext/conf oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 The command above maps the local directory `/dev/my-app/classes` to the `/coherence/ext/conf` in the container so that
@@ -230,7 +230,7 @@ docker run -d -P \
     --hostname storage-1 \
     -e coherence.wka=storage-1 \
     -e coherence.cluster=testing \
-    oraclecoherence/coherence-ce:20.06
+    oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 The first container has been started with a container name of `storage-1`, and the host name also set to `storage-1`.
@@ -252,14 +252,14 @@ docker run -d -P \
     --link storage-1 \
     -e coherence.wka=storage-1 \
     -e coherence.cluster=testing \
-    oraclecoherence/coherence-ce:20.06
+    oraclecoherence/coherence-ce:20.12-SNAPSHOT
 
 docker run -d -P \
     --name storage-3 \
     --link storage-1 \
     -e coherence.wka=storage-1 \
     -e coherence.cluster=testing \
-    oraclecoherence/coherence-ce:20.06
+    oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 Two more containers, `storage-2` and `storage-3` will now be part of the cluster.
@@ -299,7 +299,7 @@ environment variable to `jaeger`:
 ----
 docker run -d -P --link jaeger \
     -e JAEGER_AGENT_HOST=jaeger \
-    oraclecoherence/coherence-ce:20.06
+    oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 Once the Coherence container is running perform some interations with it using one of the exposed services, i.e Extend
@@ -312,7 +312,7 @@ starting the container, for example:
 docker run -d -P --link jaeger \
     -e JAEGER_AGENT_HOST=jaeger \
     -e JAEGER_SERVICE_NAME=coherence-test
-    oraclecoherence/coherence-ce:20.06
+    oraclecoherence/coherence-ce:20.12-SNAPSHOT
 ----
 
 Spans will now be sent to Jaeger with the service name `coherence-test`.
