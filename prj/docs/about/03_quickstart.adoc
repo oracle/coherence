@@ -6,6 +6,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 = Quick Start
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Quick Start
+
+This document details how to quickly get up and running with Coherence.
+
 === Prerequisites
 
 . Java - jdk8 or higher

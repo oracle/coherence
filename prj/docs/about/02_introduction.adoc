@@ -6,6 +6,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 = Introduction
 
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Introduction
+
 First and foremost, Coherence provides a fundamental service that is responsible for all facets of clustering and is a
 common denominator / building block for all other Coherence services.
 This service, referred to as 'service 0' internally, ensures that the mesh of members is maintained and responsive,
