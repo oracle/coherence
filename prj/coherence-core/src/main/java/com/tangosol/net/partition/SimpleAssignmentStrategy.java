@@ -145,6 +145,16 @@ public class SimpleAssignmentStrategy
         }
 
     /**
+     * Return the amount of time in ms to delay the analysis.
+     *
+     * @return the amount of time in ms to delay the analysis
+     */
+    protected long getSuggestionDelay()
+        {
+        return 60000L;
+        }
+
+    /**
      * Return the amount of time in ms to delay the analysis after a
      * distribution suggestion has been made and before it is carried out.  This
      * delay could be used to "dampen" the volatility of the strategy by
@@ -156,7 +166,7 @@ public class SimpleAssignmentStrategy
      */
     protected long getSuggestionCompletionDelay()
         {
-        return 60000L;
+        return 300000L;
         }
 
 
@@ -370,7 +380,7 @@ public class SimpleAssignmentStrategy
      */
     protected long analyze(AnalysisContext ctx)
         {
-        long cSuggestDelay = getSuggestionCompletionDelay();
+        long cSuggestDelay = getSuggestionDelay();
 
         checkLeaving(ctx);
         validateBackups(ctx);
@@ -2855,8 +2865,9 @@ public class SimpleAssignmentStrategy
                         if (setOwnersCur.equals(ctxLast.getOwnershipMembers()))
                             {
                             // no membership changes have occurred, so there is no
-                            // real rush to re-analyze; proceed as scheduled
-                            return cDelay;
+                            // real rush to re-analyze; proceed as scheduled; However
+                            // we don't want service waiting too long to call back
+                            return Math.min(cDelay, getSuggestionDelay());
                             }
                         else
                             {
