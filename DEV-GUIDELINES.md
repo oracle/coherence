@@ -864,5 +864,5 @@ if (cElems > 0)
 ```
 
 # <a name="tools"></a>Tools
-* IntelliJ settings file: [here]()
-* JIndent style: [here]()
+* IntelliJ settings file: [here](tools/conf/coh-idea-codescheme.xml)
+* JIndent style: [here](tools/conf/coh-jindent-codingstyle.xjs)
