@@ -153,9 +153,12 @@ public class LiteTxnProcessorTests
         final int          cServers = 4;
 
         MemberHandler memberHandler = new MemberHandler(
-        CacheFactory.ensureCluster(), getServerPrefix() + "-Atomic",
+                CacheFactory.ensureCluster(), getServerPrefix() + "-Atomic",
                 /*fExternalKill*/false, /*fGraceful*/false);
 
+        final boolean[] afExiting = new boolean[1];
+
+        Thread thdLoad = null;
         try
             {
             // setup, start the initial cache servers
@@ -177,31 +180,28 @@ public class LiteTxnProcessorTests
                 }
 
             // start the client (load) thread
-            final boolean[] afExiting   = new boolean[1];
-            final Object[]  aoException = new Object[1];
-            Thread thdLoad = new Thread()
+            final Object[] aoException = new Object[1];
+
+            thdLoad = new Thread(() ->
                 {
-                public void run()
+                EntryProcessor processor = new AtomicUpdateProcessor();
+                try
                     {
-                    EntryProcessor processor = new AtomicUpdateProcessor();
-                    try
+                    while (!afExiting[0])
                         {
-                        while (!afExiting[0])
+                        for (int i = 0; i < cKeys; i++)
                             {
-                            for (int i = 0; i < cKeys; i++)
-                                {
-                                cache1.invoke(getKey(i), processor);
-                                }
-                            Base.sleep(10);
+                            cache1.invoke(getKey(i), processor);
                             }
-                        }
-                    catch (Exception e)
-                        {
-                        aoException[0] = e;
-                        throw Base.ensureRuntimeException(e);
+                        Base.sleep(10);
                         }
                     }
-                };
+                catch (Exception e)
+                    {
+                    aoException[0] = e;
+                    throw Base.ensureRuntimeException(e);
+                    }
+                });
             thdLoad.start();
 
             // perform the rolling restart
@@ -224,6 +224,16 @@ public class LiteTxnProcessorTests
             }
         finally
             {
+            afExiting[0] = true;
+            if (thdLoad != null)
+                {
+                try
+                    {
+                    thdLoad.join();
+                    }
+                catch (InterruptedException ignored) {}
+                }
+
             memberHandler.dispose();
             Cluster cluster = CacheFactory.getCluster();
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
