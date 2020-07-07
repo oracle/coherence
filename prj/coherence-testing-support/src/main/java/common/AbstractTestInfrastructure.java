@@ -706,9 +706,11 @@ public abstract class AbstractTestInfrastructure
             {
             member = startCacheServer(sServer, optionsByType, sProject, fGraceful);
             }
-        catch (IOException e)
+        catch (Throwable t)
             {
-            throw new RuntimeException("Error starting cache server", e);
+            // show OS level port usage in case of port binding conflict
+            displayPortInfo();
+            throw new RuntimeException("Error starting cache server", t);
             }
 
 
