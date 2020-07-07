@@ -59,6 +59,14 @@ public abstract class AbstractJmxConfigurationTests
         super._startCluster(propsLocal, sOverrideXml);
         }
 
+    @Override
+    protected Properties getDefaultProperties()
+        {
+        Properties propsDefault = super.getDefaultProperties();
+        propsDefault.setProperty("tangosol.coherence.management.refresh.timeout", "5s");
+        return propsDefault;
+        }
+
     // ----- test methods ---------------------------------------------------
 
     @Override
