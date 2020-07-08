@@ -22,6 +22,7 @@ This page provides information on how to successfully contribute to the Coherenc
     16. [Do not (directly) use Java's interruptible methods](#16)
     17. [General Advice](#17)
 1. [Tools](#tools)
+1. [TDE](#tde)
 
 
 # <a name="intro"></a>Coding Guidelines
@@ -866,3 +867,67 @@ if (cElems > 0)
 # <a name="tools"></a>Tools
 * IntelliJ settings file: [here](tools/conf/coh-idea-codescheme.xml)
 * JIndent style: [here](tools/conf/coh-jindent-codingstyle.xjs)
+
+# <a name="tde"></a>TDE
+
+TDE is an entire development environment, IDE + ([bootstrapping](https://en.wikipedia.org/wiki/Bootstrapping_(compilers))) compiler, that allows the editing and compilation of components (.cdb files). If you source one of the [cfg* scripts](./bin) to set up your local shell session you can launch TDE by executing `tde` or there is an [osx package](tools/tde/bin/TDE.app) if you prefer. This is far from an introduction to TDE, however does provide some useful info for those that are trained in the art thereof.
+
+## IDE Keyboard shortcuts
+
+| Key stroke | Descritpion |
+|------------|-------------|
+|Ctrl-A, Command-A|Select all.|
+|Ctrl-B, Command-B|Go to a method declaration. works only within a scope of a single component.|
+|Ctrl-C, Command-C|Copy text to the Clipboard.|
+|Ctrl-X, Command-X|Cut text to the Clipboard.|
+|Ctrl-V, Command-V|Paste text from the Clipboard.|
+|Ctrl-Z, Command-Z|Undo the last change.|
+|Ctrl-Y, Command-Y|Redo the last change.|
+|Tab|Indent the current selection.|
+|Shft-Tab|Outdent the current selection.|
+|Ctrl-F, Command-F|Find text.|
+|Ctrl-G, Command-G|Go to line.|
+|Ctrl-F3, Command-F3|Use selection to find.|
+|F3|Find next.|
+|Shft-F3|Find previous.|
+|F4|Find next error or search item or bookmark (depending on the Output panel tag).|
+|Shft-F4|Find previous error or search item or bookmark (depending on the Output panel tag).|
+|F5|Refresh the browser panel.|
+|F7|Compile.|
+|Ctrl-F2, Command-F2|Toggle the bookmark.|
+|Ctrl-F4, Command-W|Close component.|
+|Ctrl-Alt-Left, Command-Alt-Left|Go to the previous location within component (history).|
+|Ctrl-Alt-Right, Command-Alt-Right|Go to the next location within component (history).|
+|Ctrl-}, Command-}|Place the cursor on the matching brace.|
+
+## Property values
+
+* `[null]`
+* `[instance]`
+* `class-name`
+* a line in the Doc of a property stating `@volatile` will make a property volatile (this allowed Gene to not enter GUI land)
+
+## Custom font in the ScriptEditor
+
+To use a custom font, before opening the TDE add any of the following properties to the $HOME/TDE.properties file:
+
+```
+UI.Font.Scripts.Size=12
+UI.Font.Scripts.Name=Lucida Console
+```
+
+## Java debugger support
+
+To allow Java debugging for TDE created code:
+
+1. Add the following property to `$HOME/TDE.properties`:
+```
+Storage.Class.JavaLines=true
+
+```
+2. Recompile the TDE based code and build the Java source (listing)
+```
+cd $DEV_ROOT/prj
+mvn install
+```
+> Note: uncompilable java sources based on the associated components, which can be used for debugging, are generated under `$DEV_ROOT/prj/coherence-core-components/target/artifact-sources`
