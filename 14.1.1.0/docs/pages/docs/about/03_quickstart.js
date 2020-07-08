@@ -2,6 +2,8 @@
 
 <h2 id="_quick_start">Quick Start</h2>
 <div class="section">
+<p>This document details how to quickly get up and running with Coherence.</p>
+
 
 <h3 id="_prerequisites">Prerequisites</h3>
 <div class="section">
@@ -17,7 +19,7 @@ Maven - 3.6.3 or higher
 </ol>
 </div>
 
-<h3 id="_how_to_get_coherence_community_edition">How to Get Coherence Community Edition</h3>
+<h3 id="_downloading_coherence_community_edition">Downloading Coherence Community Edition</h3>
 <div class="section">
 <p>As Coherence is generally embedded into an application by using Coherence APIs,
 the natural place to consume this dependency is from Maven:</p>
@@ -48,7 +50,7 @@ Using the console, data is inserted, retrieved, and then the console is terminat
 and data is once again retrieved to illustrate the permanence of the data.</p>
 
 <div class="admonition note">
-<p class="admonition-inline">This example uses the out-of-the-box cache configuration and therefore explicitly specifying the console is
+<p class="admonition-inline">This example uses the out-of-the-box cache configuration and therefore, explicitly specifying that the console is
 storage disabled is unnecessary.</p>
 </div>
 <div class="admonition note">
@@ -197,30 +199,29 @@ Copy and paste the following source to a file named src/main/java/HelloCoherence
 <markup
 lang="java"
 title="HelloCoherence.java"
->import com.tangosol.net.CacheFactory;
-import com.tangosol.net.NamedCache;
+>    import com.tangosol.net.CacheFactory;
+    import com.tangosol.net.NamedCache;
 
-public class HelloCoherence
-    {
-    // ----- static methods -------------------------------------------------
+    public class HelloCoherence
+        {
+        // ----- static methods -------------------------------------------------
 
-public static void main(String[] asArgs)
-    {
-    NamedCache<String, String> cache = CacheFactory.getCache("welcomes");
+    public static void main(String[] asArgs)
+        {
+        NamedCache&lt;String, String&gt; cache = CacheFactory.getCache("welcomes");
 
-    System.out.printf("Accessing cache \"%s\" containing %d entries\n",
-	    cache.getCacheName(),
-	    cache.size());
+        System.out.printf("Accessing cache \"%s\" containing %d entries\n",
+                cache.getCacheName(),
+                cache.size());
 
-    cache.put("english", "Hello");
-    cache.put("spanish", "Hola");
-    cache.put("french" , "Bonjour");
+        cache.put("english", "Hello");
+        cache.put("spanish", "Hola");
+        cache.put("french" , "Bonjour");
 
-    // list
-    cache.entrySet().forEach(System.out::println);
-    }
-}
-</markup>
+        // list
+        cache.entrySet().forEach(System.out::println);
+        }
+    }</markup>
 
 <ol style="margin-left: 15px;">
 <li>
