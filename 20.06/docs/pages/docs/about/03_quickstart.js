@@ -1,5 +1,8 @@
 <doc-view>
 
+<h2 id="_quick_start">Quick Start</h2>
+<div class="section">
+
 <h3 id="_prerequisites">Prerequisites</h3>
 <div class="section">
 <ol style="margin-left: 15px;">
@@ -14,7 +17,7 @@ Maven - 3.6.3 or higher
 </ol>
 </div>
 
-<h3 id="_downloading_coherence_community_edition">Downloading Coherence Community Edition</h3>
+<h3 id="_how_to_get_coherence_community_edition">How to Get Coherence Community Edition</h3>
 <div class="section">
 <p>As Coherence is generally embedded into an application by using Coherence APIs,
 the natural place to consume this dependency is from Maven:</p>
@@ -35,17 +38,17 @@ For other language clients, use     (<a id="" title="" target="_blank" href="htt
 <a id="" title="" target="_blank" href="http://github.com/oracle/coherence-dotnet-extend-client">.NET</a>), and for the non-community edition, see <a id="" title="" target="_blank" href="https://www.oracle.com/middleware/technologies/coherence-downloads.html">Oracle Technology Network</a>.</p>
 
 </div>
+</div>
 
 <h2 id="_cli_hello_coherence">CLI Hello Coherence</h2>
 <div class="section">
 <p>The following example illustrates the procedure to start a <strong>storage enabled</strong> Coherence Server, followed by a <strong>storage disabled</strong>
 Coherence Console.
-Using the console, data is
-inserted, retrieved, and then the console is terminated. The console is restarted
+Using the console, data is inserted, retrieved, and then the console is terminated. The console is restarted
 and data is once again retrieved to illustrate the permanence of the data.</p>
 
 <div class="admonition note">
-<p class="admonition-inline">This example uses the out-of-the-box cache configuration and therefore, explicitly specifying that the console is
+<p class="admonition-inline">This example uses the out-of-the-box cache configuration and therefore explicitly specifying the console is
 storage disabled is unnecessary.</p>
 </div>
 <div class="admonition note">
@@ -174,13 +177,16 @@ Add a dependency to the pom file:
 
 </li>
 </ol>
-<div class="listing">
-<pre>&lt;dependency&gt;
-  &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
-  &lt;artifactId&gt;coherence&lt;/artifactId&gt;
-  &lt;version&gt;20.06&lt;/version&gt;
-&lt;/dependency&gt;</pre>
-</div>
+<markup
+lang="xml"
+title="pom.xml"
+>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
+        &lt;artifactId&gt;coherence&lt;/artifactId&gt;
+        &lt;version&gt;20.06&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</markup>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -192,7 +198,7 @@ Copy and paste the following source to a file named src/main/java/HelloCoherence
 lang="java"
 title="HelloCoherence.java"
 >import com.tangosol.net.CacheFactory;
-import com.tangosol.net.NamedMap;
+import com.tangosol.net.NamedMap
 
 public class HelloCoherence
     {
@@ -245,7 +251,7 @@ Confirm that you see the output including the following:
 <markup
 lang="shell"
 
->Accessing cache "welcomes" containing 3 entries
+>Accessing map "welcomes" containing 3 entries
 ConverterEntry{Key="french", Value="Bonjour"}
 ConverterEntry{Key="spanish", Value="Hola"}
 ConverterEntry{Key="english", Value="Hello"}</markup>
