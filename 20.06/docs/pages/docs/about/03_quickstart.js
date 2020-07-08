@@ -19,8 +19,8 @@ Maven - 3.6.3 or higher
 
 <h3 id="_how_to_get_coherence_community_edition">How to Get Coherence Community Edition</h3>
 <div class="section">
-<p>In the majority of use-cases Coherence will be embedded into an application with the application using Coherence APIs,
-thus the natural place to start is downloading Coherence from maven central:</p>
+<p>As Coherence is generally embedded into an application by using Coherence APIs,
+the natural place to consume this dependency is from Maven:</p>
 
 <markup
 lang="xml"
@@ -33,23 +33,22 @@ title="pom.xml"
     &lt;/dependency&gt;
 &lt;/dependencies&gt;</markup>
 
-<p>Other forms of acquiring Coherence include the official <a id="" title="" target="_blank" href="https://hub.docker.com/_/oracle-coherence-12c">Docker image</a>,
-other language clients (<a id="" title="" target="_blank" href="http://github.com/oracle/coherence-cpp-extend-client">C&#43;&#43;</a> and
-<a id="" title="" target="_blank" href="http://github.com/oracle/coherence-dotnet-extend-client">.NET</a>), and for non community edition features of the product
-please take a look at the <a id="" title="" target="_blank" href="https://www.oracle.com/middleware/technologies/coherence-downloads.html">Oracle Technology Network</a>.</p>
+<p>You can also get Coherence from the official <a id="" title="" target="_blank" href="https://hub.docker.com/r/oraclecoherence/coherence-ce">Docker image</a>.
+For other language clients, use     (<a id="" title="" target="_blank" href="http://github.com/oracle/coherence-cpp-extend-client">C&#43;&#43;</a> and
+<a id="" title="" target="_blank" href="http://github.com/oracle/coherence-dotnet-extend-client">.NET</a>), and for the non-community edition, see <a id="" title="" target="_blank" href="https://www.oracle.com/middleware/technologies/coherence-downloads.html">Oracle Technology Network</a>.</p>
 
 </div>
 </div>
 
 <h2 id="_cli_hello_coherence">CLI Hello Coherence</h2>
 <div class="section">
-<p>The following example illustrated starting a <strong>storage enabled</strong> Coherence Server, followed by a <strong>storage disabled</strong>
+<p>The following example illustrates the procedure to start a <strong>storage enabled</strong> Coherence Server, followed by a <strong>storage disabled</strong>
 Coherence Console.
-Using the console data can be inserted, retrieved, the console can be terminated and started and data once again
-retrieved to illustrate the permanence of the data.</p>
+Using the console, data is inserted, retrieved, and then the console is terminated. The console is restarted
+and data is once again retrieved to illustrate the permanence of the data.</p>
 
 <div class="admonition note">
-<p class="admonition-inline">this example uses the out-of-the-box cache configuration and therefore explicitly specifying the console is
+<p class="admonition-inline">This example uses the out-of-the-box cache configuration and therefore explicitly specifying the console is
 storage disabled is unnecessary.</p>
 </div>
 <div class="admonition note">
@@ -170,7 +169,7 @@ The <code>HelloCoherence</code> application inserts and retrieves data from the 
 <div class="section">
 <ol style="margin-left: 15px;">
 <li>
-Create a maven project either manually or using an archetype such as maven-archetype-quickstart
+Create a maven project either manually or by using an archetype such as maven-archetype-quickstart
 
 </li>
 <li>
@@ -207,18 +206,18 @@ public class HelloCoherence
 
     public static void main(String[] asArgs)
         {
-        NamedMap&lt;String, String&gt; cache = CacheFactory.getCache("welcomes");
+        NamedMap&lt;String, String&gt; map = CacheFactory.getCache("welcomes");
 
         System.out.printf("Accessing map \"%s\" containing %d entries\n",
-                cache.getCacheName(),
-                cache.size());
+                map.getName(),
+                map.size());
 
-        cache.put("english", "Hello");
-        cache.put("spanish", "Hola");
-        cache.put("french" , "Bonjour");
+        map.put("english", "Hello");
+        map.put("spanish", "Hola");
+        map.put("french" , "Bonjour");
 
         // list
-        cache.entrySet().forEach(System.out::println);
+        map.entrySet().forEach(System.out::println);
         }
     }</markup>
 
@@ -232,7 +231,7 @@ lang="shell"
 
 </li>
 <li>
-Start a cache Server
+Start a Storage server
 <markup
 lang="shell"
 
@@ -248,7 +247,7 @@ lang="shell"
 
 </li>
 <li>
-Confirm you see output including the following:
+Confirm that you see the output including the following:
 <markup
 lang="shell"
 
@@ -259,7 +258,7 @@ ConverterEntry{Key="english", Value="Hello"}</markup>
 
 </li>
 <li>
-Kill the cache server started previously:
+Kill the storage server started earlier:
 <markup
 lang="shell"
 
@@ -287,10 +286,10 @@ $&gt; mvn clean install -DskipTests
 # build a specific module, including all dependent modules and run tests
 $&gt; mvn -am -pl test/functional/persistence clean verify
 
-# only build coherence.jar without running tests
+# build only coherence.jar without running tests
 $&gt; mvn -am -pl coherence clean install -DskipTests
 
-# only build coherence.jar and skip compilation of CDBs and tests
+# build only coherence.jar and skip compilation of CDBs and tests
 $&gt; mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required</markup>
 
 </div>
