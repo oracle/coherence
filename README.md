@@ -279,9 +279,9 @@ inserts and retrieves data from the Coherence server.
 2. Add a dependency to the pom file:
 ```xml
     <dependency>
-     <groupId>com.oracle.coherence.ce</groupId>
-    <artifactId>coherence</artifactId>
-    <version>14.1.1-0-1</version>
+        <groupId>com.oracle.coherence.ce</groupId>
+        <artifactId>coherence</artifactId>
+        <version>14.1.1-0-1</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
@@ -312,15 +312,15 @@ inserts and retrieves data from the Coherence server.
 ```
 4. Compile the maven project:
 ```shell
-     mvn package
+    mvn package
 ```
 5. Start a cache Server
 ```shell
-   mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
+    mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
 ```
 6. Run `HelloCoherence`
 ```shell
-   mvn exec:java -Dexec.mainClass="HelloCoherence"
+    mvn exec:java -Dexec.mainClass="HelloCoherence"
 ```
 7. Confirm you see output including the following:
 ```shell
@@ -331,7 +331,7 @@ inserts and retrieves data from the Coherence server.
 ```
 8. Kill the cache server started previously:
 ```shell
-     kill %1
+    kill %1
 ```
 
 ## <a name="build"></a>Building
