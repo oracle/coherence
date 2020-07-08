@@ -10,6 +10,10 @@
 Java - jdk8 or higher
 
 </li>
+<li>
+Maven - 3.6.3 or higher
+
+</li>
 </ol>
 </div>
 
@@ -171,19 +175,31 @@ Create a maven project either manually or using an archetype such as maven-arche
 </li>
 <li>
 Add a dependency to the pom file:
+
+</li>
+</ol>
+<markup
+lang="xml"
+title="pom.xml"
+>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
+        &lt;artifactId&gt;coherence&lt;/artifactId&gt;
+        &lt;version&gt;14.1.1-0-1&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</markup>
+
 <ol style="margin-left: 15px;">
 <li>
 Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
 
 </li>
 </ol>
-</li>
-</ol>
 <markup
 lang="java"
 title="HelloCoherence.java"
 >import com.tangosol.net.CacheFactory;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap
 
 public class HelloCoherence
     {
@@ -191,9 +207,9 @@ public class HelloCoherence
 
     public static void main(String[] asArgs)
         {
-        NamedCache&lt;String, String&gt; cache = CacheFactory.getCache("welcomes");
+        NamedMap&lt;String, String&gt; cache = CacheFactory.getCache("welcomes");
 
-        System.out.printf("Accessing cache \"%s\" containing %d entries\n",
+        System.out.printf("Accessing map \"%s\" containing %d entries\n",
                 cache.getCacheName(),
                 cache.size());
 
@@ -236,7 +252,7 @@ Confirm you see output including the following:
 <markup
 lang="shell"
 
->Accessing cache "welcomes" containing 3 entries
+>Accessing map "welcomes" containing 3 entries
 ConverterEntry{Key="french", Value="Bonjour"}
 ConverterEntry{Key="spanish", Value="Hola"}
 ConverterEntry{Key="english", Value="Hello"}</markup>
