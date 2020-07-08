@@ -278,9 +278,9 @@ inserts and retrieves data from the Coherence server.
 2. Add a dependency to the pom file:
 ```xml
     <dependency>
-     <groupId>com.oracle.coherence.ce</groupId>
-    <artifactId>coherence</artifactId>
-    <version>20.06</version>
+        <groupId>com.oracle.coherence.ce</groupId>
+        <artifactId>coherence</artifactId>
+        <version>20.06</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
@@ -292,45 +292,45 @@ inserts and retrieves data from the Coherence server.
         {
         // ----- static methods -------------------------------------------------
 
-    public static void main(String[] asArgs)
-        {
-        NamedMap<String, String> map = CacheFactory.getCache("welcomes");
+        public static void main(String[] asArgs)
+            {
+            NamedMap<String, String> map = CacheFactory.getCache("welcomes");
 
-        System.out.printf("Accessing map \"%s\" containing %d entries\n",
-                map.getName(),
-                map.size());
+            System.out.printf("Accessing map \"%s\" containing %d entries\n",
+                    map.getName(),
+                    map.size());
 
-        map.put("english", "Hello");
-        map.put("spanish", "Hola");
-        map.put("french" , "Bonjour");
+            map.put("english", "Hello");
+            map.put("spanish", "Hola");
+            map.put("french" , "Bonjour");
 
-        // list
-        map.entrySet().forEach(System.out::println);
+            // list
+            map.entrySet().forEach(System.out::println);
+            }
         }
-    }
 ```
 4. Compile the maven project:
 ```shell
-     mvn package
+    mvn package
 ```
 5. Start a Storage Server
 ```shell
-   mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
+    mvn exec:java -Dexec.mainClass="com.tangosol.net.DefaultCacheServer" &
 ```
 6. Run `HelloCoherence`
 ```shell
-   mvn exec:java -Dexec.mainClass="HelloCoherence"
+    mvn exec:java -Dexec.mainClass="HelloCoherence"
 ```
 7. Confirm you see output including the following:
 ```shell
-    Accessing cache "welcomes" containing 3 entries
+    Accessing map "welcomes" containing 3 entries
     ConverterEntry{Key="french", Value="Bonjour"}
     ConverterEntry{Key="spanish", Value="Hola"}
     ConverterEntry{Key="english", Value="Hello"}
 ```
 8. Kill the storage server started previously:
 ```shell
-     kill %1
+    kill %1
 ```
 
 ## <a name="build"></a>Building
