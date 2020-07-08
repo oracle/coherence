@@ -501,7 +501,7 @@ Map<String, RemoteClusterPublisherScheme> mapsschemesSchemes;
 
 Example: Static declaration
 ```java
-private static final int MAXIMUM\_SIZE = 20;
+private static final int MAXIMUM_SIZE = 20;
 ```
 
 ## <a name="8"></a>8. Enum Declarations
