@@ -62,6 +62,7 @@ public abstract class AbstractServerSentEventsTests
                                    + inboundEvent.readData(SimpleMapEvent.class));
                 }
             };
+        Eventually.assertDeferred(() -> source.isOpen(), is(true));
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.remove(2);
