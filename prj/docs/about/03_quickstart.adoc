@@ -34,7 +34,7 @@ the natural place to consume this dependency is from Maven:
 </dependencies>
 ----
 
-You can also get Coherence from the official https://hub.docker.com/_/oracle-coherence-12c[Docker image].
+You can also get Coherence from the official https://hub.docker.com/r/oraclecoherence/coherence-ce[Docker image].
 For other language clients, use     (http://github.com/oracle/coherence-cpp-extend-client[C{pp}] and
 http://github.com/oracle/coherence-dotnet-extend-client[.NET]), and for the non-community edition, see https://www.oracle.com/middleware/technologies/coherence-downloads.html[Oracle Technology Network].
 
@@ -42,8 +42,7 @@ http://github.com/oracle/coherence-dotnet-extend-client[.NET]), and for the non-
 
 The following example illustrates the procedure to start a *storage enabled* Coherence Server, followed by a *storage disabled*
 Coherence Console.
-Using the console, data is
-inserted, retrieved, and then the console is terminated. The console is restarted
+Using the console, data is inserted, retrieved, and then the console is terminated. The console is restarted
 and data is once again retrieved to illustrate the permanence of the data.
 
 NOTE: This example uses the out-of-the-box cache configuration and therefore, explicitly specifying that the console is
@@ -162,18 +161,29 @@ The `HelloCoherence` application inserts and retrieves data from the Coherence s
 . Create a maven project either manually or by using an archetype such as maven-archetype-quickstart
 . Add a dependency to the pom file:
 
+[source,xml]
+.pom.xml
+----
+<dependencies>
+    <dependency>
+        <groupId>com.oracle.coherence.ce</groupId>
+        <artifactId>coherence</artifactId>
+        <version>14.1.1-0-1</version>
+    </dependency>
+</dependencies>
+----
 
 1. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
 
 [source,java]
 .HelloCoherence.java
 ----
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.NamedCache;
+    import com.tangosol.net.CacheFactory;
+    import com.tangosol.net.NamedCache;
 
-public class HelloCoherence
-    {
-    // ----- static methods -------------------------------------------------
+    public class HelloCoherence
+        {
+        // ----- static methods -------------------------------------------------
 
     public static void main(String[] asArgs)
         {
@@ -200,7 +210,7 @@ public class HelloCoherence
 mvn package
 ----
 
-. Start a cache server
+. Start a Storage server
 +
 [source,shell]
 ----
@@ -224,7 +234,7 @@ ConverterEntry{Key="spanish", Value="Hola"}
 ConverterEntry{Key="english", Value="Hello"}
 ----
 
-. Kill the cache server started earlier:
+. Kill the storage server started earlier:
 +
 [source,shell]
 ----
