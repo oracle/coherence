@@ -66,7 +66,14 @@ class NamedCacheClientCdiIT
         s_listClients.forEach(client -> {
         if (client.isActive())
             {
-            client.destroy();
+            try
+                {
+                client.destroy();
+                }
+            catch (Exception e)
+                {
+                // can be ignored, we're done anyway.
+                }
             }
         });
         s_server.stop();
