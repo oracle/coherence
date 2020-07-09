@@ -119,6 +119,10 @@ service NamedCacheService {
     rpc remove (RemoveRequest) returns (google.protobuf.BytesValue) {
     }
 
+    // Remove an index from the cache.
+    rpc removeIndex (RemoveIndexRequest) returns (google.protobuf.Empty) {
+    }
+
     // Remove the mapping that is associated with the specified key only
     // if the mapping exists in the cache.
     rpc removeMapping (RemoveMappingRequest) returns (google.protobuf.BoolValue) {
