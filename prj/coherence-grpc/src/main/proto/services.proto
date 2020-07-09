@@ -140,7 +140,7 @@ service NamedCacheService {
 
     // Truncate a cache. This is the same as clearing a cache but no
     // cache entry events will be generated.
-    rpc truncate (TruncateRequest) returns (google.protobuf.Int32Value) {
+    rpc truncate (TruncateRequest) returns (google.protobuf.Empty) {
     }
 
     // Obtain all of the values in the cache where the cache entries
