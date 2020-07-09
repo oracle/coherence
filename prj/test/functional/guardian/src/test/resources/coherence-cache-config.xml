@@ -15,6 +15,17 @@
       <cache-name>foo</cache-name>
       <scheme-name>partitioned-cache-PartitionedCacheDefaultPolicies</scheme-name>
     </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>item</cache-name>
+      <scheme-name>ItermDistributed</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>number</cache-name>
+      <scheme-name>NumberDistributed</scheme-name>
+    </cache-mapping>
+
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -76,6 +87,30 @@
       <backing-map-scheme>
         <local-scheme/>
       </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>ItermDistributed</scheme-name>
+      <service-name>ItermDistributed</service-name>
+      <task-timeout>30000ms</task-timeout>
+      <request-timeout>60000ms</request-timeout>
+      <backing-map-scheme>
+        <local-scheme>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>NumberDistributed</scheme-name>
+      <service-name>NumberDistributed</service-name>
+      <task-timeout>30000ms</task-timeout>
+      <request-timeout>60000ms</request-timeout>
+      <backing-map-scheme>
+        <local-scheme>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
     </distributed-scheme>
   </caching-schemes>
 </cache-config>
