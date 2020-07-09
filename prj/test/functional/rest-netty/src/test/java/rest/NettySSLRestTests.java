@@ -90,7 +90,7 @@ public class NettySSLRestTests
         if (m_client == null)
             {
             m_client = createClient().build();
-            m_client.property(ClientProperties.READ_TIMEOUT, 1000);
+            m_client.property(ClientProperties.READ_TIMEOUT, 5000);
             }
 
         return m_client;
