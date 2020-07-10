@@ -6,11 +6,12 @@
  */
 package com.sun.tools.visualvm.modules.coherence.helper;
 
-import com.sun.tools.visualvm.charts.ChartFactory;
-import com.sun.tools.visualvm.charts.SimpleXYChartDescriptor;
-import com.sun.tools.visualvm.charts.SimpleXYChartSupport;
 import com.sun.tools.visualvm.modules.coherence.Localization;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
+
+import org.graalvm.visualvm.charts.ChartFactory;
+import org.graalvm.visualvm.charts.SimpleXYChartDescriptor;
+import org.graalvm.visualvm.charts.SimpleXYChartSupport;
 
 /**
  * Various helper methods for creating graphs based on JVisualVM graphs.

@@ -6,10 +6,10 @@
  */
 package com.sun.tools.visualvm.modules.coherence.datasource;
 
-import com.sun.tools.visualvm.core.datasource.descriptor.DataSourceDescriptor;
-
 import com.sun.tools.visualvm.modules.coherence.Localization;
 import com.sun.tools.visualvm.modules.coherence.VisualVMView;
+
+import org.graalvm.visualvm.core.datasource.descriptor.DataSourceDescriptor;
 
 /**
  * The {@link DataSourceDescriptor} for Coherence clusters. Coherence cluster is a

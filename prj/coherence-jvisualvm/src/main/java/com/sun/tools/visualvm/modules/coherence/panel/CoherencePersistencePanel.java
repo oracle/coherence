@@ -6,25 +6,18 @@
  */
 package com.sun.tools.visualvm.modules.coherence.panel;
 
-import com.sun.tools.visualvm.charts.SimpleXYChartSupport;
-
 import com.sun.tools.visualvm.modules.coherence.Localization;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
-
 import com.sun.tools.visualvm.modules.coherence.helper.GraphHelper;
 import com.sun.tools.visualvm.modules.coherence.helper.JMXRequestSender;
-import com.sun.tools.visualvm.modules.coherence.helper.JMXUtils;
 import com.sun.tools.visualvm.modules.coherence.helper.RenderHelper;
 import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
-
 import com.sun.tools.visualvm.modules.coherence.panel.util.AbstractMenuOption;
 import com.sun.tools.visualvm.modules.coherence.panel.util.ExportableJTable;
 import com.sun.tools.visualvm.modules.coherence.panel.util.MenuOption;
 import com.sun.tools.visualvm.modules.coherence.panel.util.SeparatorMenuOption;
-
 import com.sun.tools.visualvm.modules.coherence.tablemodel.PersistenceNotificationsTableModel;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.PersistenceTableModel;
-
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.Data;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.Pair;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.PersistenceData;
@@ -34,7 +27,6 @@ import com.sun.tools.visualvm.modules.coherence.tablemodel.model.ServiceData;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -68,6 +60,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+
+import org.graalvm.visualvm.charts.SimpleXYChartSupport;
 
 /**
  * An implementation of an {@link AbstractCoherencePanel} to

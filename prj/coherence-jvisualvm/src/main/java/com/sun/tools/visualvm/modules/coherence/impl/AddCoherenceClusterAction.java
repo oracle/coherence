@@ -6,16 +6,15 @@
  */
 package com.sun.tools.visualvm.modules.coherence.impl;
 
-import com.sun.tools.visualvm.core.ui.actions.SingleDataSourceAction;
-
 import com.sun.tools.visualvm.modules.coherence.Localization;
 import com.sun.tools.visualvm.modules.coherence.VisualVMView;
-
 import com.sun.tools.visualvm.modules.coherence.datasource.CoherenceClustersDataSource;
 
 import java.awt.event.ActionEvent;
 
 import javax.swing.ImageIcon;
+
+import org.graalvm.visualvm.core.ui.actions.SingleDataSourceAction;
 
 /**
  * The {@link SingleDataSourceAction} for adding a Coherence cluster to the {@link CoherenceClustersDataSource}.

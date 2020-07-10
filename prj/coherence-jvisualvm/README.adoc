@@ -1,0 +1,138 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence VisualVM Plugin
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// they both serve a purpose, and the docs will look wrong if it is removed.
+== Coherence VisualVM Plugin
+
+The Coherence-VisualVM plug-in provides management and monitoring of a single Coherence cluster using the VisualVM management utility.
+
+The plug-in aggregates Coherence MBean data and shows a concise operational view of a single Coherence cluster.
+Some management information is presented over time, which allows real-time analysis and troubleshooting.
+
+NOTE: This version of the plugin requires VisualVM release 2.0.2 or later which is available from https://visualvm.github.io/.
+
+== Building the Plugin
+
+As the libraries required to build the VisualVM plugin are not hosted on Maven Central, the plugin is
+not built by default when building Coherence.
+
+To build the plugin is a two step process:
+
+1. Generate the VisualVM dependencies
+2. Build Coherence CE enabling the `visualvm` profile.
+
+=== Pre-requisites
+
+You must have the following:
+
+1. Java JDK 1.8
+2. Ant version >= 1.9.9
+3. Maven 3.6.3+
+4. Git
+
+=== Generate the VisualVM dependencies
+
+NOTE: These instructions have been summarized from https://github.com/oracle/visualvm/blob/release202/README.md.
+
+1. Checkout the VisualVM repository
++
+[source,shell]
+----
+$ git clone https://github.com/oracle/visualvm.git
+
+Cloning into 'visualvm'...
+----
+
+1. Checkout the `release202` branch
++
+[source,shell]
+----
+$ cd visualvm
+
+$ git checkout release202
+
+Switched to a new branch 'release202'
+----
+
+1. Unzip the NetBeans Platform 11
++
+[source,shell]
+----
+$ cd visualvm
+
+$ unzip nb111_platform_08102019.zip
+----
+
+1. Build the Plugins
++
+[source,shell]
+----
+$ ant build-zip
+----
+
+1. Unzip the artefacts
++
+[source,shell]
+----
+$ cd dist
+
+$ unzip visualvm.zip
+
+$ cd ..
+----
+
+1. Generate the NBM's
++
+[source,shell]
+----
+$ ant nbms
+----
+
+1. Install into the local repository
++
+[source,shell]
+----
+$ mvn -DnetbeansInstallDirectory=dist/visualvm   \
+    -DnetbeansNbmDirectory=build/updates   \
+    -DgroupIdPrefix=org.graalvm.visualvm  \
+    -DforcedVersion=RELEASE202  org.apache.netbeans.utilities:nb-repository-plugin:populate
+----
+
+NOTE: See https://github.com/oracle/visualvm/blob/release202/README.md[here] for instructions on how to
+push the artefacts to a remote Maven repository.
+
+=== Build the VisualVM Plugin
+
+NOTE: Ensure you change to a completely new directory to close the Coherence CE repository.
+
+1. Clone the Coherence CE repository
++
+[source,shell]
+----
+$ https://github.com/oracle/coherence.git
+----
+
+1. Build the Plugin
++
+[source,shell]
+----
+$ cd coherence/prj/coherence-jvisualvm
+
+$ mvn clean install -P visualvm
+----
+
+1. Install the Plugin
++
+The plugin will be available in the location `target/coherence-jvisualvm-{VERSION}.nbm`
+
+Follow the instructions https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-jmx-manage-oracle-coherence.html[here]
+to install the plugin.
+
+
+

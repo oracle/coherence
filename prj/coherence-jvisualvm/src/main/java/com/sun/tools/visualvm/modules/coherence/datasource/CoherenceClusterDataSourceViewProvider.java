@@ -6,11 +6,11 @@
  */
 package com.sun.tools.visualvm.modules.coherence.datasource;
 
-import com.sun.tools.visualvm.core.ui.DataSourceView;
-import com.sun.tools.visualvm.core.ui.DataSourceViewProvider;
-import com.sun.tools.visualvm.core.ui.DataSourceViewsManager;
-
 import com.sun.tools.visualvm.modules.coherence.VisualVMView;
+
+import org.graalvm.visualvm.core.ui.DataSourceView;
+import org.graalvm.visualvm.core.ui.DataSourceViewProvider;
+import org.graalvm.visualvm.core.ui.DataSourceViewsManager;
 
 /**
  * The {@link DataSourceViewProvider} for {@link CoherenceClusterDataSource}.

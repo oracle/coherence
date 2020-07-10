@@ -6,7 +6,6 @@
  */
 package com.sun.tools.visualvm.modules.coherence.panel;
 
-import com.sun.tools.visualvm.charts.SimpleXYChartSupport;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 import com.sun.tools.visualvm.modules.coherence.helper.GraphHelper;
 import com.sun.tools.visualvm.modules.coherence.helper.RenderHelper;
@@ -31,6 +30,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.List;
 import java.util.Map;
+
+import org.graalvm.visualvm.charts.SimpleXYChartSupport;
 
 /**
  * An implementation of an {@link AbstractCoherencePanel} to

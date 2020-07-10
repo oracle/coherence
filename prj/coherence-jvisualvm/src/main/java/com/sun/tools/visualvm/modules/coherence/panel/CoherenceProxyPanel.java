@@ -6,7 +6,6 @@
  */
 package com.sun.tools.visualvm.modules.coherence.panel;
 
-import com.sun.tools.visualvm.charts.SimpleXYChartSupport;
 import com.sun.tools.visualvm.modules.coherence.Localization;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 import com.sun.tools.visualvm.modules.coherence.helper.GraphHelper;
@@ -19,11 +18,9 @@ import com.sun.tools.visualvm.modules.coherence.tablemodel.model.ProxyData;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-
 import java.awt.event.KeyEvent;
 
 import java.util.List;
-
 import java.util.Map.Entry;
 
 import javax.swing.JCheckBox;
@@ -32,6 +29,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+
+import org.graalvm.visualvm.charts.SimpleXYChartSupport;
 
 /**
  * An implementation of an {@link AbstractCoherencePanel} to view

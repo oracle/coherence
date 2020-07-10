@@ -6,11 +6,9 @@
  */
 package com.sun.tools.visualvm.modules.coherence.panel;
 
-import com.sun.tools.visualvm.charts.SimpleXYChartSupport;
 import com.sun.tools.visualvm.modules.coherence.Localization;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 import com.sun.tools.visualvm.modules.coherence.helper.GraphHelper;
-import com.sun.tools.visualvm.modules.coherence.helper.JMXUtils;
 import com.sun.tools.visualvm.modules.coherence.helper.RenderHelper;
 import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
 import com.sun.tools.visualvm.modules.coherence.panel.util.AbstractMenuOption;
@@ -25,17 +23,12 @@ import com.sun.tools.visualvm.modules.coherence.tablemodel.model.ServiceMemberDa
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-
 import java.awt.event.ActionEvent;
 
 import java.util.List;
-
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
-
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -45,9 +38,10 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import org.graalvm.visualvm.charts.SimpleXYChartSupport;
 
 /**
  * An implementation of an {@link AbstractCoherencePanel} to

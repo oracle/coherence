@@ -6,22 +6,19 @@
  */
 package com.sun.tools.visualvm.modules.coherence.impl;
 
-import com.sun.tools.visualvm.coredump.impl.CoreDumpProvider;
 import com.sun.tools.visualvm.modules.coherence.Localization;
-
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
+
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-
 import java.awt.Insets;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -29,7 +26,6 @@ import javax.swing.event.DocumentListener;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.NbBundle;
 
 /**
  * The application configurator window, where a user will configure the parameters

@@ -6,12 +6,11 @@
  */
 package com.sun.tools.visualvm.modules.coherence.datasource;
 
-import com.sun.tools.visualvm.core.datasource.DataSource;
-
-import com.sun.tools.visualvm.core.datasource.Storage;
 import java.net.MalformedURLException;
-
 import java.net.URL;
+
+import org.graalvm.visualvm.core.datasource.DataSource;
+import org.graalvm.visualvm.core.datasource.Storage;
 
 /**
  * The {@link DataSource} for a single Coherence cluster.

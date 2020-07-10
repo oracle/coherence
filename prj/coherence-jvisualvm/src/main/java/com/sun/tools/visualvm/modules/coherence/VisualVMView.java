@@ -7,25 +7,12 @@
 package com.sun.tools.visualvm.modules.coherence;
 
 import com.sun.tools.visualvm.modules.coherence.datasource.CoherenceClusterDataSource;
-
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
 import com.sun.tools.visualvm.modules.coherence.helper.JMXRequestSender;
 import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
-
 import com.sun.tools.visualvm.modules.coherence.panel.CoherenceHttpProxyPanel;
-
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.ClusterData;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.Data;
-
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.util.RequestProcessor;
-import org.openide.util.Utilities;
-
-import com.sun.tools.visualvm.application.Application;
-import com.sun.tools.visualvm.core.options.GlobalPreferences;
-import com.sun.tools.visualvm.core.ui.DataSourceView;
-import com.sun.tools.visualvm.core.ui.components.DataViewComponent;
 import com.sun.tools.visualvm.modules.coherence.panel.CoherenceCachePanel;
 import com.sun.tools.visualvm.modules.coherence.panel.CoherenceClusterOverviewPanel;
 import com.sun.tools.visualvm.modules.coherence.panel.CoherenceElasticDataPanel;
@@ -37,11 +24,8 @@ import com.sun.tools.visualvm.modules.coherence.panel.CoherencePersistencePanel;
 import com.sun.tools.visualvm.modules.coherence.panel.CoherenceProxyPanel;
 import com.sun.tools.visualvm.modules.coherence.panel.CoherenceServicePanel;
 import com.sun.tools.visualvm.modules.coherence.panel.CoherenceFederationPanel;
-import com.sun.tools.visualvm.tools.jmx.JmxModel;
-import com.sun.tools.visualvm.tools.jmx.JmxModelFactory;
 
 import java.awt.Image;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -55,6 +39,18 @@ import javax.swing.ImageIcon;
 import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
+
+import org.graalvm.visualvm.application.Application;
+import org.graalvm.visualvm.core.options.GlobalPreferences;
+import org.graalvm.visualvm.core.ui.DataSourceView;
+import org.graalvm.visualvm.core.ui.components.DataViewComponent;
+import org.graalvm.visualvm.tools.jmx.JmxModel;
+import org.graalvm.visualvm.tools.jmx.JmxModelFactory;
+
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.util.RequestProcessor;
+import org.openide.util.Utilities;
 
 /**
  * The implementation of the {@link DataSourceView} for displaying the

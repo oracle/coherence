@@ -7,25 +7,18 @@
 
 package com.sun.tools.visualvm.modules.coherence.panel;
 
-import com.sun.tools.visualvm.charts.SimpleXYChartSupport;
-
 import com.sun.tools.visualvm.modules.coherence.Localization;
-
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
-
 import com.sun.tools.visualvm.modules.coherence.helper.GraphHelper;
 import com.sun.tools.visualvm.modules.coherence.helper.RenderHelper;
-
 import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
 import com.sun.tools.visualvm.modules.coherence.panel.util.AbstractMenuOption;
 import com.sun.tools.visualvm.modules.coherence.panel.util.ExportableJTable;
 import com.sun.tools.visualvm.modules.coherence.panel.util.MenuOption;
-
 import com.sun.tools.visualvm.modules.coherence.panel.util.SeparatorMenuOption;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.FederationTableModel;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.FederationInboundTableModel;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.FederationOutboundTableModel;
-
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.Data;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.FederationData;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.FederationDestinationDetailsData;
@@ -44,9 +37,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-
 import javax.swing.GroupLayout;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -56,9 +46,10 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import org.graalvm.visualvm.charts.SimpleXYChartSupport;
 
 /**
  * An implementation of an {@link AbstractCoherencePanel} to

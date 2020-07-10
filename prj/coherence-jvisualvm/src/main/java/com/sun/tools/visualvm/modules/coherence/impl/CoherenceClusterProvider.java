@@ -6,10 +6,6 @@
  */
 package com.sun.tools.visualvm.modules.coherence.impl;
 
-import com.sun.tools.visualvm.core.datasource.Storage;
-
-import com.sun.tools.visualvm.core.datasupport.Utils;
-
 import com.sun.tools.visualvm.modules.coherence.datasource.CoherenceClustersDataSource;
 import com.sun.tools.visualvm.modules.coherence.datasource.CoherenceClusterDataSource;
 
@@ -17,18 +13,17 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 import java.net.MalformedURLException;
-
 import java.net.URL;
 
 import java.util.HashSet;
-
 import java.util.Set;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.openide.util.RequestProcessor;
+import org.graalvm.visualvm.core.datasource.Storage;
+import org.graalvm.visualvm.core.datasupport.Utils;
 
+import org.openide.util.RequestProcessor;
 import org.openide.windows.WindowManager;
 
 /**
