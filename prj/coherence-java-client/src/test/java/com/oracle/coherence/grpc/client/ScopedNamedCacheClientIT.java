@@ -47,12 +47,20 @@ class ScopedNamedCacheClientIT
         clients.values()
                 .stream()
                 .flatMap(m -> m.values().stream())
-                .forEach(client -> {
-                if (client.isActiveInternal())
+                .forEach(client ->
                     {
-                    client.destroy().join();
-                    }
-                });
+                    try
+                        {
+                        if (client.isActiveInternal())
+                            {
+                            client.destroy().join();
+                            }
+                        }
+                    catch (Throwable t)
+                        {
+                        // ignored - we're done anyway
+                        }
+                    });
         serverHelper.shutdown();
         }
 
