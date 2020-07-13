@@ -58,9 +58,12 @@ public class CapitalizationTransformer
     @Override
     public String[] transform(String[] source)
         {
-        for (int i = 0; i < source.length; i++)
+        if (source != null)
             {
-            source[i] = transform(source[i]);
+            for (int i = 0; i < source.length; i++)
+                {
+                source[i] = transform(source[i]);
+                }
             }
 
         return source;

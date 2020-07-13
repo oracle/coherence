@@ -62,21 +62,23 @@ public class PrefixTransformer
     @Override
     public String[] transform(String[] source)
         {
-        String prefix = m_prefix;
-        if (m_mode == Mode.ADD && !prefix.equals(source[0]))
+        if (source != null && source.length > 0)
             {
-            String[] result = new String[source.length + 1];
-            result[0] = prefix;
-            System.arraycopy(source, 0, result, 1, source.length);
-            return result;
+            String prefix = m_prefix;
+            if (m_mode == Mode.ADD && !prefix.equals(source[0]))
+                {
+                String[] result = new String[source.length + 1];
+                result[0] = prefix;
+                System.arraycopy(source, 0, result, 1, source.length);
+                return result;
+                }
+            else if (prefix.equals(source[0]))
+                {
+                String[] result = new String[source.length - 1];
+                System.arraycopy(source, 1, result, 0, source.length - 1);
+                return result;
+                }
             }
-        else if (prefix.equals(source[0]))
-            {
-            String[] result = new String[source.length - 1];
-            System.arraycopy(source, 1, result, 0, source.length - 1);
-            return result;
-            }
-
         return source;
         }
 

@@ -41,7 +41,7 @@ public class ClassFileHandler
         public void importType(JavaType type, ClassNode source, Schema schema)
             {
             JavaTypeDescriptor jtd = JavaTypeDescriptor.fromInternal(source.name);
-            if (!jtd.isNameEqual(type.getParent().getDescriptor()))
+            if (jtd.getNamespace() == null || !jtd.isNameEqual(type.getParent().getDescriptor()))
                 {
                 type.setDescriptor(jtd);
                 }

@@ -27,7 +27,7 @@ public interface NameTransformer
     /**
      * Transform the specified source name components.
      *
-     * @param source  the source name components to transform
+     * @param source  the possibly null, possibly empty, source name components to transform
      *
      * @return the transformed name components
      */
