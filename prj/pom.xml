@@ -2096,19 +2096,6 @@
       <modules>
         <module>coherence-jvisualvm</module>
       </modules>
-
-      <!-- required for VisualVM -->
-      <repositories>
-        <repository>
-          <id>visualvm</id>
-          <name>VisualVM Repository</name>
-          <url>http://bits.netbeans.org/nexus/content/repositories/visualvm/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots/>
-        </repository>
-      </repositories>
     </profile>
 
     <profile>
