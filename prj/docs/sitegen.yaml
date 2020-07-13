@@ -65,7 +65,7 @@ backend:
                 type: "icon"
                 value: "import_contacts"
               href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
-            - title: "Coherence CE JavaDocs"
+            - title: "Coherence CE API Docs"
               glyph:
                 type: "icon"
                 value: "library_books"
