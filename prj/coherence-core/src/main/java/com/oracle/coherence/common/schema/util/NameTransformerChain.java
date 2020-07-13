@@ -68,9 +68,12 @@ public class NameTransformerChain
     public String[] transform(String[] source)
         {
         String[] result = source;
-        for (NameTransformer t : m_transformers)
+        if (result != null)
             {
-            result = t.transform(result);
+            for (NameTransformer t : m_transformers)
+                {
+                result = t.transform(result);
+                }
             }
         return result;
         }

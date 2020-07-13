@@ -580,9 +580,13 @@ public abstract class AbstractTypeDescriptor<T extends TypeDescriptor>
 
     // ---- data members ----------------------------------------------------
 
-    protected String[] m_namespace;
-    protected String   m_name;
-    protected boolean  m_fArray;
-    protected T        m_arrayType;
-    protected List<T>  m_genericArgs;
+    private final boolean m_fArray;
+
+    private final List<T> m_genericArgs;
+
+    private String[] m_namespace;
+
+    private String m_name;
+
+    private T m_arrayType;
     }

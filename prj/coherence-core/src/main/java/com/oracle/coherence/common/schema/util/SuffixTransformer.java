@@ -62,21 +62,23 @@ public class SuffixTransformer
     @Override
     public String[] transform(String[] source)
         {
-        String suffix = m_suffix;
-        if (m_mode == Mode.ADD && !suffix.equals(source[source.length - 1]))
+        if (source != null && source.length > 0)
             {
-            String[] result = new String[source.length + 1];
-            result[source.length] = suffix;
-            System.arraycopy(source, 0, result, 0, source.length);
-            return result;
+            String suffix = m_suffix;
+            if (m_mode == Mode.ADD && !suffix.equals(source[source.length - 1]))
+                {
+                String[] result = new String[source.length + 1];
+                result[source.length] = suffix;
+                System.arraycopy(source, 0, result, 0, source.length);
+                return result;
+                }
+            else if (suffix.equals(source[source.length - 1]))
+                {
+                String[] result = new String[source.length - 1];
+                System.arraycopy(source, 0, result, 0, source.length - 1);
+                return result;
+                }
             }
-        else if (suffix.equals(source[source.length - 1]))
-            {
-            String[] result = new String[source.length - 1];
-            System.arraycopy(source, 0, result, 0, source.length - 1);
-            return result;
-            }
-
         return source;
         }
 
