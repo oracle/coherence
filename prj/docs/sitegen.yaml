@@ -99,11 +99,11 @@ backend:
                 type: "icon"
                 value: "import_contacts"
               href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
-            - title: "Coherence CE JavaDocs"
+            - title: "Coherence CE API Docs"
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://oracle.github.io/coherence/20.06/api/index.html"
+              href: "https://oracle.github.io/coherence/20.06/java/api/index.html"
             - title: "Slack"
               glyph:
                 type: "icon"
