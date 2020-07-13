@@ -43,7 +43,7 @@ public class PortableTypeGeneratorTest
     public void shouldCreateSchemaForPackagedClass() throws Exception
         {
         String         sClassName   = PackagedType.class.getName();
-        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", File.separator) + ".class");
+        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", "/") + ".class");
         File           fileClass    = new File(url.toURI());
         Map<String, ?> env           = new HashMap<>();
 
@@ -55,7 +55,7 @@ public class PortableTypeGeneratorTest
     public void shouldInstrumentPackagedClass() throws Exception
         {
         String         sClassName   = PackagedType.class.getName();
-        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", File.separator) + ".class");
+        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", "/") + ".class");
         File           fileClass    = new File(url.toURI());
         byte[]         abBytes      = Files.readAllBytes(fileClass.toPath());
         Properties     properties   = new Properties();
