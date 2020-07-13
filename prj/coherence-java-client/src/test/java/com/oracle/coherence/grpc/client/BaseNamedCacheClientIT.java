@@ -1647,7 +1647,7 @@ abstract class BaseNamedCacheClientIT
     @SuppressWarnings("unchecked")
     void shouldReceiveDeactivationEvent(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events";
+        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1666,7 +1666,7 @@ abstract class BaseNamedCacheClientIT
     @SuppressWarnings("unchecked")
     void shouldReceiveTruncateEvent(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events";
+        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("foo", "bar");
@@ -1686,7 +1686,7 @@ abstract class BaseNamedCacheClientIT
     @SuppressWarnings("unchecked")
     void shouldReceiveTruncateAndDeactivationEvent(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events";
+        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "val-1");
@@ -1708,7 +1708,7 @@ abstract class BaseNamedCacheClientIT
     @MethodSource("serializers")
     void shouldAddPrimingListenerForExistingKey(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events";
+        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "val-1");
@@ -1738,7 +1738,7 @@ abstract class BaseNamedCacheClientIT
     @MethodSource("serializers")
     void shouldAddPrimingListenerForNonExistingKey(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events";
+        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
