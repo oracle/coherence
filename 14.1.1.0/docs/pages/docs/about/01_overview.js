@@ -91,7 +91,7 @@ distributed applications.</p>
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
-<a id="" title="" target="_blank" href="../api/index.html"><div class="card__link-hover"/>
+<a id="" title="" target="_blank" href="../api/java/index.html"><div class="card__link-hover"/>
 </a>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">
