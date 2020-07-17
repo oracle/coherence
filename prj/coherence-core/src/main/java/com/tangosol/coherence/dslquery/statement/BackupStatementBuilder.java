@@ -19,6 +19,8 @@ import com.tangosol.internal.util.MapBackupHelper;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.NullImplementation;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -110,7 +112,7 @@ public class BackupStatementBuilder
             try (RandomAccessFile file = new RandomAccessFile(new File(f_sFile), "rw"))
                 {
                 ConfigurableCacheFactory ccf   = ctx.getCacheFactory();
-                NamedCache cache = ccf.ensureTypedCache(f_sCache, null, withoutTypeChecking());
+                NamedCache cache = ccf.ensureTypedCache(f_sCache, NullImplementation.getClassLoader(), withoutTypeChecking());
 
                 MapBackupHelper.writeMap(file, cache);
                 }
