@@ -18,6 +18,8 @@ import com.tangosol.internal.util.MapBackupHelper;
 
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.NullImplementation;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -108,7 +110,7 @@ public class RestoreStatementBuilder
             try (RandomAccessFile file = new RandomAccessFile(new File(f_sFile), "rw"))
                 {
                 NamedCache cache = ctx.getCacheFactory()
-                        .ensureTypedCache(f_sCacheName, null, withoutTypeChecking());
+                        .ensureTypedCache(f_sCacheName, NullImplementation.getClassLoader(), withoutTypeChecking());
 
                 MapBackupHelper.readMap(file, cache, 0, null);
                 }

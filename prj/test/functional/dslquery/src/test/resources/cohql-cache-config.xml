@@ -17,7 +17,7 @@
     </cache-mapping>
 
     <cache-mapping>
-      <cache-name>dist-people</cache-name>
+      <cache-name>dist-people*</cache-name>
       <scheme-name>${coherence.profile near}-${coherence.client direct}</scheme-name>
       <key-type>java.lang.String</key-type>
       <value-type>data.pof.PortablePerson</value-type>
