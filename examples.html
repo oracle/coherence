@@ -4,17 +4,16 @@
 <!--[if gt IE 9]><!-->	<html> <!--<![endif]-->
 	<head>
 		<meta charset="utf-8" />
-		<title>Epona - Multipurpose Template</title>
+		<title>Coherence Community: Examples</title>
 		<meta name="keywords" content="HTML5,CSS3,Template" />
-		<meta name="description" content="" />
-		<meta name="Author" content="Dorin Grigoras [www.stepofweb.com]" />
+		<meta name="description" content="Oracle Coherence Examples" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
 		<!-- mobile settings -->
 		<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=0" />
 
 		<!-- Favicon -->
-		<link rel="shortcut icon" href="assets/images/demo/favicon.ico" />
+		<link rel="shortcut icon" href="assets/images/favicon.ico" />
 
 		<!-- WEB FONTS -->
 		<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700,800&amp;subset=latin,latin-ext,cyrillic,cyrillic-ext" rel="stylesheet" type="text/css" />
@@ -37,7 +36,7 @@
 		<!-- THEME CSS -->
 		<link href="assets/css/essentials.css" rel="stylesheet" type="text/css" />
 		<link href="assets/css/layout.css" rel="stylesheet" type="text/css" />
-		<link href="assets/css/header-default.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/header-transparent.css" rel="stylesheet" type="text/css" />
 		<link href="assets/css/footer-default.css" rel="stylesheet" type="text/css" />
 		<link href="assets/css/color_scheme/red.css" rel="stylesheet" type="text/css" id="color_scheme" />
 
@@ -48,67 +47,36 @@
 			<script src="assets/plugins/respond.js"></script>
 		<![endif]-->
 	</head>
-	
-	<!-- 
-		Available body classes: 
+
+	<!--
+		Available body classes:
 			smoothscroll			= enable chrome browser smooth scroll
 			grey 					= grey content background
 			boxed 					= boxed style
 			pattern1 ... pattern10 	= background pattern
 
-		Background Image - add to body: 
+		Background Image - add to body:
 			data-background="assets/images/boxed_background/1.jpg"
 	-->
-	<body class="smoothscroll">
+	<body class="smoothscroll pattern6">
 
 		<div id="wrapper">
 
-			<div id="header"><!-- class="sticky" for sticky menu -->
-
-				<!-- Top Bar -->
-				<header id="topBar">
-					<div class="container">
-
-						<div class="pull-right fsize13 margin-top10 hide_mobile">
-
-							<!-- mail , phone -->
-							<a href="mailto:mail@yourdomain.com">mail@domain.com</a> &bull; 1800-555-1234 
-
-							<div class="block text-right"><!-- social -->
-								<a href="#" class="social fa fa-facebook"></a>
-								<a href="#" class="social fa fa-twitter"></a>
-								<a href="#" class="social fa fa-google-plus"></a>
-								<a href="#" class="social fa fa-linkedin"></a>
-								<a href="#" class="social fa fa-pinterest"></a>
-							</div><!-- /social -->
-
-						</div>
-
-						<!-- Logo -->
-						<a class="logo" href="index.html">
-							<img src="assets/images/logo.png" height="50" alt="" />
-						</a>
-
-					</div><!-- /.container -->
-				</header>
-				<!-- /Top Bar -->
-
+			<header id="header">
 
 				<!-- Top Nav -->
 				<header id="topNav">
 					<div class="container">
 
+						<!-- Logo -->
+						<a class="logo" href="index.html">
+							<img src="assets/images/logo-red.png" height="50" alt="" />
+						</a>
+
 						<!-- Mobile Menu Button -->
 						<button class="btn btn-mobile" data-toggle="collapse" data-target=".nav-main-collapse">
 							<i class="fa fa-bars"></i>
 						</button>
-
-						<!-- Search -->
-						<form class="search" method="get" action="page-search.html">
-							<input type="text" class="form-control" name="s" value="" placeholder="Search">
-							<button class="fa fa-search"></button>
-						</form>
-						<!-- /Search -->
 
 						<!-- Top Nav -->
 						<div class="navbar-collapse nav-main-collapse collapse">
@@ -116,344 +84,41 @@
 
 								<!--
 									NOTE
-									
+
 									For a regular link, remove "dropdown" class from LI tag and "dropdown-toggle" class from the href.
-									Direct Link Example: 
+									Direct Link Example:
 
 									<li>
 										<a href="#">HOME</a>
 									</li>
 								-->
-								<ul id="topMain" class="nav nav-pills nav-main">
-									<li class="mega-menu dropdown">
-										<a class="dropdown-toggle" href="#">
-											HOME <span>welcome</span>
-										</a>
-										<ul class="dropdown-menu">
-											<li>
-												<div class="row">
-													<div class="col-md-4">
-														<h3>Home Samples #1</h3>
-														<ul>
-															<li><a href="index.html"><i class="fa fa-angle-right"></i> Home Version 1</a></li>
-															<li><a href="index-home-2.html"><i class="fa fa-angle-right"></i> Home Version 2</a></li>
-															<li><a href="index-home-3.html"><i class="fa fa-angle-right"></i> Home Version 3</a></li>
-															<li><a href="index-home-4.html"><i class="fa fa-angle-right"></i> Home Version 4</a></li>
-															<li><a href="index-home-5.html"><i class="fa fa-angle-right"></i> Home Version 5</a></li>
-															<li><a href="index-home-6.html"><i class="fa fa-angle-right"></i> Home Version 6</a></li>
-														</ul>
-													</div>
-													<div class="col-md-4">
-														<h3>Home Samples #2</h3>
-														<ul>
-															<li><a href="index-home-7.html"><i class="fa fa-angle-right"></i> Home Version 7</a></li>
-															<li><a href="index-home-8.html"><i class="fa fa-angle-right"></i> Home Version 8</a></li>
-															<li><a href="index-home-9.html"><i class="fa fa-angle-right"></i> Home Version 9</a></li>
-															<li><a href="index-home-10.html"><i class="fa fa-angle-right"></i> Home Version 10</a></li>
-															<li><a href="index-home-11.html"><i class="fa fa-angle-right"></i> Home Version 11</a></li>
-															<li><a href="index-home-12.html"><i class="fa fa-angle-right"></i> Home Version 12</a></li>
-															<li><a href="index-home-13.html"><i class="fa fa-angle-right"></i><span class="label label-danger pull-right">new</span> Home Left Main Menu</a></li>
-														</ul>
-													</div>
-													<div class="col-md-4">
-														<h3>Home Samples #3</h3>
-														<ul>
-															<li><a href="shop-home-1.html"><i class="fa fa-angle-right"></i> Home Shop</a></li>
-															<li><a href="portfolio-home-1.html"><i class="fa fa-angle-right"></i> Home Portfolio</a></li>
-															<li><a href="blog-home-1.html"><i class="fa fa-angle-right"></i> Home Blog</a></li>
-															<li><a href="magazine-home-1.html"><i class="fa fa-angle-right"></i> Home Magazine</a></li>
-															<li><a href="onepage.html"><i class="fa fa-angle-right"></i> Onepage Parallax</a></li>
-															<li><a href="index-why.html"><i class="fa fa-angle-right"></i> <b>Why Choose Epona?</b></a></li>
-														</ul>
-													</div>
-												</div>
-											</li>
-										</ul>
+								<ul id="topMain" class="nav nav-pills nav-main white"><!-- add "white" class if you want white menu text color-->
+									<li>
+										<a href="index.html#overview">Overview</a>
 									</li>
-									<li class="dropdown mega-menu">
-										<a class="dropdown-toggle" href="#">PAGES <span>preview</span></a>
-										<ul class="dropdown-menu">
-											<li>
-												<div class="row">
-													<div class="col-md-3">
-														<h3>Page Samples #1</h3>
-														<ul>
-															<li><a href="page-about-basic.html"><i class="fa fa-angle-right"></i> About Basic</a></li>
-															<li><a href="page-about-us.html"><i class="fa fa-angle-right"></i> About Us</a></li>
-															<li><a href="page-about-me.html"><i class="fa fa-angle-right"></i> About Me</a></li>
-															<li><a href="page-about-team.html"><i class="fa fa-angle-right"></i> About Our Team</a></li>
-															<li><a href="page-services.html"><i class="fa fa-angle-right"></i> Services</a></li>
-															<li><a href="page-careers.html"><i class="fa fa-angle-right"></i> Careers</a></li>
-															<li><a href="page-gallery.html"><i class="fa fa-angle-right"></i> Gallery</a></li>
-															<li><a href="page-article.html"><i class="fa fa-angle-right"></i> Article Page</a></li>
-															<li><a href="page-faq.html"><i class="fa fa-angle-right"></i> FAQ</a></li>
-															<li><a href="page-clients.html"><span class="label label-default pull-right">new</span> <i class="fa fa-angle-right"></i> Clients</a></li>
-														</ul>
-													</div>
-													<div class="col-md-3">
-														<h3>Page Samples #2</h3>
-														<ul>
-															<li><a href="page-timeline-centered.html"><i class="fa fa-angle-right"></i> Timeline Centered</a></li>
-															<li><a href="page-timeline-left.html"><i class="fa fa-angle-right"></i> Timeline Left</a></li>
-															<li><a href="page-timeline-right.html"><i class="fa fa-angle-right"></i> Timeline Right</a></li>
-															<li><a href="page-custom-header.html"><i class="fa fa-angle-right"></i> Custom Header</a></li>
-															<li><a href="page-invoice.html"><i class="fa fa-angle-right"></i> Invoice</a></li>
-															<li><a href="page-login.html"><i class="fa fa-angle-right"></i> Login/Register</a></li>
-															<li><a href="page-account-settings.html"><i class="fa fa-angle-right"></i> Account Settings</a></li>
-															<li><a href="page-search.html"> <span class="label label-default pull-right">new</span><i class="fa fa-angle-right"></i> Search Result</a></li>
-															<li><a href="page-user-profile.html"> <span class="label label-default pull-right">new</span><i class="fa fa-angle-right"></i> User Profile</a></li>
-														</ul>
-													</div>
-													<div class="col-md-3">
-														<h3>Page Samples #3</h3>
-														<ul>
-															<li><a href="page-pricing-standard.html"><i class="fa fa-angle-right"></i> Pricing Standard</a></li>
-															<li><a href="page-pricing-expanded.html"><i class="fa fa-angle-right"></i> Pricing Expanded</a></li>
-															<li><a href="page-empty.html"><i class="fa fa-angle-right"></i> Empty Page</a></li>
-															<li><a href="page-full.html"><i class="fa fa-angle-right"></i> Page Full Width</a></li>
-															<li><a href="page-left-sidebar.html"><i class="fa fa-angle-right"></i> Page Left Sidebar</a></li>
-															<li><a href="page-right-sidebar.html"><i class="fa fa-angle-right"></i> Page Right Sidebar</a></li>
-															<li><a href="page-side-navigation.html"><i class="fa fa-angle-right"></i> Side Navigation</a></li>
-														</ul>
-													</div>
-													<div class="col-md-3">
-														<h3>Page Samples #4</h3>
-														<ul>
-															
-															<li><a href="page-maintenance.html"><i class="fa fa-angle-right"></i> Maintenance</a></li>
-															<li><a href="page-coming-soon.html"><i class="fa fa-angle-right"></i> Coming Soon</a></li>
-															<li><a href="page-privacy.html"><i class="fa fa-angle-right"></i> Privacy Policy</a></li>
-															<li><a href="page-terms.html"><i class="fa fa-angle-right"></i> Terms Of Services</a></li>
-															<li><a href="page-404.html"><i class="fa fa-angle-right"></i> 404 Error</a></li>
-															<li><a href="page-sitemap.html"><i class="fa fa-angle-right"></i> Sitemap</a></li>
-															<li><a href="email.html"><i class="fa fa-star-o"></i> Email Template</a></li>
-														</ul>
-													</div>
-												</div>
-											</li>
-										</ul>
+									<li>
+										<a href="index.html#features">Features</a>
+									</li>
+									<li>
+										<a href="index.html#quickstart">Quick Start</a>
+									</li>
+									<li class="active">
+										<a href="#">Examples</a>
 									</li>
 									<li class="dropdown">
-										<a class="dropdown-toggle" href="#">FEATURES <span>components</span></a>
+										<a class="dropdown-toggle" href="#">Documentation</a>
 										<ul class="dropdown-menu">
-											<li>
-												<a class="dropdown-toggle" href="#"><i class="fa fa-heart-o"></i> Headers</a>
-												<ul class="dropdown-menu">
-													<li><a href="feature-header-transparent.html">Transparent Header</a></li>
-													<li><a href="feature-header-translucent.html">Translucent Header</a></li>
-													<li><a href="feature-header-below-slider.html">Header Below Slider</a></li>
-													<li><a href="feature-header-sticky.html">Sticky Header</a></li>
-													<li><a href="feature-header-1.html">Header #1 (default)</a></li>
-													<li><a href="feature-header-2.html">Header #2</a></li>
-													<li><a href="feature-header-3.html">Header #3</a></li>
-													<li><a href="feature-header-4.html">Header #4</a></li>
-													<li><a href="feature-header-5.html">Header #5</a></li>
-												</ul>
-											</li>
-											<li>
-												<a class="dropdown-toggle" href="#"><i class="fa fa-heart-o"></i> Footers</a>
-												<ul class="dropdown-menu">
-													<li><a href="feature-footer-1.html#footer">Footer #1 (default)</a></li>
-													<li><a href="feature-footer-2.html#footer">Footer #2</a></li>
-													<li><a href="feature-footer-3.html#footer">Footer #3</a></li>
-													<li><a href="feature-footer-4.html#footer">Footer #4</a></li>
-													<li><a href="feature-footer-5.html#footer">Footer #5</a></li>
-												</ul>
-											</li>
-											<li>
-												<a class="dropdown-toggle" href="#"><i class="fa fa-heart"></i> Sliders</a>
-												<ul class="dropdown-menu">
-													<li>
-														<a class="dropdown-toggle" href="#">Revolution Slider</a>
-														<ul class="dropdown-menu">
-															<li><a href="slider-revolution-fixed-width.html">Fixed Width</a></li>
-															<li><a href="slider-revolution-full-width.html">Full Width</a></li>
-															<li><a href="slider-revolution-full-screen.html">Full Screen</a></li>
-															<li><a href="slider-revolution-video-gallery.html">Video Gallery</a></li>
-															<li><a href="slider-revolution-captions.html">Captions</a></li>
-															<li><a href="slider-revolution-thumbnav-small.html">Thumbnails Nav - Small</a></li>
-															<li><a href="slider-revolution-thumbnav-large.html">Thumbnails Nav - Large</a></li>
-															<li><a href="../Documentation/Revolution_Slider/editor/00.Editor-Captions.html" target="_blank" rel="nofollow"><i class="fa fa-pencil-square-o"></i> <em>Captions Editor</em></a></li>
-															<li><a href="../Documentation/Revolution_Slider/editor/01.Editor-Transitions.html" target="_blank" rel="nofollow"><i class="fa fa-pencil-square-o"></i> <em>Transitions Editor</em></a></li>
-														</ul>
-													</li>
-													<li>
-														<a class="dropdown-toggle" href="#">Layer Slider</a>
-														<ul class="dropdown-menu">
-															<li><a href="slider-layer-full-width.html">Full Width</a></li>
-															<li><a href="slider-layer-fixed-width.html">Fixed Width</a></li>
-															<li><a href="slider-layer-captions.html">Captions</a></li>
-															<li><a href="slider-layer-video-gallery.html">Video Gallery</a></li>
-															<li><a href="slider-layer-carousel.html">Carousel</a></li>
-															<li><a href="slider-layer-3d-transitions.html">2D &amp; 3D Transitions</a></li>
-															<li><a href="slider-layer-thumbnav.html">Thumbnails Nav</a></li>
-														</ul>
-													</li>
-													<li>
-														<a class="dropdown-toggle" href="#">Flex Slider</a>
-														<ul class="dropdown-menu">
-															<li><a href="slider-flex-fixed-width.html">Fixed Width</a></li>
-															<li><a href="slider-flex-full-width.html">Full Width</a></li>
-															<li><a href="slider-flex-carousel.html">Carousel</a></li>
-															<li><a href="slider-flex-video-gallery.html">Video Gallery</a></li>
-															<li><a href="slider-flex-thumbnav.html">Thumbnails Nav</a></li>
-														</ul>
-													</li>
-													<li>
-														<a class="dropdown-toggle" href="#">OWL Carousel</a>
-														<ul class="dropdown-menu">
-															<li><a href="slider-owl-full-width.html">Full Width</a></li>
-															<li><a href="slider-owl-fixed-width.html">Fixed Width</a></li>
-															<li><a href="slider-owl-fixed-progress.html">Fixed Width + Progress</a></li>
-															<li><a href="slider-owl-carousel.html">Carousel</a></li>
-															<li><a href="slider-owl-fade.html">Effect: Fade</a></li>
-															<li><a href="slider-owl-backslide.html">Effect: Back Slide</a></li>
-															<li><a href="slider-owl-godown.html">Effect: Go Down</a></li>
-															<li><a href="slider-owl-fadeup.html">Effect: Fade Up</a></li>
-														</ul>
-													</li>
-												</ul>
-											</li>
-											<li>
-												<a class="dropdown-toggle" href="#"><i class="fa fa-code"></i> Shortcodes</a>
-												<ul class="dropdown-menu">
-													<li><a href="shortcodes-counters.html">Counters</a></li>
-													<li><a href="shortcodes-toggles.html">Toggles</a></li>
-													<li><a href="shortcodes-forms-bootstrap.html">Forms</a></li>
-													<li><a href="shortcodes-tables-default.html"><span class="label label-warning pull-right">New</span> Tables</a></li>
-													<li><a href="shortcodes-buttons-default.html">Buttons</a></li>
-													<li><a href="shortcodes-html-editor.html"><span class="label label-warning pull-right">New</span> HTML Editors</a></li>
-													<li><a href="shortcodes-tabs-and-accordions.html">Tabs &amp; Accordions</a></li>
-													<li><a href="shortcodes-callouts.html">Callouts</a></li>
-													<li><a href="shortcodes-dividers.html">Dividers</a></li>
-													<li><a href="shortcodes-lightbox.html">Lightbox</a></li>
-													<li><a href="shortcodes-icons-and-boxes.html">Icons &amp; Boxes</a></li>
-													<li><a href="shortcodes-carousel.html">Carousel</a></li>
-													<li><a href="shortcodes-progress-bars.html">Progress Bars</a></li>
-													<li><a href="shortcodes-alerts.html">Alerts</a></li>
-													<li><a href="shortcodes-video.html">Video &amp; Audio</a></li>
-													<li><a href="shortcodes-tooltips-and-popover.html">Tooltips &amp; Popovers</a></li>
-													<li><a href="shortcodes-modals.html">Modals</a></li>
-													<li><a href="shortcodes-thumbnails.html">Thumbnails</a></li>
-													<li><a href="shortcodes-testimonials.html">Testimonials</a></li>
-												</ul>
-											</li>
-											<li>
-												<a class="dropdown-toggle" href="#">Icons</a>
-												<ul class="dropdown-menu">
-													<li><a href="feature-icons-fontawsome.html">Font Awsome</a></li>
-													<li><a href="feature-icons-glyphicons.html">Glyphicons Icons</a></li>
-													<li><a href="feature-icons-weather.html">Weather Icons</a></li>
-													<li><a href="feature-icons-linecons.html">Linecons Icons</a></li>
-												</ul>
-											</li>
-											<li>
-												<a class="dropdown-toggle" href="#">Maps</a>
-												<ul class="dropdown-menu">
-													<li><a href="feature-maps-google.html">Google Maps</a></li>
-													<li><a href="feature-maps-vectorial.html">Vectorial Maps</a></li>
-												</ul>
-											</li>
-											<li><a href="feature-animations.html">Animations</a></li>
-											<li><a href="feature-grid.html">Grid System</a></li>
-											<li><a href="feature-typography.html">Typography</a></li>
-											<li>
-												<a class="dropdown-toggle" href="#"><b>Infinite Menu</b></a>
-												<ul class="dropdown-menu">
-													<li><a href="#">Menu Level 2</a></li>
-													<li>
-														<a class="dropdown-toggle" href="#">Menu Level 2</a>
-														<ul class="dropdown-menu">
-															<li><a href="#">Menu Level 3</a></li>
-															<li>
-																<a class="dropdown-toggle" href="#">Menu Level 3</a>
-																<ul class="dropdown-menu">
-																	<li><a href="#">Menu Level 4</a></li>
-																	<li>
-																		<a class="dropdown-toggle" href="#">Menu Level 4</a>
-																		<ul class="dropdown-menu">
-																			<li><a href="#">Menu Level 5</a></li>
-																			<li><a href="#">! INFINITE LEVELS !</a></li>
-																		</ul>
-																	</li>
-																</ul>
-															</li>
-														</ul>
-													</li>
-												</ul>
-											</li>
-										</ul>
-									</li>
-									<li class="dropdown active">
-										<a class="dropdown-toggle" href="#">PORTFOLIO <span>projects</span></a>
-										<ul class="dropdown-menu">
-											<li><a href="portfolio-2-columns.html">2 Columns</a></li>
-											<li><a href="portfolio-3-columns.html">3 Columns</a></li>
-											<li><a href="portfolio-4-columns.html">4 Columns</a></li>
+											<li><a href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html" target="_blank"><i class="fa fa-external-link"></i> Official Documentation (all editions)</a></li>
 											<li class="divider"></li>
-											<li class="active"><a href="portfolio-single-basic.html">Single Basic</a></li>
-											<li><a href="portfolio-single-slider.html">Single Full Slider</a></li>
+											<li><a href="14.1.1.0/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 14.1.1 Documentation</a></li>
+											<li><a href="20.06/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 20.06 Documentation</a></li>
 										</ul>
 									</li>
-									<li class="dropdown">
-										<a class="dropdown-toggle" href="#">BLOG <span>recent news</span></a>
-										<ul class="dropdown-menu">
-											<li><a href="blog-sidebar-left.html">Blog Sidebar Left</a></li>
-											<li><a href="blog-sidebar-right.html">Blog Sidebar Right</a></li>
-											<li><a href="blog-without-sidebar.html">Blog Without Sidebar</a></li>
-											<li class="divider"></li>
-											<li><a href="blog-single-sidebar.html">Blog Single With Sidebar</a></li>
-											<li><a href="blog-single-without-sidebar.html">Blog Single Without Sidebar</a></li>
-										</ul>
+									<li>
+										<a href="https://medium.com/oracle-coherence" target="_blank"><i class="fa fa-medium"></i> Blog</a>
 									</li>
-									<li class="dropdown mega-menu">
-										<a class="dropdown-toggle" href="#">SHOP <span>our products</span></a>
-										<ul class="dropdown-menu">
-											<li>
-												<div class="row">
-													<div class="col-md-4">
-														<h3>Shop Pages</h3>
-														<ul>
-															<li><a href="shop-page-full.html"><i class="fa fa-angle-right"></i> Shop Full Width</a></li>
-															<li><a href="shop-page-full-product.html"><i class="fa fa-angle-right"></i> Shop Product Full Width</a></li>
-															<li><a href="shop-page-sidebar.html"><i class="fa fa-angle-right"></i> Shop Sidebar</a></li>
-															<li><a href="shop-page-sidebar-product.html"><i class="fa fa-angle-right"></i> Shop Product Sidebar</a></li>
-															<li><a href="shop-page-cart.html"><i class="fa fa-angle-right"></i> Shop Cart</a></li>
-															<li><a href="shop-page-checkout.html"><i class="fa fa-angle-right"></i> Shop Checkout</a></li>
-															<li><a href="shop-page-order-history.html"><i class="fa fa-angle-right"></i> Order History</a></li>
-															<li><a href="shop-page-order-history-summary.html"><i class="fa fa-angle-right"></i> Order History Summary</a></li>
-															<li><a href="page-invoice.html"><i class="fa fa-angle-right"></i> Invoice</a></li>
-														</ul>
-													</div>
-													<div class="col-md-4">
-														<h3>Shop Components</h3>
-														<ul>
-															<li><a href="shop-components-featured-slider.html"><i class="fa fa-certificate"></i> Featured Slider</a></li>
-															<li><a href="shop-components-featured-products.html"><i class="fa fa-trophy"></i> Featured Products</a></li>
-															<li><a href="shop-components-product-carousel.html"><i class="fa fa-code"></i> Product Carousel</a></li>
-															<li><a href="shop-components-product-categories.html"><i class="fa fa-tags"></i> Product Categories</a></li>
-															<li><a href="page-login.html"><i class="fa fa-user"></i> Login/Register</a></li>
-															<li><a href="page-account-settings.html"><i class="fa fa-key"></i> Account Settings</a></li>
-														</ul>
-													</div>
-													<div class="col-md-4">
-														<h3>Widgetized</h3>
-														<img class="img-responsive" src="assets/images/demo/desktop.png" alt="" />
-														<p>Epona Megamenu can be 1-4 columns, full width, including widgetized images.</p>
-													</div>
-												</div>
-											</li>
-										</ul>
-									</li>
-									<li class="dropdown">
-										<a class="dropdown-toggle" href="#">CONTACT <span>write us</span></a>
-										<ul class="dropdown-menu">
-											<li><a href="contact-1.html">Contact Version 1</a></li>
-											<li><a href="contact-2.html">Contact Version 2</a></li>
-											<li><a href="contact-3.html">Contact Version 3</a></li>
-											<li><a href="contact-4.html">Contact Version 4</a></li>
-											<li><a href="contact-5.html">Contact Version 5</a></li>
-										</ul>
+									<li>
+										<a href="https://github.com/oracle/coherence" target="_blank"><i class="fa fa-github"></i> Code</a>
 									</li>
 								</ul>
 
@@ -465,73 +130,145 @@
 				</header>
 				<!-- /Top Nav -->
 
+			</header>
+
+
+			<!-- REVOLUTION SLIDER -->
+			<div class="slider fullwidthbanner-container roundedcorners">
+				<div class="fullwidthbanner" data-height="650">
+					<ul class="hide">
+
+						<!-- SLIDE  -->
+						<li data-transition="fade" data-slotamount="14"  data-masterspeed="300" data-delay="10000">
+
+							<!-- COVER IMAGE -->
+							<img src="assets/images/1x1.png" data-lazyload="assets/images/wall.jpg" alt="" data-bgfit="cover" data-bgposition="left top" data-bgrepeat="no-repeat" />
+
+							<div class="tp-caption modern_medium_fat_white lfl stl"
+								data-x="60"
+								data-y="300"
+								data-speed="300"
+								data-start="500"
+								data-easing="easeOutExpo">PREFER TO LEARN FROM
+							</div>
+
+							<div class="tp-caption large_bold_white sft stb"
+								data-x="60"
+								data-y="323"
+								data-speed="300"
+								data-start="1000"
+								data-easing="easeOutExpo">EXAMPLES?
+							</div>
+
+							   <div class="tp-caption lfl stl medium_light_white"
+								   data-x="950"
+								   data-y="80"
+								   data-speed="3000"
+								   data-start="2000"
+								   data-easing="easeOutExpo"><img src="assets/images/sockshop-ui-2.png" width="400" alt="" />
+							   </div>
+							<div class="tp-caption sfb medium_light_white"
+								data-x="620"
+								data-y="220"
+								data-speed="2000"
+								data-start="2000"
+								data-easing="easeOutExpo"><img src="assets/images/coherence-demo.png" width="500" alt="" />
+							</div>
+
+							   <div class="tp-caption medium_light_white sft stb"
+								   data-x="60"
+								   data-y="400"
+								   data-speed="500"
+								   data-start="3000"
+								   data-easing="easeOutExpo">From simple ones, to complete apps
+							   </div>
+
+						</li>
+						<!-- /SLIDE -->
+
+					</ul>
+
+					<div class="tp-bannertimer"></div>
+				</div>
 			</div>
-
-
-			<!-- PAGE TOP -->
-			<section class="page-title">
-				<div class="container">
-
-					<header>
-
-						<ul class="breadcrumb"><!-- breadcrumb -->
-							<li><a href="#">Pages</a></li>
-							<li class="active">Portfolio Single Basic</li>
-						</ul><!-- /breadcrumb -->
-
-						<h2><!-- Page Title -->
-							<strong>Portfolio</strong> Single Basic
-						</h2><!-- /Page Title -->
-
-					</header>
-
-				</div>			
-			</section>
-			<!-- /PAGE TOP -->
-
+			<!-- /REVOLUTION SLIDER -->
 
 
 			<!-- CONTENT -->
 			<section>
 				<div class="container">
 
+					<h2>Featured <strong>Examples</strong></h2>
+					<hr/>
+					
 					<div class="row">
 						<div class="col-sm-6 col-md-7">
-							<div class="owl-carousel controlls-over product-image" data-plugin-options='{"items": 1, "singleItem": true, "navigation": true, "pagination": true, "transitionStyle":"fadeUp"}'>
-								<div>
-									<img alt="" class="img-responsive" src="assets/images/demo/portfolio/a1.jpg">
-								</div>
-								<div>
-									<img alt="" class="img-responsive" src="assets/images/demo/portfolio/a3.jpg">
-								</div>
+							<!-- VIDEO -->
+							<div class="embed-responsive embed-responsive-16by9">
+								<iframe class="embed-responsive-item" width="800" src="https://www.youtube.com/embed/dbegsSXKkoI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 							</div>
-
+							<!-- /VIDEO -->
 						</div>
 
 						<div class="col-sm-6 col-md-5">
 
-							<h3>Mobile Project</h3>
-							<p>In et massa a massa egestas suscipit tincidunt ut est. Curabitur rutrum faucibus elit, at convallis diam mattis eget. Aliquam scelerisque erat a felis dignissim, a consequat tortor rhoncus. Nullam vulputate nibh at nisi consectetur, nec rutrum nunc iaculis.</p>
+							<h3>Helidon <strong>Sock Shop</strong></h3>
+							<p>Our flagship example application shows you not only how easy it is to develop Coherence-based microservices
+							with Helidon, but also how to deploy them to Kubernetes using Coherence Operator, and monitor them using Prometheus, Grafana and Jaeger.</p>
+
+							<p>Coherence is one of several back end implementations (the other being Mongo, Redis and MySQL), which allows you to compare
+							different back ends both from development and operational perspective. We are confident you will find Coherence back end
+							the simplest one to write, and by far the simplest one to monitor and manage at scale.</p>
 
 							<ul class="list-icon star-o">
-								<li>Branding</li>
-								<li>HTML/CSS</li>
-								<li>Illustration</li>
-								<li>Photography</li>
+								<li>Integration with Helidon</li>
+								<li>Event-driven Processing</li>
+								<li>Deployment to Kubernetes</li>
+								<li>Prometheus and Grafana Integration</li>
+								<li>OpenTracing Support</li>
 							</ul>
 
-							<a href="#" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-external-link"></i> Live Preview</a>
+							<a href="https://github.com/helidon-sockshop/sockshop/" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> View on GitHub</a>
 						</div>
 					</div>
 
+					<hr/>
 
-					<hr />
+					<div class="row">
+						<div class="col-sm-6 col-md-7">
+							<!-- VIDEO -->
+							<div class="embed-responsive embed-responsive-16by9">
+								<iframe class="embed-responsive-item" width="800" src="https://www.youtube.com/embed/f9JHafygfUE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+							</div>
+							<!-- /VIDEO -->
+						</div>
 
-					<!-- RELATED -->
-					<h2><strong>Related</strong> Projects</h2>
+						<div class="col-sm-6 col-md-5">
+
+							<h3>Coherence <strong>Demo</strong></h3>
+							<p>The main "pure" Coherence demo application showcases many general features, as well as scalability and HA capabilities of Coherence:</p>
+
+							<ul class="list-icon star-o">
+								<li>Clustering and Data Sharding</li>
+								<li>Scalability and High Availability</li>
+								<li>Persistence to Disk</li>
+								<li>Parallel Queries and Aggregation</li>
+								<li>In-Place Processing</li>
+								<li>Multi-Data Center Federation (Grid Edition feature only)</li>
+								<li>OpenTracing Support</li>
+							</ul>
+
+							<a href="https://github.com/coherence-community/coherence-demo/" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> View on GitHub</a>
+						</div>
+					</div>
+
+					<!--
+					<hr/>
+
+					<h2>Additional <strong>Examples</strong></h2>
 					<div class="row">
 
-						<div class="col-md-3"><!-- item 1 -->
+						<div class="col-md-3">
 							<div class="item-box">
 								<figure>
 									<a class="item-hover" href="portfolio-single-basic.html">
@@ -544,13 +281,13 @@
 									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a3.jpg" width="260" height="260" alt="">
 								</figure>
 								<div class="item-box-desc">
-									<h4>Atropos Project</h4>
+									<h4>To Do List</h4>
 									<small class="styleColor">29 June, 2014</small>
 								</div>
 							</div>
 						</div>
 
-						<div class="col-md-3"><!-- item 2 -->
+						<div class="col-md-3">
 							<div class="item-box">
 								<figure>
 									<a class="item-hover lightbox" href="http://www.youtube.com/watch?v=W7Las-MJnJo" data-plugin-options='{"type":"iframe"}'>
@@ -563,13 +300,13 @@
 									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a4.jpg" width="260" height="260" alt="">
 								</figure>
 								<div class="item-box-desc">
-									<h4>Atropos Video</h4>
+									<h4>Web Crawler</h4>
 									<small class="styleColor">29 June, 2014</small>
 								</div>
 							</div>
 						</div>
 
-						<div class="col-md-3"><!-- item 3 -->
+						<div class="col-md-3">
 							<div class="item-box">
 								<figure>
 									<a class="item-hover lightbox" href="assets/images/demo/portfolio/thumb/a5.jpg" data-plugin-options='{"type":"image"}'>
@@ -582,13 +319,13 @@
 									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a5.jpg" width="260" height="260" alt="">
 								</figure>
 								<div class="item-box-desc">
-									<h4>Atropos Image</h4>
+									<h4>Coherence REST Demo</h4>
 									<small class="styleColor">29 June, 2014</small>
 								</div>
 							</div>
 						</div>
 
-						<div class="col-md-3"><!-- item 4 -->
+						<div class="col-md-3">
 							<div class="item-box">
 								<figure>
 									<a class="item-hover" href="portfolio-single-basic.html">
@@ -608,98 +345,87 @@
 						</div>
 
 					</div>
-					<!-- /RELATED -->
+					-->
 
 				</div>
 			</section>
 			<!-- /CONTENT -->
 
-
-
 			<!-- FOOTER -->
 			<footer id="footer">
-				<div class="container">
+			    <div class="container">
 
-					<div class="row">
+				    <div class="row">
 
-						<!-- col #1 -->
-						<div class="logo_footer dark col-md-3">
+					    <!-- col #1 -->
+					    <div class="spaced col-md-4 col-sm-4">
 
-							<img alt="" src="assets/images/logo_footer.png" height="50" class="logo" />
+						    <h4>Stay <strong>Connected</strong></h4>
 
-							<p class="block">
-								4th Street, Suite 88<br />
-								New York NY 10887<br />
-								Email: youremail@yourdomain.com<br />
-								Phone: +40 (0) 111 1234 567<br />
-								Fax: +40 (0) 111 1234 568<br />
-							</p>
+						    <p>
+						 	   Connect with us on social networks.
+						    </p>
 
-							<p class="block"><!-- social -->
-								<a href="#" class="social fa fa-facebook"></a>
-								<a href="#" class="social fa fa-twitter"></a>
-								<a href="#" class="social fa fa-google-plus"></a>
-								<a href="#" class="social fa fa-linkedin"></a>
-							</p><!-- /social -->
-						</div>
-						<!-- /col #1 -->
+						    <p class="block"><!-- social -->
+							    <a href="https://twitter.com/OracleCoherence" target="_blank" class="social fa fa-twitter"></a>
+							    <a href="https://www.linkedin.com/groups/1782166/" target="_blank" class="social fa fa-linkedin"></a>
+							    <a href="http://www.facebook.com/oraclecoherencepm" target="_blank" class="social fa fa-facebook"></a>
+						    </p><!-- /social -->
 
-						<!-- col #2 -->
-						<div class="spaced col-md-3 col-sm-4">
-							<h4>Recent <strong>Posts</strong></h4>
-							<ul class="list-unstyled">
-								<li>
-									<a class="block" href="#">New CSS3 Transitions this Year</a>
-									<small>June 29, 2014</small>
-								</li>
-								<li>
-									<a class="block" href="#">Inteligent Transitions In UX Design</a>
-									<small>June 29, 2014</small>
-								</li>
-								<li>
-									<a class="block" href="#">Lorem Ipsum Dolor</a>
-									<small>June 29, 2014</small>
-								</li>
-							</ul>
-						</div>
-						<!-- /col #2 -->
+						    <h4><strong>Contribute</strong></h4>
 
-						<!-- col #3 -->
-						<div class="spaced col-md-3 col-sm-4">
-							<h4>Recent <strong>Tweets</strong></h4>
-							<ul class="list-unstyled fsize13">
-								<li>
-									<i class="fa fa-twitter"></i> <a href="#">@John Doe</a> Pilsum dolor lorem sit consectetur adipiscing orem sequat <small class="ago">8 mins ago</small>
-								</li>
-								<li>
-									<i class="fa fa-twitter"></i> <a href="#">@John Doe</a> Remonde sequat ipsum dolor lorem sit consectetur adipiscing  <small class="ago">8 mins ago</small>
-								</li>
-								<li>
-									<i class="fa fa-twitter"></i> <a href="#">@John Doe</a> Imperdiet condimentum diam dolor lorem sit consectetur adipiscing <small class="ago">8 mins ago</small>
-								</li>
-							</ul>
-						</div>
-						<!-- /col #3 -->
+						    <ul class="list-unstyled nobordered">
+							    <li><a class="block" href="https://github.com/oracle/coherence" target="_blank"><i class="fa fa-github"></i> Fork us on GitHub and start coding.</a></li>
+						    </ul>
 
-						<!-- col #4 -->
-						<div class="spaced col-md-3 col-sm-4">
-							<h4>About <strong>Us</strong></h4>
-							<p>
-								Incredibly beautiful responsive Bootstrap Template for Corporate and Creative Professionals.
-							</p>
+					    </div>
+					    <!-- /col #1 -->
 
-							<h4><small><strong>Subscribe to our Newsletter</strong></small></h4>
-							<form id="newsletterSubscribe" method="post" action="php/newsletter.php" class="input-group">
-								<input required type="email" class="form-control" name="newsletter_email" id="newsletter_email" value="" placeholder="E-mail Address">
-								<span class="input-group-btn">
-									<button class="btn btn-primary">SUBMIT</button>
-								</span>
-							</form>
+					    <!-- col #2 -->
+					    <div class="spaced col-md-8 col-sm-8">
 
-						</div>
-						<!-- /col #4 -->
+						    <div class="row">
 
-					</div>
+						 	    <div class="col-md-4 col-sm-12 col-xs-12">
+								    <h4>Learn <strong>More</strong></h4>
+								    <ul class="list-unstyled nobordered">
+								 	    <li><a class="block" href="https://www.youtube.com/user/OracleCoherence" target="_blank"><i class="fa fa-youtube"></i> Watch our Videos</a></li>
+									    <li><a class="block" href="https://medium.com/oracle-coherence" target="_blank"><i class="fa fa-medium"></i> Read our Blog</a></li>
+									    <li><a class="block" href="https://stackoverflow.com/tags/coherence" target="_blank"><i class="fa fa-stack-overflow"></i> Find Answers</a></li>
+									    <li><a class="block" href="https://join.slack.com/t/oraclecoherence/shared_invite/zt-9ufv220y-Leudk0o5ntgNV0xraa8DNw" target="_blank"><i class="fa fa-slack"></i> Chat with Us</a></li>
+								    </ul>
+							    </div>
+
+							    <div class="col-md-4 hidden-sm hidden-xs">
+								    <h4>Related <strong>Projects</strong></h4>
+								    <ul class="list-unstyled nobordered">
+								 	    <li><a class="block" href="https://github.com/oracle/coherence-operator" target="_blank"><i class="fa fa-external-link"></i> Coherence  Operator</a></li>
+									    <li><a class="block" href="https://helidon.io" target="_blank"><i class="fa fa-external-link"></i> Helidon </a></li>
+									    <li><a class="block" href="https://www.graalvm.org" target="_blank"><i class="fa fa-external-link"></i> GraalVM</a></li>
+									    <li><a class="block" href="https://verrazano.io" target="_blank"><i class="fa fa-external-link"></i> Verrazzano</a></li>
+									    <li><a class="block" href="https://github.com/coherence-community/coherence-spring" target="_blank"><i class="fa fa-external-link"></i> Spring Integration</a></li>
+									    <li><a class="block" href="https://github.com/coherence-community/coherence-hibernate" target="_blank"><i class="fa fa-external-link"></i> Hibernate Integration</a></li>
+								    </ul>
+							    </div>
+
+							    <!--
+							    <div class="col-md-4 hidden-sm hidden-xs">
+								    <h4>About <strong>Us</strong></h4>
+								    <ul class="list-unstyled nobordered">
+								 	    <li><a class="block" href="team.html"><i class="fa fa-angle-right"></i> Meet the Team</a></li>
+									    <li><a class="block" href="events.html"><i class="fa fa-angle-right"></i> Upcoming Events</a></li>
+									    <li><a class="block" href="presentations.html"><i class="fa fa-angle-right"></i> Past Presentations</a></li>
+									    <li><a class="block" href="faq.html"><i class="fa fa-angle-right"></i> FAQ</a></li>
+								    </ul>
+							    </div>
+							    -->
+
+						    </div>
+
+					   </div>
+					   <!-- /col #2 -->
+
+				   </div>
 
 				</div>
 
@@ -707,9 +433,7 @@
 
 				<div class="copyright">
 					<div class="container text-center fsize12">
-						Epona theme by <a href="http://www.stepofweb.com" target="_blank" title="bootstrap themes &amp; templates" class="copyright">stepofweb</a> &bull; All Right Reserved &copy; Your Company LLC. &nbsp;
-						<a href="page-privacy.html" class="fsize11">Privacy Policy</a> &bull; 
-						<a href="page-terms.html" class="fsize11">Terms of Service</a>
+						   Copyright &copy; 2020, Oracle and/or its affiliates. All rights reserved &bull; Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.
 					</div>
 				</div>
 			</footer>
@@ -717,7 +441,7 @@
 
 			<a href="#" id="toTop"></a>
 
-		</div><!-- /#wrapper -->
+	 	</div><!-- /#wrapper -->
 
 		<!-- JAVASCRIPT FILES -->
 		<script type="text/javascript" src="assets/plugins/jquery-2.2.3.min.js"></script>
@@ -736,6 +460,5 @@
 		<script type="text/javascript" src="assets/js/revolution_slider.js"></script>
 
 		<script type="text/javascript" src="assets/js/scripts.js"></script>
-		<script type="text/javascript" src="assets/plugins/styleswitcher/styleswitcher.js">/** REMOVE ON PRODUCTION **/</script>
 	</body>
 </html>

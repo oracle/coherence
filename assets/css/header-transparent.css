@@ -14,7 +14,7 @@
  **************************************************************** **/
 #topNav {
 	display:block; left:0; right:0; top:0;
-	background-color:transprent;
+	background-color:transparent;
 	position:relative;
 	z-index:11;
 }
@@ -337,7 +337,7 @@
 	}
 	#header {
 		position:relative;
-		background-color:#fff;
+		background-color:#333;
 		height:56px;
 	}
 	#topNav .container {
@@ -362,7 +362,7 @@
 	}
 
 	#topNav nav.nav-main {
-		background-color:#fff;
+		background-color:#333;
 	}
 	#topNav div.nav-main-collapse,
 	#topNav div.nav-main-collapse.in {

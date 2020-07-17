@@ -256,12 +256,6 @@ textarea, select {
 }
 
 @media only screen and (max-width: 990px) {
-	.callout h2,
-	.callout h3,
-	.callout h4 {
-		font-size:18px;
-		font-weight:600;
-	}
 	.callout .btn {
 		margin-top:20px;
 	}
