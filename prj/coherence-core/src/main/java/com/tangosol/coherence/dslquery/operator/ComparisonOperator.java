@@ -12,6 +12,8 @@ import com.tangosol.coherence.dsltools.termtrees.TermWalker;
 
 import com.tangosol.util.filter.ComparisonFilter;
 
+import java.util.Arrays;
+
 /**
  * A base class for comparison operators, which are operators
  * that are used in conditional clauses such as equals, greater than,
@@ -41,10 +43,12 @@ public abstract class ComparisonOperator
     @Override
     public ComparisonFilter makeFilter(Term termLeft, Term termRight, TermWalker walker)
         {
-        String sRightFunctor = termRight.getFunctor();
+        String  sRightFunctor       = termRight.getFunctor();
+        boolean leftHasIdentifiers  = Arrays.stream(termLeft.children()).anyMatch(t->t.getFunctor().equals("identifier"));
+        boolean rightHasIdentifiers = Arrays.stream(termRight.children()).anyMatch(t->t.getFunctor().equals("identifier"));
 
-        // Bug 27250717 - RFA: QueryHelper.createFilter causes StackOverFlow when comparing 2 identifiers 
-        if (sRightFunctor.equals("identifier") && termLeft.getFunctor().equals("identifier"))
+        // Bug 27250717 - RFA: QueryHelper.createFilter causes StackOverFlow when comparing 2 identifiers
+        if (sRightFunctor.equals("identifier") && termLeft.getFunctor().equals("identifier") || leftHasIdentifiers && rightHasIdentifiers)
             {
             throw new UnsupportedOperationException("The use of identifier on both sides of an expression is not supported");
             }
