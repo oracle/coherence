@@ -1,0 +1,25 @@
+/**
+ * CSS for REST examples
+ */
+table, td  {
+    border: 1px solid grey;
+    border-collapse: collapse;
+    padding: 3px;
+}
+table, th {
+    border: 1px solid grey;
+    border-collapse: collapse;
+    padding: 10px;
+}
+/**
+ * Modal dialog styles
+ */
+.modal-header, h4, .close {
+    background-color: #5cb85c;
+    color:white !important;
+    text-align: center;
+    font-size: 30px;
+}
+.modal-footer {
+    background-color: #f9f9f9;
+}

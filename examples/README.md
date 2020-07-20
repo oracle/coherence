@@ -52,4 +52,4 @@ GitHub Location: https://github.com/helidon-sockshop/sockshop
 
 This example shows a basic application built using Oracle JavaScript Extension Toolkit (JET) and how Coherence REST endpoints can be integrated into such an application.
 
-Location: TBC
+Location: [Coherence REST Example](rest)

@@ -1,0 +1,235 @@
+<!--
+ *
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+  -->
+
+<div id="cluster-overview-container">
+    <div class="oj-flex">
+        <oj-button id="add-products" on-oj-action="[[addDefaultProducts]]" style="width:15em;margin-bottom: 0px;"
+                    disabled="{{addDefaultProductsDisabled}}">
+            <span>Add Default Products</span>
+        </oj-button>
+        &nbsp;
+        <oj-button id="add-product" on-oj-action="[[openDialog]]" style="width:15em;margin-bottom: 0px;">
+            <span>Add Product</span>
+        </oj-button>
+        &nbsp;
+        <oj-button id="increase-prices" on-oj-action="[[increaseAllPrices]]" style="width:15em;margin-bottom: 0px;">
+            <span>Increase All Prices</span>
+        </oj-button>
+        &nbsp;
+        <oj-button id="refresh" on-oj-action="[[refresh]]" style="width:8em;margin-bottom: 0px;">
+            <span>Refresh</span>
+        </oj-button>
+    </div>
+
+    <!-- Messages/ Notifications -->
+    <oj-messages id="oj-messages-id"
+                 messages="{{applicationMessages}}"
+                 display="notification"
+                 on-oj-close="[[closeMessageHandler]]"
+                 position="{{messageAttributes}}">
+    </oj-messages>
+
+    <div id="dialogWrapper">
+
+        <oj-dialog style="display:none;width: 500px; height: auto;"
+                   id="addDialog" dialog-title="Add Product" cancel-behavior="icon">
+            <div slot="body">
+                <oj-form-layout label-edge="start">
+                    <oj-input-number
+                            id="f1" label-hint="Product Id"
+                            value='{{newProductId}}'
+                            required="true"
+                            max= "10000"
+                            min= "45"
+                            step= "1"
+                            required="true"
+                            help-hints.definition="Enter a product id">
+                    </oj-input-number>
+                    <oj-input-text
+                            id="f2" label-hint="Product Name"
+                            placeholder="Product Name"
+                            value='{{newProductName}}'
+                            required="true"
+                            help-hints.definition="Enter a product name">
+                    </oj-input-text>
+                    <oj-combobox-one
+                            id=f3 label-hint="Department"
+                            value="{{newDeptCode}}"
+                            required="true"
+                            options="[[departmentList]]">
+                    </oj-combobox-one>
+                    <oj-input-text
+                            id="f4"
+                            value="{{newPrice}}" validators="[[priceValidators]]"
+                            label-hint="Price"
+                            converter="[[priceConverter]]"
+                            required="true"
+                            help-hints.definition="Enter the price of this product"></oj-input-text>
+                    <oj-input-number id="f5"
+                           max= "10000"
+                           min= "0"
+                           step= "1"
+                           label-hint="Qty On Hand"
+                           value="{{newQtyOnHand}}"
+                           help-hints.definition="Enter the number of this product on hand">
+                    </oj-input-number>
+                </oj-form-layout>
+            </div>
+            <div slot="footer">
+                <oj-button id="okButton" on-oj-action="[[addProduct]]">Save</oj-button>
+            </div>
+        </oj-dialog>
+    </div>
+
+    <div class="oj-flex" id="member-table-container">
+
+        <div class="oj-flex-item">
+            <fieldset style="border:1px #b0b0b0 solid;padding:10px">
+                <legend style="margin-left: 1em;padding:0.2em 0.8em">
+                    <h5>Products</span></h5>
+                </legend>
+                <oj-table id="productsTable"
+                        aria-label="Products Table"
+                        data='[[dataprovider]]'
+                        edit-mode='rowEdit'
+                        edit-row='{{editRow}}'
+                        scroll-policy='loadAll'
+                        columns-default.sortable='disabled'
+                        on-oj-before-row-edit-end='[[beforeRowEditEndListener]]'
+                        columns='[{"field": "productId",
+                                   "headerText": "Product Id",
+                                   "headerStyle": "min-width: 7em; max-width: 7em; width: 7em",
+                                   "headerClassName": "oj-helper-text-align-end",
+                                   "style": "min-width: 7em; max-width: 7em; width: 7em",
+                                   "className": "oj-helper-text-align-end oj-read-only",
+                                   "template": "productIdTemplate"},
+                                  {"field": "name",
+                                   "headerText": "Product Name",
+                                   "headerStyle": "min-width: 20em; max-width: 25em; width: 20em",
+                                   "style": "min-width: 20em; max-width: 25em; width: 20em",
+                                   "template": "productNameTemplate"},
+                                  {"field":"deptCode",
+                                   "headerText": "Department",
+                                   "headerStyle": "min-width: 12em; max-width: 12em; width: 12em",
+                                   "style": "min-width: 12em; max-width: 12em; width: 12em",
+                                   "template": "departmentTemplate"},
+                                  {"field":"price",
+                                   "headerText": "Price",
+                                   "headerStyle": "min-width: 10em; max-width: 10em; width: 10em",
+                                   "headerClassName": "oj-helper-text-align-end",
+                                   "style": "min-width: 10em; max-width: 10em; width: 10em",
+                                   "className": "oj-helper-text-align-end",
+                                   "template": "priceTemplate"},
+                                  {"field":"valueOnHand",
+                                   "headerText": "Value on Hand",
+                                   "headerStyle": "min-width: 12em; max-width: 12em; width: 12em",
+                                   "headerClassName": "oj-helper-text-align-end",
+                                   "style": "min-width: 12em; max-width: 12em; width: 12em",
+                                   "className": "oj-helper-text-align-end oj-read-only",
+                                   "template": "valueOnHandTemplate"},
+                                  {"field":"qtyOnHand",
+                                   "headerText": "Qty on Hand",
+                                   "headerStyle": "min-width: 6em; max-width: 6em; width: 6em",
+                                   "headerClassName": "oj-helper-text-align-end",
+                                   "style": "min-width: 6em; max-width: 6em; width: 6em",
+                                   "className": "oj-helper-text-align-end",
+                                   "template": "qtyOnHandTemplate"},
+                                  {"headerText": "",
+                                   "headerStyle": "min-width: 7em; max-width: 7em; width: 7em;text-align: center;",
+                                   "style":"padding:0px;text-align: center;",
+                                   "template": "actionTemplate"},
+                                  {"headerText": "",
+                                   "headerStyle": "min-width: 7em; max-width: 7em; width: 7em;text-align: center;",
+                                   "style":"padding:0px;text-align: center;",
+                                   "template": "deleteTemplate"},
+                                  {"headerText": "",
+                                   "headerStyle": "min-width: 10em; max-width: 10em; width: 10em;text-align: center;",
+                                   "style":"padding:0px;text-align: center;",
+                                   "template": "receiveTemplate"}]'>
+
+                <template slot="productIdTemplate" data-oj-as="cell">
+                  <oj-bind-text value="[[cell.data]]"></oj-bind-text>
+                </template>
+
+                <template slot="productNameTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-bind-text value="[[cell.data]]"></oj-bind-text>
+                  </oj-bind-if>
+
+                  <oj-bind-if test='[[cell.mode=="edit"]]'>
+                    <oj-input-text id="it1" value="{{cell.row.name}}" ></oj-input-text>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="priceTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-bind-text value="[[priceConverter.format(cell.data)]]"></oj-bind-text>
+                  </oj-bind-if>
+
+                  <oj-bind-if test='[[cell.mode=="edit"]]'>
+                    <oj-input-text id="it2" value="{{cell.row.price}}" validators="[[priceValidators]]" converter="[[priceConverter]]"></oj-input-text>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="valueOnHandTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-bind-text value="[[priceConverter.format(cell.data)]]"></oj-bind-text>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="departmentTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-bind-text value="[[cell.data]]"></oj-bind-text>
+                  </oj-bind-if>
+
+                  <oj-bind-if test='[[cell.mode=="edit"]]'>
+                    <oj-combobox-one id="co1" aria-label="currency" value="{{cell.row.deptCode}}"  options="[[departmentList]]" >
+                    </oj-combobox-one>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="qtyOnHandTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-bind-text value="[[numberConverter.format(cell.data)]]"></oj-bind-text>
+                  </oj-bind-if>
+
+                  <oj-bind-if test='[[cell.mode=="edit"]]'>
+                    <oj-input-text id="it2" value="{{cell.row.qtyOnHand}}"  validators="[[validators]]" converter="[[numberConverter]]"></oj-input-text>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="actionTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-button on-oj-action="[[handleUpdate]]" style="width:5em;margin-bottom: 0px;"><span>Edit</span></oj-button>
+                  </oj-bind-if>
+
+                  <oj-bind-if test='[[cell.mode=="edit"]]'>
+                    <oj-button on-oj-action="[[handleDone]]" style="width:5em;margin-bottom: 0px;"><span>Save</span></oj-button>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="deleteTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-button on-oj-action="[[handleDelete]]" style="width:7em;margin-bottom: 0px;"><span>Delete</span></oj-button>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="receiveTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-button on-oj-action="[[handleReceive]]" style="width:7em;margin-bottom: 0px;"><span>Receive</span></oj-button>
+                  </oj-bind-if>
+                </template>
+
+              </oj-table>
+            </fieldset>
+        </div>
+    </div>
+</div>
+<br>
+<br>

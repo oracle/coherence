@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<rest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://xmlns.oracle.com/coherence/coherence-rest-config"
+      xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-rest-config coherence-rest-config.xsd">
+
+  <resources>
+    <resource>
+      <cache-name>departments</cache-name>
+    </resource>
+
+    <resource>
+      <cache-name>products</cache-name>
+
+      <!-- all products with < 10 on hand -->
+      <query engine="DEFAULT">
+        <name>reorder</name>
+        <expression>qtyOnHand &lt; 10</expression>
+      </query>
+
+      <!-- named query with param -->
+      <query engine="DEFAULT">
+        <name>dept</name>
+        <expression>deptCode is :dept</expression>
+      </query>
+
+      <!-- by default direct-query is disabled and must be enabled -->
+      <direct-query enabled="true"/>
+    </resource>
+
+    <resource>
+      <cache-name>contacts</cache-name>
+      <key-converter>com.tangosol.examples.rest.ContactIdKeyConverter
+      </key-converter>
+
+      <!-- by default direct-query is disabled and must be enabled -->
+      <direct-query enabled="true"/>
+    </resource>
+
+    <resource>
+      <cache-name>states</cache-name>
+    </resource>
+
+    <resource>
+      <cache-name>countries</cache-name>
+    </resource>
+
+    <resource>
+      <cache-name>static-content</cache-name>
+    </resource>
+
+    <resource>
+      <cache-name>json</cache-name>
+      <!-- by default direct-query is disabled and must be enabled -->
+      <direct-query enabled="true"/>
+    </resource>
+  </resources>
+
+  <processors>
+    <processor>
+      <name>price-adjust</name>
+      <class-name>
+        com.tangosol.examples.rest.processor.PriceAdjustProcessorFactory
+      </class-name>
+    </processor>
+    <processor>
+      <name>random-contact-creator</name>
+      <class-name>
+        com.tangosol.examples.rest.processor.RandomContactCreatorFactory
+      </class-name>
+    </processor>
+  </processors>
+</rest>
