@@ -1,4 +1,4 @@
-# Oracle Coherence REST Examples
+# Coherence REST Example
 
 ## Overview
 
