@@ -1,0 +1,396 @@
+﻿<html><head><meta http-equiv="X-UA-Compatible" content="IE=edge" /><link rel="shortcut icon" href="../icons/favicon.ico" /><link rel="stylesheet" type="text/css" href="../styles/branding.css" /><link rel="stylesheet" type="text/css" href="../styles/branding-en-US.css" /><script type="text/javascript" src="../scripts/branding.js"> </script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>LocalCache Class</title><meta name="Language" content="en-us" /><meta name="System.Keywords" content="LocalCache class" /><meta name="System.Keywords" content="Tangosol.Net.Cache.LocalCache class" /><meta name="Microsoft.Help.F1" content="Tangosol.Net.Cache.LocalCache" /><meta name="Microsoft.Help.Id" content="T:Tangosol.Net.Cache.LocalCache" /><meta name="Description" content="A local in-memory cache implementation." /><meta name="Microsoft.Help.ContentType" content="Reference" /><meta name="BrandingAware" content="true" /><meta name="container" content="Tangosol.Net.Cache" /><meta name="file" content="28bc9722-65d7-100e-217f-cb4dd5546ad8" /><meta name="guid" content="28bc9722-65d7-100e-217f-cb4dd5546ad8" /><link rel="stylesheet" type="text/css" href="../styles/branding-Website.css" /><script type="text/javascript" src="../scripts/jquery-3.3.1.min.js"></script><script type="text/javascript" src="../scripts/branding-Website.js"></script><script type="text/javascript" src="../scripts/clipboard.min.js"></script></head><body onload="OnLoad('cs')"><input type="hidden" id="userDataCache" class="userDataStyle" /><div class="pageHeader" id="PageHeader">.NET API Reference for Oracle® Coherence Community Edition<form id="SearchForm" method="get" action="#" onsubmit="javascript:TransferToSearchPage(); return false;"><input id="SearchTextBox" type="text" maxlength="200" /><button id="SearchButton" type="submit"></button></form></div><div class="pageBody"><div class="leftNav" id="leftNav"><div id="tocNav"><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/58468dd7-1adf-17f4-f89b-6b17370b94ef.htm" title=".NET API Reference for Oracle® Coherence Community Edition" tocid="roottoc">.NET API Reference for Oracle® Coherence Community Edition</a></div><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/58468dd7-1adf-17f4-f89b-6b17370b94ef.htm" title=".NET API Reference for Oracle® Coherence Community Edition" tocid="58468dd7-1adf-17f4-f89b-6b17370b94ef">.NET API Reference for Oracle® Coherence Community Edition</a></div><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/311ee8be-1168-e7d9-7c94-3c4e8fab9d51.htm" title="Tangosol.Net.Cache" tocid="311ee8be-1168-e7d9-7c94-3c4e8fab9d51">Tangosol.Net.Cache</a></div><div class="toclevel1 current" data-toclevel="1" data-childrenloaded="true"><a class="tocExpanded" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/28bc9722-65d7-100e-217f-cb4dd5546ad8.htm" title="LocalCache Class" tocid="28bc9722-65d7-100e-217f-cb4dd5546ad8">LocalCache Class</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/fc2ce60a-e22c-5d0a-e9a6-89676f8c1fef.htm" title="LocalCache Constructor " tocid="fc2ce60a-e22c-5d0a-e9a6-89676f8c1fef">LocalCache Constructor </a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/a2479c50-7605-81ae-4bbe-631eca0ff30e.htm" title="LocalCache Properties" tocid="a2479c50-7605-81ae-4bbe-631eca0ff30e">LocalCache Properties</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/2607bb99-2c2b-60f3-ea13-31f4fa481889.htm" title="LocalCache Methods" tocid="2607bb99-2c2b-60f3-ea13-31f4fa481889">LocalCache Methods</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/f321e698-6a31-973c-69cc-92ed17eaf5d1.htm" title="LocalCache Fields" tocid="f321e698-6a31-973c-69cc-92ed17eaf5d1">LocalCache Fields</a></div></div><div id="tocResizableEW" onmousedown="OnMouseDown(event);"></div><div id="TocResize" class="tocResize"><img id="ResizeImageIncrease" src="../icons/TocOpen.gif" onclick="OnIncreaseToc()" alt="Click or drag to resize" title="Click or drag to resize" /><img id="ResizeImageReset" src="../icons/TocClose.gif" style="display:none" onclick="OnResetToc()" alt="Click or drag to resize" title="Click or drag to resize" /></div></div><div class="topicContent" id="TopicContent"><table class="titleTable"><tr><td class="titleColumn"><h1>LocalCache Class</h1></td></tr></table><span class="introStyle">.NET API Reference for Oracle® Coherence Community Edition <br /> (14.1.1.0)<br />E55634-01<br /></span> <div class="summary">
+            A local in-memory cache implementation.
+            </div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID0RB')" onkeypress="SectionExpandCollapse_CheckKey('ID0RB', event)" tabindex="0"><img id="ID0RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Inheritance Hierarchy</span></div><div id="ID0RBSection" class="collapsibleSection"><a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">System<span id="LST59D76155_0"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_0?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Object</a><br />  <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">Tangosol.Util.Collections<span id="LST59D76155_1"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_1?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>SynchronizedDictionary</a><br />    <span class="selflink">Tangosol.Net.Cache<span id="LST59D76155_2"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_2?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>LocalCache</span><br /></div><p> </p>
+    <strong>Namespace:</strong> 
+   <a href="311ee8be-1168-e7d9-7c94-3c4e8fab9d51.htm">Tangosol.Net.Cache</a><br />
+    <strong>Assembly:</strong>
+   Coherence (in Coherence.dll) Version: 14.1.1.1 (14.1.1.1)<div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID2RB')" onkeypress="SectionExpandCollapse_CheckKey('ID2RB', event)" tabindex="0"><img id="ID2RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Syntax</span></div><div id="ID2RBSection" class="collapsibleSection"><div class="codeSnippetContainer"><div class="codeSnippetContainerTabs"><div id="ID1EACA_tab1" class="codeSnippetContainerTabSingle">C#</div></div><div class="codeSnippetContainerCodeContainer"><div class="codeSnippetToolBar"><div class="codeSnippetToolBarText"><a id="ID1EACA_copyCode" href="#" class="copyCodeSnippet" onclick="javascript:CopyToClipboard('ID1EACA');return false;" title="Copy">Copy</a></div></div><div id="ID1EACA_code_Div1" class="codeSnippetContainerCode" style="display: block"><pre xml:space="preserve"><span class="keyword">public</span> <span class="keyword">class</span> <span class="identifier">LocalCache</span> : <span class="identifier">SynchronizedDictionary</span>, <span class="identifier">IConfigurableCache</span>, 
+	<span class="identifier">IObservableCache</span>, <span class="identifier">IConcurrentCache</span>, <span class="identifier">IQueryCache</span>, <span class="identifier">IInvocableCache</span>, <span class="identifier">ICache</span>, 
+	<span class="identifier">IDictionary</span>, <span class="identifier">ICollection</span>, <span class="identifier">IEnumerable</span></pre></div></div></div><script type="text/javascript">AddLanguageTabSet("ID1EACA");</script></div><p>The <span class="selflink">LocalCache</span> type exposes the following members.</p><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID3RB')" onkeypress="SectionExpandCollapse_CheckKey('ID3RB', event)" tabindex="0"><img id="ID3RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Constructors</span></div><div id="ID3RBSection" class="collapsibleSection"><table class="members" id="constructorList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e9a3ccb2-2062-af39-9ba7-6a5baea7b54a.htm">LocalCache<span id="LST59D76155_3"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_3?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Construct the cache manager.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="1aa3e91d-4bc4-cd97-de77-0ecfd8440626.htm">LocalCache(Int32)</a></td><td><div class="summary">
+            Construct the cache manager.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="9d7f6494-1ad5-6f29-9a36-34a03af0d6ca.htm">LocalCache(Int32, Int32)</a></td><td><div class="summary">
+            Construct the cache manager.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="3988dfc4-1295-2fdd-c12c-ea0fe73a1de6.htm">LocalCache(Int32, Int32, Double)</a></td><td><div class="summary">
+            Construct the cache manager.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="97c170c1-d245-e268-41d0-24e618590081.htm">LocalCache(Int32, Int32, ICacheLoader)</a></td><td><div class="summary">
+            Construct the cache manager.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID4RB')" onkeypress="SectionExpandCollapse_CheckKey('ID4RB', event)" tabindex="0"><img id="ID4RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Properties</span></div><div id="ID4RBSection" class="collapsibleSection"><table class="members" id="propertyList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="f0a35b9e-d69d-2990-ffca-982a7f4fbf6f.htm">CacheHits</a></td><td><div class="summary">
+            Gets the rough number of cache hits since the cache statistics
+            were last reset.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="17acb049-61f1-8825-7585-1427257465d6.htm">CacheLoader</a></td><td><div class="summary">
+            Gets or sets the loader used by this <b>LocalCache</b>.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="e2c6490b-68c8-ecf7-0bb3-066d6c949190.htm">CacheMisses</a></td><td><div class="summary">
+            Gets the rough number of cache misses since the cache statistics
+            were last reset.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="c2af513f-b97d-c853-8edf-9cb3743bc6eb.htm">CacheStatistics</a></td><td><div class="summary">
+            Gets the <a href="6a6c0c34-c551-6dba-2333-ac1bed970ab1.htm">ICacheStatistics</a> for this cache.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="74a1a2fb-b949-e024-000c-9a93341776d7.htm">CacheStore</a></td><td><div class="summary">
+            Determine the store used by this <b>LocalCache</b>, if any.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="cce5b518-1ede-8e26-042b-348cc48ab2c1.htm">CalculatorType</a></td><td><div class="summary">
+            Gets or sets the current unit calculator type for the cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="a5f6c20a-b311-32ba-01b2-a2e669dfba13.htm">Count</a></td><td><div class="summary">
+            Gets the number of elements contained in the
+            <a href="bc000b89-5529-8624-3a7f-b75a019cf37e.htm">ICache</a>.
+            </div> (Overrides <a href="4f5bc47b-513f-0b3b-44af-42dee770bd36.htm">SynchronizedDictionary<span id="LST59D76155_4"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_4?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Count</a>.)</td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="2226eda3-8542-b842-d085-80bafba0e011.htm">CurrentKeyMask</a></td><td><div class="summary">
+            Gets or sets the current key mask for the current thread.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="60374658-924b-1674-780c-77c1b58eb864.htm">Delegate</a></td><td><div class="summary">
+            Return the delegate IDictionary.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="093d6463-666a-9bdb-f1c3-84f1433595ae.htm">Entries</a></td><td><div class="summary">
+            Get a collection of <a href="1ec0cd96-8f5e-34a7-4358-596e6cedc2af.htm">ICacheEntry</a> instances
+            within the cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="8247e9ff-78f6-fb6b-0fd5-ab478f04635b.htm">EvictionPolicy</a></td><td><div class="summary">
+            Determine the current external eviction policy, if any.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="3d215fb2-8e0c-0fe1-5cc1-12dafe4a953a.htm">EvictionType</a></td><td><div class="summary">
+            Gets or sets the current eviction type.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="003f1c9d-47fe-f0cd-e8d3-ded474fbcd89.htm">ExpiryDelay</a></td><td><div class="summary">
+            Gets or sets the "time to live" for each individual cache entry.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="c13caf8a-151d-b550-c8fb-461b391354e7.htm">FlushDelay</a></td><td><div class="summary">
+            Gets or sets the delay between cache flushes.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="419e05ad-02a1-af5d-1f79-6f8f6861c241.htm">FlushTime</a></td><td><div class="summary">
+            Gets or sets the date/time offset in milliseconds at which the
+            next cache flush is scheduled.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="6fe2327d-747a-355e-cf3d-4c335964e54a.htm">HighUnits</a></td><td><div class="summary">
+            Gets or sets the limit of the cache size in units.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="7ea74304-f0cb-e0c5-eb1f-2e13c8710a2f.htm">HitProbability</a></td><td><div class="summary">
+            Gets the rough probability (0 &lt;= p &lt;= 1) that any
+            particular "get" invocation will be satisfied by an existing
+            entry in the cache, based on the statistics collected since the
+            last reset of the cache statistics.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="bf5d8314-b7f4-7246-471b-a545c2118635.htm">IndexMap</a></td><td><div class="summary">
+            The index IDictionary used by this <b>LocalCache</b>.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="6d1d7697-90a5-a9a5-1623-841b50fcbe07.htm">IsFixedSize</a></td><td><div class="summary">
+            Get a value indicating whether this dictionary has a fixed size.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="e843d105-53b6-fcb1-35f5-de29c3def58b.htm">IsReadLockHeld</a></td><td><div class="summary">
+            Determines whether or not the current thread holds a read lock.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="3489afc7-25fd-412c-2c53-cead424470e5.htm">IsReadOnly</a></td><td><div class="summary">
+            Get a value indicating whether this dictionary is read-only.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="85810d6e-9de6-2d88-15ff-7b8a424e8d62.htm">IsSynchronized</a></td><td><div class="summary">
+            Gets a value indicating whether access to this dictionary
+            is thread-safe.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="1a0df9b4-088f-bf58-97e0-4b7e0894f2c3.htm">IsWriteLockHeld</a></td><td><div class="summary">
+            Determines whether or not the current thread holds the write lock.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="61b53b9b-3a88-6ecd-007d-36a70d4373a7.htm">Item</a></td><td><div class="summary">
+            Gets or sets the element with the specified key.
+            </div> (Overrides <a href="b62a3f62-5b57-b247-f1e3-cf320de71e21.htm">SynchronizedDictionary<span id="LST59D76155_5"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_5?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Item<span id="LST59D76155_6"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_6?cs=[|vb=(|cpp=[|nu=(|fs= ");</script>Object<span id="LST59D76155_7"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_7?cs=]|vb=)|cpp=]|nu=)|fs= ");</script></a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="50b04d85-cd52-ebfa-4e54-450791b2a71e.htm">Keys</a></td><td><div class="summary">
+            Get the keys collection.
+            </div> (Overrides <a href="6b80a18a-a058-b0b1-6b4d-4b3ac903d396.htm">SynchronizedDictionary<span id="LST59D76155_8"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_8?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Keys</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="36761ae8-a068-da80-b6e4-afd524c37246.htm">LowUnits</a></td><td><div class="summary">
+            Gets or sets the point to which the cache will shrink when it
+            prunes.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="20275e68-a85d-0a93-0023-1355248a956b.htm">PruneLevel</a></td><td><div class="summary">
+            The percentage of the total number of units that will remain
+            after the cache manager prunes the cache.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="0c29d580-1999-bbaa-2737-0ef7a320892f.htm">Storage</a></td><td><div class="summary">
+            Get underlying cache storage.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="100050b5-8208-d60c-1394-06243326b5dd.htm">SyncRoot</a></td><td><div class="summary">
+            Get an object that can be used to synchronize access to this 
+            dictionary.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="e56b0d88-a6ee-7f53-a4cd-c938ebee0d35.htm">UnitCalculator</a></td><td><div class="summary">
+            Gets or sets the current external unit calculator, if any.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="35d87336-6e8a-0cbe-9be5-0524b9404604.htm">Units</a></td><td><div class="summary">
+            Gets the number of units that the cache currently stores.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="ba1aaf46-911e-6fde-6954-545674ae9671.htm">Values</a></td><td><div class="summary">
+            Get the values collection.
+            </div> (Overrides <a href="26e85853-4349-80ac-a211-c7699e540295.htm">SynchronizedDictionary<span id="LST59D76155_9"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_9?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Values</a>.)</td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID5RB')" onkeypress="SectionExpandCollapse_CheckKey('ID5RB', event)" tabindex="0"><img id="ID5RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Methods</span></div><div id="ID5RBSection" class="collapsibleSection"><table class="members" id="methodList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="235c9bfe-9550-c01b-6401-58894b138710.htm">AcquireReadLock<span id="LST59D76155_10"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_10?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Acquire a read lock.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="87acf3e2-1592-c99c-d1f4-e59abbcd9f2c.htm">AcquireReadLock(Int32)</a></td><td><div class="summary">
+            Acquire a read lock.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="7d2dffe8-ecda-0d45-9851-499f06412db1.htm">AcquireWriteLock<span id="LST59D76155_11"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_11?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Acquire a write lock.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e8f5870e-d51c-38d8-e8ff-87e4007c9099.htm">AcquireWriteLock(Int32)</a></td><td><div class="summary">
+            Acquire a write lock.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="a2fb914e-e01b-cdea-5d0f-ca6f0bec77d8.htm">Add</a></td><td><div class="summary">
+            Adds an element with the provided key and value to the cache.
+            </div> (Overrides <a href="ddf5ed5f-3b33-931f-ce31-ae5c196b9931.htm">SynchronizedDictionary<span id="LST59D76155_12"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_12?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Add(Object, Object)</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="f276cd83-345d-ff59-af61-2476814a65b1.htm">AddCacheListener(ICacheListener)</a></td><td><div class="summary">
+            Add a standard cache listener that will receive all events
+            (inserts, updates, deletes) that occur against the cache, with
+            the key, old-value and new-value included.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e0238293-79f4-9d65-97ca-2e1db9598e34.htm">AddCacheListener(ICacheListener, Object, Boolean)</a></td><td><div class="summary">
+            Add a cache listener for a specific key.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="195e6e62-f1a9-01a5-635e-7047e366a762.htm">AddCacheListener(ICacheListener, IFilter, Boolean)</a></td><td><div class="summary">
+            Add a cache listener that receives events based on a filter
+            evaluation.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="228ef77f-2f1c-59fe-4b16-2bf327156fa1.htm">AddIndex</a></td><td><div class="summary">
+            Add an index to this IQueryCache.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="da37ee43-e511-9a36-dbce-939e41ecc060.htm">AddInternal</a></td><td><div class="summary">
+            Add new cache entry and raise Inserted event if necessary.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="6ef69134-b4a8-efba-1466-a25dd45c4305.htm">AdjustUnits</a></td><td><div class="summary">
+            Adjust current size.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="2de0fe9d-e44f-1b6d-1ea8-090ef370b67c.htm">Aggregate(ICollection, IEntryAggregator)</a></td><td><div class="summary">
+            Perform an aggregating operation against the entries specified by
+            the passed keys.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="17fef23f-4c36-f268-1dc9-46518879fec0.htm">Aggregate(IFilter, IEntryAggregator)</a></td><td><div class="summary">
+            Perform an aggregating operation against the collection of
+            entries that are selected by the given <b>IFilter</b>.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="faaa567e-7318-7cf0-13f7-7b972f3b1062.htm">CheckFlush</a></td><td><div class="summary">
+            Flush the cache if it needs to be flushed.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="0b0c43ba-5659-c482-9d49-5846e2b68cab.htm">CheckSize</a></td><td><div class="summary">
+            Check if the cache is too big, and if it is prune it by
+            discarding the lowest priority cache entries.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="7363c832-a3a2-7f85-9a39-ba4ad731c601.htm">Clear</a></td><td><div class="summary">
+            Removes all elements from the <a href="bc000b89-5529-8624-3a7f-b75a019cf37e.htm">ICache</a> object.
+            </div> (Overrides <a href="731c7f6a-6e73-f3b6-0315-0edaef064d2e.htm">SynchronizedDictionary<span id="LST59D76155_13"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_13?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Clear<span id="LST59D76155_14"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_14?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a>.)</td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="b4b7cdfa-a15f-4e73-38e8-eaf89f35d55a.htm">ClearInternal</a></td><td><div class="summary">
+            Utility method to support clear and truncation operations.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="61879b84-a45b-762f-355e-498910e24c37.htm">ConfigureEviction</a></td><td><div class="summary">
+            Configure the eviction type and policy.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="9301f39f-14a6-d3b3-fc6d-124cb4ccf11a.htm">ConfigureUnitCalculator</a></td><td><div class="summary">
+            Configure the unit calculator type and implementation.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e59914f6-a526-7599-242d-89dd547ef9b5.htm">Contains</a></td><td><div class="summary">
+            Determines whether the object contains an element with the
+            specified key.
+            </div> (Overrides <a href="ad2f23e9-9099-cefd-c736-58c979800163.htm">SynchronizedDictionary<span id="LST59D76155_15"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_15?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Contains(Object)</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="4fc201a2-7609-722f-d610-8f3f875b2661.htm">ContainsKey</a></td><td><div class="summary">
+            Determines whether the <b>IDictionary</b> object contains an
+            element with the specified key.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="80299de7-580b-da10-ecc5-ab1b78efb984.htm">ContainsValue</a></td><td><div class="summary">
+            Determines whether the <b>IDictionary</b> object contains an
+            element with the specified value.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="7f902e3a-5c09-e499-5c1e-e7d0101e725a.htm">CopyTo</a></td><td><div class="summary">
+            Copies the elements of the <b>IDictionary</b> to an <b>Array</b>,
+            starting at a particular index.
+            </div> (Overrides <a href="d059446d-2916-7baf-551e-43a7ee0556f7.htm">SynchronizedDictionary<span id="LST59D76155_16"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_16?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>CopyTo(Array, Int32)</a>.)</td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="d1fba791-3e85-a375-3c58-df9f40573298.htm">CreateEntry</a></td><td><div class="summary">
+            Creates an <a href="1ec0cd96-8f5e-34a7-4358-596e6cedc2af.htm">ICacheEntry</a>.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="0919a32e-5df3-4ff3-ddf4-bd07bff7ac58.htm">DispatchEvent</a></td><td><div class="summary">
+            Dispatch the passed event.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="fa8f0f8c-8fcc-5ecc-0558-df0d8b72d8bd.htm">EnsureEntry</a></td><td><div class="summary">
+            Create a <a href="f2842949-088f-bece-0579-f19cdd45128a.htm">LocalCache<span id="LST59D76155_17"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_17?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Entry</a> object for the specified key.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="3404a412-598a-9bf3-b1c9-daa5d5051146.htm">EnsureEntryCollection</a></td><td><div class="summary">
+            Create an array of <a href="f2842949-088f-bece-0579-f19cdd45128a.htm">LocalCache<span id="LST59D76155_18"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_18?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Entry</a> objects for the specified
+            <a href="bc000b89-5529-8624-3a7f-b75a019cf37e.htm">ICache</a> and the keys collection.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="c698d598-ab1a-5f84-c617-f72a90e0aa24.htm">EnsureIndexMap</a></td><td><div class="summary">
+            Obtain the IDictionary of indexes maintained by this cache. 
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.equals#System_Object_Equals_System_Object_" target="_blank">Equals</a></td><td><div class="summary">Determines whether the specified <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a> is equal to the current <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="d4294293-c09b-976a-7b08-20ef77169a76.htm">Evict<span id="LST59D76155_19"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_19?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Evict all entries from the cache that are no longer valid, and
+            potentially prune the cache size if the cache is size-limited
+            and its size is above the caching low water mark.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="41f2477f-edd5-f898-b4a3-1e021132bae5.htm">Evict(Object)</a></td><td><div class="summary">
+            Evict a specified key from the cache, as if it had expired from
+            the cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="3087f019-63a4-7101-0d45-b7c05bd0fbc2.htm">EvictAll</a></td><td><div class="summary">
+            Evict the specified keys from the cache, as if they had each
+            expired from the cache.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.finalize#System_Object_Finalize" target="_blank">Finalize</a></td><td><div class="summary">Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="b983df7e-f001-cd7a-6571-9fe5d4df97c4.htm">GetAll</a></td><td><div class="summary">
+            Get the values for all the specified keys, if they are in the
+            cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="8bad38a6-ac0b-3b73-7a42-c3856b03fd1c.htm">GetCacheEntry</a></td><td><div class="summary">
+            Locate a cache entry in the cache based on its key.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="55ac610e-3812-77f8-ea7c-e7f0e0a34cce.htm">GetEntries(IFilter)</a></td><td><div class="summary">
+            Return a collection of the entries contained in this cache
+            that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="20b3602e-c2ca-5266-371d-0e488efab997.htm">GetEntries(IFilter, IComparer)</a></td><td><div class="summary">
+            Return a collection of the entries contained in this cache
+            that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="8b462191-bad8-8d25-28b0-75e6ac3d8750.htm">GetEntry</a></td><td><div class="summary">
+            Locate an <a href="f2842949-088f-bece-0579-f19cdd45128a.htm">LocalCache<span id="LST59D76155_20"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_20?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Entry</a> in the cache based on its key.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="4485cb3a-565a-bf65-5711-6bb57d517cb3.htm">GetEntryInternal</a></td><td><div class="summary">
+            Locate an <a href="f2842949-088f-bece-0579-f19cdd45128a.htm">LocalCache<span id="LST59D76155_21"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_21?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Entry</a> in the cache based on its key.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="4817118d-03f6-747c-8608-51ddc8816718.htm">GetEnumerator</a></td><td><div class="summary">
+            Returns an <a href="50b80fe0-6629-de3d-fd31-ff6adb34eb1a.htm">ICacheEnumerator</a> object for the
+            <b>ICache</b> instance.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.gethashcode#System_Object_GetHashCode" target="_blank">GetHashCode</a></td><td><div class="summary">Serves as a hash function for a particular type. </div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="40d45f32-1bc4-b64d-53b2-8a55c1ea62ce.htm">GetKeys</a></td><td><div class="summary">
+            Return a collection of the keys contained in this cache for
+            entries that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="087f6319-563c-4b87-a377-ff7ea76f9a17.htm">GetObjectData</a></td><td><div class="summary">
+            Populates SerializationInfo with the data needed to serialize this 
+            object.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.gettype#System_Object_GetType" target="_blank">GetType</a></td><td><div class="summary">Gets the <a href="https://docs.microsoft.com/dotnet/api/system.type" target="_blank">Type</a> of the current instance.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="48ef1ef6-9049-32fe-7fa6-e2447ba359c8.htm">GetValues(IFilter)</a></td><td><div class="summary">
+            Return a collection of the values contained in this cache for
+            entries that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="2efc2d40-d98f-21fd-b3f3-e890272e3b23.htm">GetValues(IFilter, IComparer)</a></td><td><div class="summary">
+            Return a collection of the values contained in this cache for
+            entries that satisfy the criteria expressed by the filter.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="f1e92b1f-80bc-cc10-9900-5bc5e5e70b64.htm">HasListeners</a></td><td><div class="summary">
+            Determine if the <b>LocalCache</b> has any listeners at all.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="a66fe612-16cb-54d9-0f35-975fa7e889b2.htm">Insert(Object, Object)</a></td><td><div class="summary">
+            Associates the specified value with the specified key in this
+            cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e187b0a0-3c3f-0fc8-3b63-154b9f401d1c.htm">Insert(Object, Object, Int64)</a></td><td><div class="summary">
+            Associates the specified value with the specified key in this
+            cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="f44bb5c1-54bc-0eaf-b294-b3da45c1c3c9.htm">InsertAll</a></td><td><div class="summary">
+            Copies all of the mappings from the specified dictionary to this
+            cache (optional operation).
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="b575a9c6-833b-0b11-1261-4aa20c2ab92d.htm">InstantiateCacheEnumerator</a></td><td><div class="summary">
+            Factory method for cache enumerator.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="f8656155-2e5d-d926-1723-e5a9a8f0a644.htm">InstantiateCacheEvent</a></td><td><div class="summary">
+            Factory pattern: instantiate a new <a href="fa409787-c9c7-b297-bfe3-b99412ad25c1.htm">CacheEventArgs</a>
+            corresponding to the specified parameters.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="84dac2af-b0ee-8cc4-f27d-8824e70349a8.htm">InstantiateEntriesCollection</a></td><td><div class="summary">
+            Factory method that creates virtual collection of cache entries.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="e1be9859-3ee3-dd2e-1ca5-668268426ec1.htm">InstantiateInternalListener</a></td><td><div class="summary">
+            Factory pattern: Instantiate an internal
+            <a href="d48087a0-e7a4-a545-9ada-a0aa3b31f4ea.htm">ICacheListener</a> to listen to this cache and report
+            changes to the <a href="d82ec009-c113-13c8-5ca8-787d6ee630b8.htm">ICacheStore</a>.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="f15201f6-d342-b688-093b-3b4e27da712a.htm">InstantiateKeysCollection</a></td><td><div class="summary">
+            Factory method that creates virtual collection of cache keys.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="edd9ed6d-8b26-673b-a420-1b4d37f3afc9.htm">InstantiateValuesCollection</a></td><td><div class="summary">
+            Factory method that creates virtual collection of cache values.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="7930a9ed-dfc7-72cf-0931-3faa34944836.htm">Invoke</a></td><td><div class="summary">
+            Invoke the passed <a href="2f07d00f-d469-829c-3596-4c123c9fe762.htm">IEntryProcessor</a> against the entry
+            specified by the passed key, returning the result of the
+            invocation.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="b94e39a1-e8c7-e9de-f859-a89d58215f03.htm">InvokeAll(ICollection, IEntryProcessor)</a></td><td><div class="summary">
+            Invoke the passed <a href="2f07d00f-d469-829c-3596-4c123c9fe762.htm">IEntryProcessor</a> against the
+            entries specified by the passed keys, returning the result of the
+            invocation for each.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="dbc9d689-d030-adf7-7ae1-24892821cf46.htm">InvokeAll(IFilter, IEntryProcessor)</a></td><td><div class="summary">
+            Invoke the passed <a href="2f07d00f-d469-829c-3596-4c123c9fe762.htm">IEntryProcessor</a> against the set
+            of entries that are selected by the given <a href="6b008ba1-0021-f5af-7c32-b8b811a814a0.htm">IFilter</a>,
+            returning the result of the invocation for each.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="d42c4f50-c00c-370f-16da-12f6be88466f.htm">IsFlushRequired</a></td><td><div class="summary">
+            Check if the cache needs to be flushed.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="5ff8a3f2-448e-8ceb-e4e9-6d37f02236fe.htm">Load</a></td><td><div class="summary">
+            Indicates to the cache that the specified key should be loaded
+            into the cache, if it is not already in the cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="45d4f43d-0691-a50c-ee29-5718ead1fa63.htm">LoadAll<span id="LST59D76155_22"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_22?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Indicates to the cache that it should load data from its loader
+            to fill the cache; this is sometimes referred to as
+            "pre-loading" or "warming" a cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="d4c39d29-6064-c7f9-deac-486924b3d40d.htm">LoadAll(ICollection)</a></td><td><div class="summary">
+            Indicates to the cache that the specified keys should be loaded
+            into the cache, if they are not already in the cache.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="b1e8c0a5-1094-221f-0149-fcced5647f77.htm">Lock(Object)</a></td><td><div class="summary">
+            Attempt to lock the specified item and return immediately.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="4ef58e4a-bb7d-d321-e859-8a1b3def7c8d.htm">Lock(Object, Int64)</a></td><td><div class="summary">
+            Attempt to lock the specified item within the specified period of
+            time.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.memberwiseclone#System_Object_MemberwiseClone" target="_blank">MemberwiseClone</a></td><td><div class="summary">Creates a shallow copy of the current <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="e1724abc-c9c8-d450-2b8d-3e8262d18992.htm">Peek</a></td><td><div class="summary">
+            Checks for a valid entry corresponding to the specified key in
+            the cache, and returns the corresponding value if it is.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="664b3a36-ca75-a133-02b8-c6f0a8c982d2.htm">PeekAll</a></td><td><div class="summary">
+             Checks for a valid entry corresponding to each specified key in
+             the cache, and places the corresponding value in the returned
+             dictionary if it is.
+             </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="4a91151e-fe56-9e6d-7079-6fe4beebe9ae.htm">PeekEntryInternal</a></td><td><div class="summary">
+            Locate an <a href="f2842949-088f-bece-0579-f19cdd45128a.htm">LocalCache<span id="LST59D76155_23"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_23?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Entry</a> in the cache based on its key.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="5fb69c1b-381e-b38c-c3e5-b39db39b6065.htm">Prune</a></td><td><div class="summary">
+            Prune the cache by discarding the lowest priority cache entries.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="5f6d0631-ceca-723f-fa8e-5a618cd66b70.htm">ReleaseReadLock</a></td><td><div class="summary">
+            Release a read lock.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="31643f81-aa30-515b-f792-a0c170a10e44.htm">ReleaseWriteLock</a></td><td><div class="summary">
+            Release a write lock.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="b52aa21e-c193-95be-148d-13d79e13c60f.htm">Remove</a></td><td><div class="summary">
+            Removes the element with the specified key from the
+            <a href="bc000b89-5529-8624-3a7f-b75a019cf37e.htm">ICache</a> object.
+            </div> (Overrides <a href="7c5ab731-64fc-5346-ed0a-6edae64b6d80.htm">SynchronizedDictionary<span id="LST59D76155_24"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_24?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Remove(Object)</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="a31b49dc-f2dd-5519-ca55-15427ebc87ba.htm">RemoveCacheListener(ICacheListener)</a></td><td><div class="summary">
+            Remove a standard cache listener that previously signed up for
+            all events.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="132ddc3f-030d-1369-0f63-a7ac2f1554de.htm">RemoveCacheListener(ICacheListener, Object)</a></td><td><div class="summary">
+            Remove a cache listener that previously signed up for events
+            about a specific key.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="0390ab21-3620-99c8-432e-ab4e23bfb8b2.htm">RemoveCacheListener(ICacheListener, IFilter)</a></td><td><div class="summary">
+            Remove a cache listener that previously signed up for events
+            based on a filter evaluation.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="b8554d1e-8673-6dad-b44b-02fc81d0f1ea.htm">RemoveExpired</a></td><td><div class="summary">
+            Remove an entry because it has expired.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="77d3f0ce-e861-62ee-11ab-719025269c55.htm">RemoveIndex</a></td><td><div class="summary">
+            Remove an index from this IQueryCache.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="2ac90e3c-04ac-0c35-5834-a30ba3c29971.htm">RemoveInternal</a></td><td><div class="summary">
+            Remove an entry.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="05399214-21ea-abf8-9962-54446c888f9c.htm">ResetHitStatistics</a></td><td><div class="summary">
+            Reset the cache statistics.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="e298d3d2-3f41-7e3e-2fc3-4326bb3a2849.htm">ScheduleFlush</a></td><td><div class="summary">
+            Schedule the next flush.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="5c12e97f-e494-4da6-7876-00f09548fc92.htm">ToString</a></td><td><div class="summary">
+            Returns a string representation of this LocalCache object.
+            </div> (Overrides <a href="https://docs.microsoft.com/dotnet/api/system.object.tostring#System_Object_ToString" target="_blank">Object<span id="LST59D76155_25"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_25?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>ToString<span id="LST59D76155_26"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_26?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="8d59a721-c98e-63de-83fc-83afa6a7a05d.htm">Truncate</a></td><td><div class="summary">
+            Removes all mappings from this map.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="730757da-c732-f9df-c897-2ea36d5d198e.htm">Unlock</a></td><td><div class="summary">
+            Unlock the specified item.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID6RB')" onkeypress="SectionExpandCollapse_CheckKey('ID6RB', event)" tabindex="0"><img id="ID6RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Fields</span></div><div id="ID6RBSection" class="collapsibleSection"><table class="members" id="fieldList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubfield.gif" alt="Public field" title="Public field" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="1e295eb2-6719-5528-4e69-33117e571d8a.htm">DEFAULT_EXPIRE</a></td><td><div class="summary">
+            By default, the cache entries never expire.
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubfield.gif" alt="Public field" title="Public field" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="4ed2422c-042e-1213-f73b-2650505bed92.htm">DEFAULT_FLUSH</a></td><td><div class="summary">
+            By default, expired cache entries are flushed on a minute
+            interval.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protfield.gif" alt="Protected field" title="Protected field" /></td><td><a href="5d94c476-4aac-305f-1e4a-3bc0750b3e41.htm">DEFAULT_KEY_MASK</a></td><td><div class="summary">
+            The default key mask that ignores nothing.
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubfield.gif" alt="Public field" title="Public field" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="b9d12fe8-c2df-6042-eb1a-5abdebddb8d3.htm">DEFAULT_PRUNE</a></td><td><div class="summary">
+            By default, when the cache prunes, it reduces its entries by 25%,
+            meaning it retains 75% (.75) of its entries.
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubfield.gif" alt="Public field" title="Public field" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="4f16284d-106d-d4f1-8508-c1d3e6c9d4c9.htm">DEFAULT_UNITS</a></td><td><div class="summary">
+            By default, the cache size (in units) is infinite.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protfield.gif" alt="Protected field" title="Protected field" /></td><td><a href="7b421a7f-f914-acc5-679e-4956a838d208.htm">m_avgTouch</a></td><td><div class="summary">
+            For a prune cycle, this value is the average number of touches
+            that an entry should have. This value is used by the hybrid
+            eviction policy.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protfield.gif" alt="Protected field" title="Protected field" /></td><td><a href="f045c829-0a17-f395-52e5-5d4ab23f795a.htm">m_dict</a></td><td><div class="summary">
+            Wrapped, non-thread safe dictionary.
+            </div> (Inherited from <a href="75566497-6b4f-3f9f-d486-bc6e2aca17df.htm">SynchronizedDictionary</a>.)</td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protfield.gif" alt="Protected field" title="Protected field" /></td><td><a href="ae4d1d06-406d-dac5-4ad5-d1eae638a699.htm">m_lastPrune</a></td><td><div class="summary">
+            The last time that a prune was run. This value is used by the
+            hybrid eviction policy.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID7RB')" onkeypress="SectionExpandCollapse_CheckKey('ID7RB', event)" tabindex="0"><img id="ID7RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Extension Methods</span></div><div id="ID7RBSection" class="collapsibleSection"><table class="members" id="extensionMethodList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="6f57038a-b6d5-b885-4766-340877932b0d.htm">GetOrDefault</a></td><td><div class="summary">
+            Returns the value to which the specified key is mapped, or
+            the defaultValue if this cache contains no mapping for the key.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="054fc7a8-da20-40bc-fb94-27d19f4a0b51.htm">InsertIfAbsent</a></td><td><div class="summary">
+            If the specified key is not already associated with a value 
+            (or is mapped to null) associates it with the given value and
+            returns null, else returns the current value.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="32427099-96a2-1b1e-6c4c-0091992a6c68.htm">Remove</a></td><td><div class="summary">
+            Removes the entry for the specified key only if it is currently
+            mapped to the specified value.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="fed9a89e-cde8-3908-aa20-2c8867dba785.htm">Replace(Object, Object)</a></td><td>Overloaded.  <div class="summary">
+            Replaces the entry for the specified key only if it is
+            currently mapped to some value.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubextension.gif" alt="Public Extension Method" title="Public Extension Method" /></td><td><a href="44a1141e-6ab4-2f05-8314-eed3b16bc4b3.htm">Replace(Object, Object, Object)</a></td><td>Overloaded.  <div class="summary">
+            Replaces the entry for the specified key only if currently
+            mapped to the specified value.
+            </div> (Defined by <a href="7b95f78a-d80c-dc1a-6b61-5bf939091d9d.htm">InvocableCacheEx</a>.)</td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID8RB')" onkeypress="SectionExpandCollapse_CheckKey('ID8RB', event)" tabindex="0"><img id="ID8RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Remarks</span></div><div id="ID8RBSection" class="collapsibleSection"><p />
+            The implementation is thread safe and uses a combination of
+            Most Recently Used (MRU) and Most Frequently Used (MFU) caching
+            strategies.
+            <p />
+            The cache is size-limited, which means that once it reaches its
+            maximum size ("high-water mark") it prunes itself (to its
+            "low-water mark"). The cache high- and low-water-marks are measured
+            in terms of "units", and each cached item by default uses one unit.
+            All of the cache constructors, except for the default constructor,
+            require the maximum number of units to be passed in. To change the
+            number of units that each cache entry uses, either set the Units
+            property of the cache entry, or extend the <a href="bc000b89-5529-8624-3a7f-b75a019cf37e.htm">ICache</a>
+            implementation so that the inner <a href="f2842949-088f-bece-0579-f19cdd45128a.htm">LocalCache<span id="LST59D76155_27"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_27?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Entry</a> class calculates
+            its own unit size. To determine the current, high-water and low-water
+            sizes of the cache, use the cache object's <a href="35d87336-6e8a-0cbe-9be5-0524b9404604.htm">Units</a>,
+            <a href="6fe2327d-747a-355e-cf3d-4c335964e54a.htm">HighUnits</a> and <a href="36761ae8-a068-da80-b6e4-afd524c37246.htm">LowUnits</a> properties.
+            The <b>HighUnits</b> and <b>LowUnits</b> properties can be changed,
+            even after the cache is in use. To specify the <b>LowUnits</b> value
+            as a percentage when constructing the cache, use the extended
+            constructor taking the percentage-prune-level.
+            <p />
+            Each cached entry never expires by default. To alter this behavior,
+            use a constructor that takes the expiry-millis; for example, an
+            expiry-millis value of 10000 will expire entries after 10 seconds.
+            The <a href="003f1c9d-47fe-f0cd-e8d3-ded474fbcd89.htm">ExpiryDelay</a> property can also be set once the cache
+            is in use, but it will not affect the expiry of previously cached
+            items.
+            <p />
+            The cache can optionally be flushed on a periodic basis by setting
+            the <a href="c13caf8a-151d-b550-c8fb-461b391354e7.htm">FlushDelay</a> property or scheduling a specific flush
+            time by setting the <a href="419e05ad-02a1-af5d-1f79-6f8f6861c241.htm">FlushTime</a> property.
+            <p />
+            Cache hit statistics can be obtained from the
+            <a href="f0a35b9e-d69d-2990-ffca-982a7f4fbf6f.htm">CacheHits</a>, <a href="e2c6490b-68c8-ecf7-0bb3-066d6c949190.htm">CacheMisses</a> and
+            <a href="7ea74304-f0cb-e0c5-eb1f-2e13c8710a2f.htm">HitProbability</a> read-only properties. The statistics can
+            be reset by invoking <a href="05399214-21ea-abf8-9962-54446c888f9c.htm">ResetHitStatistics<span id="LST59D76155_28"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_28?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a>. The statistics
+            are automatically reset when the cache is cleared (the
+            <a href="7363c832-a3a2-7f85-9a39-ba4ad731c601.htm">Clear<span id="LST59D76155_29"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST59D76155_29?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a> method).
+            <p />
+            The <b>LocalCache</b> implements the <a href="897f6e47-434c-4c0d-bfc4-3b90077b18e6.htm">IObservableCache</a>
+            interface, meaning it provides event notifications to any interested
+            listener for each insert, update and delete, including those that
+            occur when the cache is pruned or entries are automatically expired.
+            <p />
+            This implementation is designed to support extension through
+            inheritence. To override the one-unit-per-entry default behavior,
+            extend the inner <b>Entry</b> class and override the
+            <a href="d024c747-ed16-c5a3-f53d-309b1d6274f8.htm">CalculateUnits(Object)</a> method.
+            </div><div class="collapsibleAreaRegion" id="seeAlsoSection"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID9RB')" onkeypress="SectionExpandCollapse_CheckKey('ID9RB', event)" tabindex="0"><img id="ID9RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />See Also</span></div><div id="ID9RBSection" class="collapsibleSection"><h4 class="subHeading">Reference</h4><div class="seeAlsoStyle"><a href="311ee8be-1168-e7d9-7c94-3c4e8fab9d51.htm">Tangosol.Net.Cache Namespace</a></div></div></div></div><div id="pageFooter" class="pageFooter">Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved. </div></body></html>

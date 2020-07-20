@@ -1,0 +1,254 @@
+﻿<html><head><meta http-equiv="X-UA-Compatible" content="IE=edge" /><link rel="shortcut icon" href="../icons/favicon.ico" /><link rel="stylesheet" type="text/css" href="../styles/branding.css" /><link rel="stylesheet" type="text/css" href="../styles/branding-en-US.css" /><script type="text/javascript" src="../scripts/branding.js"> </script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>ConfigurablePofContext Class</title><meta name="Language" content="en-us" /><meta name="System.Keywords" content="ConfigurablePofContext class" /><meta name="System.Keywords" content="Tangosol.IO.Pof.ConfigurablePofContext class" /><meta name="Microsoft.Help.F1" content="Tangosol.IO.Pof.ConfigurablePofContext" /><meta name="Microsoft.Help.Id" content="T:Tangosol.IO.Pof.ConfigurablePofContext" /><meta name="Description" content="This class implements the interface using information provided in a configuration file (or in a passed XML configuration)." /><meta name="Microsoft.Help.ContentType" content="Reference" /><meta name="BrandingAware" content="true" /><meta name="container" content="Tangosol.IO.Pof" /><meta name="file" content="00878616-1ca2-db58-cfeb-db056a070908" /><meta name="guid" content="00878616-1ca2-db58-cfeb-db056a070908" /><link rel="stylesheet" type="text/css" href="../styles/branding-Website.css" /><script type="text/javascript" src="../scripts/jquery-3.3.1.min.js"></script><script type="text/javascript" src="../scripts/branding-Website.js"></script><script type="text/javascript" src="../scripts/clipboard.min.js"></script></head><body onload="OnLoad('cs')"><input type="hidden" id="userDataCache" class="userDataStyle" /><div class="pageHeader" id="PageHeader">.NET API Reference for Oracle® Coherence Community Edition<form id="SearchForm" method="get" action="#" onsubmit="javascript:TransferToSearchPage(); return false;"><input id="SearchTextBox" type="text" maxlength="200" /><button id="SearchButton" type="submit"></button></form></div><div class="pageBody"><div class="leftNav" id="leftNav"><div id="tocNav"><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/58468dd7-1adf-17f4-f89b-6b17370b94ef.htm" title=".NET API Reference for Oracle® Coherence Community Edition" tocid="roottoc">.NET API Reference for Oracle® Coherence Community Edition</a></div><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/58468dd7-1adf-17f4-f89b-6b17370b94ef.htm" title=".NET API Reference for Oracle® Coherence Community Edition" tocid="58468dd7-1adf-17f4-f89b-6b17370b94ef">.NET API Reference for Oracle® Coherence Community Edition</a></div><div class="toclevel0" data-toclevel="0"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/0dd1268e-cb54-bb79-777e-cd79ef5052e1.htm" title="Tangosol.IO.Pof" tocid="0dd1268e-cb54-bb79-777e-cd79ef5052e1">Tangosol.IO.Pof</a></div><div class="toclevel1 current" data-toclevel="1" data-childrenloaded="true"><a class="tocExpanded" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/00878616-1ca2-db58-cfeb-db056a070908.htm" title="ConfigurablePofContext Class" tocid="00878616-1ca2-db58-cfeb-db056a070908">ConfigurablePofContext Class</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/a8c1bf01-3ffc-1d50-c751-eb03616c64e1.htm" title="ConfigurablePofContext Constructor " tocid="a8c1bf01-3ffc-1d50-c751-eb03616c64e1">ConfigurablePofContext Constructor </a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/731030b1-7714-2d95-f61d-82a78c0ec65e.htm" title="ConfigurablePofContext Properties" tocid="731030b1-7714-2d95-f61d-82a78c0ec65e">ConfigurablePofContext Properties</a></div><div class="toclevel2" data-toclevel="2"><a class="tocCollapsed" onclick="javascript: Toggle(this);" href="#!" /><a data-tochassubtree="true" href="../html/8243a861-9037-b5e2-0cb2-35cf369ea114.htm" title="ConfigurablePofContext Methods" tocid="8243a861-9037-b5e2-0cb2-35cf369ea114">ConfigurablePofContext Methods</a></div></div><div id="tocResizableEW" onmousedown="OnMouseDown(event);"></div><div id="TocResize" class="tocResize"><img id="ResizeImageIncrease" src="../icons/TocOpen.gif" onclick="OnIncreaseToc()" alt="Click or drag to resize" title="Click or drag to resize" /><img id="ResizeImageReset" src="../icons/TocClose.gif" style="display:none" onclick="OnResetToc()" alt="Click or drag to resize" title="Click or drag to resize" /></div></div><div class="topicContent" id="TopicContent"><table class="titleTable"><tr><td class="titleColumn"><h1>ConfigurablePofContext Class</h1></td></tr></table><span class="introStyle">.NET API Reference for Oracle® Coherence Community Edition <br /> (14.1.1.0)<br />E55634-01<br /></span> <div class="summary">
+             This class implements the <a href="67748fd1-f7d2-db13-508d-af41d0ab6091.htm">IPofContext</a> interface using
+             information provided in a configuration file (or in a passed XML
+             configuration).
+             </div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID0RB')" onkeypress="SectionExpandCollapse_CheckKey('ID0RB', event)" tabindex="0"><img id="ID0RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Inheritance Hierarchy</span></div><div id="ID0RBSection" class="collapsibleSection"><a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">System<span id="LST1462AE85_0"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST1462AE85_0?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>Object</a><br />  <span class="selflink">Tangosol.IO.Pof<span id="LST1462AE85_1"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST1462AE85_1?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>ConfigurablePofContext</span><br />    <a href="06e55110-d1e8-0810-1896-4994cdda2e9d.htm">Tangosol.IO.Pof<span id="LST1462AE85_2"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST1462AE85_2?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>SafeConfigurablePofContext</a><br /></div><p> </p>
+    <strong>Namespace:</strong> 
+   <a href="0dd1268e-cb54-bb79-777e-cd79ef5052e1.htm">Tangosol.IO.Pof</a><br />
+    <strong>Assembly:</strong>
+   Coherence (in Coherence.dll) Version: 14.1.1.1 (14.1.1.1)<div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID2RB')" onkeypress="SectionExpandCollapse_CheckKey('ID2RB', event)" tabindex="0"><img id="ID2RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Syntax</span></div><div id="ID2RBSection" class="collapsibleSection"><div class="codeSnippetContainer"><div class="codeSnippetContainerTabs"><div id="ID1EACA_tab1" class="codeSnippetContainerTabSingle">C#</div></div><div class="codeSnippetContainerCodeContainer"><div class="codeSnippetToolBar"><div class="codeSnippetToolBarText"><a id="ID1EACA_copyCode" href="#" class="copyCodeSnippet" onclick="javascript:CopyToClipboard('ID1EACA');return false;" title="Copy">Copy</a></div></div><div id="ID1EACA_code_Div1" class="codeSnippetContainerCode" style="display: block"><pre xml:space="preserve"><span class="keyword">public</span> <span class="keyword">class</span> <span class="identifier">ConfigurablePofContext</span> : <span class="identifier">IPofContext</span>, 
+	<span class="identifier">ISerializer</span>, <span class="identifier">IXmlConfigurable</span></pre></div></div></div><script type="text/javascript">AddLanguageTabSet("ID1EACA");</script></div><p>The <span class="selflink">ConfigurablePofContext</span> type exposes the following members.</p><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID3RB')" onkeypress="SectionExpandCollapse_CheckKey('ID3RB', event)" tabindex="0"><img id="ID3RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Constructors</span></div><div id="ID3RBSection" class="collapsibleSection"><table class="members" id="constructorList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="35e6694c-8600-280b-12cc-59ef30c4c920.htm">ConfigurablePofContext<span id="LST1462AE85_3"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST1462AE85_3?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">
+            Default constructor.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="85fdf726-b87b-0f3e-595c-aafaa591b2a2.htm">ConfigurablePofContext(Stream)</a></td><td><div class="summary">
+            Create a <b>ConfigurablePofContext</b> that will use the passed
+            configuration information.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="ec99e25b-b466-3373-6c1f-d35bb00c6c22.htm">ConfigurablePofContext(String)</a></td><td><div class="summary">
+            Create a <b>ConfigurablePofContext</b> that will load
+            configuration information from the specified locator.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="20ea5a96-48df-8dd9-a029-602aaf4b686e.htm">ConfigurablePofContext(ConfigurablePofContext)</a></td><td><div class="summary">
+            Create a copy of <b>ConfigurablePofContext</b> from the given one.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="1fe5f691-2ff5-b958-79c6-9a03d5628b7e.htm">ConfigurablePofContext(IXmlElement)</a></td><td><div class="summary">
+            Create a <b>ConfigurablePofContext</b> that will use the passed
+            configuration information.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID4RB')" onkeypress="SectionExpandCollapse_CheckKey('ID4RB', event)" tabindex="0"><img id="ID4RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Properties</span></div><div id="ID4RBSection" class="collapsibleSection"><table class="members" id="propertyList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="028a621b-5a3f-5745-53f1-93153ee74022.htm">Config</a></td><td><div class="summary"><b>IXmlElement</b> holding configuration information.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="b1a2a5b6-3903-36c4-2066-425f1212bac7.htm">ConfigLocation</a></td><td><div class="summary">
+            Obtain the location of the configuration that the
+            <b>ConfigurablePofContext</b> used to configure itself.
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="9349ff0b-2618-91f1-be19-444a7cea5b2b.htm">DefaultPofConfig</a></td><td><div class="summary">
+            The default XML configuration used when one isn't explicitly passed
+            in the constructor for this class.
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="62de19e7-43ab-cad6-f406-c9da7226f381.htm">DefaultPofConfigResource</a></td><td><div class="summary">
+            The <a href="8bc62337-8c1a-769a-f787-b06b30532617.htm">IResource</a> for the default XML configuration used
+            when one isn't explicitly passed in the constructor for this class.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="26362b9c-bbaf-8121-ac78-4e6774f6d72e.htm">IsInitialized</a></td><td><div class="summary">
+            Determine if the <b>ConfigurablePofContext</b> has completed its
+            initialization.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="69188e37-a0e7-f7f7-188d-82b19478a6e3.htm">IsInterfaceAllowed</a></td><td><div class="summary">
+            Determine if the <b>ConfigurablePofContext</b> supports the
+            configuration of user types by specifying an interface (instead
+            of a class) for the .NET type.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubproperty.gif" alt="Public property" title="Public property" /></td><td><a href="8faaea62-00ea-fbbf-4422-45ebf0a4a023.htm">IsReferenceEnabled</a></td><td><div class="summary">
+            Determine if Identity/Reference type support is enabled for this
+            ConfigurablePofContext.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protproperty.gif" alt="Protected property" title="Protected property" /></td><td><a href="2f14967f-b8ce-7910-066f-5a29a47e7f35.htm">IsSubclassAllowed</a></td><td><div class="summary">
+            Determine if the <b>ConfigurablePofContext</b> supports the
+            serialization of an object that is an instance of a sub-class of
+            a configured type, but not actually an instance of a class of a
+            configured type.
+            </div></td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID5RB')" onkeypress="SectionExpandCollapse_CheckKey('ID5RB', event)" tabindex="0"><img id="ID5RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Methods</span></div><div id="ID5RBSection" class="collapsibleSection"><table class="members" id="methodList"><tr><th class="iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="26c77cde-4b55-03f1-4cf8-2bc37294effc.htm">AppendDefaultSerializerToUserTypes</a></td><td><div class="summary">
+            Process &lt;default-serializer&gt; element from specified xml
+            configuration and appends information about serializer to each
+            &lt;user-type&gt; element within &lt;user-type-list&gt; unless
+            user type already has serializer specified.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="9a19eb62-718f-5b3e-0274-35cc46ad01d9.htm">CheckNotInitialized</a></td><td><div class="summary">
+            Verify that the <b>ConfigurablePofContext</b> has not already
+            been initialized.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="d2682c71-f6ef-cd1c-20f7-d873968d8b47.htm">CreatePofConfig</a></td><td><div class="summary">
+            Create a <a href="5c75b22b-6b50-74a1-3c0a-77c15699d265.htm">ConfigurablePofContext<span id="LST1462AE85_4"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST1462AE85_4?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>PofConfig</a> object based on a configuration
+            that was either provided as XML, or can be loaded from the
+            specified (or default) URI.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="a16d0a21-4814-a633-6ed8-fe9bc8d1ccc7.htm">Deserialize</a></td><td><div class="summary">
+            Deserialize an object from a stream by reading its state using
+            the specified <a href="3acdd813-b2b6-e546-5f6f-5f9a4688a72b.htm">DataReader</a> object.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="fdc40d13-4a3e-0b80-f135-310fe3583c7f.htm">EnsureInitialized</a></td><td><div class="summary">
+            Fully initialize the <b>ConfigurablePofContext</b> if it has not
+            already been initialized.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.equals#System_Object_Equals_System_Object_" target="_blank">Equals</a></td><td><div class="summary">Determines whether the specified <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a> is equal to the current <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.finalize#System_Object_Finalize" target="_blank">Finalize</a></td><td><div class="summary">Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.gethashcode#System_Object_GetHashCode" target="_blank">GetHashCode</a></td><td><div class="summary">Serves as a hash function for a particular type. </div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="eb64ab11-942d-6011-f20a-e3319d9634fa.htm">GetInheritedUserTypeIdentifier</a></td><td><div class="summary">
+            Helper method for determining the user type identifier associated
+            with a given class that does not have a direct configured
+            association.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="13da0983-b595-61bf-293a-a0447a3e2d01.htm">GetPofConfig</a></td><td><div class="summary">
+            Obtain the <a href="5c75b22b-6b50-74a1-3c0a-77c15699d265.htm">ConfigurablePofContext<span id="LST1462AE85_5"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST1462AE85_5?cs=.|vb=.|cpp=::|nu=.|fs=.");</script>PofConfig</a> that represents the
+            initialized state of the <b>ConfigurablePofContext</b>.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="b5e0f448-fccc-3d71-abb6-0b45062db69c.htm">GetPofSerializer</a></td><td><div class="summary">
+            Return an <a href="d4887c1e-b1db-21fd-f032-44efec987bdb.htm">IPofSerializer</a> that can be used to
+            serialize and deserialize an object of the specified user type to
+            and from a POF stream.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="d6641c84-9974-5bfc-cbab-bfd81b2b9231.htm">GetSerializer</a></td><td><div class="summary">
+            Returns serializer for user type specified by
+            <span class="parameter">xmlType</span>.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.gettype#System_Object_GetType" target="_blank">GetType<span id="LST1462AE85_6"></span><script type="text/javascript">AddLanguageSpecificTextSet("LST1462AE85_6?cs=()|vb=|cpp=()|nu=()|fs=()");</script></a></td><td><div class="summary">Gets the <a href="https://docs.microsoft.com/dotnet/api/system.type" target="_blank">Type</a> of the current instance.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="db2f54c4-64a4-2957-4b9e-10afd705a07f.htm">GetType(Int32)</a></td><td><div class="summary">
+            Determine the type associated with the given user type
+            identifier.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="d958cfd9-876f-74d0-0075-da802824ca36.htm">GetTypeName</a></td><td><div class="summary">
+            Determine the name of the type associated with a user type
+            identifier.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="bc5754ea-1d41-8a13-25a8-075145e78821.htm">GetUserTypeIdentifier(Object)</a></td><td><div class="summary">
+            Determine the user type identifier associated with the given
+            object.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="c78963d0-d880-d1e8-3f7a-9741a8b9c10e.htm">GetUserTypeIdentifier(String)</a></td><td><div class="summary">
+            Determine the user type identifier associated with the given type
+            name.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="2c1979bd-3e19-4f85-aaad-8888db37c061.htm">GetUserTypeIdentifier(Type)</a></td><td><div class="summary">
+            Determine the user type identifier associated with the given
+            type.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="d5824400-d4b8-15e4-979c-607ccd7b9056.htm">GetUserTypeIdentifierInternal(String)</a></td><td><div class="summary">
+            Determine the user type identifier associated with the given type
+            name.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="6b16b8a8-343f-509a-633e-0788415c4eff.htm">GetUserTypeIdentifierInternal(Type)</a></td><td><div class="summary">
+            Determine the user type identifier associated with the given
+            type.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="565255b8-b0f0-74aa-0ce9-641edcb1d45c.htm">Initialize</a></td><td><div class="summary">
+            Bind the <b>ConfigurablePofContext</b> to a URI of the
+            configuration file, resolving all type names, etc.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="f24f817c-7857-119d-bc1d-3dc852138a5c.htm">IsUserType(Object)</a></td><td><div class="summary">
+            Determine if the given object is of a user type known to this
+            <b>IPofContext</b>.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="53af1b0f-7ffa-ffe5-8ede-e0ae9eb2abe0.htm">IsUserType(String)</a></td><td><div class="summary">
+            Determine if the type with the given name is a user type known to
+            this <b>IPofContext</b>.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="43c0d363-b33c-4383-8fd0-18cf891c3d6a.htm">IsUserType(Type)</a></td><td><div class="summary">
+            Determine if the given type is a user type known to this
+            <b>IPofContext</b>.
+            </div></td></tr><tr data="protected;static;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="079cb6d1-2f90-1ba9-94d4-ded6f6f80a9b.htm">LoadDefaultPofConfig</a></td><td><div class="summary">
+            Load and return the default XML POF configuration.
+            </div></td></tr><tr data="protected;inherited;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.memberwiseclone#System_Object_MemberwiseClone" target="_blank">MemberwiseClone</a></td><td><div class="summary">Creates a shallow copy of the current <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="9b0ac757-b88a-1d5d-f6d6-00fc2e309e3d.htm">ResolveType</a></td><td><div class="summary">
+            Returns <b>Type</b> specified by <span class="parameter">xmlType</span> with
+            configuration information.
+            </div></td></tr><tr data="public;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="49252a06-c0cc-6c89-729d-47741885e679.htm">Serialize</a></td><td><div class="summary">
+            Serialize an object to a stream by writing its state using the
+            specified <a href="c7fe50e3-085f-a0a7-7b56-178105554900.htm">DataWriter</a> object.
+            </div></td></tr><tr data="protected;declared;notNetfw;"><td><img src="../icons/protmethod.gif" alt="Protected method" title="Protected method" /></td><td><a href="4c45b24f-4bf8-c114-37e8-0ce03ead249b.htm">ThrowException</a></td><td><div class="summary">
+            Assemble and throw an informative exception based on the passed
+            details.
+            </div></td></tr><tr data="public;inherited;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /></td><td><a href="https://docs.microsoft.com/dotnet/api/system.object.tostring#System_Object_ToString" target="_blank">ToString</a></td><td><div class="summary">Returns a string that represents the current object.</div> (Inherited from <a href="https://docs.microsoft.com/dotnet/api/system.object" target="_blank">Object</a>.)</td></tr></table><a href="#PageHeader">Top</a></div><div class="collapsibleAreaRegion"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID6RB')" onkeypress="SectionExpandCollapse_CheckKey('ID6RB', event)" tabindex="0"><img id="ID6RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />Remarks</span></div><div id="ID6RBSection" class="collapsibleSection"><p>
+             For each user type supported by this POF context, it must be provided
+             with:
+             <ul><li>
+             A valid user type ID that is unique within this POF context.
+             </li><li>
+             A .NET type name that identifies a .NET type or interface that all
+             values of the user type are type-assignable to (and that no values of
+             other user types are type-assignable to); in other words, all values
+             of the user type (and no values of other user types) are instances of
+             the specified class, instances of a sub-class of the specified class,
+             or (if it is an interface) instances of a class that implements the
+             specified interface.
+             </li><li>
+             A .NET type name that identifies a non-abstract implementation of
+             the <a href="d4887c1e-b1db-21fd-f032-44efec987bdb.htm">IPofSerializer</a> interface.
+             </li></ul></p><p>
+             The format of the configuration XML is as follows:
+             <pre>
+             &lt;pof-config&gt;
+               &lt;user-type-list&gt;
+               ..
+                 &lt;user-type&gt;
+                   &lt;type-id&gt;53&lt;/type-id&gt;
+                   &lt;class-name&gt;My.Example.Data.Trade, MyAssembly&lt;/class-name&gt;
+                   &lt;serializer&gt;
+                     &lt;class-name&gt;Tangosol.IO.Pof.PortableObjectSerializer, Coherence&lt;/class-name&gt;
+                     &lt;init-params&gt;
+                       &lt;init-param&gt;
+                         &lt;param-type&gt;System.Int32&lt;/param-type&gt;
+                         &lt;param-value&gt;{type-id}&lt;/param-value&gt;
+                       &lt;/init-param&gt;
+                     &lt;/init-params&gt;
+                   &lt;/serializer&gt;
+                 &lt;/user-type&gt;
+            
+                 &lt;user-type&gt;
+                   &lt;type-id&gt;54&lt;/type-id&gt;
+                   &lt;class-name&gt;My.Example.Data.Position, MyAssembly&lt;/class-name&gt;
+                 &lt;/user-type&gt;
+            
+               ..
+               &lt;include&gt;file:/my-pof-config.xml&lt;/include&gt;
+            
+               ..
+               &lt;/user-type-list&gt;
+            
+               &lt;allow-interfaces&gt;false&lt;/allow-interfaces&gt;
+               &lt;allow-subclasses&gt;false&lt;/allow-subclasses&gt;
+            
+               &lt;default-serializer&gt;
+                 &lt;class-name&gt;Tangosol.IO.Pof.XmlPofSerializer, Coherence&lt;/class-name&gt;
+                 &lt;init-params&gt;
+                   &lt;init-param&gt;
+                     &lt;param-type&gt;System.Int32&lt;/param-type&gt;
+                     &lt;param-value&gt;{type-id}&lt;/param-value&gt;
+                   &lt;/init-param&gt;
+                 &lt;/init-params&gt;
+               &lt;/default-serializer&gt;
+             &lt;/pof-config&gt;
+             </pre></p><p>
+             For each user type, a user-type element must exist inside
+             the user-type-list element. The user-type-list
+             element contains up to three elements, in the following order:
+             <ul><li>
+             The user-type element should contain a type-id
+             element whose value specifies the unique integer type ID; if none of
+             the user-type elements contains a type-id element,
+             then the type IDs for the user types will be based on the order in
+             which they appear in the configuration, with the first user type
+             being assigned the type ID 0, the second user type being assigned the
+             type ID 1, and so on. (It is strongly recommended that user types IDs
+             always be specified, in order to support schema versioning and
+             evolution.)
+             </li><li>
+             The class-name element is required, and specifies the fully
+             qualified name of the .NET type or interface that all values of the
+             user type are type-assignable to.
+             </li><li>
+             The serializer element is used to specify an implementation
+             of <b>IPofSerializer</b> to use to serialize and deserialize user
+             type values to and from a POF stream. Within the serializer
+             element, the class-name element is required, and zero or
+             more constructor parameters can be defined within an
+             init-params block. If no serializer is specified,
+             then the default-serializer is used if one is specified,
+             otherwise the user type is assumed to implement the
+             <a href="b6de7efd-83f6-4213-d05a-b155c433f2df.htm">IPortableObject</a> interface or have a <a href="7b5fb995-4b35-911a-6c7a-8ef2aef78ce6.htm">Portable</a><a href="https://docs.microsoft.com/dotnet/api/system.attribute" target="_blank">Attribute</a>. If the former, a <a href="d4152669-e5f8-5e16-61bf-7571eafe4609.htm">PortableObjectSerializer</a> 
+             will be used. If the later, a <a href="6b6e33ea-4a9b-4f5f-ead2-ce31c6461aed.htm">PofAnnotationSerializer</a> 
+             will be used.
+             </li></ul></p><p>
+             The optional include element allows user-type
+             elements defined in another configuration XML to be added to the user
+             type list. The value of this element is a locator string (either a
+             valid path or URL) that specifies the location of the target
+             <b>IPofContext</b> configuration file. The user-type
+             elements of the target file are imported verbatum; therefore, if the
+             included elements contain explicit type identifiers, each identifier
+             must be unique with respect to the the user type identifiers (either
+             explicit or generated) defined within the including file. If the
+             included user types do not contain explicit type identifiers, then
+             the type identifiers will be based on the order in which the user
+             types appear in the composite configuration file. Multiple
+             include elements may be used within a single
+             user-type-list element.</p><p>
+             In order to be used by the <b>ConfigurablePofContext</b>, a
+             <b>IPofSerializer</b> implementation must provide a public
+             constructor that accepts the parameters detailed by the
+             init-params element. The parameter values, as specified by
+             the param-value element, can specify one of the following
+             substitutable values:
+             <ul><li><strong>{type-id}</strong> - replaced with the Type ID of the User Type</li><li><strong>{class-name}</strong> - 
+             replaced with the name of the class for the User Type
+             </li><li><strong>{class}</strong> - replaced with the Type for the User Type</li></ul></p><p>
+             If the init-params element is not present, then the
+             <b>ConfigurablePofContext</b> attempts to construct the
+             <b>IPofSerializer</b> by searching for one of the following
+             constructors in the same order as they appear here:
+             <ul><li>(int typeId, Type type)</li><li>(int typeId)</li><li>()</li></ul></p><p>
+             Once constructed, if the <b>IPofSerializer</b> implements the
+             <a href="418b0bfa-29ad-646d-92ae-f75f9f7c0eac.htm">IXmlConfigurable</a> interface, the
+             <a href="5013215f-3909-eb61-412a-ea5f0b320f65.htm">Config</a> property is set to the passed
+             XML information, transposed as described by
+             <a href="3dca00e6-81a8-3c65-254d-cd59885a8bb5.htm">TransformInitParams(IXmlElement, IXmlElement)</a>, and as described in the
+             pof-config.xsd file.</p></div><div class="collapsibleAreaRegion" id="seeAlsoSection"><span class="collapsibleRegionTitle" onclick="SectionExpandCollapse('ID7RB')" onkeypress="SectionExpandCollapse_CheckKey('ID7RB', event)" tabindex="0"><img id="ID7RBToggle" class="collapseToggle" src="../icons/SectionExpanded.png" />See Also</span></div><div id="ID7RBSection" class="collapsibleSection"><h4 class="subHeading">Reference</h4><div class="seeAlsoStyle"><a href="0dd1268e-cb54-bb79-777e-cd79ef5052e1.htm">Tangosol.IO.Pof Namespace</a></div></div></div></div><div id="pageFooter" class="pageFooter">Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved. </div></body></html>
