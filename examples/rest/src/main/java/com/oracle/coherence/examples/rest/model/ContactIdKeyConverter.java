@@ -5,10 +5,10 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.rest;
+package com.oracle.coherence.examples.rest.model;
 
+import com.oracle.coherence.examples.pof.ContactId;
 import com.tangosol.coherence.rest.KeyConverter;
-import com.tangosol.examples.pof.ContactId;
 
 import java.util.StringTokenizer;
 

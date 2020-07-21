@@ -36,7 +36,7 @@
 
     <resource>
       <cache-name>contacts</cache-name>
-      <key-converter>com.tangosol.examples.rest.ContactIdKeyConverter
+      <key-converter>com.oracle.coherence.examples.rest.model.ContactIdKeyConverter
       </key-converter>
 
       <!-- by default direct-query is disabled and must be enabled -->
@@ -66,13 +66,13 @@
     <processor>
       <name>price-adjust</name>
       <class-name>
-        com.tangosol.examples.rest.processor.PriceAdjustProcessorFactory
+        com.oracle.coherence.examples.rest.processor.PriceAdjustProcessorFactory
       </class-name>
     </processor>
     <processor>
       <name>random-contact-creator</name>
       <class-name>
-        com.tangosol.examples.rest.processor.RandomContactCreatorFactory
+        com.oracle.coherence.examples.rest.processor.RandomContactCreatorFactory
       </class-name>
     </processor>
   </processors>

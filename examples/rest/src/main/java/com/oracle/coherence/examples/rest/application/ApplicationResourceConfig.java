@@ -5,7 +5,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.rest.application;
+package com.oracle.coherence.examples.rest.application;
 
 import org.glassfish.jersey.server.ResourceConfig;
 

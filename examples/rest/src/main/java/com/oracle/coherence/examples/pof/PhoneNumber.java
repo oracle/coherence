@@ -5,7 +5,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.pof;
+package com.oracle.coherence.examples.pof;
 
 import com.tangosol.io.pof.schema.annotation.PortableType;
 

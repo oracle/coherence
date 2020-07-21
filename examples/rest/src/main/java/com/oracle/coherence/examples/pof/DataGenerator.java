@@ -5,10 +5,9 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.pof;
+package com.oracle.coherence.examples.pof;
 
 import java.io.BufferedWriter;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;

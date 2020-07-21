@@ -5,12 +5,12 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.rest.processor;
+package com.oracle.coherence.examples.rest.processor;
 
+import com.oracle.coherence.examples.pof.Contact;
+import com.oracle.coherence.examples.pof.ContactId;
 import com.tangosol.coherence.rest.util.processor.ProcessorFactory;
-import com.tangosol.examples.pof.DataGenerator;
-import com.tangosol.examples.pof.Contact;
-import com.tangosol.examples.pof.ContactId;
+import com.oracle.coherence.examples.pof.DataGenerator;
 import com.tangosol.util.InvocableMap;
 
 /**

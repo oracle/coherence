@@ -5,10 +5,10 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.rest.application;
+package com.oracle.coherence.examples.rest.application;
 
-import com.tangosol.examples.rest.model.Country;
-import com.tangosol.examples.rest.model.State;
+import com.oracle.coherence.examples.rest.model.Country;
+import com.oracle.coherence.examples.rest.model.State;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;

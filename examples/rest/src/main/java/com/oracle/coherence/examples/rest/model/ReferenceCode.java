@@ -5,7 +5,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.rest.model;
+package com.oracle.coherence.examples.rest.model;
 
 import java.io.Serializable;
 

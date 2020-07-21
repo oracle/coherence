@@ -5,10 +5,10 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.rest.processor;
+package com.oracle.coherence.examples.rest.processor;
 
+import com.oracle.coherence.examples.rest.model.Product;
 import com.tangosol.coherence.rest.util.processor.ProcessorFactory;
-import com.tangosol.examples.rest.model.Product;
 import com.tangosol.util.InvocableMap;
 
 /**

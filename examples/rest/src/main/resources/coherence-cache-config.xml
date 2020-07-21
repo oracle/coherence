@@ -15,7 +15,7 @@
     <interceptor>
       <instance>
         <class-name>
-          com.tangosol.examples.rest.application.ApplicationBootstrapInterceptor
+          com.oracle.coherence.examples.rest.application.ApplicationBootstrapInterceptor
         </class-name>
       </instance>
     </interceptor>
@@ -26,35 +26,35 @@
       <cache-name>departments</cache-name>
       <scheme-name>RESTExample</scheme-name>
       <key-type>java.lang.String</key-type>
-      <value-type>com.tangosol.examples.rest.model.Department</value-type>
+      <value-type>com.oracle.coherence.examples.rest.model.Department</value-type>
     </cache-mapping>
 
     <cache-mapping>
       <cache-name>products</cache-name>
       <scheme-name>RESTExample</scheme-name>
       <key-type>java.lang.Long</key-type>
-      <value-type>com.tangosol.examples.rest.model.Product</value-type>
+      <value-type>com.oracle.coherence.examples.rest.model.Product</value-type>
     </cache-mapping>
 
     <cache-mapping>
       <cache-name>states</cache-name>
       <scheme-name>RESTExample</scheme-name>
       <key-type>java.lang.String</key-type>
-      <value-type>com.tangosol.examples.rest.model.State</value-type>
+      <value-type>com.oracle.coherence.examples.rest.model.State</value-type>
     </cache-mapping>
 
     <cache-mapping>
       <cache-name>countries</cache-name>
       <scheme-name>RESTExample</scheme-name>
       <key-type>java.lang.String</key-type>
-      <value-type>com.tangosol.examples.rest.model.Country</value-type>
+      <value-type>com.oracle.coherence.examples.rest.model.Country</value-type>
     </cache-mapping>
 
     <cache-mapping>
       <cache-name>contacts</cache-name>
       <scheme-name>RESTExampleContacts</scheme-name>
-      <key-type>com.tangosol.examples.pof.ContactId</key-type>
-      <value-type>com.tangosol.examples.pof.Contact</value-type>
+      <key-type>com.oracle.coherence.examples.pof.ContactId</key-type>
+      <value-type>com.oracle.coherence.examples.pof.Contact</value-type>
     </cache-mapping>
 
     <cache-mapping>
@@ -132,7 +132,7 @@
             <context-path>/application/</context-path>
             <instance>
               <class-name>
-                com.tangosol.examples.rest.application.ApplicationResourceConfig
+                com.oracle.coherence.examples.rest.application.ApplicationResourceConfig
               </class-name>
             </instance>
           </resource-config>

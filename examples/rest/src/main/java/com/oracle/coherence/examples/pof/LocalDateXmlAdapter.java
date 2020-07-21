@@ -5,7 +5,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.pof;
+package com.oracle.coherence.examples.pof;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

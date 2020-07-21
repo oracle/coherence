@@ -15,7 +15,7 @@
 
 @XmlJavaTypeAdapters({@XmlJavaTypeAdapter(type = LocalDate.class, value = LocalDateXmlAdapter.class)})
 
-package com.tangosol.examples.pof;
+package com.oracle.coherence.examples.pof;
 
 import java.time.LocalDate;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;

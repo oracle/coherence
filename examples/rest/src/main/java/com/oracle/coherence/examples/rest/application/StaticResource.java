@@ -5,7 +5,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.examples.rest.application;
+package com.oracle.coherence.examples.rest.application;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Resources;
