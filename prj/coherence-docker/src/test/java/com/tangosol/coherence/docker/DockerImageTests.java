@@ -625,9 +625,6 @@ public class DockerImageTests
 
             try (PrintWriter writer = new PrintWriter(fileArgs))
                 {
-                writer.println("-XshowSettings:all");
-                writer.println("-XX:+PrintCommandLineFlags");
-                writer.println("-XX:+PrintFlagsFinal");
                 Arrays.stream(args).forEach(writer::println);
                 }
 
