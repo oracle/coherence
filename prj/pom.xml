@@ -819,8 +819,8 @@
     <jacoco.version>0.8.5</jacoco.version>
     <jaeger.version>1.1.0</jaeger.version>
     <javaee.version>5</javaee.version>
-    <javax.cache.version>1.1.0</javax.cache.version>
-    <javax.cache.tck.version>1.1.0</javax.cache.tck.version>
+    <javax.cache.version>1.1.1</javax.cache.version>
+    <javax.cache.tck.version>1.1.1</javax.cache.tck.version>
     <jaxb-api.version>2.3.3</jaxb-api.version>
     <jaxb-core.version>2.3.0.1</jaxb-core.version>
     <jaxb-impl.version>2.3.2</jaxb-impl.version>
