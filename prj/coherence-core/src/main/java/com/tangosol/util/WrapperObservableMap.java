@@ -721,6 +721,19 @@ public class WrapperObservableMap<K, V>
             }
         }
 
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public int hashCode()
+        {
+        return getMap().hashCode();
+        }
+
+    @Override
+    public boolean equals(Object o)
+        {
+        return getMap().equals(o);
+        }
 
     // ----- inner class: InternalListener ----------------------------------
 

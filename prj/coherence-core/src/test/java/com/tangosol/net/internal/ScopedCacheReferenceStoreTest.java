@@ -191,4 +191,148 @@ public class ScopedCacheReferenceStoreTest
         boolean fReleasedTwo = store.releaseCache(cacheTwo, loaderTwo);
         assertThat(fReleasedTwo, is(true));
         }
+
+    @Test
+    public void shouldBeThreadSafeWhenReleasingSameCache() throws Exception
+        {
+        ClassLoader      loaderOne = mock(ClassLoader.class, "One");
+        NamedCache<?, ?> cacheOne  = mock(NamedCache.class, "One");
+        CacheService     service   = mock(CacheService.class);
+        ServiceInfo      info      = mock(ServiceInfo.class);
+        CountDownLatch   latchOne  = new CountDownLatch(1);
+        CountDownLatch   latchTwo  = new CountDownLatch(1);
+        AtomicBoolean    fReleased = new AtomicBoolean(false);
+
+        when(service.getInfo()).thenReturn(info);
+        when(info.getServiceType()).thenReturn(CacheService.TYPE_DISTRIBUTED);
+        when(cacheOne.getCacheService()).thenReturn(service);
+        when(cacheOne.isReleased()).thenAnswer(i -> fReleased.get());
+        when(cacheOne.isActive()).thenAnswer(i -> !fReleased.get());
+
+        ScopedCacheReferenceStore store = new ScopedCacheReferenceStore();
+
+        // put the cache in the store
+        Object prevOne = store.putCacheIfAbsent(cacheOne, loaderOne);
+        assertThat(prevOne, is(nullValue()));
+
+        // now concurrently release cache from two different threads
+        Runnable runRelease = () ->
+            {
+            latchOne.countDown();
+            try
+                {
+                latchTwo.await(1, TimeUnit.MINUTES);
+                }
+            catch (InterruptedException e) {}
+
+            // allow cache to release internal resources
+            fReleased.set(true);
+            };
+
+        // release cache in the store - this is done on another thread as it
+        // will block until release latch
+        CompletableFuture<Object> future1 = CompletableFuture.supplyAsync(() ->
+            store.releaseCache(cacheOne, loaderOne, runRelease));
+
+        // continue only after first synchronization point reached
+        latchOne.await(1, TimeUnit.MINUTES);
+
+        // concurrent release of cache. this one is second so will not find cache in store.
+        // ensure that releaseCache did not complete until future1 release method completes.
+        CompletableFuture<Object> future2 = CompletableFuture.supplyAsync(() ->
+            {
+            if (!store.releaseCache(cacheOne, loaderOne, runRelease))
+                {
+                // check assertions that failed when store releaseCache did not
+                // wait for pending cache release to complete
+                assertThat(cacheOne.isActive(), is(false));
+                assertThat(cacheOne.isReleased(), is(true));
+                return true;
+                }
+            return false;
+            });
+
+        // assert both threads stuck in release
+        assertThat(future1.isDone(), is(false));
+        assertThat(future2.isDone(), is(false));
+
+        // allow runRelease to complete
+        latchTwo.countDown();
+
+        // assert both async operations completed successfully
+        assertThat(future1.get(), is(true));
+        assertThat(future2.get(), is(true));
+        }
+
+    @Test
+    public void shouldNotBlockWhenConcurrentReleaseHasFailure() throws Exception
+        {
+        ClassLoader      loaderOne = mock(ClassLoader.class, "One");
+        NamedCache<?, ?> cacheOne  = mock(NamedCache.class, "One");
+        CacheService     service   = mock(CacheService.class);
+        ServiceInfo      info      = mock(ServiceInfo.class);
+        CountDownLatch   latchOne  = new CountDownLatch(1);
+        CountDownLatch   latchTwo  = new CountDownLatch(1);
+        AtomicBoolean    fReleased = new AtomicBoolean(false);
+
+        when(service.getInfo()).thenReturn(info);
+        when(info.getServiceType()).thenReturn(CacheService.TYPE_DISTRIBUTED);
+        when(cacheOne.getCacheService()).thenReturn(service);
+        when(cacheOne.isReleased()).thenAnswer(i -> fReleased.get());
+        when(cacheOne.isActive()).thenAnswer(i -> !fReleased.get());
+
+        ScopedCacheReferenceStore store = new ScopedCacheReferenceStore();
+
+        // put the cache in the store
+        Object prevOne = store.putCacheIfAbsent(cacheOne, loaderOne);
+        assertThat(prevOne, is(nullValue()));
+
+        // now concurrently release cache from two different threads
+        Runnable runRelease = () ->
+            {
+            latchOne.countDown();
+            try
+                {
+                latchTwo.await(1, TimeUnit.MINUTES);
+                }
+            catch (InterruptedException e) {}
+
+            // allow cache to release internal resources
+            fReleased.set(true);
+
+            throw new IllegalStateException("simulated release failure");
+        };
+
+        // release cache in the store - this is done on another thread as it
+        // will block until release latch
+        CompletableFuture<Object> future1 = CompletableFuture.supplyAsync(() ->
+            store.releaseCache(cacheOne, loaderOne, runRelease));
+
+        // continue only after first synchronization point
+        latchOne.await(1, TimeUnit.MINUTES);
+
+        // concurrent release of cache. this one is second so will not find cache in store.
+        // ensure that releaseCache did not complete until future1 release method completes.
+        CompletableFuture<Object> future2 = CompletableFuture.supplyAsync(() ->
+        {
+        if (!store.releaseCache(cacheOne, loaderOne, runRelease))
+            {
+            // check assertions that failed when store releaseCache did not
+            // wait for pending cache release to complete
+            assertThat(cacheOne.isActive(), is(false));
+            assertThat(cacheOne.isReleased(), is(true));
+            return true;
+            }
+        return false;
+        });
+
+        // assert both threads stuck in release
+        assertThat(future1.isDone(), is(false));
+        assertThat(future2.isDone(), is(false));
+
+        // allow runRelease to complete
+        latchTwo.countDown();
+
+        assertThat(future2.get(), is(true));
+        }
     }
