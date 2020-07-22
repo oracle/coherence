@@ -6,8 +6,8 @@
  */
 package com.tangosol.net.internal;
 
-import com.oracle.common.base.Blocking;
-import com.oracle.common.base.IdentityHolder;
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.IdentityHolder;
 
 import com.tangosol.io.ClassLoaderAware;
 
