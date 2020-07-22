@@ -3628,11 +3628,7 @@ public class DefaultConfigurableCacheFactory
                 ? ((ClassLoaderAware) cache).getContextClassLoader()
                 : getContextClassLoader();
 
-        CacheInfo  infoCache = findSchemeMapping(sCacheName);
-        XmlElement xmlScheme = resolveScheme(infoCache);
-        long       cWait     = getRequestTimeout(xmlScheme);
-
-        if (store.releaseCache(cache, loader)) // free the resources
+        Runnable  runRelease =  () ->
             {
             // allow cache to release/destroy internal resources
             if (fDestroy)
@@ -3643,6 +3639,11 @@ public class DefaultConfigurableCacheFactory
                 {
                 cache.release();
                 }
+            };
+
+        if (store.releaseCache(cache, loader, runRelease))
+            {
+            // nothing to do
             }
         else if (cache.isActive())
             {

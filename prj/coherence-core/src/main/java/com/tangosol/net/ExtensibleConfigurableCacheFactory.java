@@ -1169,7 +1169,7 @@ public class ExtensibleConfigurableCacheFactory
         ClassLoader loader     = cache instanceof ClassLoaderAware
                              ? ((ClassLoaderAware) cache).getContextClassLoader() : getContextClassLoader();
 
-        if (f_store.releaseCache(cache, loader)) // free the resources
+        Runnable runRelease = () ->
             {
             // allow cache to release/destroy internal resources
             if (fDestroy)
@@ -1180,6 +1180,11 @@ public class ExtensibleConfigurableCacheFactory
                 {
                 cache.release();
                 }
+            };
+
+        if (f_store.releaseCache(cache, loader, runRelease))
+            {
+            // nothing to do
             }
         else if (cache.isActive())
             {

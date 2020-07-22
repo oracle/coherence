@@ -6,6 +6,9 @@
  */
 package com.tangosol.net.internal;
 
+import com.oracle.common.base.Blocking;
+import com.oracle.common.base.IdentityHolder;
+
 import com.tangosol.io.ClassLoaderAware;
 
 import com.tangosol.net.NamedCache;
@@ -21,6 +24,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link ScopedCacheReferenceStore} holds scoped cache references.
@@ -323,10 +328,26 @@ public class ScopedCacheReferenceStore
      */
     public boolean releaseCache(NamedCache cache, ClassLoader loader)
         {
-        Map     mapByName   = m_mapByName;
-        String  sCacheName  = cache.getCacheName();
-        Map     mapByLoader = (Map) mapByName.get(sCacheName);
-        boolean fFound      = false;
+        return releaseCache(cache, loader, null);
+        }
+
+    /**
+     * Atomically remove the referenced cache item from the store and execute <code>postRelease</code>.
+     *
+     * @param cache        the cache reference
+     * @param loader       the ClassLoader
+     * @param postRelease  run after cache reference removed from store
+     *
+     * @return whether the item was found.
+     */
+    public boolean releaseCache(NamedCache cache, ClassLoader loader, Runnable postRelease)
+        {
+        Map                        mapByName   = m_mapByName;
+        String                     sCacheName  = cache.getCacheName();
+        Map                        mapByLoader = (Map) mapByName.get(sCacheName);
+        boolean                    fFound      = false;
+        Object                     oPending    = null;
+        IdentityHolder<NamedCache> cacheId     = new IdentityHolder<>(cache);
 
         if (mapByLoader != null)
             {
@@ -356,6 +377,12 @@ public class ScopedCacheReferenceStore
                         }
                     }
 
+                // run postRelease outside of synchronize block
+                if (fFound && postRelease != null)
+                    {
+                    f_mapPending.put(cacheId, oPending = new Object());
+                    }
+
                 // remove the loader map if this was the last cache by
                 // this name
                 if (mapByLoader.isEmpty())
@@ -363,6 +390,30 @@ public class ScopedCacheReferenceStore
                     mapByName.remove(sCacheName);
                     }
                 }
+            }
+
+        // run and signal to any waiting threads
+        if (oPending != null)
+            {
+            try
+                {
+                postRelease.run();
+                }
+            finally
+                {
+                f_mapPending.remove(cacheId, oPending);
+
+                synchronized (oPending)
+                    {
+                    oPending.notifyAll();
+                    }
+                }
+            }
+
+        if (!fFound)
+            {
+            // wait if there exist a pending postRelease for cacheId
+            awaitPending(cacheId);
             }
 
         return fFound;
@@ -441,6 +492,36 @@ public class ScopedCacheReferenceStore
         return fFound;
         }
 
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Wait until notified pending operation for specified cache is completed.
+     *
+     * @param cacheId  cache identifier to check for pending operation
+     */
+    protected void awaitPending(IdentityHolder<NamedCache> cacheId)
+        {
+        Object oPending = f_mapPending.get(cacheId);
+
+        if (oPending != null)
+            {
+            synchronized (oPending)
+                {
+                if (oPending == f_mapPending.get(cacheId))
+                    {
+                    try
+                        {
+                        Blocking.wait(oPending);
+                        }
+                    catch (InterruptedException e)
+                        {
+                        // ignore
+                        }
+                    }
+                }
+            }
+        }
+
     /**
      * Store a loader reference with the supplied value (a cache or subject reference)
      * only if it does not already exist.
@@ -488,4 +569,11 @@ public class ScopedCacheReferenceStore
             //   RuntimeException("Service has been terminated");
             }
         }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * Map of NamedCache id to an Object, used as a semaphore to block threads requiring a released cache.
+     */
+    protected Map<IdentityHolder<NamedCache>, Object> f_mapPending = new ConcurrentHashMap<>();
     }
