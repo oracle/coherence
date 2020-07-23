@@ -1,0 +1,405 @@
+<!--
+ *
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+  -->
+
+
+<div id="cluster-overview-container">
+    <div class="oj-flex">
+        <oj-button id="reset-all" on-oj-action="[[resetAll]]" style="width:10em;margin-bottom: 0px;">
+            <span>Reset All</span>
+        </oj-button>
+    </div>
+
+    <!-- Messages/ Notifications -->
+    <oj-messages id="oj-messages-id"
+                 messages="{{applicationMessages}}"
+                 display="notification"
+                 on-oj-close="[[closeMessageHandler]]"
+                 position="{{messageAttributes}}">
+    </oj-messages>
+
+    <br/>
+    <hr/>
+    
+    <div class="oj-flex" id="sse-container">
+
+        <div class="oj-md-4 oj-lg-4 oj-xl-4">
+            <h3>Contacts</h3>
+            <div class="oj-flex-item">
+                <oj-button id="start-contacts" on-oj-action="[[startContacts]]" style="width:10em;margin-bottom: 0px;"
+                           disabled="{{contactsListening}}">
+                    <span>Start Listening</span>
+                </oj-button>
+            </div>
+
+            <div>
+                <oj-radioset id="inlineSet" value="{{contactQuery}}" disabled="{{contactsListening}}"
+                     labelled-by="inlineLabelId"  class="oj-choice-direction-row">
+                  <oj-option id="all" value="all">All Events</oj-option>
+                  <oj-option id="greater" value="greater">Age >= 45</oj-option>
+                  <oj-option id="less" value="less">Age < 45</oj-option>
+                </oj-radioset>
+            </div>
+
+            <br/>
+
+            <div class="oj-flex">
+                
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Status</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: contactsStatus"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <br/>
+                </div>
+                
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Insert Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: contactMetrics.insertCount"></span>
+                </div>
+                
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Update Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: contactMetrics.updateCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Delete Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: contactMetrics.deleteCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Total Event Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: contactMetrics.totalCount"></span>
+                </div>
+                
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <br/>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Last Event</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Type</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: contactMetrics.lastEventType"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Key</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: contactMetrics.lastEventKey"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                   <strong>New Value</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <oj-text-area
+                            style="max-width: 20em; width: 20em;"
+                            id="both"
+                            rows="6"
+                            value='{{contactMetrics.lastEventNewValue}}'
+                            readonly="true"
+                            resize-behavior="both">
+                    </oj-text-area>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                   <strong>Old Value</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <oj-text-area
+                            style="max-width: 20em; width: 20em;"
+                            id="both"
+                            rows="6"
+                            value='{{contactMetrics.lastEventOldValue}}'
+                            readonly="true"
+                            resize-behavior="both">
+                    </oj-text-area>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="oj-md-4 oj-lg-4 oj-xl-4">
+            <h3>Products</h3>
+            <div class="oj-flex-item">
+                <oj-button id="start-products" on-oj-action="[[startProducts]]" style="width:10em;margin-bottom: 0px;"
+                           disabled="{{productsListening}}">
+                    <span>Start Listening</span>
+                </oj-button>
+            </div>
+
+            <div>
+                <oj-radioset id="inlineSet-2" value="{{productsQuery}}" disabled="{{productsListening}}"
+                     labelled-by="inlineLabelId-2"  class="oj-choice-direction-row">
+                  <oj-option id="all-2" value="all">All Events</oj-option>
+                  <oj-option id="greater-2" value="greater">price >= 1000</oj-option>
+                </oj-radioset>
+            </div>
+
+            <br/>
+
+            <div class="oj-flex">
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Status</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: productsStatus"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <br/>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Insert Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: productsMetrics.insertCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Update Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: productsMetrics.updateCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Delete Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: productsMetrics.deleteCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Total Event Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: productsMetrics.totalCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <br/>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Last Event</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Type</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: productsMetrics.lastEventType"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Key</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: productsMetrics.lastEventKey"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                   <strong>New Value</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <oj-text-area
+                            style="max-width: 20em; width: 20em;"
+                            id="both"
+                            rows="6"
+                            value='{{productsMetrics.lastEventNewValue}}'
+                            readonly="true"
+                            resize-behavior="both">
+                    </oj-text-area>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                   <strong>Old Value</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <oj-text-area
+                            style="max-width: 20em; width: 20em;"
+                            id="both"
+                            rows="6"
+                            value='{{productsMetrics.lastEventOldValue}}'
+                            readonly="true"
+                            resize-behavior="both">
+                    </oj-text-area>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="oj-md-4 oj-lg-4 oj-xl-4">
+            <h3>Departments</h3>
+            <div class="oj-flex-item">
+                <oj-button id="start-departments" on-oj-action="[[startDepartments]]" style="width:10em;margin-bottom: 0px;"
+                           disabled="{{departmentsListening}}">
+                    <span>Start Listening</span>
+                </oj-button>
+            </div>
+
+            <br/>
+
+            <div class="oj-flex">
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Status</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: departmentsStatus"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <br/>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Insert Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: departmentsMetrics.insertCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Update Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: departmentsMetrics.updateCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Delete Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: departmentsMetrics.deleteCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Total Event Count</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: departmentsMetrics.totalCount"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <br/>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Last Event</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Type</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: departmentsMetrics.lastEventType"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-4 oj-sm-4 oj-lg-4 oj-xl-4">
+                   <strong>Key</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-8 oj-sm-8 oj-lg-8 oj-xl-8">
+                   <span data-bind="text: departmentsMetrics.lastEventKey"></span>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                   <strong>New Value</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <oj-text-area
+                            style="max-width: 20em; width: 20em;"
+                            id="both"
+                            rows="6"
+                            value='{{departmentsMetrics.lastEventNewValue}}'
+                            readonly="true"
+                            resize-behavior="both">
+                    </oj-text-area>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                   <strong>Old Value</strong>
+                </div>
+
+                <div class="oj-flex-item oj-md-12 oj-sm-12 oj-lg-12 oj-xl-12">
+                    <oj-text-area
+                            style="max-width: 20em; width: 20em;"
+                            id="both"
+                            rows="6"
+                            value='{{departmentsMetrics.lastEventOldValue}}'
+                            readonly="true"
+                            resize-behavior="both">
+                    </oj-text-area>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+<br>
+<br>
