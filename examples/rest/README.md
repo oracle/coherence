@@ -14,7 +14,7 @@ This application showcases various features including:
 * Using Binary pass-through to store binary objects in a cache 
 * Using Server Sent Events (SSE) to respond to cache changes
 
-<img src="../assets/rest-application.png" width="800"/>
+<img src="assets/rest-application.png" width="800"/>
 
 ## Table of Contents
 

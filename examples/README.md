@@ -48,7 +48,7 @@ GitHub Location: https://github.com/helidon-sockshop/sockshop
 
 ## <a name="coherence-rest-example"></a> 3. Coherence REST Example
 
-<img src="assets/rest-application.png" width="800"/>
+<img src="rest/assets/rest-application.png" width="800"/>
 
 This example shows a basic application built using Oracle JavaScript Extension Toolkit (JET) and how Coherence REST endpoints can be integrated into such an application.
 

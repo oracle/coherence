@@ -22,7 +22,7 @@
   <inceptionYear>2020</inceptionYear>
 
   <properties>
-    <coherence.version>20.06</coherence.version>
+    <coherence.version>20.12-SNAPSHOT</coherence.version>
     <com.sun.xml.bind.version>2.3.0</com.sun.xml.bind.version>
     <http.port>8080</http.port>
     <http.address>0.0.0.0</http.address>
