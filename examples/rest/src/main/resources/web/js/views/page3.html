@@ -1,0 +1,270 @@
+<!--
+ *
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+  -->
+
+<div id="cluster-overview-container">
+    <div class="oj-flex">
+        <oj-button id="add-default-contacts-data" on-oj-action="[[populateDefaults]]" style="width:15em;margin-bottom: 0px;">
+            <span>Add Default Contacts</span>
+        </oj-button>
+        &nbsp;
+        <oj-button id="add-entry" on-oj-action="[[addNewContact]]" style="width:20em;margin-bottom: 0px;">
+            <span>Create Random Contact with Name</span>
+        </oj-button>
+
+    </div>
+    <br/>
+    <div class="oj-flex">
+        <oj-button id="show-all" on-oj-action="[[showAll]]" style="width:8em;margin-bottom: 0px;">
+            <span>Show All</span>
+        </oj-button>
+        &nbsp;
+
+        <oj-button id="MA-residents" on-oj-action="[[MAResidents]]" style="width:10em;margin-bottom: 0px;">
+            <span>MA Residents</span>
+        </oj-button>
+        &nbsp;
+
+        <oj-button id="sort-by-age" on-oj-action="[[sortByAge]]" style="width:10em;margin-bottom: 0px;">
+            <span>Sort By Age</span>
+        </oj-button>
+        &nbsp;
+        <oj-button id="sort-by-work-state" on-oj-action="[[sortByWorkState]]" style="width:12em;margin-bottom: 0px;">
+            <span>Sort By Work State</span>
+        </oj-button>
+        &nbsp;
+
+        <oj-button id="sort-by-work-zip" on-oj-action="[[sortByZipDesc]]" style="width:14em;margin-bottom: 0px;">
+            <span>Sort By Work Zip Desc</span>
+        </oj-button>
+        &nbsp;
+
+    </div>
+    <br/>
+    <div class="oj-flex">
+        <strong>Current Query: <span data-bind="text: currentURL"></span><span data-bind="text: query"></span>
+        &nbsp, Count = <span data-bind="text: contactCount"></span></strong>
+    </div>
+    
+    <!-- Messages/ Notifications -->
+    <oj-messages id="oj-messages-id"
+                 messages="{{applicationMessages}}"
+                 display="notification"
+                 on-oj-close="[[closeMessageHandler]]"
+                 position="{{messageAttributes}}">
+    </oj-messages>
+
+    <div id="dialogWrapper">
+
+        <oj-dialog style="display:none;width: 400px; height: auto;"
+                   id="addDialog" dialog-title="New Contact" cancel-behavior="icon">
+            <div slot="body">
+                <oj-form-layout label-edge="start">
+                    <oj-input-text
+                        id="f1" label-hint="First Name" placeholder="First Name"
+                        value='{{newFirstName}}'
+                        required="true"
+                        help-hints.definition="Enter first name">
+                    </oj-input-text>
+                    <oj-input-text
+                        id="f2" label-hint="Last Name" placeholder="Last Name"
+                        value='{{newLastName}}'
+                        required="true"
+                        help-hints.definition="Enter a last name">
+                    </oj-input-text>
+                </oj-form-layout>
+            </div>
+            <div slot="footer">
+                <oj-button id="okButton" on-oj-action="[[createRandomContact]]">Save</oj-button>
+            </div>
+        </oj-dialog>
+
+        <!-- UPDATE DIALOG -->
+        <oj-dialog style="display:none;width: 700px; height: auto;"
+                   id="updateDialog" dialog-title="{{updateDialogTitle}}" cancel-behavior="icon">
+            <div slot="body">
+                <oj-form-layout label-edge="start">
+                    <oj-input-text
+                        id="f1" label-hint="Street 1" placeholder="Street 1"
+                        value='{{newStreet1}}'
+                        required="true"
+                        help-hints.definition="Enter street address 1">
+                    </oj-input-text>
+
+                    <oj-input-text
+                        id="f2" label-hint="Street 2" placeholder="Street 2"
+                        value='{{newStreet2}}'
+                        help-hints.definition="Enter street address 2">
+                    </oj-input-text>
+
+                    <oj-input-text
+                        id="f3" label-hint="City" placeholder="City"
+                        value='{{newCity}}'
+                        help-hints.definition="Enter City">
+                    </oj-input-text>
+                    
+                    <oj-combobox-one id="f4"
+                                     label-hint="State"
+                                     value="{{newState}}"  options="[[stateData]]" >
+                    </oj-combobox-one>
+
+                    <oj-combobox-one id="f5"
+                                     label-hint="Country"
+                                     value="{{newCountry}}"  options="[[countryData]]" >
+                    </oj-combobox-one>
+
+                    <oj-input-text
+                        id="f6" label-hint="Zip Code" placeholder="Zip Code"
+                        value='{{newZipCode}}'
+                        help-hints.definition="Enter Zip Code">
+                    </oj-input-text>
+                </oj-form-layout>
+            </div>
+            <div slot="footer">
+                <oj-button id="saveButton" on-oj-action="[[saveUpdatedAddress]]">Save</oj-button>
+            </div>
+        </oj-dialog>
+    </div>
+
+    <div class="oj-flex" id="member-table-container">
+
+        <div class="oj-flex-item oj-lg-align-self-center oj-xl-align-self-center">
+            <fieldset style="border:1px #b0b0b0 solid;padding:10px">
+                <legend style="margin-left: 1em;padding:0.2em 0.8em">
+                    <h5>Contacts</span></h5>
+                </legend>
+                 <oj-table id="contactsTable"
+                        aria-label="JSON Table"
+                        data='[[dataprovider]]'
+                        scroll-policy='loadAll'
+                        columns-default.sortable='disabled'
+                        columns='[{"field": "lastName",
+                                   "headerText": "Last Name",
+                                   "headerStyle": "min-width: 7m; max-width: 7em; width: 7em",
+                                   "style": "min-width: 7em; max-width: 7em; width: 7em",
+                                   "className": "oj-read-only",
+                                   "template": "lastNameTemplate"},
+                                  {"field": "firstName",
+                                   "headerText": "First Name",
+                                   "headerStyle": "min-width: 7em; max-width: 7em; width: 7em",
+                                   "style": "min-width: 7em; max-width: 7em; width: 7em",
+                                   "className": "oj-read-only",
+                                   "template": "firstNameTemplate"},
+                                  {"field":"birthDate",
+                                   "headerText": "DOB",
+                                   "headerStyle": "min-width: 7em; max-width: 7em; width: 7em",
+                                   "style": "min-width: 9em; max-width: 9em; width: 9em",
+                                   "className": "oj-read-only",
+                                   "template": "dateTemplate"},
+                                  {"field":"age",
+                                   "headerText": "Age",
+                                   "headerStyle": "min-width: 5em; max-width: 5em; width: 5em",
+                                   "headerClassName": "oj-helper-text-align-end",
+                                   "style": "min-width: 5em; max-width: 5em; width: 5em",
+                                   "className": "oj-helper-text-align-end",
+                                   "template": "AgeTemplate"},
+                                 {"field": "homeAddress",
+                                   "headerText": "Home Address",
+                                   "headerStyle": "min-width: 15em; max-width: 15em; width: 15em",
+                                   "style": "min-width: 15em; max-width: 15em; width: 15em",
+                                   "className": "oj-read-only",
+                                   "template": "homeAddressTemplate"},
+                                  {"field": "workAddress",
+                                   "headerText": "Work Address",
+                                   "headerStyle": "min-width: 15em; max-width: 15em; width: 15em",
+                                   "style": "min-width: 15em; max-width: 15em; width: 15em",
+                                   "className": "oj-read-only",
+                                   "template": "workAddressTemplate"},
+                                  {"field": "phoneNumber",
+                                   "headerText": "Phone Number",
+                                   "headerStyle": "min-width: 10em; max-width: 10em; width: 10em",
+                                   "style": "min-width: 10em; max-width: 10em; width: 10em",
+                                   "className": "oj-read-only",
+                                   "template": "phoneNumberTemplate"},
+                                  {"headerText": "",
+                                   "headerStyle": "min-width: 7em; max-width: 7em; width: 7em;text-align: center;",
+                                   "style":"padding:0px;text-align: center;",
+                                   "template": "updateHomeTemplate"},
+                                   {"headerText": "",
+                                   "headerStyle": "min-width: 7em; max-width: 7em; width: 7em;text-align: center;",
+                                   "style":"padding:0px;text-align: center;",
+                                   "template": "updateWorkTemplate"},
+                                  {"headerText": "",
+                                   "headerStyle": "min-width: 7em; max-width: 6em; width: 7em;text-align: center;",
+                                   "style":"padding:0px;text-align: center;",
+                                   "template": "deleteTemplate"},
+                                 {"headerText": "",
+                                   "headerStyle": "min-width: 5em; max-width: 5em; width: 5em;text-align: center;",
+                                   "style":"padding:0px;text-align: center;",
+                                   "template": "viewTemplate"}]'>
+
+                <template slot="lastNameTemplate" data-oj-as="cell">
+                  <oj-bind-text value="[[cell.data]]"></oj-bind-text>
+                </template>
+
+                <template slot="firstNameTemplate" data-oj-as="cell">
+                  <oj-bind-text value="[[cell.data]]"></oj-bind-text>
+                </template>
+
+                <template slot="valueTemplate" data-oj-as="cell">
+                  <oj-bind-text value="[[jsonConverter.format(cell.data)]]"></oj-bind-text>
+                </template>
+
+                <template slot="dateTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-bind-text value="[[dateConverter.format(cell.data)]]"></oj-bind-text>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="ageTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-bind-text value="[[numberConverter.format(cell.data)]]"></oj-bind-text>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="homeAddressTemplate" data-oj-as="cell">
+                  <oj-bind-text value="[[cell.data]]"></oj-bind-text>
+                </template>
+
+                <template slot="workAddressTemplate" data-oj-as="cell">
+                  <oj-bind-text value="[[cell.data]]"></oj-bind-text>
+                </template>
+
+                <template slot="phoneNumberTemplate" data-oj-as="cell">
+                  <oj-bind-text value="[[cell.data]]"></oj-bind-text>
+                </template>
+
+                <template slot="deleteTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-button on-oj-action="[[handleDelete]]" style="width:7em;margin-bottom: 0px;"><span>Delete</span></oj-button>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="viewTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-button on-oj-action="[[viewAsXML]]" style="width:5em;margin-bottom: 0px;"><span>XML</span></oj-button>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="updateHomeTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-button on-oj-action="[[handleHomeUpdate]]" style="width:7em;margin-bottom: 0px;"><span>Home</span></oj-button>
+                  </oj-bind-if>
+                </template>
+
+                <template slot="updateWorkTemplate" data-oj-as="cell">
+                  <oj-bind-if test='[[cell.mode=="navigation"]]'>
+                    <oj-button on-oj-action="[[handleWorkUpdate]]" style="width:7em;margin-bottom: 0px;"><span>Work</span></oj-button>
+                  </oj-bind-if>
+                </template>
+
+              </oj-table>
+            </fieldset>
+        </div>
+    </div>
+</div>

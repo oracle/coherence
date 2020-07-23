@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence.examples</groupId>
+  <artifactId>example-rest-application</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>Example Coherence REST Application</name>
+  <packaging>jar</packaging>
+
+  <description>Oracle Coherence Data Grid REST Examples</description>
+  <url>https://coherence.community/</url>
+  <inceptionYear>2020</inceptionYear>
+
+  <properties>
+    <coherence.version>20.06.1-SNAPSHOT</coherence.version>
+    <com.sun.xml.bind.version>2.3.0</com.sun.xml.bind.version>
+    <http.port>8080</http.port>
+    <http.address>0.0.0.0</http.address>
+    <javax.activation.version>1.2.0</javax.activation.version>
+    <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+    <maven.compiler.release>8</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.oracle.coherence.ce</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${coherence.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.coherence.ce</groupId>
+      <artifactId>coherence-rest</artifactId>
+      <version>${coherence.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.coherence.ce</groupId>
+      <artifactId>coherence-http-netty</artifactId>
+      <version>${coherence.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <version>2.29</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-core</artifactId>
+      <version>${com.sun.xml.bind.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>${com.sun.xml.bind.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>${com.sun.xml.bind.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>javax.activation-api</artifactId>
+      <version>${javax.activation.version}</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <!-- run a cache server with no proxy server -->
+    <profile>
+      <id>cacheServer</id>
+      <activation>
+        <property>
+          <name>cacheServer</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.1</version>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath/>
+                <argument>-Djava.net.preferIPv4Stack=true</argument>
+                <argument>-Dcoherence.wka=127.0.0.1</argument>
+                <argument>-Dcoherence.management=all</argument>
+                <argument>-Dcoherence.clusterport=5555</argument>
+                <argument>com.tangosol.net.DefaultCacheServer</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- run a proxy server as storage-enabled -->
+    <profile>
+      <id>httpProxy</id>
+      <activation>
+        <property>
+          <name>httpProxy</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.1</version>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath/>
+                <argument>-Dcoherence.examples.rest.enabled=true</argument>
+                <argument>-Djava.net.preferIPv4Stack=true</argument>
+                <argument>-Dcoherence.wka=127.0.0.1</argument>
+                <argument>-Dcoherence.management=all</argument>
+                <argument>-Dcoherence.clusterport=5555</argument>
+                <argument>-Dcoherence.management=all</argument>
+                <!-- change the following if you wish to change the listen
+                     address or port of the HTTP server -->
+                <argument>-Dcoherence.examples.rest.port=${http.port}</argument>
+                <argument>-Dcoherence.examples.rest.address=${http.address}
+                </argument>
+                <argument>com.tangosol.net.DefaultCacheServer</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+        <configuration>
+          <release>8</release>
+        </configuration>
+      </plugin>
+
+      <!-- instrument PortableType annotated classes -->
+      <plugin>
+        <groupId>com.oracle.coherence.ce</groupId>
+        <artifactId>pof-maven-plugin</artifactId>
+        <version>${coherence.version}</version>
+        <executions>
+          <execution>
+            <id>instrument</id>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
