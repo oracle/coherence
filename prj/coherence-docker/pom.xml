@@ -185,9 +185,6 @@
                       <classpath>/coherence/ext/lib/*</classpath>
                     </extraClasspath>
                     <jvmFlags>
-                      <jvmFlag>-XshowSettings:all</jvmFlag>
-                      <jvmFlag>-XX:+PrintCommandLineFlags</jvmFlag>
-                      <jvmFlag>-XX:+PrintFlagsFinal</jvmFlag>
                       <jvmFlag>-Dcoherence.log=jdk</jvmFlag>
                       <jvmFlag>-Dcoherence.management.http=all</jvmFlag>
                       <jvmFlag>-Dcoherence.management.http.port=${port.management}</jvmFlag>
