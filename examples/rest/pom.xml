@@ -22,11 +22,23 @@
   <inceptionYear>2020</inceptionYear>
 
   <properties>
+    <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>14.1.1-0-2-SNAPSHOT</coherence.version>
-    <com.sun.xml.bind.version>2.3.0</com.sun.xml.bind.version>
     <http.port>8080</http.port>
     <http.address>0.0.0.0</http.address>
-    <javax.activation.version>1.2.0</javax.activation.version>
+
+    <!-- dependencies -->
+    <version.lib.bedrock>5.0.19</version.lib.bedrock>
+    <version.lib.javax.activation>1.2.0</version.lib.javax.activation>
+    <version.lib.jersey-hk2>2.29</version.lib.jersey-hk2>
+    <version.lib.junit>5.6.2</version.lib.junit>
+    <version.lib.hamcrest>2.2</version.lib.hamcrest>
+    <version.lib.mockito>2.23.4</version.lib.mockito>
+    <version.lib.rest-assured>4.3.0</version.lib.rest-assured>
+    <version.lib.xml-bind>2.3.0</version.lib.xml-bind>
+
+    <version.plugin.failsafe>2.22.2</version.plugin.failsafe>
+
     <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
@@ -35,44 +47,88 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${coherence.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
       <version>${coherence.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.oracle.coherence.ce</groupId>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-http-netty</artifactId>
       <version>${coherence.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.inject</groupId>
       <artifactId>jersey-hk2</artifactId>
-      <version>2.29</version>
+      <version>${version.lib.jersey-hk2}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-core</artifactId>
-      <version>${com.sun.xml.bind.version}</version>
+      <version>${version.lib.xml-bind}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
-      <version>${com.sun.xml.bind.version}</version>
+      <version>${version.lib.xml-bind}</version>
     </dependency>
     <dependency>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
-      <version>${com.sun.xml.bind.version}</version>
+      <version>${version.lib.xml-bind}</version>
     </dependency>
     <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>javax.activation-api</artifactId>
-      <version>${javax.activation.version}</version>
+      <version>${version.lib.javax.activation}</version>
+    </dependency>
+
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <version>${version.lib.rest-assured}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.lib.junit}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${version.lib.junit}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>${version.lib.hamcrest}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${version.lib.mockito}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- oracle bedrock -->
+    <dependency>
+      <groupId>com.oracle.bedrock.coherence</groupId>
+      <artifactId>coherence-12.2.1</artifactId>
+      <version>${version.lib.bedrock}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock.coherence</groupId>
+      <artifactId>coherence-12.2.1-testing-support</artifactId>
+      <version>${version.lib.bedrock}</version>
     </dependency>
   </dependencies>
 
@@ -132,7 +188,6 @@
                 <argument>-Dcoherence.wka=127.0.0.1</argument>
                 <argument>-Dcoherence.management=all</argument>
                 <argument>-Dcoherence.clusterport=5555</argument>
-                <argument>-Dcoherence.management=all</argument>
                 <!-- change the following if you wish to change the listen
                      address or port of the HTTP server -->
                 <argument>-Dcoherence.examples.rest.port=${http.port}</argument>
@@ -168,6 +223,20 @@
             <id>instrument</id>
             <goals>
               <goal>instrument</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${version.plugin.failsafe}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
             </goals>
           </execution>
         </executions>

@@ -1,0 +1,49 @@
+# Copyright 2020 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+# This workflow will build and test the examples
+
+name: Build and Test Examples
+
+on:
+  push:
+    branches: [ v14.1.1.0 ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Java 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+
+    - name: Cache Maven packages
+      uses: actions/cache@v1
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Build Coherence With Maven
+      shell: bash
+      env:
+        MAVEN_USER: ${{ secrets.MavenUser }}
+        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
+      run: |
+        export DEV_ROOT=$(pwd)
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -DskipTests clean install
+
+    - name: Test Examples
+      shell: bash
+      env:
+        MAVEN_USER: ${{ secrets.MavenUser }}
+        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
+      run: |
+        echo "Testing REST Example"
+        mvn -B --file examples/rest/pom.xml -s .github/maven/synoki.xml clean verify
