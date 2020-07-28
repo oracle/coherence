@@ -874,11 +874,28 @@ public abstract class MBeanHelper
     */
     public static boolean isQuoteRequired(String s, boolean fKey)
         {
-        return s.indexOf(',') != -1
-                || s.indexOf('=') != -1
-                || s.indexOf(':') != -1
-                || !quote(s, fKey).equals("\"" + s + "\"");
+        return !isQuoted(s)
+               && (s.indexOf(',') != -1
+                   || s.indexOf('=') != -1
+                   || s.indexOf(':') != -1
+                   || !quote(s, fKey).equals("\"" + s + "\""));
         }
+
+    /**
+     * Return {@code true} if the specified string is already quoted.
+     *
+     * @param s  the string to check
+     *
+     * @return {@code true} if the specified string is already quoted
+     */
+    private static boolean isQuoted(String s)
+        {
+        int nLen = s.length();
+        return nLen >= 2
+               && s.charAt(0) == '"'
+               && s.charAt(nLen - 1) == '"';
+        }
+
     /**
     * Return a quoted {@link ObjectName#getKeyPropertyListString KeyPropertyString}
     * or a quoted canonical name. Wildcard and AnyCharacter (* and ? respectively)
