@@ -32,9 +32,11 @@ import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.delayedBy;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
@@ -444,8 +446,8 @@ public class MessageBusTestTests
         Eventually.assertThat(invoking(console1).getCapturedOutputLines(), Matchers.hasItem(containsString("connections 1, errors 0")),
                 delayedBy(cMillis, TimeUnit.MILLISECONDS));
         Eventually.assertThat(invoking(console2).getCapturedOutputLines(), Matchers.hasItem(containsString("connections 1, errors 0")));
-        assertFalse(hasItem(containsString("WARNING:")).matches(console1.getCapturedErrorLines()));
-        assertFalse(hasItem(containsString("WARNING:")).matches(console2.getCapturedErrorLines()));
+        assertThat(console1.getCapturedErrorLines(), everyItem(not(containsString("WARNING:"))));
+        assertThat(console2.getCapturedErrorLines(), everyItem(not(containsString("WARNING:"))));
 
         output1.addAll(console1.getCapturedOutputLines());
         output1.addAll(console1.getCapturedErrorLines());
