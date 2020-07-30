@@ -6,14 +6,12 @@
  */
 package com.tangosol.io.pof;
 
-import com.tangosol.internal.util.invoke.Lambdas;
-
 import com.tangosol.io.Evolvable;
 import com.tangosol.io.ReadBuffer;
-import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.util.Binary;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.WrapperException;
 
@@ -1883,14 +1881,8 @@ public class PofBufferWriter
     protected void writeUserType(int iProp, Object o)
             throws IOException
         {
-        if (Lambdas.isLambda(o))
-            {
-            o = Lambdas.ensureRemotable((Serializable) o);
-            }
-        if (o instanceof SerializationSupport)
-            {
-            o = ((SerializationSupport) o).writeReplace();
-            }
+        // replace checks for SerializationSupport
+        o = ExternalizableHelper.replace(o);
 
         boolean fEvolvableOld = isEvolvable();
         boolean fEvolvable    = fEvolvableOld || o instanceof Evolvable;

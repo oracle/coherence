@@ -11,12 +11,16 @@ import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
+
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.dslquery.ExtractorBuilder;
+
+import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.net.cache.TypeAssertion;
 import data.pof.Address;
 import data.pof.Person;
 import data.pof.PhoneNumber;
@@ -402,7 +406,8 @@ public class QueryPlusQueryTests
     public static CoherenceClusterOrchestration m_clusterRunner   = new CoherenceClusterOrchestration()
             .withOptions(CacheConfig.of(CACHE_CONFIG),
                          Pof.config(POF_CONFIG),
-                         Pof.enabled());
+                         Pof.enabled(),
+                         SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     /**
      * JUnit rule to start a QueryPlus session

@@ -10,6 +10,8 @@ import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.tangosol.internal.util.invoke.Lambdas;
+
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -24,7 +26,9 @@ import java.util.Collection;
 
 import lambda.framework.LambdaTestCluster;
 
+import org.junit.Assume;
 import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -70,5 +74,12 @@ public class RemotableTests
         NamedCache<Integer, Trade> cache = cacheFactory.ensureTypedCache(m_sSerializer, null, TypeAssertion.withTypes(Integer.class, Trade.class));
         cache.clear();
         return cache;
+        }
+
+    @Test
+    public void testRemotableClass()
+        {
+        Assume.assumeTrue("skip test using an instance of AbstractRemotable if dynamic lambdas disabled", Lambdas.isDynamicLambdas());
+        super.testRemotableClass();
         }
     }

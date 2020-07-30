@@ -541,7 +541,9 @@ public abstract class AbstractSerializerTest
         if (serializedInstance instanceof Remotable || Lambdas.isLambda(serializedInstance))
             {
             // account for SerializationHelper.replace/realize.
-            return RemoteConstructor.class;
+            return Lambdas.isStaticLambdas() ?
+                Lambdas.ensureSerializable(serializedInstance).getClass() :
+                RemoteConstructor.class;
             }
         if (serializedInstance instanceof InetAddress)
             {

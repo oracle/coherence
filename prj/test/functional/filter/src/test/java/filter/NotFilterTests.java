@@ -6,12 +6,18 @@
  */
 package filter;
 
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
+
+import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.util.invoke.Lambdas;
+
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -189,7 +195,9 @@ public class NotFilterTests
     public static final CoherenceClusterOrchestration s_clusterRunner = new CoherenceClusterOrchestration()
             .withOptions(CacheConfig.of("coherence-cache-config.xml"),
                          Pof.enabled(),
-                         Pof.config("filter-pof-config.xml"));
+                         Pof.config("filter-pof-config.xml"),
+                         SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                             Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     public static final ValueExtractor<DomainObject,Boolean> s_extractorOne   = DomainObject::isOne;
     public static final ValueExtractor<DomainObject,Boolean> s_extractorTwo   = DomainObject::isTwo;

@@ -40,6 +40,11 @@ import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+
+import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.util.invoke.Lambdas;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.CacheService;
@@ -239,6 +244,12 @@ public abstract class AbstractTestInfrastructure
                 "tangosol.coherence.distributed.localstorage") == null)
             {
             props.setProperty("tangosol.coherence.distributed.localstorage", "false");
+            }
+
+        // test static lambdas when testing security
+        if (Boolean.getBoolean("test.security.enabled"))
+            {
+            props.setProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY));
             }
         }
 
@@ -883,6 +894,9 @@ public abstract class AbstractTestInfrastructure
             optionsByType.add(SystemProperty.of("test.project.version", System.getProperty("project.version")));
             optionsByType.add(SystemProperty.of("test.tmp.dir",System.getProperty("java.io.tmpdir")));
             optionsByType.add(SystemProperty.of("sun.net.maxDatagramSockets", "1024"));
+
+            // validate static lambdas when security enabled
+            optionsByType.add(SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
             }
 
         return optionsByType;

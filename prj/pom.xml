@@ -2116,6 +2116,8 @@
                 <java.security.manager/>
                 <java.security.policy>file:${tests.path}/test-security.policy</java.security.policy>
                 <java.security.debug>${test.security.debug}</java.security.debug>
+                <!-- validate static lambdas when validating security -->
+                <coherence.lambdas>static</coherence.lambdas>
               </systemProperties>
             </configuration>
           </plugin>
@@ -2128,6 +2130,8 @@
                 <java.security.manager/>
                 <java.security.policy>file:${tests.path}/test-security.policy</java.security.policy>
                 <java.security.debug>${test.security.debug}</java.security.debug>
+                <!-- validate static lambdas when validating security -->
+                <coherence.lambdas>static</coherence.lambdas>
               </systemProperties>
             </configuration>
           </plugin>

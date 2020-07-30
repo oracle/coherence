@@ -13,6 +13,11 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
+
+import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.util.invoke.Lambdas;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -20,7 +25,6 @@ import com.tangosol.util.MapEvent;
 import com.tangosol.util.MultiplexingMapListener;
 
 import common.SystemPropertyIsolation;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -323,7 +327,9 @@ public class COH15083RegressionTests
             new CoherenceClusterOrchestration()
                     .withOptions(ClusterName.of(COH15083RegressionTests.class.getSimpleName()),
                                  SystemProperty.of("coherence.management", "all"),
-                                 JmxFeature.enabled())
+                                 JmxFeature.enabled(),
+                                 SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                                    Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
                     .setStorageMemberCount(STORAGE_MEMBER_COUNT);
 
     /**

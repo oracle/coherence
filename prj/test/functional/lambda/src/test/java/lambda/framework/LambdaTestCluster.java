@@ -7,12 +7,13 @@
 package lambda.framework;
 
 import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
-
 import com.oracle.bedrock.runtime.LocalPlatform;
-
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
-
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
+
+import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.util.invoke.Lambdas;
 
 /**
  * Common cluster ExternalResource used by all Lambda tests
@@ -26,6 +27,8 @@ public class LambdaTestCluster extends CoherenceClusterOrchestration
         super();
         this.withOptions(SystemProperty.of("coherence.nameservice.address",
                 LocalPlatform.get().getLoopbackAddress().getHostAddress()))
-            .withOptions(LocalHost.only());
+            .withOptions(LocalHost.only())
+            .withOptions(SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
         }
     }
