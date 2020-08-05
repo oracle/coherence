@@ -54,7 +54,7 @@ class JsonObjectSerializationTest
     protected Object roundTrip(String sName, JsonObject mapJson, Serializer serializer)
         {
         Binary bin = ExternalizableHelper.toBinary(mapJson, serializer);
-        System.out.println(sName + " (" + bin.length() + " bytes):\n" + new String(bin.toByteArray()));
+        System.out.println(sName + " (" + bin.length() + " bytes):\n" + new String(bin.toByteArray()).replaceAll("\\P{Print}", "."));
         return ExternalizableHelper.fromBinary(bin, serializer);
         }
 
