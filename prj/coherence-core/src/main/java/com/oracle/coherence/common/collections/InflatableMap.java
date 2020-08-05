@@ -75,9 +75,9 @@ public class InflatableMap<K, V>
     // ----- Map interface --------------------------------------------------
 
     /**
-    * Returns <tt>true</tt> if this map contains no key-value mappings.
+    * Returns <code>true</code> if this map contains no key-value mappings.
     *
-    * @return <tt>true</tt> if this map contains no key-value mappings
+    * @return <code>true</code> if this map contains no key-value mappings
     */
     public boolean isEmpty()
         {
@@ -112,11 +112,11 @@ public class InflatableMap<K, V>
         }
 
     /**
-    * Returns <tt>true</tt> if this map contains a mapping for the specified
+    * Returns <code>true</code> if this map contains a mapping for the specified
     * key.
     *
-    * @return <tt>true</tt> if this map contains a mapping for the specified
-    *         key, <tt>false</tt> otherwise.
+    * @return <code>true</code> if this map contains a mapping for the specified
+    *         key, <code>false</code> otherwise.
     */
     public boolean containsKey(Object oKey)
         {
@@ -194,7 +194,7 @@ public class InflatableMap<K, V>
     * @param key    key with which the specified value is to be associated
     * @param value  value to be associated with the specified key
     *
-    * @return previous value associated with specified key, or <tt>null</tt>
+    * @return previous value associated with specified key, or <code>null</code>
     *         if there was no mapping for key
     */
     public V put(K key, V value)
@@ -285,11 +285,11 @@ public class InflatableMap<K, V>
     *
     * @param oKey key whose mapping is to be removed from the map
     *
-    * @return previous value associated with specified key, or <tt>null</tt>
-    *         if there was no mapping for key.  A <tt>null</tt> return can
-    *         also indicate that the map previously associated <tt>null</tt>
+    * @return previous value associated with specified key, or <code>null</code>
+    *         if there was no mapping for key.  A <code>null</code> return can
+    *         also indicate that the map previously associated <code>null</code>
     *         with the specified key, if the implementation supports
-    *         <tt>null</tt> values.
+    *         <code>null</code> values.
     */
     public V remove(Object oKey)
         {
@@ -432,13 +432,13 @@ public class InflatableMap<K, V>
     * in the returned set is an {@link java.util.Map.Entry Map Entry}. The set is backed by the
     * map, so changes to the map are reflected in the set, and vice-versa.
     * If the map is modified while an iteration over the set is in progress
-    * (except by the iterator's own <tt>remove</tt> operation, or by the
-    * <tt>setValue</tt> operation on a map entry returned by the iterator)
+    * (except by the iterator's own <code>remove</code> operation, or by the
+    * <code>setValue</code> operation on a map entry returned by the iterator)
     * the results of the iteration are undefined. The set supports element
     * removal, which removes the corresponding mapping from the map, via the
-    * <tt>Iterator.remove</tt>, <tt>Set.remove</tt>, <tt>removeAll</tt>,
-    * <tt>retainAll</tt> and <tt>clear</tt> operations. It is not expected to
-    * support the <tt>add</tt> or <tt>addAll</tt> operations.
+    * <code>Iterator.remove</code>, <code>Set.remove</code>, <code>removeAll</code>,
+    * <code>retainAll</code> and <code>clear</code> operations. It is not expected to
+    * support the <code>add</code> or <code>addAll</code> operations.
     *
     * @return a set view of the mappings contained in this map
     */
@@ -469,9 +469,9 @@ public class InflatableMap<K, V>
             }
 
         /**
-        * Returns <tt>true</tt> if this Set is empty.
+        * Returns <code>true</code> if this Set is empty.
         *
-        * @return <tt>true</tt> if this Set is empty
+        * @return <code>true</code> if this Set is empty
         */
         public boolean isEmpty()
             {
@@ -489,14 +489,14 @@ public class InflatableMap<K, V>
             }
 
         /**
-        * Returns <tt>true</tt> if this collection contains the specified
-        * element.  More formally, returns <tt>true</tt> if and only if this
-        * collection contains at least one element <tt>e</tt> such that
-        * <tt>(o==null ? e==null : o.equals(e))</tt>.<p>
+        * Returns <code>true</code> if this collection contains the specified
+        * element.  More formally, returns <code>true</code> if and only if this
+        * collection contains at least one element <code>e</code> such that
+        * <code>(o==null ? e==null : o.equals(e))</code>.<p>
         *
         * @param o object to be checked for containment in this collection
         *
-        * @return <tt>true</tt> if this collection contains the specified
+        * @return <code>true</code> if this collection contains the specified
         *         element
         */
         public boolean contains(Object o)
@@ -536,9 +536,9 @@ public class InflatableMap<K, V>
         * If the collection fits in the specified array with room to spare
         * (i.e. the array has more elements than the collection), the element
         * in the array immediately following the end of the collection is set
-        * to <tt>null</tt>.  This is useful in determining the length of the
+        * to <code>null</code>.  This is useful in determining the length of the
         * collection <i>only</i> if the caller knows that the collection does
-        * not contain any <tt>null</tt> elements.)
+        * not contain any <code>null</code> elements.)
         *
         * @param ao  the array into which the elements of the collection are
         *            to be stored, if it is big enough; otherwise, a new
@@ -760,10 +760,10 @@ public class InflatableMap<K, V>
         }
 
     /**
-    * Scan up to the first <tt>c</tt> elements of the passed Entry array
-    * <tt>aEntry</tt> looking for the specified key <tt>key</tt>. If it is
-    * found, return its position <tt>i</tt> in the array such that
-    * <tt>(0 &lt;= i &lt; c)</tt>. If it is not found, return <tt>-1</tt>.
+    * Scan up to the first <code>c</code> elements of the passed Entry array
+    * <code>aEntry</code> looking for the specified key <code>key</code>. If it is
+    * found, return its position <code>i</code> in the array such that
+    * <code>(0 &lt;= i &lt; c)</code>. If it is not found, return <code>-1</code>.
     *
     * @param aEntry  the array of objects to search
     * @param c       the number of Entry objects in the array to search
@@ -873,7 +873,7 @@ public class InflatableMap<K, V>
         /**
         * Construct an EntryIterator.
         *
-        * @param map     the InflatableMap to delegate <tt>remove()</tt> calls to
+        * @param map     the InflatableMap to delegate <code>remove()</code> calls to
         * @param aEntry  the array of Map Entry objects to iterate
         */
         public EntryIterator(InflatableMap<K, V> map, Map.Entry<K, V>[] aEntry)
@@ -885,11 +885,11 @@ public class InflatableMap<K, V>
         // ----- Iterator interface -------------------------------------
 
         /**
-        * Returns <tt>true</tt> if the iteration has more elements.
-        * (In other words, returns <tt>true</tt> if <tt>next</tt>
+        * Returns <code>true</code> if the iteration has more elements.
+        * (In other words, returns <code>true</code> if <code>next</code>
         * would return an element rather than throwing an exception.)
         *
-        * @return <tt>true</tt> if the iterator has more elements
+        * @return <code>true</code> if the iterator has more elements
         */
         public boolean hasNext()
             {
@@ -922,15 +922,15 @@ public class InflatableMap<K, V>
         /**
         * Removes from the underlying set the last element
         * returned by the iterator.  This method can be called only once
-        * per call to <tt>next</tt>.  The behavior of an iterator is
+        * per call to <code>next</code>.  The behavior of an iterator is
         * unspecified if the underlying set is modified while the
         * iteration is in progress in any way other than by calling this
         * method.
         *
-        * @exception IllegalStateException if the <tt>next</tt> method
-        *            has not yet been called, or the <tt>remove</tt>
+        * @exception IllegalStateException if the <code>next</code> method
+        *            has not yet been called, or the <code>remove</code>
         *            method has already been called after the last call
-        *            to the <tt>next</tt> method
+        *            to the <code>next</code> method
         */
         public void remove()
             {

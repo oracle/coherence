@@ -126,8 +126,8 @@ public interface BufferSequence
      * @param iDest     the start index in the destination array
      *
      * @throws IndexOutOfBoundsException if either
-     *         <tt>[iBuffer .. iBuffer+cBuffers)</tt> is outside of the
-     *         sequence range, or if <tt>[iDest .. iDest+cBuffers)</tt>
+     *         <code>[iBuffer .. iBuffer+cBuffers)</code> is outside of the
+     *         sequence range, or if <code>[iDest .. iDest+cBuffers)</code>
      *         is outside of the destination array range
      */
     public void getBuffers(int iBuffer, int cBuffers, ByteBuffer[] abufDest, int iDest);

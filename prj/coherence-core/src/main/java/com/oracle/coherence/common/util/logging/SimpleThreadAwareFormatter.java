@@ -13,7 +13,7 @@ import java.util.logging.SimpleFormatter;
 /**
  * A Java logging formatter which includes the name of the thread which issued the log message.
  * <p>
- * More precisely it includes the name of the thread which <tt>formats</tt> the message, and thus
+ * More precisely it includes the name of the thread which <code>formats</code> the message, and thus
  * in the case of an asynchronous Handler this may not be the thread which logged the message. But
  * For simple Handlers such as the {@link java.util.logging.ConsoleHandler} or {@link java.util.logging.FileHandler}
  * this formatter will be able to include the name of the thread which has issued the log message.

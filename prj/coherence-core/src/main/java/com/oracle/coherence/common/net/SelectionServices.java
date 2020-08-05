@@ -31,12 +31,12 @@ public class SelectionServices
      * managing a large number of SelectableChannels efficiently.
      * <p>
      * The number of threads used to handle the load can be influenced via the
-     * <tt>com.oracle.common.net.SelectionServices.threads</tt> system property, and defaults to a value
+     * <code>com.oracle.common.net.SelectionServices.threads</code> system property, and defaults to a value
      * relative to the number of available cores and percentage of system memory the VM has been sized to use.
      * <p>
      * The threads used to run the service will be dynamically started and
      * stopped.  The idle timeout can be specified via the
-     * <tt>com.oracle.common.net.SelectionServices.timeout</tt> system property, and defaults to 5s.
+     * <code>com.oracle.common.net.SelectionServices.timeout</code> system property, and defaults to 5s.
      *
      * @return the default SelectionService
      */

@@ -22,9 +22,9 @@ public class Files
     /**
      * Return true if the specified file or path appears to be on a locally mounted filesystem.
      *
-     * Note: By default the implementation will return a value of <tt>false</tt> if it cannot determine that
-     * the file is local, this can be overridden by setting the <tt>com.oracle.common.io.Files.assumeLocal</tt>
-     * system property to <tt>true</tt>.
+     * Note: By default the implementation will return a value of <code>false</code> if it cannot determine that
+     * the file is local, this can be overridden by setting the <code>com.oracle.common.io.Files.assumeLocal</code>
+     * system property to <code>true</code>.
      *
      * @param file  the file or path to query
      *

@@ -55,7 +55,7 @@ public interface MemoryBus
     /**
      * Return the capacity of a peer's hosted memory in bytes.
      * <p>
-     * The EndPoint's bus region is <tt>[0 .. capacity)</tt>.
+     * The EndPoint's bus region is <code>[0 .. capacity)</code>.
      *
      * @param peer  the target EndPoint, or null for the local capacity
      *
@@ -79,7 +79,7 @@ public interface MemoryBus
      *
      * @throws IllegalArgumentException if the peer is unknown to the Bus
      * @throws IndexOutOfBoundsException if the offset is negative, or the
-     *         <tt>offset+{@link BufferSequence#getLength bufseq.getLength()}</tt>
+     *         <code>offset+{@link BufferSequence#getLength bufseq.getLength()}</code>
      *         is greater than the {@link #getCapacity peer's capacity}
      */
     public void read(EndPoint peer, long offset, BufferSequence bufseq,
@@ -99,7 +99,7 @@ public interface MemoryBus
      *
      * @throws IllegalArgumentException if the peer is unknown to the Bus
      * @throws IndexOutOfBoundsException if the offset is negative, or the
-     *         <tt>offset+{@link BufferSequence#getLength bufseq.getLength()}</tt>
+     *         <code>offset+{@link BufferSequence#getLength bufseq.getLength()}</code>
      *         is greater than the {@link #getCapacity peer's capacity}
      */
     public void write(EndPoint peer, long offset, BufferSequence bufseq,
@@ -111,11 +111,11 @@ public interface MemoryBus
      * <p>
      * The CAS operation may only be performed at a word-aligned offset.
      * As the hosted memory region itself is word-aligned any offset where
-     * <tt>offset % 8 == 0</tt> is known to be word-aligned.
+     * <code>offset % 8 == 0</code> is known to be word-aligned.
      * <p>
      * The endianness of the underlying remote bytes is dependent upon the
      * peer's environment. The Bus pair will handle any necessary conversion
-     * of the in/out <tt>long</tt> values. The endianness only becomes
+     * of the in/out <code>long</code> values. The endianness only becomes
      * relevant in the case where the same memory region is accessed with
      * via other means such as {@link #read}, {@link #write}, or {@link
      * #getBufferSequence()}, as those methods will not perform any endian
@@ -140,7 +140,7 @@ public interface MemoryBus
      *         in a CAS operation on this bus for example is not on a word
      *         boundary
      * @throws IndexOutOfBoundsException if the offset is negative, or the
-     *         <tt>offset+8</tt> is greater than the {@link #getCapacity
+     *         <code>offset+8</code> is greater than the {@link #getCapacity
      *         peer's capacity}
      */
     public void compareAndSwap(EndPoint peer, long offset, long expect,
@@ -167,7 +167,7 @@ public interface MemoryBus
      *         in a CAS operation on this bus for example is not on a word
      *         boundary
      * @throws IndexOutOfBoundsException if the offset is negative, or the
-     *         <tt>offset+8</tt> is greater than the {@link #getCapacity
+     *         <code>offset+8</code> is greater than the {@link #getCapacity
      *         peer's capacity}
      */
     public void getAndAdd(EndPoint peer, long offset, long delta,

@@ -9,7 +9,7 @@ package com.oracle.coherence.common.collections;
 /**
  * ConcurrentLinkedQueue is a low-contention unbounded Queue implementation.
  * <p>
- * Unlike the java.util.concurrent collections, the ConcurrentLinkedQueue supports <tt>null</tt> elements.
+ * Unlike the java.util.concurrent collections, the ConcurrentLinkedQueue supports <code>null</code> elements.
  * Note however that this queue does not support out-of-order element removal, and as such
  * {@link #remove(Object)}, {@link #removeAll(java.util.Collection)}, {@link #retainAll(java.util.Collection)},
  * and {@link java.util.Iterator#remove()} are not supported.

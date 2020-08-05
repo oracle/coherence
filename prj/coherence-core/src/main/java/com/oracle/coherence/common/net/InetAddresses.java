@@ -458,7 +458,7 @@ public abstract class InetAddresses
      *
      * @param addr  the address to find a local peer of
      *
-     * @return a local address in the same subnet as the specified address or <tt>null</tt> if none is found
+     * @return a local address in the same subnet as the specified address or <code>null</code> if none is found
      */
     public static InetAddress getLocalPeer(InetAddress addr)
         {

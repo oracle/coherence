@@ -186,10 +186,10 @@ public abstract class AbstractContinuationFrame<R>
     /**
      * Invoking this method indicates that processing is continuing asynchronously, and thus any return value or
      * exception should not automatically trigger the invocation of the continuations.  More specifically invoking
-     * this method <tt>null</tt>s out the continuations.
+     * this method <code>null</code>s out the continuations.
      * <p>
-     * As this method returns <tt>null</tt>, it allows for a simple pattern of having the final statement of {@link #call}
-     * to be <tt>return continueAsync();</tt> when continuing asynchronously.
+     * As this method returns <code>null</code>, it allows for a simple pattern of having the final statement of {@link #call}
+     * to be <code>return continueAsync();</code> when continuing asynchronously.
      * </p>
      *
      * @return null

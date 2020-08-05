@@ -31,7 +31,7 @@ import java.io.Closeable;
  * Completion of an operation indicates that the operation reached the peer
  * and is ready for processing. As operations are ordered this also indicates
  * that all prior operations reached the peer as well. Note RECEIPT events are
- * not provided for <tt>null</tt> receipts but can be inferred from a RECEIPT
+ * not provided for <code>null</code> receipts but can be inferred from a RECEIPT
  * event for a subsequent operation against the same peer.
  * <p>
  * Invoking an asynchronous operation may not result in the operation being

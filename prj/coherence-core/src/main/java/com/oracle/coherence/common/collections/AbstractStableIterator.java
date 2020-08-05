@@ -158,7 +158,7 @@ public abstract class AbstractStableIterator<T>
     // ----- data members ---------------------------------------------------
 
     /**
-    * Set to true when <tt>m_oNext</tt> is the next object to return
+    * Set to true when <code>m_oNext</code> is the next object to return
     * from the iterator. If there is no next object, or if the next object
     * is not determined yet, then this will be false. Set up by
     * {@link #setNext} and reset by {@link #next}.
@@ -172,7 +172,7 @@ public abstract class AbstractStableIterator<T>
     private T m_oNext;
 
     /**
-    * Set to true when the <tt>m_oPrev</tt> object has been returned
+    * Set to true when the <code>m_oPrev</code> object has been returned
     * but not yet removed. Set up by {@link #next} and reset by
     * {@link #remove()}.
     */

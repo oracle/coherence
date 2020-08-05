@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * SingleConsumerBlockingQueue is a BlockingQueue implementation which supports multiple producers but only a single
  * blocking consumer. The restriction of only allowing a single blocking consumer allows for potentially significant
- * performance optimizations. This queue does not support <tt>null</tt> elements.
+ * performance optimizations. This queue does not support <code>null</code> elements.
  *
  * @param <V> the element type
  *

@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * ConcurrentLinkedStack is a low-contention unbounded Stack implementation.
  * <p>
- * Unlike the java.util.concurrent collections, the ConcurrentLinkedStack supports <tt>null</tt> elements, and also
+ * Unlike the java.util.concurrent collections, the ConcurrentLinkedStack supports <code>null</code> elements, and also
  * has a constant time {@link #size} implementation.
  * </p>
  *
@@ -171,7 +171,7 @@ public class ConcurrentLinkedStack<V>
     // ----- data members ---------------------------------------------------
 
     /**
-     * The bottom of all stacks. ("It's <tt>TAIL</tt>s the whole way down.")
+     * The bottom of all stacks. ("It's <code>TAIL</code>s the whole way down.")
      */
     protected static final Element TAIL = new Element();
 

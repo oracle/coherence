@@ -2369,9 +2369,9 @@ public class MessageBusTest
      * Parse a string containing a space seperated list of EndPoint names.
      * <p>
      * This method supports range based endpoints for EndPoints which end in
-     * <tt>:port</tt>.  The range can be specified using <tt>..port</tt>,
+     * <code>:port</code>.  The range can be specified using <code>..port</code>,
      * allowing the specification of a range such as:
-     * <tt>http://localhost:80..89</tt> to result in ten addresses.
+     * <code>http://localhost:80..89</code> to result in ten addresses.
      *
      * @param depot  the Depot to use in resolving the names
      * @param sEps   the EndPoint name string

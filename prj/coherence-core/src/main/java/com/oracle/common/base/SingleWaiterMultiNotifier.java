@@ -20,9 +20,9 @@ package com.oracle.common.base;
  * BlockingQueue.put()}.
  * <p>
  * Note that no synchronization is needed to use this class; i.e. clients
- * must not synchronize on this class prior to calling <tt>await()</tt> or
- * <tt>signal()</tt>, nor should the use any of the primitive <tt>wait()</tt>
- * or <tt>notify()</tt> methods.
+ * must not synchronize on this class prior to calling <code>await()</code> or
+ * <code>signal()</code>, nor should the use any of the primitive <code>wait()</code>
+ * or <code>notify()</code> methods.
  * <p>
  * Since SingleWaiterMultiNotifier is only usable by a single waiting thread it is
  * does not require an external readiness check, as signaling can record that state.

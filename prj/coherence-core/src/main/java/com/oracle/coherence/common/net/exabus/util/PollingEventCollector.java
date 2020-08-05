@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * as to when and where events are generated.  Bus implementations may be optimized for for this type of
  * collector, and {@link #bind(PollingEventCollector.BusProcessor) bind}
  * to it.  In such a case it will be up to the collector to call {@link BusProcessor#poll} in order to
- * <tt>run</tt> the bus and ensure it can process work and emit events.  The collector should still be ready
+ * <code>run</code> the bus and ensure it can process work and emit events.  The collector should still be ready
  * to have events {@link Collector#add(Object) added} to it at any point, even if the bus has bound itself
  * to the collector.
  *

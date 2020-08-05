@@ -91,7 +91,7 @@ public interface Event
          * consumer to modulate its use of Bus resources.
          * <p>
          * The event may be emitted for a specific remote EndPoint, indicating
-         * that throttling is only desired for that EndPoint, or <tt>null</tt>
+         * that throttling is only desired for that EndPoint, or <code>null</code>
          * if the backlog is not EndPoint specific. The event may also be
          * emitted for the local EndPoint to indicate that the caller needs to
          * service the Bus output faster, such as when a Bus consumer falls
@@ -112,7 +112,7 @@ public interface Event
          * an asynchronous operation.
          * <p>
          * The content of a RECEIPT event is the "receipt" object that was
-         * supplied to the asynchronous operation. Note <tt>null</tt> receipts
+         * supplied to the asynchronous operation. Note <code>null</code> receipts
          * will not result in a RECEIPT event.
          */
         RECEIPT,
@@ -144,7 +144,7 @@ public interface Event
     /**
      * Return the EndPoint associated with the event, if any.
      *
-     * @return the associated EndPoint, or <tt>null</tt> if the event is not
+     * @return the associated EndPoint, or <code>null</code> if the event is not
      *         related to a specific EndPoint
      */
     public EndPoint getEndPoint();
@@ -155,24 +155,24 @@ public interface Event
      * See {@link Type} for details regarding the content type for different
      * events.
      *
-     * @return the content associated with this event, or <tt>null</tt>
+     * @return the content associated with this event, or <code>null</code>
      */
     public Object getContent();
 
     /**
      * Dispose of the event and optionally return a decoupled version its content.
      * <p>
-     * If <tt>fTakeContent</tt> is <tt>true</tt> then the object returned from this
+     * If <code>fTakeContent</code> is <code>true</code> then the object returned from this
      * method is independent of the disposed event allowing the content to remain
      * valid for application usage. The returned content will be equivalent to the
      * object returned from {@link #getContent}, but may or may not be the same
-     * object instance. If <tt>false</tt> is specified then the event and its
-     * content will be disposed and <tt>null</tt> will be returned.
+     * object instance. If <code>false</code> is specified then the event and its
+     * content will be disposed and <code>null</code> will be returned.
      *
      * @param fTakeContent  true if a decoupled version of the content should be
      *                      returned
      *
-     * @return  a the content associated with the event, or <tt>null</tt>
+     * @return  a the content associated with the event, or <code>null</code>
      */
     public Object dispose(boolean fTakeContent);
 

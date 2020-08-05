@@ -291,7 +291,7 @@ public class BufferSequenceInputStream
         }
 
     /**
-     * The <tt>readLine</tt> functionality was {@link DataInputStream#readLine
+     * The <code>readLine</code> functionality was {@link DataInputStream#readLine
      * deprecated} as of JDK 1.1.  This implementation will always throw an
      * UnsupportedOperationException.
      *

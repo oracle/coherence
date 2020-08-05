@@ -139,7 +139,7 @@ public class SingleBufferMessageEvent
     // ----- data members ---------------------------------------------------
 
     /**
-     * The MessageConnection associated with the event, or <tt>null</tt> if dispose(true) has been called.
+     * The MessageConnection associated with the event, or <code>null</code> if dispose(true) has been called.
      */
     protected SocketMessageBus.MessageConnection m_src;
 

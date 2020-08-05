@@ -22,8 +22,8 @@ import java.util.logging.Logger;
 /**
  * BufferManagers provides access to pre-defined system-wide managers.
  * <p>
- * The default size of each of the pools may be specified via the <tt>com.oracle.common.io.BufferManagers.pool</tt>
- * system property.  Additionally <tt>com.oracle.common.io.BufferManagers.checked</tt> can be used to default all
+ * The default size of each of the pools may be specified via the <code>com.oracle.common.io.BufferManagers.pool</code>
+ * system property.  Additionally <code>com.oracle.common.io.BufferManagers.checked</code> can be used to default all
  * managers to utilize checked implementations to watch for pool usage issues.
  * </p>
  *
@@ -35,14 +35,14 @@ public final class BufferManagers
      * Return the heap ByteBuffer based BufferManager.
      * <p>
      * The maximum size of this buffer manager pool may be specified via the
-     * <tt>com.oracle.common.io.BufferManagers.heap.pool</tt> system property. Setting this
-     * value to <tt>0</tt> results in a non-pooled implementation. The default
+     * <code>com.oracle.common.io.BufferManagers.heap.pool</code> system property. Setting this
+     * value to <code>0</code> results in a non-pooled implementation. The default
      * value is a small percentage of the JVM's total heap size.
      * <p>
-     * For pooled implementations setting <tt>com.oracle.common.io.BufferManagers.heap.checked</tt>
-     * to <tt>true</tt> will provide pool which provides more stringent checks
+     * For pooled implementations setting <code>com.oracle.common.io.BufferManagers.heap.checked</code>
+     * to <code>true</code> will provide pool which provides more stringent checks
      * in an attempt to ensure that the application doesn't misuse the pool,
-     * for instance by double releasing a buffer. The default value is <tt>false</tt>.
+     * for instance by double releasing a buffer. The default value is <code>false</code>.
      *
      * @return the heap BufferManager
      */
@@ -55,14 +55,14 @@ public final class BufferManagers
      * Return the direct ByteBuffer based BufferManager.
      * <p>
      * The maximum size of this buffer manager pool may be specified via the
-     * <tt>com.oracle.common.io.BufferManagers.direct.pool</tt> system property. Setting this
-     * value to <tt>0</tt> results in a non-pooled implementation. The default
+     * <code>com.oracle.common.io.BufferManagers.direct.pool</code> system property. Setting this
+     * value to <code>0</code> results in a non-pooled implementation. The default
      * value is a small percentage of the JVM's total heap size.
      * <p>
-     * For pooled implementations setting <tt>com.oracle.common.io.BufferManagers.direct.checked</tt>
-     * to <tt>true</tt> will provide pool which provides more stringent checks
+     * For pooled implementations setting <code>com.oracle.common.io.BufferManagers.direct.checked</code>
+     * to <code>true</code> will provide pool which provides more stringent checks
      * in an attempt to ensure that the application doesn't misuse the pool,
-     * for instance by double releasing a buffer. The default value is <tt>false</tt>.
+     * for instance by double releasing a buffer. The default value is <code>false</code>.
      *
      * @return the direct BufferManager
      */
@@ -79,14 +79,14 @@ public final class BufferManagers
      * On some platforms this method may simply return the DirectManager.
      * <p>
      * The maximum size of this buffer manager pool may be specified via the
-     * <tt>com.oracle.common.io.BufferManagers.network.pool</tt> system property. Setting this
-     * value to <tt>0</tt> results in a non-pooled implementation. The default
+     * <code>com.oracle.common.io.BufferManagers.network.pool</code> system property. Setting this
+     * value to <code>0</code> results in a non-pooled implementation. The default
      * value is a small percentage of the JVM's total heap size.
      * <p>
-     * For pooled implementations setting <tt>com.oracle.common.io.BufferManagers.network.checked</tt>
-     * to <tt>true</tt> will provide pool which provides more stringent checks
+     * For pooled implementations setting <code>com.oracle.common.io.BufferManagers.network.checked</code>
+     * to <code>true</code> will provide pool which provides more stringent checks
      * in an attempt to ensure that the application doesn't misuse the pool,
-     * for instance by double releasing a buffer. The default value is <tt>false</tt>.
+     * for instance by double releasing a buffer. The default value is <code>false</code>.
      *
      * @return the network direct BufferManager
      */

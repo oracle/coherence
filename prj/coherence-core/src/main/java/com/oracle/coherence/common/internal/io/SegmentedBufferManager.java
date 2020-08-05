@@ -482,8 +482,8 @@ public class SegmentedBufferManager
      * <p>
      * A PoolSegment is shrunk when its capacity remains greater than the actual
      * usage for a period of time. The capacity will be evaluated periodically
-     * based on the number of buffer releases (<tt>cReevalFreq</tt>) and at
-     * specific time (<tt>PERIODIC_CLEANUP_FREQUENCY</tt>) intervals.
+     * based on the number of buffer releases (<code>cReevalFreq</code>) and at
+     * specific time (<code>PERIODIC_CLEANUP_FREQUENCY</code>) intervals.
      * When a pool shrinks, buffers that belong to purged generations will no
      * longer be retained when released back to the pool.
      */
@@ -1014,10 +1014,10 @@ public class SegmentedBufferManager
 
         /**
          * The current generation id. This is a counter that starts at zero
-         * and goes up to <tt>GEN_ID_UNPOOLED</tt>. Buffers that belong to
-         * generation id zero through <tt>(GEN_ID_UNPOOLED - 1)</tt> may be
+         * and goes up to <code>GEN_ID_UNPOOLED</code>. Buffers that belong to
+         * generation id zero through <code>(GEN_ID_UNPOOLED - 1)</code> may be
          * pooled, and buffers that belong to generation id
-         * <tt>GEN_ID_UNPOOLED</tt> are never pooled. By altering the
+         * <code>GEN_ID_UNPOOLED</code> are never pooled. By altering the
          * current generation id, only buffers of that (or older) generation
          * are returned to the pool when they are released.
          */

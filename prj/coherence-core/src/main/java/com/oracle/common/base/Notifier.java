@@ -12,8 +12,8 @@ package com.oracle.common.base;
  * <p>
  * Unlike {@link java.util.concurrent.locks.Condition Condition} no external locking or synchronization
  * is needed with Notifiers; i.e. clients need not synchronize on this class prior to
- * calling <tt>await()</tt> or <tt>signal()</tt>, nor should they use any of the
- * primitive <tt>wait()</tt> or <tt>notify()</tt> methods.
+ * calling <code>await()</code> or <code>signal()</code>, nor should they use any of the
+ * primitive <code>wait()</code> or <code>notify()</code> methods.
  *
  * Note: the Notifiers are expected to be {@link Timeout} compatible.*
  *

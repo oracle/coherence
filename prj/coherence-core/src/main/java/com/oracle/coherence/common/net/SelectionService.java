@@ -26,7 +26,7 @@ public interface SelectionService
      * be unregistered and the new handler will be registered in its place.
      * <p>
      * The handler can be deregistered either by closing the channel, or
-     * via an explicit reregistration with a <tt>null</tt> handler.
+     * via an explicit reregistration with a <code>null</code> handler.
      * <p>
      * Following a (re)registration the handler will have an initial interest
      * set based on the channels full {@link SelectableChannel#validOps valid}

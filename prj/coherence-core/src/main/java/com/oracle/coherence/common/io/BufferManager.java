@@ -24,13 +24,13 @@ public interface BufferManager
      * Acquire a free ByteBuffer.
      * <p>
      * The returned buffer will be at least the requested size. If a larger
-     * buffer is returned the limit will have been pre-set to <tt>cbMin</tt>,
+     * buffer is returned the limit will have been pre-set to <code>cbMin</code>,
      * though the entire capacity is available to the caller.
      *
      * @param cbMin  the minimal required size
      *
      * @return the ByteBuffer with {@link ByteBuffer#remaining} equal to
-     *         <tt>cbMin</tt>
+     *         <code>cbMin</code>
      *
      * @throws OutOfMemoryError if the request cannot be immediately satisfied
      */
@@ -45,12 +45,12 @@ public interface BufferManager
      * to ultimately fulfill their required buffer size.
      * <p>
      * If a larger buffer is returned the limit will have been pre-set such to
-     * <tt>cbPref</tt>, though the entire capacity is available to the caller.
+     * <code>cbPref</code>, though the entire capacity is available to the caller.
      *
      * @param cbPref  the preferred size
      *
      * @return the ByteBuffer with {@link ByteBuffer#remaining} less than or
-     *         equal to <tt>cbPref</tt>
+     *         equal to <code>cbPref</code>
      *
      * @throws OutOfMemoryError if the request cannot be immediately satisfied
      */

@@ -11,7 +11,7 @@ import com.oracle.coherence.common.base.Disposable;
 import java.util.Date;
 
 /**
- * Modification of the Java <tt>TimerTask</tt> class that is comparable based
+ * Modification of the Java <code>TimerTask</code> class that is comparable based
  * upon next execution time and insertion order.
  *
  * @author jh  2014.07.23
@@ -88,7 +88,7 @@ public abstract class TimerTask
      * will never run again.  (If the task is running when this call occurs,
      * the task will run to completion, but will never run again.)
      *
-     * <p>Note that calling this method from within the <tt>run</tt> method of
+     * <p>Note that calling this method from within the <code>run</code> method of
      * a repeating timer task absolutely guarantees that the timer task will
      * not run again.
      *
@@ -100,7 +100,7 @@ public abstract class TimerTask
      *         Returns false if the task was scheduled for one-time execution
      *         and has already run, or if the task was never scheduled, or if
      *         the task was already cancelled.  (Loosely speaking, this method
-     *         returns <tt>true</tt> if it prevents one or more scheduled
+     *         returns <code>true</code> if it prevents one or more scheduled
      *         executions from taking place.)
      */
     public boolean cancel() {

@@ -128,13 +128,13 @@ public abstract class AbstractLongArray<V>
     /**
     * Determine if the LongArray contains the specified element.
     * <p>
-    * More formally, returns <tt>true</tt> if and only if this LongArray
-    * contains at least one element <tt>e</tt> such that
-    * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+    * More formally, returns <code>true</code> if and only if this LongArray
+    * contains at least one element <code>e</code> such that
+    * <code>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</code>.
     *
     * @param value element whose presence in this list is to be tested
     *
-    * @return <tt>true</tt> if this list contains the specified element
+    * @return <code>true</code> if this list contains the specified element
     */
     public boolean contains(V value)
         {
@@ -241,7 +241,7 @@ public abstract class AbstractLongArray<V>
 
     /**
     * Return the index in this LongArray of the first occurrence of
-    * the specified element such that <tt>(index is greater or equal to lIndex)</tt>, or
+    * the specified element such that <code>(index is greater or equal to lIndex)</code>, or
     * NOT_FOUND if this LongArray does not contain the specified
     * element.
     */
@@ -270,7 +270,7 @@ public abstract class AbstractLongArray<V>
 
     /**
     * Return the index in this LongArray of the last occurrence of the
-    * specified element such that <tt>(index less than or equal to lIndex)</tt>, or
+    * specified element such that <code>(index less than or equal to lIndex)</code>, or
     * NOT_FOUND if this LongArray does not contain the specified
     * element.
     */

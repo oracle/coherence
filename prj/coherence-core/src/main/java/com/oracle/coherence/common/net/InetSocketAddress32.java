@@ -122,7 +122,7 @@ public class InetSocketAddress32 extends SocketAddress
      * @param	hostname the Host name
      * @param	port	The port number
      * @throws IllegalArgumentException if the port parameter is outside the range
-     * of valid port values, or if the hostname parameter is <TT>null</TT>.
+     * of valid port values, or if the hostname parameter is <code>null</code>.
      * @throws SecurityException if a security manager is present and
      *				 permission to resolve the host name is
      *				 denied.
@@ -155,7 +155,7 @@ public class InetSocketAddress32 extends SocketAddress
      * @param	port	The port number
      * @throws IllegalArgumentException if the port parameter is outside
      *                  the range of valid port values, or if the hostname
-     *                  parameter is <TT>null</TT>.
+     *                  parameter is <code>null</code>.
      * @see	#isUnresolved()
      * @return  a <code>InetSocketAddress32</code> representing the unresolved
      *          socket address

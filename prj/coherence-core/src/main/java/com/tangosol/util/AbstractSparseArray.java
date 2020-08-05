@@ -353,7 +353,7 @@ public abstract class AbstractSparseArray<V>
 
     /**
     * Obtain a LongArray.Iterator of the contents of the LongArray, starting
-    * at a particular index such that the first call to <tt>next</tt> will
+    * at a particular index such that the first call to <code>next</code> will
     * set the location of the iterator at the first existent index that is
     * greater than or equal to the specified index, or will throw a
     * NoSuchElementException if there is no such existent index.
@@ -402,7 +402,7 @@ public abstract class AbstractSparseArray<V>
     /**
     * Obtain a LongArray.Iterator of the contents of the LongArray in
     * reverse order (decreasing indices), starting at a particular
-    * index such that the first call to <tt>next</tt> will set the
+    * index such that the first call to <code>next</code> will set the
     * location of the iterator at the first existent index that is
     * less than or equal to the specified index, or will throw a
     * NoSuchElementException if there is no such existent index.
@@ -1266,11 +1266,11 @@ public abstract class AbstractSparseArray<V>
         // ----- LongArray.Iterator interface -------------------------------
 
         /**
-        * Returns <tt>true</tt> if the iteration has more elements. (In other
-        * words, returns <tt>true</tt> if <tt>next</tt> would return an
+        * Returns <code>true</code> if the iteration has more elements. (In other
+        * words, returns <code>true</code> if <code>next</code> would return an
         * element rather than throwing an exception.)
         *
-        * @return <tt>true</tt> if the iterator has more elements
+        * @return <code>true</code> if the iterator has more elements
         */
         public boolean hasNext()
             {
@@ -1412,12 +1412,12 @@ public abstract class AbstractSparseArray<V>
 
         /**
         * Returns the index of the current value, which is the value returned
-        * by the most recent call to the <tt>next</tt> method.
+        * by the most recent call to the <code>next</code> method.
         *
-        * @exception IllegalStateException if the <tt>next</tt> method has
-        *            not yet been called, or the <tt>remove</tt> method has
+        * @exception IllegalStateException if the <code>next</code> method has
+        *            not yet been called, or the <code>remove</code> method has
         *            already been called after the last call to the
-        *            <tt>next</tt> method.
+        *            <code>next</code> method.
         */
         public long getIndex()
             {
@@ -1426,16 +1426,16 @@ public abstract class AbstractSparseArray<V>
 
         /**
         * Returns the current value, which is the same value returned by the
-        * most recent call to the <tt>next</tt> method, or the most recent
-        * value passed to <tt>setValue</tt> if <tt>setValue</tt> were called
-        * after the <tt>next</tt> method.
+        * most recent call to the <code>next</code> method, or the most recent
+        * value passed to <code>setValue</code> if <code>setValue</code> were called
+        * after the <code>next</code> method.
         *
         * @return  the current value
         *
-        * @exception IllegalStateException if the <tt>next</tt> method has
-        *            not yet been called, or the <tt>remove</tt> method has
+        * @exception IllegalStateException if the <code>next</code> method has
+        *            not yet been called, or the <code>remove</code> method has
         *            already been called after the last call to the
-        *            <tt>next</tt> method.
+        *            <code>next</code> method.
         */
         public V getValue()
             {
@@ -1445,14 +1445,14 @@ public abstract class AbstractSparseArray<V>
         /**
         * Stores a new value at the current value index, returning the value
         * that was replaced. The index of the current value is obtainable by
-        * calling the <tt>getIndex</tt> method.
+        * calling the <code>getIndex</code> method.
         *
         * @return  the replaced value
         *
-        * @exception IllegalStateException if the <tt>next</tt> method has
-        *            not yet been called, or the <tt>remove</tt> method has
+        * @exception IllegalStateException if the <code>next</code> method has
+        *            not yet been called, or the <code>remove</code> method has
         *            already been called after the last call to the
-        *            <tt>next</tt> method.
+        *            <code>next</code> method.
         */
         public V setValue(V oValue)
             {
@@ -1462,17 +1462,17 @@ public abstract class AbstractSparseArray<V>
         /**
         * Removes from the underlying collection the last element returned by
         * the iterator (optional operation).  This method can be called only
-        * once per call to <tt>next</tt>.  The behavior of an iterator is
+        * once per call to <code>next</code>.  The behavior of an iterator is
         * unspecified if the underlying collection is modified while the
         * iteration is in progress in any way other than by calling this
         * method.
         *
-        * @exception UnsupportedOperationException if the <tt>remove</tt>
+        * @exception UnsupportedOperationException if the <code>remove</code>
         *            operation is not supported by this Iterator
-        * @exception IllegalStateException if the <tt>next</tt> method has
-        *            not yet been called, or the <tt>remove</tt> method has
+        * @exception IllegalStateException if the <code>next</code> method has
+        *            not yet been called, or the <code>remove</code> method has
         *            already been called after the last call to the
-        *            <tt>next</tt> method.
+        *            <code>next</code> method.
         */
         public void remove()
             {
@@ -1574,10 +1574,10 @@ public abstract class AbstractSparseArray<V>
         *
         * @return the current Node in the iteration
         *
-        * @exception IllegalStateException if the <tt>next</tt> method has
-        *            not yet been called, or the <tt>remove</tt> method has
+        * @exception IllegalStateException if the <code>next</code> method has
+        *            not yet been called, or the <code>remove</code> method has
         *            already been called after the last call to the
-        *            <tt>next</tt> method.
+        *            <code>next</code> method.
         */
         protected Node<V> currentNode()
             {

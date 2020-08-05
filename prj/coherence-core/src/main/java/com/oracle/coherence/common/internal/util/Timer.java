@@ -19,8 +19,8 @@ import java.util.logging.Logger;
 
 
 /**
- * Modification of the Java <tt>Timer</tt> class respects insertion order of
- * <tt>TimerTask</tt> instances when ordering them for execution as well as
+ * Modification of the Java <code>Timer</code> class respects insertion order of
+ * <code>TimerTask</code> instances when ordering them for execution as well as
  * protects against clock rollback.
  *
  * @author jh  2014.07.23
@@ -120,8 +120,8 @@ public class Timer {
      *
      * @param task  task to be scheduled.
      * @param delay delay in milliseconds before task is to be executed.
-     * @throws IllegalArgumentException if <tt>delay</tt> is negative, or
-     *         <tt>delay + SafeClock.getSafeTimeMillis()</tt> is negative.
+     * @throws IllegalArgumentException if <code>delay</code> is negative, or
+     *         <code>delay + SafeClock.getSafeTimeMillis()</code> is negative.
      * @throws IllegalStateException if task was already scheduled or
      *         cancelled, timer was cancelled, or timer thread terminated.
      * @throws NullPointerException if {@code task} is null
@@ -138,7 +138,7 @@ public class Timer {
      *
      * @param task task to be scheduled.
      * @param time time at which task is to be executed.
-     * @throws IllegalArgumentException if <tt>time.getTime()</tt> is negative.
+     * @throws IllegalArgumentException if <code>time.getTime()</code> is negative.
      * @throws IllegalStateException if task was already scheduled or
      *         cancelled, timer was cancelled, or timer thread terminated.
      * @throws NullPointerException if {@code task} or {@code time} is null
@@ -158,7 +158,7 @@ public class Timer {
      * background activity), subsequent executions will be delayed as well.
      * In the long run, the frequency of execution will generally be slightly
      * lower than the reciprocal of the specified period (assuming the system
-     * clock underlying <tt>Object.wait(long)</tt> is accurate).
+     * clock underlying <code>Object.wait(long)</code> is accurate).
      *
      * <p>Fixed-delay execution is appropriate for recurring activities
      * that require "smoothness."  In other words, it is appropriate for
@@ -198,7 +198,7 @@ public class Timer {
      * background activity), subsequent executions will be delayed as well.
      * In the long run, the frequency of execution will generally be slightly
      * lower than the reciprocal of the specified period (assuming the system
-     * clock underlying <tt>Object.wait(long)</tt> is accurate).  As a
+     * clock underlying <code>Object.wait(long)</code> is accurate).  As a
      * consequence of the above, if the scheduled first time is in the past,
      * it is scheduled for immediate execution.
      *
@@ -237,7 +237,7 @@ public class Timer {
      * activity), two or more executions will occur in rapid succession to
      * "catch up."  In the long run, the frequency of execution will be
      * exactly the reciprocal of the specified period (assuming the system
-     * clock underlying <tt>Object.wait(long)</tt> is accurate).
+     * clock underlying <code>Object.wait(long)</code> is accurate).
      *
      * <p>Fixed-rate execution is appropriate for recurring activities that
      * are sensitive to <i>absolute</i> time, such as ringing a chime every
@@ -278,7 +278,7 @@ public class Timer {
      * activity), two or more executions will occur in rapid succession to
      * "catch up."  In the long run, the frequency of execution will be
      * exactly the reciprocal of the specified period (assuming the system
-     * clock underlying <tt>Object.wait(long)</tt> is accurate).  As a
+     * clock underlying <code>Object.wait(long)</code> is accurate).  As a
      * consequence of the above, if the scheduled first time is in the past,
      * then any "missed" executions will be scheduled for immediate "catch up"
      * execution.
@@ -317,7 +317,7 @@ public class Timer {
      * in Date.getTime() format.  This method checks timer state, task state,
      * and initial execution time, but not period.
      *
-     * @throws IllegalArgumentException if <tt>time</tt> is negative.
+     * @throws IllegalArgumentException if <code>time</code> is negative.
      * @throws IllegalStateException if task was already scheduled or
      *         cancelled, timer was cancelled, or timer thread terminated.
      * @throws NullPointerException if {@code task} is null

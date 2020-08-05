@@ -56,7 +56,7 @@ public abstract class AbstractBufferManager
      * <p>
      * The AbstractBufferManager implementation will attempt to double the
      * total amount of buffer space, i.e. it will return a value close to
-     * <tt>cbSum</tt>.  If cbSum is zero, the returned size will be determined
+     * <code>cbSum</code>.  If cbSum is zero, the returned size will be determined
      * by {@link #getMinimumUnitSize}.
      */
     public ByteBuffer acquireSum(int cbSum)
