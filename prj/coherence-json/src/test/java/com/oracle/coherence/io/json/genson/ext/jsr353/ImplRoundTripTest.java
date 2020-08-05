@@ -25,7 +25,7 @@ import javax.json.JsonWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-public class ImplRoundTripTests {
+public class ImplRoundTripTest {
   @Test
   public void testComplexStructure() {
 
