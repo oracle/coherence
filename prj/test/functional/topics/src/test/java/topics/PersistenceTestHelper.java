@@ -9,6 +9,8 @@ package topics;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Timeout;
 
+import com.oracle.bedrock.deferred.DeferredHelper;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
@@ -27,6 +29,8 @@ import com.tangosol.net.topic.Subscriber.Element;
 
 import com.tangosol.persistence.CachePersistenceHelper;
 
+import com.tangosol.persistence.PersistenceManagerMBean;
+
 import com.tangosol.util.Base;
 
 import javax.management.AttributeNotFoundException;
@@ -34,6 +38,8 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
@@ -46,12 +52,9 @@ import java.util.concurrent.TimeUnit;
 import org.hamcrest.CoreMatchers;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -194,8 +197,12 @@ public class PersistenceTestHelper
         {
         boolean fisIdle;
         String sBeanName = getMBeanName(sServiceName);
+        
+        Eventually.assertDeferred("Ensure PersistenceCoordinator MBean " + sBeanName,
+            () -> m_mbsProxy.isMBeanRegistered(sBeanName), is(true),
+            DeferredHelper.within(2, TimeUnit.MINUTES));
+        CacheFactory.log("Operation=" + sOperation + ", service=" + sServiceName + ", snapshot=" + sSnapshot,  Base.LOG_DEBUG);
 
-        System.out.println("Operation=" + sOperation + ", service=" + sServiceName + ", snapshot=" + sSnapshot);
         try (Timeout t = Timeout.after(240, TimeUnit.SECONDS))
             {
             m_mbsProxy.invoke(sBeanName, sOperation, new String[] {sSnapshot}, new String[] {"java.lang.String"});
@@ -218,6 +225,58 @@ public class PersistenceTestHelper
             throw Base.ensureRuntimeException(e, "Unable to complete operation " + sOperation + " for service "
                                               + sServiceName);
             }
+        }
+
+    /**
+     * Ensure PersistenceManagerMBean is registered matching parameter criteria.
+     *
+     * @param sServiceName   persistence service name
+     * @param stoppedNodeId  coordinatorId must not match this recently stopped NodeId
+     *
+     * @return true iff PersistenceManagerMBean CoordinatorID is not the recently stopped NodeId
+     */
+    public void ensureNotStalePersistenceManagerMBean(String sServiceName, int stoppedNodeId)
+        {
+        String sBeanName = getMBeanName(sServiceName);
+        Eventually.assertDeferred("Ensure PersistenceCoordinator MBean " + sBeanName + " CoordinatorID is not stopped nodeId=" + stoppedNodeId,
+            () -> {
+                  try
+                      {
+                      return m_mbsProxy.isMBeanRegistered(sBeanName) ? m_mbsProxy.getAttribute(sBeanName, "CoordinatorId") : stoppedNodeId;
+                      }
+                  catch (Throwable t)
+                      {
+                      return stoppedNodeId;
+                      }
+                  }
+            , not(stoppedNodeId),
+            DeferredHelper.within(2, TimeUnit.MINUTES));
+        CacheFactory.log("ensureNotStalePersistenceManagerMBean=" + sBeanName + " coordinatorId=" + m_mbsProxy.getAttribute(sBeanName, "CoordinatorId") +
+            " is not stopped nodeId=" + stoppedNodeId);
+        }
+
+    /**
+     * Aid debugging failed snapshot recovery with Persistence notification info.
+     *
+     * @param sServiceName  persistence enabled service that will have a persistence coordinator
+     * @param info          callback data info at time listener added
+     */
+    public PersistenceManagerNotificationListener addPersistenceOperationNotification(String sServiceName, Object info)
+        {
+        String                                 sBeanName = getMBeanName(sServiceName);
+        PersistenceManagerNotificationListener listener  = new PersistenceManagerNotificationListener(sBeanName, null);
+
+        Eventually.assertDeferred("Ensure PersistenceCoordinator MBean " + sBeanName,
+            () -> m_mbsProxy.isMBeanRegistered(sBeanName), is(true),
+            DeferredHelper.within(2, TimeUnit.MINUTES));
+
+        m_mbsProxy.addNotificationListener(sBeanName, listener, null, info);
+        return listener;
+        }
+
+    public void removeNotificationListener(PersistenceManagerNotificationListener listener, Object info)
+        {
+        m_mbsProxy.removeNotificationListener(listener.getMBeanName(), listener, null, info);
         }
 
     /**
@@ -503,6 +562,47 @@ public class PersistenceTestHelper
     private Object getAttribute(String sObjectName, String sAttribute)
         {
         return m_mbsProxy.getAttribute(sObjectName, sAttribute);
+        }
+
+    // ----- inner class: PersistenceManagerNotificationListener ------------
+
+    public static class PersistenceManagerNotificationListener
+        implements NotificationListener
+        {
+        public PersistenceManagerNotificationListener(String sMBeanName, String sSnapshotName)
+            {
+            f_sMBeanName    = sMBeanName;
+            f_sSnapshotName = sSnapshotName;
+            }
+
+        @Override
+        public synchronized void handleNotification(Notification notification, Object handback)
+            {
+            CacheFactory.log("Received Persistence Coordinator Notification: " + notification + " User data:" + handback +
+                " for Persistence Coordinator " + f_sMBeanName + " source=" + notification.getSource(), Base.LOG_DEBUG);
+            if (notification.getType().compareTo(PersistenceManagerMBean.RECOVER_SNAPSHOT_END) == 0 &&
+                f_sSnapshotName != null &&
+                notification.getMessage().contains("Successfully recovered snapshot \"" + f_sSnapshotName))
+                {
+                m_fSnapshotRecovered = true;
+                }
+            }
+
+        public String getMBeanName()
+            {
+            return f_sMBeanName;
+            }
+
+        public boolean isRecoverSnapshotComplete()
+            {
+            return m_fSnapshotRecovered;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private boolean      m_fSnapshotRecovered = false;
+        private final String f_sMBeanName;
+        private final String f_sSnapshotName;
         }
 
     // ----- data members ---------------------------------------------------
