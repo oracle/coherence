@@ -288,6 +288,8 @@ public abstract class AbstractSimplePersistenceTopicTests
                 // needed before taking a snapshot.
                 publisher.flush().join();
 
+                helper.addPersistenceOperationNotification(sService, "testBasicSnapshot_" + sServer);
+
                 // create snapshot with global consistency
                 cluster.suspendService(sService);
                 helper.createSnapshot(sService, "snapshot-A");
@@ -317,7 +319,7 @@ public abstract class AbstractSimplePersistenceTopicTests
             stopCacheServer(sServer + "-2", true);
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(0));
 
-            startCacheServer(sServer + "-3", getProjectName(), getCacheConfigPath(), props);
+            CoherenceClusterMember server3 = startCacheServer(sServer + "-3", getProjectName(), getCacheConfigPath(), props);
             startCacheServer(sServer + "-4", getProjectName(), getCacheConfigPath(), props);
             startCacheServer(sServer + "-5", getProjectName(), getCacheConfigPath(), props);
 
@@ -356,11 +358,17 @@ public abstract class AbstractSimplePersistenceTopicTests
             validateSubscriberReceiveData(topic, "queue", 100);
 
             // test partial failure
+            int stoppedNodeId = server3.getLocalMemberId();
             stopCacheServer(sServer + "-3", true);
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
             waitForBalanced(service);
 
             AbstractRollingRestartTest.waitForNoOrphans((CacheService) service);
+
+            // ensure the PersistenceManagerMBean coordinator is no longer the stopped nodeId
+            // intermittent failure caused when do not wait for change in PersistenceManagerMBean
+            helper.ensureNotStalePersistenceManagerMBean(sService, stoppedNodeId);
+
             helper.recoverSnapshot(sService, "snapshot-B");
 
             waitForBalanced(service);
@@ -495,6 +503,8 @@ public abstract class AbstractSimplePersistenceTopicTests
                 waitForBalanced(service);
 
                 topic.createSubscriber(Subscriber.Name.of("queue")).close(); // create a place holder
+
+                new PersistenceTestHelper().addPersistenceOperationNotification(sService, "testBasicArchiver_" + sServer);
 
                 // create an empty-cluster snapshot
                 // create snapshot with global consistency
