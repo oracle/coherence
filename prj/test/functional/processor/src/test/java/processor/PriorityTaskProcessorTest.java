@@ -11,6 +11,12 @@ import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
+
+import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.util.invoke.Lambdas;
+
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PriorityTask;
@@ -126,7 +132,9 @@ public class PriorityTaskProcessorTest
     @ClassRule
     public static CoherenceClusterOrchestration s_orchestration = new CoherenceClusterOrchestration()
             .withOptions(Logging.at(9),
-                         CacheConfig.of("timeout-server-cache-config.xml"));
+                         CacheConfig.of("timeout-server-cache-config.xml"),
+                         SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                             Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     private SessionBuilder m_sessionBuilder;
 

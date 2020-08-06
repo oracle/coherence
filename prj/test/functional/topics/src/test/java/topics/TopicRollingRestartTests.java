@@ -9,15 +9,19 @@ package topics;
 import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
-import com.tangosol.net.ExtensibleConfigurableCacheFactory;
-import com.tangosol.net.ValueTypeAssertion;
-
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
-import com.tangosol.net.topic.NamedTopic;
 
+import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.util.invoke.Lambdas;
+
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.ValueTypeAssertion;
+import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Subscriber;
 
 import common.SlowTests;
@@ -194,7 +198,8 @@ public class TopicRollingRestartTests
             .withOptions(ClusterName.of("TopicRolling"),
                          CacheConfig.of("topic-cache-config.xml"),
                          Pof.config("pof-config.xml"),
-                         OperationalOverride.of("tangosol-coherence-override.xml"));
+                         OperationalOverride.of("tangosol-coherence-override.xml"),
+                        SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     private ExecutorService    m_executorService = Executors.newFixedThreadPool(4);
     private NamedTopic<String> m_topic           = null;

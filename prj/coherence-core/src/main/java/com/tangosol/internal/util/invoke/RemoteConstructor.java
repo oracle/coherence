@@ -22,6 +22,7 @@ import com.tangosol.util.ExternalizableHelper;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
@@ -232,10 +233,17 @@ public class RemoteConstructor<T>
      * It provides deserialization support for {@link Remotable}
      * objects by converting this {@code RemoteConstructor} into the appropriate
      * {@code Remotable} instance upon deserialization.
+     *
+     * @throws NotSerializableException if {@link Lambdas#LAMBDAS_SERIALIZATION_MODE} is {@code true}.
      */
     @Override
     public Object readResolve() throws ObjectStreamException
         {
+        // protect against a remote client with dynamic lambdas enabled
+        if (!Lambdas.isDynamicLambdas())
+            {
+            throw new NotSerializableException(RemoteConstructor.class.getName());
+            }
         return newInstance();
         }
 
@@ -256,7 +264,7 @@ public class RemoteConstructor<T>
             m_loader = ((ClassLoaderAware) serializer).getContextClassLoader();
             }
         }
-    
+
     // ----- data members ---------------------------------------------------
 
     /**

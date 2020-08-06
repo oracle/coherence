@@ -6,12 +6,18 @@
  */
 package dslquery;
 
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
+
+import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.util.invoke.Lambdas;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -334,7 +340,9 @@ public class QueryPlusTests
     public static CoherenceClusterOrchestration m_clusterRunner   = new CoherenceClusterOrchestration()
             .withOptions(CacheConfig.of(CACHE_CONFIG),
                          Pof.config(POF_CONFIG),
-                         Pof.enabled());
+                         Pof.enabled(),
+                         SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                             Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     /** JUnit rule to start a QueryPlus session */
     @ClassRule

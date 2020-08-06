@@ -6,7 +6,8 @@
  */
 package com.tangosol.util;
 
-import com.tangosol.io.pof.reflect.SimplePofPath;
+import com.tangosol.internal.util.invoke.Lambdas;
+
 import com.tangosol.util.extractor.PofExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
@@ -31,13 +32,16 @@ public class ValueExtractorTest
         ValueExtractor<Person, String> reflectionName = new ReflectionExtractor<>("getName");
         ValueExtractor<Person, String> pofName        = new PofExtractor<>(String.class, PersonLite.NAME, "name");
 
-        assertEquals(lambdaName, reflectionName);
-        assertEquals(reflectionName, lambdaName);
-        assertEquals(lambdaName.hashCode(), reflectionName.hashCode());
+        if (Lambdas.isDynamicLambdas())
+            {
+            assertEquals(lambdaName, reflectionName);
+            assertEquals(reflectionName, lambdaName);
+            assertEquals(lambdaName.hashCode(), reflectionName.hashCode());
 
-        assertEquals(lambdaName, pofName);
-        assertEquals(pofName, lambdaName);
-        assertEquals(lambdaName.hashCode(), pofName.hashCode());
+            assertEquals(lambdaName, pofName);
+            assertEquals(pofName, lambdaName);
+            assertEquals(lambdaName.hashCode(), pofName.hashCode());
+            }
 
         assertEquals(reflectionName, pofName);
         assertEquals(pofName, reflectionName);
@@ -48,7 +52,11 @@ public class ValueExtractorTest
         ValueExtractor<Person, String> reflectionTypeKeyName =
                 new ReflectionExtractor<>("getName", null, KEY);
 
-        assertNotEquals(reflectionTypeKeyName, lambdaName);
+        if (Lambdas.isDynamicLambdas())
+            {
+            assertNotEquals(reflectionTypeKeyName, lambdaName);
+            }
+
         assertNotEquals(pofName, reflectionTypeKeyName);
         assertNotEquals(reflectionTypeKeyName, pofName);
         }

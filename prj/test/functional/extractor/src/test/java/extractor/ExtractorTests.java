@@ -8,6 +8,9 @@
 package extractor;
 
 
+import com.oracle.coherence.common.base.CanonicallyNamed;
+import com.tangosol.internal.util.invoke.Lambdas;
+import com.tangosol.internal.util.invoke.lambda.AbstractRemotableLambda;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
@@ -37,6 +40,7 @@ import common.AbstractFunctionalTest;
 import data.Person;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -165,6 +169,9 @@ public class ExtractorTests
     @Test
     public void testLambdaExtractor()
         {
+        Assume.assumeFalse("Skip this test for static lambda that don't support CanonicallyNamed interface for indexing",
+            !Lambdas.isDynamicLambdas());
+
         NamedCache<Integer, Value> cache = getNamedCache();
 
         for (int i = 0; i < 10*100; i++)
@@ -175,6 +182,9 @@ public class ExtractorTests
         ValueExtractor<Value, Integer> veReflect = new ReflectionExtractor<>("getValue");
         ValueExtractor<Value, Integer> veMethRef = Value::getValue;
         ValueExtractor<Value, Integer> veLambda  = v -> v.getValue();
+        assertTrue(ValueExtractor.of(veLambda) instanceof AbstractRemotableLambda);
+        assertTrue(ValueExtractor.of(veLambda) instanceof CanonicallyNamed);
+        assertTrue("verify that indexing can work with lambda extractor", ValueExtractor.of(veLambda).equals(veMethRef));
 
         Filter filterReflect = new EqualsFilter<>("getValue", 3);
         Filter filterMethRef = new EqualsFilter<>(Value::getValue, 3);

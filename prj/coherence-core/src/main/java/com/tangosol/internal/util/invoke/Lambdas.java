@@ -15,6 +15,11 @@ import com.tangosol.internal.util.invoke.lambda.LambdaIdentity;
 import com.tangosol.internal.util.invoke.lambda.RemotableLambdaGenerator;
 import com.tangosol.internal.util.invoke.lambda.MethodReferenceIdentity;
 import com.tangosol.internal.util.invoke.lambda.AnonymousLambdaIdentity;
+import com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo;
+
+import com.tangosol.net.CacheFactory;
+
+import com.tangosol.util.Base;
 
 import java.io.Serializable;
 
@@ -188,10 +193,10 @@ public abstract class Lambdas
      * Ensure that the specified function is an instance of a {@link Remotable}
      * lambda.
      * <p>
-     * If the specified function is not a lambda it will be ignored and returned
-     * as is, which makes this method safe to use in the cases where the argument
-     * could be either a lambda or an instance of a concrete class. Of course,
-     * this assumes that the specified {@code function} does not need to implement
+     * If the specified function is not a lambda or if {@link #isDynamicLambdas() dynamic lambdas}
+     * are not enabled, it will be ignored and returned as is, which makes this method safe to use
+     * in the cases where the argument could be either a lambda or an instance of a concrete class.
+     * Of course, this assumes that the specified {@code function} does not need to implement
      * {@code Remotable} interface because it provides native support for
      * serialization and can be marshaled across process boundaries on its own.
      *
@@ -200,17 +205,39 @@ public abstract class Lambdas
      *                  if necessary
      *
      * @return a {@code Remotable} lambda for the specified function, or the
-     *         function itself if the specified function is not a lambda
+     *         function itself if the specified function is not a lambda or dynamic
+     *         lambdas are not enabled
      */
     public static <T extends Serializable> T ensureRemotable(T function)
         {
-        if (function instanceof AbstractRemotableLambda || !isLambda(function))
+        if (!isDynamicLambdas() || function instanceof AbstractRemotableLambda || !isLambda(function))
             {
             return function;
             }
 
         RemotableSupport support = RemotableSupport.get(function.getClass().getClassLoader());
         return support.realize(support.createRemoteConstructor(function));
+        }
+
+    /**
+     * Return lambda serialization wire format based on {@link #LAMBDAS_SERIALIZATION_MODE} value.
+     *
+     * @param oFunction  raw lambda to convert into serializable wire format
+     *
+     * @return a dynamic or static lambda serialization wire format for lambda oFunction or just
+     *         oFunction itself if the specified oFunction is not a lambda
+     *
+     * @see #LAMBDAS_SERIALIZATION_MODE
+     *
+     * @since 14.1.1.0.2
+     */
+    public static Object ensureSerializable(Object oFunction)
+        {
+        return isLambda(oFunction)
+                ? isDynamicLambdas()
+                    ? ensureRemotable((Serializable) oFunction)
+                    : new StaticLambdaInfo(oFunction.getClass(), oFunction)
+                : oFunction;
         }
 
     /**
@@ -221,7 +248,7 @@ public abstract class Lambdas
      *
      * @return the lambda's canonical name, or null if the supplied object is not a lambda
      *
-     * @since Coherence 19.1.0.0
+     * @since 12.2.1.4
      */
     public static <T extends Remotable> String getValueExtractorCanonicalName(Object oLambda)
         {
@@ -235,6 +262,50 @@ public abstract class Lambdas
         return null;
         }
 
+    /**
+     * Return {@code true} only if lambdas are serialized using dynamic lambdas.
+     *
+     * @return {@code true} only if lambdas are serialized using dynamic lambdas
+     *
+     * @since 14.1.1.0.2
+     */
+    public static boolean isDynamicLambdas()
+        {
+        return LAMBDAS_SERIALIZATION_MODE == SerializationMode.DYNAMIC;
+        }
+
+    /**
+     * Return {@code true} only if lambdas are serialized using static lambdas.
+     *
+     * @return {@code true} only if lambdas are serialized using static lambdas
+     *
+     * @since 14.1.1.0.2
+     */
+    public static boolean isStaticLambdas()
+        {
+        return LAMBDAS_SERIALIZATION_MODE == SerializationMode.STATIC;
+        }
+
+    // ----- inner enum: SerializationMode ----------------------------------
+
+    /**
+     * Specify the serialization mode for lambdas.
+     *
+     * @since 14.1.1.0.2
+     */
+    public static enum SerializationMode
+        {
+        /**
+         * Serialize lambdas as dynamic lambdas.
+         */
+        DYNAMIC,
+
+        /**
+         * Serialize lambdas as static lambdas.
+         */
+        STATIC
+       };
+
     // ---- static members --------------------------------------------------
 
     /**
@@ -242,4 +313,50 @@ public abstract class Lambdas
      */
     private static final String DUMP_LAMBDAS = Config.getProperty("coherence.remotable.dumpLambdas",
                                                                   Config.getProperty("coherence.remotable.dumpAll"));
+
+    /**
+     * System property to control lambda serialization. Valid values are defined by enumeration {@link SerializationMode}.
+     *
+     * @since 14.1.1.0.2
+     */
+    public static final String LAMBDAS_SERIALIZATION_MODE_PROPERTY = "coherence.lambdas";
+
+    /**
+     * Specifies {@link SerializationMode} used for lambdas.
+     * System property {@link #LAMBDAS_SERIALIZATION_MODE_PROPERTY} configures this setting.
+     * The default configuration {@link SerializationMode#DYNAMIC} enables dynamic lambdas serialization.
+     *
+     * @since 14.1.1.0.2
+     */
+    protected static final SerializationMode LAMBDAS_SERIALIZATION_MODE;
+
+    static
+        {
+        String            sPropValue = null;
+        SerializationMode mode       = SerializationMode.DYNAMIC;
+        try
+            {
+            sPropValue = Config.getProperty(LAMBDAS_SERIALIZATION_MODE_PROPERTY, SerializationMode.DYNAMIC.name());
+            mode       = SerializationMode.valueOf(sPropValue.toUpperCase());
+            }
+        catch (IllegalArgumentException e)
+            {
+            StringBuilder sbValues = new StringBuilder("[");
+
+            for (SerializationMode m : SerializationMode.values())
+                {
+                sbValues.append(m).append("|");
+                }
+            sbValues.setCharAt(sbValues.length() - 1, ']');
+
+            final String            f_sPropValue = sPropValue;
+            final SerializationMode f_mode       = mode;
+
+            CacheFactory.log(
+                "System property \"" + LAMBDAS_SERIALIZATION_MODE_PROPERTY + "\" is set to invalid value of \"" + f_sPropValue + "\"" +
+                    "; valid values are: " + sbValues.toString() +
+                    ". Reverting to default mode of " + f_mode.name() + ".", Base.LOG_WARN);
+            }
+        LAMBDAS_SERIALIZATION_MODE = mode;
+        }
     }

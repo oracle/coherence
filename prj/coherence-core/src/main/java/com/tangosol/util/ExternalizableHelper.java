@@ -4908,10 +4908,9 @@ public abstract class ExternalizableHelper
     public static Object replace(Object o)
             throws ObjectStreamException
         {
-        if (Lambdas.isLambda(o))
-            {
-            o = Lambdas.ensureRemotable((Serializable) o);
-            }
+        // support either static or dynamic lambda
+        o = Lambdas.ensureSerializable(o);
+
         if (o instanceof SerializationSupport)
             {
             o = ((SerializationSupport) o).writeReplace();

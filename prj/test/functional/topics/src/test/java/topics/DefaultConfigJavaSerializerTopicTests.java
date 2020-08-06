@@ -16,7 +16,10 @@ import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Session;
@@ -85,6 +88,7 @@ public class DefaultConfigJavaSerializerTopicTests
                 SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
                 SystemProperty.of("coherence.management", "all"),
                 SystemProperty.of("coherence.management.remote", "true"),
-                SystemProperty.of("coherence.management.refresh.expiry", "1ms"))
+                SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
+                SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
             .setStorageMemberCount(STORAGE_MEMBER_COUNT);
     }
