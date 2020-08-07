@@ -33,11 +33,29 @@ public class PartitionRecoverInfo
     public PartitionRecoverInfo(Object recoverRequest, Map mapConfig, List listRequests,
                                 PersistenceManager mgrRecover, PartitionSet partsRecovered)
         {
+        this(recoverRequest, mapConfig, listRequests, mgrRecover, partsRecovered, null);
+        }
+
+    /**
+     * Construct the PartitionRecoverInfo for the specified parameters.
+     *
+     * @param recoverRequest  the PartitionRecoverRequest (Component.Net.Message)
+     * @param mapConfig       the partition config map
+     * @param listRequests    the list of requests
+     * @param mgrRecover      the persistence recovery manager
+     * @param partsRecovered  the recovered {@link PartitionSet}
+     * @param partsFail       the failed {@link PartitionSet}
+     */
+    public PartitionRecoverInfo(Object recoverRequest, Map mapConfig, List listRequests,
+            PersistenceManager mgrRecover, PartitionSet partsRecovered,
+            PartitionSet partsFail)
+        {
         f_recoverRequest = recoverRequest;
         f_mapConfig      = mapConfig;
         f_listRequests   = listRequests;
         f_manager        = mgrRecover;
         f_partsRecovered = partsRecovered;
+        f_partsFail      = partsFail;
         }
 
     // ----- accessors ------------------------------------------------------
@@ -92,6 +110,13 @@ public class PartitionRecoverInfo
         return f_partsRecovered;
         }
 
+    /**
+     * Return the failed {@link PartitionSet}.
+     */
+    public PartitionSet getFailedPartitions()
+        {
+        return f_partsFail;
+        }
 
     // ----- data fields ----------------------------------------------------
 
@@ -119,4 +144,9 @@ public class PartitionRecoverInfo
      * The recovered PartitionSet.
      */
     private final PartitionSet f_partsRecovered;
+
+    /**
+     * The failed PartitionSet.
+     */
+    private final PartitionSet f_partsFail;
     }

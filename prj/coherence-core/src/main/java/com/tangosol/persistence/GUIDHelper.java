@@ -121,6 +121,26 @@ public class GUIDHelper
         }
 
     /**
+     * Return GUID in the specified list of GUIDs for the specified partition.
+     *
+     * @param listGUID    the list of GUIDs
+     * @param nPartition  the partition
+     *
+     * @return GUID for the specified partition
+     */
+    public static String getGUID(List<String> listGUID, int nPartition)
+        {
+        for (String s : listGUID)
+            {
+            if (getPartition(s) == nPartition)
+                {
+                return s;
+                }
+            }
+        return null;
+        }
+
+    /**
      * Return a list of the newest GUID for each partition, indexed by the
      * partition-id.
      *
