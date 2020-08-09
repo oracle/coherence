@@ -866,6 +866,16 @@ public class SegmentedConcurrentMap
             }
 
         /**
+         * Return the {@link SegmentedConcurrentMap} containing this {@link LockableEntry Entry}.
+         *
+         * @return {@link SegmentedConcurrentMap} containing this {@link LockableEntry Entry}
+         */
+        public SegmentedConcurrentMap getSource()
+            {
+            return SegmentedConcurrentMap.this;
+            }
+
+        /**
         * Is there contention (a thread waiting) to lock this Entry?
         *
         * @return true iff another thread is contending for this Entry
