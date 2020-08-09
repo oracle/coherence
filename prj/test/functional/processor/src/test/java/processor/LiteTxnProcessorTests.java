@@ -277,7 +277,7 @@ public class LiteTxnProcessorTests
         // make sure we start the invocation service
         Properties props = new Properties();
         props.setProperty("tangosol.coherence.invocation.autostart", "true");
-        props.setProperty("tangosol.coherence.log.level", "9");
+        props.setProperty("test.log.level", "9");
 
         CoherenceClusterMember clusterMember = startCacheServer(sServer, s_sProject, s_sCacheConfig, props);
 
@@ -368,7 +368,10 @@ public class LiteTxnProcessorTests
         {
         String sServer = getServerPrefix() + "-Deadlock-" + sTest;
 
-        startCacheServer(sServer, s_sProject, s_sCacheConfig, null);
+        Properties props = new Properties();
+        props.setProperty("test.log.level", "9");
+
+        startCacheServer(sServer, s_sProject, s_sCacheConfig, props);
 
         final NamedCache cache          = getFactory().ensureCache(sCache1, null);
         final NamedCache cacheSecondary = getFactory().ensureCache(sCache2, null);
