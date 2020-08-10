@@ -120,7 +120,7 @@ address and port that the application runs on by passing the following to your
 mvn exec:exec -DhttpProxy -Dhttp.address=x.x.x.x -Dhttp.port=7777
 ```      
 
-##References
+## References
 
 * [Coherence Community Website](https://coherence.community/)
 * [Coherence Community Edition (CE) - GitHub](https://github.com/oracle/coherence)
