@@ -1,23 +1,10 @@
 <doc-view>
 
-<v-layout row wrap>
-<v-flex xs12 sm10 lg10>
-<v-card class="section-def" v-bind:color="$store.state.currentColor">
-<v-card-text class="pa-3">
-<v-card class="section-def__card">
-<v-card-text>
-<dl>
-<dt slot=title>Coherence Documentation Module</dt>
-<dd slot="desc"><p>This is the module that builds the Coherence documentation.
+<h2 id="_coherence_documentation_module">Coherence Documentation Module</h2>
+<div class="section">
+<p>This is the module that builds the Coherence documentation.
 The module is not part of the default build and must be built separately.</p>
-</dd>
-</dl>
-</v-card-text>
-</v-card>
-</v-card-text>
-</v-card>
-</v-flex>
-</v-layout>
+
 
 <h3 id="_build_the_docs">Build the Docs</h3>
 <div class="section">
@@ -42,6 +29,7 @@ lang="shell"
 <div class="admonition note">
 <p class="admonition-inline">The installation requires you to install Python, which runs a small Pythin http server from the directory where the docs
 are built.</p>
+</div>
 </div>
 </div>
 </doc-view>

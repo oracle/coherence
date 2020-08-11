@@ -198,7 +198,7 @@ Copy and paste the following source to a file named src/main/java/HelloCoherence
 lang="java"
 title="HelloCoherence.java"
 >import com.tangosol.net.CacheFactory;
-import com.tangosol.net.NamedMap
+import com.tangosol.net.NamedMap;
 
 public class HelloCoherence
     {

@@ -1,14 +1,8 @@
 <doc-view>
 
-<v-layout row wrap>
-<v-flex xs12 sm10 lg10>
-<v-card class="section-def" v-bind:color="$store.state.currentColor">
-<v-card-text class="pa-3">
-<v-card class="section-def__card">
-<v-card-text>
-<dl>
-<dt slot=title>Overview</dt>
-<dd slot="desc"><p>Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably
+<h2 id="_overview">Overview</h2>
+<div class="section">
+<p>Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably
 storing data. The product is used at scale, for both compute and raw storage, in a vast array of industries such as
 critical financial trading systems, high performance telecommunication products, and eCommerce applications.</p>
 
@@ -26,14 +20,8 @@ machines.</p>
 (map/reduce style), and compute (send functions to storage nodes for locally executed mutations) the data set.
 These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust,
 distributed applications.</p>
-</dd>
-</dl>
-</v-card-text>
-</v-card>
-</v-card-text>
-</v-card>
-</v-flex>
-</v-layout>
+
+</div>
 
 <h2 id="_get_going">Get Going</h2>
 <div class="section">
@@ -106,7 +94,7 @@ distributed applications.</p>
 </v-flex>
 <v-flex xs12 sm4 lg3>
 <v-card>
-<a id="" title="" target="_blank" href="../api/java/index.html"><div class="card__link-hover"/>
+<a id="" title="" target="_blank" href="../java/api/index.html"><div class="card__link-hover"/>
 </a>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">
@@ -117,11 +105,11 @@ distributed applications.</p>
 <v-divider class="indigo lighten-4"/>
 </div>
 <v-card-title primary class="headline layout justify-center">
-<span style="text-align:center">JavaDocs</span>
+<span style="text-align:center">API Docs</span>
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>Browse the Coherence CE JavaDocs.</p>
+<p>Browse the Coherence CE API Docs.</p>
 </v-card-text>
 </v-card>
 </v-flex>
@@ -217,7 +205,36 @@ distributed applications.</p>
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>Plugins.</p>
+<p>Build tool plugins to aid Coherence application development.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+</v-layout>
+</v-container>
+</v-flex>
+</v-layout>
+<v-layout row wrap class="mb-5">
+<v-flex xs12>
+<v-container fluid grid-list-md class="pa-0">
+<v-layout row wrap class="pillars">
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/coherence-docker/README"><div class="card__link-hover"/>
+</router-link>
+<v-layout align-center justify-center class="">
+<v-avatar size="150px">
+<v-icon class="xxx-large">fa-th</v-icon>
+</v-avatar>
+</v-layout>
+<div class="px-3">
+<v-divider class="indigo lighten-4"/>
+</div>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Images</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Example Coherence OCI container (Docker) images.</p>
 </v-card-text>
 </v-card>
 </v-flex>

@@ -65,6 +65,19 @@ function createRoutes(){
             component: loadPage('docs-about-03_quickstart', '/docs/about/03_quickstart', {})
         },
         {
+            path: '/coherence-docker/README',
+            meta: {
+                h1: 'Coherence OCI Image',
+                title: 'Coherence OCI Image',
+                h1Prefix: null,
+                description: null,
+                keywords: null,
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('coherence-docker-README', '/coherence-docker/README', {})
+        },
+        {
             path: '/coherence-grpc-proxy-client/README',
             meta: {
                 h1: 'Coherence gRPC Client',
@@ -177,8 +190,16 @@ function createNav(){
                 { href: '/docs/about/03_quickstart', title: 'Quick Start' }
             ]
         },
+        {
+            title: 'Coherence OCI Images',
+            action: 'fa-th',
+            group: '/coherence-docker',
+            items: [
+                { href: '/coherence-docker/README', title: 'Coherence OCI Image' }
+            ]
+        },
         { divider: true },
-        { header: 'Additional Resources' },
+        { header: 'Documentation' },
         {
             title: 'Official Documentation',
             action: 'import_contacts',
@@ -186,11 +207,25 @@ function createNav(){
             target: '_blank'
         },
         {
-            title: 'Coherence CE JavaDocs',
+            title: 'Coherence CE Java API',
             action: 'library_books',
             href: 'https://oracle.github.io/coherence/14.1.1.0/api/java/index.html',
             target: '_blank'
         },
+        {
+            title: 'Coherence CE .Net API',
+            action: 'library_books',
+            href: 'https://oracle.github.io/coherence/14.1.1.0/api/dotnet/index.html',
+            target: '_blank'
+        },
+        {
+            title: 'Coherence CE C++ API',
+            action: 'library_books',
+            href: 'https://oracle.github.io/coherence/14.1.1.0/api/cpp/index.html',
+            target: '_blank'
+        },
+        { divider: true },
+        { header: 'Additional Resources' },
         {
             title: 'Slack',
             action: 'fa-slack',
