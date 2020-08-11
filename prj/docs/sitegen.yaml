@@ -108,12 +108,12 @@ backend:
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://oracle.github.io/coherence/20.06/api/dotnet/index.html"
+              href: "https://oracle.github.io/coherence/14.1.1.0/api/dotnet/index.html"
             - title: "Coherence CE C++ API"
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://oracle.github.io/coherence/20.06/api/cpp/index.html"
+              href: "https://oracle.github.io/coherence/14.1.1.0/api/cpp/index.html"
         - title: "Additional Resources"
           items:
             - title: "Slack"
