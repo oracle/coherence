@@ -92,18 +92,30 @@ backend:
               items:
                 - includes:
                     - "coherence-docker/README.adoc"
-        - title: "Additional Resources"
+        - title: "Documentation"
           items:
             - title: "Official Documentation"
               glyph:
                 type: "icon"
                 value: "import_contacts"
               href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
-            - title: "Coherence CE API Docs"
+            - title: "Coherence CE Java API"
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://oracle.github.io/coherence/20.06/java/api/index.html"
+              href: "https://oracle.github.io/coherence/20.06/api/java/index.html"
+            - title: "Coherence CE .Net API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence/20.06/api/dotnet/index.html"
+            - title: "Coherence CE C++ API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence/20.06/api/cpp/index.html"
+        - title: "Additional Resources"
+          items:
             - title: "Slack"
               glyph:
                 type: "icon"
