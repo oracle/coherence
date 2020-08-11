@@ -207,7 +207,7 @@ public class EvictionTests
     public void doExpirySlidingTest(NamedCache cache)
         {
         long       cExpiry     = 3000L;
-        long       cSleep      = 1000L;
+        long       cSleep      = 2000L;
         int        cSize       = 10;
         Map        map         = new HashMap();
         Set        setKeys     = new HashSet();
@@ -231,7 +231,7 @@ public class EvictionTests
         Base.sleep(cSleep);
         cache.getAll(setKeys);
         Base.sleep(cExpiry - cSleep + 250);
-        assertEquals(cache.size(), cSize);
+        assertEquals(cSize, cache.size());
         cache.clear();
 
         // test EP that generate two update events,  expiry only event binEntry.getValue()
