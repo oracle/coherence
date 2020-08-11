@@ -70,6 +70,8 @@ jobs:
       run: |
         export DEV_ROOT=$(pwd)
         mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -DskipTests clean install
+        echo "Forcing download of surfire-juni4 before full verify"
+        mvn --file prj/coherence-http-simple/pom.xml --batch-mode -e -s .github/maven/synoki.xml verify
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
