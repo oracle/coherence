@@ -26,6 +26,8 @@
     Cluster runtime JMX statistics.
   </description>
 
+  <url>https://coherence.community/</url>
+
   <dependencies>
     <!-- jvisualvm -->
     <dependency>
