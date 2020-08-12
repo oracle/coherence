@@ -75,8 +75,8 @@ import javax.ws.rs.core.Response;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import org.hamcrest.CoreMatchers;
-
 import org.hamcrest.Matchers;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -1521,12 +1521,12 @@ public class ManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithIncludedFields()
         {
-        WebTarget membersTarget = getBaseTarget().path("services").path("DistributedCache").path("members");
-        Response response = membersTarget
-                .path(SERVER_PREFIX + "-1").queryParam("fields", "backupCount,joinTime").request().get();
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("members")
+                            .path(SERVER_PREFIX + "-1").queryParam("fields", "backupCount,joinTime");
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.size(), is(3));
@@ -1539,12 +1539,12 @@ public class ManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithExcludedFields()
         {
-        WebTarget membersTarget = getBaseTarget().path("services").path("DistributedCache").path("members");
-        Response response = membersTarget
-                .path(SERVER_PREFIX + "-1").queryParam("excludeFields", "backupCount,joinTime").request().get();
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("members")
+                            .path(SERVER_PREFIX + "-1").queryParam("excludeFields", "backupCount,joinTime");
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("backupCount"), nullValue());
@@ -1555,14 +1555,14 @@ public class ManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithIncludedAndExcludedFields()
         {
-        WebTarget membersTarget = getBaseTarget().path("services").path("DistributedCache").path("members");
-        Response response = membersTarget
-                .path(SERVER_PREFIX + "-1")
-                .queryParam("fields", "name,joinTime")
-                .queryParam("excludeFields", "backupCount,joinTime").request().get();
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("members")
+                            .path(SERVER_PREFIX + "-1")
+                            .queryParam("fields", "name,joinTime")
+                            .queryParam("excludeFields", "backupCount,joinTime");
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("joinTime"), nullValue());
@@ -1572,12 +1572,12 @@ public class ManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithExcludedLinks()
         {
-        WebTarget membersTarget = getBaseTarget().path("services").path("DistributedCache").path("members");
-        Response response = membersTarget
-                .path(SERVER_PREFIX + "-1").queryParam("excludeLinks", "ownership").request().get();
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("members")
+                            .path(SERVER_PREFIX + "-1").queryParam("excludeLinks", "ownership");
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse.get("links"), notNullValue());
 
@@ -1590,14 +1590,14 @@ public class ManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithIncludedAndExcludedLinks()
         {
-        WebTarget membersTarget = getBaseTarget().path("services").path("DistributedCache").path("members");
-        Response response = membersTarget
-                .path(SERVER_PREFIX + "-1")
-                .queryParam("links", "self,ownership")
-                .queryParam("excludeLinks", "ownership,parent").request().get();
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("members")
+                            .path(SERVER_PREFIX + "-1")
+                            .queryParam("links", "self,ownership")
+                            .queryParam("excludeLinks", "ownership,parent");
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse.get("links"), notNullValue());
 
@@ -1612,12 +1612,12 @@ public class ManagementInfoResourceTests
     @Test
     public void testOwnershipState()
         {
-        WebTarget membersTarget = getBaseTarget().path("services").path("DistributedCache").path("members");
-        Response response = membersTarget
-                .path(SERVER_PREFIX + "-1").path("ownership").request().get();
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("members")
+                            .path(SERVER_PREFIX + "-1").path("ownership");
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("ownership"), notNullValue());
@@ -1626,12 +1626,12 @@ public class ManagementInfoResourceTests
     @Test
     public void testOwnershipVerbose()
         {
-        WebTarget membersTarget = getBaseTarget().path("services").path("DistributedCache").path("members");
-        Response response = membersTarget
-                .path(SERVER_PREFIX + "-1").path("ownership").queryParam("verbose", true).request().get();
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("members")
+                            .path(SERVER_PREFIX + "-1").path("ownership").queryParam("verbose", true);
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("ownership"), notNullValue());
@@ -1640,12 +1640,12 @@ public class ManagementInfoResourceTests
     @Test
     public void testDistributionState()
         {
-        WebTarget membersTarget = getBaseTarget().path("services").path("DistributedCache").path("members");
-        Response response = membersTarget
-                .path(SERVER_PREFIX + "-1").path("distributionState").queryParam("verbose", true).request().get();
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("members")
+                            .path(SERVER_PREFIX + "-1").path("distributionState").queryParam("verbose", true);
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("distributionState"), notNullValue());
@@ -1654,8 +1654,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testPartitionScheduledDistributions()
         {
-        WebTarget target = getBaseTarget().path("services").path("DistributedCache").path("partition")
-                .path("scheduledDistributions").queryParam("verbose", true);
+        WebTarget target  = getBaseTarget().path("services").path("DistributedCache").path("partition")
+                            .path("scheduledDistributions").queryParam("verbose", true);
         Response response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1668,12 +1668,11 @@ public class ManagementInfoResourceTests
     @Test
     public void testReportNodeState()
         {
-        WebTarget target = getBaseTarget().path("members").path(SERVER_PREFIX + "-1").path("state");
-
-        Response response = target.request().get();
+        WebTarget target   = getBaseTarget().path("members").path(SERVER_PREFIX + "-1").path("state");
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("state"), notNullValue());
@@ -2193,75 +2192,80 @@ public class ManagementInfoResourceTests
 
         cache.clear();
 
-        // create an empty snapshot
-        createSnapshot("empty");
-        ensureServiceStatusIdle();
-        
-        // assert the snapshot exists
-        Eventually.assertThat(invoking(this).assertSnapshotExists("empty", SNAPSHOTS),is(true));
+        try
+            {
+            // create an empty snapshot
+            createSnapshot("empty");
+            ensureServiceStatusIdle();
 
-        // add some data
-        cache.put("key-1", "value-1");
-        cache.put("key-2", "value-2");
-        assertThat(cache.size(), is(2));
+            // assert the snapshot exists
+            Eventually.assertThat(invoking(this).assertSnapshotExists("empty", SNAPSHOTS), is(true));
 
-        // create a second snapshot
-        createSnapshot("2-entries");
-        ensureServiceStatusIdle();
-        Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", SNAPSHOTS),is(true));
+            // add some data
+            cache.put("key-1", "value-1");
+            cache.put("key-2", "value-2");
+            assertThat(cache.size(), is(2));
 
-        // archive the snapshot
-        Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
-                 .request().post(null);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        ensureServiceStatusIdle();
+            // create a second snapshot
+            createSnapshot("2-entries");
+            ensureServiceStatusIdle();
+            Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", SNAPSHOTS), is(true));
 
-        Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", ARCHIVES),is(true));
+            // archive the snapshot
+            Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
+                    .request().post(null);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            ensureServiceStatusIdle();
 
-        // remove the local snapshot
-        deleteSnapshot("2-entries");
-        ensureServiceStatusIdle();
-        Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", SNAPSHOTS),is(false));
+            Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", ARCHIVES), is(true));
 
-        // retrieve the archived snapshot
-        response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries").path("retrieve")
-                .request().post(null);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        ensureServiceStatusIdle();
+            // remove the local snapshot
+            deleteSnapshot("2-entries");
+            ensureServiceStatusIdle();
+            Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", SNAPSHOTS), is(false));
 
-        // check the existence of the local snapshot but delay as a single member could have the snapshot but it not be complete
-        Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", SNAPSHOTS),is(true));
+            // retrieve the archived snapshot
+            response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries").path("retrieve")
+                    .request().post(null);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            ensureServiceStatusIdle();
 
-        // delete the archived snapshot
-        response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
-                .request().delete();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        ensureServiceStatusIdle();
+            // check the existence of the local snapshot but delay as a single member could have the snapshot but it not be complete
+            Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", SNAPSHOTS), is(true));
 
-        Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", ARCHIVES),is(false));
+            // delete the archived snapshot
+            response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
+                    .request().delete();
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            ensureServiceStatusIdle();
 
-        // now we have local snapshot, clear the cache and then recover the snapshot
-        cache.clear();
-        assertThat(cache.size(), is(0));
+            Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", ARCHIVES), is(false));
 
-        response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path("2-entries").path("recover")
-                .request().post(null);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        ensureServiceStatusIdle();
+            // now we have local snapshot, clear the cache and then recover the snapshot
+            cache.clear();
+            assertThat(cache.size(), is(0));
 
-        Eventually.assertThat(invoking(this).assertCacheSize(cache, 2),is(false));
+            response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path("2-entries").path("recover")
+                    .request().post(null);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            ensureServiceStatusIdle();
 
-        // now delete the 2 snapshots
+            Eventually.assertThat(invoking(this).assertCacheSize(cache, 2), is(false));
 
-        deleteSnapshot("2-entries");
-        ensureServiceStatusIdle();
-        Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", SNAPSHOTS),is(false));
+            // now delete the 2 snapshots
 
-        deleteSnapshot("empty");
-        ensureServiceStatusIdle();
-        Eventually.assertThat(invoking(this).assertSnapshotExists("empty", SNAPSHOTS),is(false));
+            deleteSnapshot("2-entries");
+            ensureServiceStatusIdle();
+            Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", SNAPSHOTS), is(false));
 
-        cache.destroy();
+            deleteSnapshot("empty");
+            ensureServiceStatusIdle();
+            Eventually.assertThat(invoking(this).assertSnapshotExists("empty", SNAPSHOTS), is(false));
+            }
+        finally
+            {
+            cache.destroy();
+            }
         }
 
     /**
