@@ -25,6 +25,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * This class is discovered and enabled by Bedrock when the
+ * System property bedrock.profile.coverage=auto is used
+ * during testing.
+ *
  * @author jk  2019.12.05
  */
 public class CoverageProfile
@@ -113,7 +117,7 @@ public class CoverageProfile
                 // Wait for the Dump to complete
                 future.join();
                 }
-            catch (IllegalStateException e)
+            catch (Throwable e)
                 {
                 System.err.println("Could not call Jacoco dump() on remote process: " + e.getMessage());
                 }
