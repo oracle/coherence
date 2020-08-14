@@ -222,10 +222,10 @@ public class ManagementInfoResourceTests
     @Test
     public void testSwagger()
         {
-        Response response = getBaseTarget().path(
-                METADATA_CATALOG).request(MediaType.APPLICATION_JSON_TYPE).get();
+        WebTarget target   = getBaseTarget().path(METADATA_CATALOG);
+        Response  response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         // cherry pick a few items that must exist
         assertThat(mapResponse, is(notNullValue()));
@@ -286,9 +286,10 @@ public class ManagementInfoResourceTests
 
         for (Object memberId : listMemberIds)
             {
-            response = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path("memory").request().get();
+            target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path("memory");
+            response = target.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+            mapResponse = new LinkedHashMap(readEntity(target, response));
             LinkedHashMap mapHeapUsage = (LinkedHashMap) mapResponse.get("heapMemoryUsage");
             assertThat(mapHeapUsage, notNullValue());
             assertThat((int) mapHeapUsage.get("used"), greaterThan(1));
@@ -315,9 +316,10 @@ public class ManagementInfoResourceTests
             {
             for (Object memberId : listMemberIds)
                 {
-                response = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(mbean).request().get();
+                target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(mbean);
+                response = target.request().get();
                 assertThat("unexpected response for Mgmt over REST API " + getBaseTarget().getUri().toString() + "/" + MEMBERS + "/" + memberId.toString() + "/platform/" + mbean, response.getStatus(), is(Response.Status.OK.getStatusCode()));
-                mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+                mapResponse = new LinkedHashMap(readEntity(target, response));
                 String sTypeValue = (String) mapResponse.get("type");
                 assertThat(sTypeValue, is("HEAP"));
                 }
@@ -1019,9 +1021,11 @@ public class ManagementInfoResourceTests
         assertThat(sName, is(mapProxyScheme.get("name")));
         assertThat(((ArrayList) mapService.get("quorumStatus")).get(0), is("Not configured"));
 
-        response = getBaseTarget().path("services").path(sName)
-                .queryParam("fields", "storageEnabled").request().get();
-        mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        target = getBaseTarget().path("services").path(sName)
+                .queryParam("fields", "storageEnabled");
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        mapResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(((LinkedHashMap) mapResponse.get("storageEnabled")).get("false"), is(1));
         }
 
@@ -1052,7 +1056,7 @@ public class ManagementInfoResourceTests
             String sSelfUrl = getSelfLink(mapEntry);
             response = m_client.target(sSelfUrl).request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            LinkedHashMap mapMemberResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+            LinkedHashMap mapMemberResponse = new LinkedHashMap(readEntity(target, response));
 
             assertThat(mapEntry.get("nodeId"), is(mapMemberResponse.get("nodeId")));
             assertThat(mapEntry.get("joinTime"), is(mapMemberResponse.get("joinTime")));
@@ -1662,12 +1666,12 @@ public class ManagementInfoResourceTests
     @Test
     public void testPartitionScheduledDistributions()
         {
-        WebTarget target  = getBaseTarget().path("services").path("DistributedCache").path("partition")
+        WebTarget target   = getBaseTarget().path("services").path("DistributedCache").path("partition")
                             .path("scheduledDistributions").queryParam("verbose", true);
-        Response response = target.request().get();
+        Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("scheduledDistributions"), notNullValue());
@@ -1863,11 +1867,11 @@ public class ManagementInfoResourceTests
         mapEntity.put("links", new String[]{});
         mapEntity.put("fields", new String[]{"clusterName","clusterSize"});
 
-        Response response = getBaseTarget().path("search")
-                .request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        WebTarget target   = getBaseTarget().path("search");
+        Response  response = target.request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(mapResponse.size(), is(2));
         assertThat(mapResponse.get("clusterName"), is(notNullValue()));
         assertThat((int) mapResponse.get("clusterSize"), greaterThan(1));
@@ -2352,11 +2356,11 @@ public class ManagementInfoResourceTests
      */
     public boolean assertServiceIdle()
         {
-        Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).queryParam("fields", "operationStatus")
-                 .request().get();
+        WebTarget target   = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).queryParam("fields", "operationStatus");
+        Response  response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(mapResponse, is(notNullValue()));
 
         String result = (String) mapResponse.get("operationStatus");
@@ -2409,10 +2413,11 @@ public class ManagementInfoResourceTests
      */
     private Set<String> getSnapshotsInternal(String sType)
         {
-        Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(sType).request().get();
+        WebTarget target   = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(sType);
+        Response  response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(mapResponse, is(notNullValue()));
 
         ArrayList<String> result = (ArrayList) mapResponse.get(sType);
