@@ -7,14 +7,17 @@
 package com.tangosol.util.fsm;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
+
 import com.tangosol.util.fsm.misc.Light;
 import com.tangosol.util.fsm.misc.TraceAction;
-import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import org.junit.After;
+import org.junit.Test;
+
 import static com.oracle.bedrock.testsupport.deferred.Eventually.within;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -26,6 +29,15 @@ import static org.junit.Assert.assertThat;
  */
 public class DynamicEventTest
     {
+    /**
+     * COH-21710 - verify the NBFSM worker thread has stopped
+     */
+    @After
+    public void cleanup()
+        {
+        Eventually.assertDeferred(() -> NonBlockingFiniteStateMachineTest.getThreadsByName(FSM_NAME_PREFIX).isEmpty(), is(true));
+        }
+
     /**
      * A simple test of transitions for a {@link Light}.
      */
@@ -65,7 +77,7 @@ public class DynamicEventTest
         });
 
         DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
-        deps.setName("fsm-unit:DynamicEventTest:testSimpleLightSwitchMachine");
+        deps.setName(FSM_NAME_PREFIX + ":testSimpleLightSwitchMachine");
 
         // build the finite state machine from the model
         NonBlockingFiniteStateMachine<Brightness> machine =
@@ -136,4 +148,11 @@ public class DynamicEventTest
         MEDIUM,
         BRIGHT
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Finite State Machine name prefix
+     */
+    public static final String FSM_NAME_PREFIX = "fsm-unit:DynamicEventTest";
     }

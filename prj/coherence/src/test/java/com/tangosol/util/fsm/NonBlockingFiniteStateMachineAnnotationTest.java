@@ -23,9 +23,9 @@ import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.After;
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -37,6 +37,15 @@ import static org.junit.Assert.assertThat;
 public class NonBlockingFiniteStateMachineAnnotationTest
     {
     /**
+     * COH-21710 - verify the NBFSM worker thread has stopped
+     */
+    @After
+    public void cleanup()
+        {
+        Eventually.assertDeferred(() -> NonBlockingFiniteStateMachineTest.getThreadsByName(FSM_NAME_PREFIX).isEmpty(), is(true));
+        }
+
+    /**
      * A simple test of transitions for a {@link Light}.
      */
     @Test
@@ -46,8 +55,7 @@ public class NonBlockingFiniteStateMachineAnnotationTest
         AnnotationDrivenModel<Light>         model           = new AnnotationDrivenModel<Light>(Light.class, myModel);
 
         DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
-        deps.setName(
-          "fsm-unit:NonBlockingFiniteStateMachineAnnotationTest:testSimpleLightSwitchMachine");
+        deps.setName(FSM_NAME_PREFIX + ":testSimpleLightSwitchMachine");
 
         NonBlockingFiniteStateMachine<Light> machine = new NonBlockingFiniteStateMachine<Light>("Light Bulb",
                 model,
@@ -243,4 +251,11 @@ public class NonBlockingFiniteStateMachineAnnotationTest
             return Instruction.NOTHING;
             }
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Finite State Machine name prefix
+     */
+    public static final String FSM_NAME_PREFIX = "fsm-unit:NonBlockingFiniteStateMachineAnnotationTest";
     }

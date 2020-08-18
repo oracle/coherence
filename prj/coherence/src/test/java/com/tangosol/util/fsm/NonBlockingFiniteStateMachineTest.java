@@ -7,7 +7,9 @@
 package com.tangosol.util.fsm;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
+
 import com.tangosol.util.fsm.NonBlockingFiniteStateMachine.CoalescedEvent;
 import com.tangosol.util.fsm.NonBlockingFiniteStateMachine.CoalescedEvent.Process;
 import com.tangosol.util.fsm.NonBlockingFiniteStateMachine.SubsequentEvent;
@@ -17,13 +19,17 @@ import com.tangosol.util.fsm.misc.MotorEvent;
 import com.tangosol.util.fsm.misc.SwitchEvent;
 import com.tangosol.util.fsm.misc.TraceAction;
 import com.tangosol.util.fsm.misc.TrackingEvent;
+
+import org.junit.After;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -36,13 +42,22 @@ import static org.junit.Assert.assertTrue;
 public class NonBlockingFiniteStateMachineTest
     {
     /**
+     * COH-21710 - verify the NBFSM worker thread has stopped
+     */
+    @After
+    public void cleanup()
+        {
+        Eventually.assertDeferred(() -> getThreadsByName(FSM_NAME_PREFIX).isEmpty(), is(true));
+        }
+
+    /**
      * A simple test of transitions for a {@link Light}.
      */
     @Test
     public void testSimpleLightSwitchMachine()
         {
         final AtomicInteger count           = new AtomicInteger(0);
-        final String        sDaemonPoolName = "fsm-unit:NonBlockingFiniteStateMachineTest:testSimpleLightSwitchMachine";
+        final String        sDaemonPoolName = FSM_NAME_PREFIX + ":testSimpleLightSwitchMachine";
 
         // build the finite state machine model
         SimpleModel<Light> model = new SimpleModel<>(Light.class);
@@ -161,7 +176,7 @@ public class NonBlockingFiniteStateMachineTest
         model.addTransition(new Transition<>("Turn Off", Motor.RUNNING, Motor.STOPPED, new TraceAction<>()));
 
         DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
-        deps.setName("fsm-unit:NonBlockingFiniteStateMachineTest:testSubsequentEventProcessing");
+        deps.setName(FSM_NAME_PREFIX + ":testSubsequentEventProcessing");
 
         NonBlockingFiniteStateMachine<Motor> machine =
                 new NonBlockingFiniteStateMachine<>("Subsequent Testing Model",
@@ -212,7 +227,7 @@ public class NonBlockingFiniteStateMachineTest
         model.addTransition(new Transition<>("Turn Off", Motor.RUNNING, Motor.STOPPED, new TraceAction<>()));
 
         DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
-        deps.setName("fsm-unit:NonBlockingFiniteStateMachineTest:testCoalescedEventProcessing");
+        deps.setName(FSM_NAME_PREFIX + ":testCoalescedEventProcessing");
 
         NonBlockingFiniteStateMachine<Motor> machine =
                 new NonBlockingFiniteStateMachine<>("Subsequent Testing Model",
@@ -277,4 +292,128 @@ public class NonBlockingFiniteStateMachineTest
 
         assertThat(machine.stop(), is(true));
         }
+
+    // ----- NBFSM lifecycle tests ------------------------------------------
+
+    /**
+     * Ensure the Finite State Machine stops on quiesceThenStop().
+     */
+    @Test
+    public void testQuiesceThenStop()
+        {
+        SimpleModel<Motor> model = new SimpleModel<>(Motor.class);
+
+        DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
+        deps.setName(FSM_NAME_PREFIX + ":testQuiesceThenStop");
+
+        NonBlockingFiniteStateMachine<Motor> machine =
+            new NonBlockingFiniteStateMachine<>("testQuiesceThenStop",
+                model,
+                Motor.STOPPED,
+                deps,
+                false,
+                null);
+
+        assertThat(machine.start(), is(true));
+
+        assertThat(machine.quiesceThenStop(), is(true));
+
+        machine.process(MotorEvent.TURN_ON);
+
+        assertThat(machine.quiesceThenStop(), is(false));
+        assertThat(machine.stop(), is(false));
+        }
+
+    /**
+     * Ensure that a Finite State Machine can't be quiesceThenStop()'ed if it hasn't started.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testQuiesceThenStopOnNonStartedFSM()
+        {
+        SimpleModel<Motor> model = new SimpleModel<>(Motor.class);
+
+        DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
+        deps.setName(FSM_NAME_PREFIX + ":testQuiesceThenStopOnNonStartedFSM");
+
+        NonBlockingFiniteStateMachine<Motor> machine =
+            new NonBlockingFiniteStateMachine<>("testQuiesceThenStopOnNonStartedFSM",
+                model,
+                Motor.STOPPED,
+                deps,
+                false,
+                null);
+
+        machine.quiesceThenStop();
+        }
+
+    /**
+     * Ensure the Finite State Machine worker thread starts and stops.
+     */
+    @Test
+    public void testFSMWorkerThread()
+        {
+        SimpleModel<Motor> model = new SimpleModel<>(Motor.class);
+
+        DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
+        deps.setName(FSM_NAME_PREFIX + ":testFSMWorkerThread");
+
+        NonBlockingFiniteStateMachine<Motor> machine =
+            new NonBlockingFiniteStateMachine<>("testFSMWorkerThread",
+                model,
+                Motor.STOPPED,
+                deps,
+                false,
+                null);
+
+        machine.start();
+
+        Eventually.assertDeferred(() -> getThreadsByName(FSM_NAME_PREFIX).size(), is(1));
+
+        machine.stop();
+
+        Eventually.assertDeferred(() -> getThreadsByName(FSM_NAME_PREFIX).isEmpty(), is(true));
+        }
+
+    // ----- helper methods ------------------------------------------------
+
+    /**
+     * Get a collection of threads whose names start with the given prefix.
+     *
+     * @param sPrefix  the thread name prefix
+     *
+     * @return the thread
+     */
+    public static Collection<Thread> getThreadsByName(String sPrefix)
+        {
+        ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+
+        ThreadGroup parentThreadGroup;
+        while ((parentThreadGroup = threadGroup.getParent()) != null)
+            {
+            threadGroup = parentThreadGroup;
+            }
+
+        Thread[] aThreads = new Thread[threadGroup.activeCount() + 1];
+        threadGroup.enumerate(aThreads);
+
+        Collection<Thread> colThreads = new HashSet<>();
+        for (Thread thread : aThreads)
+            {
+            String sName = thread == null ? null : thread.getName();
+
+            if (sName != null && sName.startsWith(sPrefix))
+                {
+                colThreads.add(thread);
+                }
+            }
+
+        return colThreads;
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Finite State Machine name prefix
+     */
+    public static final String FSM_NAME_PREFIX = "fsm-unit:NonBlockingFiniteStateMachineTest";
     }
