@@ -217,7 +217,7 @@
       <plugin>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>pof-maven-plugin</artifactId>
-        <version>${coherence.version}</version>
+        <version>20.06</version>
         <executions>
           <execution>
             <id>instrument</id>
