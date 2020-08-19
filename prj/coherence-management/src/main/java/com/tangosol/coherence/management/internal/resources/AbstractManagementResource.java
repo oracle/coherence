@@ -12,8 +12,6 @@ import com.tangosol.coherence.management.internal.Converter;
 import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 import com.tangosol.coherence.management.internal.MBeanResponse;
 
-import com.tangosol.net.CacheFactory;
-
 import com.tangosol.net.management.MBeanAccessor;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
@@ -506,7 +504,7 @@ public abstract class AbstractManagementResource
             {
             Filter<String>                   filterLinks    = getLinksFilter(mapQuery);
             EntityMBeanResponse              responseEntity = createResponse(uriParent, uriSelf, filterLinks);
-            MBeanAccessor accessor       = getMBeanAccessor();
+            MBeanAccessor                    accessor       = getMBeanAccessor();
             Map<String, Map<String, Object>> mapMBeans      = accessor.getAttributes(bldrQuery.build());
 
             if (mapMBeans != null && !mapMBeans.isEmpty())
@@ -573,7 +571,7 @@ public abstract class AbstractManagementResource
             {
             Filter<String>                   filterLinks    = getLinksFilter(mapQuery);
             EntityMBeanResponse              responseEntity = createResponse(uriParent, uriSelf, filterLinks);
-            MBeanAccessor accessor       = getMBeanAccessor();
+            MBeanAccessor                    accessor       = getMBeanAccessor();
             Map<String, Map<String, Object>> mapMBeans      = accessor.getAttributes(bldrQuery.build());
 
             if (mapMBeans != null && !mapMBeans.isEmpty())
@@ -632,7 +630,7 @@ public abstract class AbstractManagementResource
             {
             Filter<String>                   filterLinks    = getLinksFilter(mapQuery);
             EntityMBeanResponse              responseEntity = createResponse(uriParent, uriSelf, filterLinks);
-            MBeanAccessor accessor       = getMBeanAccessor();
+            MBeanAccessor                    accessor       = getMBeanAccessor();
             Map<String, Map<String, Object>> mapMBeans      = accessor.getAttributes(bldrQuery.build());
 
             if (mapMBeans != null && !mapMBeans.isEmpty())
@@ -1242,7 +1240,7 @@ public abstract class AbstractManagementResource
             });
         }
 
-    // -------------------------- accessors ---------------------------------------------------------------
+    // ----- accessors ------------------------------------------------------
 
     /**
      * The service name parameter from the URI.

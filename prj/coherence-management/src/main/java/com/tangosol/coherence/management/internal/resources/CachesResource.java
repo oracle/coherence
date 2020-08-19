@@ -11,12 +11,14 @@ import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
 import java.net.URI;
-
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+
+import javax.ws.rs.WebApplicationException;
 
 import javax.ws.rs.core.Response;
 
@@ -55,8 +57,17 @@ public class CachesResource extends AbstractManagementResource
                 .withBaseQuery(CACHES_QUERY)
                 .withService(getService());
 
-        return response(getResponseBodyForMBeanCollection(bldrQuery, new CacheResource(this), NAME,
-                null, getParentUri(), getCurrentUri(), null));
+        EntityMBeanResponse response = getResponseBodyForMBeanCollection(bldrQuery, new CacheResource(this),
+                NAME, null, getParentUri(), getCurrentUri(), null);
+
+        if (response == null && getService() != null)
+            {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            }
+
+        return response == null
+                ? response(new HashMap<>())
+                : response(response);
         }
 
     /**
@@ -90,7 +101,7 @@ public class CachesResource extends AbstractManagementResource
         return new CacheResource(this);
         }
 
-    // ----- AbstractManagementResource methods -------------------------------------------
+    // ----- AbstractManagementResource methods -----------------------------
 
     @Override
     protected EntityMBeanResponse getQueryResult(Map mapQuery, Map<String, String> mapArguments, URI uriParent)

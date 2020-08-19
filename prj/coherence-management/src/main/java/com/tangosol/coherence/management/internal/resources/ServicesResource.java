@@ -21,6 +21,7 @@ import java.net.URI;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -73,8 +74,17 @@ public class ServicesResource extends AbstractManagementResource
     @Produces(MEDIA_TYPES)
     public Response get()
         {
-        return response(getResponseBodyForMBeanCollection(getQuery(), new ServiceResource(this), NAME,
-                null, getParentUri(), getCurrentUri(), null));
+        EntityMBeanResponse response = getResponseBodyForMBeanCollection(getQuery(), new ServiceResource(this),
+                NAME, null, getParentUri(), getCurrentUri(), null);
+
+        if (response == null && getService() != null)
+            {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            }
+
+        return response == null
+                ? response(new HashMap<>())
+                : response(response);
         }
 
     /**
@@ -125,7 +135,7 @@ public class ServicesResource extends AbstractManagementResource
         Object[] aoArguments = {sSnapshotName};
 
         // get the list of services enabled for persistence
-        EntityMBeanResponse response = getResponseBodyForMBeanCollection(instantiatePersistentServicesQuery(),null,
+        EntityMBeanResponse response = getResponseBodyForMBeanCollection(instantiatePersistentServicesQuery(), null,
                 getParentUri(), getCurrentUri());
 
         List<Map<String, Object>> listEntities = response.getEntities();
@@ -179,7 +189,7 @@ public class ServicesResource extends AbstractManagementResource
         return new ServiceResource(this);
         }
 
-    // ---- AbstractManagementResource methods --------------------------------------------
+    // ---- AbstractManagementResource methods ------------------------------
 
     @Override
     protected EntityMBeanResponse getQueryResult(Map mapQuery, Map<String, String> mapArguments, URI uriParent)
