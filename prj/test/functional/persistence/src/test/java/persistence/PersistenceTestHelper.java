@@ -7,6 +7,7 @@
 package persistence;
 
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -41,6 +42,7 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
+import org.hamcrest.Matchers;
 
 /**
  * Helper for common persistence tests functionality such as create and recover
@@ -399,6 +401,34 @@ public class PersistenceTestHelper
                 // fail-safe in case cluster never registered
                 throw new RuntimeException("MBean " + sObjectName + " was not registered after 30 seconds.");
                 }
+            }
+        }
+
+    /**
+     * Return control when either:
+     * <ol>
+     *     <li>the persistence mbean has been registered or</li>
+     *     <li>the timeout of 60s has been reached</li>
+     * </ol>
+     * Note: if timeout has been reached all persistence mbeans will be output
+     *       to the logger
+     *
+     * @param sName  the service name
+     */
+    public static void ensurePersistenceMBean(String sName)
+        {
+        MBeanServerProxy proxy = CacheFactory.getCluster().getManagement().getMBeanServerProxy();
+        String sPersistenceMBean = "Coherence:" + CachePersistenceHelper.getMBeanName(sName);
+        try
+            {
+            Eventually.assertThat(invoking(proxy).isMBeanRegistered(sPersistenceMBean), Matchers.is(true));
+            }
+        catch (Exception e)
+            {
+            Logger.info("Could not find MBean (" + sPersistenceMBean + "); following has been registered:\n" +
+                    proxy.queryNames("type=Persistence,*", null));
+
+            throw e;
             }
         }
 
