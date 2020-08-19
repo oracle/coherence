@@ -717,6 +717,8 @@
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
     <revision>20.12-SNAPSHOT</revision>
+
+    <!-- version prefix used for cluster compatibility -->
     <project.version.prefix>14.1.1</project.version.prefix>
 
     <!-- The groupId of the Coherence product -->
