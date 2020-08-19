@@ -2005,18 +2005,18 @@
                 No MBean server is instantiated on this cluster node.
 
                 "local-only"
-                Manage only MBeans which are local to this cluster node (that is, within the same JVM). 
-                
+                Manage only MBeans which are local to this cluster node (that is, within the same JVM).
+
                 "remote-only"
                 Manage MBeans on other remotely manageable cluster nodes.
-                See "allow-remote-management" subelement. 
+                See "allow-remote-management" subelement.
 
                 "all"
                 Manage both local and remotely manageable cluster nodes.
-                See "allow-remote-management" subelement. 
+                See "allow-remote-management" subelement.
 
                 "dynamic"
-                Allow this node to automatically host an MBean server and manage all MBeans. 
+                Allow this node to automatically host an MBean server and manage all MBeans.
 
                 Default value is "dynamic".
 
