@@ -38,6 +38,7 @@ import com.tangosol.net.PartitionedService.PartitionRecoveryAction;
 import com.tangosol.net.Service;
 
 import com.tangosol.net.management.MBeanHelper;
+
 import com.tangosol.net.partition.SimplePartitionKey;
 
 import com.tangosol.persistence.CachePersistenceHelper;
@@ -850,7 +851,7 @@ public abstract class AbstractSimplePersistenceTests
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
             waitForBalanced(service);
 
-            AbstractRollingRestartTest.waitForNoOrphans(service);
+            helper.ensurePersistenceMBean(sService);
             helper.recoverSnapshot(sService, "snapshot-B");
 
             waitForBalanced(service);
