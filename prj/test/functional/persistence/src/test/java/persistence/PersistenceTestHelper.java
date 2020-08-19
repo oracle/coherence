@@ -7,7 +7,6 @@
 package persistence;
 
 import com.oracle.coherence.common.base.Blocking;
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -425,8 +424,8 @@ public class PersistenceTestHelper
             }
         catch (Exception e)
             {
-            Logger.info("Could not find MBean (" + sPersistenceMBean + "); following has been registered:\n" +
-                    proxy.queryNames("type=Persistence,*", null));
+            CacheFactory.log("Could not find MBean (" + sPersistenceMBean + "); following has been registered:\n" +
+                    proxy.queryNames("type=Persistence,*", null), CacheFactory.LOG_INFO);
 
             throw e;
             }
