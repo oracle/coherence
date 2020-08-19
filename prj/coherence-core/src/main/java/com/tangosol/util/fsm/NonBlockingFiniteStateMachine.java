@@ -274,7 +274,10 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                     }
                 }
             m_fAllowTransitions = false;
-            fStopped            = f_atomicPendingEvents.get() == 0;
+            f_daemonPool.stop(); // COH-21710 - stop the worker thread even if there are more pending events;
+                                 //             it will no longer process pending events anyway
+
+            fStopped = f_atomicPendingEvents.get() == 0;
             }
 
         return fStopped;
