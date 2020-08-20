@@ -7,6 +7,8 @@
 
 package com.oracle.coherence.io.json;
 
+import com.oracle.coherence.common.base.Formatting;
+
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 
@@ -54,7 +56,8 @@ class JsonObjectSerializationTest
     protected Object roundTrip(String sName, JsonObject mapJson, Serializer serializer)
         {
         Binary bin = ExternalizableHelper.toBinary(mapJson, serializer);
-        System.out.println(sName + " (" + bin.length() + " bytes):\n" + new String(bin.toByteArray()).replaceAll("\\P{Print}", "."));
+        System.out.println(sName + " (" + bin.length() + " bytes):");
+        System.out.println(Formatting.toHexDump(bin.toByteArray(), 16));
         return ExternalizableHelper.fromBinary(bin, serializer);
         }
 
