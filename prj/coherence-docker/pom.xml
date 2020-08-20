@@ -217,6 +217,7 @@
                   </extraDirectories>
                   <container>
                     <mainClass>com.tangosol.coherence.docker.Runner</mainClass>
+                    <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
                     <environment>
                       <!-- Setting the COH_MAIN_CLASS environment variable will make the Coherence K8s Operator use
                            the correct main class without needing to specify it the class name in the Coherence

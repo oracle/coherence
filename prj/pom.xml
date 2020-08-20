@@ -782,7 +782,7 @@
     <maven.jandex.plugin.version>1.0.6</maven.jandex.plugin.version>
     <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
     <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
-    <maven.jib.plugin.version>2.4.0</maven.jib.plugin.version>
+    <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
     <maven.license.plugin.version>3.0</maven.license.plugin.version>
     <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
     <maven.release.plugin.version>2.4</maven.release.plugin.version>
