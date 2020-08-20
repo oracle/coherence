@@ -8,9 +8,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
