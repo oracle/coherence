@@ -1999,7 +1999,24 @@
                 has an [in-process] MBeanServer and if so, whether or not this node allows
                 management of other nodes' managed objects.
 
-                Legal values are: none, local-only, remote-only, dynamic or all.
+                Legal values are: "none", "local-only", "remote-only", "dynamic" or "all".
+
+                "none"
+                No MBean server is instantiated on this cluster node.
+
+                "local-only"
+                Manage only MBeans which are local to this cluster node (that is, within the same JVM).
+
+                "remote-only"
+                Manage MBeans on other remotely manageable cluster nodes.
+                See "allow-remote-management" subelement.
+
+                "all"
+                Manage both local and remotely manageable cluster nodes.
+                See "allow-remote-management" subelement.
+
+                "dynamic"
+                Allow this node to automatically host an MBean server and manage all MBeans.
 
                 Default value is "dynamic".
 
