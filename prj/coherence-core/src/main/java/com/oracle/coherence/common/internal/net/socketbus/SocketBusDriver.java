@@ -298,6 +298,16 @@ public class SocketBusDriver
         public long getAckTimeoutMillis();
 
         /**
+         * Return the default value of {@link #getAckTimeoutMillis()}.
+         *
+         * @return the default timeout in milliseconds
+         */
+        default public long getDefaultAckTimeoutMillis()
+            {
+            return getAckTimeoutMillis();
+            };
+
+        /**
          * Return the number of milliseconds after which a connection is considered to be unrecoverable due to a missing
          * acknowledgement and the connection an unsolicited DISCONNECT event should be emitted
          *
@@ -421,26 +431,27 @@ public class SocketBusDriver
             {
             if (deps != null)
                 {
-                m_provider               = deps.getSocketProvider();
-                m_hasher                 = deps.getSocketAddressHasher();
-                m_service                = deps.getSelectionService();
-                m_sProtocolMessageBus    = deps.getMessageBusProtocol();
-                m_sProtocolMemoryBus     = deps.getMemoryBusProtocol();
-                m_options                = deps.getSocketOptions();
-                m_bufferManager          = deps.getBufferManager();
-                m_logger                 = deps.getLogger();
-                m_cMaxReceiptDelayMillis = deps.getMaximumReceiptDelayMillis();
-                m_cReconnectLimit        = deps.getSocketReconnectLimit();
-                m_cReconnectDelayMillis  = deps.getSocketReconnectDelayMillis();
-                m_cHeartbeatDelayMillis  = deps.getHeartbeatMillis();
-                m_cAckTimeoutMillis      = deps.getAckTimeoutMillis();
-                m_cAckFatalTimeoutMillis = deps.getAckFatalTimeoutMillis();
-                m_cbAutoFlush            = deps.getAutoFlushThreshold();
-                m_cbReceiptRequest       = deps.getReceiptRequestThreshold();
-                m_cThreadsDirect         = deps.getDirectWriteThreadThreshold();
-                m_nDropRatio             = deps.getDropRatio();
-                m_nCorruptionRatio       = deps.getCorruptionRatio();
-                m_fCrc                   = deps.isCrcEnabled();
+                m_provider                 = deps.getSocketProvider();
+                m_hasher                   = deps.getSocketAddressHasher();
+                m_service                  = deps.getSelectionService();
+                m_sProtocolMessageBus      = deps.getMessageBusProtocol();
+                m_sProtocolMemoryBus       = deps.getMemoryBusProtocol();
+                m_options                  = deps.getSocketOptions();
+                m_bufferManager            = deps.getBufferManager();
+                m_logger                   = deps.getLogger();
+                m_cMaxReceiptDelayMillis   = deps.getMaximumReceiptDelayMillis();
+                m_cReconnectLimit          = deps.getSocketReconnectLimit();
+                m_cReconnectDelayMillis    = deps.getSocketReconnectDelayMillis();
+                m_cHeartbeatDelayMillis    = deps.getHeartbeatMillis();
+                m_cAckTimeoutMillis        = deps.getAckTimeoutMillis();
+                m_cDefaultAckTimeoutMillis = deps.getDefaultAckTimeoutMillis();
+                m_cAckFatalTimeoutMillis   = deps.getAckFatalTimeoutMillis();
+                m_cbAutoFlush              = deps.getAutoFlushThreshold();
+                m_cbReceiptRequest         = deps.getReceiptRequestThreshold();
+                m_cThreadsDirect           = deps.getDirectWriteThreadThreshold();
+                m_nDropRatio               = deps.getDropRatio();
+                m_nCorruptionRatio         = deps.getCorruptionRatio();
+                m_fCrc                     = deps.isCrcEnabled();
                 }
             }
 
@@ -698,6 +709,29 @@ public class SocketBusDriver
             }
 
         /**
+         * Return default value of ack timeout
+         *
+         * @return default value of ack timeout
+         */
+        public long getDefaultAckTimeoutMillis()
+            {
+            return m_cDefaultAckTimeoutMillis;
+            }
+
+        /**
+         * Set default ack timeout
+         *
+         * @param cAckTimeoutMillis  default ack timeout
+         *
+         * @return this object
+         */
+        public DefaultDependencies setDefaultAckTimeoutMillis(long cAckTimeoutMillis)
+            {
+            m_cDefaultAckTimeoutMillis = cAckTimeoutMillis;
+            return this;
+            }
+
+        /**
          * {@inheritDoc}
          */
         @Override
@@ -904,6 +938,9 @@ public class SocketBusDriver
                         "memory and mess bus protocols cannot use the sane names");
                 }
 
+            m_cAckTimeoutMillis = new Duration(System.getProperty( SocketBusDriver.class.getName()+".ackTimeoutMillis",
+                    getDefaultAckTimeoutMillis() + "ms")).getNanos()/1000000;
+
             return this;
             }
 
@@ -987,8 +1024,13 @@ public class SocketBusDriver
         /**
          * Ack timeout in millis
          */
-        protected long m_cAckTimeoutMillis = new Duration(System.getProperty(
-                SocketBusDriver.class.getName()+".ackTimeoutMillis", "10s")).getNanos()/1000000;
+        protected long m_cAckTimeoutMillis;
+
+        /**
+         * Default ack timeout in millis
+         */
+        protected long m_cDefaultAckTimeoutMillis = 10_000L;
+
 
         /**
          * Fatal ack timeout in millis
