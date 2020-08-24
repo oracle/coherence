@@ -288,7 +288,8 @@ public class DockerImageTests
             assertStarted(platform, container);
 
             int               port = findPortMapping(container, METRICS_PORT);
-            URI               uri  = URI.create("http://127.0.0.1:" + port + "/metrics/Coherence.Cluster.Size");
+            String            path = "/metrics/Coherence.Cluster.Size.txt"; // .txt suffix ensures we don't get JSON back
+            URI               uri  = URI.create("http://127.0.0.1:" + port + path);
             HttpURLConnection con  = (HttpURLConnection) uri.toURL().openConnection();
 
             con.setRequestMethod("GET");
