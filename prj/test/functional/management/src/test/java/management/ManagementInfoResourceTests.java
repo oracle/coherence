@@ -6,12 +6,15 @@
  */
 package management;
 
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 
+import com.tangosol.coherence.component.util.SafeService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.management.internal.resources.AbstractManagementResource;
@@ -26,6 +29,7 @@ import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Base;
@@ -41,7 +45,6 @@ import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -188,6 +191,9 @@ public class ManagementInfoResourceTests
         CoherenceClusterMember member2 = startCacheServer(SERVER_PREFIX + "-2", "rest", CACHE_CONFIG, propsServer2);
 
         Eventually.assertThat(invoking(member2).getServiceStatus(SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
+        Eventually.assertDeferred(() -> member2.invoke(new CalculateUnbalanced("dist-persistence-test")),
+                Matchers.is(0),
+                within(3, TimeUnit.MINUTES));
 
         // fill a cache
         NamedCache cache    = findApplication(SERVER_PREFIX + "-1").getCache(CACHE_NAME);
@@ -2902,6 +2908,43 @@ public class ManagementInfoResourceTests
 
             i++;
             }
+        }
+
+    //--------------------- helper classes ----------------------------
+
+    /**
+     * A RemoteCallable implementation to calculate the number of
+     * unbalanced partitions.
+     */
+    public static class CalculateUnbalanced
+            implements RemoteCallable<Integer>
+        {
+        public CalculateUnbalanced(String sCacheName)
+            {
+            f_sCacheName = sCacheName;
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Integer call()
+            {
+            try
+                {
+                SafeService      serviceSafe = (SafeService) CacheFactory.getCache(f_sCacheName).getCacheService();
+                PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
+
+                return serviceReal.calculateUnbalanced();
+                }
+            catch (Exception e)
+                {
+                CacheFactory.log(Base.printStackTrace(e));
+                throw e;
+                }
+            }
+
+        private final String f_sCacheName;
         }
 
     // ----- static helpers -------------------------------------------------
