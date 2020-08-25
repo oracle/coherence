@@ -121,7 +121,7 @@ public class CacheData
                         {
                         data = (CacheData) mapData.get(key);
 
-                        if (fIsDistributedCache || (!fIsDistributedCache && !fisSizeCounted))
+                        if (fIsDistributedCache || !fisSizeCounted)
                             {
                             data.setColumn(CacheData.SIZE,
                                            (Integer) data.getColumn(CacheData.SIZE)

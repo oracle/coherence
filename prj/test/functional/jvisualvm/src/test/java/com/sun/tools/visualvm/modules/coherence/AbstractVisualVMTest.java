@@ -42,6 +42,7 @@ import org.junit.*;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.AbstractData;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.Data;
@@ -363,6 +364,18 @@ public abstract class AbstractVisualVMTest
 
     /**
      * Validate a given column for the current dataType. This is a helper method and
+     * does some sanity checking to ensure that the returned column is not null only.
+     *
+     * @param nColumn         the column index to validate
+     * @param entry           the entry which contains the retrieved value
+     */
+    protected void validateColumnNotNull(int nColumn, Map.Entry<Object, Data> entry)
+        {
+        Assert.assertThat(getColumn(nColumn, entry), is(notNullValue()));
+        }
+
+    /**
+     * Validate a given column for the current dataType. This is a helper method and
      * does some sanity checking to ensure that the returned column is correct
      * and not null.
      *
@@ -379,9 +392,6 @@ public abstract class AbstractVisualVMTest
 
         String sError  = "The value of column \"" + sColumn + "\" with index " + nColumn + " was expected to be \""
                          + oExpectedValue + "\" but was \"" + oActualValue + "\"";
-
-        // output("Actual   = [" + oActualValue + "]");
-        // output("Expected = [" + oExpectedValue + "]");
 
         if (oExpectedValue instanceof String)
             {
