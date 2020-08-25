@@ -251,6 +251,9 @@ public abstract class AbstractRollingPersistenceTests
 
             waitForBalanced(service);
 
+            // the following sleep should be removed once COH-19735 is done
+            sleep(4000); // when COH-14809 is done, replace with an event check
+
             HashMap map = new HashMap();
             for (int i = 0; i < 5000; i++)
                 {
