@@ -22,8 +22,6 @@ import org.junit.*;
 
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.*;
 
-import java.io.IOException;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -240,13 +238,13 @@ public abstract class AbstractDataRetrieverTest
         Map.Entry<Object, Data> entryCache3 = cacheData.get(2);
 
         // validate the data returned where its deterministic
-        validateColumn(CacheData.SIZE, entryCache1, INSERT1_COUNT);
+        validateColumnNotNull(CacheData.SIZE, entryCache1);
         validateColumn(CacheData.CACHE_NAME, entryCache1, getCacheName(DIST1_SERVICE, DIST1_CACHE));
 
-        validateColumn(CacheData.SIZE, entryCache2, INSERT2_COUNT);
+        validateColumnNotNull(CacheData.SIZE, entryCache2);
         validateColumn(CacheData.CACHE_NAME, entryCache2, getCacheName(DIST2_SERVICE, DIST2_CACHE));
 
-        validateColumn(CacheData.SIZE, entryCache3, INSERT3_COUNT);
+        validateColumnNotNull(CacheData.SIZE, entryCache3);
         validateColumn(CacheData.CACHE_NAME, entryCache3, getCacheName(REPLICATED_SERVICE, REPL_CACHE));
 
         validateColumn(CacheData.UNIT_CALCULATOR, entryCache1, "BINARY");
@@ -256,8 +254,8 @@ public abstract class AbstractDataRetrieverTest
         model.setSelectedCache(new Pair<String, String>(DIST1_SERVICE, DIST1_CACHE));
 
         // do 2 gets
-        nc1.get(new Integer(0));
-        nc1.get(new Integer(INSERT1_COUNT - 1));
+        nc1.get(0);
+        nc1.get(INSERT1_COUNT - 1);
 
         waitForRefresh();
         model.refreshStatistics(requestSender);
@@ -277,31 +275,6 @@ public abstract class AbstractDataRetrieverTest
 
         validateColumn(CacheDetailData.NODE_ID, entryDetail1, 1);
         validateColumn(CacheDetailData.NODE_ID, entryDetail2, 2);
-
-        // ensure the totals for each of the storage-data match the CacheData
-        // ensure we have correct values
-        int cCountedEntries  = 0;
-        int cExpectedEntries = (Integer) entryCache1.getValue().getColumn(CacheData.SIZE);
-
-        for (Map.Entry<Object, Data> entry : cacheDetailData)
-            {
-            cCountedEntries += (Integer) entry.getValue().getColumn(CacheDetailData.SIZE);
-            }
-
-        Assert.assertTrue("CacheDetailData size does not add up. Value = " + cCountedEntries + ", expected is "
-                          + cExpectedEntries, cExpectedEntries == cCountedEntries);
-
-        setCurrentDataType(VisualVMModel.DataType.CACHE_STORAGE_MANAGER);
-
-        // validate the CacheStorageManagerData data
-        Map.Entry<Object, Data> entryStorage1 = cacheStorageData.get(0);
-        Map.Entry<Object, Data> entryStorage2 = cacheStorageData.get(1);
-
-        validateColumn(CacheStorageManagerData.NODE_ID, entryStorage1, 1);
-        validateColumn(CacheStorageManagerData.LISTENER_REGISTRATIONS, entryStorage1, 0L);
-
-        validateColumn(CacheStorageManagerData.NODE_ID, entryStorage2, 2);
-        validateColumn(CacheStorageManagerData.LISTENER_REGISTRATIONS, entryStorage2, 0L);
 
         // call the dependent tests as we can't guarantee execution order in JUnit
         testPersistenceData();
@@ -560,7 +533,7 @@ public abstract class AbstractDataRetrieverTest
      */
     private void waitForRefresh()
         {
-        wait("Sleeping to ensure JMX stats updated for next refresh", 30000L);
+        wait("Sleeping to ensure JMX stats updated for next refresh", 15000L);
         }
 
     // ----- constants ------------------------------------------------------
