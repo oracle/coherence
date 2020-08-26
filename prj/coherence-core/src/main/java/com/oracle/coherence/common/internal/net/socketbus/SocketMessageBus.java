@@ -648,7 +648,7 @@ public class SocketMessageBus
                                 {
                                 // by definition buffLast still has some space
                                 // left to write into, reset the position data;
-                                // any message referncing this buffer would be
+                                // any message referencing this buffer would be
                                 // doing so through a slice of a SharedBuffer
                                 buffLast.mark();
                                 buffLast.limit(buffLast.capacity()).position(iPosWrite);

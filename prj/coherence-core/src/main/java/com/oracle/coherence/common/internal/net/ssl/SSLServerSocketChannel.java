@@ -88,6 +88,13 @@ public class SSLServerSocketChannel
         m_fBlocking = block;
         }
 
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        return "SSLServerSocketChannel(" + socket() + ")";
+        }
 
     // ----- helpers --------------------------------------------------------
 

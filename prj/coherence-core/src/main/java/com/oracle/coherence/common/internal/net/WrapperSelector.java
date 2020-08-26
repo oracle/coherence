@@ -132,11 +132,11 @@ public class WrapperSelector
     public int select(long timeout)
             throws IOException
         {
-        // To fullfill the contract of thread-safety on the key sets we
+        // To fulfill the contract of thread-safety on the key sets we
         // synchronize on the Selector, Keys, and then SelectedKeys.  This is
         // is only necessary so that an application doing external
         // synchronization on any of these objects can block the selector from
-        // proceeeding as descripted in Selector JavaDoc.
+        // proceeding as described in Selector JavaDoc.
         synchronized (this)
             {
             synchronized (m_setKeys)
