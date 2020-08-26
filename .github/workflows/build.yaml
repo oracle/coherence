@@ -9,7 +9,7 @@
 name: CI Build
 
 on:
-  push:		
+  push:
     branches-ignore:
     - gh-pages
     - p4-integ*
@@ -40,7 +40,7 @@ jobs:
          - stage11
          - stage12
          - stage13
-#         - stage10   comment out for now, until OpenJDK SSL hang bug is fixed
+         - stage10
 
     steps:
     - name: Checkout
