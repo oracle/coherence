@@ -12,8 +12,7 @@
 
 == Usage
 
-The Coherence gRPC Java client is a CDI enabled library that allows a CDI application to inject Coherence objects
-into CDI beans.
+The Coherence gRPC Java client is a CDI enabled library that allows Java clients to connect via gRPC to a Coherence proxy server.
 
 In order to use Coherence gRPC Java client, you need to declare it as a dependency in your `pom.xml`
 
