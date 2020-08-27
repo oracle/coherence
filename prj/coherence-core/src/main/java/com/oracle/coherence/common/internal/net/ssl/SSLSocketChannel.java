@@ -355,7 +355,8 @@ public class SSLSocketChannel
             key.m_keyNext = m_keyFirst;
             m_keyFirst = key;
 
-            if (f_buffClearIn.hasRemaining())
+            // COH-21678 - check both clear and encrypted as the SSL engine may consume the decrypt resulting in an empty clear buffer
+            if (f_buffClearIn.hasRemaining() || f_buffEncIn.hasRemaining())
                 {
                 markKeysReadable(true);
                 }
@@ -432,7 +433,8 @@ public class SSLSocketChannel
                 }
             }
 
-        boolean fMore = f_buffClearIn.hasRemaining() || fillClearBuffer() > 0;
+        // COH-21678 - check both clear and encrypted as the SSL engine may consume the decrypt resulting in an empty clear buffer
+        boolean fMore = f_buffClearIn.hasRemaining() || fillClearBuffer() > 0 || f_buffEncIn.hasRemaining();
         markKeysReadable(fMore);
 
         if (cbFill == 0 && cbRead == -1 && !fMore)
@@ -599,7 +601,7 @@ public class SSLSocketChannel
         }
 
     /**
-    * Decrypt from the incomming network buffer into the supplied buffers.
+    * Decrypt from the incoming network buffer into the supplied buffers.
     *
     * The caller must hold the read monitor.
     *
@@ -886,6 +888,14 @@ public class SSLSocketChannel
                                         /*nExclude*/  fWrite ? 0 : SelectionKey.OP_WRITE,
                                         /*nReady*/    SelectionKey.OP_WRITE);
                                 return true;
+                                }
+                            else
+                                {
+                                if (f_buffClearIn.hasRemaining() || f_buffEncIn.hasRemaining())
+                                    {
+                                    // COH-21678 - there is more data available for read
+                                    markKeysReadable(true);
+                                    }
                                 }
                             }
                         }
