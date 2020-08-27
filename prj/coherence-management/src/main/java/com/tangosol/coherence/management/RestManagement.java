@@ -9,6 +9,8 @@ package com.tangosol.coherence.management;
 import com.tangosol.coherence.management.internal.ClusterNameSupplier;
 import com.tangosol.coherence.management.internal.MapProvider;
 
+import com.tangosol.coherence.management.internal.filters.DenySniffResponseFilter;
+
 import com.tangosol.coherence.management.internal.resources.ManagementRootResource;
 import com.tangosol.coherence.management.internal.resources.VersionsResource;
 
@@ -167,6 +169,7 @@ public final class RestManagement
         // common configurations
         resourceConfig.register(MapProvider.class);
         resourceConfig.register(new MBeanServerProxyBinder(Objects.requireNonNull(factory)));
+        resourceConfig.register(DenySniffResponseFilter.class);
         EncodingFilter.enableFor(resourceConfig, GZipEncoder.class);
 
         if (supplierClusters == null)

@@ -150,6 +150,17 @@ public abstract class AbstractManagementResource
                 }
             return response(responseEntity.toJson());
             }
+        catch (IllegalArgumentException iae)
+            {
+            Response.Status status = Response.Status.BAD_REQUEST;
+
+            Logger.info("Request precondition failure for updating an MBean with query " + bldrQuery.toString() +
+                ". Failure is " + iae.getClass().getName() + " " + iae.getMessage());
+
+            throw new WebApplicationException(Response.status(status).
+                entity("HTTP " + status.getStatusCode() + ' ' + status.getReasonPhrase() + '\n' +
+                    iae.getMessage()).build());
+            }
         catch (Exception e)
             {
             Logger.warn("Exception occurred while updating an MBean with query " + bldrQuery.toString(), e);
@@ -1216,26 +1227,43 @@ public abstract class AbstractManagementResource
      *
      * @param entity       {@link Map} to check
      * @param fManagement  a flag to indicate if the query type is Management
+     *
+     * @throws IllegalArgumentException if type conversion for attribute's value fails
      */
     protected void checkAttributeTypeConversion(Map<String, Object> entity, boolean fManagement)
         {
-          entity.replaceAll((k, v) ->{
-            if ((SET_LONG.contains(k) || (fManagement && k.compareToIgnoreCase("expiryDelay") == 0))
+        entity.replaceAll((k, v) ->
+            {
+            Class clzConvertTo = Object.class;
+
+            try
+                {
+                if ((SET_LONG.contains(k) || (fManagement && k.compareToIgnoreCase("expiryDelay") == 0))
                     && !(v instanceof Long))
-                {
-                return Long.valueOf(v.toString());
+                    {
+                    clzConvertTo = Long.TYPE;
+                    return Long.valueOf(v.toString());
+                    }
+                else if (SET_INTEGER.contains(k) && !(v instanceof Integer))
+                    {
+                    clzConvertTo = Integer.TYPE;
+                    return Integer.valueOf(v.toString());
+                    }
+                else if (SET_FLOAT.contains(k) && !(v instanceof Float))
+                    {
+                    clzConvertTo = Float.TYPE;
+                    return Float.valueOf(v.toString());
+                    }
+                else
+                    {
+                    return v;
+                    }
                 }
-            else if (SET_INTEGER.contains(k) && !(v instanceof Integer))
+            catch (Exception e)
                 {
-                return Integer.valueOf(v.toString());
-                }
-           else if (SET_FLOAT.contains(k) && !(v instanceof Float))
-                {
-                return Float.valueOf(v.toString());
-                }
-            else
-                {
-                return v;
+                throw new IllegalArgumentException("invalid value for attribute " + k +
+                    "; failed type conversion to " +  clzConvertTo.getName()  +
+                    " due to " + e.getClass().getName() + " "  + e.getMessage(), e);
                 }
             });
         }
