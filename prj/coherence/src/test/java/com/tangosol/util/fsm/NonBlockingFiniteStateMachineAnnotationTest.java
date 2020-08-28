@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Test;
 
+import util.ThreadHelper;
+
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -42,7 +44,7 @@ public class NonBlockingFiniteStateMachineAnnotationTest
     @After
     public void cleanup()
         {
-        Eventually.assertDeferred(() -> NonBlockingFiniteStateMachineTest.getThreadsByName(FSM_NAME_PREFIX).isEmpty(), is(true));
+        Eventually.assertDeferred(() -> ThreadHelper.getThreadsByPrefix(FSM_NAME_PREFIX).isEmpty(), is(true));
         }
 
     /**
