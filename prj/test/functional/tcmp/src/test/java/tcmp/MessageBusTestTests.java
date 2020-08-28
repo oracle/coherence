@@ -115,15 +115,15 @@ public class MessageBusTestTests
         CapturingApplicationConsole console1     = new CapturingApplicationConsole();
         Queue<String>               output1      = new LinkedList<>();
         Application                 application1 = startMessageBusTest(options, asArg1, console1);
-        Eventually.assertThat(invoking(console1).getCapturedErrorLines(), Matchers.hasItem(containsString("OPEN event for")));
+        Eventually.assertThat(invoking(console1).getCapturedErrorLines(), hasItem(containsString("OPEN event for")));
 
         CapturingApplicationConsole console2     = new CapturingApplicationConsole();
         Queue<String>               output2      = new LinkedList<>();
         Application                 application2 = startMessageBusTest(options, asArg2, console2);
 
-        Eventually.assertThat(invoking(console1).getCapturedErrorLines(), Matchers.hasItem(containsString("accepted connection migration")),
+        Eventually.assertThat(invoking(console1).getCapturedErrorLines(), hasItem(containsString("accepted connection migration")),
                 delayedBy(20, TimeUnit.SECONDS));
-        Eventually.assertThat(invoking(console2).getCapturedErrorLines(), Matchers.hasItem(containsString("accepting connection migration")));
+        Eventually.assertThat(invoking(console2).getCapturedErrorLines(), hasItem(containsString("accepting connection migration")));
 
         output1.addAll(console1.getCapturedOutputLines());
         output1.addAll(console1.getCapturedErrorLines());
@@ -236,7 +236,7 @@ public class MessageBusTestTests
         asArg[4] = "tmb://" + m_hostAddress + ":" + port3;
         asArg[5] = "-polite";
         Application application2 = startMessageBusTest(options, asArg, console2);
-        Eventually.assertThat(invoking(console2).getCapturedErrorLines(), Matchers.hasItem(containsString("OPEN event for")));
+        Eventually.assertThat(invoking(console2).getCapturedErrorLines(), hasItem(containsString("OPEN event for")));
 
         CapturingApplicationConsole console3 = new CapturingApplicationConsole();
         Queue<String> output3 = new LinkedList<>();
@@ -248,7 +248,7 @@ public class MessageBusTestTests
         asArg[5] = null;
         Application application3 = startMessageBusTest(options, asArg, console3);
 
-        Eventually.assertThat(invoking(console1).getCapturedOutputLines(), Matchers.hasItem(containsString("connections 1, errors 0")),
+        Eventually.assertThat(invoking(console1).getCapturedOutputLines(), hasItem(containsString("connections 1, errors 0")),
                 delayedBy(20, TimeUnit.SECONDS));
         assertTrue(hasItem(containsString("connections 1, errors 0")).matches(console2.getCapturedOutputLines()));
         assertTrue(hasItem(containsString("connections 2, errors 0")).matches(console3.getCapturedOutputLines()));
@@ -343,13 +343,13 @@ public class MessageBusTestTests
         CapturingApplicationConsole console1     = new CapturingApplicationConsole();
         Queue<String>               output1      = new LinkedList<>();
         Application                 application1 = startMessageBusTest(options, asArg1, console1);
-        Eventually.assertThat(invoking(console1).getCapturedErrorLines(), Matchers.hasItem(containsString("OPEN event for")));
+        Eventually.assertThat(invoking(console1).getCapturedErrorLines(), hasItem(containsString("OPEN event for")));
 
         CapturingApplicationConsole console2     = new CapturingApplicationConsole();
         Queue<String>               output2      = new LinkedList<>();
         Application                 application2 = startMessageBusTest(options, asArg2, console2);
 
-        Eventually.assertThat(invoking(console1).getCapturedErrorLines(), Matchers.hasItem(containsString("java.lang.OutOfMemoryError:")),
+        Eventually.assertThat(invoking(console1).getCapturedErrorLines(), hasItem(containsString("java.lang.OutOfMemoryError:")),
                 delayedBy(20, TimeUnit.SECONDS));
 
         output1.addAll(console1.getCapturedOutputLines());
@@ -436,9 +436,9 @@ public class MessageBusTestTests
         Application application2 = startMessageBusTest(options, asArg2, console2);
         Thread.sleep(cMillis);
 
-        Eventually.assertThat(invoking(console1).getCapturedOutputLines(), Matchers.hasItem(containsString("connections 1, errors 0")),
+        Eventually.assertThat(invoking(console1).getCapturedOutputLines(), hasItem(containsString("connections 1, errors 0")),
                 delayedBy(cMillis, TimeUnit.MILLISECONDS));
-        Eventually.assertThat(invoking(console2).getCapturedOutputLines(), Matchers.hasItem(containsString("connections 1, errors 0")));
+        Eventually.assertThat(invoking(console2).getCapturedOutputLines(), hasItem(containsString("connections 1, errors 0")));
         assertThat(console1.getCapturedErrorLines(), everyItem(not(containsString("WARNING:"))));
         assertThat(console2.getCapturedErrorLines(), everyItem(not(containsString("WARNING:"))));
 
