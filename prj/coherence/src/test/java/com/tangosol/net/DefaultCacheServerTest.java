@@ -16,6 +16,7 @@ import com.tangosol.util.Base;
 
 import com.oracle.coherence.common.base.Blocking;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,14 +25,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import util.ThreadHelper;
+
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-
 public class DefaultCacheServerTest
     {
+    /**
+     * COH-21718 - Ensure the DCS ServiceMonitor thread has stopped.
+     */
+    @After
+    public void cleanup()
+        {
+        Eventually.assertDeferred(() -> ThreadHelper.getThreadsByPrefix("ServiceMonitor").isEmpty(), is(true));
+        }
+
     /**
      * Ensure a new {@link DefaultCacheServer} instance with a null
      * {@link ConfigurableCacheFactory} instance fails and passes with a

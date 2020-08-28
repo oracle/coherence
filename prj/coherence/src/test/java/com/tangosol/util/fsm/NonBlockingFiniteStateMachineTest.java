@@ -23,12 +23,12 @@ import com.tangosol.util.fsm.misc.TrackingEvent;
 import org.junit.After;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashSet;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import util.ThreadHelper;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -47,7 +47,7 @@ public class NonBlockingFiniteStateMachineTest
     @After
     public void cleanup()
         {
-        Eventually.assertDeferred(() -> getThreadsByName(FSM_NAME_PREFIX).isEmpty(), is(true));
+        Eventually.assertDeferred(() -> ThreadHelper.getThreadsByPrefix(FSM_NAME_PREFIX).isEmpty(), is(true));
         }
 
     /**
@@ -367,47 +367,11 @@ public class NonBlockingFiniteStateMachineTest
 
         machine.start();
 
-        Eventually.assertDeferred(() -> getThreadsByName(FSM_NAME_PREFIX).size(), is(1));
+        Eventually.assertDeferred(() -> ThreadHelper.getThreadsByPrefix(FSM_NAME_PREFIX).size(), is(1));
 
         machine.stop();
 
-        Eventually.assertDeferred(() -> getThreadsByName(FSM_NAME_PREFIX).isEmpty(), is(true));
-        }
-
-    // ----- helper methods ------------------------------------------------
-
-    /**
-     * Get a collection of threads whose names start with the given prefix.
-     *
-     * @param sPrefix  the thread name prefix
-     *
-     * @return the thread
-     */
-    public static Collection<Thread> getThreadsByName(String sPrefix)
-        {
-        ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
-
-        ThreadGroup parentThreadGroup;
-        while ((parentThreadGroup = threadGroup.getParent()) != null)
-            {
-            threadGroup = parentThreadGroup;
-            }
-
-        Thread[] aThreads = new Thread[threadGroup.activeCount() + 1];
-        threadGroup.enumerate(aThreads);
-
-        Collection<Thread> colThreads = new HashSet<>();
-        for (Thread thread : aThreads)
-            {
-            String sName = thread == null ? null : thread.getName();
-
-            if (sName != null && sName.startsWith(sPrefix))
-                {
-                colThreads.add(thread);
-                }
-            }
-
-        return colThreads;
+        Eventually.assertDeferred(() -> ThreadHelper.getThreadsByPrefix(FSM_NAME_PREFIX).isEmpty(), is(true));
         }
 
     // ----- constants ------------------------------------------------------
