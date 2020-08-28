@@ -7,6 +7,7 @@
 package persistence;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
@@ -24,14 +25,16 @@ import com.tangosol.util.Base;
 
 import common.AbstractFunctionalTest;
 
+import common.TestInfrastructureHelper;
+import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import util.PartitionedCacheServiceIsDistributionStable;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
@@ -110,14 +113,24 @@ public class SimpleRecoveryDynamicQuorumTests
             DistributedCacheService service     = (DistributedCacheService) cache.getCacheService();
             String                  sServerName = "testDynamic_" + sTest;
             int                     cServers    = 6;
+
+            CoherenceClusterMember[] aMember = new CoherenceClusterMember[cServers];
             for (int i = 0; i < cServers; i++)
                 {
-                startCacheServer(sServerName + i, getProjectName(), getCacheConfigPath(), props);
+                aMember[i] = startCacheServer(sServerName + i, getProjectName(), getCacheConfigPath(), props);
                 }
 
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(cServers));
 
             waitForBalanced(cache.getCacheService());
+
+            PartitionedCacheServiceIsDistributionStable isStable =
+                    new PartitionedCacheServiceIsDistributionStable(service.getInfo().getServiceName());
+            for (int i = 1; i < cServers; i++)
+                {
+                final CoherenceClusterMember member = aMember[i];
+                Eventually.assertDeferred(() -> m_helper.submitBool(member, isStable), Matchers.is(true));
+                }
 
             Cluster cluster  = CacheFactory.ensureCluster();
             String  sService = service.getInfo().getServiceName();
@@ -265,7 +278,23 @@ public class SimpleRecoveryDynamicQuorumTests
 
     // ----- data members ---------------------------------------------------
 
+    /**
+     * Active persistence directory.
+     */
     private static File s_fileActive;
+
+    /**
+     * Snapshot directory.
+     */
     private static File s_fileSnapshot;
+
+    /**
+     * Trash directory.
+     */
     private static File s_fileTrash;
+
+    /*
+     * A {@link TestInfrastructureHelper} instance that we can pass to Bedrock on an invoking().
+     */
+    protected static TestInfrastructureHelper m_helper = new TestInfrastructureHelper();
     }
