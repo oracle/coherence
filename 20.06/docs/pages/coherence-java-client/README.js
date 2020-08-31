@@ -7,7 +7,8 @@
 
 <h2 id="_usage">Usage</h2>
 <div class="section">
-<p>The Coherence gRPC Java client is a CDI enabled library that allows Java clients to connect via gRPC to a Coherence proxy server.</p>
+<p>The Coherence gRPC Java client is a CDI enabled library that allows a CDI application to inject Coherence objects
+into CDI beans.</p>
 
 <p>In order to use Coherence gRPC Java client, you need to declare it as a dependency in your <code>pom.xml</code></p>
 
