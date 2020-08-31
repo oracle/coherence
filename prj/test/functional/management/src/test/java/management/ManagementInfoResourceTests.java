@@ -521,10 +521,11 @@ public class ManagementInfoResourceTests
                 .findFirst() .orElse(new LinkedHashMap());
         String sJmxURl = (String) mapJmxManagement.get("href");
 
-        response = m_client.target(sJmxURl).request().get();
+        target = m_client.target(sJmxURl);
+        response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        mapResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("refreshOnQuery"), is(false));
         assertThat(mapResponse.get("expiryDelay"), is(1000));
@@ -639,11 +640,12 @@ public class ManagementInfoResourceTests
 
         String sJmxURl = getLink(mapEntity, "members");
 
-        response = m_client.target(sJmxURl).request().get();
+        target = m_client.target(sJmxURl);
+        response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(mapEntity, notNullValue());
 
         List<LinkedHashMap> listMemberMaps = (List<LinkedHashMap>) mapResponse.get("items");
@@ -662,13 +664,12 @@ public class ManagementInfoResourceTests
             Object oMemberLinks = mapMember.get("links");
             assertThat(oMemberLinks, instanceOf(List.class));
 
-            String sMemberUrl = getSelfLink(mapMember);
-
-            response = m_client.target(sMemberUrl).request().get();
+            target = m_client.target(getSelfLink(mapMember));
+            response = target.request().get();
 
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-            mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+            mapResponse = new LinkedHashMap(readEntity(target, response));
             assertThat(mapResponse.get("id"), is(oId));
             }
         }
@@ -995,12 +996,11 @@ public class ManagementInfoResourceTests
         assertThat(mapDistScheme.get("name"), is(SERVICE_NAME));
         assert (((Collection) mapDistScheme.get("type")).contains(SERVICE_TYPE));
 
-        String sSelfLink = getSelfLink(mapDistScheme);
-
-        response = m_client.target(sSelfLink).request().get();
+        target = m_client.target(getSelfLink(mapDistScheme));
+        response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        LinkedHashMap mapService = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapService = new LinkedHashMap(readEntity(target, response));
         assertThat(mapService, notNullValue());
         assertThat(mapService.get("name"), is(mapDistScheme.get("name")));
 
@@ -1009,11 +1009,10 @@ public class ManagementInfoResourceTests
         assertThat(mapProxyScheme.get("name"), is(sMoRESTProxy));
         assertThat((Collection<String>) mapProxyScheme.get("type"), Matchers.hasItem("Proxy"));
 
-        sSelfLink = getSelfLink(mapProxyScheme);
-
-        response = m_client.target(sSelfLink).request().get();
+        target = m_client.target(getSelfLink(mapProxyScheme));
+        response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        mapService = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        mapService = new LinkedHashMap(readEntity(target, response));
         assertThat(mapService, notNullValue());
         String sName = (String) mapService.get("name");
         assertThat(sName, is(mapProxyScheme.get("name")));
@@ -1086,9 +1085,10 @@ public class ManagementInfoResourceTests
 
         String sSelfUrl = getSelfLink(mapResponse);
 
-        response = m_client.target(sSelfUrl).request().get();
+        target = m_client.target(sSelfUrl);
+        response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapPartitionResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapPartitionResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(mapPartitionResponse, is(mapResponse));
         }
 
@@ -1794,10 +1794,11 @@ public class ManagementInfoResourceTests
         LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         String sMembersUrl = getLink(mapResponse, "members");
-        response = m_client.target(sMembersUrl).queryParam("tier", "front").request().get();
+        target = m_client.target(sMembersUrl).queryParam("tier", "front");
+        response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        LinkedHashMap mapCacheMembers = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapCacheMembers = new LinkedHashMap(readEntity(target, response));
         assertThat(mapCacheMembers, notNullValue());
 
         List<LinkedHashMap> listCacheMembers = (List<LinkedHashMap>) mapCacheMembers.get("items");
@@ -1822,10 +1823,11 @@ public class ManagementInfoResourceTests
         LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         String sMembersUrl = getLink(mapResponse, "members");
-        response = m_client.target(sMembersUrl).request().get();
+        target = m_client.target(sMembersUrl);
+        response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        LinkedHashMap mapCacheMembers = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapCacheMembers = new LinkedHashMap(readEntity(target, response));
         assertThat(mapCacheMembers, notNullValue());
 
         List<LinkedHashMap> listCacheMembers = (List<LinkedHashMap>) mapCacheMembers.get("items");
@@ -2566,9 +2568,9 @@ public class ManagementInfoResourceTests
             assertThat(Integer.valueOf((Integer) mapCache.get("size")), greaterThan(0));
             }
 
-        Response cachesResponse = getBaseTarget().path("caches").queryParam("fields", "totalPuts")
-                .request().get();
-        mapResponse = new LinkedHashMap(cachesResponse.readEntity(LinkedHashMap.class));
+        WebTarget cachesTarget = getBaseTarget().path("caches").queryParam("fields", "totalPuts");
+        Response cachesResponse = cachesTarget.request().get();
+        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps = (List<LinkedHashMap>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         assertThat(listCacheMaps.size(), greaterThan(1));
@@ -2579,9 +2581,9 @@ public class ManagementInfoResourceTests
             assertThat((Integer) mapCache.get("totalPuts"), greaterThan(0));
             }
 
-        cachesResponse = getBaseTarget().path("caches").queryParam("fields", "units")
-                .request().get();
-        mapResponse = new LinkedHashMap(cachesResponse.readEntity(LinkedHashMap.class));
+        cachesTarget = getBaseTarget().path("caches").queryParam("fields", "units");
+        cachesResponse = cachesTarget.request().get();
+        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps = (List<LinkedHashMap>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
 
@@ -2598,9 +2600,9 @@ public class ManagementInfoResourceTests
                 }
             }
 
-        cachesResponse = getBaseTarget().path("caches").queryParam("fields", "insertCount")
-                .request().get();
-        mapResponse = new LinkedHashMap(cachesResponse.readEntity(LinkedHashMap.class));
+        cachesTarget = getBaseTarget().path("caches").queryParam("fields", "insertCount");
+        cachesResponse = cachesTarget.request().get();
+        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps = (List<LinkedHashMap>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
 
@@ -2828,11 +2830,11 @@ public class ManagementInfoResourceTests
             }
         assertThat(cServices, is(2));
 
-        response = getBaseTarget().path("services").queryParam("fields", "taskCount")
+        target = getBaseTarget().path("services").queryParam("fields", "taskCount")
                 .queryParam("collector", "list")
-                .queryParam("role", "*")
-                .request().get();
-        mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+                .queryParam("role", "*");
+        response = target.request().get();
+        mapResponse = new LinkedHashMap(readEntity(target, response));
         listServiceMaps = (List<LinkedHashMap>) mapResponse.get("items");
         assertThat(listServiceMaps, notNullValue());
         assertThat(listServiceMaps.size(), greaterThan(1));
