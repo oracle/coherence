@@ -286,6 +286,12 @@ function createNav(){
             href: 'https://oracle.github.io/coherence/14.1.1.0/api/cpp/index.html',
             target: '_blank'
         },
+        {
+            title: 'Coherence CE JavaScript API',
+            action: 'library_books',
+            href: 'https://oracle.github.io/coherence/20.06/api/js/index.html',
+            target: '_blank'
+        },
         { divider: true },
         { header: 'Additional Resources' },
         {
