@@ -114,6 +114,11 @@ backend:
                 type: "icon"
                 value: "library_books"
               href: "https://oracle.github.io/coherence/14.1.1.0/api/cpp/index.html"
+            - title: "Coherence CE JavaScript API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence/20.06/api/js/index.html"
         - title: "Additional Resources"
           items:
             - title: "Slack"
