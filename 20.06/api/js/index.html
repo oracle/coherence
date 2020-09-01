@@ -302,6 +302,7 @@ await map.aggregate(Aggregators.average(<span class="hljs-string">&#x27;age&#x27
 				<pre><code class="language-javascript"><span class="hljs-keyword">import</span> { event } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;@oracle/coherence&#x27;</span>
 
 <span class="hljs-keyword">const</span> MapEventType = event.MapEventType
+<span class="hljs-keyword">const</span> MapListener = event.MapListener
 
 <span class="hljs-keyword">const</span> handler = <span class="hljs-function">(<span class="hljs-params">event: MapEvent</span>) =&gt;</span> { 
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;Event: &#x27;</span> + event.description 
@@ -309,10 +310,14 @@ await map.aggregate(Aggregators.average(<span class="hljs-string">&#x27;age&#x27
     + <span class="hljs-string">&#x27;, New Value: &#x27;</span> + <span class="hljs-built_in">JSON</span>.stringify(event.newValue)
     + <span class="hljs-string">&#x27;, Old Value: &#x27;</span> + <span class="hljs-built_in">JSON</span>.stringify(event.oldValue))
 }
+
+<span class="hljs-keyword">const</span> listener = <span class="hljs-keyword">new</span> MapListener()
+  .on(MapEventType.INSERT, handler)
+  .on(MapEventType.UPDATE, handler)
+  .on(MapEventType.DELETE, handler)
+
 <span class="hljs-comment">// register to receive all event types for all entries within the map</span>
-<span class="hljs-keyword">await</span> map.addListener(MapEventType.INSERT, handler)
-<span class="hljs-keyword">await</span> map.addListener(MapEventType.DELETE, handler)
-<span class="hljs-keyword">await</span> map.addListener(MapEventType.UPDATE, handler)
+<span class="hljs-keyword">await</span> map.addListener(listener)
 
 <span class="hljs-keyword">await</span> map.set(<span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;b&#x27;</span>)
 <span class="hljs-comment">// Event: insert, Key: a, New Value: b, Old Value: null</span>
@@ -324,19 +329,17 @@ await map.aggregate(Aggregators.average(<span class="hljs-string">&#x27;age&#x27
 <span class="hljs-comment">// Event: delete, Key: a, New Value: null, Old Value: c</span>
 
 <span class="hljs-comment">// remove the listeners</span>
-<span class="hljs-keyword">await</span> map.removeListener(MapEventType.INSERT, handler)
-<span class="hljs-keyword">await</span> map.removeListener(MapEventType.DELETE, handler)
-<span class="hljs-keyword">await</span> map.removeListener(MapEventType.UPDATE, handler)
+<span class="hljs-keyword">await</span> map.removeListener(listener)
 
 <span class="hljs-comment">// =======================================</span>
 
-<span class="hljs-comment">// Assume the previous event callback as well as the following key and values:</span>
+<span class="hljs-comment">// Assume the previous listener as well as the following key and values</span>
 <span class="hljs-comment">//   [&#x27;0001&#x27;, {name: &quot;Bill Smith&quot;, age: 38, hobbies: [&quot;gardening&quot;, &quot;painting&quot;]}]</span>
 <span class="hljs-comment">//   [&#x27;0002&#x27;, {name: &quot;Fred Jones&quot;, age: 56, hobbies: [&quot;racing&quot;, &quot;golf&quot;]}]</span>
 <span class="hljs-comment">//   [&#x27;0003&#x27;, {name: &quot;Jane Doe&quot;, age: 48, hobbies: [&quot;gardening&quot;, &quot;photography&quot;]}]</span>
 
 <span class="hljs-comment">// Add handlers for updates to &#x27;0001&#x27;</span>
-<span class="hljs-keyword">await</span> map.addListener(MapEventType.UPDATE, handler, <span class="hljs-string">&#x27;0001&#x27;</span>)
+<span class="hljs-keyword">await</span> map.addListener(listener, <span class="hljs-string">&#x27;0001&#x27;</span>)
 
 <span class="hljs-keyword">await</span> map.update(<span class="hljs-string">&#x27;0002&#x27;</span>, <span class="hljs-string">&#x27;0002&#x27;</span>)
 <span class="hljs-comment">// does not generate any events</span>
@@ -348,23 +351,23 @@ await map.aggregate(Aggregators.average(<span class="hljs-string">&#x27;age&#x27
 <span class="hljs-comment">// does not generate any events</span>
 
 <span class="hljs-comment">// remove the key listener</span>
-<span class="hljs-keyword">await</span> map.removeMapListener(MapEventType.UPDATE, handler, <span class="hljs-string">&#x27;0001&#x27;</span>)
+<span class="hljs-keyword">await</span> map.removeMapListener(listener, <span class="hljs-string">&#x27;0001&#x27;</span>)
 
 <span class="hljs-comment">// =======================================</span>
 
 <span class="hljs-comment">// Assume the same setup as the previous example, except instead of listening to events for a single key,</span>
 <span class="hljs-comment">// we&#x27;ll instead listen for events raised for entries that match the filtered criteria.</span>
-<span class="hljs-keyword">const</span> filter = Filters.event(Filters.greater(<span class="hljs-string">&#x27;age&#x27;</span>, <span class="hljs-number">40</span>))
+<span class="hljs-keyword">const</span> filter = Filters.event(Filters.greater(<span class="hljs-string">&#x27;age&#x27;</span>, <span class="hljs-number">40</span>), filter.MapEventFilter.UPDATED)
 
 <span class="hljs-comment">// Listen to all updates to entries where the age property of the entry value is greater than 40</span>
-<span class="hljs-keyword">await</span> map.addListener(MapEventType.UPDATE, handler, filter) 
+<span class="hljs-keyword">await</span> map.addListener(listener, filter) 
 
 <span class="hljs-keyword">await</span> map.invokeAll(Processors.increment(<span class="hljs-string">&#x27;age&#x27;</span>, <span class="hljs-number">1</span>));
 <span class="hljs-comment">// Event: update, Key: 0002, New Value: {name: &quot;Fred Jones&quot;, age: 57, hobbies: [&quot;racing&quot;, &quot;golf&quot;]}, Old Value: {name: &quot;Fred Jones&quot;, age: 56, hobbies: [&quot;racing&quot;, &quot;golf&quot;]}</span>
 <span class="hljs-comment">// Event: update, Key: 0003, New Value: &quot;Jane Doe&quot;, age: 49, hobbies: [&quot;gardening&quot;, &quot;photography&quot;]}, Old Value: &quot;Jane Doe&quot;, age: 48, hobbies: [&quot;gardening&quot;, &quot;photography&quot;]}</span>
 
 <span class="hljs-comment">// remove the filter listener</span>
-<span class="hljs-keyword">await</span> map.removeMapListener(MapEventType.UPDATE, handler, filter)</code></pre>
+<span class="hljs-keyword">await</span> map.removeMapListener(listener, filter)</code></pre>
 				<a href="#cutpaste-example" id="cutpaste-example" style="color: inherit; text-decoration: none;">
 					<h3>Cut/Paste Example</h3>
 				</a>
