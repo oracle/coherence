@@ -297,9 +297,7 @@
 					<a name="addmaplistener" class="tsd-anchor"></a>
 					<h3>add<wbr>Map<wbr>Listener</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-						<li class="tsd-signature tsd-kind-icon">add<wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a>, callbackFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
-						<li class="tsd-signature tsd-kind-icon">add<wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a>, callbackFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span>, key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">K</span>, isLite<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
-						<li class="tsd-signature tsd-kind-icon">add<wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a>, callbackFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span>, filter<span class="tsd-signature-symbol">: </span><a href="../classes/filter.mapeventfilter.html" class="tsd-signature-type">MapEventFilter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span>, isLite<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>listener<span class="tsd-signature-symbol">: </span><a href="../classes/event.maplistener.html" class="tsd-signature-type">MapListener</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span>, keyOrFilter<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol"> | </span><a href="../classes/filter.filter-1.html" class="tsd-signature-type">Filter</a>, isLite<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -307,7 +305,7 @@
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Add a callback function that will receive events (inserts,
+									<p>Add a <a href="../classes/event.maplistener.html">MapListener</a> that will receive events (inserts,
 										updates, deletes) that occur against the map, with the key, old-value
 									and new-value included.</p>
 								</div>
@@ -315,163 +313,29 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>event: <a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a></h5>
+									<h5>listener: <a href="../classes/event.maplistener.html" class="tsd-signature-type">MapListener</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>the event to subscribe to</p>
+										<p>the <a href="../classes/event.maplistener.html">MapListener</a> to receive events</p>
 									</div>
 								</li>
 								<li>
-									<h5>callbackFn: <span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> keyOrFilter: <span class="tsd-signature-type">K</span><span class="tsd-signature-symbol"> | </span><a href="../classes/filter.filter-1.html" class="tsd-signature-type">Filter</a></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>the function to invoke when the specified event is fired</p>
-									</div>
-									<ul class="tsd-parameters">
-										<li class="tsd-parameter-signature">
-											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-											</ul>
-											<ul class="tsd-descriptions">
-												<li class="tsd-description">
-													<h4 class="tsd-parameters-title">Parameters</h4>
-													<ul class="tsd-parameters">
-														<li>
-															<h5>event: <a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
-														</li>
-													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-												</li>
-											</ul>
-										</li>
-									</ul>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Add a map listener for a specific key.</p>
-								</div>
-								<p>The listeners will receive <a href="../globals.html#mapevent">MapEvent</a> objects, but if <code>isLite</code> is passed as
-									<code>true</code>, they <em>might</em> not contain the <code>OldValue</code> and <code>NewValue</code>
-								properties.</p>
-								<p>To unregister the callback, use the <code>NamedMap.removeMapListener(string, callback, K)</code> method.</p>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>event: <a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the event to subscribe to</p>
-									</div>
-								</li>
-								<li>
-									<h5>callbackFn: <span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the function to invoke when the specified event is fired</p>
-									</div>
-									<ul class="tsd-parameters">
-										<li class="tsd-parameter-signature">
-											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-											</ul>
-											<ul class="tsd-descriptions">
-												<li class="tsd-description">
-													<h4 class="tsd-parameters-title">Parameters</h4>
-													<ul class="tsd-parameters">
-														<li>
-															<h5>event: <a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
-														</li>
-													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-												</li>
-											</ul>
-										</li>
-									</ul>
-								</li>
-								<li>
-									<h5>key: <span class="tsd-signature-type">K</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the key that identifies the entry for which to raise
-										events</p>
-									</div>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> isLite: <span class="tsd-signature-type">boolean</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p><code>true</code> to indicate that the <a href="../globals.html#mapevent">MapEvent</a> objects do
-											not have to include the <code>OldValue</code> and <code>NewValue</code>
-										property values in order to allow optimizations</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Add a map listener that receives events based on a filter evaluation.</p>
-								</div>
-								<p>The listeners will receive <a href="../globals.html#mapevent">MapEvent</a> objects, but if <code>isLite</code> is passed as
-									<code>true</code>, they <em>might</em> not contain the <code>OldValue</code> and <code>NewValue</code>
-								properties.</p>
-								<p>To unregister the callback, use the <code>NamedMap.remoteMapListener(string, callback, Filter)</code></p>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>event: <a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the event to subscribe to</p>
-									</div>
-								</li>
-								<li>
-									<h5>callbackFn: <span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the function to invoke when the specified event is fired</p>
-									</div>
-									<ul class="tsd-parameters">
-										<li class="tsd-parameter-signature">
-											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-											</ul>
-											<ul class="tsd-descriptions">
-												<li class="tsd-description">
-													<h4 class="tsd-parameters-title">Parameters</h4>
-													<ul class="tsd-parameters">
-														<li>
-															<h5>event: <a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
-														</li>
-													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-												</li>
-											</ul>
-										</li>
-									</ul>
-								</li>
-								<li>
-									<h5>filter: <a href="../classes/filter.mapeventfilter.html" class="tsd-signature-type">MapEventFilter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>a filter that will be passed MapEvent objects to select
-											from; a <a href="../globals.html#mapevent">MapEvent</a> will be delivered to the listener only
-											if the filter evaluates to true for that MapEvent (see <a href="../classes/filter.mapeventfilter.html">MapEventFilter</a>);
+										<p>the optional the key that identifies the entry for which to raise events or a filter that
+											will be passed MapEvent objects to select from; a <a href="../classes/event.mapevent.html">MapEvent</a> will be delivered to the
+											listener only if the filter evaluates to true for that <a href="../classes/event.mapevent.html">MapEvent</a> (see <a href="../classes/filter.mapeventfilter.html">MapEventFilter</a>);
 										<code>null</code> is equivalent to a filter that always returns <code>true</code></p>
 									</div>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> isLite: <span class="tsd-signature-type">boolean</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p><code>true</code> to indicate that the <a href="../globals.html#mapevent">MapEvent</a> objects do
-											not have to include the <code>OldValue</code> and <code>NewValue</code>
-										property values in order to allow optimizations</p>
+										<p>optionally pass <code>true</code> to indicate that the MapEvent objects do not have to include the
+										old or new values in order to allow optimizations</p>
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -1452,9 +1316,7 @@
 					<a name="removemaplistener" class="tsd-anchor"></a>
 					<h3>remove<wbr>Map<wbr>Listener</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-						<li class="tsd-signature tsd-kind-icon">remove<wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a>, callbackFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
-						<li class="tsd-signature tsd-kind-icon">remove<wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a>, callbackFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span>, key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
-						<li class="tsd-signature tsd-kind-icon">remove<wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a>, callbackFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span>, filter<span class="tsd-signature-symbol">: </span><a href="../classes/filter.mapeventfilter.html" class="tsd-signature-type">MapEventFilter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>listener<span class="tsd-signature-symbol">: </span><a href="../classes/event.maplistener.html" class="tsd-signature-type">MapListener</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span>, keyOrFilter<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol"> | </span><a href="../classes/filter.mapeventfilter.html" class="tsd-signature-type">MapEventFilter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -1469,132 +1331,15 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>event: <a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a></h5>
+									<h5>listener: <a href="../classes/event.maplistener.html" class="tsd-signature-type">MapListener</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>the event previously subscribe to</p>
+										<p>the <a href="../classes/event.maplistener.html">MapListener</a> to receive events</p>
 									</div>
 								</li>
 								<li>
-									<h5>callbackFn: <span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> keyOrFilter: <span class="tsd-signature-type">K</span><span class="tsd-signature-symbol"> | </span><a href="../classes/filter.mapeventfilter.html" class="tsd-signature-type">MapEventFilter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>the function that was passed into the corresponding addMapListener() call</p>
-									</div>
-									<ul class="tsd-parameters">
-										<li class="tsd-parameter-signature">
-											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-											</ul>
-											<ul class="tsd-descriptions">
-												<li class="tsd-description">
-													<h4 class="tsd-parameters-title">Parameters</h4>
-													<ul class="tsd-parameters">
-														<li>
-															<h5>event: <a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
-														</li>
-													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-												</li>
-											</ul>
-										</li>
-									</ul>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Remove a map listener that previously signed up for events about a
-									specific key.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>event: <a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the event previously subscribed to</p>
-									</div>
-								</li>
-								<li>
-									<h5>callbackFn: <span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the function that was passed into the corresponding addMapListener() call</p>
-									</div>
-									<ul class="tsd-parameters">
-										<li class="tsd-parameter-signature">
-											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-											</ul>
-											<ul class="tsd-descriptions">
-												<li class="tsd-description">
-													<h4 class="tsd-parameters-title">Parameters</h4>
-													<ul class="tsd-parameters">
-														<li>
-															<h5>event: <a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
-														</li>
-													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-												</li>
-											</ul>
-										</li>
-									</ul>
-								</li>
-								<li>
-									<h5>key: <span class="tsd-signature-type">K</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the key that was passed into the corresponding addMapListener() call</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Remove a filtered map listener that previously signed up for events.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>event: <a href="../enums/event.mapeventtype.html" class="tsd-signature-type">MapEventType</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the event previously subscribed to</p>
-									</div>
-								</li>
-								<li>
-									<h5>callbackFn: <span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the function that was passed into the corresponding addMapListener() call</p>
-									</div>
-									<ul class="tsd-parameters">
-										<li class="tsd-parameter-signature">
-											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-											</ul>
-											<ul class="tsd-descriptions">
-												<li class="tsd-description">
-													<h4 class="tsd-parameters-title">Parameters</h4>
-													<ul class="tsd-parameters">
-														<li>
-															<h5>event: <a href="../classes/event.mapevent.html" class="tsd-signature-type">MapEvent</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
-														</li>
-													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-												</li>
-											</ul>
-										</li>
-									</ul>
-								</li>
-								<li>
-									<h5>filter: <a href="../classes/filter.mapeventfilter.html" class="tsd-signature-type">MapEventFilter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the filter that was passed into the corresponding addMapListener() call</p>
+										<p>the key or filter passed to a previous addMapListener invocation</p>
 									</div>
 								</li>
 							</ul>

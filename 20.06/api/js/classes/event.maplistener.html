@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Session | Oracle Coherence JavaScript Client - v1.0.0</title>
+	<title>MapListener | Oracle Coherence JavaScript Client - v1.0.0</title>
 	<meta name="description" content="Documentation for Oracle Coherence JavaScript Client - v1.0.0">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -54,10 +54,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="session.html">Session</a>
+					<a href="../modules/event.html">event</a>
+				</li>
+				<li>
+					<a href="event.maplistener.html">MapListener</a>
 				</li>
 			</ul>
-			<h1>Class Session</h1>
+			<h1>Class MapListener&lt;K, V&gt;</h1>
 		</div>
 	</div>
 </header>
@@ -67,17 +70,20 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Session represents a logical connection to an endpoint. It also
-						acts as a factory for creating caches.</p>
+						<p>EventEmitter implementation to receive <a href="event.mapevent.html">MapEvent</a>s.</p>
 					</div>
-					<p>This class also extends EventEmitter and emits the following
-					events:</p>
-					<ol>
-						<li><a href="../enums/event.maplifecycleevent.html#destroyed">MapLifecycleEvent.DESTROYED</a>: when the underlying cache is destroyed</li>
-						<li><a href="../enums/event.maplifecycleevent.html#truncated">MapLifecycleEvent.TRUNCATED</a>: When the underlying cache is truncated</li>
-						<li><a href="../enums/event.maplifecycleevent.html#released">MapLifecycleEvent.RELEASED</a>: When the underlying cache is released</li>
-					</ol>
 				</div>
+			</section>
+			<section class="tsd-panel tsd-type-parameters">
+				<h3>Type parameters</h3>
+				<ul class="tsd-type-parameters">
+					<li>
+						<h4>K</h4>
+					</li>
+					<li>
+						<h4>V</h4>
+					</li>
+				</ul>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
@@ -86,7 +92,7 @@
 						<span class="tsd-signature-type">EventEmitter</span>
 						<ul class="tsd-hierarchy">
 							<li>
-								<span class="target">Session</span>
+								<span class="target">MapListener</span>
 							</li>
 						</ul>
 					</li>
@@ -96,135 +102,68 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-inherited">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="session.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-inherited">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="session.html#default_address" class="tsd-kind-icon">DEFAULT_<wbr>ADDRESS</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="session.html#default_format" class="tsd-kind-icon">DEFAULT_<wbr>FORMAT</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="session.html#default_request_timeout" class="tsd-kind-icon">DEFAULT_<wbr>REQUEST_<wbr>TIMEOUT</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="session.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="event.maplistener.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section ">
-							<h3>Accessors</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session.html#activecachecount" class="tsd-kind-icon">active<wbr>Cache<wbr>Count</a></li>
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session.html#activecachenames" class="tsd-kind-icon">active<wbr>Cache<wbr>Names</a></li>
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session.html#activecaches" class="tsd-kind-icon">active<wbr>Caches</a></li>
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session.html#address" class="tsd-kind-icon">address</a></li>
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session.html#channel" class="tsd-kind-icon">channel</a></li>
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session.html#channelcredentials" class="tsd-kind-icon">channel<wbr>Credentials</a></li>
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session.html#closed" class="tsd-kind-icon">closed</a></li>
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="session.html#options" class="tsd-kind-icon">options</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-inherited">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="session.html#calloptions" class="tsd-kind-icon">call<wbr>Options</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="session.html#close" class="tsd-kind-icon">close</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#emit" class="tsd-kind-icon">emit</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#eventnames" class="tsd-kind-icon">event<wbr>Names</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="session.html#getcache" class="tsd-kind-icon">get<wbr>Cache</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="session.html#getmap" class="tsd-kind-icon">get<wbr>Map</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#getmaxlisteners" class="tsd-kind-icon">get<wbr>Max<wbr>Listeners</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#listenercount" class="tsd-kind-icon">listener<wbr>Count</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#listeners" class="tsd-kind-icon">listeners</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#off" class="tsd-kind-icon">off</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#on" class="tsd-kind-icon">on</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#once" class="tsd-kind-icon">once</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#prependlistener" class="tsd-kind-icon">prepend<wbr>Listener</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#prependoncelistener" class="tsd-kind-icon">prepend<wbr>Once<wbr>Listener</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#rawlisteners" class="tsd-kind-icon">raw<wbr>Listeners</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#removealllisteners" class="tsd-kind-icon">remove<wbr>All<wbr>Listeners</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="session.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="session.html#waituntilclosed" class="tsd-kind-icon">wait<wbr>Until<wbr>Closed</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="session.html#listenercount-1" class="tsd-kind-icon">listener<wbr>Count</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#emit" class="tsd-kind-icon">emit</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#eventnames" class="tsd-kind-icon">event<wbr>Names</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#getmaxlisteners" class="tsd-kind-icon">get<wbr>Max<wbr>Listeners</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#listenercount" class="tsd-kind-icon">listener<wbr>Count</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#listeners" class="tsd-kind-icon">listeners</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#off" class="tsd-kind-icon">off</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#on" class="tsd-kind-icon">on</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#once" class="tsd-kind-icon">once</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#prependlistener" class="tsd-kind-icon">prepend<wbr>Listener</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#prependoncelistener" class="tsd-kind-icon">prepend<wbr>Once<wbr>Listener</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#rawlisteners" class="tsd-kind-icon">raw<wbr>Listeners</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#removealllisteners" class="tsd-kind-icon">remove<wbr>All<wbr>Listeners</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="event.maplistener.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="event.maplistener.html#listenercount-1" class="tsd-kind-icon">listener<wbr>Count</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
 				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Session<span class="tsd-signature-symbol">(</span>sessionOptions<span class="tsd-signature-symbol">?: </span><a href="options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="session.html" class="tsd-signature-type">Session</a></li>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Map<wbr>Listener<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">EventEmitterOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="event.maplistener.html" class="tsd-signature-type">MapListener</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Overrides <a href="event.maplistener.html">MapListener</a>.<a href="event.maplistener.html#constructor">constructor</a></p>
+								<p>Inherited from <a href="event.maplistener.html">MapListener</a>.<a href="event.maplistener.html#constructor">constructor</a></p>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Construct a new <code>Session</code> based on the provided <a href="options.html">Options</a>.</p>
-								</div>
-							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> sessionOptions: <a href="options.html" class="tsd-signature-type">Options</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>the <a href="options.html">Options</a></p>
-										</div>
-									</div>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <span class="tsd-signature-type">EventEmitterOptions</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="session.html" class="tsd-signature-type">Session</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="event.maplistener.html" class="tsd-signature-type">MapListener</a></h4>
 						</li>
 					</ul>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
 				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a name="default_address" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> DEFAULT_<wbr>ADDRESS</h3>
-					<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>ADDRESS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"localhost:1408"</span><span class="tsd-signature-symbol"> = &quot;localhost:1408&quot;</span></div>
-					<aside class="tsd-sources">
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The default target address to connect to Coherence gRPC server.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a name="default_format" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> DEFAULT_<wbr>FORMAT</h3>
-					<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>FORMAT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"json"</span><span class="tsd-signature-symbol"> = &quot;json&quot;</span></div>
-					<aside class="tsd-sources">
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The default serialization format: &#39;json&#39;</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a name="default_request_timeout" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> DEFAULT_<wbr>REQUEST_<wbr>TIMEOUT</h3>
-					<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>REQUEST_<wbr>TIMEOUT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">60000</span><span class="tsd-signature-symbol"> = 60000</span></div>
-					<aside class="tsd-sources">
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The default request timeout.</p>
-						</div>
-					</div>
-				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 					<a name="defaultmaxlisteners" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> default<wbr>Max<wbr>Listeners</h3>
@@ -234,170 +173,7 @@
 					</aside>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Accessors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="activecachecount" class="tsd-anchor"></a>
-					<h3>active<wbr>Cache<wbr>Count</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> activeCacheCount<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Return the number of active caches created by this session.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
-							<p>the number of active caches created by this session</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="activecachenames" class="tsd-anchor"></a>
-					<h3>active<wbr>Cache<wbr>Names</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> activeCacheNames<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Return a <code>set</code> of cache names for those caches that are currently active.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>a <code>set</code> of cache names for those caches that are currently active</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="activecaches" class="tsd-anchor"></a>
-					<h3>active<wbr>Caches</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> activeCaches<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="namedcacheclient.html" class="tsd-signature-type">NamedCacheClient</a><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Returns an array of cache names for those caches that are currently active.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="namedcacheclient.html" class="tsd-signature-type">NamedCacheClient</a><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>an array of cache names for those caches that are currently active</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="address" class="tsd-anchor"></a>
-					<h3>address</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> address<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>This is an alias for <code>Session.options.address</code>.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
-							<p>the IPv4 host address and port in the format of <code>[host]:[port]</code></p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="channel" class="tsd-anchor"></a>
-					<h3>channel</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> channel<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Channel</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Return the underlying <code>gRPC</code> Channel used by this session.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Channel</span></h4>
-							<p>the underlying <code>gRPC</code> Channel used by this session</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="channelcredentials" class="tsd-anchor"></a>
-					<h3>channel<wbr>Credentials</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> channelCredentials<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ChannelCredentials</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Return the gRPC ChannelCredentials used by this session.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ChannelCredentials</span></h4>
-							<p>the gRPC ChannelCredentials used by this session</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="closed" class="tsd-anchor"></a>
-					<h3>closed</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> closed<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Returns <code>true</code> if the session is closed.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-							<p><code>true</code> if the session is closed</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="options" class="tsd-anchor"></a>
-					<h3>options</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> options<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="options.html" class="tsd-signature-type">Options</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Return the <a href="options.html">Options</a> (read-only) used to configure this session.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <a href="options.html" class="tsd-signature-type">Options</a></h4>
-							<p>the <a href="options.html">Options</a> (read-only) used to configure this session</p>
-						</li>
-					</ul>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
 				<h2>Methods</h2>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="addlistener" class="tsd-anchor"></a>
@@ -441,45 +217,6 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="calloptions" class="tsd-anchor"></a>
-					<h3>call<wbr>Options</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">call<wbr>Options<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">CallOptions</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>This is a shortcut to invoke the <a href="session.html">options callOptions</a> function.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">CallOptions</span></h4>
-							<p>the gRPC CallOptions that will be applied to each request made using this session</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="close" class="tsd-anchor"></a>
-					<h3>close</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">close<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Close the <a href="session.html">Session</a>.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-					</ul>
-				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="emit" class="tsd-anchor"></a>
 					<h3>emit</h3>
@@ -516,84 +253,6 @@
 								<p>Inherited from <a href="session.html">Session</a>.<a href="session.html#eventnames">eventNames</a></p>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-					<a name="getcache" class="tsd-anchor"></a>
-					<h3>get<wbr>Cache</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Cache&lt;K, V&gt;<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, format<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/namedcache.html" class="tsd-signature-type">NamedCache</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Returns a <a href="namedcacheclient.html">NamedCacheClient</a> for the specified cache name. This class
-										maintains an internal cache (a Map) and if a <a href="namedcacheclient.html">NamedCacheClient</a> exists
-										in the cache it is returned. Else a new <a href="namedcacheclient.html">NamedCacheClient</a> is created
-									(then cached) and returned.</p>
-								</div>
-							</div>
-							<h4 class="tsd-type-parameters-title">Type parameters</h4>
-							<ul class="tsd-type-parameters">
-								<li>
-									<h4>K</h4>
-								</li>
-								<li>
-									<h4>V</h4>
-								</li>
-							</ul>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>name: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the cache name</p>
-									</div>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> format: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = Session.DEFAULT_FORMAT</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the serialization format for keys and values stored within the cache</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../interfaces/namedcache.html" class="tsd-signature-type">NamedCache</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-					<a name="getmap" class="tsd-anchor"></a>
-					<h3>get<wbr>Map</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Map&lt;K, V&gt;<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, format<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/namedmap.html" class="tsd-signature-type">NamedMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<h4 class="tsd-type-parameters-title">Type parameters</h4>
-							<ul class="tsd-type-parameters">
-								<li>
-									<h4>K</h4>
-								</li>
-								<li>
-									<h4>V</h4>
-								</li>
-							</ul>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>name: <span class="tsd-signature-type">string</span></h5>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> format: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = Session.DEFAULT_FORMAT</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../interfaces/namedmap.html" class="tsd-signature-type">NamedMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">V</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -969,26 +628,6 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="waituntilclosed" class="tsd-anchor"></a>
-					<h3>wait<wbr>Until<wbr>Closed</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">wait<wbr>Until<wbr>Closed<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Returns a promise that will resolve to <code>true</code> once the session has been closed.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>a promise that will resolve to <code>true</code> once the session has been closed</p>
-						</li>
-					</ul>
-				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 					<a name="listenercount-1" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> listener<wbr>Count</h3>
@@ -1028,145 +667,28 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
+					<li class=" tsd-kind-namespace">
+						<a href="../modules/aggregator.html">aggregator</a>
+					</li>
+					<li class="current tsd-kind-namespace">
+						<a href="../modules/event.html">event</a>
+					</li>
+					<li class=" tsd-kind-namespace">
+						<a href="../modules/extractor.html">extractor</a>
+					</li>
+					<li class=" tsd-kind-namespace">
+						<a href="../modules/filter.html">filter</a>
+					</li>
+					<li class=" tsd-kind-namespace">
+						<a href="../modules/processor.html">processor</a>
+					</li>
+					<li class=" tsd-kind-namespace">
+						<a href="../modules/util.html">util</a>
+					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class">
-						<a href="aggregators.html" class="tsd-kind-icon">Aggregators</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="extractors.html" class="tsd-kind-icon">Extractors</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="filters.html" class="tsd-kind-icon">Filters</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="options.html" class="tsd-kind-icon">Options</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="processors.html" class="tsd-kind-icon">Processors</a>
-					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-class">
-						<a href="session.html" class="tsd-kind-icon">Session</a>
-						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-								<a href="session.html#constructor" class="tsd-kind-icon">constructor</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-								<a href="session.html#default_address" class="tsd-kind-icon">DEFAULT_<wbr>ADDRESS</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-								<a href="session.html#default_format" class="tsd-kind-icon">DEFAULT_<wbr>FORMAT</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-								<a href="session.html#default_request_timeout" class="tsd-kind-icon">DEFAULT_<wbr>REQUEST_<wbr>TIMEOUT</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
-								<a href="session.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="session.html#activecachecount" class="tsd-kind-icon">active<wbr>Cache<wbr>Count</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="session.html#activecachenames" class="tsd-kind-icon">active<wbr>Cache<wbr>Names</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="session.html#activecaches" class="tsd-kind-icon">active<wbr>Caches</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="session.html#address" class="tsd-kind-icon">address</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="session.html#channel" class="tsd-kind-icon">channel</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="session.html#channelcredentials" class="tsd-kind-icon">channel<wbr>Credentials</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="session.html#closed" class="tsd-kind-icon">closed</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="session.html#options" class="tsd-kind-icon">options</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="session.html#calloptions" class="tsd-kind-icon">call<wbr>Options</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="session.html#close" class="tsd-kind-icon">close</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#emit" class="tsd-kind-icon">emit</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#eventnames" class="tsd-kind-icon">event<wbr>Names</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-								<a href="session.html#getcache" class="tsd-kind-icon">get<wbr>Cache</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-								<a href="session.html#getmap" class="tsd-kind-icon">get<wbr>Map</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#getmaxlisteners" class="tsd-kind-icon">get<wbr>Max<wbr>Listeners</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#listenercount" class="tsd-kind-icon">listener<wbr>Count</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#listeners" class="tsd-kind-icon">listeners</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#off" class="tsd-kind-icon">off</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#on" class="tsd-kind-icon">on</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#once" class="tsd-kind-icon">once</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#prependlistener" class="tsd-kind-icon">prepend<wbr>Listener</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#prependoncelistener" class="tsd-kind-icon">prepend<wbr>Once<wbr>Listener</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#rawlisteners" class="tsd-kind-icon">raw<wbr>Listeners</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#removealllisteners" class="tsd-kind-icon">remove<wbr>All<wbr>Listeners</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="session.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="session.html#waituntilclosed" class="tsd-kind-icon">wait<wbr>Until<wbr>Closed</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
-								<a href="session.html#listenercount-1" class="tsd-kind-icon">listener<wbr>Count</a>
-							</li>
-						</ul>
-					</li>
-				</ul>
-				<ul class="after-current">
-					<li class=" tsd-kind-class">
-						<a href="tlsoptions.html" class="tsd-kind-icon">Tls<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="../interfaces/namedcache.html" class="tsd-kind-icon">Named<wbr>Cache</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="../interfaces/namedmap.html" class="tsd-kind-icon">Named<wbr>Map</a>
-					</li>
 				</ul>
 			</nav>
 		</div>
@@ -1186,11 +708,12 @@
 				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
