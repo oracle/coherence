@@ -14,7 +14,7 @@ import com.oracle.bedrock.util.Capture;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.coherence.common.net.exabus.util.MessageBusTest;
-import org.hamcrest.Matchers;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -439,8 +439,8 @@ public class MessageBusTestTests
         Eventually.assertThat(invoking(console1).getCapturedOutputLines(), hasItem(containsString("connections 1, errors 0")),
                 delayedBy(cMillis, TimeUnit.MILLISECONDS));
         Eventually.assertThat(invoking(console2).getCapturedOutputLines(), hasItem(containsString("connections 1, errors 0")));
-        assertThat(console1.getCapturedErrorLines(), everyItem(not(containsString("WARNING:"))));
-        assertThat(console2.getCapturedErrorLines(), everyItem(not(containsString("WARNING:"))));
+        assertThat(console1.getCapturedErrorLines(), everyItem(not(containsString("WARNING: polling collector"))));
+        assertThat(console2.getCapturedErrorLines(), everyItem(not(containsString("WARNING: polling collector"))));
 
         output1.addAll(console1.getCapturedOutputLines());
         output1.addAll(console1.getCapturedErrorLines());
