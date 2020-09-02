@@ -16,7 +16,7 @@
     </cache-mapping>
     <cache-mapping>
       <cache-name>dist-persistence-*</cache-name>
-      <scheme-name>dist-default</scheme-name>
+      <scheme-name>dist-persistence</scheme-name>
     </cache-mapping>
     <cache-mapping>
       <cache-name>near-*</cache-name>
