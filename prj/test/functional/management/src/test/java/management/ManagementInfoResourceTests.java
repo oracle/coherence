@@ -521,10 +521,11 @@ public class ManagementInfoResourceTests
                 .findFirst() .orElse(new LinkedHashMap());
         String sJmxURl = (String) mapJmxManagement.get("href");
 
-        response = m_client.target(sJmxURl).request().get();
+        target = m_client.target(sJmxURl);
+        response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        mapResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("refreshOnQuery"), is(false));
         assertThat(mapResponse.get("expiryDelay"), is(1000));
@@ -663,7 +664,6 @@ public class ManagementInfoResourceTests
             Object oMemberLinks = mapMember.get("links");
             assertThat(oMemberLinks, instanceOf(List.class));
 
-            String sMemberUrl = getSelfLink(mapMember);
 
             target = m_client.target(getSelfLink(mapMember));
             response = target.request().get();
@@ -1003,9 +1003,7 @@ public class ManagementInfoResourceTests
         assertThat(mapDistScheme.get("name"), is(SERVICE_NAME));
         assert (((Collection) mapDistScheme.get("type")).contains(SERVICE_TYPE));
 
-        String sSelfLink = getSelfLink(mapDistScheme);
-
-        target = m_client.target(sSelfLink);
+        target = m_client.target(getSelfLink(mapDistScheme));
         response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
@@ -1018,9 +1016,7 @@ public class ManagementInfoResourceTests
         assertThat(mapProxyScheme.get("name"), is(sMoRESTProxy));
         assertThat((Collection<String>) mapProxyScheme.get("type"), Matchers.hasItem("Proxy"));
 
-        sSelfLink = getSelfLink(mapProxyScheme);
-
-        target = m_client.target(sSelfLink);
+        target = m_client.target(getSelfLink(mapProxyScheme));
         response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         mapService = new LinkedHashMap(readEntity(target, response));
@@ -1097,7 +1093,7 @@ public class ManagementInfoResourceTests
 
         String sSelfUrl = getSelfLink(mapResponse);
 
-        target = m_client.target(getSelfLink(mapResponse));
+        target = m_client.target(sSelfUrl);
         response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         LinkedHashMap mapPartitionResponse = new LinkedHashMap(readEntity(target, response));
@@ -2843,11 +2839,11 @@ public class ManagementInfoResourceTests
             }
         assertThat(cServices, is(2));
 
-        response = getBaseTarget().path("services").queryParam("fields", "taskCount")
+        target = getBaseTarget().path("services").queryParam("fields", "taskCount")
                 .queryParam("collector", "list")
-                .queryParam("role", "*")
-                .request().get();
-        mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+                .queryParam("role", "*");
+        response = target.request().get();
+        mapResponse = new LinkedHashMap(readEntity(target, response));
         listServiceMaps = (List<LinkedHashMap>) mapResponse.get("items");
         assertThat(listServiceMaps, notNullValue());
         assertThat(listServiceMaps.size(), greaterThan(1));
