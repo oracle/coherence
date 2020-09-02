@@ -819,6 +819,7 @@ public class BerkeleyDBManager
                 {
                 throw ensurePersistenceException(e);
                 }
+            maintainEnvironment();
             }
 
         /**
@@ -835,6 +836,7 @@ public class BerkeleyDBManager
                 {
                 throw ensurePersistenceException(e);
                 }
+            maintainEnvironment();
             }
 
         // ----- helpers ----------------------------------------------------
@@ -1083,6 +1085,18 @@ public class BerkeleyDBManager
             throw new IllegalArgumentException("illegal token: " + oToken);
             }
 
+        @Override
+        protected AutoCloseable instantiateExclusiveClosable()
+            {
+            AutoCloseable parent = super.instantiateExclusiveClosable();
+            return () ->
+                {
+                parent.close();
+
+                maintainEnvironment();
+                };
+            }
+
         /**
          * Perform any necessary maintenance of the underlying BerkeleyDB
          * environment.
@@ -1094,24 +1108,28 @@ public class BerkeleyDBManager
             {
             if (MAINTENANCE_ENABLED)
                 {
-                // calculate the approximate number of bytes written to the
-                // environment by the current operation
-                int cbCurrent = bufKey.length();
-                if (bufValue != null)
-                    {
-                    cbCurrent += bufValue.length();
-                    }
+                // calculate the approximate number of bytes written to the environment
+                // by the current operation and update the running count
+                f_cbWritten.getAndAdd(bufKey.length() + (bufValue == null ? 0 : bufValue.length()));
+                }
+            }
 
-                // update the approximate running count of bytes written
-                long cbLast    = f_cbWritten.getAndAdd(cbCurrent);
-                long cbWritten = cbLast + cbCurrent;
-
+        /**
+         * Perform any necessary maintenance of the underlying BerkeleyDB
+         * environment.
+         */
+        protected void maintainEnvironment()
+            {
+            if (MAINTENANCE_ENABLED)
+                {
                 // determine if maintenance is already in progress
-                if (m_fMaintenanceScheduled)
+                if (isExclusive() || m_fMaintenanceScheduled)
                     {
                     // nothing to do
                     return;
                     }
+
+                long cbWritten = f_cbWritten.get();
 
                 // determine if it's time to checkpoint the environment
                 boolean fCheckpointRequired = m_cbLastCheckpoint >= CHECKPOINT_INTERVAL;
@@ -1120,12 +1138,11 @@ public class BerkeleyDBManager
                 boolean fCleanRequired = m_cbLastClean >= CLEAN_INTERVAL;
 
                 // determine if it's time to compress the environment
-                boolean fCompressRequired = getSafeTimeMillis()
-                        >= m_ldtLastCompress + COMPRESS_INTERVAL;
+                boolean fCompressRequired = getSafeTimeMillis() >= m_ldtLastCompress + COMPRESS_INTERVAL;
 
                 // determine if it's time to update statistics
                 boolean fStatsRequired = f_cChecks.incrementAndGet() == STATS_CHECK_COUNT ||
-                        (cbWritten >= STATS_CHECK_BYTES && cbLast < STATS_CHECK_BYTES);
+                                         cbWritten >= STATS_CHECK_BYTES;
 
                 if (fCheckpointRequired || fCleanRequired || fCompressRequired || fStatsRequired)
                     {
