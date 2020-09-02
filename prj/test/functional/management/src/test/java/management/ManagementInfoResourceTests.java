@@ -27,7 +27,6 @@ import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Base;
@@ -189,6 +188,8 @@ public class ManagementInfoResourceTests
         CoherenceClusterMember member2 = startCacheServer(SERVER_PREFIX + "-2", "rest", CACHE_CONFIG, propsServer2);
 
         Eventually.assertThat(invoking(member2).getServiceStatus(SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
+
+        Eventually.assertThat(invoking(member2).getServiceStatus(ACTIVE_SERVICE), is(ServiceStatus.NODE_SAFE));
         Eventually.assertDeferred(() -> member2.invoke(new CalculateUnbalanced("dist-persistence-test")),
                 Matchers.is(0),
                 within(3, TimeUnit.MINUTES));
@@ -2262,7 +2263,7 @@ public class ManagementInfoResourceTests
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             ensureServiceStatusIdle();
 
-            Eventually.assertThat(invoking(this).assertCacheSize(cache, 2), is(false));
+            Eventually.assertThat(invoking(this).assertCacheSize(cache, 2), is(true));
 
             // now delete the 2 snapshots
 
