@@ -95,6 +95,7 @@ public abstract class AbstractServerSentEventsTests
                                    + inboundEvent.readData(SimpleMapEvent.class));
                 }
             };
+        Eventually.assertDeferred(() -> source.isOpen(), is(true));
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
@@ -129,6 +130,7 @@ public abstract class AbstractServerSentEventsTests
                                    + inboundEvent.readData(SimpleMapEvent.class));
                 }
             };
+        Eventually.assertDeferred(() -> source.isOpen(), is(true));
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
@@ -163,6 +165,7 @@ public abstract class AbstractServerSentEventsTests
                                    + inboundEvent.readData(SimpleMapEvent.class));
                 }
             };
+        Eventually.assertDeferred(() -> source.isOpen(), is(true));
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
