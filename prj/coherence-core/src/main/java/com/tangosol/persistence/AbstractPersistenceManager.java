@@ -60,6 +60,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 /**
  * Abstract implementation of a ReadBuffer-based PersistentManager.
@@ -1120,6 +1121,16 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             return al;
             }
 
+        @Override
+        public AutoCloseable exclusively()
+            {
+            ensureReady();
+
+            lockWrite();
+
+            return instantiateExclusiveClosable();
+            }
+
         /**
          * {@inheritDoc}
          */
@@ -1643,6 +1654,28 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                     notifyAll();
                     }
                 }
+            }
+
+        /**
+         * Return true if this store is in exclusive mode.
+         *
+         * @return true if this store is in exclusive mode
+         */
+        protected boolean isExclusive()
+            {
+            return ((WriteLock) f_lock.writeLock()).isHeldByCurrentThread();
+            }
+
+        /**
+         * Return an {@link AutoCloseable} that will transition this PersistentStore
+         * out of exclusive mode.
+         *
+         * @return an AutoCloseable that will transition this PersistentStore
+         *         out of exclusive mode
+         */
+        protected AutoCloseable instantiateExclusiveClosable()
+            {
+            return this::unlockWrite;
             }
 
         // ----- Object methods ---------------------------------------------

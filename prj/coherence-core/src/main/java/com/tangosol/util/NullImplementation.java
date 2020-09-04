@@ -423,11 +423,21 @@ public class NullImplementation
     /**
     * Factory method: Obtain a null implementation of a {@link ResourceRegistry}.
     *
-    * @return an implementation of ResourceRegistry that does nothing.
+    * @return an implementation of ResourceRegistry that does nothing
     */
     public static ResourceRegistry getResourceRegistry()
         {
         return NullResourceRegistry.INSTANCE;
+        }
+
+    /**
+    * Factory method: Obtain a null implementation of an {@link AutoCloseable}.
+    *
+    * @return an implementation of an AutoCloseable that does nothing
+    */
+    public static AutoCloseable getAutoCloseable()
+        {
+        return () -> {};
         }
 
     // ----- inner classes ----------------------------------------------
