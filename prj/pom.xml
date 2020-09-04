@@ -573,6 +573,13 @@
           <scope>test</scope>
       </dependency>
 
+      <!-- jandex -->
+      <dependency>
+        <groupId>org.jboss</groupId>
+        <artifactId>jandex</artifactId>
+        <version>${jandex.version}</version>
+      </dependency>
+      
       <!-- rxjava -->
       <dependency>
         <groupId>io.reactivex.rxjava3</groupId>
@@ -779,7 +786,7 @@
     <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
     <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
     <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
-    <maven.jandex.plugin.version>1.0.6</maven.jandex.plugin.version>
+    <maven.jandex.plugin.version>1.0.8</maven.jandex.plugin.version>
     <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
     <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
     <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
@@ -842,6 +849,7 @@
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
     <org.apache.sshd.version>2.3.0</org.apache.sshd.version>
+    <jandex.version>2.2.1.Final</jandex.version>
     <protobuf.version>3.10.0</protobuf.version>
     <resin.version>3.0</resin.version>
     <rxjava.version>3.0.2</rxjava.version>

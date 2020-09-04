@@ -36,4 +36,51 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <!-- instrument PortableType annotated classes -->
+      <plugin>
+        <groupId>com.oracle.coherence.ce</groupId>
+        <artifactId>pof-maven-plugin</artifactId>
+        <version>20.06</version>
+        <executions>
+          <execution>
+            <configuration>
+              <classesDirectory>${project.build.directory}/test-classes
+              </classesDirectory>
+            </configuration>
+            <id>instrument</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- create a jandex index -->
+      <plugin>
+        <groupId>org.jboss.jandex</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-index</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+            <!-- phase is 'process-classes by default' -->
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}/test-classes</directory>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
 </project>

@@ -159,6 +159,12 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
+    
+    <!-- jandex for searching for PortableType -->
+    <dependency>
+        <groupId>org.jboss</groupId>
+        <artifactId>jandex</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.mockito</groupId>

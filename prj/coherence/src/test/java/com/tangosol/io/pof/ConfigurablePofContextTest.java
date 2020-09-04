@@ -11,6 +11,7 @@ import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.annotation.Portable;
 
+import com.tangosol.io.pof.schema.annotation.PortableType;
 import com.tangosol.util.Base;
 
 import com.tangosol.util.extractor.ChainedExtractor;
@@ -19,9 +20,19 @@ import com.tangosol.util.filter.AndFilter;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.LikeFilter;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Collection;
 
 import java.util.function.Function;
+
+import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexWriter;
+import org.jboss.jandex.Indexer;
+
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,6 +48,8 @@ import java.util.Random;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
 
 /**
@@ -188,6 +201,92 @@ public class ConfigurablePofContextTest
         else
             {
             assertEquals(func2.apply(123), "123");
+            }
+        }
+
+    @Test
+    public void testPortableTypeWithIds()
+            throws IOException
+        {
+        File fileIndex = setupIndex(PortableTypeTest1.class);
+
+        try
+            {
+            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config1.xml");
+            ctx.setContextClassLoader(PortableTypeTest1.class.getClassLoader());
+            ctx.ensureInitialized();
+
+            PofSerializer pofSerializer = ctx.getPofSerializer(1000);
+            assertThat(pofSerializer, is(instanceOf(PortableTypeSerializer.class)));
+            assertThat(ctx.getUserTypeIdentifier(PortableTypeTest1.class), is(1000));
+            assertThat(ctx.getUserTypeIdentifier(PortableTypeTest1.class.getName()), is(1000));
+            Class<?> clazz = ctx.getClass(1000);
+            assertThat(clazz.getName(), is(PortableTypeTest1.class.getName()));
+            }
+        finally
+            {
+            fileIndex.delete();
+            }
+        }
+
+    @Test
+    public void testPortableTypeWithNoIds()
+            throws IOException
+        {
+        File fileIndex = setupIndex(PortableTypeTestNoId.class);
+
+        try
+            {
+            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config2.xml");
+            ctx.setContextClassLoader(PortableTypeTestNoId.class.getClassLoader());
+            ctx.ensureInitialized();
+
+            int nTypeId = ctx.getUserTypeIdentifier(PortableTypeTestNoId.class);
+            PofSerializer pofSerializer = ctx.getPofSerializer(nTypeId);
+            assertThat(pofSerializer, is(instanceOf(PortableTypeSerializer.class)));
+            assertThat(ctx.getUserTypeIdentifier(PortableTypeTestNoId.class.getName()), is(nTypeId));
+            Class<?> clazz = ctx.getClass(nTypeId);
+            assertThat(clazz.getName(), is(PortableTypeTestNoId.class.getName()));
+            }
+        finally
+            {
+            fileIndex.delete();
+            }
+        }
+
+    @Test(expected = IllegalStateException.class)
+    public void testPortableTypeWithConflictingId()
+            throws IOException
+        {
+        File fileIndex = setupIndex(PortableTypeTestConflicting.class);
+
+        try
+            {
+            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config3.xml");
+            ctx.setContextClassLoader(PortableTypeTestConflicting.class.getClassLoader());
+            ctx.ensureInitialized();
+            }
+        finally
+            {
+            fileIndex.delete();
+            }
+        }
+
+    @Test(expected = IllegalStateException.class)
+    public void testPortableTypeWithNoAllowInterfaces()
+            throws IOException
+        {
+        File fileIndex = setupIndex(PortableTypeTestInterface.class);
+
+        try
+            {
+            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config.xml");
+            ctx.setContextClassLoader(PortableTypeTestInterface.class.getClassLoader());
+            ctx.ensureInitialized();
+            }
+        finally
+            {
+            fileIndex.delete();
             }
         }
 
@@ -457,5 +556,153 @@ public class ConfigurablePofContextTest
             }
 
         private String m_sId;
+        }
+
+    public static abstract class PortableTypeTestBase
+        {
+        private int m_nId;
+        private String m_sString;
+
+        public PortableTypeTestBase()
+            {
+            }
+
+        public PortableTypeTestBase(int nId, String sString)
+            {
+            m_nId     = nId;
+            m_sString = sString;
+            }
+
+        public int getId()
+            {
+            return m_nId;
+            }
+
+        public void setM_nId(int nId)
+            {
+            this.m_nId = nId;
+            }
+
+        public String getString()
+            {
+            return m_sString;
+            }
+
+        public void setM_sString(String sString)
+            {
+            this.m_sString = sString;
+            }
+        }
+
+    @PortableType(id = 1000)
+    public static class PortableTypeTest1
+        extends PortableTypeTestBase
+        {
+
+        public PortableTypeTest1()
+            {
+            super();
+            }
+
+        public PortableTypeTest1(int nId, String sString)
+             {
+             super(nId, sString);
+             }
+        }
+
+    @PortableType(id = 1)
+    public static class PortableTypeTestConflicting
+        extends PortableTypeTestBase
+        {
+
+        public PortableTypeTestConflicting()
+            {
+            super();
+            }
+
+        public PortableTypeTestConflicting(int nId, String sString)
+             {
+             super(nId, sString);
+             }
+        }
+
+    @PortableType(id = 2000)
+    public interface PortableTypeTestInterface
+        {
+        }
+
+    @PortableType
+    public static class PortableTypeTestNoId
+        extends PortableTypeTestBase
+        {
+
+        public PortableTypeTestNoId()
+            {
+            super();
+            }
+
+         public PortableTypeTestNoId(int nId, String sString)
+             {
+             super(nId, sString);
+             }
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Create a Jandex index using the given file name and classes.
+     *
+     * @param sFileName the file name to write the index to. The classes should be in the format of "java/lang/Thread.class"
+     * @param clazzes  classes to index
+     */
+    public void createManualIndex(String sFileName, String... clazzes) throws IOException
+        {
+        Indexer indexer = new Indexer();
+        for (String clazz : clazzes)
+            {
+            InputStream stream = ConfigurablePofContextTest.class.getClassLoader().getResourceAsStream(clazz);
+            indexer.index(stream);
+            stream.close();
+            }
+        Index index = indexer.complete();
+
+        FileOutputStream out    = new FileOutputStream(sFileName);
+        IndexWriter      writer = new IndexWriter(out);
+        try
+            {
+            writer.write(index);
+            }
+        finally
+            {
+            out.close();
+            }
+        }
+
+
+    /**
+     * Setup an index file for the given {@link Class}es.
+     *
+     * @param clazzes classes to setup index for
+     * @throws IOException
+     */
+    protected File setupIndex(Class<?>... clazzes) throws IOException
+        {
+        String sIndexFile = Files.createTempFile("index" + System.currentTimeMillis(), "idx").toFile().toString();
+        System.clearProperty(ConfigurablePofContext.PROP_INDEX_FILE);
+        createManualIndex(sIndexFile, Arrays.stream(clazzes).map(c -> getIndexClassName(c)).toArray(String[]::new));
+        System.setProperty(ConfigurablePofContext.PROP_INDEX_FILE, sIndexFile);
+        assertThat(sIndexFile, is(notNullValue()));
+        File fileIndex = new File(sIndexFile);
+        assertThat(fileIndex.exists(), is(true));
+        return fileIndex;
+        }
+
+    protected String getIndexClassName(Class clazz)
+        {
+        if (clazz == null)
+            {
+            throw new IllegalArgumentException("Class must not be null");
+            }
+        return clazz.getName().replaceAll("\\.", "/") + ".class";
         }
     }

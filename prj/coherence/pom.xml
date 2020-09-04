@@ -196,6 +196,7 @@
                   <include>org.ow2.asm:asm-commons</include>
                   <include>org.ow2.asm:asm-tree</include>
                   <include>org.ow2.asm:asm-util</include>
+                  <include>org.jboss:jandex</include>
                   <include>com.sleepycat:je</include>
                   <include>javax.json:javax.json-api</include>
                   <include>com.sun.codemodel:codemodel</include>
@@ -217,6 +218,10 @@
                 </filter>
               </filters>
               <relocations>
+                <relocation>
+                  <pattern>org.jboss.jandex</pattern>
+                  <shadedPattern>com.tangosol.internal.jandex</shadedPattern>
+                </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>
                   <shadedPattern>com.tangosol.internal.asm</shadedPattern>
