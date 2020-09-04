@@ -132,7 +132,7 @@ public class GuardianTests
         NamedCache                 cache;
         Object                     oResult;
         CustomServiceFailurePolicy policy;
-        long                       cDelay = 5000L;
+        long                       cDelay = 10000L;
 
         logWarn("testRecovery", true);
 
