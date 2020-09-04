@@ -551,12 +551,12 @@ public class SimpleMemoryCalculator
     public static final Map MAP_FIXED_SIZES;
 
     /**
-    * An imutable map of primitive types to their size (in bytes).
+    * An immutable map of primitive types to their size (in bytes).
     */
     public static final Map MAP_PRIMITIVE_SIZES;
 
     /**
-    * The unalligned size of the simplest object.
+    * The unaligned size of the simplest object.
     */
     protected static final int SIZE_BASIC_OBJECT;
 
