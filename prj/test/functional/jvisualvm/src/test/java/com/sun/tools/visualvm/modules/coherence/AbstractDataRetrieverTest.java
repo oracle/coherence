@@ -47,7 +47,7 @@ public abstract class AbstractDataRetrieverTest
      * Create a new test.
      *
      */
-    AbstractDataRetrieverTest()
+    public AbstractDataRetrieverTest()
         {
         model = VisualVMModel.getInstance();
         }
