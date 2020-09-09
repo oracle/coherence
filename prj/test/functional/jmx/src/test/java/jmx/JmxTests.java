@@ -577,17 +577,22 @@ public class JmxTests
                 Member member2 = findCacheServer("testAll2");
                 assertTrue("Failed to start the testAll2 node", member2 != null);
                 String sNode2 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + member2.getId();
-                assertTrue("Should be registered: " + sNode2, serverJMX.isRegistered(new ObjectName(sNode2)));
+                Eventually.assertThat(
+                        invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)),
+                        is(true));
 
                 Member memberThis = testCoh3500(cluster, member);
 
-                sNode1 = sDomain + ":" + Registry.NODE_TYPE +
-                    ",nodeId=" + memberThis.getId();
-                assertTrue("Should be registered after restart: " + sNode1,
-                        serverJMX.isRegistered(new ObjectName(sNode1)));
+                sNode1 = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + memberThis.getId();
+
+                Eventually.assertThat(
+                        invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode1)),
+                        is(true));
 
                 // wait for remote mbean registrations
-                Eventually.assertThat(invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)), is(true));
+                Eventually.assertThat(
+                        invoking(this).isMBeanRegistered(serverJMX, new ObjectName(sNode2)),
+                        is(true));
                 }
             finally
                 {
