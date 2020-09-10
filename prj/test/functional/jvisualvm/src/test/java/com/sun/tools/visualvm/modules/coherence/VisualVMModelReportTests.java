@@ -15,7 +15,7 @@ public class VisualVMModelReportTests
     {
 
     @Test
-    public void testVisualVMMode()
+    public void testVisualVMModel()
         {
         VisualVMModel model = VisualVMModel.getInstance();
 

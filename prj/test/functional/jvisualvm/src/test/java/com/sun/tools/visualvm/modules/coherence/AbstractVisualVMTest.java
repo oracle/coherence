@@ -4,10 +4,21 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
+
 package com.sun.tools.visualvm.modules.coherence;
 
+import java.io.File;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+
 import com.oracle.bedrock.OptionsByType;
-import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceCacheServer;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -21,41 +32,29 @@ import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
-
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
-
 import com.oracle.bedrock.runtime.options.DisplayName;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
 import com.sun.tools.visualvm.modules.coherence.helper.JMXRequestSender;
 import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
-import com.tangosol.io.FileHelper;
-
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.NamedCache;
-
-import org.junit.*;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.AbstractData;
 import com.sun.tools.visualvm.modules.coherence.tablemodel.model.Data;
 
-import java.io.File;
+import com.tangosol.io.FileHelper;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.NamedCache;
 
-import java.net.UnknownHostException;
+import org.junit.ClassRule;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
 
 /**
  * Base class for VisualVM tests.
@@ -77,34 +76,33 @@ public abstract class AbstractVisualVMTest
      * Start the required cache servers using oracle-tools
      *
      * @param fRestRequestSender  if a REST request sender needs to be used
-     *
-     * @throws UnknownHostException if invalid host specified
      */
     public static void startupCacheServers(boolean fRestRequestSender)
-            throws UnknownHostException
         {
         try
             {
+            s_sEdition = CacheFactory.getEdition();
+
             // setup temporary directories for persistence
-            fileActiveDirA           = FileHelper.createTempDir();
-            fileSnapshotDirA         = FileHelper.createTempDir();
-            fileTrashDirA            = FileHelper.createTempDir();
+            s_fileActiveDirA = FileHelper.createTempDir();
+            s_fileSnapshotDirA = FileHelper.createTempDir();
+            s_fileTrashDirA = FileHelper.createTempDir();
 
-            availablePortIteratorWKA = LocalPlatform.get().getAvailablePorts();
-            int nWKAPortA = availablePortIteratorWKA.next();
-
-            // Iterate to next port and waste this as sometimes the second port will
-            // already be used up before the realize()
-            availablePortIteratorWKA.next();
-
-            int nWKAPortB = availablePortIteratorWKA.next();
+            s_availablePortIteratorWKA = LocalPlatform.get().getAvailablePorts();
+            int nWKAPortA = s_availablePortIteratorWKA.next();
 
             // Iterate to next port and waste this as sometimes the second port will
             // already be used up before the realize()
-            availablePortIteratorWKA.next();
+            s_availablePortIteratorWKA.next();
 
-            OptionsByType optionsByTypeA = createCacheServerOptions(CLUSTER_NAME, nWKAPortA, fileActiveDirA,
-                                                                    fileSnapshotDirA, fileTrashDirA,
+            int nWKAPortB = s_availablePortIteratorWKA.next();
+
+            // Iterate to next port and waste this as sometimes the second port will
+            // already be used up before the realize()
+            s_availablePortIteratorWKA.next();
+
+            OptionsByType optionsByTypeA = createCacheServerOptions(CLUSTER_NAME, nWKAPortA, s_fileActiveDirA,
+                    s_fileSnapshotDirA, s_fileTrashDirA,
                                                                     nWKAPortA, nWKAPortB);
             LocalPlatform platform       = LocalPlatform.get();
 
@@ -118,31 +116,35 @@ public abstract class AbstractVisualVMTest
                 optionsByTypeMemberA1.add(SystemProperty.of("coherence.management.http.port", REST_MGMT_PORT));
                 }
 
-            memberA1 = platform.launch(CoherenceCacheServer.class, optionsByTypeMemberA1.asArray());
-            memberA2 = platform.launch(CoherenceCacheServer.class, optionsByTypeA.add(DisplayName.of("memberA2")).asArray());
+            s_memberA1 = platform.launch(CoherenceCacheServer.class, optionsByTypeMemberA1.asArray());
+            s_memberA2 = platform.launch(CoherenceCacheServer.class, optionsByTypeA.add(DisplayName.of("memberA2")).asArray());
 
-            requestSender = fRestRequestSender
+            s_requestSender = fRestRequestSender
                     ? new HttpRequestSender("http://" + REST_MGMT_HOST + ":" + "8080")
-                    : new JMXRequestSender(memberA1.get(JmxFeature.class)
-                        .getDeferredJMXConnector().get().getMBeanServerConnection());
+                    : new JMXRequestSender(s_memberA1.get(JmxFeature.class)
+                                                     .getDeferredJMXConnector().get().getMBeanServerConnection());
 
-            Eventually.assertThat(invoking(memberA1).getClusterSize(), is(2));
+            Eventually.assertThat(invoking(s_memberA1).getClusterSize(), is(2));
 
-            // setup temporary directories for persistence
-            fileActiveDirB   = FileHelper.createTempDir();
-            fileSnapshotDirB = FileHelper.createTempDir();
-            fileTrashDirB    = FileHelper.createTempDir();
+            // only start second cluster if we are running Commercial version
+            if (isCommercial())
+                {
+                // setup temporary directories for persistence
+                s_fileActiveDirB = FileHelper.createTempDir();
+                s_fileSnapshotDirB = FileHelper.createTempDir();
+                s_fileTrashDirB = FileHelper.createTempDir();
 
-            OptionsByType optionsByTypeB = createCacheServerOptions(CLUSTER_B_NAME, nWKAPortB, fileActiveDirB,
-                                                                    fileSnapshotDirB, fileTrashDirB,
-                                                                    nWKAPortA, nWKAPortB);
+                OptionsByType optionsByTypeB = createCacheServerOptions(CLUSTER_B_NAME, nWKAPortB, s_fileActiveDirB,
+                        s_fileSnapshotDirB, s_fileTrashDirB,
+                                                                        nWKAPortA, nWKAPortB);
 
-            OptionsByType optionsByTypeMemberB1 = OptionsByType.of(optionsByTypeB).add(DisplayName.of("memberB1"));
+                OptionsByType optionsByTypeMemberB1 = OptionsByType.of(optionsByTypeB).add(DisplayName.of("memberB1"));
 
-            memberB1 = platform.launch(CoherenceCacheServer.class, optionsByTypeMemberB1.asArray());
-            memberB2 = platform.launch(CoherenceCacheServer.class, optionsByTypeB.add(DisplayName.of("memberB2")).asArray());
+                s_memberB1 = platform.launch(CoherenceCacheServer.class, optionsByTypeMemberB1.asArray());
+                s_memberB2 = platform.launch(CoherenceCacheServer.class, optionsByTypeB.add(DisplayName.of("memberB2")).asArray());
 
-            Eventually.assertThat(invoking(memberB1).getClusterSize(), is(2));
+                Eventually.assertThat(invoking(s_memberB1).getClusterSize(), is(2));
+                }
             }
         catch (Exception e)
             {
@@ -161,17 +163,21 @@ public abstract class AbstractVisualVMTest
         {
         CacheFactory.shutdown();
 
-        destroyMember(memberA1);
-        destroyMember(memberA2);
-        destroyMember(memberB1);
-        destroyMember(memberB2);
+        destroyMember(s_memberA1);
+        destroyMember(s_memberA2);
 
-        safeDelete(fileActiveDirA);
-        safeDelete(fileSnapshotDirA);
-        safeDelete(fileTrashDirA);
-        safeDelete(fileActiveDirB);
-        safeDelete(fileSnapshotDirB);
-        safeDelete(fileTrashDirB);
+        safeDelete(s_fileActiveDirA);
+        safeDelete(s_fileSnapshotDirA);
+        safeDelete(s_fileTrashDirA);
+
+        if (isCommercial())
+            {
+            destroyMember(s_memberB1);
+            destroyMember(s_memberB2);
+            safeDelete(s_fileActiveDirB);
+            safeDelete(s_fileSnapshotDirB);
+            safeDelete(s_fileTrashDirB);
+            }
         }
 
     // ----- helpers --------------------------------------------------------
@@ -220,18 +226,12 @@ public abstract class AbstractVisualVMTest
      * @param nFederationPortB  the port for ClusterB
      *
      * @return an {@link OptionsByType}
-     *
-     * @throws UnknownHostException if unknown host found
      */
     protected static OptionsByType createCacheServerOptions(String sClusterName, int nWKAPort, File fileActiveDir,
                                                             File fileSnapshotDir, File fileTrashDir,
                                                             int nFederationPortA, int nFederationPortB)
-            throws UnknownHostException
         {
-
-
         String        hostName      = LocalPlatform.get().getLoopbackAddress().getHostAddress();
-
         OptionsByType optionsByType = OptionsByType.empty();
 
         optionsByType.addAll(JMXManagementMode.ALL,
@@ -253,6 +253,8 @@ public abstract class AbstractVisualVMTest
                              SystemProperty.of("java.rmi.server.hostname", hostName),
                              SystemProperty.of("coherence.distribution.2server", "false"),
                              SystemProperty.of("loopbackhost", hostName),
+                             SystemProperty.of("test.federation.port.clusterA", Integer.toString(nFederationPortA)),
+                             SystemProperty.of("test.federation.port.clusterB", Integer.toString(nFederationPortB)),
                              RoleName.of(ROLE_NAME),
                              s_logs.builder());
 
@@ -275,16 +277,14 @@ public abstract class AbstractVisualVMTest
         // different to the number of columns in the model. This is the only type that that this different.
         int cColumns = type.getMetadata().length + (type.equals(VisualVMModel.DataType.MEMBER) ? 1 : 0);
 
-        banner("Validating " + sClass + " for basic completeness");
-
-        Assert.assertNotNull("Data for " + sClass + " should not be null", data);
+        assertThat("Data for " + sClass + " should not be null", data, is(notNullValue()));
 
         // now check that each row has the expected number of columns
         for (Map.Entry<Object, Data> entry : data)
             {
             AbstractData dataItem = (AbstractData) entry.getValue();
 
-            Assert.assertEquals("Number of elements for " + sClass + " should be " + cColumns + " but is "
+            assertEquals("Number of elements for " + sClass + " should be " + cColumns + " but is "
                                         + dataItem.getColumnCount() + ". Entry is " + entry.getValue(), dataItem.getColumnCount(), cColumns);
             }
 
@@ -295,9 +295,13 @@ public abstract class AbstractVisualVMTest
      */
     protected void assertClusterReady()
         {
-        Assert.assertTrue(requestSender != null);
-        Assert.assertTrue("Cluster size should be 2 but is " + memberA1.getClusterSize(), memberA1.getClusterSize() == 2);
-        Assert.assertTrue("Cluster size should be 2 but is " + memberB1.getClusterSize(), memberB1.getClusterSize() == 2);
+        assertThat(s_requestSender, is(notNullValue()));
+        assertThat("Cluster size should be 2 but is " + s_memberA1.getClusterSize(), s_memberA1.getClusterSize(), is(2));
+
+        if (isCommercial())
+            {
+            assertThat("Cluster size should be 2 but is " + s_memberB1.getClusterSize(), s_memberB1.getClusterSize(), is(2));
+            }
         }
 
     /**
@@ -311,8 +315,6 @@ public abstract class AbstractVisualVMTest
         {
         char[]               bData  = new char[nSize];
         Map<Integer, String> buffer = new HashMap<>();
-
-        banner("Populating cache " + nc.getCacheName() + " with " + cEntries + " objects of size " + nSize);
 
         for (int i = 0; i < nSize; i++)
             {
@@ -329,8 +331,8 @@ public abstract class AbstractVisualVMTest
         nc.putAll(buffer);
         buffer.clear();
 
-        Assert.assertTrue("NamedCache " + nc.getCacheName() + " should contain " + cEntries + " but contains "
-                          + nc.size(), nc.size() == cEntries);
+        assertThat("NamedCache " + nc.getCacheName() + " should contain " + cEntries + " but contains "
+                     + nc.size(), nc.size(), is(cEntries));
         }
 
     /**
@@ -353,11 +355,11 @@ public abstract class AbstractVisualVMTest
      */
     protected Object getColumn(int nColumn, Map.Entry<Object, Data> entry)
         {
-        Assert.assertTrue("You must call setCurrentDataType before this call", dataType != null);
+        assertThat("You must call setCurrentDataType before this call", dataType, is(notNullValue()));
 
-        Data   data    = entry.getValue();
+        Data data = entry.getValue();
 
-        Assert.assertTrue("Data value is null", data != null);
+        assertThat(data, is(notNullValue()));
 
         return entry.getValue().getColumn(nColumn); // actual value
         }
@@ -371,7 +373,7 @@ public abstract class AbstractVisualVMTest
      */
     protected void validateColumnNotNull(int nColumn, Map.Entry<Object, Data> entry)
         {
-        Assert.assertThat(getColumn(nColumn, entry), is(notNullValue()));
+        assertThat(getColumn(nColumn, entry), is(notNullValue()));
         }
 
     /**
@@ -388,26 +390,25 @@ public abstract class AbstractVisualVMTest
         Object oActualValue = getColumn(nColumn, entry);
 
         String sColumn = dataType.getMetadata()[nColumn];
-        output("Validating column " + nColumn + " (" + sColumn + ")");
 
         String sError  = "The value of column \"" + sColumn + "\" with index " + nColumn + " was expected to be \""
                          + oExpectedValue + "\" but was \"" + oActualValue + "\"";
 
         if (oExpectedValue instanceof String)
             {
-            Assert.assertTrue(sError, oActualValue.toString().equals(oExpectedValue));
+            assertThat(sError, oActualValue.toString(), is(oExpectedValue));
             }
         else if (oExpectedValue instanceof Float)
             {
-            Assert.assertTrue(sError, ((Float) oExpectedValue).floatValue() == ((Float) oActualValue).floatValue());
+            assertEquals(sError, ((Float) oExpectedValue).floatValue(), ((Float) oActualValue).floatValue(), 0.0);
             }
         else if (oExpectedValue instanceof Integer)
             {
-            Assert.assertTrue(sError, ((Integer) oExpectedValue).intValue() == ((Integer) oActualValue).intValue());
+            assertThat(sError, ((Integer) oExpectedValue).intValue(), is(((Integer) oActualValue).intValue()));
             }
         else if (oExpectedValue instanceof Long)
             {
-            Assert.assertTrue(sError, ((Long) oExpectedValue).longValue() == ((Long) oActualValue).longValue());
+            assertThat(sError, ((Long) oExpectedValue).longValue(), is(((Long) oActualValue).longValue()));
             }
         else
             {
@@ -428,14 +429,40 @@ public abstract class AbstractVisualVMTest
             }
         }
 
-    protected static void output(String sMessage)
+    /**
+     * Returns true if this is being run using a commercial edition of Coherence.
+     * @return true if this is being run using a commercial edition of Coherence.
+     */
+    protected static boolean isCommercial()
         {
-        //System.err.println("***** " + sMessage);
+        return !s_sEdition.equals("CE");
         }
 
-    protected static void banner(String sMessage)
+    /**
+     * Returns the {@link VisualVMModel}.
+     * @return the {@link VisualVMModel}
+     */
+    protected VisualVMModel getModel()
         {
-        // System.err.println("\n***** " + sMessage + "\n");
+        return m_model;
+        }
+
+    /**
+     * Sets the {@link VisualVMModel}.
+     * @param model the {@link VisualVMModel}
+     */
+    protected void setModel(VisualVMModel model)
+        {
+        m_model = model;
+        }
+
+    /**
+     * Returns the {@link RequestSender} to be used for this test.
+     * @return the {@link RequestSender} to be used for this test
+     */
+    protected static RequestSender getRequestSender()
+        {
+        return s_requestSender;
         }
 
     // ----- constants ------------------------------------------------------
@@ -448,42 +475,32 @@ public abstract class AbstractVisualVMTest
     /**
      * Active persistence directory for ClusterA.
      */
-    public static File fileActiveDirA;
+    public static File s_fileActiveDirA;
 
     /**
      * Snapshot persistence directory for ClusterA.
      */
-    public static File fileSnapshotDirA;
+    public static File s_fileSnapshotDirA;
 
     /**
      * Trash persistence directory for ClusterA.
      */
-    public static File fileTrashDirA;
+    public static File s_fileTrashDirA;
 
     /**
      * Active persistence directory for ClusterB.
      */
-    public static File fileActiveDirB;
+    public static File s_fileActiveDirB;
 
     /**
      * Snapshot persistence directory for ClusterB.
      */
-    public static File fileSnapshotDirB;
+    public static File s_fileSnapshotDirB;
 
     /**
      * Trash persistence directory for ClusterB.
      */
-    public static File fileTrashDirB;
-
-    /**
-     * Starting port for General Ports.
-     */
-    public static int GENERAL_START_PORT = 20000;
-
-    /**
-     * Starting port for WKA.
-     */
-    public static int WKA_START_PORT = 30000;
+    public static File s_fileTrashDirB;
 
     /**
      * Partition count.
@@ -513,37 +530,37 @@ public abstract class AbstractVisualVMTest
     /**
      * port iterator for ephemeral ports.
      */
-    //protected static AvailablePortIterator availablePortIterator;
-
-    /**
-     * port iterator for ephemeral ports.
-     */
-    protected static AvailablePortIterator availablePortIteratorWKA;
+    protected static AvailablePortIterator s_availablePortIteratorWKA;
 
     /**
      * First cluster member of ClusterA.
      */
-    protected static CoherenceCacheServer memberA1 = null;
+    protected static CoherenceCacheServer s_memberA1 = null;
 
     /**
      * Second cluster member of ClusterA.
      */
-    protected static CoherenceCacheServer memberA2 = null;
+    protected static CoherenceCacheServer s_memberA2 = null;
 
     /**
      * First cluster member of ClusterB.
      */
-    protected static CoherenceCacheServer memberB1 = null;
+    protected static CoherenceCacheServer s_memberB1 = null;
 
     /**
      * Second cluster member of ClusterB.
      */
-    protected static CoherenceCacheServer memberB2 = null;
+    protected static CoherenceCacheServer s_memberB2 = null;
 
     /**
      * Connection to MBean server.
      */
-    protected static RequestSender requestSender = null;
+    private static RequestSender s_requestSender = null;
+
+    /**
+     * The edition we are running under.
+     */
+    private static String s_sEdition;
 
     // ----- data members -----------------------------------------------
 
@@ -558,5 +575,5 @@ public abstract class AbstractVisualVMTest
     /**
      * The model used to store the collected stats.
      */
-    protected VisualVMModel model = null;
+    private VisualVMModel m_model = null;
     }
