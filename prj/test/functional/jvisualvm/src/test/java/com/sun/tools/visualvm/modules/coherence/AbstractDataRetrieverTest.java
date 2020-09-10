@@ -6,9 +6,25 @@
  */
 package com.sun.tools.visualvm.modules.coherence;
 
+import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.CacheData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.CacheDetailData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.ClusterData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.Data;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.FederationData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.FederationDestinationDetailsData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.FederationOriginDetailsData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.MemberData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.Pair;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.PersistenceData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.ProxyData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.RamJournalData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.ServiceData;
+import com.sun.tools.visualvm.modules.coherence.tablemodel.model.ServiceMemberData;
 import com.tangosol.coherence.component.application.console.Coherence;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import java.net.URL;
@@ -18,15 +34,21 @@ import java.security.ProtectionDomain;
 
 import javax.management.ObjectName;
 
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Test;
+import org.junit.Assert;
 
-import com.sun.tools.visualvm.modules.coherence.tablemodel.model.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.greaterThan;
+
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for basic data retriever functionality using the VisualVM model API.
@@ -49,7 +71,7 @@ public abstract class AbstractDataRetrieverTest
      */
     public AbstractDataRetrieverTest()
         {
-        model = VisualVMModel.getInstance();
+        setModel(VisualVMModel.getInstance());
         }
 
     // ----- test methods ---------------------------------------------------
@@ -79,6 +101,10 @@ public abstract class AbstractDataRetrieverTest
             testMemberData();
             testCacheData();
             testServiceData();
+            if (isCommercial())
+                {
+                testFederationData();
+                }
             testNodeStorageData();
             }
         catch (Exception e)
@@ -96,11 +122,12 @@ public abstract class AbstractDataRetrieverTest
         {
         List<Map.Entry<Object, Data>> clusterData;
 
+        VisualVMModel model = getModel();
         assertClusterReady();
         waitForRefresh();
 
         // refresh the statistics
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         clusterData = model.getData(VisualVMModel.DataType.CLUSTER);
 
         validateData(VisualVMModel.DataType.CLUSTER, clusterData, 1);
@@ -110,7 +137,6 @@ public abstract class AbstractDataRetrieverTest
         // ensure we have correct values
         for (Map.Entry<Object, Data> entry : clusterData)
             {
-            output(entry.toString());
             validateColumn(ClusterData.CLUSTER_NAME, entry, CLUSTER_NAME);
             validateColumn(ClusterData.CLUSTER_SIZE, entry, 2);
             validateColumn(ClusterData.VERSION, entry, CacheFactory.VERSION);
@@ -125,14 +151,14 @@ public abstract class AbstractDataRetrieverTest
         {
         List<Map.Entry<Object, Data>> nodeStorageData;
 
+        VisualVMModel model = getModel();
         assertClusterReady();
-
         waitForRefresh();
 
         // refresh the statistics
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         nodeStorageData = model.getData(VisualVMModel.DataType.NODE_STORAGE);
-        Assert.assertThat(nodeStorageData.size(), is(2));
+        assertThat(nodeStorageData.size(), is(2));
         }
 
     /**
@@ -142,12 +168,12 @@ public abstract class AbstractDataRetrieverTest
         {
         List<Map.Entry<Object, Data>> machineData;
 
+        VisualVMModel model = getModel();
         assertClusterReady();
-
         waitForRefresh();
 
         // refresh the statistics
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         machineData = model.getData(VisualVMModel.DataType.MACHINE);
 
         validateData(VisualVMModel.DataType.MACHINE, machineData, 1);
@@ -162,11 +188,12 @@ public abstract class AbstractDataRetrieverTest
         {
         List<Map.Entry<Object, Data>> memberData;
 
+        VisualVMModel model = getModel();
         assertClusterReady();
         waitForRefresh();
 
         // refresh the statistics
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         memberData = model.getData(VisualVMModel.DataType.MEMBER);
 
         setCurrentDataType(VisualVMModel.DataType.MEMBER);
@@ -198,11 +225,12 @@ public abstract class AbstractDataRetrieverTest
         final int                     INSERT2_COUNT = 7500;
         final int                     INSERT3_COUNT = 100;
         final int                     DATA_SIZE     = 250;
-
         List<Map.Entry<Object, Data>> cacheData;
         List<Map.Entry<Object, Data>> cacheDetailData;
         List<Map.Entry<Object, Data>> cacheStorageData;
 
+        VisualVMModel model         = getModel();
+        RequestSender requestSender = getRequestSender();
         assertClusterReady();
         waitForRefresh();
 
@@ -212,53 +240,52 @@ public abstract class AbstractDataRetrieverTest
         setCurrentDataType(VisualVMModel.DataType.CACHE);
 
         setClientProperties();
+        ExtensibleConfigurableCacheFactory eccf = getECCF();
 
         // now add 2 caches on 2 different services - note we are connecting via Extend
-        NamedCache nc1 = CacheFactory.getCache(DIST1_CACHE);
-        NamedCache nc2 = CacheFactory.getCache(DIST2_CACHE);
-        NamedCache nc3 = CacheFactory.getCache(REPL_CACHE);
+        NamedCache nc1 = eccf.ensureCache(DIST1_CACHE, null);
+        NamedCache nc2 = eccf.ensureCache(DIST2_CACHE, null);
+        NamedCache nc3 = eccf.ensureCache(REPL_CACHE, null);
 
         populateRandomData(nc1, INSERT1_COUNT, DATA_SIZE);
         populateRandomData(nc2, INSERT2_COUNT, DATA_SIZE);
         populateRandomData(nc3, INSERT3_COUNT, DATA_SIZE);
 
-        Assert.assertTrue(nc1.size() == INSERT1_COUNT);
-        Assert.assertTrue(nc2.size() == INSERT2_COUNT);
-        Assert.assertTrue(nc3.size() == INSERT3_COUNT);
+        assertTrue(nc1.size() == INSERT1_COUNT);
+        assertTrue(nc2.size() == INSERT2_COUNT);
+        assertTrue(nc3.size() == INSERT3_COUNT);
 
         waitForRefresh();
 
         model.refreshStatistics(requestSender);
         cacheData = model.getData(VisualVMModel.DataType.CACHE);
 
-        validateData(VisualVMModel.DataType.CACHE, cacheData, 3);
-
-        Map.Entry<Object, Data> entryCache1 = cacheData.get(0);
-        Map.Entry<Object, Data> entryCache2 = cacheData.get(1);
-        Map.Entry<Object, Data> entryCache3 = cacheData.get(2);
+        Map.Entry<Object, Data> distCache1 = getData(cacheData, new Pair<>(DIST1_SERVICE, DIST1_CACHE));
+        Map.Entry<Object, Data> distCache2 = getData(cacheData, new Pair<>(DIST2_SERVICE, DIST2_CACHE));
+        Map.Entry<Object, Data> replCache1 = getData(cacheData, new Pair<>(REPLICATED_SERVICE, REPL_CACHE));
 
         // validate the data returned where its deterministic
-        validateColumnNotNull(CacheData.SIZE, entryCache1);
-        validateColumn(CacheData.CACHE_NAME, entryCache1, getCacheName(DIST1_SERVICE, DIST1_CACHE));
+        validateColumnNotNull(CacheData.SIZE, distCache1);
+        validateColumn(CacheData.CACHE_NAME, distCache1, getCacheName(DIST1_SERVICE, DIST1_CACHE));
 
-        validateColumnNotNull(CacheData.SIZE, entryCache2);
-        validateColumn(CacheData.CACHE_NAME, entryCache2, getCacheName(DIST2_SERVICE, DIST2_CACHE));
+        validateColumnNotNull(CacheData.SIZE, distCache2);
+        validateColumn(CacheData.CACHE_NAME, distCache2, getCacheName(DIST2_SERVICE, DIST2_CACHE));
 
-        validateColumnNotNull(CacheData.SIZE, entryCache3);
-        validateColumn(CacheData.CACHE_NAME, entryCache3, getCacheName(REPLICATED_SERVICE, REPL_CACHE));
+        validateColumnNotNull(CacheData.SIZE, replCache1);
+        validateColumn(CacheData.CACHE_NAME, replCache1, getCacheName(REPLICATED_SERVICE, REPL_CACHE));
 
-        validateColumn(CacheData.UNIT_CALCULATOR, entryCache1, "BINARY");
+        validateColumn(CacheData.UNIT_CALCULATOR, distCache1, "BINARY");
 
         // select the first service, which should then generate both CacheDetailData and
         // CacheStorageManagerData on next refresh
-        model.setSelectedCache(new Pair<String, String>(DIST1_SERVICE, DIST1_CACHE));
+        model.setSelectedCache(new Pair<>(DIST1_SERVICE, DIST1_CACHE));
 
         // do 2 gets
         nc1.get(0);
         nc1.get(INSERT1_COUNT - 1);
 
         waitForRefresh();
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
 
         cacheDetailData  = model.getData(VisualVMModel.DataType.CACHE_DETAIL);
         cacheStorageData = model.getData(VisualVMModel.DataType.CACHE_STORAGE_MANAGER);
@@ -279,6 +306,10 @@ public abstract class AbstractDataRetrieverTest
         // call the dependent tests as we can't guarantee execution order in JUnit
         testPersistenceData();
         testProxyData();
+        if (isCommercial())
+            {
+            testElasticData();
+            }
         }
 
     /**
@@ -289,61 +320,48 @@ public abstract class AbstractDataRetrieverTest
         List<Map.Entry<Object, Data>> serviceData;
         List<Map.Entry<Object, Data>> serviceMemberData;
 
+        VisualVMModel model = getModel();
         assertClusterReady();
         waitForRefresh();
 
         // refresh the statistics
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         serviceData = model.getData(VisualVMModel.DataType.SERVICE);
         setCurrentDataType(VisualVMModel.DataType.SERVICE);
 
-        // we should have nine services:
-        // ManagementHttpProxy,
-        // DistributedScheme1, DistributedScheme2, ExtendTcpProxyService, ReplicatedScheme, XDistributedSchemeRAM,
-        // XDistributedSchemeFlash, FederatedPartitionedPofCache
-        validateData(VisualVMModel.DataType.SERVICE, serviceData, 8);
+        // the services will be ordered as above, alphabetically
+        Map.Entry<Object, Data> distService1       = getData(serviceData, DIST1_SERVICE);
+        Map.Entry<Object, Data> distService2       = getData(serviceData, DIST2_SERVICE);
+        Map.Entry<Object, Data> extendProxyService = getData(serviceData, PROXY_SERVICE);
+        Map.Entry<Object, Data> federatedService   = getData(serviceData, FEDERATED_SERVICE);
+        Map.Entry<Object, Data> replicatedService  = getData(serviceData, REPLICATED_SERVICE);
 
-        Map.Entry<Object, Data> distScheme1 = null, distScheme2 = null,
-                proxyService = null, replicatedService = null;
+        Assert.assertNotNull(distService1);
+        Assert.assertNotNull(distService2);
+        Assert.assertNotNull(extendProxyService);
 
-        for (Map.Entry<Object, Data> entry : serviceData)
+        // test Federation
+        if (isCommercial())
             {
-            switch ((String) entry.getKey())
-                {
-                case DIST1_SERVICE:
-                    distScheme1 = entry;
-                    break;
-                case DIST2_SERVICE:
-                    distScheme2 = entry;
-                    break;
-                case PROXY_SERVICE:
-                    proxyService = entry;
-                    break;
-                case REPLICATED_SERVICE:
-                    replicatedService = entry;
-                    break;
-                }
+            Assert.assertNotNull(federatedService);
+            validateColumn(ServiceData.STATUS_HA, federatedService, "NODE-SAFE");
+            validateColumn(ServiceData.STORAGE_MEMBERS, federatedService, 2);
             }
-
-        Assert.assertNotNull(distScheme1);
-        Assert.assertNotNull(distScheme2);
-        Assert.assertNotNull(proxyService);
-        Assert.assertNotNull(replicatedService);
 
         setCurrentDataType(VisualVMModel.DataType.SERVICE);
 
         // validate distributed caches
-        validateDistributedCacheService(distScheme1, DIST1_SERVICE);
-        validateDistributedCacheService(distScheme2, DIST2_SERVICE);
+        validateDistributedCacheService(distService1, DIST1_SERVICE);
+        validateDistributedCacheService(distService2, DIST2_SERVICE);
 
         // validate proxy server
-        validateColumn(ServiceData.STATUS_HA, proxyService, "n/a");
-        validateColumn(ServiceData.MEMBERS, proxyService, 2);
-        validateColumn(ServiceData.STORAGE_MEMBERS, proxyService, 0);
+        validateColumn(ServiceData.STATUS_HA, extendProxyService, "n/a");
+        validateColumn(ServiceData.MEMBERS, extendProxyService, 2);
+        validateColumn(ServiceData.STORAGE_MEMBERS, extendProxyService, 0);
 
         // validate replicated scheme
-        validateColumn(ServiceData.STATUS_HA, distScheme1, "NODE-SAFE");
-        validateColumn(ServiceData.STORAGE_MEMBERS, distScheme1, 2);
+        validateColumn(ServiceData.STATUS_HA, replicatedService, "NODE-SAFE");
+        validateColumn(ServiceData.STORAGE_MEMBERS, replicatedService, 2);
 
         // set the selected service and refresh to get ServiceMemberData
         model.setSelectedService(DIST1_SERVICE);
@@ -352,7 +370,7 @@ public abstract class AbstractDataRetrieverTest
         waitForRefresh();
 
         // refresh the statistics
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         serviceMemberData = model.getData(VisualVMModel.DataType.SERVICE_DETAIL);
         setCurrentDataType(VisualVMModel.DataType.SERVICE_DETAIL);
 
@@ -371,6 +389,140 @@ public abstract class AbstractDataRetrieverTest
         }
 
     /**
+     * Test the retrieval of FederationData via the VisualVMModel.
+     */
+    public void testFederationData() throws Exception
+        {
+        if (Boolean.getBoolean("com.oracle.coherence.jvisualvm.reporter.disabled"))
+            {
+            return;
+            }
+
+        final int                     INSERT_COUNT  = 100;
+        final int                     INSERT_COUNT2 = 2 * INSERT_COUNT;
+        final int                     DATA_SIZE     = 250;
+        List<Map.Entry<Object, Data>> federationOriginData;
+        List<Map.Entry<Object, Data>> federationOriginDetailsData;
+        List<Map.Entry<Object, Data>> federationDestinationData;
+        List<Map.Entry<Object, Data>> federationDestinationDetailsData;
+
+        VisualVMModel model = getModel();
+        assertClusterReady();
+
+        NamedCache ncA = s_memberA1.getCache(FED_CACHE);
+        populateRandomData(ncA, INSERT_COUNT, DATA_SIZE);
+
+        assertThat(ncA.size(), is(INSERT_COUNT));
+
+        NamedCache ncB = s_memberB1.getCache(FED_CACHE);
+        populateRandomData(ncB, INSERT_COUNT2, DATA_SIZE);
+
+        assertThat(ncB.size(),is(INSERT_COUNT2));
+
+        waitForRefresh();
+
+        // select a service participant
+        model.setSelectedServiceParticipant(new Pair<String, String>(FEDERATED_SERVICE, "ClusterB"));
+        // refresh the statistics
+        model.refreshStatistics(getRequestSender());
+        federationDestinationData = model.getData(VisualVMModel.DataType.FEDERATION_DESTINATION);
+        setCurrentDataType(VisualVMModel.DataType.FEDERATION_DESTINATION);
+
+        validateColumn(FederationData.Column.PARTICIPANT.getColumn(), federationDestinationData.get(0), "ClusterB");
+
+        federationDestinationDetailsData = model.getData(VisualVMModel.DataType.FEDERATION_DESTINATION_DETAILS);
+        setCurrentDataType(VisualVMModel.DataType.FEDERATION_DESTINATION_DETAILS);
+
+        Assert.assertNotNull(federationDestinationDetailsData);
+        List<Long> listDestEntriesSent = federationDestinationDetailsData.stream().
+                                         map(e -> (Long) getColumn(
+                                                 FederationDestinationDetailsData.Column.TOTAL_ENTRIES_SENT.getColumn() - 1, e)).
+                                         collect(Collectors.toList());
+        long lTotalDestEntriesSent     = listDestEntriesSent.stream().mapToLong(Long::longValue).sum();
+
+        assertThat("Incorrect total destination entries sent with " + listDestEntriesSent,
+                            lTotalDestEntriesSent, is(INSERT_COUNT * 1L));
+
+        federationOriginData = model.getData(VisualVMModel.DataType.FEDERATION_ORIGIN);
+        setCurrentDataType(VisualVMModel.DataType.FEDERATION_ORIGIN);
+        String sParticipant = (String)getColumn(FederationData.Column.PARTICIPANT.getColumn(), federationOriginData.get(0));
+
+        assertThat("Expected ClusterB, but got " + sParticipant, sParticipant, is("ClusterB"));
+
+        federationOriginDetailsData = model.getData(VisualVMModel.DataType.FEDERATION_ORIGIN_DETAILS);
+        setCurrentDataType(VisualVMModel.DataType.FEDERATION_ORIGIN_DETAILS);
+
+        long lTotalOrigEntriesSent = federationOriginDetailsData.stream().
+                                     map(e -> (Long) getColumn(
+                                             FederationOriginDetailsData.Column.TOTAL_ENTRIES_RECEIVED.getColumn() - 1, e)).
+                                     reduce(0L, Long::sum);
+
+        assertThat(federationOriginDetailsData, is(notNullValue()));
+        assertThat("Total origin entries sent should be positive.", lTotalOrigEntriesSent, is(greaterThan(0L)));
+        }
+
+    /**
+     * Test the retrieval of RamJournalData and FlashJournalData via the VisualVMModel.
+     * Note: Called from testCacheData().
+     */
+    public void testElasticData() throws Exception
+        {
+        final int                     RAM_INSERT_COUNT   = 1000;
+        final int                     FLASH_INSERT_COUNT = 2000;
+        final int                     DATA_SIZE          = 1000;
+
+        List<Map.Entry<Object, Data>> ramJournalData;
+        List<Map.Entry<Object, Data>> flashJournalData;
+
+        // refresh the statistics
+        VisualVMModel model = getModel();
+        RequestSender requestSender = getRequestSender();
+        model.refreshStatistics(requestSender);
+        ramJournalData = model.getData(VisualVMModel.DataType.RAMJOURNAL);
+        setCurrentDataType(VisualVMModel.DataType.RAMJOURNAL);
+
+        // should have two entries from federation
+        assertTrue("RamJournalData should be empty but size is "
+                          + (ramJournalData == null ? null : ramJournalData.size()), ramJournalData == null
+                              || ramJournalData.size() == 2);
+
+        setClientProperties();
+        ExtensibleConfigurableCacheFactory eccf = getECCF();
+
+        NamedCache nc = eccf.ensureCache(RAM_CACHE, null);
+
+        populateRandomData(nc, RAM_INSERT_COUNT, DATA_SIZE);
+        assertTrue(nc.size() == RAM_INSERT_COUNT);
+
+        waitForRefresh();
+        model.refreshStatistics(requestSender);
+        ramJournalData = model.getData(VisualVMModel.DataType.RAMJOURNAL);
+        validateData(VisualVMModel.DataType.RAMJOURNAL, ramJournalData, 2);
+
+        Map.Entry<Object, Data> entryRamJournal1 = ramJournalData.get(0);
+
+        assertTrue(entryRamJournal1 != null
+                          && ((Integer) entryRamJournal1.getValue().getColumn(RamJournalData.NODE_ID)) != 0);
+
+        NamedCache nc2 = eccf.ensureCache(FLASH_CACHE, null);
+
+        populateRandomData(nc2, FLASH_INSERT_COUNT, DATA_SIZE);
+        assertThat(nc2.size(), is(FLASH_INSERT_COUNT));
+
+        waitForRefresh();
+        model.refreshStatistics(getRequestSender());
+        flashJournalData = model.getData(VisualVMModel.DataType.FLASHJOURNAL);
+        setCurrentDataType(VisualVMModel.DataType.FLASHJOURNAL);
+        validateData(VisualVMModel.DataType.FLASHJOURNAL, flashJournalData, 2);
+
+        Map.Entry<Object, Data> entryFlashJournal1 = flashJournalData.get(0);
+
+        assertTrue(entryFlashJournal1 != null
+                          && ((Integer) entryFlashJournal1.getValue().getColumn(RamJournalData.NODE_ID)) != 0);
+
+        }
+
+    /**
      * Test the retrieval of ProxyData via the VisualVMModel.
      * Note: Called from testCacheData().
      */
@@ -378,12 +530,13 @@ public abstract class AbstractDataRetrieverTest
         {
         List<Map.Entry<Object, Data>> proxyData;
 
+        VisualVMModel model = getModel();
         assertClusterReady();
         waitForRefresh();
 
         // refresh the statistics
         model.setIncludeNameService(false);
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         proxyData = model.getData(VisualVMModel.DataType.PROXY);
         setCurrentDataType(VisualVMModel.DataType.PROXY);
 
@@ -406,18 +559,18 @@ public abstract class AbstractDataRetrieverTest
             cTotalMsgSent   += (Long) entry.getValue().getColumn(ProxyData.TOTAL_MSG_SENT);
             }
 
-        Assert.assertTrue("Total number of connections should be 1 but is " + cConnection, cConnection == 1);
-        Assert.assertTrue("Total bytes Rec should be > 0", cTotalBytesRec > 0L);
-        Assert.assertTrue("Total bytes Sent should be > 0", cTotalBytesSent > 0L);
-        Assert.assertTrue("Total msg Rec should be > 0", cTotalMsgRec > 0L);
-        Assert.assertTrue("Total msg Rec should be > 0", cTotalMsgSent > 0L);
+        assertThat(cConnection, is(1));
+        assertThat(cTotalBytesRec, is(greaterThan(0L)));
+        assertThat( cTotalBytesSent, is(greaterThan(0L)));
+        assertThat(cTotalMsgRec, is(greaterThan(0L)));
+        assertThat(cTotalMsgSent, is(greaterThan(0L)));
 
         // Now include the name service
         // refresh the statistics
         model.setIncludeNameService(true);
         waitForRefresh();
 
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         proxyData = model.getData(VisualVMModel.DataType.PROXY);
         setCurrentDataType(VisualVMModel.DataType.PROXY);
 
@@ -427,8 +580,7 @@ public abstract class AbstractDataRetrieverTest
             {
             String sServiceName = (String) entry.getValue().getColumn(ProxyData.SERVICE_NAME);
 
-            Assert.assertTrue("Service name should be " + PROXY_SERVICE,
-                              sServiceName.equals(PROXY_SERVICE));
+            assertThat(sServiceName, is(PROXY_SERVICE));
             }
         }
 
@@ -440,14 +592,15 @@ public abstract class AbstractDataRetrieverTest
         {
         List<Map.Entry<Object, Data>> persistenceData;
 
+        VisualVMModel model = getModel();
         assertClusterReady();
         waitForRefresh();
 
         // refresh the statistics
-        model.refreshStatistics(requestSender);
+        model.refreshStatistics(getRequestSender());
         persistenceData = model.getData(VisualVMModel.DataType.PERSISTENCE);
 
-        Assert.assertTrue("VisualVMModel does not report Coherence as 12.1.3 or above",
+        assertTrue("VisualVMModel does not report Coherence as 12.1.3 or above",
                           model.is1213AndAbove() != null && model.is1213AndAbove());
         setCurrentDataType(VisualVMModel.DataType.PERSISTENCE);
 
@@ -461,17 +614,17 @@ public abstract class AbstractDataRetrieverTest
         Map.Entry<Object, Data> entryPersistence1 = persistenceData.get(0);
         Map.Entry<Object, Data> entryPersistence2 = persistenceData.get(1);
 
-        Assert.assertNotNull(entryPersistence1);
-        Assert.assertNotNull(entryPersistence2);
+        assertThat(entryPersistence1, is(notNullValue()));
+        assertThat(entryPersistence2, is(notNullValue()));
 
         validateColumn(PersistenceData.SERVICE_NAME, entryPersistence1, DIST1_SERVICE);
         validateColumn(PersistenceData.SERVICE_NAME, entryPersistence2, DIST2_SERVICE);
         validateColumn(PersistenceData.SNAPSHOT_COUNT, entryPersistence1, 0);
         validateColumn(PersistenceData.SNAPSHOT_COUNT, entryPersistence2, 0);
 
-        long cSnapshots = (Integer) entryPersistence1.getValue().getColumn(PersistenceData.SNAPSHOT_COUNT);
+        int cSnapshots = (Integer) entryPersistence1.getValue().getColumn(PersistenceData.SNAPSHOT_COUNT);
 
-        Assert.assertEquals(0, cSnapshots);
+        assertThat(cSnapshots, is(0));
 
         }
 
@@ -484,7 +637,6 @@ public abstract class AbstractDataRetrieverTest
      */
     private void validateDistributedCacheService(Map.Entry<Object, Data> entry, String sServiceName)
         {
-        output("Validating service " + sServiceName);
         validateColumn(ServiceData.SERVICE_NAME, entry, sServiceName);
         validateColumn(ServiceData.STATUS_HA, entry, "NODE-SAFE");
         validateColumn(ServiceData.PARTITION_COUNT, entry, PARTITION_COUNT);
@@ -507,6 +659,7 @@ public abstract class AbstractDataRetrieverTest
         System.setProperty("tangosol.coherence.override", "test-client-cache-override.xml");
         System.setProperty("tangosol.coherence.cacheconfig", "test-client-cache-config.xml");
 
+        RequestSender requestSender = getRequestSender();
         ObjectName objName = requestSender
                 .getCompleteObjectName(new ObjectName("Coherence:type=Node,nodeId=1,*")).iterator().next();
         // get the multicast port
@@ -536,6 +689,37 @@ public abstract class AbstractDataRetrieverTest
         wait("Sleeping to ensure JMX stats updated for next refresh", 15000L);
         }
 
+    /**
+     * Retrieve a {@link ExtensibleConfigurableCacheFactory} instance using the
+     * tangosol.coherence.cacheconfig system property.
+     *
+     * @return a {@link ExtensibleConfigurableCacheFactory}
+     */
+    private ExtensibleConfigurableCacheFactory getECCF()
+         {
+         return (ExtensibleConfigurableCacheFactory)
+                 CacheFactory.getCacheFactoryBuilder()
+                             .getConfigurableCacheFactory(System.getProperty("tangosol.coherence.cacheconfig"), null);
+        }
+
+    /**
+     * Return the data for the given entry or null if none exists.
+     * @param data  the data to query
+     * @param oEntry the entry to look for
+     * @return the data for the given entry or null if none exists.
+     */
+    private Map.Entry<Object, Data> getData(List<Map.Entry<Object, Data>> data, Object oEntry)
+        {
+        for (Map.Entry<Object, Data> v : data)
+            {
+            if (v.getKey().equals(oEntry))
+                {
+                return v;
+                }
+            }
+            return null;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -545,10 +729,12 @@ public abstract class AbstractDataRetrieverTest
     private static final String DIST2_SERVICE      = "DistributedScheme2";
     private static final String PROXY_SERVICE      = "ExtendTcpProxyService";
     private static final String REPLICATED_SERVICE = "ReplicatedScheme";
+    private static final String FEDERATED_SERVICE  = "FederatedPartitionedPofCache";
     private static final String NAME_SERVICE       = "NameService";
     private static final String DIST2_CACHE        = "dist2-test";
     private static final String DIST1_CACHE        = "dist1-test";
     private static final String REPL_CACHE         = "repl1";
     private static final String RAM_CACHE          = "ram1";
     private static final String FLASH_CACHE        = "flash1";
+    private static final String FED_CACHE          = "fed";
     }
