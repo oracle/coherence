@@ -956,7 +956,6 @@
                   <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                   <Specification-Version>${project.version.official}</Specification-Version>
                   <Specification-Vendor>${project.organization.name}</Specification-Vendor>
-                  <Bundle-Version>${project.version.official}</Bundle-Version>
                 </instructions>
                 <supportedProjectTypes>
                   <supportedProjectType>bundle</supportedProjectType>
