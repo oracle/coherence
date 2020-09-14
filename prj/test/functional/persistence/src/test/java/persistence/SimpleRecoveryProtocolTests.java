@@ -401,6 +401,9 @@ public class SimpleRecoveryProtocolTests
             Eventually.assertThat(invoking(member).isServiceRunning(sServiceName), is(true));
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(4));
 
+            // COH-21767  wait to make sure ownership protocol complete
+            Base.sleep(2000);
+
             reportOwnership(service);
             assertPartitionOwnership(service, new Object[][]
                     {{0, partsEmpty}, {1, partsEmpty}, {3, partsEmpty}});
