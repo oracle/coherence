@@ -53,6 +53,7 @@ public class CacheDetailData
      * Create CacheDetailData passing in the cache tier type.
      *
      * @param  type  the cache tier type,  which is either FRONT_TIER or BACK_TIER.
+     * @param columns the number of columns
      */
     public CacheDetailData(CacheType type, int columns)
         {
@@ -127,7 +128,7 @@ public class CacheDetailData
      *
      * @return  A Data object
      *
-     * @throws  Exception
+     * @throws  Exception in case of error
      */
     public Data populateData(RequestSender requestSender, ObjectName objName)
         throws Exception

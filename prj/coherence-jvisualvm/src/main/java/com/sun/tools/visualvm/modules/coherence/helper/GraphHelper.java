@@ -211,6 +211,8 @@ public class GraphHelper
      * Create a graph representing the thread utilization percent for a given
      * service.
      *
+     * @param sServiceName  service name
+     *
      * @return a {@link SimpleXYChartSupport} representing the graph
      */
     public static SimpleXYChartSupport createThreadUtilizationGraph(String sServiceName)
@@ -239,6 +241,8 @@ public class GraphHelper
 
     /**
      * Create a graph representing the Task average duration.
+     * 
+     * @param sServiceName service name
      *
      * @return a {@link SimpleXYChartSupport} representing the graph
      */
@@ -271,6 +275,8 @@ public class GraphHelper
     /**
      * Create a graph representing the Request average duration.
      *
+     *  @param sServiceName service name
+     *
      * @return a {@link SimpleXYChartSupport} representing the graph
      */
     public static SimpleXYChartSupport createRequestDurationGraph(String sServiceName)
@@ -298,6 +304,8 @@ public class GraphHelper
 
     /**
      * Create a graph representing the task backlog for a selected service.
+     *
+     * @param sServiceName service name
      *
      * @return a {@link SimpleXYChartSupport} representing the graph
      */

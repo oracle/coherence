@@ -75,6 +75,8 @@ public class CoherenceFederationPanel
 
     /**
      * Create the layout for the {@link CoherenceFederationPanel}.
+     *
+     * @param model the {@link VisualVMModel} to use for this panel
      */
     public CoherenceFederationPanel(VisualVMModel model)
         {

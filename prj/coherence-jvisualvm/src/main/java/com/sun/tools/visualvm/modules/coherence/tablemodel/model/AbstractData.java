@@ -43,6 +43,8 @@ public abstract class AbstractData
 
     /**
      * Creates a new instance and initializes the required values.
+     *
+     * @param nColumnCount number of columns
      */
     public AbstractData(int nColumnCount)
         {

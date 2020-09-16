@@ -198,12 +198,12 @@ public class Pair<X, Y>
     // ----- data members ---------------------------------------------------
 
     /**
-     * Value for <X>.
+     * Value for X.
      */
     private X x;
 
     /**
-     * Value for <Y>.
+     * Value for Y.
      */
     private Y y;
     }

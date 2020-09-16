@@ -317,7 +317,7 @@ public interface RequestSender
      *
      * @return list of archived snapshots
      *
-     * @throws Exception
+     * @throws Exception in case of errors
      */
     String[] getArchivedSnapshots(String sService, String sDomainPartition)
             throws Exception;

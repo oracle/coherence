@@ -346,7 +346,8 @@ public class JMXRequestSender
      * Retrieve the Reporter MBean for the local member Id. We do a query to get the object
      * as it may have additional key values due to a container environment.
      *
-     * @param server the {@link MBeanServerConnection} to use to query
+     * @param server {@link MBeanServerConnection} to use to query
+     * @param nLocalMemberId local member id
      *
      * @return the reporter for the local member Id
      */
@@ -461,7 +462,9 @@ public class JMXRequestSender
      *
      * @param  sService   service name
      *
-     * @return  the object name of the MBean
+     * @return the object name of the MBean
+     *
+     * @throws Exception in case of errors
      */
     protected String getFederationManagerObjectName(String sService)
             throws Exception

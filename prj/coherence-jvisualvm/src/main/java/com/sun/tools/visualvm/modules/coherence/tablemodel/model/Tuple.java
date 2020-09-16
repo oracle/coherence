@@ -22,15 +22,19 @@ public interface Tuple
     // ----- Tuple methods --------------------------------------------------
 
     /**
-     * Return the number of values in the {@link Tuple}
+     * Return the number of values in the {@link Tuple}.
+     *
+     * @return the number of values in the {@link Tuple}
      */
     public int size();
 
     /**
-     * Return the value at index.  The first value is at index 0.
+     * Return the value at the specified index.  The first value is at index 0.
      *
-     * @param index
-     * @throws IndexOutOfBoundsException When 0 < index <= size()
+     * @param index index to get
+     * @throws IndexOutOfBoundsException When 0 &lt; index &le; size()
+     *
+     * @return the value at the specified index
      */
     public Object get(int index)
             throws IndexOutOfBoundsException;
