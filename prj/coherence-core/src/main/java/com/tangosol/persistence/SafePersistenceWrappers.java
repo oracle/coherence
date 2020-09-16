@@ -828,6 +828,23 @@ public class SafePersistenceWrappers
         /**
          * {@inheritDoc}
          */
+        public AutoCloseable exclusively()
+            {
+            try
+                {
+                return getStore().exclusively();
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+
+            return super.exclusively();
+            }
+
+        /**
+         * {@inheritDoc}
+         */
         public R load(long lExtentId, R key)
             {
             try

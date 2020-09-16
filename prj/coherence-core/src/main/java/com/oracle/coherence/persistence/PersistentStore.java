@@ -8,6 +8,8 @@ package com.oracle.coherence.persistence;
 
 import com.oracle.coherence.common.base.Collector;
 
+import com.tangosol.util.NullImplementation;
+
 /**
  * PersistentStore represents a persistence facility to store and recover
  * key/value pairs. Each key-value pair is namespaced by a numeric "extent"
@@ -90,6 +92,22 @@ public interface PersistentStore<R>
      * @return a list of the extent identifiers in the underlying store
      */
     public long[] extents();
+
+    /**
+     * Suggest to this PersistentStore that the caller requires exclusive access
+     * to this store until {@link AutoCloseable#close() close} is called on the
+     * returned {@link AutoCloseable}.
+     * <p>
+     * Note: the caller <b>must</b> call {@link AutoCloseable#close() close} on
+     *       the returned object
+     *
+     * @return an {@link AutoCloseable} object that <b>requires</b> close to be
+     *         called on it when exclusive access is no longer needed
+     */
+    public default AutoCloseable exclusively()
+        {
+        return NullImplementation.getAutoCloseable();
+        }
 
     // ----- store operations -----------------------------------------------
 
