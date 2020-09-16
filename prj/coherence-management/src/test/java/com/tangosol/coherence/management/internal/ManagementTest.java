@@ -17,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * @author jk  2019.05.15
  */
-public class ManagementTests
+public class ManagementTest
     {
     @Test
     public void shouldBeHttpCapable()

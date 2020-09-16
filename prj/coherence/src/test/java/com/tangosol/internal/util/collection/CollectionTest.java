@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author lh 2015.04.27
  */
-public class CollectionTests
+public class CollectionTest
     {
     @BeforeClass
     public static void init()
