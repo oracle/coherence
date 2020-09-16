@@ -10,6 +10,7 @@ import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
 import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
+import com.sun.tools.visualvm.modules.coherence.panel.CoherencePersistencePanel;
 
 import java.util.List;
 import java.util.Map;

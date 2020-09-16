@@ -30,7 +30,7 @@ import static com.sun.tools.visualvm.modules.coherence.helper.JMXUtils.getAttrib
  * A class to hold basic cluster data.
  *
  * @author tam  2013.11.14
- * @sine   12.1.3
+ * @since PersistenceNotificationsData12.1.3
  */
 public class ClusterData
         extends AbstractData

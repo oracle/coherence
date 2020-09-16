@@ -67,7 +67,7 @@ public class VisualVMView
     /**
      * Creates the new instance of the tab.
      *
-     * @param application
+     * @param application  {@link Application} instance
      */
     public VisualVMView(Application application)
         {

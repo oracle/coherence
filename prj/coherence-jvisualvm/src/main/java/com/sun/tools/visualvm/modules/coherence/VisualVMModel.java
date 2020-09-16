@@ -187,7 +187,7 @@ public class VisualVMModel
 
     /**
      * Refresh the statistics from the given {@link MBeanServerConnection}
-     * connection. This method will only refresh data if > REFRESH_TIME
+     * connection. This method will only refresh data if at least the REFRESH_TIME
      * has passed since last refresh.
      *
      * @param requestSender  the RequestSender to use
@@ -679,6 +679,8 @@ public class VisualVMModel
 
     /**
      * Sets the current selected JCache.
+     *
+     * @param selectedJCache the elected JCache
      */
     public void setSelectedJCache(Pair<String, String> selectedJCache)
         {
@@ -816,6 +818,8 @@ public class VisualVMModel
      * Returns the data for a given {@link DataType} enum.
      *
      * @param dataType the type of data to return
+     *
+     * @return the data for a given {@link DataType} enum.
      */
     public List<Entry<Object, Data>> getData(DataType dataType)
         {
@@ -864,6 +868,8 @@ public class VisualVMModel
 
     /**
       * Returns the cluster version as a String.
+     *
+     * @return the cluster version as a String
       */
     public String getClusterVersion()
         {
@@ -872,6 +878,8 @@ public class VisualVMModel
 
     /**
      * Returns the cluster version as an integer for comparison reasons.
+     *
+     * @return the cluster version as an integer
      */
     public int getClusterVersionAsInt()
         {
