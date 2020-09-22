@@ -55,6 +55,8 @@ import com.tangosol.net.topic.Subscriber;
 
 import common.SystemPropertyIsolation;
 
+import org.hamcrest.Matchers;
+
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -225,6 +227,9 @@ public class LocalNamedTopicTests
         int                 nError   = 1;
         CompletableFuture[] aFutures = new CompletableFuture[cValues];
 
+        final AtomicBoolean fPublisherClosed  = new AtomicBoolean(false);
+
+        // introduce an error after first asynchronous send succeeds
         addErrorInterceptor(topic, nError);
 
         String sPrefix = "Element-";
@@ -232,11 +237,31 @@ public class LocalNamedTopicTests
         try (Publisher<String>  publisher = topic.createPublisher();
              Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
             {
-            for (int i=0; i<cValues; i++)
+            publisher.onClose(() -> fPublisherClosed.set(true));
+
+            System.out.print("Publishing");
+
+            for (int i=0; i<cValues && !fPublisherClosed.get(); i++)
                 {
-                aFutures[i] = publisher.send(sPrefix + i);
+                try
+                    {
+                    // validate that exception introduced by addErrorInterceptor call is not thrown at site of async send call
+                    aFutures[i] = publisher.send(sPrefix + i);
+                    System.out.print(".");
+                    }
+                catch (IllegalStateException e)
+                    {
+                    // ignore exception This publisher is no longer active
+                    // all it means is that second asynchronous send occurred before loop completed and resulted in publisher closing
+                    assertThat("should not fail on first publish", i, Matchers.greaterThan(0));
+                    assertThat(e.getMessage().contains("This publisher is no longer active"), is(true));
+                    System.out.println("handled IllegalStateException: " + e.getMessage());
+                    System.out.println("Publisher Closed: " + fPublisherClosed.get());
+                    break;
+                    }
                 }
 
+            System.out.println("");
             publisher.flush().join();
 
             // topic should contain just the first value
@@ -247,10 +272,13 @@ public class LocalNamedTopicTests
         // First add completes as normal
         assertCompletedNormally(aFutures[0]);
 
-        // All other adds should have failed
+        // All other adds should have not occurred at all or be cancelled
         for (int i=1; i<cValues; i++)
             {
-            assertCancelled(aFutures[i]);
+            if (aFutures[i] != null)
+                {
+                assertCancelled(aFutures[i]);
+                }
             }
         }
 
