@@ -168,8 +168,6 @@ public class SimpleRecoveryDynamicQuorumTests
         finally
             {
             stopAllApplications();
-            Cluster cluster = CacheFactory.ensureCluster();
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
             CacheFactory.shutdown();
 
             FileHelper.deleteDirSilent(s_fileActive);
