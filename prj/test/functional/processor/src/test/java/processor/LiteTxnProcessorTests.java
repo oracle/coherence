@@ -299,22 +299,36 @@ public class LiteTxnProcessorTests
             {
             public void run()
                 {
-                aoResult[0] = service.query(
+                try
+                    {
+                    aoResult[0] = service.query(
                         new DeadlockInvocable(
-                                sCache1, oKey1,
-                                new DeadlockProcessor(sCache2, oKey2), 2),
+                            sCache1, oKey1,
+                            new DeadlockProcessor(sCache2, oKey2), 2),
                         Collections.singleton(member)).get(member);
+                    }
+                catch (Throwable t)
+                    {
+                    t.printStackTrace();
+                    }
                 }
             };
         t2 = new Thread()
             {
             public void run()
                 {
-                aoResult[1] = service.query(
+                try
+                    {
+                    aoResult[1] = service.query(
                         new DeadlockInvocable(
                                  sCache2, oKey2,
                                  new DeadlockProcessor(sCache1, oKey1), 1),
                         Collections.singleton(member)).get(member);
+                    }
+                catch (Throwable t)
+                    {
+                    t.printStackTrace();
+                    }
                 }
             };
 
@@ -1119,6 +1133,8 @@ public class LiteTxnProcessorTests
             binEntry     .setValue(NValue);
             binEntryOther.setValue(NValueOther);
 
+            System.out.println("Thread: " + Thread.currentThread().getName() + " Returning value " + NValue + " from DeadlockProcessor.process(cacheName=" +
+                m_sCache + ",oKey=" + m_oKey + ", value=" + NValue +")");
             return NValue;
             }
 
@@ -1196,8 +1212,13 @@ public class LiteTxnProcessorTests
                 }
             catch (WrapperException e)
                 {
-                Base.log("CAUGHT: " + e +":"+ Base.getStackTrace(e));
+                Base.log("DeadLockInvocable.run CAUGHT: " + e +":"+ Base.getStackTrace(e));
                 setResult(Base.getOriginalException(e));
+                }
+            catch (Throwable t)
+                {
+                Base.log("DeadLockInvocable.run CAUGHT: " + t +":"+ Base.getStackTrace(t));
+                setResult(t);
                 }
             }
 
