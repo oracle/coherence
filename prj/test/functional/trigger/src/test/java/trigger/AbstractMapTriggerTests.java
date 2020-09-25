@@ -58,6 +58,12 @@ public abstract class AbstractMapTriggerTests
         m_sCache = sCache.trim();
         }
 
+    @Override
+    public void _afterTest()
+        {
+        getNamedCache().destroy();
+        super._afterTest();
+        }
 
     // ----- AbstractEntryAggregatorTests methods ---------------------------
 
