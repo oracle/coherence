@@ -117,8 +117,10 @@ public interface ConfigurableCacheMap
     * cache. If the key is not in the cache, then the method has no effect.
     *
     * @param oKey  the key to evict from the cache
+    *
+    * @return true if the key was successfully evicted
     */
-    public void evict(Object oKey);
+    public boolean evict(Object oKey);
 
     /**
     * Evict the specified keys from the cache, as if they had each expired

@@ -296,9 +296,9 @@ public class ObservableSplittingBackingCache
     /**
     * {@inheritDoc}
     */
-    public void evict(Object oKey)
+    public boolean evict(Object oKey)
         {
-        getPartitionCache(oKey).evict(oKey);
+        return getPartitionCache(oKey).evict(oKey);
         }
 
     /**

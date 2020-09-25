@@ -351,7 +351,7 @@ public class SerializationCache
     /**
     * {@inheritDoc}
     */
-    public void evict(Object oKey)
+    public boolean evict(Object oKey)
         {
         ConfigurableCacheMap.EvictionApprover apprvr = m_apprvrEvict;
         if ((apprvr == null || apprvr.isEvictable(getCacheEntry(oKey))) &&
@@ -363,7 +363,10 @@ public class SerializationCache
                 }
             getBinaryStore().erase(toBinary(oKey));
             unregisterKey(oKey);
+            return true;
             }
+
+        return false;
         }
 
     /**
