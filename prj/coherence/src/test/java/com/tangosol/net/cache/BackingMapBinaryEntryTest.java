@@ -22,27 +22,31 @@ import static org.junit.Assert.assertTrue;
 */
 public class BackingMapBinaryEntryTest
     {
-
     /**
     * Test expire on BackingMapBinaryEntry.
     */
     @Test
     public void testExpire()
         {
+        // bump the jitter time to account for observed jump causing derived
+        // remaining expiry time to be off by 32ms
+        System.setProperty("coherence.safeclock.jitter", "32");
+
         Binary binKey     = new Binary("key".getBytes());
         Binary binVal     = new Binary("value".getBytes());
-        Binary binVal2    = new Binary("value2".getBytes());
         Binary binValOrig = new Binary("valueOriginal".getBytes());
-
 
         BackingMapBinaryEntry entry =
                 new BackingMapBinaryEntry(binKey, binVal, binValOrig, null);
 
-        long ldt1 = Base.getSafeTimeMillis() + 100L;
-        entry.expire(100L);
-        Base.sleep(10L);
-        long ldt2   = Base.getSafeTimeMillis() + entry.getExpiry() ;
+        long ldt1 = Base.getSafeTimeMillis() + 1000L;
+
+        entry.expire(1000L);
+        Base.sleep(100L);
+
+        long ldt2   = Base.getSafeTimeMillis() + entry.getExpiry();
         long ldtOff = Math.abs(ldt1 - ldt2);
+
         assertTrue("Expiry is off by " + ldtOff,  ldtOff <= 1L);
 
         entry.expire(-19L);
