@@ -6,11 +6,6 @@
  */
 package com.tangosol.util;
 
-import com.tangosol.coherence.config.Config;
-
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 /**
  * SafeClock maintains a "safe" time in milliseconds.
  * <p>
@@ -56,19 +51,4 @@ public class SafeClock
         {
         super(ldtUnsafe, lJitter);
         }
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The default jitter threshold.
-     */
-    public static final long DEFAULT_JITTER_THRESHOLD =
-            AccessController.doPrivileged(
-                new PrivilegedAction<Long>()
-                    {
-                    public Long run()
-                        {
-                        return Config.getLong("coherence.safeclock.jitter", 16L);
-                        }
-                    });
     }

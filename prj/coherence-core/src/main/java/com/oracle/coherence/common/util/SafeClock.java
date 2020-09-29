@@ -212,17 +212,26 @@ public class SafeClock
     /**
      * SafeClock singleton.
      */
-    public static final SafeClock INSTANCE = new SafeClock();
+    public static final SafeClock INSTANCE;
 
     /**
      * The default jitter threshold.
      */
-    public static final long DEFAULT_JITTER_THRESHOLD = Long.valueOf(AccessController.doPrivileged(
-        new PrivilegedAction<String>()
-            {
-            public String run()
-                {
-                return System.getProperty(SafeClock.class.getName() + ".jitter", "16");
-                }
-            }));
+    public static final long DEFAULT_JITTER_THRESHOLD;
+
+    static
+        {
+        DEFAULT_JITTER_THRESHOLD = Long.parseLong(AccessController.doPrivileged(
+                (PrivilegedAction<String>) () ->
+                    {
+                    // Note: we do not use Config.getProperty to avoid a com.tangosol
+                    //       import and the acceptable loss of not supporting a property
+                    //       name that starts with tangosol.
+                    return System.getProperty("coherence.safeclock.jitter",
+                                System.getProperty(SafeClock.class.getName() + ".jitter",
+                                "16"));
+                    }));
+
+        INSTANCE = new SafeClock();
+        }
     }
