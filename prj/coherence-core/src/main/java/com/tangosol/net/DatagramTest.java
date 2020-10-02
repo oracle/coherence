@@ -1176,23 +1176,23 @@ public class DatagramTest
                 out("no packet burst limit");
                 }
 
-            try
+            byte[]                     aBytes       = new byte[cbPacket];
+            DatagramPacket             packet       = new DatagramPacket(aBytes, 0, cbPacket);
+            DatagramPacketOutputStream streamPacket = new DatagramPacketOutputStream(packet);
+
+            try (DataOutputStream stream = new DataOutputStream(streamPacket))
                 {
-                byte[]           aBytes             = new byte[cbPacket];
-                DatagramPacket   packet             = new DatagramPacket(aBytes, 0, cbPacket);
-                DataOutputStream stream             = new DataOutputStream
-                                                        (new DatagramPacketOutputStream(packet));
-                long             cTxPackets         = 0;
-                long             cTxBytes           = 0L;
-                long             cTickInterval      = m_config.getTickInterval();
-                long             cBigTickInterval   = cTickInterval * 10;
-                long             lStart             = System.currentTimeMillis();
-                long             lLastRateCheckTime = lStart;
-                long             lLastReportTime    = lStart;
-                long             cThisReportTxBytes = 0;
-                long             cThisReportTxPackets = 0;
-                int              cIterationLimit    = m_config.getIterationLimit();
-                Random           random             = new Random();
+                long   cTxPackets           = 0L;
+                long   cTxBytes             = 0L;
+                long   cTickInterval        = m_config.getTickInterval();
+                long   cBigTickInterval     = cTickInterval * 10;
+                long   lStart               = System.currentTimeMillis();
+                long   lLastRateCheckTime   = lStart;
+                long   lLastReportTime      = lStart;
+                long   cThisReportTxBytes   = 0L;
+                long   cThisReportTxPackets = 0L;
+                int    cIterationLimit      = m_config.getIterationLimit();
+                Random random               = new Random();
 
                 // fill packet with random data
                 int cInts = cbPacket / 4;
@@ -1201,7 +1201,7 @@ public class DatagramTest
                     stream.writeInt(i);
                     }
                 stream.flush();
-                stream.close();
+                streamPacket.reset();
 
                 for (int iIter = 1; ; ++iIter)
                     {
@@ -1344,7 +1344,7 @@ public class DatagramTest
                                 }
                             }
                         }
-                    stream.close();
+                    streamPacket.reset();
                     }
                 }
             catch (Exception e)
