@@ -31,13 +31,13 @@
 
 [Coherence](http://coherence.java.net/) is a scalable, fault-tolerant, cloud-ready,
 distributed platform for building grid-based applications and reliably storing data.
-The product is used at scale, for both compute and raw storage, in a vast array of 
+The product is used at scale, for both compute and raw storage, in a vast array of
 industries such as critical financial trading systems, high performance telecommunication
-products and eCommerce applications. 
+products and eCommerce applications.
 
-Typically these deployments do not tolerate any downtime and Coherence is chosen due to its 
+Typically these deployments do not tolerate any downtime and Coherence is chosen due to its
 novel features in death detection, application data evolvability, and the robust,
-battle-hardened core of the product that enables it to be seamlessly deployed and 
+battle-hardened core of the product that enables it to be seamlessly deployed and
 adapted within any ecosystem.
 
 At a high level, Coherence provides an implementation of the familiar `Map<K,V>`
@@ -45,11 +45,11 @@ interface but rather than storing the associated data in the local process it is
 (or sharded) across a number of designated remote nodes. This partitioning enables
 applications to not only distribute (and therefore scale) their storage across multiple
 processes, machines, racks, and data centers but also to perform grid-based processing
-to truly harness the CPU resources of the machines. 
+to truly harness the CPU resources of the machines.
 
 The Coherence interface `NamedMap<K,V>` (an extension of `Map<K,V>`) provides methods
 to query, aggregate (map/reduce style) and compute (send functions to storage nodes
-for locally executed mutations) the data set. These capabilities, in addition to 
+for locally executed mutations) the data set. These capabilities, in addition to
 numerous other features, enable Coherence to be used as a framework for writing robust,
 distributed applications.
 
@@ -91,9 +91,9 @@ thus enabling those services to react accordingly.
 Coherence services build on top of the cluster service. The key implementations
 to be aware of are PartitionedService, InvocationService, and ProxyService.
 
-In the majority of cases, customers deal with maps. A map is represented 
-by an implementation of `NamedMap<K,V>`. A `NamedMap` is hosted by a service, 
-generally the PartitionedService, and is the entry point to store, retrieve, 
+In the majority of cases, customers deal with maps. A map is represented
+by an implementation of `NamedMap<K,V>`. A `NamedMap` is hosted by a service,
+generally the PartitionedService, and is the entry point to store, retrieve,
 aggregate, query, and stream data.
 
 Coherence Maps provide a number of features:
@@ -158,8 +158,10 @@ our own [operator](https://github.com/oracle/coherence-operator).
 
 ### Prerequisites
 
-  1. Java - jdk8 or higher
+  1. Java - JDK 8 or higher
   2. Maven - 3.6.3 or higher
+
+> **Note:** When _building_ Coherence, JDK 11 is required.
 
 ### CLI Hello Coherence
 
@@ -177,7 +179,7 @@ and data is once again retrieved to illustrate the permanence of the data.
 >           `-Dcoherence.wka=localhost` for both processes started in the following
 >           console examples.
 
-#### <a name="cohql"></a>CohQL Console 
+#### <a name="cohql"></a>CohQL Console
 
 ```shell
 
@@ -335,6 +337,11 @@ inserts and retrieves data from the Coherence server.
 
 ## <a name="build"></a>Building
 
+In order to **build** Coherence CE, please ensure that you have **JDK 11** installed.
+
+> **Note:** When using Coherence merely as a dependency in a project, without intending
+> to build the project from source code, then an installed JDK 8 version is sufficient.
+
 ```shell
 
 $> git clone git@github.com:oracle/coherence.git
@@ -366,7 +373,7 @@ $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
 Oracle Coherence product documentation is available
 [here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html).
 
-### Features Not Included in Coherence Community Edition 
+### Features Not Included in Coherence Community Edition
 
 The following Oracle Coherence features are not included in Coherence Community Edition:
 
