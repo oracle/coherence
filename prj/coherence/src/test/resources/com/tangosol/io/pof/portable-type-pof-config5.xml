@@ -10,9 +10,9 @@
             xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
             xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">        
   <user-type-list>
+    <include>coherence-pof-config.xml</include>
   </user-type-list>
 
-  <allow-interfaces>false</allow-interfaces>
+  <allow-interfaces>true</allow-interfaces>
   <allow-subclasses>true</allow-subclasses>
-  <enable-type-discovery>true</enable-type-discovery>
 </pof-config>

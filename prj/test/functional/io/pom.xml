@@ -78,9 +78,71 @@
               </fileSets>
             </configuration>
           </execution>
+
+          <!-- create a separate index containing just the Address class -->
+          <execution>
+            <id>make-index-address</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+            <!-- phase is 'process-classes by default' -->
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <indexName>address-index/custom.idx</indexName>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}/test-classes/data/portabletype</directory>
+                  <includes>
+                    <include>Address.class</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
+          
+         <!-- create a separate index containing just the Country class -->
+          <execution>
+            <id>make-index-country</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+            <!-- phase is 'process-classes by default' -->
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <indexName>country-index/custom.idx</indexName>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}/test-classes/data/portabletype</directory>
+                  <includes>
+                    <include>Country.class</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
+
+          <!-- create a separate index containing just the Person class -->
+          <execution>
+            <id>make-index-person</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+            <!-- phase is 'process-classes by default' -->
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <indexName>person-index/custom.idx</indexName>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}/test-classes/data/portabletype</directory>
+                  <includes>
+                    <include>Person.class</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
 </project>

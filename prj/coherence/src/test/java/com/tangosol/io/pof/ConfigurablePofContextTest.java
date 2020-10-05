@@ -213,6 +213,7 @@ public class ConfigurablePofContextTest
         try
             {
             ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config1.xml");
+            ctx.setIndexFileName(fileIndex.getAbsolutePath());
             ctx.setContextClassLoader(PortableTypeTest1.class.getClassLoader());
             ctx.ensureInitialized();
 
@@ -229,6 +230,27 @@ public class ConfigurablePofContextTest
             }
         }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testPortableTypeWithAllowDiscoveryFalse()
+            throws IOException
+        {
+        File fileIndex = setupIndex(PortableTypeTest1.class);
+
+        try
+            {
+            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config5.xml");
+            ctx.setIndexFileName(fileIndex.getAbsolutePath());
+            ctx.setContextClassLoader(PortableTypeTest1.class.getClassLoader());
+            ctx.ensureInitialized();
+
+            PofSerializer pofSerializer = ctx.getPofSerializer(1000);
+            }
+        finally
+            {
+            fileIndex.delete();
+            }
+        }
+
     @Test
     public void testPortableTypeWithNoIds()
             throws IOException
@@ -238,6 +260,7 @@ public class ConfigurablePofContextTest
         try
             {
             ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config2.xml");
+            ctx.setIndexFileName(fileIndex.getAbsolutePath());
             ctx.setContextClassLoader(PortableTypeTestNoId.class.getClassLoader());
             ctx.ensureInitialized();
 
@@ -263,6 +286,7 @@ public class ConfigurablePofContextTest
         try
             {
             ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config3.xml");
+            ctx.setIndexFileName(fileIndex.getAbsolutePath());
             ctx.setContextClassLoader(PortableTypeTestConflicting.class.getClassLoader());
             ctx.ensureInitialized();
             }
@@ -281,6 +305,7 @@ public class ConfigurablePofContextTest
         try
             {
             ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config.xml");
+            ctx.setIndexFileName(fileIndex.getAbsolutePath());
             ctx.setContextClassLoader(PortableTypeTestInterface.class.getClassLoader());
             ctx.ensureInitialized();
             }
@@ -678,7 +703,6 @@ public class ConfigurablePofContextTest
             }
         }
 
-
     /**
      * Setup an index file for the given {@link Class}es.
      *
@@ -688,9 +712,7 @@ public class ConfigurablePofContextTest
     protected File setupIndex(Class<?>... clazzes) throws IOException
         {
         String sIndexFile = Files.createTempFile("index" + System.currentTimeMillis(), "idx").toFile().toString();
-        System.clearProperty(ConfigurablePofContext.PROP_INDEX_FILE);
         createManualIndex(sIndexFile, Arrays.stream(clazzes).map(c -> getIndexClassName(c)).toArray(String[]::new));
-        System.setProperty(ConfigurablePofContext.PROP_INDEX_FILE, sIndexFile);
         assertThat(sIndexFile, is(notNullValue()));
         File fileIndex = new File(sIndexFile);
         assertThat(fileIndex.exists(), is(true));

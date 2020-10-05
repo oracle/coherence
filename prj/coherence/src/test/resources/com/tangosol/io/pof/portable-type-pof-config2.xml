@@ -15,4 +15,5 @@
 
   <allow-interfaces>true</allow-interfaces>
   <allow-subclasses>true</allow-subclasses>
+  <enable-type-discovery>true</enable-type-discovery>
 </pof-config>

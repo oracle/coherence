@@ -16,4 +16,5 @@
     <!-- by default just include coherence POF user types -->
     <include>coherence-pof-config.xml</include>    
   </user-type-list>
+  <enable-type-discovery>true</enable-type-discovery>
 </pof-config>

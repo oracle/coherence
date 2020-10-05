@@ -12,7 +12,5 @@
   <user-type-list>
   </user-type-list>
 
-  <allow-interfaces>false</allow-interfaces>
-  <allow-subclasses>true</allow-subclasses>
-  <enable-type-discovery>true</enable-type-discovery>
+  <enable-type-discovery>false</enable-type-discovery>
 </pof-config>

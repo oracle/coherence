@@ -42,6 +42,7 @@
                 <xsd:element ref="allow-interfaces" minOccurs="0" />
                 <xsd:element ref="allow-subclasses" minOccurs="0" />
                 <xsd:element ref="enable-references" minOccurs="0" />
+                <xsd:element ref="enable-type-discovery" minOccurs="0" />
                 <xsd:element ref="prefer-java-time" minOccurs="0" />
                 <xsd:element ref="default-serializer" minOccurs="0" />
             </xsd:sequence>
@@ -375,6 +376,20 @@
             <xsd:documentation>
                 The enable-references element indicates whether Identity/Reference type
                 support is enabled.
+
+                Valid values are "true" or "false". Default value is false.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enable-type-discovery" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enable-type-discovery element indicates whether classes
+                annotated with PortableType are added automatically when POF
+                serialization is used.
 
                 Valid values are "true" or "false". Default value is false.
 

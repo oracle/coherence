@@ -16,7 +16,8 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
  * @author tam  2020.08.21
  */
 @PortableType(id = 1001)
-public class Address {
+public class Address
+    {
 
     public Address()
         {
@@ -30,7 +31,7 @@ public class Address {
         m_sState = sState;
         m_sPostCode = sPostCode;
         m_sCountry = sCountry;
-    }
+        }
 
     public String getAddress1()
         {

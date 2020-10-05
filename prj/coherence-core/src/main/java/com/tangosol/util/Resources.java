@@ -7,19 +7,18 @@
 
 package com.tangosol.util;
 
-
-import com.tangosol.run.xml.SimpleParser;
-import com.tangosol.run.xml.XmlDocument;
-
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
 
 import java.net.URL;
 
 import java.text.MessageFormat;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.ListResourceBundle;
+
+import static com.tangosol.util.Base.ensureClassLoader;
 
 
 /**
@@ -150,6 +149,27 @@ public abstract class Resources
             }
 
         return url;
+        }
+
+    /**
+     * Find the URLs of all resources with the given name using the specified
+     * {@link ClassLoader}. If the name is an absolute path then return that file
+     * otherwise search for all the resources with the name in the classpath.
+     *
+     * @param sName   the name of the resource
+     * @param loader  the ClassLoader used to locate the resource; this method
+     *                returns null if a null ClassLoader is provided
+     *
+     * @return the {@link Iterable} of URLs
+     */
+    public static Iterable<URL> findResources(String sName, ClassLoader loader) throws IOException {
+        URL url = getFileURL(sName);
+        if (url != null)
+            {
+            return Collections.singleton(url);
+            }
+
+        return Collections.list(ensureClassLoader(loader).getResources(sName));
         }
 
     /**

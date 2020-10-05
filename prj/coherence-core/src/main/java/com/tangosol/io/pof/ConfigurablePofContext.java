@@ -8,8 +8,7 @@
 package com.tangosol.io.pof;
 
 
-import com.oracle.coherence.common.schema.util.Logger;
-
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.ClassLoaderAware;
@@ -29,6 +28,8 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.CopyOnWriteMap;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.LiteMap;
+import com.tangosol.util.Resources;
 import com.tangosol.util.SafeHashMap;
 
 import org.jboss.jandex.AnnotationInstance;
@@ -38,9 +39,8 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexReader;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import java.lang.ref.WeakReference;
 
@@ -49,7 +49,6 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +57,8 @@ import java.util.WeakHashMap;
 
 /**
 * This class implements the {@link PofContext} interface using information
-* provided in a configuration file (or in a passed XML configuration).
+* provided in a configuration file (or in a passed XML configuration) as well as
+* classes annotated with {@link PortableType}.
 * <p>
 * For each user type supported by this POF context, it must be provided with:
 * <ul>
@@ -802,6 +802,26 @@ public class ConfigurablePofContext
         m_fPreferJavaTime = fPreferJavaTime;
         }
 
+    /**
+     * Set the Jandex index file name to use to discover portable types.
+     *
+     * @param sIndexFile  Jandex index file name to use to discover portable types
+     */
+    public void setIndexFileName(String sIndexFile)
+        {
+        m_sIndexFileName = sIndexFile;
+        }
+
+    /**
+     * Return the Jandex index file name to use to discover portable types.
+     *
+     * @return the Jandex index file name to use to discover portable types
+     */
+    public String getIndexFileName()
+        {
+        return m_sIndexFileName;
+        }
+
     // ----- Object methods -------------------------------------------------
 
     /**
@@ -866,27 +886,6 @@ public class ConfigurablePofContext
                     }
                 }
 
-            // get the jandex index
-            m_index            = loadIndex();
-            m_mapPortableTypes = new HashMap<>();
-            
-            // find the list of classes that implement PortableType
-            if (m_index != null)
-                {
-                List<AnnotationInstance> annotations = m_index.getAnnotations(DotName.createSimple(PortableType.class.getName()));
-                annotations.stream()
-                           .filter(a -> a.target().kind().equals(AnnotationTarget.Kind.CLASS))
-                           .forEach(a ->
-                                   {
-                                   AnnotationValue id = a.value("id");
-                                   m_mapPortableTypes.put(a.target().asClass().toString(), id == null ? -1 : id.asInt());
-                                   }
-                           );
-                int cSize = m_mapPortableTypes.size();
-                Logger.debug("Discovered " + cSize + " class" + (cSize != 1 ? "es" : "") +
-                            " annotated with PortableType.");
-                }
-
             // dereference by URI
             String sURI = m_sUri;
             if (sURI == null)
@@ -933,6 +932,8 @@ public class ConfigurablePofContext
         // load the XML configuration if it is not already provided
         String     sURI      = m_sUri;
         XmlElement xmlConfig = m_xml;
+        int        cClasses  = 0;
+
         if (xmlConfig == null)
             {
             xmlConfig = XmlHelper.loadFileOrResource(sURI, "POF configuration", getContextClassLoader());
@@ -948,10 +949,41 @@ public class ConfigurablePofContext
         mergeIncludes(sURI, xmlConfig, getContextClassLoader());
 
         // extract options
-        boolean fAllowInterfaces  = xmlConfig.getSafeElement("allow-interfaces").getBoolean();
-        boolean fAllowSubclasses  = xmlConfig.getSafeElement("allow-subclasses").getBoolean();
-        boolean fEnableReferences = xmlConfig.getSafeElement("enable-references").getBoolean();
-        boolean fPreferJavaTime   = xmlConfig.getSafeElement("prefer-java-time").getBoolean();
+        boolean fAllowInterfaces     = xmlConfig.getSafeElement("allow-interfaces").getBoolean();
+        boolean fAllowSubclasses     = xmlConfig.getSafeElement("allow-subclasses").getBoolean();
+        boolean fEnableReferences    = xmlConfig.getSafeElement("enable-references").getBoolean();
+        boolean fEnableTypeDiscovery = xmlConfig.getSafeElement("enable-type-discovery").getBoolean();
+        boolean fPreferJavaTime      = xmlConfig.getSafeElement("prefer-java-time").getBoolean();
+
+        Map<String, Integer> mapPortableTypes = new SafeHashMap<>();
+
+        if (fEnableTypeDiscovery)
+            {
+            Map<URL, Index> mapIndexes = loadIndexes();
+
+            // find the list of classes that implement PortableType
+            if (mapIndexes.size() > 0)
+                {
+                for (Map.Entry<URL, Index> entry : mapIndexes.entrySet())
+                    {
+                    Index index = entry.getValue();
+                    cClasses = 0;
+                    for (AnnotationInstance anno : index.getAnnotations(DotName.createSimple(PortableType.class.getName())))
+                        {
+                        if (anno.target().kind().equals(AnnotationTarget.Kind.CLASS))
+                            {
+                            AnnotationValue id = anno.value("id");
+                            mapPortableTypes.put(anno.target().asClass().toString(), id == null ? -1 : id.asInt());
+                            cClasses++;
+                            }
+                        }
+
+                    Logger.info(cClasses + " class" + (cClasses != 1 ? "es" : "") +
+                                " registered with PortableType annotation " +
+                                "from index: " + entry.getKey());
+                    }
+                }
+            }
 
         // scan the types for the highest type-id
         List    listTypes    = xmlAllTypes.getElementList();
@@ -1003,13 +1035,13 @@ public class ConfigurablePofContext
             }
 
         // get max value of discovered PortableType
-        int cPortableTypes     = m_mapPortableTypes.size();
+        int cPortableTypes     = mapPortableTypes.size();
         int nMaxPortableTypeId = cPortableTypes == 0
                              ? 0
-                             : m_mapPortableTypes.values().stream().reduce(Integer::max).get();
+                             : mapPortableTypes.values().stream().reduce(Integer::max).get();
         int nMinPortableTypeId = cPortableTypes == 0
                              ? 0
-                             : m_mapPortableTypes.values().stream().reduce(Integer::min).get();
+                             : mapPortableTypes.values().stream().reduce(Integer::min).get();
         if (nMaxPortableTypeId > nMaxTypeId)
             {
             nMaxTypeId = nMaxPortableTypeId;
@@ -1122,7 +1154,7 @@ public class ConfigurablePofContext
             }
 
         // look for any classes that implement PortableType and add them automatically
-        for (Map.Entry<String, Integer> entry : m_mapPortableTypes.entrySet())
+        for (Map.Entry<String, Integer> entry : mapPortableTypes.entrySet())
             {
             String sClass  = entry.getKey();
             int    nTypeId = entry.getValue();
@@ -1156,12 +1188,15 @@ public class ConfigurablePofContext
         cfg.m_mapTypeIdByClass     = new CopyOnWriteMap(mapTypeIdByClass);
         cfg.m_mapTypeIdByClassName = mapTypeIdByClassName;
         cfg.m_mapClassNameByTypeId = mapClassNameByTypeId;
+        cfg.m_mapPortableTypes     = mapPortableTypes;
         cfg.m_aClzByTypeId         = aClzByTypeId;
         cfg.m_aSerByTypeId         = aSerByTypeId;
         cfg.m_fInterfaceAllowed    = fAllowInterfaces;
         cfg.m_fSubclassAllowed     = fAllowSubclasses;
         cfg.m_fReferenceEnabled    = fEnableReferences;
         cfg.m_fPreferJavaTime      = fPreferJavaTime;
+        cfg.m_fEnableTypeDiscovery = fEnableTypeDiscovery;
+
         return cfg;
         }
 
@@ -1454,45 +1489,39 @@ public class ConfigurablePofContext
         }
 
     /**
-     * Attempt to load the Jandex index which will we will use to search for
+     * Attempt to load all Jandex index files which will we will use to search for
      * classes that have the PortableType annotation.
      *
-     * @return a {@link Index} or null if no index file found.
+     * @return a {@link Map} of {@link Index}es keyed by {@link URL} or an empty {@link Map} if none found.
      */
-    private Index loadIndex()
+    private Map<URL, Index> loadIndexes()
         {
-        String sIndexFile = System.getProperty(PROP_INDEX_FILE, DEFAULT_INDEX_FILE);
-        File   file       = new File(sIndexFile);
-        String sActualFile;
-        Index  index = null;
+        Map<URL, Index> mapIndexes     = new LiteMap<>();
+        String          sIndexFileName = m_sIndexFileName;
 
-        if (file.isAbsolute())
-            {
-            sActualFile = sIndexFile;
-            }
-        else
-            {
-            URL resource = Thread.currentThread().getContextClassLoader().getResource(sIndexFile);
-            if (resource == null)
+        try {
+            Iterable<URL> iterUrls = Resources.findResources(sIndexFileName, getContextClassLoader());
+
+            // loop through each URL and load the index
+            for (URL url : iterUrls)
                 {
-                Logger.debug("No Jandex index file named " + sIndexFile + " was found. " +
-                             "Discovery of classes annotated with PortableType will not be possible.");
-                return null;
+                try (InputStream input = url.openStream())
+                    {
+                    mapIndexes.put(url, new IndexReader(input).read());
+                    }
+                catch (Exception ignore)
+                    {
+                    Logger.warn("Unable to read Jandex index file " + url + ", error is " + ignore.getMessage());
+                    }
                 }
-
-            sActualFile = resource.getFile();
             }
-
-        try (FileInputStream input = new FileInputStream(sActualFile))
+        catch (IOException e)
             {
-            IndexReader reader = new IndexReader(input);
-            index = reader.read();
-            }
-        catch (Exception ignore)
-            {
+            // any Exception coming from getResources() or toURL() is ignored and
+            // the Map of indexes remain empty
             }
 
-        return index;
+        return mapIndexes;
         }
 
     /**
@@ -1506,10 +1535,11 @@ public class ConfigurablePofContext
     public static void mergeIncludes(String sURI, XmlElement xmlConfig, ClassLoader loader)
         {
         // extract options
-        boolean    fAllowInterfaces  = xmlConfig.getSafeElement("allow-interfaces").getBoolean();
-        boolean    fAllowSubclasses  = xmlConfig.getSafeElement("allow-subclasses").getBoolean();
-        boolean    fEnableReferences = xmlConfig.getSafeElement("enable-references").getBoolean();
-        XmlElement xmlAllTypes       = xmlConfig.getElement("user-type-list");
+        boolean    fAllowInterfaces     = xmlConfig.getSafeElement("allow-interfaces").getBoolean();
+        boolean    fAllowSubclasses     = xmlConfig.getSafeElement("allow-subclasses").getBoolean();
+        boolean    fEnableReferences    = xmlConfig.getSafeElement("enable-references").getBoolean();
+        boolean    fEnableTypeDiscovery = xmlConfig.getSafeElement("enable-type-discovery").getBoolean();
+        XmlElement xmlAllTypes          = xmlConfig.getElement("user-type-list");
 
         // add default-serializer to each user-type
         appendDefaultSerializerToUserTypes(xmlConfig);
@@ -1545,9 +1575,10 @@ public class ConfigurablePofContext
                 XmlElement xmlIncludeTypes = xmlInclude.getSafeElement("user-type-list");
 
                 appendDefaultSerializerToUserTypes(xmlInclude);
-                fAllowInterfaces  |= xmlInclude.getSafeElement("allow-interfaces").getBoolean();
-                fAllowSubclasses  |= xmlInclude.getSafeElement("allow-subclasses").getBoolean();
-                fEnableReferences |= xmlInclude.getSafeElement("enable-references").getBoolean();
+                fAllowInterfaces     |= xmlInclude.getSafeElement("allow-interfaces").getBoolean();
+                fAllowSubclasses     |= xmlInclude.getSafeElement("allow-subclasses").getBoolean();
+                fEnableReferences    |= xmlInclude.getSafeElement("enable-references").getBoolean();
+                fEnableTypeDiscovery |= xmlInclude.getSafeElement("enable-type-discovery").getBoolean();
 
                 XmlHelper.addElements(xmlAllTypes, xmlIncludeTypes.getElements("user-type"));
                 XmlHelper.addElements(xmlAllTypes, xmlIncludeTypes.getElements("include"));
@@ -1556,6 +1587,7 @@ public class ConfigurablePofContext
 
         xmlConfig.ensureElement("allow-interfaces").setBoolean(fAllowInterfaces);
         xmlConfig.ensureElement("allow-subclasses").setBoolean(fAllowSubclasses);
+        xmlConfig.ensureElement("enable-type-discovery").setBoolean(fEnableTypeDiscovery);
         xmlConfig.ensureElement("enable-references").setBoolean(fEnableReferences);
         }
 
@@ -1667,6 +1699,16 @@ public class ConfigurablePofContext
         * added).
         */
         public Map m_mapClassNameByTypeId;
+
+        /**
+         * Discovered list of types that are annotated with {@link PortableType}.
+         */
+        public Map<String, Integer> m_mapPortableTypes;
+
+        /**
+         * True iff discovery of PortableTypes is enabled.
+         */
+        public boolean m_fEnableTypeDiscovery;
         }
 
 
@@ -1706,12 +1748,7 @@ public class ConfigurablePofContext
     /**
      * Default Jandex index file.
      */
-    protected static final String DEFAULT_INDEX_FILE = "META-INF/jandex.idx";
-
-    /**
-     * Property to override the default index file. (only used for unit tests)
-     */
-    public static final String PROP_INDEX_FILE = "com.oracle.coherence.pof.indexfile";
+    protected static final String DEFAULT_INDEX_FILE_NAME = "META-INF/jandex.idx";
 
     // ----- data members ---------------------------------------------------
 
@@ -1755,12 +1792,7 @@ public class ConfigurablePofContext
     private volatile PofConfig m_cfg;
 
     /**
-     * Jandex index to search for annotated classes.
+     * The Jandex index file name to use.
      */
-    private Index m_index;
-
-    /**
-     * Discovered list of types that are annotated with {@link PortableType}.
-     */
-    private Map<String, Integer> m_mapPortableTypes;
+    private String m_sIndexFileName = DEFAULT_INDEX_FILE_NAME;
     }
