@@ -7,7 +7,7 @@
 
 package com.tangosol.coherence.docker;
 
-import io.helidon.microprofile.cdi.Main;
+import com.tangosol.net.DefaultCacheServer;
 
 import java.lang.reflect.Method;
 
@@ -44,9 +44,9 @@ public class Runner
                 .forEach(Runner::setProperty);
 
         String mainClass = System.getenv("COH_MAIN_CLASS");
-        if (mainClass == null || Main.class.getName().equals(mainClass))
+        if (mainClass == null || DefaultCacheServer.class.getName().equals(mainClass))
             {
-            Main.main(args);
+            DefaultCacheServer.main(args);
             }
         else
             {

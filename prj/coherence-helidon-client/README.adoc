@@ -1,0 +1,504 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence Java CDI Client
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Coherence Java CDI gRPC Client
+
+== Usage
+
+The Coherence gRPC Java client is a CDI enabled library that allows Java clients to connect via gRPC to a Coherence proxy server.
+
+In order to use Coherence gRPC Java client, you need to declare it as a dependency in your `pom.xml`
+
+[source,xml]
+----
+    <dependency>
+        <groupId>com.oracle.coherence.ce</groupId>
+        <artifactId>coherence-java-client</artifactId>
+        <version>${coherence.version}</version>
+    </dependency>
+----
+
+NOTE: Using the Coherence gRPC Java client assumes that there is a corresponding server process running that is
+using the Coherence gRPC proxy to expose the required gRPC services.
+
+
+Once the necessary dependency is in place, the simplest way to start using it is to just inject Coherence resources
+into the application's beans. A lot of the annotations and qualifiers are identical to those described in the
+<<coherence-cdi/README.adoc,Coherence CDI>> documentation. The major difference being that the `@Remote` qualifier
+is used to indicate that the Coherence beans to be injected connect remotely (in this case using gRPC) to a
+Coherence server.
+
+The following sections describe different injection points in more detail.
+
+* <<connections,Configuring gRPC Connections>>
+* <<sessions,Configuring Coherence Remote Sessions>>
+* <<inject-coherence-objects,Injecting Coherence Objects into CDI Beans>>
+ ** <<inject-namedmap,Injecting `NamedMap`, `NamedCache`, and related objects>>
+ ** <<inject-session,`Session` Injection>>
+* <<cdi-events,Using CDI Observers to Handle Coherence Map or Cache Events>>
+ ** <<cdi-event-types,Observer specific event types>>
+ ** <<cdi-events-filter,Filter the events to be observed>>
+ ** <<cdi-events-transform,Transform the events to be observed>>
+ ** <<cdi-events-session,Observe events for maps and caches owned by a specific `Session`>>
+ ** <<cdi-events-scopes,Observe events for maps and caches in specific scopes or services>>
+ ** <<cdi-events-async,Using Asynchronous Observers>>
+
+[#connections]
+=== Remote Connections
+
+The Coherence gRPC client will attempt to connect to a default server endpoint on `localhost:1409` if no other channel
+has been configured. This is fine for development and testing but in most real-world applications the client will need
+to know the endpoint to connect to. Most applications would only require a channel to connect to a single Coherence
+cluster but there are use-cases where clients connect to multiple clusters, and the Coherence gRPC Java client supports
+these use-cases too.
+
+The Coherence gRPC client has been built on top of the
+https://helidon.io/docs/v2/#/mp/grpc/02_mp_clients[Helidon Microprofile gRPC] library and uses it to provide gRPC
+channels.
+
+==== Configure gRPC Channels
+
+Remote gRPC connections are configured using Helidon configuration, typically this would be a configuration file, but
+Helidon supports many ways to provide the configuration, or override the configuration with System properties or
+environment variables. The examples here will just use a configuration file.
+
+All gRPC channels are configured in the `grpc.channels` section of the application configuration.
+The example below is a simple configuration for a gRPC channel:
+
+[source,yaml]
+----
+grpc:
+  channels:
+    - name: default            # <1>
+      host: storage.acme.com   # <2>
+      port: 1408               # <3>
+----
+<1> The name of the channel is `default`.
+<2> The host name of the gRPC server is `storage.acme.com`
+<3> The port which the server is listening on is `1408`
+
+The `default` channel name is a special case that the Coherence gRPC client will use to locate a channel configuration
+if no channel name has been specified in CDI injection points.
+
+The example below shows a configuration with multiple channels, one named `test` and one named `prod`.
+[source,yaml]
+----
+grpc:
+  channels:
+    - name: test
+      host: test.storage.acme.com
+      port: 1408
+    - name: prod
+      host: storage.acme.com
+      port: 1408
+----
+
+The configuration may contain as many channels as required, the only stipulation being that each has a unique name.
+
+[#sessions]
+=== Coherence Sessions
+
+Coherence uses the concept of a `Session` to manage a set of related Coherence resources, such as maps, caches,
+topics, etc. When using the Coherence Java gRPC client a `Session` connects to a specific gRPC channel (described above)
+and uses a specific serialization format to marshal requests and responses. This means that different sessions
+using different serializers may connect to the same server endpoint. Typically, for efficiency the client and server
+would be configured to use matching serialization formats to avoid deserialization of data on the server but this does
+not have to be the case. If the server is using a different serializer for the server side caches it must be able
+to deserialize the client's requests, so there must be a serializer configured on the server to match that used by the
+client.
+
+As with gRPC channels above, Coherence Sessions can be configured using Helidon configuration.
+Coherence sessions are configured in the `coherence.sessions` section of the configuration.
+Each session has its own entry in the configuration hierarchy, as shown below:
+
+[source,yaml]
+----
+coherence:
+  sessions:
+    - name: default
+      serializer: pof
+      channel: default
+----
+
+The example above shows configuration for the `default` Coherence session, this is the session that will be used to
+provide Coherence beans when no session name has been specified for an injection point.
+In this example, the default session will use POF serialization and connect to the server using the `default` gRPC
+channel.
+
+The default session, if not configured, will use the `default` channel and will use Java serialization.
+
+As with channels, multiple sessions can be configured:
+
+[source,yaml]
+----
+coherence:
+  sessions:
+    - name: test
+      serializer: pof
+      channel: test
+    - name: prod
+      serializer: pof
+      channel: prod
+
+grpc:
+  channels:
+    - name: test
+      host: test.storage.acme.com
+      port: 1408
+    - name: prod
+      host: storage.acme.com
+      port: 1408
+----
+
+In the example above, there are two Coherence sessions configured and two corresponding gRPC channels.
+
+
+==== Referring to Sessions at Injection Points
+
+Coherence CDI uses the `@Remote` qualifier to indicate that the Coherence bean to be injected refers to a remote
+resource. In the case of the gRPC client, the value set when using the `@Remote` qualifier refers to the name of the
+name of the Coherence session to use.
+
+For example:
+[source,java]
+----
+@Remote // <1>
+----
+<1> The `@Remote` annotation has no value, so the Coherence gRPC client CDI extensions will look-up the configuration
+for the Session named `default`.
+
+[source,java]
+----
+@Remote("test") // <1>
+----
+<1> The `@Remote` annotation here has a value of `test`, so the Coherence gRPC client CDI extensions will look-up the
+configuration for a session named `test`.
+
+
+[#inject-coherence-objects]
+=== Injecting Coherence Objects into CDI Beans
+
+A number of commonly used Coherence objects can be injected when using Java gRPC client.
+
+[#inject-namedmap]
+=== Injecting NamedMap NamedCache and Related Objects
+
+In order to inject an instance of a `NamedMap` into your gRPC client CDI bean, you simply need to define an injection
+point for it:
+
+[source,java]
+----
+@Inject
+@Remote  // <1>
+private NamedMap<Long, Person> people;
+----
+<1> The important annotation here is the `@Remote` qualifier that tell's the Coherence CDI extensions that the map to be
+injected is remote. In this case the `NamedMap` will come from the `default` Coherence session as the `@Remote`
+annotation does not specify a session name.
+
+[source,java]
+----
+@Inject
+@Remote("products")  // <1>
+private NamedMap<Long, Product> products;
+----
+<1> In this example the Coherence CDI extensions will use the `products` session to provide the client side `NamedMap`
+backed on the server by a `NamedMap` called `products`.
+
+Other remote resources, such a `NamedCache` can be injected the same way:
+[source,java]
+----
+@Inject
+@Remote
+private NamedCache<Long, Product> products;
+----
+
+The <<coherence-cdi/README.adoc,Coherence CDI>> documentation covers the different types of resources supported by CDI.
+When using them with the gRPC Java client, remember to also include the `@Remote` qualifier on the injection point.
+
+[#inject-session]
+=== Injecting Sessions
+
+If an application bean requires multiple maps or caches where the names will only be known at runtime then a
+Coherence `com.tangosol.net.Session` can be injected instead of other specific named resources.
+The required maps or caches can then be obtained from the `Session` by calling methods such as `Session.getMap` or
+`Session.getCache`, etc.
+
+[source,java]
+----
+@Inject
+@Remote   // <1>
+private Session session;
+----
+<1> The plain `@Remote` qualifier has been used, so the default `Session` will be injected here.
+
+
+[source,java]
+----
+@Inject
+@Remote("products")   // <1>
+private Session session;
+----
+<1> The `@Remote` qualifier has the value `products`, so the `Session` injected here will be configured from the
+`coherence.sessions.products` session configuration.
+
+
+[#cdi-events]
+=== Using CDI Observers to Handle MapEvents
+
+The Coherence `NamedMap` and `NamedCache` APIs allow implementations of `MapListener` to be added that will then
+receive events as map/cache entries get inserted, updated or deleted. When using CDI it is possible to subscribe
+to the same events using CDI observer methods.
+
+
+For example, to observe events raised by a `NamedMap` with the name `people`, with keys of type `Long` and values of
+type `Person`, you would define a CDI observer such as this one:
+
+[source,java]
+----
+private void onMapChange(@Observes
+                         @Remote
+                         @MapName("people") MapEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+NOTE: The important qualifier here is the `@Remote` annotation. This tells the Coherence CDI extensions that the map
+or cache to be observed is a remote cache.
+
+The `Observes` qualifier is what makes this method a standard CDI observer.
+
+The `MapName` qualifier determines which map/cache to observer. If this qualifier is not present events from all caches
+will be observed.
+
+[#cdi-event-types]
+==== Observe Specific Event Types
+
+The observer method above will receive all events for the `people` map, but you can also control the types of events
+received using event type qualifiers.
+
+|===
+|Qualifier |Description
+
+|`@Inserted`
+|Observes insert events, raised when new entries are added to a map or cache.
+
+|`@Updated`
+|Observes update events, raised when entries in a map or cache are modified.
+
+|`@Deleted`
+|Observes deleted events, raised when entries are deleted from a map or cache.
+|===
+
+For example:
+
+[source,java]
+----
+private void onUpdate(@Observes @Updated @MapName("people") MapEvent<Long, Person> event) {
+    // handle UPDATED events raised by the 'people' map/cache
+}
+
+private void onAddOrRemove(@Observes @Inserted @Deleted @MapName("people") MapEvent<?, ?> event) {
+    // handle INSERTED and DELETED events raised by the 'people' map/cache
+}
+----
+
+The first observer method above will observe only update events.
+Multiple event type qualifiers can be added, so the second observer method will observer insert or delete events.
+
+[NOTE]
+====
+The client supports connecting to a server using different named `Sessions` and different named `Scopes`.
+The observer methods above are not qualified with either session name or scope name so will observe events for
+*all* maps or caches with the name `people` in *all* sessions and scopes.
+
+In most Coherence use-cases that only use a single client session and a single default server side scope this is not
+an issue but is something to be aware of if using multiple sessiosn or scopes.
+
+See the following sections on how to qualify the observer to restrict the maps and caches it observes.
+====
+
+
+
+[#cdi-events-session]
+==== Observe Events for Maps and Caches from Specific Sessions
+
+In addition, to the `@MapName` qualifier, you can also specify a `Session` name as a way to limit the events received
+to maps or caches from a specific `Session`. This is achieved by specifying a value for the `@Remote` qualifier.
+See the <<sessions,Sessions>> section for more details on multiple `Session`s.
+
+For example:
+
+[source,java]
+----
+private void onMapChange(@Observes
+                         @Remote("test")
+                         @MapName("people") MapEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache owned by the test Session.
+}
+----
+
+In the example above the `@Remote` qualifier has a value `test`, so the events will only be observed from the `people`
+map on the server that corresponds to the map of the same name owned by the client side `Session` named `test`.
+
+[NOTE]
+====
+Maps or caches in different client side `Sessions` may correspond to the same server side map or cache and hence
+events in one server side map or cache can be observed by multiple client side observers.
+
+For example: +
+Suppose a Map named `people` has been created in the default scope on the server. +
+On the client there are two `Sessions` configured, `session-one` and `session-two` but both of these connect to the
+same server and have the same default scope.
+
+The two observers below are on the client:
+[source,java]
+----
+private void onMapChange(@Observes
+                         @Remote("session-one")
+                         @MapName("people") MapEvent<Long, Person> event) {
+    //...
+}
+
+private void onMapChange(@Observes
+                         @Remote("session-two")
+                         @MapName("people") MapEvent<Long, Person> event) {
+    //...
+}
+----
+
+In this case both observer methods are actually observing the same server-side map and will receive the same events
+event though they have different qualifiers.
+====
+
+
+[#cdi-events-scopes]
+==== Observe Events for Maps and Caches from Specific Server-side Scopes
+
+In addition, to the `@MapName` qualifier, you can also specify a scope name as a way to limit the events received
+to maps or caches from a specific server-side scope name.
+This is achieved by specifying a value for the `@ScopeName` qualifier.
+See the <<sessions,Sessions>> section for more details on multiple `Session`s.
+
+For example:
+
+[source,java]
+----
+private void onMapChange(@ObservesAsync
+                         @Remote
+                         @ScopeName("employees")
+                         @MapName("people") MapEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache owned by the employees scope.
+}
+----
+
+In the example above the `@ScopeName` qualifier has a value `employees`, so the events will only be observed from the
+`people` map in by the scope named `employees` on the server.
+
+
+[#cdi-events-filter]
+==== Filter Observed Events
+
+The events observed can be restricted further by using a Coherence `Filter`.
+If a filter has been specified, the events will be filtered on the server and will never be sent to the client.
+The filter that will be used is specified using a qualifier annotation that is itself annotated with `@FilterBinding`.
+
+You can implement a <<filter-bindings,Custom FilterBinding>> (recommended), or use a built-in `@WhereFilter` for
+convenience, which allows you to specify a filter using CohQL.
+
+For example to receive all event types in the `people` map, but only for `People` with a `lastName` property value of
+`Smith`, the built-in `@WhereFilter` annotation can be used:
+
+[source,java]
+----
+@WhereFilter("lastName = 'Smith'")
+private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+
+[#cdi-events-transform]
+==== Transform Observed Events
+
+When an event observer does not want to receive the full cache or map value in an event, the event can be transformed
+into a different value to be observed. This is achieved using a `MapEventTransformer` that is applied to the observer
+method using either an `ExtractorBinding` annotation or a `MapEventTransformerBinding` annotation.
+Transformation of events happens on the server so can make observer's more efficient as they do not need to receive
+the original event with the full old and new values.
+
+*Transforming Events Using ExtractorBinding Annotations*
+
+An `ExtractorBinding` annotation is an annotation that represents a Coherence `ValueExtractor`.
+When an observer method has been annotated with an `ExtractorBinding` annotation the resulting `ValueExtractor` is
+applied to the event's values, and a new event will be returned to the observer containing just the extracted
+properties.
+
+For example, an event observer that is observing events from a map named `people`, but only requires the last name,
+the built in `@PropertyExtractor` annotation can be used.
+
+[source,java]
+----
+@PropertyExtractor("lastName")
+private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, String> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+Unlike the previous examples above the received events of type `MapEvent<Long, Person>` this method will receive
+events of type `MapEvent<Long, String>` because the property extractor will be applied to the `Person`
+values in the original event to extract just the `lastName` property, creating a new event with `String` values.
+
+There are a number of built in `ExtractorBinding` annotations, and it is also possible to create custom
+`ExtractorBinding` annotation - see the <<custom-extractor,Custom ExtractorBinding Annotations>> section below.
+
+Multiple extractor binding annotations can be added to an injection point, in which case multiple properties will be
+extracted, and the event will contain a `List` of the extracted property values.
+
+For example, if the `Person` also contains an `address` field of type `Address` that contains a `city` field, this
+can be extracted with a `@ChainedExtractor` annotation. By combining this with the `@PropertyExtractor` in the
+example above both the `lastName` and `city` can be observed in the event.
+[source,java]
+----
+@PropertyExtractor("lastName")
+@ChainedExtractor({"address", "city"})
+private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, List<String>> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----
+
+Note, now the event is of type `MapEvent<Long, List<String>>` because multiple extracted values will be returned the
+event value is a `List` and in this case both properties are of tyep `String`, so the value can be `List<String>`.
+
+
+*Transforming Events Using MapEventTransformerBinding Annotations*
+
+If more complex event transformations are required than just extracting properties from event values, a custom
+`MapEventTransformerBinding` can be created that will produce a custom `MapEventTransformer` instance that will be
+applied to the observer's events.
+See the <<custom-transformer,Custom MapEventTransformerBinding Annotations>> section below for details on how to create
+`MapEventTransformerBinding` annotations.
+
+
+[#cdi-events-async]
+==== Using Asynchronous Observers
+
+All the examples above used synchronous observers by specifying the `@Observes` qualifier for each observer method.
+However, Coherence CDI fully supports asynchronous CDI observers as well.
+All you need to do is replace `@Observes` with `@ObservesAsync` in any of the examples above.
+
+[source,java]
+----
+private void onMapChange(@ObservesAsync
+                         @Remote
+                         @MapName("people") MapEvent<Long, Person> event) {
+    // handle all events raised by the 'people' map/cache
+}
+----

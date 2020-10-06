@@ -31,11 +31,21 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- We could depend on the Helidon re-packaged io.grpc jar but the re-packaged
+         version of gRPC does not match the version of Netty being used -->
     <dependency>
-      <groupId>io.helidon.grpc</groupId>
-      <artifactId>io.grpc</artifactId>
-      <scope>provided</scope>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>io.helidon.grpc</groupId>
       <artifactId>helidon-grpc-core</artifactId>
@@ -88,30 +98,13 @@
             <id>compile</id>
             <goals>
               <goal>compile</goal>
+              <goal>compile-custom</goal>
             </goals>
-            <configuration>
-              <excludes>
-                <exclude>services.proto</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>test-compile</id>
-            <goals>
-              <goal>test-compile</goal>
-            </goals>
-            <configuration>
-              <protoTestSourceRoot>${basedir}/src/main/proto
-              </protoTestSourceRoot>
-              <excludes>
-                <exclude>messages.proto</exclude>
-              </excludes>
-            </configuration>
           </execution>
         </executions>
         <configuration>
           <protocArtifact>
-            com.google.protobuf:protoc:3.5.1-1:exe:${os.detected.classifier}
+            com.google.protobuf:protoc:3.12.0:exe:${os.detected.classifier}
           </protocArtifact>
           <pluginId>grpc-java</pluginId>
           <pluginArtifact>

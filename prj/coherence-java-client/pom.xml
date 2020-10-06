@@ -17,17 +17,12 @@
   </parent>
  
   <artifactId>coherence-java-client</artifactId>
-  <name>Coherence gRPC Java Client</name>
+  <name>Coherence Java gRPC Client</name>
  
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-cdi</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -38,27 +33,25 @@
     </dependency>
 
     <dependency>
-      <groupId>io.helidon.microprofile.grpc</groupId>
-      <artifactId>helidon-microprofile-grpc-client</artifactId>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.helidon.microprofile.grpc</groupId>
-      <artifactId>helidon-microprofile-grpc-server</artifactId>
-      <scope>provided</scope>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.helidon.microprofile.config</groupId>
-      <artifactId>helidon-microprofile-config</artifactId>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentracing.contrib</groupId>
+      <artifactId>opentracing-grpc</artifactId>
     </dependency>
 
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>jakarta.enterprise</groupId>
-      <artifactId>jakarta.enterprise.cdi-api</artifactId>
     </dependency>
 
     <!-- test dependencies (this will pull in things like JUnit, Mockito etc...) -->
@@ -81,12 +74,6 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.weld</groupId>
-      <artifactId>weld-junit5</artifactId>
       <scope>test</scope>
     </dependency>
 

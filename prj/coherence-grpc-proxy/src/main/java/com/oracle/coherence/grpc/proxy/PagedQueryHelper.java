@@ -13,6 +13,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.UnsafeByteOperations;
 
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.CacheRequestHolder;
 import com.oracle.coherence.grpc.EntryResult;
 import com.oracle.coherence.grpc.PageRequest;
 

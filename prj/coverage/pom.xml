@@ -114,6 +114,11 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-helidon-client</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-hotcache-core</artifactId>
           <version>${project.version}</version>
         </dependency>

@@ -11,6 +11,7 @@ import com.google.protobuf.ByteString;
 
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.CacheDestroyedResponse;
+import com.oracle.coherence.grpc.CacheRequestHolder;
 import com.oracle.coherence.grpc.CacheTruncatedResponse;
 import com.oracle.coherence.grpc.MapEventResponse;
 import com.oracle.coherence.grpc.MapListenerErrorResponse;
@@ -19,6 +20,7 @@ import com.oracle.coherence.grpc.MapListenerResponse;
 import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
 import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
 
+import com.oracle.coherence.grpc.NamedCacheService;
 import com.tangosol.coherence.component.net.message.MapEventMessage;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
@@ -68,19 +70,19 @@ class MapListenerProxy
      * Create a {@link MapListenerProxy} to handle a{@link com.tangosol.util.MapListener}
      * subscription to a cache.
      *
-     * @param service   the {@link NamedCacheService} to proxy
+     * @param service   the {@link NamedCacheServiceBean} to proxy
      * @param observer  the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
      *                  instances to
      */
     @SuppressWarnings("unchecked")
     MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer)
         {
-        this.f_service              = service;
-        this.f_observer             = observer;
-        this.f_mapFilter            = new SegmentedConcurrentMap();
-        this.f_mapKeys              = new SegmentedConcurrentMap();
-        this.f_setKeys              = new HashSet<>();
-        this.f_listenerDeactivation = new DeactivationListener(this);
+        f_service              = service;
+        f_observer             = observer;
+        f_mapFilter            = new SegmentedConcurrentMap();
+        f_mapKeys              = new SegmentedConcurrentMap();
+        f_setKeys              = new HashSet<>();
+        f_listenerDeactivation = new DeactivationListener(this);
         }
 
     // ----- StreamObserver methods -----------------------------------------
@@ -92,10 +94,10 @@ class MapListenerProxy
             {
             if (m_holder == null)
                 {
-                m_holder = f_service.supplyHolderInternal(request,
-                                                          request.getScope(),
-                                                          request.getCache(),
-                                                          request.getFormat());
+                m_holder = f_service.createRequestHolder(request,
+                                                         request.getScope(),
+                                                         request.getCache(),
+                                                         request.getFormat());
                 m_holder.getCache().addMapListener(f_listenerDeactivation);
                 }
             else if (!m_holder.getCacheName().equals(request.getCache()))
@@ -789,7 +791,7 @@ class MapListenerProxy
          */
         protected DeactivationListener(MapListenerProxy proxy)
             {
-            this.f_proxy = proxy;
+            f_proxy = proxy;
             }
 
         // ----- AbstractMapListener methods --------------------------------
@@ -860,8 +862,8 @@ class MapListenerProxy
         @SuppressWarnings("unchecked")
         protected KeyConverter(CacheRequestHolder<MapListenerRequest, Void> holder)
             {
-            this.f_holder    = holder;
-            this.f_converter = holder.getNonPassThruCache().getCacheService().getBackingMapManager().getContext()
+            f_holder    = holder;
+            f_converter = holder.getNonPassThruCache().getCacheService().getBackingMapManager().getContext()
                     .getKeyToInternalConverter();
             }
 
@@ -914,8 +916,8 @@ class MapListenerProxy
          */
         protected FilterInfo(long lId, boolean fLite)
             {
-            this.f_lId   = lId;
-            this.f_fLite = fLite;
+            f_lId   = lId;
+            f_fLite = fLite;
             }
 
         // ----- public methods ---------------------------------------------
@@ -971,7 +973,7 @@ class MapListenerProxy
          */
         protected WrapperPrimingListener(MapListener<Object, Object> wrapped)
             {
-            this.f_listenerWrapped = wrapped;
+            f_listenerWrapped = wrapped;
             }
 
         // ----- MapListener interface --------------------------------------

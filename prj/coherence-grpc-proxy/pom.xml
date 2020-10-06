@@ -32,62 +32,24 @@
       <version>${project.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-cdi-server</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
+    <!-- We could depend on the Helidon re-packaged io.grpc jar but the re-packaged
+         version of gRPC does not match the version of Netty being used -->
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-protobuf</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
-      <artifactId>grpc-services</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-stub</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-core</artifactId>
-        </exclusion>
-      </exclusions>
+      <artifactId>grpc-stub</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.eclipse.microprofile.metrics</groupId>
-      <artifactId>microprofile-metrics-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.helidon.microprofile.grpc</groupId>
-      <artifactId>helidon-microprofile-grpc-server</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-http2</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>io.helidon.grpc</groupId>
-      <artifactId>helidon-grpc-metrics</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.helidon.microprofile.grpc</groupId>
-      <artifactId>helidon-microprofile-grpc-metrics</artifactId>
-      <scope>provided</scope>
+      <groupId>io.opentracing.contrib</groupId>
+      <artifactId>opentracing-grpc</artifactId>
     </dependency>
 
     <dependency>
@@ -105,44 +67,8 @@
     </dependency>
 
     <dependency>
-      <groupId>io.helidon.microprofile.grpc</groupId>
-      <artifactId>helidon-microprofile-grpc-client</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.helidon.tracing</groupId>
-      <artifactId>helidon-tracing-jaeger</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.helidon.metrics</groupId>
-      <artifactId>helidon-metrics</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-http2</artifactId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.helidon.microprofile.metrics</groupId>
-      <artifactId>helidon-microprofile-metrics</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>jakarta.json.bind</groupId>
       <artifactId>jakarta.json.bind-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-client</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -171,13 +97,6 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.weld</groupId>
-      <artifactId>weld-junit5</artifactId>
-      <version>${weld-junit.version}</version>
       <scope>test</scope>
     </dependency>
 

@@ -85,6 +85,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Coherence Helidon -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-helidon-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- bdb -->
     <dependency>
       <groupId>com.sleepycat</groupId>
@@ -335,6 +342,10 @@
 
                     <resource>
                       <directory>../coherence-java-client/src/main/java</directory>
+                    </resource>
+
+                    <resource>
+                      <directory>../coherence-helidon-client/src/main/java</directory>
                     </resource>
                   </resources>
 

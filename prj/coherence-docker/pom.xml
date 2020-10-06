@@ -58,36 +58,9 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-mp-metrics</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-metrics</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <dependency>
-      <groupId>io.helidon.microprofile.cdi</groupId>
-      <artifactId>helidon-microprofile-cdi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.helidon.grpc</groupId>
-      <artifactId>helidon-grpc-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.helidon.microprofile.bundles</groupId>
-      <artifactId>helidon-microprofile-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.helidon.microprofile.metrics</groupId>
-      <artifactId>helidon-microprofile-metrics</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.helidon.tracing</groupId>
-      <artifactId>helidon-tracing-jaeger</artifactId>
-    </dependency>
-
 
     <!-- test dependencies -->
     <dependency>
@@ -222,7 +195,7 @@
                       <!-- Setting the COH_MAIN_CLASS environment variable will make the Coherence K8s Operator use
                            the correct main class without needing to specify it the class name in the Coherence
                            resource yaml -->
-                      <COH_MAIN_CLASS>io.helidon.microprofile.cdi.Main</COH_MAIN_CLASS>
+                      <COH_MAIN_CLASS>com.tangosol.net.DefaultCacheServer</COH_MAIN_CLASS>
                       <!-- Jaeger tracing variables -->
                       <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
                       <JAEGER_SAMPLER_PARAM>1</JAEGER_SAMPLER_PARAM>
@@ -233,7 +206,7 @@
                       <classpath>/coherence/ext/lib/*</classpath>
                     </extraClasspath>
                     <jvmFlags>
-                      <jvmFlag>-Dcoherence.log=jdk</jvmFlag>
+                      <jvmFlag>-Dcoherence.grpc.enabled=true</jvmFlag>
                       <jvmFlag>-Dcoherence.management.http=all</jvmFlag>
                       <jvmFlag>-Dcoherence.management.http.port=${port.management}</jvmFlag>
                       <jvmFlag>-Dcoherence.extend.port=${port.extend}</jvmFlag>

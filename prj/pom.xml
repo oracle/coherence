@@ -704,13 +704,94 @@
       <!-- gRPC -->
       <dependency>
         <groupId>io.grpc</groupId>
+        <artifactId>grpc-core</artifactId>
+        <version>${grpc.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- Used for compilation of "their" sources -->
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- Used for compilation of "their" sources -->
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- Used for compilation of "their" sources -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-annotations</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-api</artifactId>
+        <version>${grpc.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- Used for compilation of "their" sources -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- Used for compilation of "their" sources -->
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- Used for compilation of "their" sources -->
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- Used for compilation of "their" sources -->
+            <groupId>com.google.j2objc</groupId>
+            <artifactId>j2objc-annotations</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-context</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
         <artifactId>grpc-protobuf</artifactId>
+        <version>${grpc.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>grpc-api</artifactId>
+            <groupId>io.grpc</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-stub</artifactId>
         <version>${grpc.version}</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-services</artifactId>
         <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-netty</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <!-- required for dependency convergence, used from guava and perfmark-api -->
+        <groupId>com.google.errorprone</groupId>
+        <artifactId>error_prone_annotations</artifactId>
+        <version>${google-error-prone.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.opentracing.contrib</groupId>
+        <artifactId>opentracing-grpc</artifactId>
+        <version>${opentracing.grpc.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -801,7 +882,7 @@
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
     <maven.animalsniffer.plugin.version>1.16</maven.animalsniffer.plugin.version>
     <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
-    <maven.protobuf.plugin.version>0.5.1</maven.protobuf.plugin.version>
+    <maven.protobuf.plugin.version>0.6.1</maven.protobuf.plugin.version>
 
     <!-- library dependency versions -->
     <activation-api.version>1.2.2</activation-api.version>
@@ -813,13 +894,23 @@
     <cdi-api.version>2.0.2</cdi-api.version>
     <codemodel.version>2.6</codemodel.version>
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
+    <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.config.version>1.4</eclipse.mp.config.version>
-    <eclipse.mp.metrics.version>2.2</eclipse.mp.metrics.version>
+    <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
+    <eclipse.mp.metrics.version>2.3.2</eclipse.mp.metrics.version>
     <eclipse.jetty.version>9.3.11.v20160721</eclipse.jetty.version>
     <felix.version>6.0.3</felix.version>
+    <google-error-prone.version>2.3.3</google-error-prone.version>
     <graal.version>19.3.1</graal.version>
-    <grpc.version>1.27.1</grpc.version>
-    <helidon.version>2.0.1</helidon.version>
+    <grpc.version>1.32.1</grpc.version>
+    <!--
+    NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
+    eclipse.mp.config.version
+    eclipse.mp.metrics.version
+    netty.version ???
+    grpc.version ???
+    -->
+    <helidon.version>2.0.2</helidon.version>
     <helidon.sitegen.version>2.0.0-RC1</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
@@ -844,7 +935,8 @@
     <log4j.version>1.2.17</log4j.version>
     <log4j2.version>2.13.3</log4j2.version>
     <mvel.version>2.4.3.Final</mvel.version>
-    <netty.version>4.1.45.Final</netty.version>
+    <netty.version>4.1.51.Final</netty.version>
+    <opentracing.grpc.version>0.2.1</opentracing.grpc.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
@@ -1767,6 +1859,7 @@
         <module>coherence-grpc</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
+        <module>coherence-helidon-client</module>
       </modules>
     </profile>
 
@@ -1980,6 +2073,7 @@
         <module>coherence-grpc</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
+        <module>coherence-helidon-client</module>
       </modules>
     </profile>
 

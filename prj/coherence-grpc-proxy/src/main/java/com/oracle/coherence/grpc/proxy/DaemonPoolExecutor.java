@@ -7,20 +7,16 @@
 
 package com.oracle.coherence.grpc.proxy;
 
-import java.util.Optional;
-
 import java.util.concurrent.Executor;
 
-import java.util.function.Function;
 import java.util.function.Supplier;
 
-import io.helidon.config.Config;
+import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
 
 import com.tangosol.internal.util.DaemonPool;
-import com.tangosol.internal.util.DaemonPoolDependencies;
+
 import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
-
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.management.AnnotatedStandardMBean;
@@ -28,8 +24,6 @@ import com.tangosol.net.management.Registry;
 
 import com.tangosol.net.management.annotation.Description;
 import com.tangosol.net.management.annotation.MetricsValue;
-
-import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Controllable;
 
@@ -52,6 +46,7 @@ import io.opentracing.Span;
  * @since 20.06
  */
 public class DaemonPoolExecutor
+        extends SimpleDaemonPoolExecutor
         implements Executor, Controllable
     {
     // ----- constructors ---------------------------------------------------
@@ -62,119 +57,66 @@ public class DaemonPoolExecutor
      * @param pool             the {@link DaemonPool} to use
      * @param registrySupplier the supplier to use to obtain a Coherence management {@link Registry}
      */
-    protected DaemonPoolExecutor(DaemonPool pool, Supplier<Registry> registrySupplier)
+    public DaemonPoolExecutor(DaemonPool pool, Supplier<Registry> registrySupplier)
         {
-        this.f_pool             = new TracingDaemonPool(pool);
+        super(new TracingDaemonPool(pool));
         this.f_registrySupplier = registrySupplier;
         }
 
-    // ----- creation methods -----------------------------------------------
+    // ----- factory method -------------------------------------------------
 
     /**
-     * Create a {@link DaemonPoolExecutor}.
+     * Create a {@link DaemonPoolExecutor} with the specified name.
      *
-     * @return a {@link DaemonPoolExecutor}
+     * @param sName  the name of the {@link DaemonPoolExecutor}
+     *
+     * @return a {@link DaemonPoolExecutor} with the specified name
      */
-    protected static DaemonPoolExecutor create()
+    public static DaemonPoolExecutor newInstance(String sName)
         {
-        return create(Config.empty());
+        DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
+        deps.setThreadCount(1);
+        if (sName != null)
+            {
+            deps.setName(sName);
+            }
+        return newInstance(deps);
         }
 
     /**
      * Create a {@link DaemonPoolExecutor}.
      *
-     * @param config the {@link io.helidon.config.Config} to use
+     * @param deps  the configuration of the {@link DaemonPool}
      *
      * @return a {@link DaemonPoolExecutor}
      */
-    protected static DaemonPoolExecutor create(Config config)
+    public static DaemonPoolExecutor newInstance(DefaultDaemonPoolDependencies deps)
         {
-        return builder(config).build();
-        }
-
-    /**
-     * Create a {@link DaemonPoolExecutor.Builder}.
-     *
-     * @return a {@link DaemonPoolExecutor.Builder}
-     */
-    protected static Builder builder()
-        {
-        return builder(Config.empty());
-        }
-
-    /**
-     * Create a {@link DaemonPoolExecutor.Builder}.
-     *
-     * @param config the {@link io.helidon.config.Config} to use
-     *
-     * @return a {@link DaemonPoolExecutor.Builder}
-     */
-    protected static Builder builder(Config config)
-        {
-        return new Builder(config);
+        DaemonPool pool = Daemons.newDaemonPool(deps);
+        return new DaemonPoolExecutor(pool, () -> CacheFactory.ensureCluster().getManagement());
         }
 
     // ----- public methods -------------------------------------------------
 
     @Override
-    public void execute(Runnable command)
-        {
-        f_pool.add(command);
-        }
-
-    @Override
-    public void configure(XmlElement xmlElement)
-        {
-        f_pool.configure(xmlElement);
-        }
-
-    @Override
     public void start()
         {
-        f_pool.start();
+        super.start();
         registerMBean();
-        }
-
-    @Override
-    public boolean isRunning()
-        {
-        return f_pool.isRunning();
-        }
-
-    /**
-     * Return {@code true} if the pool is stuck.
-     *
-     * @return {@code true} if the pool is stuck
-     */
-    boolean isStuck()
-        {
-        return f_pool.isStuck();
         }
 
     @Override
     public void shutdown()
         {
-        f_pool.shutdown();
+        super.shutdown();
         unregisterMBean();
         }
 
     @Override
     public void stop()
         {
-        f_pool.stop();
+        super.stop();
         unregisterMBean();
-        }
-
-    @Override
-    public ClassLoader getContextClassLoader()
-        {
-        return f_pool.getContextClassLoader();
-        }
-
-    @Override
-    public void setContextClassLoader(ClassLoader loader)
-        {
-        f_pool.setContextClassLoader(loader);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -189,9 +131,8 @@ public class DaemonPoolExecutor
             Registry registry = f_registrySupplier.get();
             if (registry != null)
                 {
-                DaemonPoolManagement mBean = new DaemonPoolManagement(f_pool.getDelegate());
-                String               globalName = registry.ensureGlobalName(
-                        "type=DaemonPool,name=" + f_pool.getDependencies().getName());
+                DaemonPoolManagement mBean      = new DaemonPoolManagement(((TracingDaemonPool) f_pool).getDelegate());
+                String               globalName = registry.ensureGlobalName(getMBeanName());
                 registry.register(globalName, new AnnotatedStandardMBean(mBean, DaemonPoolManagementMBean.class));
                 }
             }
@@ -209,128 +150,14 @@ public class DaemonPoolExecutor
         Registry registry = f_registrySupplier.get();
         if (registry != null)
             {
-            String globalName = registry.ensureGlobalName("type=DaemonPool,name=" + f_pool.getDependencies().getName());
+            String globalName = registry.ensureGlobalName(getMBeanName());
             registry.unregister(globalName);
             }
         }
 
-    // ----- inner class: Builder -------------------------------------------
-
-    /**
-     * A builder of {@link DaemonPoolExecutor} instances.
-     */
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public static class Builder
-            implements io.helidon.common.Builder<DaemonPoolExecutor>
+    protected String getMBeanName()
         {
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Initializes the {@code Builder} with the provided {@link Config}.
-         *
-         * @param config  the {@link DaemonPoolExecutor} {@link Config}
-         */
-        protected Builder(Config config)
-            {
-            this.f_config = config;
-            }
-
-        // ----- public methods ---------------------------------------------
-
-        /**
-         * Set the name of the pool.
-         *
-         * @param name the name of the pool
-         *
-         * @return this {@link Builder}
-         */
-        public Builder name(String name)
-            {
-            this.m_optName = Optional.ofNullable(name);
-            return this;
-            }
-
-        /**
-         * Set the supplier function that can create a {@link com.tangosol.internal.util.DaemonPool}
-         * from a {@link com.tangosol.internal.util.DaemonPoolDependencies} instance.
-         *
-         * @param supplier the supplier function
-         *
-         * @return this {@link Builder}
-         */
-        public Builder supplier(Function<DaemonPoolDependencies, DaemonPool> supplier)
-            {
-            this.m_optSupplier = Optional.ofNullable(supplier);
-            return this;
-            }
-
-        /**
-         * Set the {@link Supplier} that will provide a Coherence management {@link Registry}.
-         *
-         * @param supplier the {@link Supplier} that will provide a Coherence management {@link Registry}
-         *
-         * @return this {@link Builder}
-         */
-        public Builder registry(Supplier<Registry> supplier)
-            {
-            this.m_registry = supplier;
-            return this;
-            }
-
-        /**
-         * Set the Coherence management {@link Registry}.
-         *
-         * @param registry the Coherence management {@link Registry}
-         *
-         * @return this {@link Builder}
-         */
-        public Builder registry(Registry registry)
-            {
-            return registry(() -> registry);
-            }
-
-        /**
-         * Return a new {@link DaemonPoolExecutor} based on the {@link Builder builer's} configuration.
-         *
-         * @return a new {@link DaemonPoolExecutor} based on the {@link Builder builer's} configuration
-         */
-        @Override
-        public DaemonPoolExecutor build()
-            {
-            DefaultDaemonPoolDependencies dependencies = new DefaultDaemonPoolDependencies();
-            dependencies.setThreadCount(1);
-            m_optName.ifPresent(dependencies::setName);
-            f_config.get(CONFIG_THREAD_COUNT).asInt().ifPresent(dependencies::setThreadCount);
-            f_config.get(CONFIG_THREAD_COUNT_MIN).asInt().ifPresent(dependencies::setThreadCountMin);
-            f_config.get(CONFIG_THREAD_COUNT_MAX).asInt().ifPresent(dependencies::setThreadCountMax);
-
-            DaemonPool pool = m_optSupplier.orElse(Daemons::newDaemonPool).apply(dependencies);
-            return new DaemonPoolExecutor(pool, m_registry);
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The configuration for this {@link DaemonPoolExecutor}.
-         */
-        private final Config f_config;
-
-        /**
-         * An {@link Optional optional} name for the {@link DaemonPoolExecutor}.
-         */
-        private Optional<String> m_optName = Optional.empty();
-
-        /**
-         * An {@link Optional optional} supplier  function that can create a
-         * {@link com.tangosol.internal.util.DaemonPool} from a
-         * {@link com.tangosol.internal.util.DaemonPoolDependencies} instance.
-         */
-        private Optional<Function<DaemonPoolDependencies, DaemonPool>> m_optSupplier = Optional.empty();
-
-        /**
-         * A {@link Supplier} to produce a {@link Registry} for MBean registration.
-         */
-        private Supplier<Registry> m_registry = () -> CacheFactory.ensureCluster().getManagement();
+        return "type=DaemonPool,name=" + f_pool.getDependencies().getName();
         }
 
     // ----- inner interface: DaemonPoolManagementMBean ---------------------
@@ -648,30 +475,7 @@ public class DaemonPoolExecutor
         protected final com.tangosol.coherence.component.util.DaemonPool pool;
         }
 
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The configuration key for thread count.
-     */
-    static final String CONFIG_THREAD_COUNT = "thread_count";
-
-    /**
-     * The configuration key for min thread count.
-     */
-    static final String CONFIG_THREAD_COUNT_MIN = "thread_count_min";
-
-    /**
-     * The configuration key for max thread count.
-     */
-    static final String CONFIG_THREAD_COUNT_MAX = "thread_count_max";
-
     // ----- data members ---------------------------------------------------
-
-    /**
-     * The {@link com.tangosol.internal.util.DaemonPool} that
-     * will be used to execute tasks.
-     */
-    protected final TracingDaemonPool f_pool;
 
     /**
      * The supplier to use to obtain a Coherence management {@link Registry}.

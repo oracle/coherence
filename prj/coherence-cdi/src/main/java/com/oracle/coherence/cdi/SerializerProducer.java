@@ -8,6 +8,7 @@ package com.oracle.coherence.cdi;
 
 import com.tangosol.coherence.config.Config;
 import com.tangosol.io.DefaultSerializer;
+import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
@@ -44,6 +45,7 @@ import javax.inject.Inject;
  */
 @ApplicationScoped
 public class SerializerProducer
+        implements NamedSerializerFactory
     {
     // ---- constructors ----------------------------------------------------
 
@@ -174,6 +176,7 @@ public class SerializerProducer
      * @throws IllegalArgumentException if no serializer is discoverable
      *                                            with the specified name
      */
+    @Override
     public Serializer getNamedSerializer(String sName, ClassLoader loader)
         {
         return getNamedSerializer(sName, null, loader);
@@ -204,7 +207,8 @@ public class SerializerProducer
         SerializerFactory factory = f_mapSerializerFactory.get(sName);
         if (factory != null)
             {
-            return factory.createSerializer(loader);
+            Map<String, Serializer> mapByName = f_mapSerializer.computeIfAbsent(loader, k -> new ConcurrentHashMap<>());
+            return mapByName.computeIfAbsent(sName, k -> factory.createSerializer(loader));
             }
 
         if ("java".equalsIgnoreCase(sName))
@@ -319,6 +323,11 @@ public class SerializerProducer
      * The default Java serializer.
      */
     private final DefaultSerializer f_defaultSerializer = new DefaultSerializer();
+
+    /**
+     * A map of serializers keyed by Classloader.
+     */
+    private final Map<ClassLoader, Map<String, Serializer>> f_mapSerializer = new ConcurrentHashMap<>();
 
     /**
      * A map of POF serializers keyed by configuration URI.

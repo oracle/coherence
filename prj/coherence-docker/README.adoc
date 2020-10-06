@@ -49,10 +49,6 @@ Coherence metrics can be enabled with the System property `coherence.metrics.htt
 
 |Coherence Tracing
 |Coherence tracing is configured to use a Jaeger tracing server. See the <<tracing,Tracing>> section below.
-
-|Helidon
-|The image contains the Helidon Microprofile web-server and gRPC server, which is used to expose the gRPC proxy
-and Coherence MP metrics.
 |===
 
 
@@ -96,9 +92,8 @@ docker run -d -P oraclecoherence/coherence-ce:{project-version}
 
 The `-P` parameter will ensure that the Extend, gRPC, management and metrics ports will all be exposed.
 
-By default, when started the image will run the Helidon CDI main class `io.helidon.microprofile.cdi.Main`.
-This may be changed by setting the `COH_MAIN_CLASS` environment variable, for example to run `DefaultCacheServer`
-add `-e COH_MAIN_CLASS=com.tangosol.net.DefaultCacheServer` to the Docker command line.
+By default, when started the image will run `com.tangosol.net.DefaultCacheServer`.
+This may be changed by setting the `COH_MAIN_CLASS` environment variable to the nameof another main class.
 
 [source,bash]
 ----
@@ -106,10 +101,6 @@ docker run -d -P \
     -e COH_MAIN_CLASS=com.tangosol.net.DefaultCacheServer \
     oraclecoherence/coherence-ce:{project-version}
 ----
-
-NOTE: Not running the CDI main class will disable any functionality relying on CDI, for example MP metrics,
-the Helidon web-server, gRPC server and Coherence gRPC proxy.
-
 
 ==== Run the Image in Kubernetes
 

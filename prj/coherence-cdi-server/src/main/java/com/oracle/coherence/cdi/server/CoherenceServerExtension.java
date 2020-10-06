@@ -26,6 +26,7 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.ScopedCacheFactoryBuilder;
 import com.tangosol.net.ServiceMonitor;
+import com.tangosol.net.SessionProvider;
 import com.tangosol.net.SimpleServiceMonitor;
 
 import com.tangosol.net.events.InterceptorRegistry;
@@ -194,6 +195,7 @@ public class CoherenceServerExtension
         {
         f_listServiceMonitors.forEach(ServiceMonitor::stopMonitoring);
         f_listCCF.forEach(ConfigurableCacheFactory::dispose);
+        SessionProvider.get().close();
         DefaultCacheServer.shutdown();
         }
 

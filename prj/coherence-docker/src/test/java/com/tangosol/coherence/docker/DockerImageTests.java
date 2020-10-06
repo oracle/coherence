@@ -39,8 +39,7 @@ import com.oracle.bedrock.runtime.options.Console;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
-import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.grpc.client.AsyncNamedCacheClient;
+import com.oracle.coherence.client.GrpcSessions;
 import com.tangosol.internal.net.management.HttpHelper;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
@@ -49,9 +48,9 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
-import io.helidon.grpc.client.GrpcChannelDescriptor;
-import io.helidon.grpc.client.GrpcChannelsProvider;
-
+import com.tangosol.net.Session;
+import io.grpc.Channel;
+import io.grpc.ManagedChannelBuilder;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -397,21 +396,12 @@ public class DockerImageTests
 
             int port = findPortMapping(container, GRPC_PORT);
 
-            GrpcChannelDescriptor channelDescriptor = GrpcChannelDescriptor.builder()
-                    .host("127.0.0.1")
-                    .port(port)
+            Channel channel = ManagedChannelBuilder.forAddress("localhost", port)
+                    .usePlaintext()
                     .build();
 
-            GrpcChannelsProvider provider = GrpcChannelsProvider.builder()
-                    .channel("default", channelDescriptor)
-                    .build();
-
-            AsyncNamedCacheClient<Object, Object> client = AsyncNamedCacheClient
-                    .builder(Scope.DEFAULT, "grpc-test")
-                    .channel(provider.channel("default"))
-                    .build();
-
-            NamedCache<Object, Object> cache  = client.getNamedCache();
+            Session                    session = Session.create(GrpcSessions.channel(channel));
+            NamedCache<Object, Object> cache   = session.getCache("grpc-test");
 
             cache.put("key-1", "value-1");
             assertThat(cache.get("key-1"), is("value-1"));

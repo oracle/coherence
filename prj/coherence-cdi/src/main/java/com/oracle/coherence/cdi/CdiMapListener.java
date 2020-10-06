@@ -356,6 +356,19 @@ public class CdiMapListener<K, V>
             }
         }
 
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        return "CdiMapListener{" +
+                "cacheName='" + m_sCacheName + '\'' +
+                ", serviceName='" + m_sServiceName + '\'' +
+                ", scopeName='" + m_sScopeName + '\'' +
+                ", remoteSession='" + m_sRemoteSession + '\'' +
+                '}';
+        }
+
     // ---- inner enum: Type ------------------------------------------------
 
     /**

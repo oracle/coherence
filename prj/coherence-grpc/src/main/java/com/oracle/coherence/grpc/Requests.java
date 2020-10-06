@@ -1133,4 +1133,29 @@ public final class Requests
      * The default scope value.
      */
     public static final String DEFAULT_SCOPE = "";
+
+    /**
+     * The default remote channel name.
+     */
+    public static final String DEFAULT_CHANNEL_NAME = "default";
+
+    /**
+     * The default remote session name.
+     */
+    public static final String DEFAULT_SESSION_NAME = "default";
+
+    /**
+     * The system property that sets the localhost client port.
+     */
+    public static final String PROP_PORT = "coherence.grpc.server.port";
+
+    /**
+     * The system property that sets the name of the in-process gRPC server.
+     */
+    public static final String PROP_IN_PROCESS_NAME = "coherence.grpc.inprocess.name";
+
+    /**
+     * The default localhost client port.
+     */
+    public static final int DEFAULT_PORT = 1408;
     }

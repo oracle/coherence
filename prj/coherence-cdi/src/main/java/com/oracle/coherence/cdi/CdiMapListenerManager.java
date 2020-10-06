@@ -9,12 +9,13 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.cdi.events.Created;
 
 import com.tangosol.net.NamedMap;
+
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.Filter;
-import com.tangosol.util.Filters;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.MapListener;
+
 import com.tangosol.util.filter.MapEventFilter;
 import com.tangosol.util.filter.MapEventTransformerFilter;
 

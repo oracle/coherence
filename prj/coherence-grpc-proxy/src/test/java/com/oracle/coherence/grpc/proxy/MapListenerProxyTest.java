@@ -9,9 +9,6 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.ByteString;
 
-import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.SerializerProducer;
-
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.MapEventResponse;
 import com.oracle.coherence.grpc.MapListenerErrorResponse;
@@ -22,6 +19,7 @@ import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
 import com.oracle.coherence.grpc.Requests;
 
 import com.tangosol.io.DefaultSerializer;
+import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
@@ -30,7 +28,6 @@ import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -57,14 +54,11 @@ import com.tangosol.util.filter.InKeySetFilter;
 
 import io.grpc.Status;
 
-import io.helidon.config.Config;
-import io.helidon.config.ConfigSources;
-
 import java.io.Serializable;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Properties;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +108,7 @@ class MapListenerProxyTest
         s_binary3    = ExternalizableHelper.toBinary(THREE, SERIALIZER);
         s_bytes3     = BinaryHelper.toByteString(THREE, SERIALIZER);
 
-        s_serializerProducer = mock(SerializerProducer.class);
+        s_serializerProducer = mock(NamedSerializerFactory.class);
         when(s_serializerProducer.getNamedSerializer(eq(JAVA_FORMAT), any(ClassLoader.class))).thenReturn(SERIALIZER);
         when(s_serializerProducer.getNamedSerializer(eq(POF_FORMAT), any(ClassLoader.class))).thenReturn(POF_SERIALIZER);
 
@@ -127,15 +121,14 @@ class MapListenerProxyTest
     @BeforeEach
     void setupEach()
         {
-        m_testCluster   = mock(Cluster.class);
         m_testCCF       = mock(ConfigurableCacheFactory.class);
         CacheStub cache = createCache(TEST_CACHE_NAME);
         s_namedCache    = cache.getMockCache();
 
         when(m_testCCF.ensureCache(eq(TEST_CACHE_NAME), any(ClassLoader.class))).thenReturn(s_namedCache);
-        when(m_testCCF.getScopeName()).thenReturn(Scope.DEFAULT);
+        when(m_testCCF.getScopeName()).thenReturn(Requests.DEFAULT_SCOPE);
 
-        m_ccfSupplier = new NamedCacheService.FixedCacheFactorySupplier(m_testCCF);
+        m_ccfSupplier = ConfigurableCacheFactorySuppliers.fixed(m_testCCF);
         }
 
     // ----- test methods ---------------------------------------------------
@@ -143,10 +136,12 @@ class MapListenerProxyTest
     @Test
     public void shouldNotAddMapListenerIfRequestHasNoCacheName()
         {
-        NamedCacheService                       service = new NamedCacheService(m_testCluster, 
-                                                                                m_ccfSupplier,
-                                                                                s_serializerProducer, 
-                                                                                defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl service = new NamedCacheServiceImpl(deps);
+
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
         MapListenerRequest                      request = MapListenerRequest.newBuilder().setUid("foo").build();
@@ -167,11 +162,14 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapListenerForKey()
         {
-        NamedCacheService                       service = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request  = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, false, false,
                                                                                       ByteString.EMPTY);
@@ -195,11 +193,14 @@ class MapListenerProxyTest
     @Test
     public void shouldNotAddMapListenerForDifferentCache()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, false, ByteString.EMPTY));
 
@@ -208,7 +209,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.addKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest request = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                 "foo", JAVA_FORMAT, s_bytes1,
                                                                 false, false, ByteString.EMPTY);
         proxy.onNext(request);
@@ -229,11 +230,14 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapListenerForKeyAndLiteEvents()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request  = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, true, false,
                                                                                       ByteString.EMPTY);
@@ -257,11 +261,14 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForKey()
         {
-        NamedCacheService                       service = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy = new MapListenerProxy(service, observer);
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 true, false, ByteString.EMPTY));
 
@@ -270,7 +277,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest request = Requests.removeKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                    TEST_CACHE_NAME, JAVA_FORMAT,
                                                                    s_bytes1, false, ByteString.EMPTY);
         proxy.onNext(request);
@@ -293,11 +300,14 @@ class MapListenerProxyTest
     @Test
     public void shouldAddPrimingMapListenerForKey()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request  = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, false, true,
                                                                                       ByteString.EMPTY);
@@ -323,15 +333,18 @@ class MapListenerProxyTest
     @Test
     public void shouldAddSecondPrimingMapListenerForKey()
         {
-        NamedCacheService                       service = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request1 = Requests.addKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request1 = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, true, true,
                                                                                       ByteString.EMPTY);
-        MapListenerRequest                      request2 = Requests.addKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request2 = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, true, true,
                                                                                       ByteString.EMPTY);
@@ -374,12 +387,15 @@ class MapListenerProxyTest
     @Test
     public void shouldRemovePrimingMapListenerForKey()
         {
-        NamedCacheService                       service = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, true, ByteString.EMPTY));
 
@@ -388,7 +404,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest request = Requests.removeKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                                    true, ByteString.EMPTY);
         proxy.onNext(request);
@@ -413,14 +429,16 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapTriggerListenerForKey()
         {
-        NamedCacheService                       service      = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                     s_serializerProducer,
-                                                                                     defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         MapTrigger                              trigger      = new MapTriggerStub();
         ByteString                              triggerBytes = BinaryHelper.toByteString(trigger, SERIALIZER);
         TestStreamObserver<MapListenerResponse> observer     = new TestStreamObserver<>();
         MapListenerProxy                        proxy        = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request      = Requests.addKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request      = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                                           TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                           s_bytes1, false, false,
                                                                                           triggerBytes);
@@ -447,15 +465,17 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapTriggerListenerForKey()
         {
-        NamedCacheService                       service      = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                     s_serializerProducer,
-                                                                                     defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         MapTrigger                              trigger      = new MapTriggerStub();
         ByteString                              triggerBytes = BinaryHelper.toByteString(trigger, SERIALIZER);
         TestStreamObserver<MapListenerResponse> observer     = new TestStreamObserver<>();
         MapListenerProxy                        proxy        = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, false, triggerBytes));
 
@@ -464,7 +484,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeKeyMapListener(Scope.DEFAULT,
+        MapListenerRequest request = Requests.removeKeyMapListener(Requests.DEFAULT_SCOPE,
                                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                                    false, triggerBytes);
         proxy.onNext(request);
@@ -490,11 +510,14 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapListenerForFilter()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addFilterMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request  = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                                                          TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                          s_filterBytes, 1L, false,
                                                                                          false,
@@ -519,11 +542,14 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapListenerForFilterAndLiteEvents()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addFilterMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request  = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                                                          TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                          s_filterBytes, 1L, true, false,
                                                                                          ByteString.EMPTY);
@@ -547,12 +573,15 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForFilter()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                    1L, false, false, ByteString.EMPTY));
 
@@ -561,7 +590,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeFilterMapListener(Scope.DEFAULT,
+        MapListenerRequest request = Requests.removeFilterMapListener(Requests.DEFAULT_SCOPE,
                                                                       TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                                       1L, false, false, ByteString.EMPTY);
         proxy.onNext(request);
@@ -584,11 +613,14 @@ class MapListenerProxyTest
     @Test
     public void shouldAddPrimingMapListenerForFilter()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addFilterMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request  = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                                                          TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                          s_inKeySetFilterBytes, 1L,
                                                                                          false, true, ByteString.EMPTY);
@@ -614,12 +646,14 @@ class MapListenerProxyTest
     @Test
     public void shouldNotAddPrimingMapListenerForNonInKeySetFilter()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer,
-                                                                                 defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addFilterMapListener(Scope.DEFAULT,
+        MapListenerRequest                      request  = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                                                          TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                          s_filterBytes, 1L, false, true,
                                                                                          ByteString.EMPTY);
@@ -640,12 +674,15 @@ class MapListenerProxyTest
     @Test
     public void shouldRemovePrimingMapListenerForFilter()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_inKeySetFilterBytes,
                                                    1L, false, true, ByteString.EMPTY));
 
@@ -654,7 +691,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeFilterMapListener(Scope.DEFAULT,
+        MapListenerRequest request = Requests.removeFilterMapListener(Requests.DEFAULT_SCOPE,
                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                       s_inKeySetFilterBytes, 1L, false, true, ByteString.EMPTY);
         proxy.onNext(request);
@@ -679,15 +716,17 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapTriggerListenerForFilter()
         {
-        NamedCacheService                       service      = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                     s_serializerProducer,
-                                                                                     defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         MapTrigger                              trigger      = new MapTriggerStub();
         ByteString                              triggerBytes = BinaryHelper.toByteString(trigger, SERIALIZER);
         TestStreamObserver<MapListenerResponse> observer     = new TestStreamObserver<>();
         MapListenerProxy                        proxy        = new MapListenerProxy(service, observer);
 
-        MapListenerRequest request = Requests.addFilterMapListener(Scope.DEFAULT,
+        MapListenerRequest request = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                                    1L, false, false, triggerBytes);
         proxy.onNext(request);
@@ -713,15 +752,17 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapTriggerListenerForFilter()
         {
-        NamedCacheService                       service      = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                     s_serializerProducer,
-                                                                                     defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         MapTrigger                              trigger      = new MapTriggerStub();
         ByteString                              triggerBytes = BinaryHelper.toByteString(trigger, SERIALIZER);
         TestStreamObserver<MapListenerResponse> observer     = new TestStreamObserver<>();
         MapListenerProxy                        proxy        = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                    1L, false, false, triggerBytes));
 
@@ -730,7 +771,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeFilterMapListener(Scope.DEFAULT,
+        MapListenerRequest request = Requests.removeFilterMapListener(Requests.DEFAULT_SCOPE,
                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                       s_filterBytes, 1L, false, false, triggerBytes);
         proxy.onNext(request);
@@ -756,13 +797,15 @@ class MapListenerProxyTest
     @Test
     public void shouldAddDeactivationListenerOnInit()
         {
-        NamedCacheService                       service              = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                             s_serializerProducer,
-                                                                                             defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer             = new TestStreamObserver<>();
         MapListenerProxy                        proxy                = new MapListenerProxy(service, observer);
         MapListener<Object, Object>             deactivationListener = proxy.getDeactivationListener();
-        proxy.onNext(Requests.initListenerChannel(Scope.DEFAULT,TEST_CACHE_NAME, JAVA_FORMAT));
+        proxy.onNext(Requests.initListenerChannel(Requests.DEFAULT_SCOPE,TEST_CACHE_NAME, JAVA_FORMAT));
 
         observer.awaitCount(1)
                 .assertValueCount(1)
@@ -774,13 +817,15 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveDeactivationListenerOnCompleted()
         {
-        NamedCacheService                       service              = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                             s_serializerProducer,
-                                                                                             defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer             = new TestStreamObserver<>();
         MapListenerProxy                        proxy                = new MapListenerProxy(service, observer);
         MapListener<Object, Object>             deactivationListener = proxy.getDeactivationListener();
-        proxy.onNext(Requests.initListenerChannel(Scope.DEFAULT,TEST_CACHE_NAME, JAVA_FORMAT));
+        proxy.onNext(Requests.initListenerChannel(Requests.DEFAULT_SCOPE,TEST_CACHE_NAME, JAVA_FORMAT));
 
         observer.awaitCount(1)
                 .assertValueCount(1)
@@ -796,12 +841,15 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForKeyOnCompleted()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1, false,
                                                 false, ByteString.EMPTY));
 
@@ -825,12 +873,15 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForFilterOnCompleted()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT,
                                                    s_filterBytes, 1L, false, false, ByteString.EMPTY));
 
@@ -854,12 +905,15 @@ class MapListenerProxyTest
     @Test
     public void shouldNotRemoveMapListenerForKeyOnCompletedIfCacheInactive()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, false, ByteString.EMPTY));
 
@@ -879,12 +933,15 @@ class MapListenerProxyTest
     @Test
     public void shouldNotRemoveMapListenerForFilterOnCompletedIfCacheInactive()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
+        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                    1L, false, false, ByteString.EMPTY));
 
         observer.awaitCount(1)
@@ -903,12 +960,15 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForKeyOnError()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, false, ByteString.EMPTY));
 
         observer.awaitCount(1)
@@ -931,12 +991,15 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForFilterOnError()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                    1L, false, false, ByteString.EMPTY));
 
@@ -960,12 +1023,15 @@ class MapListenerProxyTest
     @Test
     public void shouldPublishInsertEvent()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytesKey1,
                                                 false, false, ByteString.EMPTY));
 
@@ -997,12 +1063,15 @@ class MapListenerProxyTest
     @Test
     public void shouldPublishUpdateEvent()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytesKey1,
                                                 false, false, ByteString.EMPTY));
 
@@ -1034,12 +1103,15 @@ class MapListenerProxyTest
     @Test
     public void shouldPublishDeleteEvent()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytesKey1,
                                                 false, false, ByteString.EMPTY));
 
@@ -1071,12 +1143,15 @@ class MapListenerProxyTest
     @Test
     public void shouldPublishCacheEvent()
         {
-        NamedCacheService                       service  = new NamedCacheService(m_testCluster, m_ccfSupplier,
-                                                                                 s_serializerProducer, defaultConfig());
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+
+        NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Scope.DEFAULT,
+        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytesKey1,
                                                 false, false, ByteString.EMPTY));
 
@@ -1144,14 +1219,6 @@ class MapListenerProxyTest
     protected <K, V> CacheStub<K, V> createCache(String sName)
         {
         return new CacheStub<>(sName);
-        }
-
-    protected Config defaultConfig()
-        {
-        Properties props = new Properties();
-        props.setProperty(NamedCacheService.CONFIG_PREFIX + "." + NamedCacheService.CONFIG_USE_DAEMON_POOL, "false");
-
-        return Config.create(() -> ConfigSources.create(props).build());
         }
 
     // ----- NamedCache stub ------------------------------------------------
@@ -1261,9 +1328,9 @@ class MapListenerProxyTest
 
     // ----- data members ---------------------------------------------------
 
-    protected static SerializerProducer s_serializerProducer;
+    protected static NamedSerializerFactory s_serializerProducer;
     
-    protected static NamedCacheService.FixedCacheFactorySupplier m_ccfSupplier;
+    protected static Function<String, ConfigurableCacheFactory> m_ccfSupplier;
 
     protected static Binary s_binary1;
 
@@ -1292,6 +1359,4 @@ class MapListenerProxyTest
     protected static ByteString s_inKeySetFilterBytes;
 
     protected ConfigurableCacheFactory m_testCCF;
-
-    protected Cluster m_testCluster;
     }
