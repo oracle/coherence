@@ -10,7 +10,9 @@
 -----
 <img src=https://oracle.github.io/coherence/assets/images/logo-red.png><img>
 
+![CI Build](https://github.com/oracle/coherence/workflows/CI%20Build/badge.svg)
 [![License](http://img.shields.io/badge/license-UPL%201.0-blue.svg)](https://oss.oracle.com/licenses/upl/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/oraclecoherence/coherence-ce)](https://hub.docker.com/r/oraclecoherence/coherence-ce)
 
 # Oracle Coherence Community Edition
 
