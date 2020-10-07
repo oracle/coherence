@@ -37,14 +37,11 @@ import com.oracle.bedrock.runtime.docker.options.ContainerCloseBehaviour;
 import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Console;
 
-import com.oracle.bedrock.testsupport.junit.TestLogs;
-
 import com.oracle.coherence.client.GrpcSessions;
 import com.tangosol.internal.net.management.HttpHelper;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -79,6 +76,7 @@ import java.util.List;
 import java.util.Queue;
 
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
@@ -86,9 +84,7 @@ import static com.tangosol.net.cache.TypeAssertion.withTypes;
 
 import static org.hamcrest.CoreMatchers.both;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
@@ -144,13 +140,12 @@ public class DockerImageTests
 
         try (Application app = platform.launch(Run.image(IMAGE_NAME)
                                                        .detached()
-                                                       .env("COH_MAIN_CLASS", DefaultCacheServer.class.getName()),
+                                                       .env("COH_MAIN_CLASS", CacheFactory.class.getName()),
                                                new DumpLogsOnClose(),
                                                ContainerCloseBehaviour.remove()))
             {
             DockerContainer container = app.get(DockerContainer.class);
-            assertStarted(platform, container, "Started DefaultCacheServer...");
-            assertThat(tailLogs(platform, container, 50), not(hasItem(containsString(STARTED_MESSAGE))));
+            assertStarted(platform, container, "Map (?)");
             }
         }
 
@@ -202,8 +197,8 @@ public class DockerImageTests
             DockerContainer container = app.get(DockerContainer.class);
             assertStarted(platform, container);
 
-            Collection<String> logLines = tailLogs(platform, container);
-            assertThat(logLines, hasItem(containsString("Started cluster Name=datagrid")));
+            String logLines = tailLogs(platform, container);
+            assertThat(logLines, containsString("Started cluster Name=datagrid"));
             }
         }
 
@@ -270,21 +265,21 @@ public class DockerImageTests
             DockerContainer container = app.get(DockerContainer.class);
 
             Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
-                    hasItem(both(containsString(HttpHelper.getServiceName() + ":HttpAcceptor"))
-                                    .and(containsString(Integer.toString(MANAGEMENT_PORT)))),
+                    both(containsString(HttpHelper.getServiceName() + ":HttpAcceptor"))
+                                    .and(containsString(Integer.toString(MANAGEMENT_PORT))),
                     InitialDelay.of(10, TimeUnit.SECONDS),
                     Timeout.after(2, TimeUnit.MINUTES),
                     MaximumRetryDelay.of(10, TimeUnit.SECONDS),
                     RetryFrequency.every(10, TimeUnit.SECONDS));
 
             Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
-                    hasItem(containsString("Service " + HttpHelper.getServiceName() + " joined")),
+                    containsString("Service " + HttpHelper.getServiceName() + " joined"),
                     Timeout.after(1, TimeUnit.MINUTES),
                     MaximumRetryDelay.of(10, TimeUnit.SECONDS),
                     RetryFrequency.every(10, TimeUnit.SECONDS));
 
             Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
-                    hasItem(containsString(STARTED_MESSAGE)),
+                    containsString(STARTED_MESSAGE),
                     Timeout.after(1, TimeUnit.MINUTES),
                     MaximumRetryDelay.of(10, TimeUnit.SECONDS),
                     RetryFrequency.every(10, TimeUnit.SECONDS)
@@ -342,49 +337,9 @@ public class DockerImageTests
         }
 
     @Test
-    public void shouldStartMicroprofileMetricsServer() throws Exception
-        {
-        verifyTestAssumptions();
-
-        Platform platform = LocalPlatform.get();
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME).detached().publishAll(),
-                                               new DumpLogsOnClose(),
-                                               ContainerCloseBehaviour.remove()))
-            {
-            DockerContainer container = app.get(DockerContainer.class);
-            assertStarted(platform, container);
-
-            int               port = findPortMapping(container, MP_METRICS_PORT);
-            URI               uri  = URI.create("http://127.0.0.1:" + port + "/metrics/vendor/Coherence.Cluster.Size");
-            HttpURLConnection con  = (HttpURLConnection) uri.toURL().openConnection();
-
-            con.setRequestMethod("GET");
-            assertThat(con.getResponseCode(), is(200));
-
-            StringBuilder sbResponse = new StringBuilder();
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream())))
-                {
-                String inputLine;
-
-                while ((inputLine = in.readLine()) != null)
-                    {
-                    sbResponse.append(inputLine).append("\n");
-                    }
-                }
-
-            String response = sbResponse.toString();
-            assertThat(response, is(notNullValue()));
-            assertThat(response, containsString("vendor_Coherence_Cluster_Size{"));
-            }
-        }
-
-
-    @Test
     public void shouldStartGrpcServer()
         {
         verifyTestAssumptions();
-
         Platform platform = LocalPlatform.get();
 
         try (Application app = platform.launch(Run.image(IMAGE_NAME).detached().publishAll(),
@@ -441,7 +396,7 @@ public class DockerImageTests
                 {
                 DockerContainer container2 = app2.get(DockerContainer.class);
                 assertStarted(platform, container2);
-                assertThat(tailLogs(platform, container2), hasItem(containsString("ActualMemberSet=MemberSet(Size=2")));
+                assertThat(tailLogs(platform, container2), containsString("ActualMemberSet=MemberSet(Size=2"));
                 }
             }
         }
@@ -456,8 +411,8 @@ public class DockerImageTests
 
     private void assertStarted(Platform platform, DockerContainer container, String sMessage)
         {
-        Eventually.assertThat(invoking(this).tailLogs(platform, container, 50),
-            hasItem(containsString(sMessage)),
+        Eventually.assertDeferred(() -> tailLogs(platform, container, 50),
+            containsString(sMessage),
             InitialDelay.of(10, TimeUnit.SECONDS),
             Timeout.after(2, TimeUnit.MINUTES),
             MaximumRetryDelay.of(10, TimeUnit.SECONDS),
@@ -521,7 +476,7 @@ public class DockerImageTests
      * @return the tail of the log of the specified container
      */
     // must be public as this method is used in an Eventually.assertThat
-    public Collection<String> tailLogs(Platform platform, DockerContainer container, Object cLines)
+    public String tailLogs(Platform platform, DockerContainer container, Object cLines)
         {
         return tailLogs(platform, container.getName(), cLines);
         }
@@ -535,7 +490,7 @@ public class DockerImageTests
      * @return the tail of the log of the specified container
      */
     // must be public as this method is used in an Eventually.assertThat
-    public Collection<String> tailLogs(Platform platform, DockerContainer container)
+    public String tailLogs(Platform platform, DockerContainer container)
         {
         return tailLogs(platform, container.getName(), null);
         }
@@ -551,7 +506,7 @@ public class DockerImageTests
      * @return the tail of the log of the specified container
      */
     // must be public as this method is used in an Eventually.assertThat
-    public Collection<String> tailLogs(Platform platform, String containerName, Object cLines)
+    public String tailLogs(Platform platform, String containerName, Object cLines)
         {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
         Logs                        logs    = Logs.from(containerName);
@@ -571,7 +526,7 @@ public class DockerImageTests
         lines.addAll(console.getCapturedOutputLines());
         lines.addAll(console.getCapturedErrorLines());
 
-        return lines;
+        return lines.stream().collect(Collectors.joining("\n"));
         }
 
     /**
@@ -657,7 +612,6 @@ public class DockerImageTests
                     File   logs = new File(dir, name + ".log");
 
                     FileConsole console = new FileConsole(new FileWriter(logs));
-
                     try (Application app = platform.launch(Logs.from(name),
                                                            DisplayName.of(name),
                                                            LaunchLogging.disabled(),
@@ -714,10 +668,9 @@ public class DockerImageTests
     public static final int GRPC_PORT = Integer.getInteger("port.grpc", 1408);
     public static final int MANAGEMENT_PORT = Integer.getInteger("port.management", HttpHelper.DEFAULT_MANAGEMENT_OVER_REST_PORT);
     public static final int METRICS_PORT = Integer.getInteger("port.metrics", MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT);
-    public static final int MP_METRICS_PORT = Integer.getInteger("port.mp.metrics", 7001);
     public static final int EXTEND_PORT = Integer.getInteger("port.extend",20000);
 
-    public static final String STARTED_MESSAGE = "Server started on http://localhost:7001";
+    public static final String STARTED_MESSAGE = "Started DefaultCacheServer...";
 
     // ----- data members ---------------------------------------------------
 
@@ -731,7 +684,4 @@ public class DockerImageTests
      */
     @Rule
     public TestName m_testWatcher = new TestName();
-
-    @Rule
-    public TestLogs m_testLogs = new TestLogs(DockerImageTests.class);
     }

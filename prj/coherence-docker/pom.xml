@@ -32,7 +32,6 @@
     <port.extend>20000</port.extend>
     <port.management>30000</port.management>
     <port.metrics>9612</port.metrics>
-    <port.mp.metrics>7001</port.mp.metrics>
   </properties>
 
   <dependencies>
@@ -207,6 +206,7 @@
                     </extraClasspath>
                     <jvmFlags>
                       <jvmFlag>-Dcoherence.grpc.enabled=true</jvmFlag>
+                      <jvmFlag>-Dcoherence.grpc.port=${port.grpc}</jvmFlag>
                       <jvmFlag>-Dcoherence.management.http=all</jvmFlag>
                       <jvmFlag>-Dcoherence.management.http.port=${port.management}</jvmFlag>
                       <jvmFlag>-Dcoherence.extend.port=${port.extend}</jvmFlag>
@@ -217,7 +217,6 @@
                     <ports>
                       <port>${port.grpc}</port>
                       <port>${port.metrics}</port>
-                      <port>${port.mp.metrics}</port>
                       <port>${port.management}</port>
                       <port>${port.extend}</port>
                     </ports>

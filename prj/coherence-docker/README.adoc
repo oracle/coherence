@@ -40,9 +40,6 @@ The image built by the `coherence-docker` module contains the following Coherenc
 |Coherence Management
 |Coherence Management over REST, exposed on port `30000`
 
-|Coherence MP Metrics
-|Coherence Microprofile metrics, exposed on port `7001`
-
 |Coherence Metrics
 |Standard Coherence metrics is installed and exposed on port `9612`, but is disabled by default.
 Coherence metrics can be enabled with the System property `coherence.metrics.http.enabled=true`
