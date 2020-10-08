@@ -58,10 +58,30 @@
       <version>${netty.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.helidon.microprofile.grpc</groupId>
+      <artifactId>helidon-microprofile-grpc-server</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-codec-http2</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+
     <!-- test dependencies -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-json</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-cdi-server</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

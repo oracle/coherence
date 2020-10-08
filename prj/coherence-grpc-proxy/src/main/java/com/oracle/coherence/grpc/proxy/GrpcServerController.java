@@ -56,7 +56,7 @@ public class GrpcServerController
      */
     public synchronized void start()
         {
-        if (isRunning())
+        if (isRunning() || !m_fEnabled)
             {
             return;
             }
@@ -190,6 +190,21 @@ public class GrpcServerController
         return Collections.singletonList(new NamedCacheServiceGrpcImpl());
         }
 
+    /**
+     * Enable or disable this controller.
+     * <p>
+     * If disabled then the gRPC proxy will not be started.
+     * this method can be used in applications where the
+     * gRPC services are being deploed manually or by some
+     * other mechanism such as CDI.
+     *
+     * @param fEnabled {@code false} to disable the controller.
+     */
+    public void setEnabled(boolean fEnabled)
+        {
+        m_fEnabled = fEnabled;
+        }
+
     // ----- helper methods -------------------------------------------------
 
     private void configure(ServerBuilder<?> serverBuilder, InProcessServerBuilder inProcessServerBuilder)
@@ -293,6 +308,11 @@ public class GrpcServerController
      * The name of the in-process server.
      */
     private String m_inProcessName;
+
+    /**
+     * A flag indicating whether this controller is enabled.
+     */
+    private boolean m_fEnabled = true;
 
     /**
      * A {@link CompletableFuture} that will be completed when the server has started.

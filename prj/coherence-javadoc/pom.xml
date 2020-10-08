@@ -140,6 +140,21 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Helidon -->
+    <dependency>
+      <groupId>io.helidon.microprofile.grpc</groupId>
+      <artifactId>helidon-microprofile-grpc-server</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-codec-http2</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+
     <!-- jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
