@@ -38,9 +38,11 @@ import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Console;
 
 import com.oracle.coherence.client.GrpcSessions;
+import com.oracle.coherence.io.json.JsonSerializer;
 import com.tangosol.internal.net.management.HttpHelper;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
+import com.tangosol.io.Serializer;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -337,7 +339,7 @@ public class DockerImageTests
         }
 
     @Test
-    public void shouldStartGrpcServer()
+    public void shouldStartGrpcServerAndConnectWithJson()
         {
         verifyTestAssumptions();
         Platform platform = LocalPlatform.get();
@@ -355,8 +357,10 @@ public class DockerImageTests
                     .usePlaintext()
                     .build();
 
-            Session                    session = Session.create(GrpcSessions.channel(channel));
-            NamedCache<Object, Object> cache   = session.getCache("grpc-test");
+            Serializer                 serializer = new JsonSerializer();
+            Session                    session    = Session.create(GrpcSessions.channel(channel),
+                                                                   GrpcSessions.serializer(serializer, "json"));
+            NamedCache<Object, Object> cache      = session.getCache("grpc-test");
 
             cache.put("key-1", "value-1");
             assertThat(cache.get("key-1"), is("value-1"));
