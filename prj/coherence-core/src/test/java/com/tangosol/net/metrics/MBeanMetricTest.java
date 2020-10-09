@@ -29,8 +29,10 @@ public class MBeanMetricTest
     @Test
     public void shouldCreateIdentifier()
         {
-        String sName = "fooBar";
-        MBeanMetric.Identifier id = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, tags("1", "2", "3", "4"));
+        String                 sName = "fooBar";
+        MBeanMetric.Identifier id    = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR,
+                                                                  sName,
+                                                                  tags("1", "2", "3", "4"));
 
         assertThat(id.getScope(), is(MBeanMetric.Scope.VENDOR));
         assertThat(id.getName(), is(sName));
@@ -40,9 +42,13 @@ public class MBeanMetricTest
     @Test
     public void shouldBeEqualIdentifiers()
         {
-        String sName = "foo.bar";
-        MBeanMetric.Identifier one = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, tags("1", "2", "3", "4"));
-        MBeanMetric.Identifier two = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, tags("1", "2", "3", "4"));
+        String                 sName = "foo.bar";
+        MBeanMetric.Identifier one   = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR,
+                                                                  sName,
+                                                                  tags("1", "2", "3", "4"));
+        MBeanMetric.Identifier two   = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR,
+                                                                  sName,
+                                                                  tags("1", "2", "3", "4"));
 
         assertThat(one, is(two));
         }
@@ -50,8 +56,10 @@ public class MBeanMetricTest
     @Test
     public void shouldGetFormattedIdentifierName()
         {
-        String sName = "fooBar";
-        MBeanMetric.Identifier id = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, tags("1", "2", "3", "4"));
+        String                 sName = "fooBar";
+        MBeanMetric.Identifier id    = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR,
+                                                                  sName,
+                                                                  tags("1", "2", "3", "4"));
 
         assertThat(id.getFormattedName(), is("foo.bar"));
         }
@@ -59,8 +67,10 @@ public class MBeanMetricTest
     @Test
     public void shouldGetLegacyIdentifierName()
         {
-        String sName = "fooBar";
-        MBeanMetric.Identifier id = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, tags("1", "2", "3", "4"));
+        String                 sName = "fooBar";
+        MBeanMetric.Identifier id    = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR,
+                                                                  sName,
+                                                                  tags("1", "2", "3", "4"));
 
         assertThat(id.getLegacyName(), is("vendor:foo_bar"));
         }
@@ -68,8 +78,10 @@ public class MBeanMetricTest
     @Test
     public void shouldGetMicroprofileIdentifierName()
         {
-        String sName = "fooBar";
-        MBeanMetric.Identifier id = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, tags("1", "2", "3", "4"));
+        String                 sName = "fooBar";
+        MBeanMetric.Identifier id    = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR,
+                                                                  sName,
+                                                                  tags("1", "2", "3", "4"));
 
         assertThat(id.getMicroprofileName(), is("vendor_fooBar"));
         }
@@ -77,23 +89,23 @@ public class MBeanMetricTest
     @Test
     public void shouldGetFormattedIdentifierTags()
         {
-        String                    sName    = "fooBar";
-        SortedMap<String, String> tags     = tags("1", "9", "aB", "8", "c_d", "7", "E", "6");
-        SortedMap<String, String> expected = tags("1", "9", "a.b", "8", "c.d", "7", "e", "6");
-        MBeanMetric.Identifier    id       = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, tags);
+        String                    sName       = "fooBar";
+        SortedMap<String, String> mapTags     = tags("1", "9", "aB", "8", "c_d", "7", "E", "6");
+        SortedMap<String, String> mapExpected = tags("1", "9", "a.b", "8", "c.d", "7", "e", "6");
+        MBeanMetric.Identifier    id          = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, mapTags);
 
-        assertThat(id.getFormattedTags(), is(expected));
+        assertThat(id.getFormattedTags(), is(mapExpected));
         }
 
     @Test
     public void shouldGetPrometheusIdentifierTags()
         {
-        String                    sName    = "fooBar";
-        SortedMap<String, String> tags     = tags("1", "9", "aB", "8", "c_d", "7", "E", "6");
-        SortedMap<String, String> expected = tags("1", "9", "a_b", "8", "c_d", "7", "e", "6");
-        MBeanMetric.Identifier    id       = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, tags);
+        String                    sName       = "fooBar";
+        SortedMap<String, String> mapTags     = tags("1", "9", "aB", "8", "c_d", "7", "E", "6");
+        SortedMap<String, String> mapExpected = tags("1", "9", "a_b", "8", "c_d", "7", "e", "6");
+        MBeanMetric.Identifier    id          = new MBeanMetric.Identifier(MBeanMetric.Scope.VENDOR, sName, mapTags);
 
-        assertThat(id.getPrometheusTags(), is(expected));
+        assertThat(id.getPrometheusTags(), is(mapExpected));
         }
 
     private SortedMap<String, String> tags(String... tags)

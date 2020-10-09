@@ -154,6 +154,11 @@ public class MetricsResource
 
     // ----- helper methods -------------------------------------------------
 
+    /**
+     * Determine the metric format to use based on system properties.
+     *
+     * @return  the metric format to use based on system properties
+     */
     static Format defaultFormat()
         {
         if (Config.getBoolean(PROP_USE_LEGACY_NAMES, true))
@@ -291,16 +296,16 @@ public class MetricsResource
         /**
          * Construct {@code PrometheusFormatter} instance.
          *
-         * @param fExtended  the flag specifying whether to include metric type
-         *                   and description into the output
-         * @param format     the format to use for metric names and tag keys.
-         * @param metrics    the list of metrics to write
+         * @param fExtended    the flag specifying whether to include metric type
+         *                     and description into the output
+         * @param format       the format to use for metric names and tag keys.
+         * @param listMetrics  the list of metrics to write
          */
-        PrometheusFormatter(boolean fExtended, Format format, List<MBeanMetric> metrics)
+        PrometheusFormatter(boolean fExtended, Format format, List<MBeanMetric> listMetrics)
             {
-            f_fExtended = fExtended;
-            f_format    = format;
-            f_metrics   = metrics;
+            f_fExtended   = fExtended;
+            f_format      = format;
+            f_listMetrics = listMetrics;
             }
 
         // ---- MetricsFormatter interface ----------------------------------
@@ -308,7 +313,7 @@ public class MetricsResource
         @Override
         public void writeMetrics(Writer writer) throws IOException
             {
-            for (MBeanMetric metric : f_metrics)
+            for (MBeanMetric metric : f_listMetrics)
                 {
                 writeMetric(writer, metric);
                 }
@@ -318,21 +323,21 @@ public class MetricsResource
 
         private void writeMetric(Writer writer, MBeanMetric m) throws IOException
             {
-            MBeanMetric.Identifier id  = m.getIdentifier();
-            Map<String, String> mapTag = id.getPrometheusTags();
-            String              sName;
+            MBeanMetric.Identifier id     = m.getIdentifier();
+            Map<String, String>    mapTag = id.getPrometheusTags();
+            String                 sName;
 
             switch (f_format)
                 {
                 case Legacy:
-                    sName  = id.getLegacyName();
+                    sName = id.getLegacyName();
                     break;
                 case Microprofile:
-                    sName  = id.getMicroprofileName();
+                    sName = id.getMicroprofileName();
                     break;
                 case DotDelimited:
                 default:
-                    sName  = id.getFormattedName().replaceAll("\\.", "_");
+                    sName = id.getFormattedName().replaceAll("\\.", "_");
                 }
 
             if (f_fExtended)
@@ -406,7 +411,7 @@ public class MetricsResource
         /**
          * The list of metrics to write.
          */
-        private final List<MBeanMetric> f_metrics;
+        private final List<MBeanMetric> f_listMetrics;
         }
 
     // ----- inner class: JsonFormatter -------------------------------------

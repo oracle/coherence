@@ -83,6 +83,13 @@ public class CoherenceMicrometerMetrics
         register(f_mapRegistry.keySet(), holder);
         }
 
+    /**
+     * Create a metric {@link Holder}.
+     *
+     * @param metric the metric to put in the {@link Holder}
+     *
+     * @return  a metric {@link Holder} containing the specified metric
+     */
     Holder createHolder(MBeanMetric metric)
         {
         MBeanMetric.Identifier identifier = metric.getIdentifier();
@@ -248,35 +255,73 @@ public class CoherenceMicrometerMetrics
 
     // ----- inner class: Holder --------------------------------------------
 
+    /**
+     * A metric holder.
+     */
     static class Holder
         {
-        public Holder(MBeanMetric metric, String sName, Tags tags)
+        /**
+         * Create a holder for a metric.
+         *
+         * @param metric  the metric to hold
+         * @param sName   the metric name
+         * @param tags    the metric tags
+         */
+        Holder(MBeanMetric metric, String sName, Tags tags)
             {
             f_metric  = metric;
             f_sName   = sName;
             f_tags    = tags;
             }
 
+        /**
+         * Return the metric identifier.
+         *
+         * @return  the metric identifier
+         */
         MBeanMetric.Identifier getIdentifier()
             {
             return f_metric.getIdentifier();
             }
 
+        /**
+         * Return the metric name.
+         *
+         * @return the metric name
+         */
         String getName()
             {
             return f_sName;
             }
 
+        /**
+         * Return the metric tags.
+         *
+         * @return  the metric tags
+         */
         Tags getTags()
             {
             return f_tags;
             }
 
+        /**
+         * Return the metric description.
+         *
+         * @return  the metric description
+         */
         String getDescription()
             {
             return f_metric.getDescription();
             }
 
+        /**
+         * Return the value of the metric as a {@code double}.
+         * <p>
+         * If the metric value is {@code null} or not a number {@code 0.0d}
+         * will be returned.
+         *
+         * @return  the metric value as a {@code double}
+         */
         double getValue()
             {
             Object oValue = f_metric.getValue();
@@ -287,6 +332,13 @@ public class CoherenceMicrometerMetrics
             return 0.0d;
             }
 
+        /**
+         * Set the metric for this holder.
+         *
+         * @param metric  the metric for this holder
+         *
+         * @return  this {@link Holder}
+         */
         Holder setMetric(MBeanMetric metric)
             {
             f_metric = metric;
@@ -295,8 +347,19 @@ public class CoherenceMicrometerMetrics
 
         // ----- data members -----------------------------------------------
 
+        /**
+         * The metric being held in this holder.
+         */
         private MBeanMetric f_metric;
+
+        /**
+         * The name of metric being held in this holder.
+         */
         private final String f_sName;
+
+        /**
+         * The tags for the metric being held in this holder.
+         */
         private final Tags f_tags;
         }
 
