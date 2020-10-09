@@ -13,7 +13,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.Config;
-
 import com.tangosol.net.metrics.MBeanMetric;
 
 import java.io.IOException;
@@ -24,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import java.util.function.Predicate;
-
-import java.util.regex.Pattern;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,20 +63,17 @@ public class MetricsResource
      */
     public MetricsResource()
         {
-        this(Boolean.parseBoolean(Config.getProperty(PROP_USE_LEGACY_NAMES, "true")));
+        this(defaultFormat());
         }
 
     /**
      * Create a MetricsResource.
      *
-     * @param fUseLegacyNames  a flag that when {@code true} will cause metric names to
-     *                         be in the legacy format and when {@code false} will cause
-     *                         metric names to be Microprofile compatible when publishing
-     *                         Prometheus metrics.
+     * @param format the format to use for metric names and tag keys.
      */
-    MetricsResource(boolean fUseLegacyNames)
+    MetricsResource(Format format)
         {
-        f_fUseLegacyNames = fUseLegacyNames;
+        f_format = format;
         }
 
 
@@ -95,7 +89,9 @@ public class MetricsResource
     public MetricsFormatter getPrometheusMetrics(@Context UriInfo uriInfo)
         {
         final MetricPredicate predicate = new MetricPredicate(null, uriInfo.getQueryParameters());
-        return new PrometheusFormatter(useExtendedFormat(uriInfo), f_fUseLegacyNames, getMetrics(predicate));
+        return new PrometheusFormatter(useExtendedFormat(uriInfo),
+                                       f_format,
+                                       getMetrics(predicate));
         }
 
     /**
@@ -118,7 +114,7 @@ public class MetricsResource
     public MetricsFormatter getPrometheusMetrics(@PathParam("metric") String sName, @Context UriInfo uriInfo)
         {
         final MetricPredicate predicate = new MetricPredicate(sName, uriInfo.getQueryParameters());
-        return new PrometheusFormatter(useExtendedFormat(uriInfo), f_fUseLegacyNames, getMetrics(predicate));
+        return new PrometheusFormatter(useExtendedFormat(uriInfo), f_format, getMetrics(predicate));
         }
 
     /**
@@ -157,6 +153,19 @@ public class MetricsResource
         }
 
     // ----- helper methods -------------------------------------------------
+
+    static Format defaultFormat()
+        {
+        if (Config.getBoolean(PROP_USE_LEGACY_NAMES, true))
+            {
+            return Format.Legacy;
+            }
+        else if (Config.getBoolean(PROP_USE_MP_NAMES, false))
+            {
+            return Format.Microprofile;
+            }
+        return Format.DotDelimited;
+        }
 
     private boolean useExtendedFormat(UriInfo uriInfo)
         {
@@ -282,16 +291,16 @@ public class MetricsResource
         /**
          * Construct {@code PrometheusFormatter} instance.
          *
-         * @param fExtended        the flag specifying whether to include metric type
-         *                         and description into the output
-         * @param fUseLegacyNames  a flag specifying whether to use COherence legacy name formats
-         * @param metrics          the list of metrics to write
+         * @param fExtended  the flag specifying whether to include metric type
+         *                   and description into the output
+         * @param format     the format to use for metric names and tag keys.
+         * @param metrics    the list of metrics to write
          */
-        PrometheusFormatter(boolean fExtended, boolean fUseLegacyNames, List<MBeanMetric> metrics)
+        PrometheusFormatter(boolean fExtended, Format format, List<MBeanMetric> metrics)
             {
-            f_fExtended       = fExtended;
-            f_fUseLegacyNames = fUseLegacyNames;
-            f_metrics         = metrics;
+            f_fExtended = fExtended;
+            f_format    = format;
+            f_metrics   = metrics;
             }
 
         // ---- MetricsFormatter interface ----------------------------------
@@ -309,8 +318,22 @@ public class MetricsResource
 
         private void writeMetric(Writer writer, MBeanMetric m) throws IOException
             {
-            final MBeanMetric.Identifier id = m.getIdentifier();
-            final String sName = prometheusName(id.getScope(), id.getName());
+            MBeanMetric.Identifier id  = m.getIdentifier();
+            Map<String, String> mapTag = id.getPrometheusTags();
+            String              sName;
+
+            switch (f_format)
+                {
+                case Legacy:
+                    sName  = id.getLegacyName();
+                    break;
+                case Microprofile:
+                    sName  = id.getMicroprofileName();
+                    break;
+                case DotDelimited:
+                default:
+                    sName  = id.getFormattedName().replaceAll("\\.", "_");
+                }
 
             if (f_fExtended)
                 {
@@ -319,7 +342,7 @@ public class MetricsResource
                 }
 
             writer.append(sName);
-            writeTags(writer, id.getTags());
+            writeTags(writer, mapTag);
 
             writer.append(' ')
                   .append(m.getValue().toString())
@@ -353,7 +376,7 @@ public class MetricsResource
                 while (iterator.hasNext())
                     {
                     Map.Entry<String, String> tag = iterator.next();
-                    writer.append(prometheusName(null, tag.getKey()))
+                    writer.append(tag.getKey())
                           .append("=\"")
                           .append(tag.getValue())
                           .append('"');
@@ -367,67 +390,6 @@ public class MetricsResource
                 }
             }
 
-        private String prometheusName(MBeanMetric.Scope scope, String sName)
-            {
-            // ************************************************************
-            // Warning: Changing this method may change the format of the
-            // metric names and will break any customer that relies on this
-            // for things like Grafana dashboards.
-            // ************************************************************
-
-            // spec 3.2.1
-
-            // Escape any invalid characters by changing them to an underscore
-            sName = sName.replaceAll("[^a-zA-Z0-9_]", "_");
-
-            if (!f_fUseLegacyNames)
-                {
-                // We're configured to use Microprofile compatible names so just
-                // concatenate the registry scope and metric name.
-                return scope == null ? sName : scope.name().toLowerCase() + "_" + sName;
-                }
-
-            if (scope != null)
-                {
-                //Scope is always specified at the start of the metric name.
-                //Scope and name are separated by colon (:).
-                sName = scope.name().toLowerCase() + ":" + sName;
-                }
-
-            //camelCase is translated to snake_case
-            sName = camelToSnake(sName);
-
-            String orig;
-            do
-                {
-                orig = sName;
-                //Double underscore is translated to single underscore
-                sName = DOUBLE_UNDERSCORE.matcher(sName).replaceAll("_");
-                }
-            while (!orig.equals(sName));
-
-            do
-                {
-                orig = sName;
-                //Colon-underscore (:_) is translated to single colon
-                sName = COLON_UNDERSCORE.matcher(sName).replaceAll(":");
-                }
-            while (!orig.equals(sName));
-
-            return sName;
-            }
-
-        private static String camelToSnake(String name)
-            {
-            return CAMEL_CASE.matcher(name).replaceAll("$1_$2").toLowerCase();
-            }
-
-        // ----- constants --------------------------------------------------
-
-        private static final Pattern DOUBLE_UNDERSCORE = Pattern.compile("__");
-        private static final Pattern COLON_UNDERSCORE = Pattern.compile(":_");
-        private static final Pattern CAMEL_CASE = Pattern.compile("(.)(\\p{Upper})");
-
         // ---- data members ------------------------------------------------
 
         /**
@@ -437,9 +399,9 @@ public class MetricsResource
         private final boolean f_fExtended;
 
         /**
-         * A flag indicating whther to output Microprofile compatible names.
+         * The format the format to use for metric names and tag keys.
          */
-        private final boolean f_fUseLegacyNames;
+        private final Format f_format;
 
         /**
          * The list of metrics to write.
@@ -537,6 +499,27 @@ public class MetricsResource
         private final List<MBeanMetric> f_metrics;
         }
 
+    // ----- inner enum: Format ---------------------------------------------
+
+    /**
+     * An enum to represent the format to use for metric names and tag keys.
+     */
+    enum Format
+        {
+        /**
+         * Names will be dot delimited without a scope, e.g. coherence.cluster.size
+         */
+        DotDelimited,
+        /**
+         * Names will be underscore delimited with a scope, e.g. vendor:coherence_cluster_size
+         */
+        Legacy,
+        /**
+         * Names will be MP 2.0 compatible with a scope, e.g. vendor_Coherence_Cluster_Size
+         */
+        Microprofile,
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -559,12 +542,16 @@ public class MetricsResource
      */
     public static final String PROP_USE_LEGACY_NAMES = "coherence.metrics.legacy.names";
 
+    /**
+     * A system property that when true outputs metric names as Microprofile 2.0
+     * compatible metric names.
+     */
+    public static final String PROP_USE_MP_NAMES = "coherence.metrics.mp.names";
+
     // ----- data members ---------------------------------------------------
 
     /**
-     * A flag that when {@code true} will cause metric names to be in the legacy format
-     * and when {@code false} will cause metric names to be Microprofile compatible when
-     * publishing Prometheus metrics.
+     * The format to use for metric names and tag keys.
      */
-    private final boolean f_fUseLegacyNames;
+    private final Format f_format;
     }

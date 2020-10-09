@@ -76,6 +76,14 @@ backend:
                     - "coherence-grpc/README.adoc"
                     - "coherence-grpc-proxy/README.adoc"
                     - "coherence-java-client/README.adoc"
+            - title: "Coherence Metrics"
+              pathprefix: "/coherence-metrics"
+              glyph:
+                type: "icon"
+                value: "speed"
+              items:
+                - includes:
+                    - "coherence-micrometer/README.adoc"
             - title: "Plugins"
               pathprefix: "/plugins"
               glyph:
