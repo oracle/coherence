@@ -60,6 +60,12 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Coherence Metrics -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-micrometer</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Coherence MP -->
     <dependency>
@@ -205,6 +211,12 @@
       <artifactId>jakarta.json-api</artifactId>
     </dependency>
 
+    <!-- Micrometer API -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+    </dependency>
+
     <!-- MP metrics -->
     <dependency>
       <groupId>org.eclipse.microprofile.config</groupId>
@@ -333,6 +345,10 @@
 
                     <resource>
                       <directory>../coherence-cdi-server/src/main/java</directory>
+                    </resource>
+
+                    <resource>
+                      <directory>../coherence-micrometer/src/main/java</directory>
                     </resource>
 
                     <resource>

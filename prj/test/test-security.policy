@@ -447,6 +447,95 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-metrics/target/cohe
   permission javax.management.MBeanServerPermission "*";
   permission javax.management.MBeanTrustPermission "*";
 };
+// The following grant block is needed by Coherence Micrometer Metrics.
+
+grant codeBase "file:${oracle.coherence.lib}/../../coherence-micrometer/-" {
+  permission com.tangosol.net.security.LocalPermission "BackingMapManagerContext.getBackingMap";
+  permission com.tangosol.net.security.LocalPermission "MBeanServerProxy.execute";
+  permission com.tangosol.net.security.LocalPermission "Service.getInternalService";
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission javax.security.auth.AuthPermission "doAs";
+  permission javax.security.auth.AuthPermission "getSubject";
+  permission java.lang.management.ManagementPermission "control";
+  permission java.lang.management.ManagementPermission "monitor";
+
+  permission java.io.FilePermission "<<ALL FILES>>", "read";
+  permission java.io.FilePermission "${java.io.tmpdir}${/}-", "read, write, delete, execute";
+  permission java.io.FilePermission "${test.tmp.dir}${/}-", "read, write, delete, execute";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2";
+  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2.runtime.reflect";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getFileSystemAttributes";
+  permission java.lang.RuntimePermission "setContextClassLoader";
+  permission java.net.SocketPermission "*", "accept,resolve,listen";
+  permission java.security.SecurityPermission "getProperty.ssl.KeyManagerFactory.algorithm";
+  permission java.security.SecurityPermission "getProperty.ssl.TrustManagerFactory.algorithm";
+  permission java.util.PropertyPermission "*", "read,write";
+  permission javax.security.auth.AuthPermission "createLoginContext.CoherenceREST";
+
+  permission com.tangosol.net.security.LocalPermission "BackingMapManagerContext.getBackingMap";
+  permission javax.management.MBeanPermission "*", "queryNames";
+  permission javax.management.MBeanPermission "*", "queryMBeans";
+  permission javax.management.MBeanPermission "*", "getMBeanInfo";
+  permission javax.management.MBeanPermission "*", "invoke";
+  permission javax.management.MBeanPermission "*", "getAttribute";
+
+  permission javax.management.MBeanPermission "com.sun.management.*", "*";
+  permission javax.management.MBeanPermission "com.tangosol.*", "*";
+  permission javax.management.MBeanPermission "com.sun.jmx.*", "*";
+  permission javax.management.MBeanPermission "sun.management.*", "*";
+  permission javax.management.MBeanPermission "jmx.*", "*";
+  permission javax.management.MBeanPermission "reporter.*","*";
+  permission javax.management.MBeanServerPermission "*";
+  permission javax.management.MBeanTrustPermission "*";
+};
+
+grant codeBase "file:${oracle.coherence.lib}/../../coherence-micrometer/target/coherence-micrometer-${test.project.version}.jar" {
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission javax.security.auth.AuthPermission "doAs";
+  permission javax.security.auth.AuthPermission "getSubject";
+  permission java.lang.management.ManagementPermission "control";
+  permission java.lang.management.ManagementPermission "monitor";
+
+  permission java.io.FilePermission "<<ALL FILES>>", "read";
+  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/metrics/target", "read, write, delete, execute";
+  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/metrics/target/-", "read, write, delete, execute";
+  permission java.io.FilePermission "${java.io.tmpdir}${/}-", "read, write, delete, execute";
+  permission java.io.FilePermission "${test.tmp.dir}${/}-", "read, write, delete, execute";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2";
+  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2.runtime.reflect";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getFileSystemAttributes";
+  permission java.lang.RuntimePermission "setContextClassLoader";
+  permission java.net.SocketPermission "*", "accept,resolve,listen";
+  permission java.security.SecurityPermission "getProperty.ssl.KeyManagerFactory.algorithm";
+  permission java.security.SecurityPermission "getProperty.ssl.TrustManagerFactory.algorithm";
+  permission java.util.PropertyPermission "*", "read,write";
+  permission javax.security.auth.AuthPermission "createLoginContext.CoherenceREST";
+  permission com.tangosol.net.security.LocalPermission "BackingMapManagerContext.getBackingMap";
+  permission javax.management.MBeanPermission "*", "queryNames";
+  permission javax.management.MBeanPermission "*", "queryMBeans";
+  permission javax.management.MBeanPermission "*", "getMBeanInfo";
+  permission javax.management.MBeanPermission "*", "invoke";
+  permission javax.management.MBeanPermission "*", "getAttribute";
+
+  permission javax.management.MBeanPermission "com.sun.management.*", "*";
+  permission javax.management.MBeanPermission "com.tangosol.*", "*";
+  permission javax.management.MBeanPermission "com.sun.jmx.*", "*";
+  permission javax.management.MBeanPermission "sun.management.*", "*";
+  permission javax.management.MBeanPermission "jmx.*", "*";
+  permission javax.management.MBeanPermission "reporter.*","*";
+  permission javax.management.MBeanServerPermission "*";
+  permission javax.management.MBeanTrustPermission "*";
+};
 
 grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/-" {
   permission java.lang.RuntimePermission "getClassLoader";
