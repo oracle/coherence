@@ -61,12 +61,17 @@ import com.tangosol.run.xml.XmlSerializable;
 
 import com.tangosol.util.function.Remote;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.FilterInputStream;
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
@@ -81,6 +86,11 @@ import java.io.UTFDataFormatException;
 
 import java.lang.Math;
 import java.lang.ref.WeakReference;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -2311,9 +2321,19 @@ public abstract class ExternalizableHelper
                     ? (WrapperDataInputStream) in : null;
             try
                 {
-                value = (ExternalizableLite) loadClass(sClass, loader,
-                        inWrapper == null ? null : inWrapper.getClassLoader())
-                            .newInstance();
+                Class<?> clz = loadClass(sClass, loader,
+                        inWrapper == null ? null : inWrapper.getClassLoader());
+
+                if (in instanceof ObjectInputStream)
+                    {
+                    ObjectInputStream ois = (ObjectInputStream) in;
+                    if (!checkObjectInputFilter(clz, ois))
+                        {
+                        throw new InvalidClassException("Deserialization of class " + sClass + " was rejected");
+                        }
+                    }
+
+                value = (ExternalizableLite) clz.newInstance();
                 }
             catch (InstantiationException e)
                 {
@@ -2333,7 +2353,7 @@ public abstract class ExternalizableHelper
                     "\n" + getStackTrace(e) +
                     "\nClass: " + sClass +
                     "\nClassLoader: " + loader +
-                    "\nContextClassLoader: " + getContextClassLoader());
+                    "\nContextClassLoader: " + getContextClassLoader(), e);
                 }
 
             if (loader != null)
@@ -5717,6 +5737,65 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Return true if the provided class is allowed to be deserialized.
+     *
+     * @param clz  the class to be checked
+     * @param ois  the ObjectInputStream
+     *
+     * @return true if the provided class is allowed to be deserialized
+     */
+    protected static boolean checkObjectInputFilter(Class<?> clz, ObjectInputStream ois)
+        {
+        try
+            {
+            Object filter = HANDLE_GET_FILTER == null ? null : HANDLE_GET_FILTER.invoke(ois);
+
+            if (filter == null)
+                {
+                return true;
+                }
+
+            DynamicFilterInfo dynamic = s_tloHandler.get();
+            dynamic.setClass(clz);
+
+            Object oFilterInfo = dynamic.getFilterInfo();
+
+            Enum status = (Enum) HANDLE_CHECKINPUT.invoke(filter, oFilterInfo);
+
+            dynamic.setClass(null);
+
+            return status != null && !status.name().equals("REJECTED");
+            }
+        catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException e)
+            {
+            err("Unable to invoke checkInput on objectInputFilter ");
+            err(e);
+            }
+        catch (Throwable t) {};
+
+        return false;
+        }
+
+    /**
+     * Return class for the specified class name; null if not found.
+     *
+     * @param sClass  the class name
+     *
+     * @return the class for the specified class name
+     */
+    public static Class getClass(String sClass)
+        {
+        try
+            {
+            return Class.forName(sClass);
+            }
+        catch (ClassNotFoundException cnfe)
+            {
+            return null;
+            }
+        }
+
+    /**
      * Integer decorated object.
      */
     protected static final class IntDecoratedObject
@@ -6044,6 +6123,85 @@ public abstract class ExternalizableHelper
         private WeakHashMap m_mapBeanClasses;
         }
 
+    /**
+     * DynamicFilterInfo is an InvocationHandler that has association with
+     * a single proxy instance.
+     */
+    private static class DynamicFilterInfo
+            implements InvocationHandler
+        {
+        // ----- DynamicFilterInfo methods ----------------------------------
+
+        public DynamicFilterInfo() {};
+
+        /**
+         * Return the proxy instance.
+         *
+         * @return the proxy instance
+         */
+        public Object getFilterInfo()
+            {
+            Object oProxy = m_oProxy;
+            if (oProxy == null)
+                {
+                oProxy = m_oProxy = Proxy.newProxyInstance(getContextClassLoader(),
+                        new Class[]{s_clzFilterInfo}, this);
+                }
+            return oProxy;
+            }
+
+        /**
+         * Set the class to be checked.
+         *
+         * @param clz  the class to check
+         */
+        public void setClass(Class clz)
+            {
+            m_clz = clz;
+            }
+
+        // ----- InvocationHandler interface --------------------------------
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
+            {
+            if (method.getName().equals("serialClass"))
+                {
+                return m_clz;
+                }
+            else if (method.getName().equals("arrayLength"))
+                {
+                return Long.valueOf(-1);
+                }
+            else if (method.getName().equals("depth"))
+                {
+                return Long.valueOf(1);
+                }
+            else if (method.getName().equals("references"))
+                {
+                return Long.valueOf(0);
+                }
+            else if (method.getName().equals("streamBytes"))
+                {
+                return Long.valueOf(0);
+                }
+            return null;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The class to be checked by ObjectInputFilter.
+         */
+        private Class m_clz;
+
+        /**
+         * The dynamic proxy.
+         */
+        private Object m_oProxy;
+        }
+
+
     // ----- configurable options -------------------------------------------
 
     /**
@@ -6087,6 +6245,28 @@ public abstract class ExternalizableHelper
      * Option: Configurable ObjectStreamFactory.
      */
     public static ObjectStreamFactory s_streamfactory;
+
+    /**
+     * MethodHandle for getfilter from ObjectInputStream
+     */
+    private static final MethodHandle HANDLE_GET_FILTER;
+
+    /**
+     * MethodHandle for checkInput from ObjectInputFilter
+     */
+    private static final MethodHandle HANDLE_CHECKINPUT;
+
+    /**
+     * Filter info class.
+     */
+    private static Class<?> s_clzFilterInfo = null;
+
+    /**
+     * The DynamicFilterInfo ThreadLocal.
+     */
+    private final static ThreadLocal<DynamicFilterInfo> s_tloHandler =
+            ThreadLocal.withInitial(DynamicFilterInfo::new);
+
 
     static
         {
@@ -6209,6 +6389,58 @@ public abstract class ExternalizableHelper
         MAX_BUFFER               = cbMax;
         USE_POF_STREAMS          = fPof;
         s_streamfactory          = factory;
+
+        //  initialize method handles for potential JEP-290 checks
+
+        Class<?>     clzFilterInfo    = null;
+        MethodHandle handleGetFilter  = null;
+        MethodHandle handleCheckInput = null;
+
+        // find ObjectInputFilter class; depending on jdk version
+        try
+            {
+            Class<?>              clzFilter        = null;
+            Class<? extends Enum> clzFilterStatus  = null;
+            String                sFilterMethod    = null;
+            Method                methodGet        = null;
+
+            if ((clzFilter = getClass("java.io.ObjectInputFilter")) != null)
+                {
+                clzFilterInfo   = Class.forName("java.io.ObjectInputFilter$FilterInfo");
+                clzFilterStatus = (Class<? extends Enum>) Class.forName("java.io.ObjectInputFilter$Status");
+                sFilterMethod   = "getObjectInputFilter";
+                }
+            else if ((clzFilter = getClass("sun.misc.ObjectInputFilter")) != null)
+                {
+                clzFilterInfo   = Class.forName("sun.misc.ObjectInputFilter$FilterInfo");
+                clzFilterStatus = (Class<? extends Enum>) Class.forName("sun.misc.ObjectInputFilter$Status");
+                sFilterMethod   = "getInternalObjectInputFilter";
+                }
+
+            if (sFilterMethod != null)
+                {
+                Class clzObjectInputStream = ObjectInputStream.class;
+
+                methodGet = clzObjectInputStream.getDeclaredMethod(sFilterMethod);
+                methodGet.setAccessible(true);
+
+                MethodType mtCheckInput = MethodType.methodType(clzFilterStatus, clzFilterInfo);
+
+                MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+                handleGetFilter = lookup.unreflect(methodGet);
+                handleCheckInput = lookup.findVirtual(clzFilter, "checkInput", mtCheckInput);
+                }
+            }
+        catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException e)
+            {
+            CacheFactory.log("ObjectInputFilter will not be honored due to: "
+                    + e.getMessage() + '\n' + Base.printStackTrace(e), CacheFactory.LOG_INFO);
+            }
+
+        s_clzFilterInfo   = clzFilterInfo;
+        HANDLE_GET_FILTER = handleGetFilter;
+        HANDLE_CHECKINPUT = handleCheckInput;
         }
 
 
