@@ -23,9 +23,17 @@ import data.Person;
 
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.InvalidClassException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import java.lang.reflect.Method;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -33,9 +41,11 @@ import java.sql.Timestamp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -529,6 +539,146 @@ public class ExternalizableHelperTest extends ExternalizableHelper
     public void testStatsPerformance()
         {
         new ExternalizableStatsHelper().runPerformanceTest();
+        }
+
+    /**
+     * Test ObjectInputStream without an ObjectInputFilter.
+     */
+    @Test
+    public void testObjectInputStreamWithoutFilter()
+        {
+        testObjectInputFilter(false, false);
+        }
+
+    /**
+     * Test a filter that disallow testing object to be deserialized.
+     */
+    @Test
+    public void testObjectInputStreamWithShouldFailFilter()
+        {
+        testObjectInputFilter(true, true);
+        }
+
+    /**
+     * Test an ObjectInputFilter that allow testing object to be deserialized.
+     */
+    @Test
+    public void testObjectInputStreamWithShouldPassFilter()
+        {
+        testObjectInputFilter(true, false);
+        }
+
+    /**
+     * Test Object Deserialisation Filters.
+     */
+    public void testObjectInputFilter(boolean fFilter, boolean fFail)
+        {
+        if (!setObjectInputStreamFilter(fFail))
+            {
+            return;
+            }
+
+        Map<Person.Key, Person> map = new HashMap();
+        Person.fillRandom(map, 10);
+
+        Set<Person> setPersons = new HashSet<>(map.values());
+        Set<Person> setRead    = new HashSet<>(map.size());
+        Exception               exception = null;
+        try
+            {
+            ByteArrayOutputStream outRaw = new ByteArrayOutputStream();
+            ObjectOutputStream    oos    = new ObjectOutputStream(outRaw);
+
+            ExternalizableHelper.writeCollection(oos, setPersons);
+            oos.flush();
+
+            byte[] ab = outRaw.toByteArray();
+
+            ByteArrayInputStream inRaw = new ByteArrayInputStream(ab);
+            ObjectInputStream    ios   = new ObjectInputStream(inRaw);
+
+            while (true)
+                {
+                try
+                    {
+                    ExternalizableHelper.readCollection(ios, setRead, null);
+                    }
+                catch (EOFException eof)
+                    {
+                    break;
+                    }
+                }
+            }
+        catch (Exception e)
+            {
+            exception = e;
+            }
+
+        if (!fFilter || !fFail)
+            {
+            assertTrue(setPersons.size() == setRead.size());
+            }
+        else
+            {
+            assertTrue(exception != null && exception.getCause() instanceof InvalidClassException);
+            }
+        }
+
+    /**
+     * Set filter for ObjectInputStream.
+     *
+     * @param fFail  reject deserialization if true
+     *
+     * @return ture if ObjectInputFilter is supported
+     */
+    public boolean setObjectInputStreamFilter(boolean fFail)
+        {
+        try
+            {
+            Class<?> clzFilter          = null;
+            Class<?> clzFilterConfig    = null;
+            String   sFilterMethod      = null;
+            Method   methodGet          = null;
+            Method   methodSetFilter    = null;
+            Method   methodCreateFilter = null;
+
+            if ((clzFilter = getClass("java.io.ObjectInputFilter")) != null)
+                {
+                clzFilterConfig = Class.forName("java.io.ObjectInputFilter$Config");
+                sFilterMethod = "getObjectInputFilter";
+                }
+            else if ((clzFilter = getClass("sun.misc.ObjectInputFilter")) != null)
+                {
+                clzFilterConfig = Class.forName("sun.misc.ObjectInputFilter$Config");
+                sFilterMethod = "getInternalObjectInputFilter";
+                }
+
+            if (sFilterMethod != null)
+                {
+
+                Class clzObjectInputStream = ObjectInputStream.class;
+
+                methodGet = clzObjectInputStream.getDeclaredMethod(sFilterMethod);
+                methodGet.setAccessible(true);
+
+                methodSetFilter = clzFilterConfig.getDeclaredMethod("setSerialFilter", clzFilter);
+                methodSetFilter.setAccessible(true);
+
+                methodCreateFilter = clzFilterConfig.getDeclaredMethod("createFilter", String.class);
+                methodCreateFilter.setAccessible(true);
+
+                String sPattern = fFail ? "!data.Person" : "data.Person";
+
+                Object filter = methodCreateFilter.invoke(null, sPattern);
+
+                methodSetFilter.invoke(null, filter);
+
+                return true;
+                }
+            }
+        catch (Exception e){}
+
+        return false;
         }
 
     // ----- Inner class: ExternalizableStatsHelper ------------------------------
