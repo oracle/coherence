@@ -10,6 +10,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
 import com.oracle.coherence.grpc.Requests;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.io.DefaultSerializer;
@@ -673,7 +674,7 @@ public class GrpcRemoteSession
                 return m_sSerializerFormat;
                 }
 
-            return Boolean.getBoolean("coherence.pof.enabled") ? "pof" : "java";
+            return Config.getBoolean("coherence.pof.enabled") ? "pof" : "java";
             }
 
         /**

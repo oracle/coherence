@@ -30,6 +30,7 @@ import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
 import com.oracle.coherence.grpc.OptionalValue;
 import com.oracle.coherence.grpc.Requests;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.io.NamedSerializerFactory;
@@ -1993,7 +1994,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected static String getDefaultSerializerFormat()
         {
-        return Boolean.getBoolean("coherence.pof.enabled") ? "pof" : "java";
+        return Config.getBoolean("coherence.pof.enabled") ? "pof" : "java";
         }
 
     // ----- inner class: EventTask -----------------------------------------

@@ -38,6 +38,7 @@ import com.oracle.coherence.io.json.internal.SerializationSupportConverter;
 import com.oracle.coherence.io.json.internal.ThrowableConverter;
 import com.oracle.coherence.io.json.internal.VersionableSerializer;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
@@ -311,7 +312,7 @@ public class JsonSerializer
      * <p>
      * This will impact performance and should only be used in testing.
      */
-    public static final boolean DEBUG_MODE = Boolean.getBoolean(PROP_DEBUG_MODE);
+    public static final boolean DEBUG_MODE = Config.getBoolean(PROP_DEBUG_MODE);
 
     // ----- data members ---------------------------------------------------
 

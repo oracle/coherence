@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.rest.io;
 
+import com.tangosol.coherence.config.Config;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -95,8 +97,8 @@ public class JaxbXmlMarshaller<T>
             configureJaxbUnmarshaller(unmarshaller);
 
             XMLInputFactory xif = XMLInputFactory.newFactory();
-            xif.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.getBoolean("coherence.rest.xml.allowDTD"));
-            xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.getBoolean("coherence.rest.xml.allowExternalEntities"));
+            xif.setProperty(XMLInputFactory.SUPPORT_DTD, Config.getBoolean("coherence.rest.xml.allowDTD"));
+            xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Config.getBoolean("coherence.rest.xml.allowExternalEntities"));
             return unmarshaller.unmarshal(xif.createXMLStreamReader(new StreamSource(in)), getRootClass()).getValue();
             }
         catch (JAXBException e)
@@ -123,7 +125,7 @@ public class JaxbXmlMarshaller<T>
             throws PropertyException
         {
         marshaller.setProperty(javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT,
-                Boolean.getBoolean(FORMAT_OUTPUT));
+                               Config.getBoolean(FORMAT_OUTPUT));
         }
 
     /**

@@ -218,7 +218,7 @@ public class GrpcSessionProducer
         {
         return sessionConfig.get("serializer")
                 .asString()
-                .orElseGet(() -> Boolean.getBoolean("coherence.pof.enabled") ? "pof" : "java");
+                .orElseGet(() -> com.tangosol.coherence.config.Config.getBoolean("coherence.pof.enabled") ? "pof" : "java");
         }
 
     /**
