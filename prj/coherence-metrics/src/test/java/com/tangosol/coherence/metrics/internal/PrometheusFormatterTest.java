@@ -35,12 +35,13 @@ public class PrometheusFormatterTest
     @Test
     public void testMetricWithTags() throws IOException
         {
-        MBeanMetric metric = new TestMetric(VENDOR, "coherence.clusterSize", tags(), "Cluster size", 3);
-
+        MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", tags(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
-        new PrometheusFormatter(false, true, Collections.singletonList(metric)).writeMetrics(writer);
 
-        String expected = "vendor:coherence_cluster_size{cluster=\"testCluster\", site=\"testSite\"} 3\n";
+        new PrometheusFormatter(false, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+                .writeMetrics(writer);
+
+        String expected = "vendor:coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
         }
@@ -48,12 +49,27 @@ public class PrometheusFormatterTest
     @Test
     public void testMetricWithMicroprofileName() throws IOException
         {
-        MBeanMetric metric = new TestMetric(VENDOR, "Coherence.ClusterSize", tags(), "Cluster size", 3);
-
+        MBeanMetric  metric = new TestMetric(VENDOR, "Coherence.ClusterSize", tags(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
-        new PrometheusFormatter(false, false, Collections.singletonList(metric)).writeMetrics(writer);
 
-        String expected = "vendor_Coherence_ClusterSize{cluster=\"testCluster\", site=\"testSite\"} 3\n";
+        new PrometheusFormatter(false, MetricsResource.Format.Microprofile, Collections.singletonList(metric))
+                .writeMetrics(writer);
+
+        String expected = "vendor_Coherence_ClusterSize{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
+
+        assertThat(writer.toString(), equalTo(expected));
+        }
+
+    @Test
+    public void testMetricWithDotFormattedName() throws IOException
+        {
+        MBeanMetric  metric = new TestMetric(VENDOR, "Coherence.ClusterSize", tags(), "Cluster size", 3);
+        StringWriter writer = new StringWriter();
+
+        new PrometheusFormatter(false, MetricsResource.Format.DotDelimited, Collections.singletonList(metric))
+                .writeMetrics(writer);
+
+        String expected = "coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
         }
@@ -61,14 +77,15 @@ public class PrometheusFormatterTest
     @Test
     public void testExtendedMetricWithTags() throws IOException
         {
-        MBeanMetric metric = new TestMetric(VENDOR, "coherence.clusterSize", tags(), "Cluster size", 3);
-
+        MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", tags(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
-        new PrometheusFormatter(true, true, Collections.singletonList(metric)).writeMetrics(writer);
+
+        new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+                .writeMetrics(writer);
 
         String expected = "# TYPE vendor:coherence_cluster_size gauge \n"
                           + "# HELP vendor:coherence_cluster_size Cluster size\n"
-                          + "vendor:coherence_cluster_size{cluster=\"testCluster\", site=\"testSite\"} 3\n";
+                          + "vendor:coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
         }
@@ -76,10 +93,11 @@ public class PrometheusFormatterTest
     @Test
     public void testMetricWithoutTags() throws IOException
         {
-        MBeanMetric metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), "Cluster size", 3);
-
+        MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
-        new PrometheusFormatter(false, true, Collections.singletonList(metric)).writeMetrics(writer);
+
+        new PrometheusFormatter(false, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+                .writeMetrics(writer);
 
         String expected = "vendor:coherence_cluster_size 3\n";
 
@@ -89,10 +107,11 @@ public class PrometheusFormatterTest
     @Test
     public void testExtendedMetricWithoutTags() throws IOException
         {
-        MBeanMetric metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), "Cluster size", 3);
-
+        MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
-        new PrometheusFormatter(true, true, Collections.singletonList(metric)).writeMetrics(writer);
+
+        new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+                .writeMetrics(writer);
 
         String expected = "# TYPE vendor:coherence_cluster_size gauge \n"
                           + "# HELP vendor:coherence_cluster_size Cluster size\n"
@@ -104,10 +123,11 @@ public class PrometheusFormatterTest
     @Test
     public void testExtendedMetricWithoutDescription() throws IOException
         {
-        MBeanMetric metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), null, 3);
-
+        MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), null, 3);
         StringWriter writer = new StringWriter();
-        new PrometheusFormatter(true, true, Collections.singletonList(metric)).writeMetrics(writer);
+
+        new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+                .writeMetrics(writer);
 
         String expected = "# TYPE vendor:coherence_cluster_size gauge \n"
                           + "vendor:coherence_cluster_size 3\n";
@@ -120,6 +140,7 @@ public class PrometheusFormatterTest
         Map<String, String> tags = new HashMap<>();
         tags.put(MetricSupport.GLOBAL_TAG_CLUSTER, "testCluster");
         tags.put(MetricSupport.GLOBAL_TAG_SITE, "testSite");
+        tags.put("nodeId", "1");
         return tags;
         }
     }

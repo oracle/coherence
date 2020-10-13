@@ -8,11 +8,14 @@ package com.tangosol.net.metrics;
 
 import com.tangosol.net.management.annotation.MetricsScope;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
+import java.util.regex.Pattern;
 
 import java.util.stream.Collectors;
 
@@ -141,9 +144,10 @@ public interface MBeanMetric
          */
         public Identifier(Scope scope, String sName, Map<String, String> mapTags)
             {
+            Objects.requireNonNull(mapTags);
             f_scope   = Objects.requireNonNull(scope);
             f_sName   = Objects.requireNonNull(sName);
-            f_mapTags = new TreeMap<>(Objects.requireNonNull(mapTags));
+            f_mapTags = new TreeMap<>(mapTags);
 
             // As the tags map is immutable we can save time later by doing the to-string once
             f_sTags   = f_mapTags.entrySet()
@@ -182,6 +186,86 @@ public interface MBeanMetric
         public Map<String, String> getTags()
             {
             return Collections.unmodifiableMap(f_mapTags);
+            }
+
+        /**
+         * Returns the formatted dot delimited name of the metric.
+         *
+         * @return the formatted dot delimited name of the metric
+         */
+        public String getFormattedName()
+            {
+            if (m_sFormattedName == null)
+                {
+                m_sFormattedName    = formatName(f_sName);
+                }
+            return m_sFormattedName;
+            }
+
+        /**
+         * Returns the legacy Coherence Prometheus formatted name.
+         *
+         * @return the legacy Coherence Prometheus formatted name
+         */
+        public String getLegacyName()
+            {
+            if (m_sLegacyName == null)
+                {
+                m_sLegacyName       = prometheusName(f_scope, f_sName);
+                }
+            return m_sLegacyName;
+            }
+
+        /**
+         * Returns the Microprofile 2.0 formatted name.
+         *
+         * @return the Microprofile 2.0 formatted name
+         */
+        public String getMicroprofileName()
+            {
+            if (m_sMicroprofileName == null)
+                {
+                m_sMicroprofileName = microprofileName(f_scope, f_sName);
+                }
+            return m_sMicroprofileName;
+            }
+
+        /**
+         * Returns the metric tags with keys in dot delimited format.
+         *
+         * @return  the metric tags with keys in dot delimited format
+         */
+        public Map<String, String> getFormattedTags()
+            {
+            if (f_mapFormattedTags == null)
+                {
+                SortedMap<String, String> map = new TreeMap<>();
+                for (Map.Entry<String, String> entry : f_mapTags.entrySet())
+                    {
+                    map.put(formatName(entry.getKey()), entry.getValue());
+                    }
+                f_mapFormattedTags = map;
+                }
+            return f_mapFormattedTags;
+            }
+
+        /**
+         * Returns the metric tags with keys in Prometheus underscore delimited format.
+         *
+         * @return  the metric tags with keys in Prometheus underscore delimited format
+         */
+        public Map<String, String> getPrometheusTags()
+            {
+            if (f_mapPrometheusTags == null)
+                {
+                SortedMap<String, String> map = new TreeMap<>();
+                for (Map.Entry<String, String> entry : f_mapTags.entrySet())
+                    {
+                    map.put(prometheusName(null, entry.getKey()), entry.getValue());
+                    }
+                f_mapPrometheusTags = map;
+                }
+            return f_mapPrometheusTags;
             }
 
         // ----- Comparable methods -----------------------------------------
@@ -235,6 +319,121 @@ public interface MBeanMetric
             return f_scope + ":" + f_sName + ", tags='" + f_sTags + '\'';
             }
 
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Create the formatted metric name
+         *
+         * @param sName the name to format
+         *
+         * @return the formatted metric name
+         */
+        String formatName(String sName)
+            {
+            // ************************************************************
+            // Warning: Changing this method may change the format of the
+            // metric names and will break any customer that relies on this
+            // for things like Grafana dashboards.
+            // ************************************************************
+
+            String[] asParts    = sName.replaceAll("_", ".").split("\\.");
+            String   sFormatted = Arrays.stream(asParts)
+                                        .map(this::camelToDot)
+                                        .collect(Collectors.joining("."));
+
+
+            return sFormatted.toLowerCase();
+            }
+
+        private String prometheusName(MBeanMetric.Scope scope, String sName)
+            {
+            // ************************************************************
+            // Warning: Changing this method may change the format of the
+            // metric names and will break any customer that relies on this
+            // for things like Grafana dashboards.
+            // ************************************************************
+
+            // spec 3.2.1
+
+            // Escape any invalid characters by changing them to an underscore
+            sName = sName.replaceAll("[^a-zA-Z0-9_]", "_");
+
+            if (scope != null)
+                {
+                //Scope is always specified at the start of the metric name.
+                //Scope and name are separated by colon (:).
+                sName = scope.name().toLowerCase() + ":" + sName;
+                }
+
+            //camelCase is translated to snake_case
+            sName = camelToSnake(sName);
+
+            String orig;
+            do
+                {
+                orig = sName;
+                //Double underscore is translated to single underscore
+                sName = DOUBLE_UNDERSCORE.matcher(sName).replaceAll("_");
+                }
+            while (!orig.equals(sName));
+
+            do
+                {
+                orig = sName;
+                //Colon-underscore (:_) is translated to single colon
+                sName = COLON_UNDERSCORE.matcher(sName).replaceAll(":");
+                }
+            while (!orig.equals(sName));
+
+            return sName;
+            }
+
+        private String microprofileName(MBeanMetric.Scope scope, String sName)
+            {
+            // ************************************************************
+            // Warning: Changing this method may change the format of the
+            // metric names and will break any customer that relies on this
+            // for things like Grafana dashboards.
+            // ************************************************************
+
+            // Escape any invalid characters by changing them to an underscore
+            sName = sName.replaceAll("[^a-zA-Z0-9_]", "_");
+
+            return scope == null ? sName : scope.name().toLowerCase() + "_" + sName;
+            }
+
+        /**
+         * Split a camel-case string into a dot delimited string.
+         *
+         * @param s  the string to convert
+         *
+         * @return the camelcase string converted to a dot delimited string
+         */
+        private String camelToDot(String s)
+            {
+            return s.replaceAll(CAMEL_CASE_PATTERN, DOT);
+            }
+
+        private static String camelToSnake(String name)
+            {
+            return CAMEL_CASE.matcher(name).replaceAll("$1_$2").toLowerCase();
+            }
+
+        // ----- constants --------------------------------------------------
+
+        private static final String CAMEL_CASE_PATTERN = String.format("%s|%s|%s",
+                                                                       "(?<=[A-Z])(?=[A-Z][a-z])",
+                                                                       "(?<=[^A-Z])(?=[A-Z])",
+                                                                       "(?<=[A-Za-z])(?=[^A-Za-z])");
+
+        private static final String DOT = ".";
+
+        private static final Pattern DOUBLE_UNDERSCORE = Pattern.compile("__");
+
+        private static final Pattern COLON_UNDERSCORE = Pattern.compile(":_");
+
+        private static final Pattern CAMEL_CASE = Pattern.compile("(.)(\\p{Upper})");
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -253,8 +452,33 @@ public interface MBeanMetric
         private final SortedMap<String, String> f_mapTags;
 
         /**
+         * The metric's tags with the keys formatted to dot notation.
+         */
+        private SortedMap<String, String> f_mapFormattedTags;
+
+        /**
+         * The metric's tags with the keys formatted to Prometheus notation.
+         */
+        private SortedMap<String, String> f_mapPrometheusTags;
+
+        /**
          * A string representation of the metric's tags.
          */
         private final String f_sTags;
+
+        /**
+         * The dot formatted name of the metric.
+         */
+        private String m_sFormattedName;
+
+        /**
+         * The legacy formatted name of the metric.
+         */
+        private String m_sLegacyName;
+
+        /**
+         * The Microprofile 2.0 formatted name of the metric.
+         */
+        private String m_sMicroprofileName;
         }
     }
