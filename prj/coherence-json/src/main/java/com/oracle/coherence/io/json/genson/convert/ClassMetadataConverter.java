@@ -89,6 +89,11 @@ public class ClassMetadataConverter<T> extends Wrapper<Converter<T>> implements 
   }
 
   public void serialize(T obj, ObjectWriter writer, Context ctx) throws Exception {
+    Class clz = obj.getClass();
+    ClassFilter filter = ctx.genson.classFilter();
+    if (filter != null && !filter.evaluate(clz)) {
+      throw new JsonBindingException("Unable to serialize " + clz.getName());
+    }
     if (obj != null && !isDefaultObjectType(obj, ctx) && !isJsonValue(obj.getClass()) &&
       (classMetadataWithStaticType || !tClass.equals(obj.getClass()))) {
       writer.beginNextObjectMetadata()
@@ -103,11 +108,16 @@ public class ClassMetadataConverter<T> extends Wrapper<Converter<T>> implements 
       if (className != null) {
         try {
           Class<?> classFromMetadata = ctx.genson.classFor(className);
+          ClassFilter filter = ctx.genson.classFilter();
+          if (filter != null && !filter.evaluate(classFromMetadata)) {
+            throw new JsonBindingException("Unable to deserialize " + classFromMetadata.getName());
+          }
           if (!classFromMetadata.equals(tClass)) {
             Converter<T> deser = ctx.genson.provideConverter(classFromMetadata);
             return deser.deserialize(reader, ctx);
           }
         } catch (ClassNotFoundException e) {
+          e.printStackTrace();
           throw new JsonBindingException(
             "Could not use @class metadata, no such class: " + className, e);
         }

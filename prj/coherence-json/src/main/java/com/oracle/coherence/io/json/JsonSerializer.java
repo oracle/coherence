@@ -87,14 +87,14 @@ public class JsonSerializer
     /**
      * Create a {@link JsonSerializer}.
      *
-     * @param compatibleMode  {@code true} if consuming JSON from an endpoint
-     *                        that doesn't use our JSON serialization library.
+     * @param fCompatibleMode  {@code true} if consuming JSON from an endpoint
+     *                         that doesn't use our JSON serialization library.
      *
      * @see #JsonSerializer(ClassLoader, Modifier, boolean)
      */
-    public JsonSerializer(boolean compatibleMode)
+    public JsonSerializer(boolean fCompatibleMode)
         {
-        this(null, null, compatibleMode);
+        this(null, null, fCompatibleMode);
         }
 
     @Override
@@ -118,17 +118,17 @@ public class JsonSerializer
      * Constructs a {@code GensonJsonSerializer} that will use the
      * provided {@code ClassLoader}.
      *
-     * @param loader           the {@link ClassLoader} to use during deserialization
-     *                         operations
-     * @param builderModifier  the {@link Modifier} that will be invoked to allow
-     *                         customization of the serialization
-     * @param compatibleMode   {@code true} if consuming JSON from an endpoint
-     *                         that doesn't use our JSON serialization library.
+     * @param loader            the {@link ClassLoader} to use during deserialization
+     *                          operations
+     * @param builderModifier   the {@link Modifier} that will be invoked to allow
+     *                          customization of the serialization
+     * @param fCompatibleMode   {@code true} if consuming JSON from an endpoint
+     *                          that doesn't use our JSON serialization library.
      */
-    public JsonSerializer(ClassLoader loader, Modifier<GensonBuilder> builderModifier, boolean compatibleMode)
+    public JsonSerializer(ClassLoader loader, Modifier<GensonBuilder> builderModifier, boolean fCompatibleMode)
         {
 
-        this.f_fCompatibleMode = compatibleMode;
+        this.f_fCompatibleMode = fCompatibleMode;
 
         GensonBuilder builder = new GensonBuilder()
                 .withBundle(new JacksonBundle())
@@ -200,7 +200,6 @@ public class JsonSerializer
     // ---- Serializer interface --------------------------------------------
 
     @Override
-    @SuppressWarnings("RedundantThrows")
     public void serialize(WriteBuffer.BufferOutput bufferOutput, Object oValue) throws IOException
         {
         GenericType type = OBJECT_TYPE;
@@ -275,7 +274,7 @@ public class JsonSerializer
         return f_genson;
         }
 
-    // ---- nested class: Factory --------------------------------------------
+    // ---- inner class: Factory --------------------------------------------
 
     /**
      * Factory for default serializer.

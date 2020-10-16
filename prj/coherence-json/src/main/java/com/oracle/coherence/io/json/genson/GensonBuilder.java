@@ -15,18 +15,44 @@
 package com.oracle.coherence.io.json.genson;
 
 
-import com.oracle.coherence.io.json.genson.convert.*;
+import com.oracle.coherence.io.json.genson.convert.BasicConvertersFactory;
+import com.oracle.coherence.io.json.genson.convert.BeanViewConverter;
+import com.oracle.coherence.io.json.genson.convert.ChainedFactory;
+import com.oracle.coherence.io.json.genson.convert.CircularClassReferenceConverterFactory;
+import com.oracle.coherence.io.json.genson.convert.ClassMetadataConverter;
+import com.oracle.coherence.io.json.genson.convert.ContextualFactory;
+import com.oracle.coherence.io.json.genson.convert.DefaultConverters;
+import com.oracle.coherence.io.json.genson.convert.NullConverterFactory;
+import com.oracle.coherence.io.json.genson.convert.RuntimeTypeConverter;
 import com.oracle.coherence.io.json.genson.ext.GensonBundle;
-import com.oracle.coherence.io.json.genson.reflect.*;
-import com.oracle.coherence.io.json.genson.reflect.BeanDescriptorProvider.CompositeBeanDescriptorProvider;
-import com.oracle.coherence.io.json.genson.reflect.AbstractBeanDescriptorProvider.ContextualFactoryDecorator;
+import com.oracle.coherence.io.json.genson.reflect.ASMCreatorParameterNameResolver;
+import com.oracle.coherence.io.json.genson.reflect.AbstractBeanDescriptorProvider;
 import com.oracle.coherence.io.json.genson.reflect.AbstractBeanDescriptorProvider.ContextualConverterFactory;
+import com.oracle.coherence.io.json.genson.reflect.AbstractBeanDescriptorProvider.ContextualFactoryDecorator;
+import com.oracle.coherence.io.json.genson.reflect.BaseBeanDescriptorProvider;
+import com.oracle.coherence.io.json.genson.reflect.BeanDescriptorProvider;
+import com.oracle.coherence.io.json.genson.reflect.BeanDescriptorProvider.CompositeBeanDescriptorProvider;
+import com.oracle.coherence.io.json.genson.reflect.BeanMutatorAccessorResolver;
+import com.oracle.coherence.io.json.genson.reflect.BeanPropertyFactory;
+import com.oracle.coherence.io.json.genson.reflect.BeanViewDescriptorProvider;
+import com.oracle.coherence.io.json.genson.reflect.DefaultTypes;
+import com.oracle.coherence.io.json.genson.reflect.PropertyFilter;
+import com.oracle.coherence.io.json.genson.reflect.PropertyNameResolver;
+import com.oracle.coherence.io.json.genson.reflect.RenamingPropertyNameResolver;
+import com.oracle.coherence.io.json.genson.reflect.RuntimePropertyFilter;
+import com.oracle.coherence.io.json.genson.reflect.TypeUtil;
+import com.oracle.coherence.io.json.genson.reflect.UnknownPropertyHandler;
+import com.oracle.coherence.io.json.genson.reflect.VisibilityFilter;
 import com.oracle.coherence.io.json.genson.stream.ValueType;
-
 import java.lang.reflect.Type;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Use the GensonBuilder class when you want to create a custom Genson instance. This class allows you
@@ -67,6 +93,7 @@ public class GensonBuilder {
   private boolean indent = false;
   private boolean metadata = false;
   private boolean failOnMissingProperty = false;
+  private boolean enforceTypeAliases = false;
 
   private List<GensonBundle> _bundles = new ArrayList<GensonBundle>();
 
@@ -91,7 +118,8 @@ public class GensonBuilder {
   // for the moment we don't allow to override
   private BeanViewDescriptorProvider beanViewDescriptorProvider;
 
-  private final Map<String, Class<?>> withClassAliases = new HashMap<String, Class<?>>();
+  private final Map<String, Class<?>> withClassAliases = new HashMap<>();
+  private final Map<String, String> compatibilityAliases = new HashMap<>();
   private final Map<String, String> withPackageAliases = new HashMap<>();
   private final Map<Class<?>, BeanView<?>> registeredViews = new HashMap<Class<?>, BeanView<?>>();
 
@@ -102,6 +130,7 @@ public class GensonBuilder {
   private boolean failOnNullPrimitive = false;
   private RuntimePropertyFilter runtimePropertyFilter = RuntimePropertyFilter.noFilter;
   private UnknownPropertyHandler unknownPropertyHandler;
+  private ClassFilter classFilter;
 
   public GensonBuilder() {
     defaultValues.put(int.class, 0);
@@ -138,10 +167,34 @@ public class GensonBuilder {
    * @param alias
    * @param forClass
    * @return a reference to this builder.
+   * @throws IllegalArgumentException if the specified alias has already been defined
    */
   public GensonBuilder addAlias(String alias, Class<?> forClass) {
+    if (withClassAliases.containsKey(alias)) {
+      throw new IllegalArgumentException(
+              String.format("Alias %s already defined for type %s", alias, withClassAliases.get(alias).getName()));
+    }
     withClassMetadata = true;
     withClassAliases.put(alias, forClass);
+    return this;
+  }
+
+  /**
+   * Allows for adding aliases to aliases to allow backwards compat in alias changes.
+   *
+   * @param alias     the alias
+   * @param aliasFor  the alias {@code alias} references
+   *
+   * @throws IllegalArgumentException if the provided alias is already defined.
+   * @return a reference to this builder
+   */
+  public GensonBuilder addCompatibilityAlias(String alias, String aliasFor) {
+    if (compatibilityAliases.containsKey(alias)) {
+      throw new IllegalArgumentException(
+              String.format("Alias %s already defined for alias %s", alias, compatibilityAliases.get(alias)));
+    }
+    withClassMetadata = true;
+    compatibilityAliases.put(alias, aliasFor);
     return this;
   }
 
@@ -152,11 +205,10 @@ public class GensonBuilder {
    * following String:
    *     <code>alias + '.' + className</code>
    *
-   * @param alias alias for classes within a specific package.  The provided
-   *              value must not contain a period (<code>.</code>)
+   * @param alias alias for classes within a specific package.
    * @param forPackage the package to which the alias will be applied
    *
-   * @throws IllegalArgumentException if <code>alias</code> contains a period
+   * @throws IllegalArgumentException if the specified alias has already been defined
    *
    * @return a reference to this builder
    *
@@ -165,11 +217,23 @@ public class GensonBuilder {
    * @see #addAlias(String, Class)
    */
   public GensonBuilder addPackageAlias(String alias, String forPackage) {
-    if (alias.indexOf('.') > -1) {
-      throw new IllegalArgumentException(String.format("Package aliases must not contain '.'"));
+    if (withPackageAliases.containsKey(alias)) {
+      throw new IllegalArgumentException(
+              String.format("Alias %s already defined for package %s", alias, withPackageAliases.get(alias)));
     }
     withClassMetadata = true;
     withPackageAliases.put(alias, forPackage);
+    return this;
+  }
+
+  /**
+   * Register the {@link ClassFilter} that will evaluate if a class may be serialized/deserialized.
+   *
+   * @param classFilter the {@link ClassFilter}
+   * @return a reference to this builder
+   */
+  public GensonBuilder withClassFilter(ClassFilter classFilter) {
+    this.classFilter = classFilter;
     return this;
   }
 
@@ -588,6 +652,26 @@ public class GensonBuilder {
     return this;
   }
 
+  /**
+   * @return {@code true} if type aliasing is enforced, i.e., any class metadata that <em>is not</em> referenced
+   * as a type or package alias will result in an error being raised during ser/deser operations.
+   */
+  public boolean isEnforceTypeAliases() {
+    return enforceTypeAliases;
+  }
+
+  /**
+   * Enables enforcement that all class metadata must be defined by aliases instead of raw types.  Any raw types
+   * discovered during ser/deser operations will result in an error being thrown.
+   *
+   * @param enforceTypeAliases enable or disable type alias enforcement
+   * @return this
+   */
+  public GensonBuilder setEnforceTypeAliases(boolean enforceTypeAliases) {
+    this.enforceTypeAliases = enforceTypeAliases;
+    return this;
+  }
+
   public boolean isThrowExceptionOnNoDebugInfo() {
     return throwExcOnNoDebugInfo;
   }
@@ -868,7 +952,7 @@ public class GensonBuilder {
       );
     }
 
-    return create(createConverterFactory(), withClassAliases, withPackageAliases);
+    return create(createConverterFactory(), withClassAliases, withPackageAliases, compatibilityAliases);
   }
 
   private void addDefaultSerializers(List<? extends Serializer<?>> serializers) {
@@ -904,15 +988,16 @@ public class GensonBuilder {
    */
   protected Genson create(Factory<Converter<?>> converterFactory,
                           Map<String, Class<?>> classAliases,
-                          Map<String, String> packageAliases) {
+                          Map<String, String> packageAliases,
+                          Map<String, String> compatibilityAliases) {
     if (chainedFactoryModifier != null && converterFactory instanceof ChainedFactory) {
         chainedFactoryModifier.apply((ChainedFactory) converterFactory);
     }
 
     return new Genson(converterFactory, getBeanDescriptorProvider(),
-      isSkipNull(), isHtmlSafe(), classAliases, withPackageAliases, withClassMetadata,
-      strictDoubleParse, indent, metadata, failOnMissingProperty,
-      defaultValues, defaultTypes, runtimePropertyFilter, unknownPropertyHandler, classLoader);
+      isSkipNull(), isHtmlSafe(), classAliases, packageAliases, compatibilityAliases, withClassMetadata,
+      strictDoubleParse, indent, metadata, failOnMissingProperty, enforceTypeAliases,
+      defaultValues, defaultTypes, runtimePropertyFilter, unknownPropertyHandler, classFilter, classLoader);
   }
 
   /**
