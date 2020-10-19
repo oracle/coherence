@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.PrintStream;
+import java.time.LocalTime;
 
 /**
  * Class for tracking samples in a Histogram.
@@ -210,6 +211,11 @@ public class Histogram
         return m_alResults;
         }
 
+    public Snapshot snapshot()
+        {
+        return new Snapshot(this);
+        }
+
     public long getSampleCount()
         {
         long[]       alResults = m_alResults;
@@ -229,64 +235,17 @@ public class Histogram
 
     public String toString()
         {
-        long[]       alResults = m_alResults;
-        long         cSamples  = 0;
-        long         cTotal    = 0;
-        int          iMin      = -1;
-        int          iMax      = 0;
-        double       cTotalSq  = 0;
-
-        for (int i = 0, c = alResults.length; i < c; ++i)
-            {
-            long cSample = alResults[i];
-            if (cSample > 0)
-                {
-                if (iMin == -1)
-                    {
-                    iMin = i;
-                    }
-                iMax = i;
-                cSamples += cSample;
-
-                int nMedian = getLabelMedian(i);
-
-                cTotal   += cSample * nMedian;
-                cTotalSq += cSample * nMedian * nMedian;
-                }
-            }
-
-        // second pass compute percentiles
-        double[] adPercentage = new double[]{.33,   .66,   .99,   .999,    .9999,    .99999, 1};
-        String[] asPercentage = new String[]{"33%", "66%", "99%", "99.9%", "99.99%", "99.999%"};
-        int[]    anPercentile = new int[adPercentage.length - 1];
-
-        long cRunningTotal = 0;
-        long lLimit        = (long) (adPercentage[0] * cSamples);
-        for (int i = 0, c = alResults.length, p = 0; i < c && p < anPercentile.length; ++i)
-            {
-            cRunningTotal += alResults[i];
-            while (cRunningTotal > lLimit && p < anPercentile.length)
-                {
-                anPercentile[p] = i;
-                lLimit          = (long) (adPercentage[++p] * cSamples);
-                }
-            }
-
-        double dAvg    = cTotal / (double) cSamples;
-        double dStddev = Math.sqrt(
-                ((cSamples * (double) cTotalSq) - (cTotal * (double) cTotal))
-               / (cSamples * (double) (cSamples - 1)));
-
-        dAvg    = ((int) (dAvg      * 1000)) / 1000D;
-        dStddev = ((int) (dStddev   * 1000)) / 1000D;
-
+        Snapshot                  snapshot  = new Snapshot(this);
         Converter<Double, String> formatter = m_formatter;
 
-        StringBuffer sb = new StringBuffer();
-        sb.append("samples ").append(cSamples);
-        sb.append("; avg ").append(formatter.convert(dAvg));
-        sb.append("; stddev ").append(formatter.convert(dStddev));
-        sb.append("; min ").append(getLabelText(iMin));
+        StringBuilder sb = new StringBuilder();
+        sb.append("samples ").append(snapshot.getSampleCount());
+        sb.append("; avg ").append(formatter.convert(snapshot.getAverage()));
+        sb.append("; stddev ").append(formatter.convert(snapshot.getStdDev()));
+        sb.append("; min ").append(getLabelText(snapshot.getMin()));
+
+        int[]    anPercentile = snapshot.getPercentiles();
+        String[] asPercentage = snapshot.getPercentileNames();
         for (int i = 0, c = anPercentile.length; i < c; ++i)
             {
             if (i == anPercentile.length - 1 || anPercentile[i] != anPercentile[i + 1])
@@ -295,7 +254,7 @@ public class Histogram
                 }
             // else; information is redundant with the next thing to be printed
             }
-        sb.append("; max ").append(getLabelText(iMax));
+        sb.append("; max ").append(getLabelText(snapshot.getMax()));
 
         return sb.toString();
         }
@@ -431,7 +390,160 @@ public class Histogram
             }
         }
 
+    // ----- inner class Snapshot -------------------------------------------
+
+    public static class Snapshot
+        {
+        // ----- constructors -----------------------------------------------
+
+        Snapshot(Histogram histogram)
+            {
+            m_timestamp = LocalTime.now();
+            m_iMin      = -1;
+            m_iMax      = 0;
+            m_cSamples  = 0;
+
+            long[] alResults = histogram.getResults();
+            long   cTotal    = 0;
+            double cTotalSq  = 0;
+
+            for (int i = 0, c = alResults.length; i < c; ++i)
+                {
+                long cSample = alResults[i];
+                if (cSample > 0)
+                    {
+                    if (m_iMin == -1)
+                        {
+                        m_iMin = i;
+                        }
+                    m_iMax = i;
+                    m_cSamples += cSample;
+
+                    int nMedian = histogram.getLabelMedian(i);
+
+                    cTotal   += cSample * nMedian;
+                    cTotalSq += cSample * nMedian * nMedian;
+                    }
+                }
+
+            // second pass compute percentiles
+            m_anPercentile = new int[f_adPercentage.length - 1];
+
+            long cRunningTotal = 0;
+            long lLimit        = (long) (f_adPercentage[0] * m_cSamples);
+            for (int i = 0, c = alResults.length, p = 0; i < c && p < m_anPercentile.length; ++i)
+                {
+                cRunningTotal += alResults[i];
+                while (cRunningTotal > lLimit && p < m_anPercentile.length)
+                    {
+                    m_anPercentile[p] = i;
+                    lLimit            = (long) (f_adPercentage[++p] * m_cSamples);
+                    }
+                }
+
+            m_dAvg    = cTotal / (double) m_cSamples;
+            m_dStddev = Math.sqrt(
+                    ((m_cSamples * (double) cTotalSq) - (cTotal * (double) cTotal))
+                   / (m_cSamples * (double) (m_cSamples - 1)));
+
+            m_dAvg    = ((int) (m_dAvg      * 1000)) / 1000D;
+            m_dStddev = ((int) (m_dStddev   * 1000)) / 1000D;
+            }
+
+        // ----- Snapshot methods -------------------------------------------
+
+        public LocalTime getTimestamp()
+            {
+            return m_timestamp;
+            }
+
+        public double getAverage()
+            {
+            return m_dAvg;
+            }
+
+        public double getStdDev()
+            {
+            return m_dStddev;
+            }
+
+        public int get33Percentile()
+            {
+            return m_anPercentile[0];
+            }
+
+        public int get66Percentile()
+            {
+            return m_anPercentile[1];
+            }
+
+        public int get99Percentile()
+            {
+            return m_anPercentile[2];
+            }
+
+        public int get999Percentile()
+            {
+            return m_anPercentile[3];
+            }
+
+        public int get9999Percentile()
+            {
+            return m_anPercentile[4];
+            }
+
+        public int get99999Percentile()
+            {
+            return m_anPercentile[5];
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        int[] getPercentiles()
+            {
+            return m_anPercentile;
+            }
+
+        String[] getPercentileNames()
+            {
+            return f_asPercentage;
+            }
+
+        int getMin()
+            {
+            return m_iMin;
+            }
+
+        int getMax()
+            {
+            return m_iMax;
+            }
+
+        long getSampleCount()
+            {
+            return m_cSamples;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        protected long m_cSamples;
+        protected int m_iMin;
+        protected int m_iMax;
+        protected LocalTime m_timestamp;
+        protected int[]   m_anPercentile;
+        protected double m_dAvg;
+        protected double m_dStddev;
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    private static final String[] f_asPercentage = new String[]{"33%", "66%", "99%", "99.9%", "99.99%", "99.999%"};
+    private static final double[] f_adPercentage = new double[]{.33,   .66,   .99,   .999,    .9999,    .99999, 1};
+
+    // ----- data members ---------------------------------------------------
+
     protected long[]  m_alResults;
+
     protected Converter<Double, String> m_formatter = new Converter<Double, String>()
         {
         @Override

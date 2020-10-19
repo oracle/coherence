@@ -5,7 +5,7 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.oracle.coherence.grpc;
+package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
@@ -13,9 +13,45 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.grpc.AddIndexRequest;
+import com.oracle.coherence.grpc.AggregateRequest;
+import com.oracle.coherence.grpc.CacheRequestHolder;
+import com.oracle.coherence.grpc.ClearRequest;
+import com.oracle.coherence.grpc.ContainsEntryRequest;
+import com.oracle.coherence.grpc.ContainsKeyRequest;
+import com.oracle.coherence.grpc.ContainsValueRequest;
+import com.oracle.coherence.grpc.DestroyRequest;
+import com.oracle.coherence.grpc.Entry;
+import com.oracle.coherence.grpc.EntryResult;
+import com.oracle.coherence.grpc.EntrySetRequest;
+import com.oracle.coherence.grpc.GetAllRequest;
+import com.oracle.coherence.grpc.GetRequest;
+import com.oracle.coherence.grpc.InvokeAllRequest;
+import com.oracle.coherence.grpc.InvokeRequest;
+import com.oracle.coherence.grpc.IsEmptyRequest;
+import com.oracle.coherence.grpc.KeySetRequest;
+import com.oracle.coherence.grpc.MapListenerRequest;
+import com.oracle.coherence.grpc.MapListenerResponse;
+import com.oracle.coherence.grpc.OptionalValue;
+import com.oracle.coherence.grpc.PageRequest;
+import com.oracle.coherence.grpc.PutAllRequest;
+import com.oracle.coherence.grpc.PutIfAbsentRequest;
+import com.oracle.coherence.grpc.PutRequest;
+import com.oracle.coherence.grpc.RemoveIndexRequest;
+import com.oracle.coherence.grpc.RemoveMappingRequest;
+import com.oracle.coherence.grpc.RemoveRequest;
+import com.oracle.coherence.grpc.ReplaceMappingRequest;
+import com.oracle.coherence.grpc.ReplaceRequest;
+import com.oracle.coherence.grpc.SizeRequest;
+import com.oracle.coherence.grpc.TruncateRequest;
+import com.oracle.coherence.grpc.ValuesRequest;
+
 import com.tangosol.io.Serializer;
+
 import com.tangosol.util.Filter;
+
 import com.tangosol.util.filter.AlwaysFilter;
+
 import io.grpc.stub.StreamObserver;
 
 import java.util.concurrent.CompletionStage;
@@ -28,6 +64,7 @@ import java.util.concurrent.CompletionStage;
  * @since 20.06
  */
 public interface NamedCacheService
+        extends GrpcProxyService
     {
     /**
      * The name of the gRPC service.

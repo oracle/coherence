@@ -11,7 +11,6 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 
 import com.oracle.coherence.grpc.BinaryHelper;
-import com.oracle.coherence.grpc.NamedCacheService;
 import com.oracle.coherence.grpc.Requests;
 
 import com.tangosol.io.Serializer;

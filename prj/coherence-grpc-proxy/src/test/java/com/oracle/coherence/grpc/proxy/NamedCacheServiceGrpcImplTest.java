@@ -30,7 +30,6 @@ import com.oracle.coherence.grpc.IsEmptyRequest;
 import com.oracle.coherence.grpc.KeySetRequest;
 import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
-import com.oracle.coherence.grpc.NamedCacheService;
 import com.oracle.coherence.grpc.OptionalValue;
 import com.oracle.coherence.grpc.PageRequest;
 import com.oracle.coherence.grpc.PutAllRequest;

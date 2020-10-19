@@ -8,7 +8,9 @@
 package com.oracle.coherence.grpc.proxy;
 
 import com.tangosol.coherence.config.Config;
+
 import io.helidon.grpc.server.GrpcRouting;
+
 import io.helidon.microprofile.grpc.server.spi.GrpcMpContext;
 import io.helidon.microprofile.grpc.server.spi.GrpcMpExtension;
 
@@ -41,7 +43,12 @@ public class HelidonGrpcMpExtension
             {
             GrpcRouting.Builder routing = context.routing();
             GrpcServerController.INSTANCE.setEnabled(false);
-            GrpcServerController.INSTANCE.createGrpcServices().forEach(routing::register);
+
+            for (BindableGrpcProxyService service : GrpcServerController.INSTANCE.createGrpcServices())
+                {
+                GrpcMetricsInterceptor interceptor = new GrpcMetricsInterceptor(service.getMetrics());
+                routing.register(service, rules -> rules.intercept(interceptor));
+                }
             context.whenStarted().thenRun(GrpcServerController.INSTANCE::markStarted);
             }
         }

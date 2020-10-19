@@ -126,14 +126,14 @@ public class AsyncNamedCacheClient<K, V>
         f_sScopeName                = dependencies.getScopeName().orElse(Requests.DEFAULT_SCOPE);
         f_synchronousCache          = new NamedCacheClient<>(this);
         f_listDeactivationListeners = new ArrayList<>();
-        f_executor                  = dependencies.getExecutor().orElse(createDefaultExecutor());
+        f_executor                  = dependencies.getExecutor().orElseGet(AsyncNamedCacheClient::createDefaultExecutor);
         f_sFormat                   = dependencies.getSerializerFormat()
-                                                  .orElse(dependencies.getSerializer()
-                                                                      .map(Serializer::getName)
-                                                                      .orElse(getDefaultSerializerFormat()));
-        f_serializer                = dependencies.getSerializer().orElse(createSerializer(f_sFormat));
+                                                  .orElseGet(() -> dependencies.getSerializer()
+                                                       .map(Serializer::getName)
+                                                       .orElseGet(AsyncNamedCacheClient::getDefaultSerializerFormat));
+        f_serializer                = dependencies.getSerializer().orElseGet(() -> createSerializer(f_sFormat));
         f_service                   = dependencies.getClient()
-                                                  .orElse(new NamedCacheGrpcClient(dependencies.getChannel()));
+                                                  .orElseGet(() -> new NamedCacheGrpcClient(dependencies.getChannel()));
         initEvents();
         }
 

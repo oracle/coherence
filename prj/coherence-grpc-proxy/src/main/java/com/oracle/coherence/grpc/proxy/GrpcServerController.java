@@ -11,20 +11,24 @@ import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.Requests;
+
 import com.tangosol.application.Context;
 import com.tangosol.application.LifecycleListener;
 
 import com.tangosol.coherence.config.Config;
 
-import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptors;
+import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessServerBuilder;
 
 import java.io.IOException;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
@@ -66,13 +70,15 @@ public class GrpcServerController
             m_inProcessName = Config.getProperty(Requests.PROP_IN_PROCESS_NAME, Requests.DEFAULT_CHANNEL_NAME);
             int port = Config.getInteger(Requests.PROP_PORT, Requests.DEFAULT_PORT);
 
-            ServerBuilder<?>          serverBuilder = ServerBuilder.forPort(port);
-            InProcessServerBuilder    inProcBuilder = InProcessServerBuilder.forName("default");
+            ServerBuilder<?>       serverBuilder = ServerBuilder.forPort(port);
+            InProcessServerBuilder inProcBuilder = InProcessServerBuilder.forName("default");
 
-            for (BindableService service : createGrpcServices())
+            for (BindableGrpcProxyService service : createGrpcServices())
                 {
-                serverBuilder.addService(service);
-                inProcBuilder.addService(service);
+                GrpcMetricsInterceptor  interceptor = new GrpcMetricsInterceptor(service.getMetrics());
+                ServerServiceDefinition definition  = ServerInterceptors.intercept(service, interceptor);
+                serverBuilder.addService(definition);
+                inProcBuilder.addService(definition);
                 }
 
             configure(serverBuilder, inProcBuilder);
@@ -185,7 +191,12 @@ public class GrpcServerController
         throw new IllegalStateException("The gRPC server is not running");
         }
 
-    public List<BindableService> createGrpcServices()
+    /**
+     * Obtain the list of gRPC proxy services to bind to a gRPC server.
+     *
+     * @return  the list of gRPC proxy services to bind to a gRPC server
+     */
+    public List<BindableGrpcProxyService> createGrpcServices()
         {
         return Collections.singletonList(new NamedCacheServiceGrpcImpl());
         }

@@ -20,7 +20,6 @@ import com.oracle.coherence.grpc.MapListenerResponse;
 import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
 import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
 
-import com.oracle.coherence.grpc.NamedCacheService;
 import com.tangosol.coherence.component.net.message.MapEventMessage;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
@@ -70,7 +69,7 @@ class MapListenerProxy
      * Create a {@link MapListenerProxy} to handle a{@link com.tangosol.util.MapListener}
      * subscription to a cache.
      *
-     * @param service   the {@link NamedCacheServiceBean} to proxy
+     * @param service   the {@link NamedCacheService} to proxy
      * @param observer  the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
      *                  instances to
      */
