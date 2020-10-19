@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -378,7 +378,7 @@ public class ConfigTest
 
         String result = Config.getPropertyInternal("coherence.foo", sysProps, envVars);
         assertThat(result, is("bar"));
-        verifyNoInteractions(envVars);
+        verifyZeroInteractions(envVars);
         }
 
     @Test
@@ -391,7 +391,7 @@ public class ConfigTest
 
         String result = Config.getPropertyInternal("coherence.foo", sysProps, envVars);
         assertThat(result, is("bar"));
-        verifyNoInteractions(envVars);
+        verifyZeroInteractions(envVars);
         }
 
     @Test
@@ -404,7 +404,7 @@ public class ConfigTest
 
         String result = Config.getPropertyInternal("coherence.foo", sysProps, envVars);
         assertThat(result, is("bar"));
-        verifyNoInteractions(envVars);
+        verifyZeroInteractions(envVars);
         }
 
     @Test
@@ -417,7 +417,7 @@ public class ConfigTest
 
         String result = Config.getPropertyInternal("tangosol.coherence.foo", sysProps, envVars);
         assertThat(result, is("bar"));
-        verifyNoInteractions(envVars);
+        verifyZeroInteractions(envVars);
         }
 
     @Test
@@ -430,7 +430,7 @@ public class ConfigTest
 
         String result = Config.getPropertyInternal("tangosol.foo", sysProps, envVars);
         assertThat(result, is("bar"));
-        verifyNoInteractions(envVars);
+        verifyZeroInteractions(envVars);
         }
 
     @Test
