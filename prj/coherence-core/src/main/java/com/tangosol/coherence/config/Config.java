@@ -45,32 +45,9 @@ public abstract class Config
      * @return value of property <code>sName</code> or null if property lookup
      *         fails or property does not exist
      */
-    static public String getProperty(String sName)
+    public static String getProperty(String sName)
         {
-        String sValue = SYS_PROPS.getProperty(sName);
-
-        if (sValue == null)
-            {
-            // initial property lookup failed.
-            // trying using alternative coherence system property naming convention.
-            if (sName.startsWith("coherence."))
-                {
-                return getPropertyBackwardsCompatibleMode(sName);
-                }
-
-            // handle cases that sName is still following pre 12.2.1 coherence
-            // system property conventions, try 12.2.1 naming convention.
-            if (sName.startsWith("tangosol.coherence."))
-                {
-                return SYS_PROPS.getProperty(sName.replaceFirst("tangosol.", ""));
-                }
-            else if (sName.startsWith("tangosol."))
-                {
-                return SYS_PROPS.getProperty(sName.replaceFirst("tangosol", "coherence"));
-                }
-            }
-
-        return sValue;
+        return getPropertyInternal(sName, SYS_PROPS, ENV_VARS);
         }
 
     /**
@@ -84,7 +61,7 @@ public abstract class Config
      * @return value of property <code>sName</code>, or <code>sDefault</code> if
      *         property lookup fails or no property defined
      */
-    static public String getProperty(String sName, String sDefault)
+    public static String getProperty(String sName, String sDefault)
         {
         String sValue = getProperty(sName);
 
@@ -103,7 +80,7 @@ public abstract class Config
      * @return value of property <code>sName</code>, or value provided by the <code>supDefault</code>
      *         if property lookup fails or no property defined
      */
-    static public String getProperty(String sName, Supplier<String> supDefault)
+    public static String getProperty(String sName, Supplier<String> supDefault)
         {
         String sValue = getProperty(sName);
 
@@ -120,7 +97,7 @@ public abstract class Config
      *
      * @return <code>true</code> if system property exists and equal to true
      */
-    static public boolean getBoolean(String sName)
+    public static boolean getBoolean(String sName)
         {
         return getBoolean(sName, false);
         }
@@ -136,17 +113,10 @@ public abstract class Config
      * @return true if <code>sName</code> exists and its value is string true; otherwise,
      * return <code>sDefault</code>.
      */
-    static public boolean getBoolean(String sName, boolean fDefault)
+    public static boolean getBoolean(String sName, boolean fDefault)
         {
         String sValue = getProperty(sName);
-        try
-            {
-            return sValue == null ? fDefault : Boolean.parseBoolean(sValue);
-            }
-        catch (RuntimeException e)
-            {
-            return fDefault;
-            }
+        return sValue == null ? fDefault : Boolean.parseBoolean(sValue);
         }
 
     /**
@@ -159,7 +129,7 @@ public abstract class Config
      * @return property value as integer if  property lookup and conversion
      *         of the String value to integer succeeds; otherwise, return null
      */
-    static public Integer getInteger(String sName)
+    public static Integer getInteger(String sName)
         {
         String sValue = getProperty(sName);
         try
@@ -183,7 +153,7 @@ public abstract class Config
      * @return property value as integer if property lookup and conversion
      *         of the String value to integer succeeds; otherwise, return <code>iDefault</code>
      */
-    static public Integer getInteger(String sName, int iDefault)
+    public static Integer getInteger(String sName, int iDefault)
         {
         Integer i = getInteger(sName);
 
@@ -200,7 +170,7 @@ public abstract class Config
      * @return property value as long if property lookup and conversion
      *         of the String value to long succeeds; otherwise, return null
      */
-    static public Long getLong(String sName)
+    public static Long getLong(String sName)
         {
         String sValue = getProperty(sName);
         try
@@ -224,7 +194,7 @@ public abstract class Config
      * @return property value as long if property lookup and conversion
      *         of the String value to long succeeds; otherwise, return <code>lDefault</code>
      */
-    static public Long getLong(String sName, long lDefault)
+    public static Long getLong(String sName, long lDefault)
         {
         Long l = getLong(sName);
 
@@ -241,7 +211,7 @@ public abstract class Config
      * @return property value as float if property lookup and conversion
      *         of the String value to float succeeds; otherwise, return null
      */
-    static public Float getFloat(String sName)
+    public static Float getFloat(String sName)
         {
         String sValue = getProperty(sName);
         try
@@ -265,7 +235,7 @@ public abstract class Config
      * @return property value as long if property lookup and conversion
      *         of the String value to float succeeds; otherwise, return <code>fDefault</code>
      */
-    static public Float getFloat(String sName, float fDefault)
+    public static Float getFloat(String sName, float fDefault)
         {
         Float d = getFloat(sName);
 
@@ -282,7 +252,7 @@ public abstract class Config
      * @return property value as double if property lookup and conversion
      *         of the String value to double succeeds; otherwise, return null
      */
-    static public Double getDouble(String sName)
+    public static Double getDouble(String sName)
         {
         String sValue = getProperty(sName);
         try
@@ -306,7 +276,7 @@ public abstract class Config
      * @return property value as double if property lookup and conversion
      *         of the String value to double succeeds; otherwise, return <code>dDefault</code>
      */
-    static public Double getDouble(String sName, double dDefault)
+    public static Double getDouble(String sName, double dDefault)
         {
         Double d = getDouble(sName);
 
@@ -324,7 +294,7 @@ public abstract class Config
      *         of the String value to {@link Duration} succeeds;
      *         otherwise, return null
      */
-    static public Duration getDuration(String sName)
+    public static Duration getDuration(String sName)
         {
         String sValue = getProperty(sName);
         try
@@ -349,7 +319,7 @@ public abstract class Config
      *         of the String value to {@link Duration} succeeds; otherwise,
      *         return <code>dDefault</code>
      */
-    static public Duration getDuration(String sName, Duration dDefault)
+    public static Duration getDuration(String sName, Duration dDefault)
         {
         Duration d = getDuration(sName);
 
@@ -364,9 +334,74 @@ public abstract class Config
      *
      * @return value for system environment property if it exists or null
      */
-    static public String getenv(String sName)
+    public static String getenv(String sName)
         {
-        String sValue = ENV_VARS.getEnv(sName);
+        return getEnvInternal(sName, ENV_VARS);
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Get the value of Coherence property <code>sName</code>
+     * <p>
+     * This implementation differs from {@link System#getProperty(String)} that a
+     * {@link java.lang.SecurityException} is handled and logged as a warning
+     * and null is returned as the property's value.
+     * <p>
+     * Backwards compatibility support is described in {@link Config}.
+     *
+     * @param sName     Coherence system property name beginning with <code>coherence.</code>
+     * @param sysProps  the {@link SystemPropertyResolver} that will resolve system properties
+     * @param envVars   the {@link EnvironmentVariableResolver} to resolve environment variables
+     *
+     * @return value of property <code>sName</code> or null if property lookup
+     *         fails or property does not exist
+     */
+    static String getPropertyInternal(String sName, SystemPropertyResolver sysProps, EnvironmentVariableResolver envVars)
+        {
+        String sValue = sysProps.getProperty(sName);
+
+        if (sValue == null)
+            {
+            if (sName.startsWith("coherence."))
+                {
+                // initial property lookup failed.
+                // trying using alternative coherence system property naming convention.
+                sValue = getPropertyBackwardsCompatibleMode(sName, sysProps);
+                }
+            else if (sName.startsWith("tangosol.coherence."))
+                {
+                // handle cases that sName is still following pre 12.2.1 coherence
+                // system property conventions, try 12.2.1 naming convention.
+                sValue = sysProps.getProperty(sName.replaceFirst("tangosol.", ""));
+                }
+            else if (sName.startsWith("tangosol."))
+                {
+                sValue = sysProps.getProperty(sName.replaceFirst("tangosol", "coherence"));
+                }
+            }
+
+        // if System property not found try environment variable
+        if (sValue == null)
+            {
+            sValue = getEnvInternal(sName, envVars);
+            }
+
+        return sValue;
+        }
+
+    /**
+     * Coherence enhanced system environment getter
+     * Use instead of {@link System#getenv(String)}.
+     *
+     * @param sName    Coherence system environment property name
+     * @param envVars  the {@link EnvironmentVariableResolver} to resolve environment variables
+     *
+     * @return value for system environment property if it exists or null
+     */
+    static String getEnvInternal(String sName, EnvironmentVariableResolver envVars)
+        {
+        String sValue = envVars.getEnv(sName);
 
         if (sValue == null)
             {
@@ -374,42 +409,53 @@ public abstract class Config
             // trying using alternative coherence system property naming convention.
             if (sName.startsWith("coherence."))
                 {
-                return getEnvironmentBackwardsCompatibleMode(sName);
+                sValue = getEnvironmentBackwardsCompatibleMode(sName, envVars);
                 }
-
-            // handle cases that sName is still following pre 12.2.1 coherence
-            // system property conventions, try 12.2.1 naming convention.
-            if (sName.startsWith("tangosol.coherence."))
+            else if (sName.startsWith("tangosol.coherence."))
                 {
-                return ENV_VARS.getEnv(sName.replaceFirst("tangosol.", ""));
+                // handle cases that sName is still following pre 12.2.1 coherence
+                // system property conventions, try 12.2.1 naming convention.
+                sValue = envVars.getEnv(sName.replaceFirst("tangosol.", ""));
                 }
             else if (sName.startsWith("tangosol."))
                 {
-                return ENV_VARS.getEnv(sName.replaceFirst("tangosol", "coherence"));
+                sValue = envVars.getEnv(sName.replaceFirst("tangosol", "coherence"));
+                }
+            }
+
+        if (sValue == null)
+            {
+            // try uppercase with underscores
+            String sNameUpper = sName.toUpperCase().replaceAll("\\.", "_");
+            sValue = envVars.getEnv(sNameUpper);
+
+            if (sValue == null)
+                {
+                // initial property lookup failed.
+                // trying using alternative coherence system property naming convention.
+                if (sNameUpper.startsWith("COHERENCE_"))
+                    {
+                    // check for tangosol.coherence.* backwards compatibility
+                    sValue = envVars.getEnv("TANGOSOL_" + sNameUpper);
+                    return sValue == null
+                            ? envVars.getEnv(sNameUpper.replaceFirst("COHERENCE", "TANGOSOL"))
+                            : sValue;
+                    }
+
+                // handle cases that sName is still following pre 12.2.1 coherence
+                // system property conventions, try 12.2.1 naming convention.
+                if (sNameUpper.startsWith("TANGOSOL_COHERENCE_"))
+                    {
+                    return envVars.getEnv(sNameUpper.replaceFirst("TANGOSOL_", ""));
+                    }
+                else if (sNameUpper.startsWith("TANGOSOL_"))
+                    {
+                    return envVars.getEnv(sNameUpper.replaceFirst("TANGOSOL", "COHERENCE"));
+                    }
                 }
             }
 
         return sValue;
-
-        }
-
-    // ----- helpers --------------------------------------------------------
-
-    /**
-     * Resolve sName using backwards compatibility rules.
-     * Checks for backwards compatible properties "tangosol.coherence.*" and "tangosol.*".
-     *
-     * @param sName  Coherence system property name beginning with "coherence."
-     * @return String for backwards compatibility conversion of sName or null if not defined
-     *
-     * @since Coherence 12.2.1
-     */
-    static private String getPropertyBackwardsCompatibleMode(String sName)
-        {
-        // check for tangosol.coherence.* backwards compatibility
-        String sValue = SYS_PROPS.getProperty("tangosol." + sName);
-
-        return sValue == null ? SYS_PROPS.getProperty(sName.replaceFirst("coherence", "tangosol")) : sValue;
         }
 
     /**
@@ -417,18 +463,40 @@ public abstract class Config
      * Checks for backwards compatible properties "tangosol.coherence.*" and "tangosol.*".
      *
      * @param sName  Coherence system property name beginning with "coherence."
+     * @param sysProps  the {@link SystemPropertyResolver} that will resolve system properties
+     *
      * @return String for backwards compatibility conversion of sName or null if not defined
      *
      * @since Coherence 12.2.1
      */
-    static private String getEnvironmentBackwardsCompatibleMode(String sName)
+    private static String getPropertyBackwardsCompatibleMode(String sName, SystemPropertyResolver sysProps)
         {
         // check for tangosol.coherence.* backwards compatibility
-        String sValue = ENV_VARS.getEnv("tangosol." + sName);
+        String sValue = sysProps.getProperty("tangosol." + sName);
 
-        return sValue == null ? ENV_VARS.getEnv(sName.replaceFirst("coherence", "tangosol")) : sValue;
+        return sValue == null ? sysProps.getProperty(sName.replaceFirst("coherence", "tangosol")) : sValue;
         }
 
+    /**
+     * Resolve sName using backwards compatibility rules.
+     * Checks for backwards compatible properties "tangosol.coherence.*" and "tangosol.*".
+     *
+     * @param sName    Coherence system property name beginning with "coherence."
+     * @param envVars  the {@link EnvironmentVariableResolver} to resolve environment variables
+     *
+     * @return String for backwards compatibility conversion of sName or null if not defined
+     *
+     * @since Coherence 12.2.1
+     */
+    private static String getEnvironmentBackwardsCompatibleMode(String sName, EnvironmentVariableResolver envVars)
+        {
+        // check for tangosol.coherence.* backwards compatibility
+        String sValue = envVars.getEnv("tangosol." + sName);
+
+        return sValue == null ? envVars.getEnv(sName.replaceFirst("coherence", "tangosol")) : sValue;
+        }
+
+    
     // ----- static members -------------------------------------------------
 
     /**
