@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.config;
 
+import com.oracle.coherence.common.util.Duration;
+
 import java.util.function.Supplier;
 
 /**
@@ -309,6 +311,49 @@ public abstract class Config
         Double d = getDouble(sName);
 
         return d == null ? new Double(dDefault) : d;
+        }
+
+    /**
+     * Return Coherence system property value as a {@link Duration}.
+     * <p>
+     * Backwards compatibility support is described in {@link Config}.
+     *
+     * @param sName  Coherence system property name beginning with <code>coherence.</code>
+     *
+     * @return property value as {@link Duration} if property lookup and conversion
+     *         of the String value to {@link Duration} succeeds;
+     *         otherwise, return null
+     */
+    static public Duration getDuration(String sName)
+        {
+        String sValue = getProperty(sName);
+        try
+            {
+            return sValue == null || sValue.isEmpty() ? null :  new Duration(sValue);
+            }
+        catch (RuntimeException e)
+            {
+            return null;
+            }
+        }
+
+    /**
+     * Return Coherence system property value as a {@link Duration}.
+     * <p>
+     * Backwards compatibility support is described in {@link Config}.
+     *
+     * @param sName     Coherence system property name beginning with <code>coherence.</code>
+     * @param dDefault  default {@link Duration} value
+     *
+     * @return property value as {@link Duration} if property lookup and conversion
+     *         of the String value to {@link Duration} succeeds; otherwise,
+     *         return <code>dDefault</code>
+     */
+    static public Duration getDuration(String sName, Duration dDefault)
+        {
+        Duration d = getDuration(sName);
+
+        return d == null ? dDefault : d;
         }
 
     /**
