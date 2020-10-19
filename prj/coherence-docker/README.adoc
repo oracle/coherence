@@ -51,7 +51,7 @@ Coherence metrics can be enabled with the System property `coherence.metrics.htt
 
 === Building the Image
 
-Assuming that you have first cloned the Coherence CE project the to build the Coherence image run the following command
+Assuming you have first cloned the Coherence CE project the to build the Coherence image run the following command
 from the top-level Maven `prj/` folder:
 
 [source,bash]
@@ -90,7 +90,7 @@ docker run -d -P oraclecoherence/coherence-ce:{project-version}
 The `-P` parameter will ensure that the Extend, gRPC, management and metrics ports will all be exposed.
 
 By default, when started the image will run `com.tangosol.net.DefaultCacheServer`.
-This may be changed by setting the `COH_MAIN_CLASS` environment variable to the nameof another main class.
+This may be changed by setting the `COH_MAIN_CLASS` environment variable to the name of another main class.
 
 [source,bash]
 ----
@@ -109,7 +109,7 @@ in Kubernetes. The operator provides functionality to configure the container co
 [#coherence-properties]
 === Specifying Coherence System Properties
 
-Many options in Coherence can be set from System properties prefiexed with `coherence.`.
+Many options in Coherence can be set from System properties prefixed with `coherence.`.
 The issue here is that System properties are not very easy to pass into the JVM in the container, whereas environment
 variables are. To help with this the main class which runs in the container will convert any environment variable
 prefixed with `coherence.` into a System property before it starts Coherence.
@@ -292,7 +292,7 @@ docker run -d -P --link jaeger \
     oraclecoherence/coherence-ce:{project-version}
 ----
 
-Once the Coherence container is running perform some interations with it using one of the exposed services, i.e Extend
+Once the Coherence container is running perform some interactions with it using one of the exposed services, i.e Extend
 or gRPC, and spans will be sent to the Jaeger collector and will be visible in the UI by querying for the `coherence`
 service name. The service name used can be changed by setting the `JAEGER_SERVICE_NAME` environment variable when
 starting the container, for example:
