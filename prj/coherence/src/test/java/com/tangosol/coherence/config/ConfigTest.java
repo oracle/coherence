@@ -6,6 +6,7 @@
  */
 package com.tangosol.coherence.config;
 
+import com.oracle.coherence.common.util.Duration;
 import common.SystemPropertyIsolation;
 import common.SystemPropertyResource;
 
@@ -13,10 +14,18 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test for {@link Config}.
@@ -212,6 +221,70 @@ public class ConfigTest
         assertNull(Config.getProperty(COHERENCE_PROPERTY));
         }
 
+    @Test
+    public void shouldGetPropertyWithDefaultSupplier()
+        {
+        String sResult = Config.getProperty("coherence." + UUID.randomUUID().toString(), () -> "bar");
+        assertThat(sResult, is("bar"));
+        }
+
+    @Test
+    public void shouldGetBooleanWhenTrue()
+        {
+        try (SystemPropertyResource r = new SystemPropertyResource("coherence.foo", "true"))
+            {
+            boolean fResult = Config.getBoolean("coherence.foo");
+            assertThat(fResult, is(true));
+            }
+        }
+
+    @Test
+    public void shouldGetBooleanWhenFalse()
+        {
+        try (SystemPropertyResource r = new SystemPropertyResource("coherence.foo", "false"))
+            {
+            boolean fResult = Config.getBoolean("coherence.foo");
+            assertThat(fResult, is(false));
+            }
+        }
+
+    @Test
+    public void shouldGetBooleanWhenNotSet()
+        {
+        System.clearProperty("coherence.foo");
+        boolean fResult = Config.getBoolean("coherence.foo");
+        assertThat(fResult, is(false));
+        }
+
+    @Test
+    public void shouldGetDuration() throws Exception
+        {
+        try (SystemPropertyResource r = new SystemPropertyResource("coherence.foo", "10m"))
+            {
+            Duration result = Config.getDuration("coherence.foo");
+            assertThat(result, is(new Duration("10m")));
+            }
+        }
+
+    @Test
+    public void shouldGetDurationWithIllegalValue() throws Exception
+        {
+        try (SystemPropertyResource r = new SystemPropertyResource("coherence.foo", "ABC"))
+            {
+            Duration result = Config.getDuration("coherence.foo");
+            assertThat(result, is(nullValue()));
+            }
+        }
+
+    @Test
+    public void shouldGetDurationDefaultValue()
+        {
+        System.clearProperty("coherence.foo");
+        Duration duration = new Duration("1m");
+        Duration result = Config.getDuration("coherence.foo", duration);
+        assertThat(result, is(duration));
+        }
+
     /**
      * Test Coherence system property accessing, both 12.2.1 pattern beginning with <tt>coherence.</tt>
      * and prior to 12.2.1 pattern of <tt>tangosol.</tt>
@@ -295,6 +368,194 @@ public class ConfigTest
             }
         }
 
+    @Test
+    public void shouldGetPropertyFromSystemPropertyResolver()
+        {
+        SystemPropertyResolver      sysProps = mock(SystemPropertyResolver.class);
+        EnvironmentVariableResolver envVars  = mock(EnvironmentVariableResolver.class);
+
+        when(sysProps.getProperty("coherence.foo")).thenReturn("bar");
+
+        String result = Config.getPropertyInternal("coherence.foo", sysProps, envVars);
+        assertThat(result, is("bar"));
+        verifyNoInteractions(envVars);
+        }
+
+    @Test
+    public void shouldGetPropertyFromSystemPropertyResolverUsingTangosolPrefix()
+        {
+        SystemPropertyResolver      sysProps = mock(SystemPropertyResolver.class);
+        EnvironmentVariableResolver envVars  = mock(EnvironmentVariableResolver.class);
+
+        when(sysProps.getProperty("tangosol.coherence.foo")).thenReturn("bar");
+
+        String result = Config.getPropertyInternal("coherence.foo", sysProps, envVars);
+        assertThat(result, is("bar"));
+        verifyNoInteractions(envVars);
+        }
+
+    @Test
+    public void shouldGetPropertyFromSystemPropertyResolverReplacingCoherenceWithTangosolPrefix()
+        {
+        SystemPropertyResolver      sysProps = mock(SystemPropertyResolver.class);
+        EnvironmentVariableResolver envVars  = mock(EnvironmentVariableResolver.class);
+
+        when(sysProps.getProperty("tangosol.foo")).thenReturn("bar");
+
+        String result = Config.getPropertyInternal("coherence.foo", sysProps, envVars);
+        assertThat(result, is("bar"));
+        verifyNoInteractions(envVars);
+        }
+
+    @Test
+    public void shouldGetPropertyFromSystemPropertyResolverRemovingTangosolPrefix()
+        {
+        SystemPropertyResolver      sysProps = mock(SystemPropertyResolver.class);
+        EnvironmentVariableResolver envVars  = mock(EnvironmentVariableResolver.class);
+
+        when(sysProps.getProperty("coherence.foo")).thenReturn("bar");
+
+        String result = Config.getPropertyInternal("tangosol.coherence.foo", sysProps, envVars);
+        assertThat(result, is("bar"));
+        verifyNoInteractions(envVars);
+        }
+
+    @Test
+    public void shouldGetPropertyFromSystemPropertyResolverReplacingTangosolPrefixWithCoherence()
+        {
+        SystemPropertyResolver      sysProps = mock(SystemPropertyResolver.class);
+        EnvironmentVariableResolver envVars  = mock(EnvironmentVariableResolver.class);
+
+        when(sysProps.getProperty("coherence.foo")).thenReturn("bar");
+
+        String result = Config.getPropertyInternal("tangosol.foo", sysProps, envVars);
+        assertThat(result, is("bar"));
+        verifyNoInteractions(envVars);
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverWhenNotInSystemPropertyResolver()
+        {
+        SystemPropertyResolver      sysProps = mock(SystemPropertyResolver.class);
+        EnvironmentVariableResolver envVars  = mock(EnvironmentVariableResolver.class);
+
+        when(sysProps.getProperty("coherence.foo")).thenReturn(null);
+        when(envVars.getEnv("coherence.foo")).thenReturn("bar");
+
+        String result = Config.getPropertyInternal("coherence.foo", sysProps, envVars);
+        assertThat(result, is("bar"));
+        verify(envVars).getEnv("coherence.foo");
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolver()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("coherence.foo")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("coherence.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverUsingTangosolPrefix()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("tangosol.coherence.foo")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("coherence.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverReplacingCoherenceWithTangosolPrefix()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("tangosol.foo")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("coherence.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverRemovingTangosolPrefix()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("coherence.foo")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("tangosol.coherence.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverReplacingTangosolPrefixWithCoherence()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("coherence.foo")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("tangosol.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverUpperCase()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("COHERENCE_FOO")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("coherence.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverUpperCaseUsingTangosolPrefix()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("TANGOSOL_COHERENCE_FOO")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("coherence.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverUpperCaseReplacingCoherenceWithTangosolPrefix()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("TANGOSOL_FOO")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("coherence.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverUpperCaseRemovingTangosolPrefix()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("COHERENCE_FOO")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("tangosol.coherence.foo", envVars);
+        assertThat(result, is("bar"));
+        }
+
+    @Test
+    public void shouldGetPropertyFromEnvironmentVariableResolverUpperCaseReplacingTangosolPrefixWithCoherence()
+        {
+        EnvironmentVariableResolver envVars = mock(EnvironmentVariableResolver.class);
+
+        when(envVars.getEnv("COHERENCE_FOO")).thenReturn("bar");
+
+        String result = Config.getEnvInternal("tangosol.foo", envVars);
+        assertThat(result, is("bar"));
+        }
 
     //----- constants --------------------------------------------------------
 
