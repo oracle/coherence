@@ -406,7 +406,7 @@ public class SafeConfigurablePofContextTest
 
         Exception e = new Exception("this is a test");
 
-        byte[] ab = new byte[4096];
+        byte[] ab = new byte[0x3 << 11]; // 6k
         ctx.serialize(new ByteArrayWriteBuffer(ab).getBufferOutput(), e);
 
         Object o = ctx.deserialize(new ByteArrayReadBuffer(ab).getBufferInput());
