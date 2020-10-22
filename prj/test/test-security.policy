@@ -227,6 +227,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-rest/target/coheren
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -273,6 +274,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-management/-" {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -317,6 +319,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-management/target/c
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -363,6 +366,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-metrics/-" {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -407,6 +411,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-metrics/target/cohe
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -446,6 +451,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/-" {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -472,6 +478,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/target
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -495,6 +502,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-jetty/-" {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -521,6 +529,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-jetty/target/c
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -544,6 +553,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-netty/-" {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -570,6 +580,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-netty/target/c
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -593,6 +604,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-simple/-" {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -619,6 +631,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-simple/target/
   permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
@@ -691,6 +704,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/extend/target
   permission java.net.SocketPermission "*", "resolve";
 
   // required by the extend.JmxMBeanTests
+  permission java.lang.RuntimePermission "getenv.*";
   permission javax.management.MBeanPermission "*", "queryMBeans";
   permission javax.management.MBeanPermission "*", "getAttribute";
   permission javax.management.MBeanPermission "*", "setAttribute";
@@ -703,10 +717,15 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/net/target/-"
   permission java.lang.RuntimePermission "createClassLoader";
 };
 
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/partition/target/-" {
+  permission java.lang.RuntimePermission "getenv.*";
+};
+
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/persistence/target/-" {
   permission java.io.FilePermission "${java.io.tmpdir}${/}-", "read, write, delete, execute";
   permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/persistence/target", "read, write, delete, execute";
   permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/persistence/target/-", "read, write, delete, execute";
+  permission java.lang.RuntimePermission "getenv.*";
   permission java.util.logging.LoggingPermission "control";
   permission java.util.PropertyPermission "*", "read";
   permission java.lang.management.ManagementPermission "monitor";
@@ -730,9 +749,22 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/cache/target/
   permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.lang.RuntimePermission "getenv.*";
+};
+
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/security/target/-" {
+  permission java.lang.RuntimePermission "getenv.*";
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/jaeger-common/target/-" {
+  permission java.util.PropertyPermission "*", "read, write";
+  permission java.lang.RuntimePermission "getenv.*";
+  permission java.io.FilePermission "<<ALL FILES>>", "read";
+  permission java.net.SocketPermission "*", "connect,resolve,accept,listen";
+  permission java.lang.RuntimePermission "shutdownHooks";
+};
+
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/jaeger-1.0.0/target/-" {
   permission java.util.PropertyPermission "*", "read, write";
   permission java.lang.RuntimePermission "getenv.*";
   permission java.io.FilePermission "<<ALL FILES>>", "read";
@@ -744,6 +776,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/transaction/t
   // these tests read the config files explicitly
   permission java.io.FilePermission "<<ALL FILES>>", "read";
   permission com.tangosol.net.security.LocalPermission "Cluster.shutdown";
+  permission java.lang.RuntimePermission "getenv.*";
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/io/target/-" {
