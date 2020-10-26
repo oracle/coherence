@@ -57,7 +57,7 @@ import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessObserverMethod;
 
 /**
- * A Coherence CDI {@link Extension} that shouyld only be used within the
+ * A Coherence CDI {@link Extension} that should only be used within the
  * cluster members.
  *
  * @author Jonathan Knight  2019.10.24
