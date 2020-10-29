@@ -7,8 +7,14 @@
 
 package jmx;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.tangosol.coherence.component.net.management.Gateway;
+
+import com.tangosol.coherence.component.util.SafeCluster;
 
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
@@ -19,19 +25,41 @@ import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.events.EventInterceptor;
+
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.annotation.TransactionEvents;
+
 import com.tangosol.net.events.partition.TransactionEvent;
 
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.Registry;
 
-import com.tangosol.coherence.component.util.SafeCluster;
-import com.tangosol.coherence.component.net.management.Gateway;
-
 import com.tangosol.util.BinaryEntry;
 
 import common.AbstractFunctionalTest;
+
+import java.beans.ConstructorProperties;
+
+import java.io.Serializable;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.function.Function;
+
+import java.util.function.Predicate;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
+import java.util.stream.Collectors;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.IntrospectionException;
@@ -55,28 +83,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.sameInstance;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.beans.ConstructorProperties;
-
-import java.io.Serializable;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 
 /**
 * A collection of functional tests for Coherence JMX framework.
@@ -1326,16 +1345,45 @@ public class JmxTests
     /**
     * Regression test for COH-3500.
     */
+    @SuppressWarnings("unchecked")
     private Member testCoh3500(Cluster cluster, CoherenceClusterMember member)
-            throws JMException
         {
-        SafeCluster _cluster  = (SafeCluster) cluster;
-        Gateway     _registry = (Gateway) _cluster.getManagement();
-        Map         mapLocal  = _registry.getLocalModels();
+        SafeCluster               _cluster        = (SafeCluster) cluster;
+        Gateway                   _registry       = (Gateway) _cluster.getManagement();
+        Map<String, Object>       mapLocal        = _registry.getLocalModels();
+        Predicate<String>         predFilterGraal = sMBeanKey -> !sMBeanKey.contains("Libgraal");
+        Function<String, String>  fnNodeIdRemove  = sMBeanKey ->
+            {
+            int cIdx = sMBeanKey.indexOf("nodeId=");
+            if (cIdx == -1)
+                {
+                return sMBeanKey;
+                }
+            else
+                {
+                int cCommaIdx = sMBeanKey.indexOf(',', cIdx);
+                if (cCommaIdx == -1)
+                    {
+                    return sMBeanKey.substring(0, cIdx - 1);
+                    }
+                else
+                    {
+                    StringBuilder sbMBeanKey = new StringBuilder(sMBeanKey);
+                    return sbMBeanKey.replace(cIdx - 1, cCommaIdx, "").toString();
+                    }
+                }
+            };
 
-        Member memberBefore = _cluster.getLocalMember();
-        int    cBefore      = mapLocal.size();
-        int    nCount       = member.getClusterSize();
+        Member      memberBefore    = _cluster.getLocalMember();
+        Set<String> setMBeansBefore = new TreeSet<>();
+        int         nCount          = member.getClusterSize();
+
+        // collect all mbean keys, filtering Libgraal mbeans and stripping the nodeId
+        // Libgraal is filtered out as the MBeans aren't always present
+        mapLocal.keySet().stream()
+                .filter(predFilterGraal)
+                .map(fnNodeIdRemove)
+                .collect(Collectors.toCollection(() -> setMBeansBefore));
 
         // simulate an abnormal termination
         _cluster.getCluster().stop();
@@ -1345,11 +1393,19 @@ public class JmxTests
         // simulate a restart
         _cluster.getOldestMember();
 
-        Member memberAfter = _cluster.getLocalMember();
-        int    cAfter      = mapLocal.size();
+        Member      memberAfter    = _cluster.getLocalMember();
+        Set<String> setMBeansAfter = new TreeSet<>();
 
-        assertTrue(memberBefore + " != " + memberAfter, memberBefore != memberAfter);
-        assertTrue("Fail to unregister mbeans", cAfter <= cBefore);
+        // collect all mbean keys, filtering Libgraal mbeans and stripping the nodeId
+        // Libgraal is filtered out as the MBeans aren't always present
+        mapLocal.keySet().stream()
+                .filter(predFilterGraal)
+                .map(fnNodeIdRemove)
+                .collect(Collectors.toCollection(() -> setMBeansAfter));
+
+        assertThat("Member references are identical", memberBefore, is(not(sameInstance(memberAfter))));
+        assertThat("Unexpected beans present after restart",
+                   setMBeansAfter, containsInAnyOrder(setMBeansBefore.toArray()));
 
         return memberAfter;
         }
