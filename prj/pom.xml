@@ -837,7 +837,7 @@
     <log4j.version>1.2.17</log4j.version>
     <log4j2.version>2.11.1</log4j2.version>
     <mvel.version>2.4.3.Final</mvel.version>
-    <netty.version>4.1.53.Final</netty.version>
+    <netty.version>4.1.45.Final</netty.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
@@ -1000,7 +1000,7 @@
 
                   props.setProperty("project.version.official",
                           major + "." + minor + (micro ? "." + micro : ""))
-
+                  
                   props.setProperty("project.version.next",
                           nextRelease.format(pattern) + ".0")
 
