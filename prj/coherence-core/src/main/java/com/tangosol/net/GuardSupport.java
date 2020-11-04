@@ -523,6 +523,22 @@ public class GuardSupport
                  ldtMissedSoftTimeout == 0);
             }
 
+        /**
+        * If more than half of the soft-timeout interval has passed, issue
+        * a heartbeat and clear the interrupted status if set.
+        */
+        public void reset()
+            {
+            long ldtNow         = Base.getSafeTimeMillis();
+            long ldtSoftTimeout = getSoftTimeout() - (m_cDefaultSoftTimeoutMillis >> 1);
+
+            if (ldtNow >= ldtSoftTimeout)
+                {
+                heartbeat();
+                Thread.interrupted();
+                }
+            }
+
         // ----- Object methods -------------------------------------------
 
         /**
@@ -801,6 +817,19 @@ public class GuardSupport
         if (context != null)
             {
             context.heartbeat(cMillis);
+            }
+        }
+
+    /**
+    * Issue a reset on the GuardContext associated with the current thread.
+    */
+    public static void reset()
+        {
+        Context context = (Context) getThreadContext();
+
+        if (context != null)
+            {
+            context.reset();
             }
         }
 
