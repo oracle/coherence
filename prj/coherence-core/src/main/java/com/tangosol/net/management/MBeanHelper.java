@@ -292,7 +292,7 @@ public abstract class MBeanHelper
                     ",name="    + sCacheName;
 
                 sName = registry.ensureGlobalName(sName);
-                sName = sName + "," + sContext;
+                sName = sName + (sContext == null ? "" : "," + sContext);
 
                 registry.register(sName, map);
                 }
@@ -358,14 +358,12 @@ public abstract class MBeanHelper
             Registry registry = cluster.getManagement();
             if (registry != null)
                 {
-                Member member = cluster.getLocalMember();
-                String sPattern = String.format("%s,service=%s,name=%s%s%s",
-                        Registry.CACHE_TYPE,
-                        sServiceName,
-                        sCacheName,
-                        (member == null ? "" : ',' + Registry.KEY_NODE_ID + member.getId()),
-                        (sContext == null ? "" : ',' + sContext));
-                registry.unregister(sPattern);
+                String sName = Registry.CACHE_TYPE + "," + Registry.KEY_SERVICE + sServiceName +
+                    ",name=" + sCacheName;
+
+                sName = registry.ensureGlobalName(sName);
+                sName = sName + (sContext == null ? "" : "," + sContext);
+                registry.unregister(sName);
                 }
             }
         catch (Throwable e) {}
