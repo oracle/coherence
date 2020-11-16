@@ -81,7 +81,7 @@ public class CacheStorageManagerData
                     AttributeList listAttr = requestSender.getAttributes(objName,
                         new String[]{ ATTR_LOCKS_GRANTED, ATTR_LOCKS_PENDING, ATTR_LISTENER_REG });
 
-                    data.setColumn(CacheStorageManagerData.NODE_ID, new Integer(sNodeId));
+                    data.setColumn(CacheStorageManagerData.NODE_ID, Integer.valueOf(sNodeId));
                     data.setColumn(CacheStorageManagerData.LOCKS_GRANTED,
                             Integer.parseInt(getAttributeValueAsString(listAttr, ATTR_LOCKS_GRANTED)));
                     data.setColumn(CacheStorageManagerData.LOCKS_PENDING,
@@ -170,26 +170,26 @@ public class CacheStorageManagerData
         Data data = new CacheStorageManagerData();
 
         data.setColumn(CacheStorageManagerData.NODE_ID,
-                       new Integer(getNumberValue(aoColumns[2].toString())));
+                       Integer.valueOf(getNumberValue(aoColumns[2].toString())));
         data.setColumn(CacheStorageManagerData.LOCKS_GRANTED,
-                       new Integer(getNumberValue(aoColumns[3].toString())));
+                       Integer.valueOf(getNumberValue(aoColumns[3].toString())));
         data.setColumn(CacheStorageManagerData.LOCKS_PENDING,
-                       new Integer(getNumberValue(aoColumns[4].toString())));
+                       Integer.valueOf(getNumberValue(aoColumns[4].toString())));
         data.setColumn(CacheStorageManagerData.LISTENER_REGISTRATIONS,
-                       new Long(getNumberValue(aoColumns[5].toString())));
+                       Long.valueOf(getNumberValue(aoColumns[5].toString())));
         data.setColumn(CacheStorageManagerData.MAX_QUERY_DURATION,
-                       new Long(getNumberValue(aoColumns[6].toString())));
+                       Long.valueOf(getNumberValue(aoColumns[6].toString())));
         data.setColumn(CacheStorageManagerData.MAX_QUERY_DESCRIPTION,
                        new String(aoColumns[7] == null ? "" : aoColumns[7].toString()));
         data.setColumn(CacheStorageManagerData.NON_OPTIMIZED_QUERY_AVG,
-                       new Long(getNumberValue(aoColumns[8].toString())));
+                       Long.valueOf(getNumberValue(aoColumns[8].toString())));
         data.setColumn(CacheStorageManagerData.OPTIMIZED_QUERY_AVG,
-                       new Long(getNumberValue(aoColumns[9].toString())));
+                       Long.valueOf(getNumberValue(aoColumns[9].toString())));
 
         try
             {
             data.setColumn(CacheStorageManagerData.INDEX_TOTAL_UNITS,
-                       new Long(getNumberValue(aoColumns[10].toString())));
+                       Long.valueOf(getNumberValue(aoColumns[10].toString())));
             }
         catch (Exception e)
             {
@@ -235,25 +235,25 @@ public class CacheStorageManagerData
                 {
                 JsonNode nodeCacheStorage = nodeCacheItems.get(i);
                 Data     data             = new CacheStorageManagerData();
+                
+                JsonNode locksGranted = nodeCacheStorage.get("locksGranted");
+                if (locksGranted == null)
+                    {
+                    // Connecting to version without Bug 32134281 fix so force less efficient way
+                    List<Map.Entry<Object, Data>> jmxData = getJMXData(requestSender, model);
+                    jmxData.forEach(e -> mapData.put(e.getKey(), e.getValue()));
+                    return mapData;
+                    }
 
-                data.setColumn(CacheStorageManagerData.NODE_ID,
-                        Integer.valueOf(nodeCacheStorage.get("nodeId").asText()));
-                data.setColumn(CacheStorageManagerData.LOCKS_GRANTED,
-                        Integer.valueOf(nodeCacheStorage.get("locksGranted").asText()));
-                data.setColumn(CacheStorageManagerData.LOCKS_PENDING,
-                        Integer.valueOf(nodeCacheStorage.get("locksPending").asText()));
-                data.setColumn(CacheStorageManagerData.LISTENER_REGISTRATIONS,
-                        Long.valueOf(nodeCacheStorage.get("listenerRegistrations").asText()));
-                data.setColumn(CacheStorageManagerData.MAX_QUERY_DURATION,
-                        Long.valueOf(nodeCacheStorage.get("maxQueryDurationMillis").asText()));
-                data.setColumn(CacheStorageManagerData.MAX_QUERY_DESCRIPTION,
-                        nodeCacheStorage.get("maxQueryDescription").asText());
-                data.setColumn(CacheStorageManagerData.NON_OPTIMIZED_QUERY_AVG,
-                        Long.valueOf(nodeCacheStorage.get("nonOptimizedQueryAverageMillis").asText()));
-                data.setColumn(CacheStorageManagerData.OPTIMIZED_QUERY_AVG,
-                        Long.valueOf(nodeCacheStorage.get("optimizedQueryAverageMillis").asText()));
-                data.setColumn(CacheStorageManagerData.INDEX_TOTAL_UNITS,
-                        Long.valueOf(nodeCacheStorage.get("indexTotalUnits").asText()));
+                data.setColumn(CacheStorageManagerData.NODE_ID, nodeCacheStorage.get("nodeId").asInt());
+                data.setColumn(CacheStorageManagerData.LOCKS_GRANTED, locksGranted.asInt());
+                data.setColumn(CacheStorageManagerData.LOCKS_PENDING, nodeCacheStorage.get("locksPending").asInt());
+                data.setColumn(CacheStorageManagerData.LISTENER_REGISTRATIONS,nodeCacheStorage.get("listenerRegistrations").asInt());
+                data.setColumn(CacheStorageManagerData.MAX_QUERY_DURATION, nodeCacheStorage.get("maxQueryDurationMillis").asLong());
+                data.setColumn(CacheStorageManagerData.MAX_QUERY_DESCRIPTION, nodeCacheStorage.get("maxQueryDescription").asText());
+                data.setColumn(CacheStorageManagerData.NON_OPTIMIZED_QUERY_AVG, nodeCacheStorage.get("nonOptimizedQueryAverageMillis").asLong());
+                data.setColumn(CacheStorageManagerData.OPTIMIZED_QUERY_AVG, nodeCacheStorage.get("optimizedQueryAverageMillis").asLong());
+                data.setColumn(CacheStorageManagerData.INDEX_TOTAL_UNITS,nodeCacheStorage.get("indexTotalUnits").asLong());
 
                 mapData.put(data.getColumn(0), data);
                 }

@@ -6,14 +6,16 @@
  */
 package com.sun.tools.visualvm.modules.coherence.tablemodel.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
 import com.sun.tools.visualvm.modules.coherence.helper.GraphHelper;
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
-import com.sun.tools.visualvm.modules.coherence.helper.JMXUtils;
 import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,8 @@ import java.util.logging.Logger;
 
 import javax.management.AttributeList;
 import javax.management.ObjectName;
+
+import static com.sun.tools.visualvm.modules.coherence.helper.JMXUtils.*;
 
 /**
  * A class to hold persistence data.
@@ -53,7 +57,7 @@ public class PersistenceData
      */
     public List<Map.Entry<Object, Data>> getJMXData(RequestSender requestSender, VisualVMModel model)
         {
-        SortedMap<Object, Data> mapData = new TreeMap<Object, Data>();
+        SortedMap<Object, Data> mapData = new TreeMap<>();
         Data                    data;
 
         String sServiceName;
@@ -69,6 +73,11 @@ public class PersistenceData
 
         try
             {
+            if (requestSender instanceof HttpRequestSender)
+                {
+                return new ArrayList<>(getAggregatedDataFromHttpQuerying(model, (HttpRequestSender) requestSender).entrySet());
+                }
+
             // firstly obtain the list of services that have PersistenceMode
             // not 'n/a'
             Set<ObjectName> servicesSet = requestSender.getAllServiceMembers();
@@ -79,14 +88,12 @@ public class PersistenceData
 
                 AttributeList listAttr = requestSender.getAttributes(serviceNameObjName,
                         new String[] { "PersistenceMode", "StorageEnabled" });
-                String     sPersistenceMode   = JMXUtils.getAttributeValueAsString(listAttr, "PersistenceMode");
-                boolean    fStorageEnabled    = Boolean.parseBoolean(JMXUtils.getAttributeValueAsString(listAttr, "StorageEnabled"));
+                String     sPersistenceMode   = getAttributeValueAsString(listAttr, "PersistenceMode");
+                boolean    fStorageEnabled    = Boolean.parseBoolean(getAttributeValueAsString(listAttr, "StorageEnabled"));
 
                 // only include if PersistenceMode != 'n/a'
                 if (!"n/a".equals(sPersistenceMode) && fStorageEnabled)
                     {
-                    data = null;
-
                     sServiceName            = serviceNameObjName.getKeyProperty("name");
                     String sDomainPartition = serviceNameObjName.getKeyProperty("domainPartition");
 
@@ -102,55 +109,11 @@ public class PersistenceData
                         }
 
                     // try to get data
-                    data = (PersistenceData) mapData.get(sServiceName);
+                    data = mapData.get(sServiceName);
 
                     if (data == null)
                         {
-                        // create the entry
-                        String sStatus = "";
-                        data = new PersistenceData();
-
-                        data.setColumn(PersistenceData.SERVICE_NAME, sServiceName);
-                        data.setColumn(PersistenceData.PERSISTENCE_MODE, sPersistenceMode);
-                        data.setColumn(PersistenceData.TOTAL_ACTIVE_SPACE_USED, new Long(0L));
-                        data.setColumn(PersistenceData.MAX_LATENCY, new Long(0L));
-                        data.setColumn(PersistenceData.AVERAGE_LATENCY, new Float(0.0f));
-
-                        String[] asParts  = ServiceData.getServiceParts(sServiceName);
-                        String   sService = asParts.length == 2 ? asParts[1] : sServiceName;
-
-                        // get the number of snapshots from the PersistenceManager MBean
-                        String[] asSnapshots = requestSender.getSnapshots(sService, sDomainPartition);
-
-                        // get the current operation status from PersistenceManager MBean
-                        try
-                            {
-                            Set<ObjectName> setResult = requestSender
-                                    .getCompleteObjectName(new ObjectName(getMBeanName(sServiceName)));
-
-                            String sFQN = null;
-
-                            for (Object oResult : setResult)
-                                {
-                                sFQN =  oResult.toString();
-                                break;
-                                }
-
-                            sStatus = (String) requestSender.getAttribute(new ObjectName(sFQN), "OperationStatus");
-                            }
-                        catch (Exception e)
-                            {
-                            // if we get here then its likely we are connected to a 12.1.3 cluster where
-                            // persistence was experimental, or an early 12.2.1 cluster before CurrentOperationStatus
-                            // was renamed to OperationStatus
-                            sStatus = (String) requestSender.getAttribute(
-                                    new ObjectName(getMBeanName(sServiceName)), "CurrentOperationStatus");
-                            }
-
-                        data.setColumn(PersistenceData.SNAPSHOT_COUNT, asSnapshots == null ? 0 : asSnapshots.length);
-                        data.setColumn(PersistenceData.STATUS, sStatus);
-
-                        mapData.put(sServiceName, data);
+                        mapData.put(sServiceName, createData(sServiceName, sPersistenceMode, sDomainPartition, requestSender));
                         }
                     }
                 }
@@ -169,9 +132,6 @@ public class PersistenceData
                 Set<ObjectName> resultSet = requestSender.getMembersOfService(sServiceName, sDomainPartition);
 
                 int cNodes = 0;
-
-                data = null;
-
                 for (Iterator<ObjectName> iter = resultSet.iterator(); iter.hasNext(); )
                     {
                     ObjectName objectName = (ObjectName) iter.next();
@@ -180,33 +140,33 @@ public class PersistenceData
                     AttributeList listAttr = requestSender.getAttributes(objectName,
                             new String[] { "StorageEnabled", "PersistenceActiveSpaceUsed", "PersistenceLatencyMax", "PersistenceLatencyAverage" });
 
-                    if (Boolean.parseBoolean(JMXUtils.getAttributeValueAsString(listAttr, "StorageEnabled")))
+                    if (Boolean.parseBoolean(getAttributeValueAsString(listAttr, "StorageEnabled")))
                         {
                         data = (PersistenceData) mapData.get(sServiceNameKey);
 
                         // PersistenceActiveSpaceUsed is only valid for active persistence mode
-                        if ("active".equals(data.getColumn(PersistenceData.PERSISTENCE_MODE)))
+                        if ("active".equals(data.getColumn(PERSISTENCE_MODE)))
                             {
-                            data.setColumn(PersistenceData.TOTAL_ACTIVE_SPACE_USED,
-                                           (Long) data.getColumn(PersistenceData.TOTAL_ACTIVE_SPACE_USED)
-                                           + Long.parseLong(JMXUtils.getAttributeValueAsString(listAttr, "PersistenceActiveSpaceUsed")));
+                            data.setColumn(TOTAL_ACTIVE_SPACE_USED,
+                                           (Long) data.getColumn(TOTAL_ACTIVE_SPACE_USED)
+                                           + Long.parseLong(getAttributeValueAsString(listAttr, "PersistenceActiveSpaceUsed")));
                             }
 
                         // update the max (of the max latencies)
-                        long nMaxLatency = Long.parseLong(JMXUtils.getAttributeValueAsString(listAttr, "PersistenceLatencyMax"));
+                        long nMaxLatency = Long.parseLong(getAttributeValueAsString(listAttr, "PersistenceLatencyMax"));
 
-                        if (nMaxLatency > (Long) data.getColumn(PersistenceData.MAX_LATENCY))
+                        if (nMaxLatency > (Long) data.getColumn(MAX_LATENCY))
                             {
-                            data.setColumn(PersistenceData.MAX_LATENCY, new Long(nMaxLatency));
+                            data.setColumn(MAX_LATENCY, nMaxLatency);
                             }
 
                         // count the nodes for working out the average at the end as we are adding up
                         // all of the averages, putting them in the average latency
                         // and average them
                         cNodes++;
-                        data.setColumn(PersistenceData.AVERAGE_LATENCY,
-                                       (Float) data.getColumn(PersistenceData.AVERAGE_LATENCY)
-                                       + Float.parseFloat(JMXUtils.getAttributeValueAsString(listAttr, "PersistenceLatencyAverage")));
+                        data.setColumn(AVERAGE_LATENCY,
+                                       (Float) data.getColumn(AVERAGE_LATENCY)
+                                       + Float.parseFloat(getAttributeValueAsString(listAttr, "PersistenceLatencyAverage")));
 
                         mapData.put(sServiceNameKey, data);
                         }
@@ -217,12 +177,12 @@ public class PersistenceData
                 // update the average of the averages only if > 1 service node
                 if (cNodes > 0)
                     {
-                    data.setColumn(PersistenceData.AVERAGE_LATENCY,
-                                   (Float) data.getColumn(PersistenceData.AVERAGE_LATENCY) / cNodes);
+                    data.setColumn(AVERAGE_LATENCY,
+                                   (Float) data.getColumn(AVERAGE_LATENCY) / cNodes);
                     }
 
-                data.setColumn(PersistenceData.TOTAL_ACTIVE_SPACE_USED_MB,
-                               (Long) data.getColumn(PersistenceData.TOTAL_ACTIVE_SPACE_USED) / GraphHelper.MB);
+                data.setColumn(TOTAL_ACTIVE_SPACE_USED_MB,
+                               (Long) data.getColumn(TOTAL_ACTIVE_SPACE_USED) / GraphHelper.MB);
 
                 mapData.put(sServiceNameKey, data);
                 }
@@ -235,7 +195,6 @@ public class PersistenceData
 
             return null;
             }
-
         }
 
     /**
@@ -262,9 +221,155 @@ public class PersistenceData
     public SortedMap<Object, Data> getAggregatedDataFromHttpQuerying(VisualVMModel model, HttpRequestSender requestSender)
             throws Exception
         {
-        // no reports being used, hence using default functionality provided in getJMXData
-        return null;
+        JsonNode    allStorageMembers   = requestSender.getAllStorageMembers();
+        JsonNode    serviceItemsNode    = allStorageMembers.get("items");
+        Set<String> setDomainPartitions = model.getDomainPartitions();
+
+        Map<String,Integer>     mapNodeCount = new HashMap<>();
+        SortedMap<Object, Data> mapData = new TreeMap<>();
+        Data                    data;
+
+        if (serviceItemsNode != null && serviceItemsNode.isArray())
+            {
+            for (int i = 0; i < ((ArrayNode) serviceItemsNode).size(); i++)
+                {
+                JsonNode details = serviceItemsNode.get(i);
+                String sPersistenceMode = details.get("persistenceMode").asText();
+                if (details.get("storageEnabled").asBoolean() && !"n/a".equals(sPersistenceMode))
+                    {
+                    String   sServiceName    = details.get("name").asText();
+                    JsonNode domainPartition = details.get("domainPartition");
+                    String sDomainPartition  = domainPartition == null ? null : domainPartition.asText();
+
+                    if (sDomainPartition != null && !setDomainPartitions.contains(sDomainPartition))
+                        {
+                        setDomainPartitions.add(sDomainPartition);
+                        }
+
+                    // check for domain partition
+                    if (sDomainPartition != null)
+                        {
+                        sServiceName = ServiceData.getFullServiceName(sDomainPartition, sServiceName);
+                        }
+
+                    // try to get data
+                    data = mapData.get(sServiceName);
+
+                    if (data == null)
+                        {
+                        data = createData(sServiceName, sPersistenceMode, sDomainPartition, requestSender);
+                        mapData.put(sServiceName, data);
+                        mapNodeCount.put(sServiceName, 0);
+                        }
+
+                    // update the details for each node
+                    // PersistenceActiveSpaceUsed is only valid for active persistence mode
+                    if ("active".equals(sPersistenceMode))
+                        {
+                        long nPersistenceActiveSpaceUsed = details.get("persistenceActiveSpaceUsed").asLong();
+                        data.setColumn(TOTAL_ACTIVE_SPACE_USED,
+                                (Long) data.getColumn(TOTAL_ACTIVE_SPACE_USED) + nPersistenceActiveSpaceUsed);
+                        }
+
+                    // update the max (of the max latencies)
+                    long  nMaxLatency                = details.get("persistenceLatencyMax").asLong();
+                    float nPersistenceLatencyAverage = (float) details.get("persistenceLatencyAverage").asDouble();
+
+                    if (nMaxLatency > (Long) data.getColumn(PersistenceData.MAX_LATENCY))
+                        {
+                        data.setColumn(PersistenceData.MAX_LATENCY, nMaxLatency);
+                        }
+
+                    // count the nodes for working out the average at the end as we are adding up
+                    // all of the averages, putting them in the average latency
+                    // and average them
+                    mapNodeCount.compute(sServiceName, (k,v) -> v + 1);
+                    data.setColumn(AVERAGE_LATENCY,
+                                   (Float) data.getColumn(AVERAGE_LATENCY)
+                                   + nPersistenceLatencyAverage);
+
+                    mapData.put(sServiceName, data);
+                    }
+                }
+
+            // post processing to work out average of latencies and to convert space to MB
+            for (Map.Entry<Object, Data> entry : mapData.entrySet())
+                {
+                Object k = entry.getKey();
+                Data   v = entry.getValue();
+
+                v.setColumn(TOTAL_ACTIVE_SPACE_USED_MB,
+                           (Long) v.getColumn(TOTAL_ACTIVE_SPACE_USED) / GraphHelper.MB);
+
+                int cNodes = mapNodeCount.get(k);
+                // update the average of the averages only if > 1 service node
+                if (cNodes > 0)
+                    {
+                    v.setColumn(AVERAGE_LATENCY,
+                                   (Float) v.getColumn(AVERAGE_LATENCY) / cNodes);
+                    }
+                }
+            }
+        return mapData;
         }
+
+    /**
+     * Create a new {@link Data} entry for Persistence
+     * @param sServiceName      service name
+     * @param sPersistenceMode  persistence mode
+     * @param sDomainPartition  domain partition
+     * @param requestSender     {@link RequestSender} to use
+     * @return a new {@link Data}
+     * @throws Exception in case of errors.
+     */
+    private Data createData(String sServiceName, String sPersistenceMode, String sDomainPartition,
+                            RequestSender requestSender) throws Exception {
+        // create the entry
+        String sStatus = "";
+        Data data = new PersistenceData();
+
+        data.setColumn(SERVICE_NAME, sServiceName);
+        data.setColumn(PERSISTENCE_MODE, sPersistenceMode);
+        data.setColumn(TOTAL_ACTIVE_SPACE_USED, 0L);
+        data.setColumn(MAX_LATENCY, 0L);
+        data.setColumn(AVERAGE_LATENCY, 0.0f);
+
+        String[] asParts  = ServiceData.getServiceParts(sServiceName);
+        String   sService = asParts.length == 2 ? asParts[1] : sServiceName;
+
+        // get the number of snapshots from the PersistenceManager MBean
+        String[] asSnapshots = requestSender.getSnapshots(sService, sDomainPartition);
+
+        // get the current operation status from PersistenceManager MBean
+        try
+            {
+            Set<ObjectName> setResult = requestSender
+                    .getCompleteObjectName(new ObjectName(getMBeanName(sServiceName)));
+
+            String sFQN = null;
+
+            for (Object oResult : setResult)
+                {
+                sFQN = oResult.toString();
+                break;
+                }
+
+            sStatus = (String) requestSender.getAttribute(new ObjectName(sFQN), "OperationStatus");
+            }
+        catch (Exception e)
+            {
+            // if we get here then its likely we are connected to a 12.1.3 cluster where
+            // persistence was experimental, or an early 12.2.1 cluster before CurrentOperationStatus
+            // was renamed to OperationStatus
+            sStatus = (String) requestSender.getAttribute(
+                    new ObjectName(getMBeanName(sServiceName)), "CurrentOperationStatus");
+            }
+
+        data.setColumn(SNAPSHOT_COUNT, asSnapshots == null ? 0 : asSnapshots.length);
+        data.setColumn(STATUS, sStatus);
+
+        return data;
+    }
 
     // ----- helpers --------------------------------------------------------
 

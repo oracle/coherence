@@ -165,7 +165,7 @@ public class HttpSessionData
             }
         catch (Exception e)
             {
-            LOGGER.log(Level.WARNING, "Error getting cache statistics", e);
+            LOGGER.log(Level.WARNING, "Error getting Http session statistics", e);
 
             return null;
             }

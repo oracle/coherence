@@ -8,6 +8,7 @@
 package com.sun.tools.visualvm.modules.coherence.tablemodel.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
@@ -78,21 +79,9 @@ public class FederationDestinationData
                                                                      HttpRequestSender requestSender)
             throws Exception
         {
-        Set<ObjectName> setServiceMembers = requestSender.getAllServiceMembers();
-        Set<String>     setServices       = new HashSet<>();
-        for (ObjectName objName : setServiceMembers)
-            {
-            String sServiceName     = objName.getKeyProperty("name");
-            String sDomainPartition = objName.getKeyProperty("domainPartition");
+        Set<String> setServices = retrieveFederatedServices(requestSender);
 
-            String sServiceType = requestSender.getAttribute(objName, "type");
-            if (sServiceType != null && sServiceType.equals("FederatedCache"))
-                {
-                setServices.add(sDomainPartition == null ? sServiceName : sDomainPartition + "/" +  sServiceName);
-                }
-            }
-
-        SortedMap<Object, Data> mapData = new TreeMap<Object, Data>();
+        SortedMap<Object, Data> mapData = new TreeMap<>();
 
         for (String sService : setServices)
             {
@@ -145,16 +134,6 @@ public class FederationDestinationData
             }
 
         return mapData;
-        }
-
-    private String getChildValue(String sChildFieldName, String sFieldName, JsonNode rootNode)
-        {
-        JsonNode node = rootNode.get(sFieldName);
-        if (node != null && node.isContainerNode())
-            {
-            return node.get(sChildFieldName).asText(null);
-            }
-        return null;
         }
 
     // ----- constants ------------------------------------------------------

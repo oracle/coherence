@@ -202,6 +202,11 @@ public class VisualVMModel
             // as such we are relying on the order of types in the enum.
             for (DataType type : DataType.values())
                 {
+               if (fLogJMXQueryTimes)
+                    {
+                    LOGGER.info("Starting querying statistics for " + type.toString());
+                    }
+
                 long ldtCollectionStart = System.currentTimeMillis();
                 mapCollectedData.put(type, getData(requestSender, type.getClassName()));
                 long ldtCollectionTime  = System.currentTimeMillis() - ldtCollectionStart;
@@ -447,31 +452,22 @@ public class VisualVMModel
 
     /**
      * Returns a unique list of addresses for the member data as we only want to
-     * get information for each machine. We also store the machine and nodeId as
-     * a key for querying individual nodes but will strip this later.
+     * get information for each machine. The node Id is stored as the value.
      *
      * @return the {@link SortedMap} of machines
      */
-    public SortedMap<Pair<String, Integer>, Data> getInitialMachineMap()
+    public SortedMap<String, Integer> getInitialMachineMap()
         {
-        SortedMap<Pair<String, Integer>, Data> initialMachineMap = new TreeMap<Pair<String, Integer>, Data>();
+        SortedMap<String, Integer> initialMachineMap = new TreeMap<>();
 
         // get a unique list of addresses for the member data as we only want to
-        // get information for each machine. We also store the machine and nodeId as
-        // a key but will strip this later
-
+        // get information for each machine.
         if (mapCollectedData.get(DataType.MEMBER) != null)
             {
             for (Entry<Object, Data> entry : mapCollectedData.get(DataType.MEMBER))
                 {
-                Pair<String, Integer> key = new Pair<String,
-                                                Integer>((String) entry.getValue().getColumn(MemberData.ADDRESS),
-                                                    (Integer) entry.getValue().getColumn(MemberData.NODE_ID));
-
-                if (initialMachineMap.get(key) == null)
-                    {
-                    initialMachineMap.put(key, (Data) null);
-                    }
+                initialMachineMap.putIfAbsent(((String) entry.getValue().getColumn(MemberData.ADDRESS)),
+                        (Integer) entry.getValue().getColumn(MemberData.NODE_ID));
                 }
             }
 

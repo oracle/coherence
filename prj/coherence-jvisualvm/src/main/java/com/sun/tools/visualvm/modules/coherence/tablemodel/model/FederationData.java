@@ -8,12 +8,17 @@
 package com.sun.tools.visualvm.modules.coherence.tablemodel.model;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
+import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
 import com.sun.tools.visualvm.modules.coherence.helper.RequestSender;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -47,6 +52,38 @@ public abstract class FederationData
         return null;
         }
 
+    /**
+     * Retrieve the {@link Set} of federated services.
+     * @param requestSender {@link HttpRequestSender}
+     * @return the {@link Set} of federated services
+     * @throws Exception in case of errors
+     */
+    protected Set<String> retrieveFederatedServices(HttpRequestSender requestSender) throws Exception
+        {
+        Set<String> setServices       = new HashSet<>();
+        JsonNode            allStorageMembers = requestSender.getAllStorageMembers();
+        JsonNode            serviceItemsNode  = allStorageMembers.get("items");
+
+        if (serviceItemsNode != null && serviceItemsNode.isArray())
+            {
+            for (int i = 0; i < ((ArrayNode) serviceItemsNode).size(); i++)
+                {
+                JsonNode details = serviceItemsNode.get(i);
+                String sServiceName = details.get("name").asText();
+                JsonNode domainPartition = details.get("domainPartition");
+                String sDomainPartition = domainPartition == null ? null : domainPartition.asText();
+                String sType = details.get("type").asText();
+
+                String sService = sDomainPartition == null ? sServiceName : sDomainPartition + "/" +  sServiceName;
+
+                if (!setServices.contains(sService) && "FederatedCache".equals(sType))
+                    {
+                    setServices.add(sService);
+                    }
+                }
+            }
+         return setServices;
+         }
 
     /**
      * Defines the data collected from destination MBeans, origin MBeans and aggregations.
