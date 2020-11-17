@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven and deploy snapshot
-# artifacts to Synoki Nexus
+# artifacts to Maven Central
 
-name: Deploy to Synoki Nexus
+name: Deploy to Maven Central
 
 on:
   push:
@@ -31,4 +31,4 @@ jobs:
       env:
         MAVEN_USER: ${{ secrets.MavenUser }}
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
-      run: mvn -B deploy --file prj/pom.xml -DskipTests -s .github/maven/synoki.xml -DaltDeploymentRepository=synoki-nexus::default::https://nexus.synoki.io/repository/maven-snapshots/
+      run: mvn -B deploy --file prj/pom.xml -DskipTests -s .github/maven/settings.xml

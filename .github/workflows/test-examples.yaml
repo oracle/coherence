@@ -37,7 +37,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -DskipTests clean install
 
     - name: Test Examples
       shell: bash
@@ -46,4 +46,4 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         echo "Testing REST Example"
-        mvn -B --file examples/rest/pom.xml -s .github/maven/synoki.xml clean verify
+        mvn -B --file examples/rest/pom.xml -s .github/maven/settings.xml clean verify
