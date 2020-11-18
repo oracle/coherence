@@ -1,0 +1,680 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class EqualsFilter
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class EqualsFilter
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Filter.EqualsFilter">
+  
+  
+  <h1 id="Tangosol_Util_Filter_EqualsFilter" data-uid="Tangosol.Util.Filter.EqualsFilter" class="text-break">Class EqualsFilter
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for equality.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html">ExtractorFilter</a></div>
+    <div class="level2"><a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html">ComparisonFilter</a></div>
+    <div class="level3"><span class="xref">EqualsFilter</span></div>
+      <div class="level4"><a class="xref" href="Tangosol.Util.Filter.IsNullFilter.html">IsNullFilter</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+    <div><a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a></div>
+    <div><a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a></div>
+    <div><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_Value">ComparisonFilter.Value</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_Equals_System_Object_">ComparisonFilter.Equals(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_GetHashCode">ComparisonFilter.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_ToString">ComparisonFilter.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_ReadExternal_Tangosol_IO_Pof_IPofReader_">ComparisonFilter.ReadExternal(IPofReader)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_WriteExternal_Tangosol_IO_Pof_IPofWriter_">ComparisonFilter.WriteExternal(IPofWriter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_CalculateMatchEffectiveness_System_Collections_IDictionary_System_Collections_ICollection_">ComparisonFilter.CalculateMatchEffectiveness(IDictionary, ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_CalculateRangeEffectiveness_System_Collections_IDictionary_System_Collections_ICollection_">ComparisonFilter.CalculateRangeEffectiveness(IDictionary, ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_CalculateIteratorEffectiveness_System_Int32_">ComparisonFilter.CalculateIteratorEffectiveness(Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html#Tangosol_Util_Filter_ComparisonFilter_m_value">ComparisonFilter.m_value</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_ValueExtractor">ExtractorFilter.ValueExtractor</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_Evaluate_System_Object_">ExtractorFilter.Evaluate(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_EvaluateEntry_Tangosol_Net_Cache_ICacheEntry_">ExtractorFilter.EvaluateEntry(ICacheEntry)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_Extract_System_Object_">ExtractorFilter.Extract(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_EVAL_COST">ExtractorFilter.EVAL_COST</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_m_extractor">ExtractorFilter.m_extractor</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Filter.html">Tangosol.Util.Filter</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Filter_EqualsFilter_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class EqualsFilter : ComparisonFilter, IPortableObject, IIndexAwareFilter, IEntryFilter, IFilter</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L27">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter__ctor_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter__ctor" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor">EqualsFilter()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EqualsFilter()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Double_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.%23ctor(System.String%2CSystem.Double)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L104">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter__ctor_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Double_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor(System.String,System.Double)">EqualsFilter(String, Double)</h4>
+  <div class="markdown level1 summary"><p>Construct an EqualsFilter for testing equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EqualsFilter(string member, double value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">member</span></td>
+        <td><p>The name of the member to invoke via reflection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The double value to compare the result with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.%23ctor(System.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L65">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter__ctor_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Int32_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor(System.String,System.Int32)">EqualsFilter(String, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct an EqualsFilter for testing equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EqualsFilter(string member, int value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">member</span></td>
+        <td><p>The name of the member to invoke via reflection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The integer value to compare the result with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.%23ctor(System.String%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L78">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter__ctor_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Int64_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor(System.String,System.Int64)">EqualsFilter(String, Int64)</h4>
+  <div class="markdown level1 summary"><p>Construct an EqualsFilter for testing equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EqualsFilter(string member, long value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">member</span></td>
+        <td><p>The name of the member to invoke via reflection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The long value to compare the result with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.%23ctor(System.String%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L52">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter__ctor_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Object_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor(System.String,System.Object)">EqualsFilter(String, Object)</h4>
+  <div class="markdown level1 summary"><p>Construct an EqualsFilter for testing equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EqualsFilter(string member, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">member</span></td>
+        <td><p>The name of the member to invoke via reflection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The object to compare the result with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Single_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.%23ctor(System.String%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L91">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter__ctor_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter__ctor_System_String_System_Single_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor(System.String,System.Single)">EqualsFilter(String, Single)</h4>
+  <div class="markdown level1 summary"><p>Construct an EqualsFilter for testing equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EqualsFilter(string member, float value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">member</span></td>
+        <td><p>The name of the member to invoke via reflection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The float value to compare the result with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter__ctor_Tangosol_Util_IValueExtractor_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.%23ctor(Tangosol.Util.IValueExtractor%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L39">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter__ctor_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter__ctor_Tangosol_Util_IValueExtractor_System_Object_" data-uid="Tangosol.Util.Filter.EqualsFilter.#ctor(Tangosol.Util.IValueExtractor,System.Object)">EqualsFilter(IValueExtractor, Object)</h4>
+  <div class="markdown level1 summary"><p>Construct an EqualsFilter for testing equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EqualsFilter(IValueExtractor extractor, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The <strong>IValueExtractor</strong> to use by this filter.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The object to compare the result with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter_ApplyIndex_System_Collections_IDictionary_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.ApplyIndex(System.Collections.IDictionary%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L196">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter_ApplyIndex_" data-uid="Tangosol.Util.Filter.EqualsFilter.ApplyIndex*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter_ApplyIndex_System_Collections_IDictionary_System_Collections_ICollection_" data-uid="Tangosol.Util.Filter.EqualsFilter.ApplyIndex(System.Collections.IDictionary,System.Collections.ICollection)">ApplyIndex(IDictionary, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Filter remaining keys using an IDictionary of available indexes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IFilter ApplyIndex(IDictionary indexes, ICollection keys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">indexes</span></td>
+        <td><p>The available <a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a> objects keyed by the
+related IValueExtractor; read-only.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The mutable set of keys that remain to be filtered.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><p>An <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object that can be used to process the
+remaining keys, or <code>null</code> if no additional filter processing
+is necessary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Filter_EqualsFilter_ApplyIndex_System_Collections_IDictionary_System_Collections_ICollection__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The filter is responsible for removing all keys from the passed
+set of keys that the applicable indexes can prove should be
+filtered. If the filter does not fully evaluate the remaining
+keys using just the index information, it must return a filter
+(which may be an <a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a>) that can complete the
+task using an iterating implementation. If, on the other hand, the
+filter does fully evaluate the remaining keys using just the index
+information, then it should return <code>null</code> to indicate that no
+further filtering is necessary.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter_CalculateEffectiveness_System_Collections_IDictionary_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.CalculateEffectiveness(System.Collections.IDictionary%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L165">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter_CalculateEffectiveness_" data-uid="Tangosol.Util.Filter.EqualsFilter.CalculateEffectiveness*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter_CalculateEffectiveness_System_Collections_IDictionary_System_Collections_ICollection_" data-uid="Tangosol.Util.Filter.EqualsFilter.CalculateEffectiveness(System.Collections.IDictionary,System.Collections.ICollection)">CalculateEffectiveness(IDictionary, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Given an IDictionary of available indexes, determine if this
+IIndexAwareFilter can use any of the indexes to assist in its
+processing, and if so, determine how effective the use of that
+index would be.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int CalculateEffectiveness(IDictionary indexes, ICollection keys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">indexes</span></td>
+        <td><p>The available <a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a> objects keyed by the
+related IValueExtractor; read-only.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The set of keys that will be filtered; read-only.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An effectiveness estimate of how well this filter can use the
+specified indexes to filter the specified keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Filter_EqualsFilter_CalculateEffectiveness_System_Collections_IDictionary_System_Collections_ICollection__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The returned value is an effectiveness estimate of how well this 
+filter can use the specified indexes to filter the specified 
+keys. An operation that requires no more than a single access to 
+the index content (i.e. Equals, NotEquals) has an effectiveness of 
+<strong>one</strong>. Evaluation of a single entry is assumed to have an 
+effectiveness that depends on the index implementation and is 
+usually measured as a constant number of the single operations.  
+This number is referred to as <em>evaluation cost</em>.
+</p>
+<p>
+If the effectiveness of a filter evaluates to a number larger 
+than the keys.size() then a user could avoid using the index and 
+iterate through the keys calling <tt>Evaluate</tt> rather than 
+<tt>ApplyIndex</tt>.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter_EvaluateExtracted_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter.EvaluateExtracted(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L121">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_EqualsFilter_EvaluateExtracted_" data-uid="Tangosol.Util.Filter.EqualsFilter.EvaluateExtracted*"></a>
+  <h4 id="Tangosol_Util_Filter_EqualsFilter_EvaluateExtracted_System_Object_" data-uid="Tangosol.Util.Filter.EqualsFilter.EvaluateExtracted(System.Object)">EvaluateExtracted(Object)</h4>
+  <div class="markdown level1 summary"><p>Evaluate the specified extracted value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override bool EvaluateExtracted(object extracted)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">extracted</span></td>
+        <td><p>An extracted value to evaluate.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the test passes, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html#Tangosol_Util_Filter_ExtractorFilter_EvaluateExtracted_System_Object_">ExtractorFilter.EvaluateExtracted(Object)</a></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_EqualsFilter.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.EqualsFilter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/EqualsFilter.cs/#L20" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

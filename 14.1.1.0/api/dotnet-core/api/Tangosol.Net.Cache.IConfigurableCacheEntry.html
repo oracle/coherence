@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IConfigurableCacheEntry
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IConfigurableCacheEntry
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry">
+  
+  
+  <h1 id="Tangosol_Net_Cache_IConfigurableCacheEntry" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry" class="text-break">Interface IConfigurableCacheEntry
+  </h1>
+  <div class="markdown level0 summary"><p>A cache Entry carries information additional to the base Map Entry in
+order to support eviction and expiry.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html#Tangosol_Net_Cache_ICacheEntry_Key">ICacheEntry.Key</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html#Tangosol_Net_Cache_ICacheEntry_Value">ICacheEntry.Value</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_IConfigurableCacheEntry_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IConfigurableCacheEntry : ICacheEntry</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConfigurableCacheEntry_ExpiryMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConfigurableCacheEntry.ExpiryMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConfigurableCache.cs/#L203">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConfigurableCacheEntry_ExpiryMillis_" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.ExpiryMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_IConfigurableCacheEntry_ExpiryMillis" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.ExpiryMillis">ExpiryMillis</h4>
+  <div class="markdown level1 summary"><p>Get or set when the cache entry will expire, if ever.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long ExpiryMillis { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The date/time value, in millis, when the entry will (or did)
+expire; zero indicates no expiry.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_IConfigurableCacheEntry_ExpiryMillis_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the cache is configured for automatic expiry, each subsequent
+update to this cache entry will reschedule the expiry time.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConfigurableCacheEntry_IsExpired.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConfigurableCacheEntry.IsExpired%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConfigurableCache.cs/#L212">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConfigurableCacheEntry_IsExpired_" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.IsExpired*"></a>
+  <h4 id="Tangosol_Net_Cache_IConfigurableCacheEntry_IsExpired" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.IsExpired">IsExpired</h4>
+  <div class="markdown level1 summary"><p>Determine if this entry has expired.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsExpired { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this entry has already expired,
+<code>false</code> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConfigurableCacheEntry_LastTouchMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConfigurableCacheEntry.LastTouchMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConfigurableCache.cs/#L190">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConfigurableCacheEntry_LastTouchMillis_" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.LastTouchMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_IConfigurableCacheEntry_LastTouchMillis" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.LastTouchMillis">LastTouchMillis</h4>
+  <div class="markdown level1 summary"><p>Determine when the cache entry was last touched.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long LastTouchMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The date/time value, in millis, when the entry was most
+recently touched.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConfigurableCacheEntry_TouchCount.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConfigurableCacheEntry.TouchCount%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConfigurableCache.cs/#L181">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConfigurableCacheEntry_TouchCount_" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.TouchCount*"></a>
+  <h4 id="Tangosol_Net_Cache_IConfigurableCacheEntry_TouchCount" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.TouchCount">TouchCount</h4>
+  <div class="markdown level1 summary"><p>Determine the number of times that the cache entry has been
+touched (since the touch count was last reset).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int TouchCount { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of times that the cache entry has been touched.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConfigurableCacheEntry_Units.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConfigurableCacheEntry.Units%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConfigurableCache.cs/#L222">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConfigurableCacheEntry_Units_" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.Units*"></a>
+  <h4 id="Tangosol_Net_Cache_IConfigurableCacheEntry_Units" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.Units">Units</h4>
+  <div class="markdown level1 summary"><p>Get or set the number of cache units used by this entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int Units { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An integer value 0 or greater, with a larger value
+signifying a higher cost; -1 implies that the entry
+has been discarded</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConfigurableCacheEntry_Touch.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConfigurableCacheEntry.Touch%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConfigurableCache.cs/#L172">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConfigurableCacheEntry_Touch_" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.Touch*"></a>
+  <h4 id="Tangosol_Net_Cache_IConfigurableCacheEntry_Touch" data-uid="Tangosol.Net.Cache.IConfigurableCacheEntry.Touch">Touch()</h4>
+  <div class="markdown level1 summary"><p>Indicate to the entry that it has been touched, such as when it is
+accessed or modified.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Touch()</code></pre>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConfigurableCacheEntry.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConfigurableCacheEntry%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConfigurableCache.cs/#L166" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1464 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IXmlValue
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IXmlValue
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Run.Xml.IXmlValue">
+  
+  
+  <h1 id="Tangosol_Run_Xml_IXmlValue" data-uid="Tangosol.Run.Xml.IXmlValue" class="text-break">Interface IXmlValue
+  </h1>
+  <div class="markdown level0 summary"><p>An interface for XML element content and element attribute values.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Run.Xml.html">Tangosol.Run.Xml</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Run_Xml_IXmlValue_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IXmlValue : ICloneable</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_IsAttribute.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.IsAttribute%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L319">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_IsAttribute_" data-uid="Tangosol.Run.Xml.IXmlValue.IsAttribute*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_IsAttribute" data-uid="Tangosol.Run.Xml.IXmlValue.IsAttribute">IsAttribute</h4>
+  <div class="markdown level1 summary"><p>Determine if this value is an element attribute.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsAttribute { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this value is an element attribute, otherwise
+<strong>false</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_IsContent.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.IsContent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L328">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_IsContent_" data-uid="Tangosol.Run.Xml.IXmlValue.IsContent*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_IsContent" data-uid="Tangosol.Run.Xml.IXmlValue.IsContent">IsContent</h4>
+  <div class="markdown level1 summary"><p>Determine if this value is an element's content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsContent { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this value is an element's content, otherwise
+<strong>false</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_IsEmpty.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.IsEmpty%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L310">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_IsEmpty_" data-uid="Tangosol.Run.Xml.IXmlValue.IsEmpty*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_IsEmpty" data-uid="Tangosol.Run.Xml.IXmlValue.IsEmpty">IsEmpty</h4>
+  <div class="markdown level1 summary"><p>Determine if the value is empty.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsEmpty { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the value is empty.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_IsMutable.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.IsMutable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L341">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_IsMutable_" data-uid="Tangosol.Run.Xml.IXmlValue.IsMutable*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_IsMutable" data-uid="Tangosol.Run.Xml.IXmlValue.IsMutable">IsMutable</h4>
+  <div class="markdown level1 summary"><p>Determine if this value can be modified.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsMutable { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this value can be modified, otherwise <strong>false</strong>
+to indicate that this value is read-only.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_IXmlValue_IsMutable_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the value can not be modified, all mutating methods are
+required to throw an <strong>InvalidOperationException</strong>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_Parent.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.Parent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L302">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_Parent_" data-uid="Tangosol.Run.Xml.IXmlValue.Parent*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_Parent" data-uid="Tangosol.Run.Xml.IXmlValue.Parent">Parent</h4>
+  <div class="markdown level1 summary"><p>Get or set the parent element of this value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IXmlElement Parent { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Run.Xml.IXmlElement.html">IXmlElement</a></td>
+        <td><p>The parent element, or <code>null</code> if this value has no parent.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_IXmlValue_Parent_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The parent can not be modified once set.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p>If the specified parent is <code>null</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If trying to set parent that is already set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_Value.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.Value%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L285">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_Value_" data-uid="Tangosol.Run.Xml.IXmlValue.Value*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_Value" data-uid="Tangosol.Run.Xml.IXmlValue.Value">Value</h4>
+  <div class="markdown level1 summary"><p>Get the value as an object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object Value { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value as an object or <code>null</code> if the IXmlValue does not
+have a value; attributes never have a <code>null</code> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_IXmlValue_Value_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The following types are supported:</p>
+<ul><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+It is always legal for an implementation to return the value as a
+string, for example returning a binary value in a Base64
+encoding. This method exists to allow one value to copy from
+another value.
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L392">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_Equals_" data-uid="Tangosol.Run.Xml.IXmlValue.Equals*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_Equals_System_Object_" data-uid="Tangosol.Run.Xml.IXmlValue.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare this XML value with another XML value for equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Equals(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The XML value object to compare to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the values are equal, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetBinary.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetBinary%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L128">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetBinary_" data-uid="Tangosol.Run.Xml.IXmlValue.GetBinary*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetBinary" data-uid="Tangosol.Run.Xml.IXmlValue.GetBinary">GetBinary()</h4>
+  <div class="markdown level1 summary"><p>Get the value as <a class="xref" href="Tangosol.Util.Binary.html">Binary</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Binary GetBinary()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>The value as a Binary object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_IXmlValue_GetBinary_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The XML format is expected to be Base64.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetBinary_Tangosol_Util_Binary_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetBinary(Tangosol.Util.Binary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L243">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetBinary_" data-uid="Tangosol.Run.Xml.IXmlValue.GetBinary*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetBinary_Tangosol_Util_Binary_" data-uid="Tangosol.Run.Xml.IXmlValue.GetBinary(Tangosol.Util.Binary)">GetBinary(Binary)</h4>
+  <div class="markdown level1 summary"><p>Get the value as <a class="xref" href="Tangosol.Util.Binary.html">Binary</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Binary GetBinary(Binary defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td><p>The default return value if the internal value can not be
+translated into a legal value of type Binary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>The value as a Binary object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_IXmlValue_GetBinary_Tangosol_Util_Binary__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The XML format is expected to be Base64.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetBoolean.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetBoolean%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L29">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetBoolean_" data-uid="Tangosol.Run.Xml.IXmlValue.GetBoolean*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetBoolean" data-uid="Tangosol.Run.Xml.IXmlValue.GetBoolean">GetBoolean()</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>boolean</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool GetBoolean()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>The value as a boolean.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetBoolean_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetBoolean(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L168">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetBoolean_" data-uid="Tangosol.Run.Xml.IXmlValue.GetBoolean*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetBoolean_System_Boolean_" data-uid="Tangosol.Run.Xml.IXmlValue.GetBoolean(System.Boolean)">GetBoolean(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>boolean</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool GetBoolean(bool defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td><p>The default return value if the internal value can not be
+translated into a legal value of type boolean.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>The value as a boolean.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetDateTime.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetDateTime%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L144">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetDateTime_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDateTime*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetDateTime" data-uid="Tangosol.Run.Xml.IXmlValue.GetDateTime">GetDateTime()</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>DateTime</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">DateTime GetDateTime()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><p>The value as a DateTime.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetDateTime_System_DateTime_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetDateTime(System.DateTime)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L255">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetDateTime_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDateTime*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetDateTime_System_DateTime_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDateTime(System.DateTime)">GetDateTime(DateTime)</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>DateTime</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">DateTime GetDateTime(DateTime defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td><p>The default return value if the internal value can not be
+translated into a legal value of type DateTime.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><p>The value as a DateTime.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetDecimal.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetDecimal%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L93">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetDecimal_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDecimal*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetDecimal" data-uid="Tangosol.Run.Xml.IXmlValue.GetDecimal">GetDecimal()</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>decimal</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">decimal GetDecimal()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><p>The value as a decimal.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetDecimal_System_Decimal_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetDecimal(System.Decimal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L216">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetDecimal_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDecimal*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetDecimal_System_Decimal_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDecimal(System.Decimal)">GetDecimal(Decimal)</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>decimal</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">decimal GetDecimal(decimal defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td><p>The default return value if the internal value can not be
+translated into a legal value of type decimal.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><p>The value as a decimal.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetDouble.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetDouble%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L77">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetDouble_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDouble*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetDouble" data-uid="Tangosol.Run.Xml.IXmlValue.GetDouble">GetDouble()</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>double</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double GetDouble()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The value as a double.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetDouble_System_Double_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetDouble(System.Double)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L204">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetDouble_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDouble*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetDouble_System_Double_" data-uid="Tangosol.Run.Xml.IXmlValue.GetDouble(System.Double)">GetDouble(Double)</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>double</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double GetDouble(double defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td><p>The default return value if the internal value can not be
+translated into a legal value of type double.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The value as a double.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L381">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetHashCode_" data-uid="Tangosol.Run.Xml.IXmlValue.GetHashCode*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetHashCode" data-uid="Tangosol.Run.Xml.IXmlValue.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Provide a hash value for this XML value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The hash value for this XML value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Run_Xml_IXmlValue_GetHashCode_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The hash value is defined as one of the following:</p>
+<ol><li></li><li></li></ol>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetInt.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetInt%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L45">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetInt_" data-uid="Tangosol.Run.Xml.IXmlValue.GetInt*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetInt" data-uid="Tangosol.Run.Xml.IXmlValue.GetInt">GetInt()</h4>
+  <div class="markdown level1 summary"><p>Get the value as an <strong>int</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int GetInt()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The value as an int.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetInt_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetInt(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L180">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetInt_" data-uid="Tangosol.Run.Xml.IXmlValue.GetInt*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetInt_System_Int32_" data-uid="Tangosol.Run.Xml.IXmlValue.GetInt(System.Int32)">GetInt(Int32)</h4>
+  <div class="markdown level1 summary"><p>Get the value as an <strong>int</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int GetInt(int defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td><p>The default return value if the internal value can not be
+translated into a legal value of type int.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The value as an int.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetLong.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetLong%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L61">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetLong_" data-uid="Tangosol.Run.Xml.IXmlValue.GetLong*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetLong" data-uid="Tangosol.Run.Xml.IXmlValue.GetLong">GetLong()</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>long</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long GetLong()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The value as a long.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetLong_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetLong(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L192">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetLong_" data-uid="Tangosol.Run.Xml.IXmlValue.GetLong*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetLong_System_Int64_" data-uid="Tangosol.Run.Xml.IXmlValue.GetLong(System.Int64)">GetLong(Int64)</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>long</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long GetLong(long defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td><p>The default return value if the internal value can not be
+translated into a legal value of type long.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The value as a long.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetString.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L109">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetString_" data-uid="Tangosol.Run.Xml.IXmlValue.GetString*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetString" data-uid="Tangosol.Run.Xml.IXmlValue.GetString">GetString()</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>string</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string GetString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The value as a string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_GetString_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.GetString(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L228">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_GetString_" data-uid="Tangosol.Run.Xml.IXmlValue.GetString*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_GetString_System_String_" data-uid="Tangosol.Run.Xml.IXmlValue.GetString(System.String)">GetString(String)</h4>
+  <div class="markdown level1 summary"><p>Get the value as a <strong>string</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string GetString(string defaultValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">defaultValue</span></td>
+        <td><p>The default return value if the internal value can not be
+translated into a legal value of type string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The value as a string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_SetBinary_Tangosol_Util_Binary_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.SetBinary(Tangosol.Util.Binary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L136">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_SetBinary_" data-uid="Tangosol.Run.Xml.IXmlValue.SetBinary*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_SetBinary_Tangosol_Util_Binary_" data-uid="Tangosol.Run.Xml.IXmlValue.SetBinary(Tangosol.Util.Binary)">SetBinary(Binary)</h4>
+  <div class="markdown level1 summary"><p>Set the <a class="xref" href="Tangosol.Util.Binary.html">Binary</a> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetBinary(Binary val)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">val</span></td>
+        <td><p>A new value of type Binary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_SetBoolean_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.SetBoolean(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L37">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_SetBoolean_" data-uid="Tangosol.Run.Xml.IXmlValue.SetBoolean*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_SetBoolean_System_Boolean_" data-uid="Tangosol.Run.Xml.IXmlValue.SetBoolean(System.Boolean)">SetBoolean(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Set the <strong>boolean</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetBoolean(bool val)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">val</span></td>
+        <td><p>A new value of type boolean.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_SetDateTime_System_DateTime_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.SetDateTime(System.DateTime)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L152">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_SetDateTime_" data-uid="Tangosol.Run.Xml.IXmlValue.SetDateTime*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_SetDateTime_System_DateTime_" data-uid="Tangosol.Run.Xml.IXmlValue.SetDateTime(System.DateTime)">SetDateTime(DateTime)</h4>
+  <div class="markdown level1 summary"><p>Set the value as a <strong>DateTime</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetDateTime(DateTime val)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><span class="parametername">val</span></td>
+        <td><p>A new value of type DateTime.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_SetDecimal_System_Decimal_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.SetDecimal(System.Decimal)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L101">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_SetDecimal_" data-uid="Tangosol.Run.Xml.IXmlValue.SetDecimal*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_SetDecimal_System_Decimal_" data-uid="Tangosol.Run.Xml.IXmlValue.SetDecimal(System.Decimal)">SetDecimal(Decimal)</h4>
+  <div class="markdown level1 summary"><p>Set the <strong>decimal</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetDecimal(decimal val)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><span class="parametername">val</span></td>
+        <td><p>A new value of type decimal.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_SetDouble_System_Double_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.SetDouble(System.Double)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L85">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_SetDouble_" data-uid="Tangosol.Run.Xml.IXmlValue.SetDouble*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_SetDouble_System_Double_" data-uid="Tangosol.Run.Xml.IXmlValue.SetDouble(System.Double)">SetDouble(Double)</h4>
+  <div class="markdown level1 summary"><p>Set the <strong>double</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetDouble(double val)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><span class="parametername">val</span></td>
+        <td><p>A new value of type double.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_SetInt_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.SetInt(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L53">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_SetInt_" data-uid="Tangosol.Run.Xml.IXmlValue.SetInt*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_SetInt_System_Int32_" data-uid="Tangosol.Run.Xml.IXmlValue.SetInt(System.Int32)">SetInt(Int32)</h4>
+  <div class="markdown level1 summary"><p>Set the <strong>int</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetInt(int val)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">val</span></td>
+        <td><p>A new value of type int.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_SetLong_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.SetLong(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L69">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_SetLong_" data-uid="Tangosol.Run.Xml.IXmlValue.SetLong*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_SetLong_System_Int64_" data-uid="Tangosol.Run.Xml.IXmlValue.SetLong(System.Int64)">SetLong(Int64)</h4>
+  <div class="markdown level1 summary"><p>Set the <strong>long</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetLong(long val)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">val</span></td>
+        <td><p>A new value of type long.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_SetString_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.SetString(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L117">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_SetString_" data-uid="Tangosol.Run.Xml.IXmlValue.SetString*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_SetString_System_String_" data-uid="Tangosol.Run.Xml.IXmlValue.SetString(System.String)">SetString(String)</h4>
+  <div class="markdown level1 summary"><p>Set the <strong>string</strong> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetString(string val)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">val</span></td>
+        <td><p>A new value of type string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L365">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_ToString_" data-uid="Tangosol.Run.Xml.IXmlValue.ToString*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_ToString" data-uid="Tangosol.Run.Xml.IXmlValue.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Format the XML value into a string in a display format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representation of the XML value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue_WriteValue_System_IO_TextWriter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue.WriteValue(System.IO.TextWriter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L353">View Source</a>
+  </span>
+  <a id="Tangosol_Run_Xml_IXmlValue_WriteValue_" data-uid="Tangosol.Run.Xml.IXmlValue.WriteValue*"></a>
+  <h4 id="Tangosol_Run_Xml_IXmlValue_WriteValue_System_IO_TextWriter_System_Boolean_" data-uid="Tangosol.Run.Xml.IXmlValue.WriteValue(System.IO.TextWriter,System.Boolean)">WriteValue(TextWriter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Write the value as it will appear in XML.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void WriteValue(TextWriter writer, bool isPretty)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.TextWriter</span></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>A <strong>TextWriter</strong> object to use to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPretty</span></td>
+        <td><p><strong>true</strong> to specify that the output is intended to be as human
+readable as possible.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Run_Xml_IXmlValue.md&amp;value=---%0Auid%3A%20Tangosol.Run.Xml.IXmlValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Run/Xml/IXmlValue.cs/#L19" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

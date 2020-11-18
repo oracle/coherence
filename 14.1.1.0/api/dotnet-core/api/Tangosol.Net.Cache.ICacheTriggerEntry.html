@@ -1,0 +1,229 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface ICacheTriggerEntry
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface ICacheTriggerEntry
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.ICacheTriggerEntry">
+  
+  
+  <h1 id="Tangosol_Net_Cache_ICacheTriggerEntry" data-uid="Tangosol.Net.Cache.ICacheTriggerEntry" class="text-break">Interface ICacheTriggerEntry
+  </h1>
+  <div class="markdown level0 summary"><p>A <a class="xref" href="Tangosol.Net.Cache.ICacheTrigger.html">ICacheTrigger</a> entry represents a pending change to an
+entry that is about to committed to the underlying cache.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Key">IInvocableCacheEntry.Key</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Value">IInvocableCacheEntry.Value</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_SetValue_System_Object_System_Boolean_">IInvocableCacheEntry.SetValue(Object, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_IsPresent">IInvocableCacheEntry.IsPresent</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Extract_Tangosol_Util_IValueExtractor_">IInvocableCacheEntry.Extract(IValueExtractor)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Update_Tangosol_Util_IValueUpdater_System_Object_">IInvocableCacheEntry.Update(IValueUpdater, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html#Tangosol_Net_Cache_IInvocableCacheEntry_Remove_System_Boolean_">IInvocableCacheEntry.Remove(Boolean)</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_ICacheTriggerEntry_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface ICacheTriggerEntry : IInvocableCacheEntry, ICacheEntry</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_ICacheTriggerEntry_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>The methods inherited from <a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a> provide
+both the pending state and the ability to alter that state.
+The original state of the entry can be obtained using the
+<a class="xref" href="Tangosol.Net.Cache.ICacheTriggerEntry.html#Tangosol_Net_Cache_ICacheTriggerEntry_OriginalValue">OriginalValue</a> and <a class="xref" href="Tangosol.Net.Cache.ICacheTriggerEntry.html#Tangosol_Net_Cache_ICacheTriggerEntry_IsOriginalPresent">IsOriginalPresent</a>
+properties.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheTriggerEntry_IsOriginalPresent.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheTriggerEntry.IsOriginalPresent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheTrigger.cs/#L115">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheTriggerEntry_IsOriginalPresent_" data-uid="Tangosol.Net.Cache.ICacheTriggerEntry.IsOriginalPresent*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheTriggerEntry_IsOriginalPresent" data-uid="Tangosol.Net.Cache.ICacheTriggerEntry.IsOriginalPresent">IsOriginalPresent</h4>
+  <div class="markdown level1 summary"><p>Determine whether or not the entry existed before the start of
+the mutating operation that is being evaluated by the trigger.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsOriginalPresent { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> iff this entry was existent in the containing cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheTriggerEntry_OriginalValue.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheTriggerEntry.OriginalValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheTrigger.cs/#L106">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheTriggerEntry_OriginalValue_" data-uid="Tangosol.Net.Cache.ICacheTriggerEntry.OriginalValue*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheTriggerEntry_OriginalValue" data-uid="Tangosol.Net.Cache.ICacheTriggerEntry.OriginalValue">OriginalValue</h4>
+  <div class="markdown level1 summary"><p>Get the value that existed before the start of the mutating
+operation that is being evaluated by the trigger.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object OriginalValue { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The original value corresponding to this entry; may be
+<code>null</code> if the value is <code>null</code> or if the entry did not
+exist in the cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheTriggerEntry.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheTriggerEntry%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheTrigger.cs/#L95" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

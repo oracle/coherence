@@ -1,0 +1,1762 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class HashDictionary
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class HashDictionary
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Collections.HashDictionary">
+  
+  
+  <h1 id="Tangosol_Util_Collections_HashDictionary" data-uid="Tangosol.Util.Collections.HashDictionary" class="text-break">Class HashDictionary
+  </h1>
+  <div class="markdown level0 summary"><p>Hashtable-based IDictionary implementation that allows <code>null</code>
+keys.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">HashDictionary</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Collections.html">Tangosol.Util.Collections</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Collections_HashDictionary_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class HashDictionary : Hashtable, IEnumerable</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Collections_HashDictionary_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>Note that <code>null</code> keys support intentionally breaks the
+<span class="xref">System.Collections.IDictionary</span> contract, which states that an
+<code>ArgumentNullException</code> should be raised if the key is
+<code>null</code>.</p>
+<p>
+However, this is necessary in order to match the behavior in Java and
+ C++, where some Map implementations support <code>null</code> keys.
+<p>
+Note: This implementation is not thread safe. If you need it to be,
+you should wrap it with the <a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html">SynchronizedDictionary</a>.
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L42">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor">HashDictionary()</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class using the default initial capacity, load factor, hash code
+provider, and comparer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_SerializationInfo_StreamingContext_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(SerializationInfo%2CStreamingContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L315">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_SerializationInfo_StreamingContext_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(SerializationInfo,StreamingContext)">HashDictionary(SerializationInfo, StreamingContext)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class that is serializable using the specified
+<span class="xref">System.Runtime.Serialization.SerializationInfo</span>
+and <span class="xref">System.Runtime.Serialization.StreamingContext</span>
+objects.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected HashDictionary(SerializationInfo info, StreamingContext context)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">SerializationInfo</span></td>
+        <td><span class="parametername">info</span></td>
+        <td><p>A <span class="xref">System.Runtime.Serialization.SerializationInfo</span>
+object containing the information required to serialize the
+<a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">StreamingContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td><p>A <span class="xref">System.Runtime.Serialization.StreamingContext</span>
+object containing the source and destination of the serialized
+stream associated with the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">info</code> is null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L189">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IDictionary_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Collections.IDictionary)">HashDictionary(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class by copying the elements from the specified dictionary to
+the new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object. The new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object has an initial capacity equal to
+the number of elements copied, and uses the default load factor,
+hash code provider, and comparer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(IDictionary d)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">d</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> object to copy
+to a new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">d</code> is null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IDictionary_System_Collections_IEqualityComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Collections.IDictionary%2CSystem.Collections.IEqualityComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L249">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IDictionary_System_Collections_IEqualityComparer_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Collections.IDictionary,System.Collections.IEqualityComparer)">HashDictionary(IDictionary, IEqualityComparer)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class by copying the elements from the specified dictionary to
+the new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object. The new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object has an initial capacity equal to
+the number of elements copied, and uses the default load factor and
+the specified <span class="xref">System.Collections.IEqualityComparer</span>
+object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(IDictionary d, IEqualityComparer equalityComparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">d</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> object to copy
+to a new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IEqualityComparer</span></td>
+        <td><span class="parametername">equalityComparer</span></td>
+        <td><p>The <span class="xref">System.Collections.IEqualityComparer</span> object
+that defines the hash code provider and the comparer to use with
+the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>. -or- null to use the default
+hash code provider and the default comparer. The default hash code
+provider is each key's implementation of
+<span class="xref">System.Object.GetHashCode()</span> and the default
+comparer is each key's implementation of
+<span class="xref">System.Object.Equals(System.Object)</span>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">d</code> is null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IDictionary_System_Single_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Collections.IDictionary%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L218">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IDictionary_System_Single_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Collections.IDictionary,System.Single)">HashDictionary(IDictionary, Single)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class by copying the elements from the specified dictionary to
+the new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object. The new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object has an initial capacity equal to
+the number of elements copied, and uses the specified load factor,
+and the default hash code provider and comparer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(IDictionary d, float loadFactor)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">d</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> object to copy
+to a new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">loadFactor</span></td>
+        <td><p>A number in the range from 0.1 through 1.0 that is multiplied by
+the default value which provides the best performance. The result
+is the maximum ratio of elements to buckets.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">d</code> is null.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">loadFactor</code> is less than 0.1.-or-
+<code data-dev-comment-type="paramref" class="paramref">loadFactor</code> is greater than 1.0.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IDictionary_System_Single_System_Collections_IEqualityComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Collections.IDictionary%2CSystem.Single%2CSystem.Collections.IEqualityComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L288">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IDictionary_System_Single_System_Collections_IEqualityComparer_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Collections.IDictionary,System.Single,System.Collections.IEqualityComparer)">HashDictionary(IDictionary, Single, IEqualityComparer)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class by copying the elements from the specified dictionary to
+the new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object. The new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object has an initial capacity equal to
+the number of elements copied, and uses the specified load factor
+and <span class="xref">System.Collections.IEqualityComparer</span> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(IDictionary d, float loadFactor, IEqualityComparer equalityComparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">d</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> object to copy
+to a new <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">loadFactor</span></td>
+        <td><p>A number in the range from 0.1 through 1.0 that is multiplied by
+the default value which provides the best performance. The result
+is the maximum ratio of elements to buckets.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IEqualityComparer</span></td>
+        <td><span class="parametername">equalityComparer</span></td>
+        <td><p>The <span class="xref">System.Collections.IEqualityComparer</span> object
+that defines the hash code provider and the comparer to use with
+the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>. -or- null to use the default
+hash code provider and the default comparer. The default hash code
+provider is each key's implementation of
+<span class="xref">System.Object.GetHashCode()</span> and the default
+comparer is each key's implementation of
+<span class="xref">System.Object.Equals(System.Object)</span>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">d</code> is null.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">loadFactor</code> is less than 0.1.-or-
+<code data-dev-comment-type="paramref" class="paramref">loadFactor</code> is greater than 1.0.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IEqualityComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Collections.IEqualityComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L141">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Collections_IEqualityComparer_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Collections.IEqualityComparer)">HashDictionary(IEqualityComparer)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class using the default initial capacity and load factor, and
+the specified <span class="xref">System.Collections.IEqualityComparer</span>
+object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(IEqualityComparer equalityComparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEqualityComparer</span></td>
+        <td><span class="parametername">equalityComparer</span></td>
+        <td><p>The <span class="xref">System.Collections.IEqualityComparer</span> object
+that defines the hash code provider and the comparer to use with
+the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>. -or- null to use the default
+hash code provider and the default comparer. The default hash code
+provider is each key's implementation of
+<span class="xref">System.Object.GetHashCode()</span> and the default
+comparer is each key's implementation of
+<span class="xref">System.Object.Equals(System.Object)</span>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L58">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Int32_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Int32)">HashDictionary(Int32)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class using the specified initial capacity, and the default load
+factor, hash code provider, and comparer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(int capacity)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">capacity</span></td>
+        <td><p>The approximate number of elements the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+object can initially contain.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">capacity</code> is less than zero.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Int32_System_Collections_IEqualityComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Int32%2CSystem.Collections.IEqualityComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L169">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Int32_System_Collections_IEqualityComparer_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Int32,System.Collections.IEqualityComparer)">HashDictionary(Int32, IEqualityComparer)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class using the specified initial capacity and
+<span class="xref">System.Collections.IEqualityComparer</span>, and the
+default load factor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(int capacity, IEqualityComparer equalityComparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">capacity</span></td>
+        <td><p>The approximate number of elements the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+object can initially contain.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IEqualityComparer</span></td>
+        <td><span class="parametername">equalityComparer</span></td>
+        <td><p>The <span class="xref">System.Collections.IEqualityComparer</span> object
+that defines the hash code provider and the comparer to use with
+the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>. -or- null to use the default
+hash code provider and the default comparer. The default hash code
+provider is each key's implementation of
+<span class="xref">System.Object.GetHashCode()</span> and the default
+comparer is each key's implementation of
+<span class="xref">System.Object.Equals(System.Object)</span>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">capacity</code> is less than zero.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Int32_System_Single_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Int32%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L85">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Int32_System_Single_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Int32,System.Single)">HashDictionary(Int32, Single)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class using the specified initial capacity and load factor,
+and the default hash code provider and comparer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(int capacity, float loadFactor)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">capacity</span></td>
+        <td><p>The approximate number of elements the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+object can initially contain.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">loadFactor</span></td>
+        <td><p>A number in the range from 0.1 through 1.0 that is multiplied by
+the default value which provides the best performance. The result
+is the maximum ratio of elements to buckets.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">capacity</code> is less than zero.-or-
+<code data-dev-comment-type="paramref" class="paramref">loadFactor</code> is less than 0.1.-or-
+<code data-dev-comment-type="paramref" class="paramref">loadFactor</code> is greater than 1.0.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">capacity</code> is causing an overflow.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary__ctor_System_Int32_System_Single_System_Collections_IEqualityComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.%23ctor(System.Int32%2CSystem.Single%2CSystem.Collections.IEqualityComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L119">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary__ctor_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary__ctor_System_Int32_System_Single_System_Collections_IEqualityComparer_" data-uid="Tangosol.Util.Collections.HashDictionary.#ctor(System.Int32,System.Single,System.Collections.IEqualityComparer)">HashDictionary(Int32, Single, IEqualityComparer)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+class using the specified initial capacity, load factor, and
+<span class="xref">System.Collections.IEqualityComparer</span> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public HashDictionary(int capacity, float loadFactor, IEqualityComparer equalityComparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">capacity</span></td>
+        <td><p>The approximate number of elements the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>
+object can initially contain.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">loadFactor</span></td>
+        <td><p>A number in the range from 0.1 through 1.0 that is multiplied by
+the default value which provides the best performance. The result
+is the maximum ratio of elements to buckets.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IEqualityComparer</span></td>
+        <td><span class="parametername">equalityComparer</span></td>
+        <td><p>The <span class="xref">System.Collections.IEqualityComparer</span> object
+that defines the hash code provider and the comparer to use with
+the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>. -or- null to use the default
+hash code provider and the default comparer. The default hash code
+provider is each key's implementation of
+<span class="xref">System.Object.GetHashCode()</span> and the default
+comparer is each key's implementation of
+<span class="xref">System.Object.Equals(System.Object)</span>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">capacity</code> is less than zero.
+-or- <code data-dev-comment-type="paramref" class="paramref">loadFactor</code> is less than 0.1.-or-
+<code data-dev-comment-type="paramref" class="paramref">loadFactor</code> is greater than 1.0.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Count.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L617">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Count_" data-uid="Tangosol.Util.Collections.HashDictionary.Count*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Count" data-uid="Tangosol.Util.Collections.HashDictionary.Count">Count</h4>
+  <div class="markdown level1 summary"><p>Gets the number of elements contained in the
+<span class="xref">System.Collections.ICollection</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int Count { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of elements contained in the
+<span class="xref">System.Collections.ICollection</span>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_IsNullValueSet.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.IsNullValueSet%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L814">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_IsNullValueSet_" data-uid="Tangosol.Util.Collections.HashDictionary.IsNullValueSet*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_IsNullValueSet" data-uid="Tangosol.Util.Collections.HashDictionary.IsNullValueSet">IsNullValueSet</h4>
+  <div class="markdown level1 summary"><p>Returns true is the value for the <code>null</code> key is set,
+false otherwise.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool IsNullValueSet { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true is the value for the <code>null</code> key is set,
+false otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Item_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Item(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L469">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Item_" data-uid="Tangosol.Util.Collections.HashDictionary.Item*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Item_System_Object_" data-uid="Tangosol.Util.Collections.HashDictionary.Item(System.Object)">Item[Object]</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the element with the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object this[object key] { get; set; }</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key of the element to get or set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The element with the specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>The property is set and the dictionary is read-only.
+-or- The property is set, <code data-dev-comment-type="paramref" class="paramref">key</code> does not exist
+in the collection, and the dictionary has a fixed size.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Keys.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Keys%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L510">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Keys_" data-uid="Tangosol.Util.Collections.HashDictionary.Keys*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Keys" data-uid="Tangosol.Util.Collections.HashDictionary.Keys">Keys</h4>
+  <div class="markdown level1 summary"><p>Gets an <span class="xref">System.Collections.ICollection</span> object
+containing the keys of this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ICollection Keys { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>An <span class="xref">System.Collections.ICollection</span> object
+containing the keys of this dictionary object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Values.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Values%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L531">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Values_" data-uid="Tangosol.Util.Collections.HashDictionary.Values*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Values" data-uid="Tangosol.Util.Collections.HashDictionary.Values">Values</h4>
+  <div class="markdown level1 summary"><p>Gets an <span class="xref">System.Collections.ICollection</span> object
+containing the values in this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ICollection Values { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>An <span class="xref">System.Collections.ICollection</span> object
+containing the values in this dictionary object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Add_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Add(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L382">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Add_" data-uid="Tangosol.Util.Collections.HashDictionary.Add*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Add_System_Object_System_Object_" data-uid="Tangosol.Util.Collections.HashDictionary.Add(System.Object,System.Object)">Add(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Adds an element with the provided key and value to the
+<span class="xref">System.Collections.IDictionary</span> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Add(object key, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The <span class="xref">System.Object</span> to use as the key of
+the element to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The <span class="xref">System.Object</span> to use as the value of
+the element to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>An element with the same key already exists in the
+<span class="xref">System.Collections.IDictionary</span> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> is read-only.
+-or- The <span class="xref">System.Collections.IDictionary</span> has a
+fixed size.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_AssertIsVariableSize.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.AssertIsVariableSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L831">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_AssertIsVariableSize_" data-uid="Tangosol.Util.Collections.HashDictionary.AssertIsVariableSize*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_AssertIsVariableSize" data-uid="Tangosol.Util.Collections.HashDictionary.AssertIsVariableSize">AssertIsVariableSize()</h4>
+  <div class="markdown level1 summary"><p>Throw an exception if this dictionary is fixed size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void AssertIsVariableSize()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_AssertIsWriteable.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.AssertIsWriteable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L842">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_AssertIsWriteable_" data-uid="Tangosol.Util.Collections.HashDictionary.AssertIsWriteable*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_AssertIsWriteable" data-uid="Tangosol.Util.Collections.HashDictionary.AssertIsWriteable">AssertIsWriteable()</h4>
+  <div class="markdown level1 summary"><p>Throw an exception if this dictionary is read-only.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void AssertIsWriteable()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Clear.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Clear%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L410">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Clear_" data-uid="Tangosol.Util.Collections.HashDictionary.Clear*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Clear" data-uid="Tangosol.Util.Collections.HashDictionary.Clear">Clear()</h4>
+  <div class="markdown level1 summary"><p>Removes all elements from the
+<span class="xref">System.Collections.IDictionary</span> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Clear()</code></pre>
+  </div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> object is
+read-only.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Clone.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Clone%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L671">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Clone_" data-uid="Tangosol.Util.Collections.HashDictionary.Clone*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Clone" data-uid="Tangosol.Util.Collections.HashDictionary.Clone">Clone()</h4>
+  <div class="markdown level1 summary"><p>Creates a new object that is a copy of the current instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object Clone()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>A new object that is a copy of this instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Contains_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Contains(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L356">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Contains_" data-uid="Tangosol.Util.Collections.HashDictionary.Contains*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Contains_System_Object_" data-uid="Tangosol.Util.Collections.HashDictionary.Contains(System.Object)">Contains(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether this dictionary contains an entry with the
+specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Contains(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to locate in this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the dictionary contains an element with the key;
+otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_ContainsKey_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.ContainsKey(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L637">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_ContainsKey_" data-uid="Tangosol.Util.Collections.HashDictionary.ContainsKey*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_ContainsKey_System_Object_" data-uid="Tangosol.Util.Collections.HashDictionary.ContainsKey(System.Object)">ContainsKey(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> contains
+a specific key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool ContainsKey(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to locate in the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> contains an element
+with the specified key; otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_ContainsValue_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.ContainsValue(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L654">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_ContainsValue_" data-uid="Tangosol.Util.Collections.HashDictionary.ContainsValue*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_ContainsValue_System_Object_" data-uid="Tangosol.Util.Collections.HashDictionary.ContainsValue(System.Object)">ContainsValue(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> contains
+a specific value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool ContainsValue(object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to locate in the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a>.
+The value can be null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the <a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> contains an element
+with the specified <code data-dev-comment-type="paramref" class="paramref">value</code>; otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_CopyTo_System_Array_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.CopyTo(System.Array%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L594">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_CopyTo_" data-uid="Tangosol.Util.Collections.HashDictionary.CopyTo*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_CopyTo_System_Array_System_Int32_" data-uid="Tangosol.Util.Collections.HashDictionary.CopyTo(System.Array,System.Int32)">CopyTo(Array, Int32)</h4>
+  <div class="markdown level1 summary"><p>Copies the elements of the collection to an array, starting at
+a particular array index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void CopyTo(Array array, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Array</span></td>
+        <td><span class="parametername">array</span></td>
+        <td><p>The one-dimensional array that is the destination of the elements
+copied from the collection. The array must have zero-based
+indexing.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The zero-based index in the array at which copying begins.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">array</code> is null.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">index</code> is less than zero.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">array</code> is multidimensional.-or-
+<code data-dev-comment-type="paramref" class="paramref">index</code> is equal to or greater than the length
+of <code data-dev-comment-type="paramref" class="paramref">array</code>.-or- The number of elements in the
+source collection is greater than the available space from
+<code data-dev-comment-type="paramref" class="paramref">index</code> to the end of the destination
+<code data-dev-comment-type="paramref" class="paramref">array</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>The type of the source collection cannot be cast automatically
+to the type of the destination <code data-dev-comment-type="paramref" class="paramref">array</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Equals_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Equals(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L741">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Equals_" data-uid="Tangosol.Util.Collections.HashDictionary.Equals*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Equals_System_Collections_IDictionary_" data-uid="Tangosol.Util.Collections.HashDictionary.Equals(System.Collections.IDictionary)">Equals(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Compares this dictionary with another dictionary for equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Equals(IDictionary dict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">dict</span></td>
+        <td><p>Dictionary to compare this dictionary with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the two dictionaries are equal; <code>false</code>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Collections_HashDictionary_Equals_System_Collections_IDictionary__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method returns true if this dictionary and the specified
+dictionary have exactly the same entry set.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L710">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Equals_" data-uid="Tangosol.Util.Collections.HashDictionary.Equals*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Equals_System_Object_" data-uid="Tangosol.Util.Collections.HashDictionary.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether the specified object is equal to this object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">obj</span></td>
+        <td><p>The object to compare with this object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the specified object is equal to this object;
+otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L424">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_GetEnumerator_" data-uid="Tangosol.Util.Collections.HashDictionary.GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_GetEnumerator" data-uid="Tangosol.Util.Collections.HashDictionary.GetEnumerator">GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an <span class="xref">System.Collections.IDictionaryEnumerator</span>
+object for this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IDictionaryEnumerator GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td><p>An <span class="xref">System.Collections.IDictionaryEnumerator</span>
+object for this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L764">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_GetHashCode_" data-uid="Tangosol.Util.Collections.HashDictionary.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_GetHashCode" data-uid="Tangosol.Util.Collections.HashDictionary.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Returns a hash code for this object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>A hash code for this object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_GetObjectData_SerializationInfo_StreamingContext_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.GetObjectData(SerializationInfo%2CStreamingContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L686">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_GetObjectData_" data-uid="Tangosol.Util.Collections.HashDictionary.GetObjectData*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_GetObjectData_SerializationInfo_StreamingContext_" data-uid="Tangosol.Util.Collections.HashDictionary.GetObjectData(SerializationInfo,StreamingContext)">GetObjectData(SerializationInfo, StreamingContext)</h4>
+  <div class="markdown level1 summary"><p>Overrides serialization method to add support for null value
+serialization.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void GetObjectData(SerializationInfo info, StreamingContext context)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">SerializationInfo</span></td>
+        <td><span class="parametername">info</span></td>
+        <td><p>Serialization info.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">StreamingContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td><p>Serialization context.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_Remove_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.Remove(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L440">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_Remove_" data-uid="Tangosol.Util.Collections.HashDictionary.Remove*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_Remove_System_Object_" data-uid="Tangosol.Util.Collections.HashDictionary.Remove(System.Object)">Remove(Object)</h4>
+  <div class="markdown level1 summary"><p>Removes the element with the specified key from the
+<span class="xref">System.Collections.IDictionary</span> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Remove(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key of the element to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>The dictionary is read-only.
+-or- The dictionary has a fixed size.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L788">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_ToString_" data-uid="Tangosol.Util.Collections.HashDictionary.ToString*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_ToString" data-uid="Tangosol.Util.Collections.HashDictionary.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Returns string representation of this instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>String representation of this instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L555">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_HashDictionary_System_Collections_IEnumerable_GetEnumerator_" data-uid="Tangosol.Util.Collections.HashDictionary.System#Collections#IEnumerable#GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_Collections_HashDictionary_System_Collections_IEnumerable_GetEnumerator" data-uid="Tangosol.Util.Collections.HashDictionary.System#Collections#IEnumerable#GetEnumerator">IEnumerable.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an enumerator that iterates through a collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IEnumerator IEnumerable.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td><p>An <span class="xref">System.Collections.IEnumerator</span> object
+that can be used to iterate through the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_HashDictionary.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.HashDictionary%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/HashDictionary.cs/#L32" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

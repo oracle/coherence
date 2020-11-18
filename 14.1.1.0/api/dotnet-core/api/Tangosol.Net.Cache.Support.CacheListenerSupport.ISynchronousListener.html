@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface CacheListenerSupport.ISynchronousListener
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface CacheListenerSupport.ISynchronousListener
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ISynchronousListener">
+  
+  
+  <h1 id="Tangosol_Net_Cache_Support_CacheListenerSupport_ISynchronousListener" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ISynchronousListener" class="text-break">Interface CacheListenerSupport.ISynchronousListener
+  </h1>
+  <div class="markdown level0 summary"><p>A tag interface indicating that tagged
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> implementation has to receive
+the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> notifications in a synchronous
+manner.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html#Tangosol_Net_Cache_ICacheListener_EntryInserted_Tangosol_Net_Cache_CacheEventArgs_">ICacheListener.EntryInserted(CacheEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html#Tangosol_Net_Cache_ICacheListener_EntryUpdated_Tangosol_Net_Cache_CacheEventArgs_">ICacheListener.EntryUpdated(CacheEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html#Tangosol_Net_Cache_ICacheListener_EntryDeleted_Tangosol_Net_Cache_CacheEventArgs_">ICacheListener.EntryDeleted(CacheEventArgs)</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.Support.html">Tangosol.Net.Cache.Support</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_ISynchronousListener_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface ISynchronousListener : ISynchronousListener, ICacheListener</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_ISynchronousListener_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+Consider an <strong>ICacheListener</strong> that subscribes to receive
+notifications for distributed (partitioned) cache. All events
+notifications are received by the service thread and immediately
+queued to be processed by the dedicated event dispatcher thread.
+This makes it impossible to differentiate between the event
+caused by the updates made by this thread and any other thread.
+Forcing the events to be processed on the service thread
+guarantees that by the time &quot;put&quot; or &quot;remove&quot; requests return to
+the caller all relevant cache event notification have been
+processed (due to the &quot;in order delivery&quot; rule enforced by the
+TCMP).</p>
+<p>
+This interface should be considered as a very advanced feature,
+so an <strong>ICacheListener</strong> implementation that is tagged as
+an ISynchronousListener must exercise extreme caution during event
+processing since any delay with return or unhandled exception
+will cause a delay or complete shutdown of the corresponding
+cache service.</p>
+<p>
+<strong>Note:</strong> The contract by the event producer in respect to the
+ISynchronousListener is somewhat weaker then the general one.
+First, the ISynchronousListener implementaion should make no
+assumptions about the event source obtained by
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html#Tangosol_Net_Cache_CacheEventArgs_Cache">Cache</a>.</p>
+<p>
+Second, in the event of [automatic] service restart, the listener
+has to be re-registered manually.</p>
+<p>
+Third, and the most important, no calls against the
+<a class="xref" href="Tangosol.Net.INamedCache.html">INamedCache</a> are allowed during the synchronous
+event processing (the only exception being a call to remove the
+listener itself).</p>
+</div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_ISynchronousListener.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.ISynchronousListener%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1177" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

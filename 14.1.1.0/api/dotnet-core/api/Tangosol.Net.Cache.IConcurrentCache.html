@@ -1,0 +1,384 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IConcurrentCache
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IConcurrentCache
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.IConcurrentCache">
+  
+  
+  <h1 id="Tangosol_Net_Cache_IConcurrentCache" data-uid="Tangosol.Net.Cache.IConcurrentCache" class="text-break">Interface IConcurrentCache
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a> with additional concurrency features.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_GetAll_System_Collections_ICollection_">ICache.GetAll(ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_Insert_System_Object_System_Object_">ICache.Insert(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_Insert_System_Object_System_Object_System_Int64_">ICache.Insert(Object, Object, Int64)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_InsertAll_System_Collections_IDictionary_">ICache.InsertAll(IDictionary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_Entries">ICache.Entries</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html#Tangosol_Net_Cache_ICache_GetEnumerator">ICache.GetEnumerator()</a>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Add(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Clear()</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Contains(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Remove(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.IsFixedSize</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.IsReadOnly</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Item[System.Object]</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Keys</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.IDictionary.Values</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.ICollection.CopyTo(System.Array, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.ICollection.Count</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.ICollection.IsSynchronized</span>
+    </div>
+    <div>
+      <span class="xref">System.Collections.ICollection.SyncRoot</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_IConcurrentCache_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IConcurrentCache : ICache, IDictionary, ICollection, IEnumerable</code></pre>
+  </div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConcurrentCache_Lock_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConcurrentCache.Lock(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConcurrentCache.cs/#L72">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConcurrentCache_Lock_" data-uid="Tangosol.Net.Cache.IConcurrentCache.Lock*"></a>
+  <h4 id="Tangosol_Net_Cache_IConcurrentCache_Lock_System_Object_" data-uid="Tangosol.Net.Cache.IConcurrentCache.Lock(System.Object)">Lock(Object)</h4>
+  <div class="markdown level1 summary"><p>Attempt to lock the specified item and return immediately.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Lock(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being locked.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully locked; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_IConcurrentCache_Lock_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method behaves exactly as if it simply performs the call
+<strong>Lock(key, 0)</strong>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConcurrentCache_Lock_System_Object_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConcurrentCache.Lock(System.Object%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConcurrentCache.cs/#L56">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConcurrentCache_Lock_" data-uid="Tangosol.Net.Cache.IConcurrentCache.Lock*"></a>
+  <h4 id="Tangosol_Net_Cache_IConcurrentCache_Lock_System_Object_System_Int64_" data-uid="Tangosol.Net.Cache.IConcurrentCache.Lock(System.Object,System.Int64)">Lock(Object, Int64)</h4>
+  <div class="markdown level1 summary"><p>Attempt to lock the specified item within the specified period of
+time.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Lock(object key, long waitTimeMillis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being locked.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">waitTimeMillis</span></td>
+        <td><p>The number of milliseconds to continue trying to obtain a lock;
+pass zero to return immediately; pass -1 to block the calling
+thread until the lock could be obtained.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully locked within the
+specified time; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_IConcurrentCache_Lock_System_Object_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The item doesn&apos;t have to exist to be <em>locked</em>. While the
+item is locked there is known to be a <em>lock holder</em> which
+has an exclusive right to modify (calling put and remove methods)
+that item.</p>
+<p>
+Lock holder is an abstract concept that depends on the
+IConcurrentCache implementation. For example, holder could
+be a cluster member or a thread (or both).</p>
+<p>
+Locking strategy may vary for concrete implementations as well.
+Lock could have an expiration time (this lock is sometimes called
+a &quot;lease&quot;) or be held indefinitely (until the lock holder
+terminates).</p>
+<p>
+Some implementations may allow the entire cache to be locked. If
+the cache is locked in such a way, then only a lock holder is
+allowed to perform any of the &quot;put&quot; or &quot;remove&quot; operations.</p>
+<p>
+Pass the special constant
+<a class="xref" href="Tangosol.Net.Cache.LockScope.html#Tangosol_Net_Cache_LockScope_LOCK_ALL">LOCK_ALL</a> as the <em>key</em>
+parameter to indicate the cache lock.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConcurrentCache_Unlock_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConcurrentCache.Unlock(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConcurrentCache.cs/#L89">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_IConcurrentCache_Unlock_" data-uid="Tangosol.Net.Cache.IConcurrentCache.Unlock*"></a>
+  <h4 id="Tangosol_Net_Cache_IConcurrentCache_Unlock_System_Object_" data-uid="Tangosol.Net.Cache.IConcurrentCache.Unlock(System.Object)">Unlock(Object)</h4>
+  <div class="markdown level1 summary"><p>Unlock the specified item.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool Unlock(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key being unlocked.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the item was successfully unlocked; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_IConcurrentCache_Unlock_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The item doesn't have to exist to be <em>unlocked</em>.
+If the item is currently locked, only the <em>holder</em> of the
+lock could successfully unlock it.</p>
+</div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_IConcurrentCache.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.IConcurrentCache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/IConcurrentCache.cs/#L14" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

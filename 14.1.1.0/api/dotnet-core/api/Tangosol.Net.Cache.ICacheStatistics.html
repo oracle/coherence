@@ -1,0 +1,699 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface ICacheStatistics
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface ICacheStatistics
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.ICacheStatistics">
+  
+  
+  <h1 id="Tangosol_Net_Cache_ICacheStatistics" data-uid="Tangosol.Net.Cache.ICacheStatistics" class="text-break">Interface ICacheStatistics
+  </h1>
+  <div class="markdown level0 summary"><p>An interface for exposing <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a> statistics.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_ICacheStatistics_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface ICacheStatistics</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_AverageGetMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.AverageGetMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L42">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_AverageGetMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.AverageGetMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_AverageGetMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.AverageGetMillis">AverageGetMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the average number of milliseconds per &quot;get&quot;
+invocation since the cache statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double AverageGetMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The average number of milliseconds per &quot;get&quot; operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_AverageHitMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.AverageHitMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L103">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_AverageHitMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.AverageHitMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_AverageHitMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.AverageHitMillis">AverageHitMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the average number of milliseconds per &quot;get&quot;
+invocation that is a hit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double AverageHitMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The average number of milliseconds per cache hit.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_AverageMissMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.AverageMissMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L137">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_AverageMissMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.AverageMissMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_AverageMissMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.AverageMissMillis">AverageMissMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the average number of milliseconds per &quot;get&quot; invocation
+that is a miss.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double AverageMissMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The average number of milliseconds per cache miss.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_AveragePruneMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.AveragePruneMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L183">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_AveragePruneMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.AveragePruneMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_AveragePruneMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.AveragePruneMillis">AveragePruneMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the average number of milliseconds per cache pruning.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double AveragePruneMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The average number of milliseconds per cache pruning.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_AveragePutMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.AveragePutMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L69">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_AveragePutMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.AveragePutMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_AveragePutMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.AveragePutMillis">AveragePutMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the average number of milliseconds per &quot;put&quot;
+invocation since the cache statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double AveragePutMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The average number of milliseconds per &quot;put&quot; operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_CacheHits.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.CacheHits%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L83">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_CacheHits_" data-uid="Tangosol.Net.Cache.ICacheStatistics.CacheHits*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_CacheHits" data-uid="Tangosol.Net.Cache.ICacheStatistics.CacheHits">CacheHits</h4>
+  <div class="markdown level1 summary"><p>Determine the rough number of cache hits since the cache
+statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long CacheHits { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The number of &quot;get&quot; calls that have been served by
+existing cache entries.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_ICacheStatistics_CacheHits_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>A cache hit is a read operation invocation (i.e. &quot;get&quot;) for which
+an entry exists in this cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_CacheHitsMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.CacheHitsMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L94">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_CacheHitsMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.CacheHitsMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_CacheHitsMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.CacheHitsMillis">CacheHitsMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the total number of milliseconds (since that last
+statistics reset) for the &quot;get&quot; operations for which an entry
+existed in this cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long CacheHitsMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of milliseconds for the &quot;get&quot; operations that
+were hits.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_CacheMisses.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.CacheMisses%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L117">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_CacheMisses_" data-uid="Tangosol.Net.Cache.ICacheStatistics.CacheMisses*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_CacheMisses" data-uid="Tangosol.Net.Cache.ICacheStatistics.CacheMisses">CacheMisses</h4>
+  <div class="markdown level1 summary"><p>Determine the rough number of cache misses since the cache
+statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long CacheMisses { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The number of &quot;get&quot; calls that failed to find an existing
+cache entry because the requested key was not in the cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_ICacheStatistics_CacheMisses_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>A cache miss is a &quot;get&quot; invocation that does not have an entry
+in this cache.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_CacheMissesMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.CacheMissesMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L128">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_CacheMissesMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.CacheMissesMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_CacheMissesMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.CacheMissesMillis">CacheMissesMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the total number of milliseconds (since that last
+statistics reset) for the &quot;get&quot; operations for which no entry
+existed in this cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long CacheMissesMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of milliseconds (since that last statistics
+reset) for the &quot;get&quot; operations that were misses.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_CachePrunes.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.CachePrunes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L161">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_CachePrunes_" data-uid="Tangosol.Net.Cache.ICacheStatistics.CachePrunes*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_CachePrunes" data-uid="Tangosol.Net.Cache.ICacheStatistics.CachePrunes">CachePrunes</h4>
+  <div class="markdown level1 summary"><p>Determine the rough number of cache pruning cycles since the
+cache statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long CachePrunes { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of cache pruning cycles (since that last
+statistics reset).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_ICacheStatistics_CachePrunes_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>For the LocalCache implementation, this refers to the number of
+times that the <tt>prune()</tt> method is executed.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_CachePrunesMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.CachePrunesMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L175">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_CachePrunesMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.CachePrunesMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_CachePrunesMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.CachePrunesMillis">CachePrunesMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the total number of milliseconds (since that last
+statistics reset) spent on cache pruning.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long CachePrunesMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of milliseconds (since that last statistics
+reset) for cache pruning operations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_ICacheStatistics_CachePrunesMillis_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>For the LocalCache implementation, this refers to the time spent in
+the <tt>prune()</tt> method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_HitProbability.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.HitProbability%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L147">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_HitProbability_" data-uid="Tangosol.Net.Cache.ICacheStatistics.HitProbability*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_HitProbability" data-uid="Tangosol.Net.Cache.ICacheStatistics.HitProbability">HitProbability</h4>
+  <div class="markdown level1 summary"><p>Determine the rough probability (0 &lt;= p &lt;= 1) that the next
+invocation will be a hit, based on the statistics collected since
+the last reset of the cache statistics.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double HitProbability { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The cache hit probability (0 &lt;= p &lt;= 1).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_TotalGets.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.TotalGets%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L24">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_TotalGets_" data-uid="Tangosol.Net.Cache.ICacheStatistics.TotalGets*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_TotalGets" data-uid="Tangosol.Net.Cache.ICacheStatistics.TotalGets">TotalGets</h4>
+  <div class="markdown level1 summary"><p>Determine the total number of &quot;get&quot; operations since the cache
+statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long TotalGets { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of &quot;get&quot; operations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_TotalGetsMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.TotalGetsMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L33">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_TotalGetsMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.TotalGetsMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_TotalGetsMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.TotalGetsMillis">TotalGetsMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the total number of milliseconds spent on &quot;get&quot;
+operations since the cache statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long TotalGetsMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of milliseconds processing &quot;get&quot; operations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_TotalPuts.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.TotalPuts%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L51">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_TotalPuts_" data-uid="Tangosol.Net.Cache.ICacheStatistics.TotalPuts*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_TotalPuts" data-uid="Tangosol.Net.Cache.ICacheStatistics.TotalPuts">TotalPuts</h4>
+  <div class="markdown level1 summary"><p>Determine the total number of &quot;put&quot; operations since the cache
+statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long TotalPuts { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of &quot;put&quot; operations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_TotalPutsMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.TotalPutsMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L60">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_TotalPutsMillis_" data-uid="Tangosol.Net.Cache.ICacheStatistics.TotalPutsMillis*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_TotalPutsMillis" data-uid="Tangosol.Net.Cache.ICacheStatistics.TotalPutsMillis">TotalPutsMillis</h4>
+  <div class="markdown level1 summary"><p>Determine the total number of milliseconds spent on &quot;put&quot;
+operations since the cache statistics were last reset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long TotalPutsMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The total number of milliseconds processing &quot;put&quot; operations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics_ResetHitStatistics.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics.ResetHitStatistics%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L188">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_ICacheStatistics_ResetHitStatistics_" data-uid="Tangosol.Net.Cache.ICacheStatistics.ResetHitStatistics*"></a>
+  <h4 id="Tangosol_Net_Cache_ICacheStatistics_ResetHitStatistics" data-uid="Tangosol.Net.Cache.ICacheStatistics.ResetHitStatistics">ResetHitStatistics()</h4>
+  <div class="markdown level1 summary"><p>Reset the cache statistics.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void ResetHitStatistics()</code></pre>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_ICacheStatistics.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.ICacheStatistics%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/ICacheStatistics.cs/#L15" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,505 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ReducerAggregator
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ReducerAggregator
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Aggregator.ReducerAggregator">
+  
+  
+  <h1 id="Tangosol_Util_Aggregator_ReducerAggregator" data-uid="Tangosol.Util.Aggregator.ReducerAggregator" class="text-break">Class ReducerAggregator
+  </h1>
+  <div class="markdown level0 summary"><p>The ReducerAggregator will return a portion of value attributes based on the
+provided ValueExtractor, instead of returning the complete set of values.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html">AbstractAggregator</a></div>
+    <div class="level2"><span class="xref">ReducerAggregator</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.IParallelAwareAggregator.html">IParallelAwareAggregator</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_Extractor">AbstractAggregator.Extractor</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_ParallelAggregator">AbstractAggregator.ParallelAggregator</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_AggregateResults_System_Collections_ICollection_">AbstractAggregator.AggregateResults(ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_Aggregate_System_Collections_ICollection_">AbstractAggregator.Aggregate(ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_ReadExternal_Tangosol_IO_Pof_IPofReader_">AbstractAggregator.ReadExternal(IPofReader)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_WriteExternal_Tangosol_IO_Pof_IPofWriter_">AbstractAggregator.WriteExternal(IPofWriter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_ToString">AbstractAggregator.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_GetHashCode">AbstractAggregator.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_Equals_System_Object_">AbstractAggregator.Equals(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_m_isParallel">AbstractAggregator.m_isParallel</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Aggregator.html">Tangosol.Util.Aggregator</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Aggregator_ReducerAggregator_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class ReducerAggregator : AbstractAggregator, IParallelAwareAggregator, IEntryAggregator, IPortableObject</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Aggregator_ReducerAggregator_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>This aggregator could be used in combination with
+Tangosol.Util.Extractor.MultiExtractor allowing one to collect
+tuples that are a subset of the attributes of each object stored in the cache.
+<a class="xref" href="Tangosol.Util.Extractor.MultiExtractor.html">MultiExtractor</a></p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L37">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_ReducerAggregator__ctor_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.#ctor*"></a>
+  <h4 id="Tangosol_Util_Aggregator_ReducerAggregator__ctor" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.#ctor">ReducerAggregator()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ReducerAggregator()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator__ctor_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator.%23ctor(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L47">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_ReducerAggregator__ctor_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.#ctor*"></a>
+  <h4 id="Tangosol_Util_Aggregator_ReducerAggregator__ctor_System_String_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.#ctor(System.String)">ReducerAggregator(String)</h4>
+  <div class="markdown level1 summary"><p>Construct a ReducerAggregator based on the specified method name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ReducerAggregator(string sMethod)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">sMethod</span></td>
+        <td><p>The name of the method that is used to extract the
+portion of the cached value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator__ctor_Tangosol_Util_IValueExtractor_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator.%23ctor(Tangosol.Util.IValueExtractor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L57">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_ReducerAggregator__ctor_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.#ctor*"></a>
+  <h4 id="Tangosol_Util_Aggregator_ReducerAggregator__ctor_Tangosol_Util_IValueExtractor_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.#ctor(Tangosol.Util.IValueExtractor)">ReducerAggregator(IValueExtractor)</h4>
+  <div class="markdown level1 summary"><p>Construct a ReducerAggregator based on the specified extractor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ReducerAggregator(IValueExtractor extractor)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The extractor that is used to extract the portion
+of the cached value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator_m_map.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator.m_map%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L185">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Aggregator_ReducerAggregator_m_map" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.m_map">m_map</h4>
+  <div class="markdown level1 summary"><p>The resulting map of reduced values.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary m_map</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator_EnsureMap.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator.EnsureMap%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L169">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_ReducerAggregator_EnsureMap_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.EnsureMap*"></a>
+  <h4 id="Tangosol_Util_Aggregator_ReducerAggregator_EnsureMap" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.EnsureMap">EnsureMap()</h4>
+  <div class="markdown level1 summary"><p>Return a map that can be used to store reduced values, creating it if
+one has not already been created.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary EnsureMap()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A set that can be used to store distinct values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator_FinalizeResult_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator.FinalizeResult(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L139">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_ReducerAggregator_FinalizeResult_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.FinalizeResult*"></a>
+  <h4 id="Tangosol_Util_Aggregator_ReducerAggregator_FinalizeResult_System_Boolean_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.FinalizeResult(System.Boolean)">FinalizeResult(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Obtain the result of the aggregation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override object FinalizeResult(bool isFinal)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isFinal</span></td>
+        <td><p><strong>true</strong> to indicate that the final result of the aggregation
+process should be returned; this will only be <strong>false</strong> if a
+parallel approach is being used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The result of the aggregation process.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_FinalizeResult_System_Boolean_">AbstractAggregator.FinalizeResult(Boolean)</a></div>
+  <h5 id="Tangosol_Util_Aggregator_ReducerAggregator_FinalizeResult_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the <code data-dev-comment-type="paramref" class="paramref">isFinal</code> parameter is <strong>true</strong>, the
+returned object must be the final result of the aggregation;
+otherwise, the returned object will be treated as a partial
+result that should be incorporated into the final result.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator_Init_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator.Init(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L74">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_ReducerAggregator_Init_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.Init*"></a>
+  <h4 id="Tangosol_Util_Aggregator_ReducerAggregator_Init_System_Boolean_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.Init(System.Boolean)">Init(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Initialize the aggregation result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void Init(bool isFinal)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isFinal</span></td>
+        <td><p><strong>true</strong> is passed if the aggregation process that is being
+initialized must produce a final aggregation result; this will
+only be <strong>false</strong> if a parallel approach is being used and the
+initial (partial) aggregation process is being initialized.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_Init_System_Boolean_">AbstractAggregator.Init(Boolean)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator_Process_System_Object_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator.Process(System.Object%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L100">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Aggregator_ReducerAggregator_Process_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.Process*"></a>
+  <h4 id="Tangosol_Util_Aggregator_ReducerAggregator_Process_System_Object_System_Boolean_" data-uid="Tangosol.Util.Aggregator.ReducerAggregator.Process(System.Object,System.Boolean)">Process(Object, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Incorporate one aggregatable value into the result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void Process(object o, bool isFinal)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The value to incorporate into the aggregated result.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isFinal</span></td>
+        <td><p><strong>true</strong> to indicate that the given object is a partial
+result returned by a parallel aggregator.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.Aggregator.AbstractAggregator.html#Tangosol_Util_Aggregator_AbstractAggregator_Process_System_Object_System_Boolean_">AbstractAggregator.Process(Object, Boolean)</a></div>
+  <h5 id="Tangosol_Util_Aggregator_ReducerAggregator_Process_System_Object_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the <code data-dev-comment-type="paramref" class="paramref">isFinal</code> parameter is <strong>true</strong>, the
+given object is a partial result (returned by an individual
+parallel aggregator) that should be incorporated into the final
+result; otherwise, the object is a value extracted from an
+<a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a></p>
+</div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IParallelAwareAggregator.html">IParallelAwareAggregator</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IEntryAggregator.html">IEntryAggregator</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Aggregator_ReducerAggregator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Aggregator.ReducerAggregator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Aggregator/ReducerAggregator.cs/#L30" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,926 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ArrayFilter
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ArrayFilter
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Filter.ArrayFilter">
+  
+  
+  <h1 id="Tangosol_Util_Filter_ArrayFilter" data-uid="Tangosol.Util.Filter.ArrayFilter" class="text-break">Class ArrayFilter
+  </h1>
+  <div class="markdown level0 summary"><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which is a logical operator of a filter array.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">ArrayFilter</span></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Filter.AllFilter.html">AllFilter</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Filter.AnyFilter.html">AnyFilter</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Filter.XorFilter.html">XorFilter</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a></div>
+    <div><a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a></div>
+    <div><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Filter.html">Tangosol.Util.Filter</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Filter_ArrayFilter_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class ArrayFilter : IIndexAwareFilter, IEntryFilter, IFilter, IPortableObject</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L46">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter__ctor_" data-uid="Tangosol.Util.Filter.ArrayFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter__ctor" data-uid="Tangosol.Util.Filter.ArrayFilter.#ctor">ArrayFilter()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected ArrayFilter()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter__ctor_Tangosol_Util_IFilter___.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.%23ctor(Tangosol.Util.IFilter%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L62">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter__ctor_" data-uid="Tangosol.Util.Filter.ArrayFilter.#ctor*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter__ctor_Tangosol_Util_IFilter___" data-uid="Tangosol.Util.Filter.ArrayFilter.#ctor(Tangosol.Util.IFilter[])">ArrayFilter(IFilter[])</h4>
+  <div class="markdown level1 summary"><p>Construct a logical filter that applies a binary operator to a
+filter array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected ArrayFilter(IFilter[] filters)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>[]</td>
+        <td><span class="parametername">filters</span></td>
+        <td><p>The filter array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Filter_ArrayFilter__ctor_Tangosol_Util_IFilter____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The result is defined as:</p>
+<pre><code>filters[0] &lt;op> filters[1] ... &lt;op> filters[n]</code></pre>
+</div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_m_filters.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.m_filters%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L490">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_m_filters" data-uid="Tangosol.Util.Filter.ArrayFilter.m_filters">m_filters</h4>
+  <div class="markdown level1 summary"><p>The IFilter array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IFilter[] m_filters</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>[]</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_m_preserveOrder.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.m_preserveOrder%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L496">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_m_preserveOrder" data-uid="Tangosol.Util.Filter.ArrayFilter.m_preserveOrder">m_preserveOrder</h4>
+  <div class="markdown level1 summary"><p>Flag indicating whether or not the filter order should be preserved.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool m_preserveOrder</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_Filters.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.Filters%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L34">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_Filters_" data-uid="Tangosol.Util.Filter.ArrayFilter.Filters*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_Filters" data-uid="Tangosol.Util.Filter.ArrayFilter.Filters">Filters</h4>
+  <div class="markdown level1 summary"><p>Obtain the <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IFilter[] Filters { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>[]</td>
+        <td><p>The <strong>IFilter</strong> array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_ApplyFilter_Tangosol_Util_Filter_IIndexAwareFilter_System_Collections_IDictionary_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.ApplyFilter(Tangosol.Util.Filter.IIndexAwareFilter%2CSystem.Collections.IDictionary%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L203">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_ApplyFilter_" data-uid="Tangosol.Util.Filter.ArrayFilter.ApplyFilter*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_ApplyFilter_Tangosol_Util_Filter_IIndexAwareFilter_System_Collections_IDictionary_System_Collections_ICollection_" data-uid="Tangosol.Util.Filter.ArrayFilter.ApplyFilter(Tangosol.Util.Filter.IIndexAwareFilter,System.Collections.IDictionary,System.Collections.ICollection)">ApplyFilter(IIndexAwareFilter, IDictionary, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Apply the specified IndexAwareFilter to the specified keySet.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IFilter ApplyFilter(IIndexAwareFilter filter, IDictionary indexes, ICollection keys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The IndexAwareFilter to apply an index to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">indexes</span></td>
+        <td><p>The available MapIndex objects keyed by the related
+IValueExtractor; read-only.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The mutable set of keys that remain to be filtered.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><p>A Filter object that can be used to process the remaining
+keys, or null if no additional filter processing is necessary</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_ApplyIndex_System_Collections_IDictionary_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.ApplyIndex(System.Collections.IDictionary%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L139">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_ApplyIndex_" data-uid="Tangosol.Util.Filter.ArrayFilter.ApplyIndex*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_ApplyIndex_System_Collections_IDictionary_System_Collections_ICollection_" data-uid="Tangosol.Util.Filter.ArrayFilter.ApplyIndex(System.Collections.IDictionary,System.Collections.ICollection)">ApplyIndex(IDictionary, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Filter remaining keys using an IDictionary of available indexes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract IFilter ApplyIndex(IDictionary indexes, ICollection keys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">indexes</span></td>
+        <td><p>The available <a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a> objects keyed by the
+related IValueExtractor; read-only.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The mutable set of keys that remain to be filtered.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><p>An <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> object that can be used to process the
+remaining keys, or <code>null</code> if no additional filter processing
+is necessary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Filter_ArrayFilter_ApplyIndex_System_Collections_IDictionary_System_Collections_ICollection__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The filter is responsible for removing all keys from the passed
+set of keys that the applicable indexes can prove should be
+filtered. If the filter does not fully evaluate the remaining
+keys using just the index information, it must return a filter
+(which may be an <a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a>) that can complete the
+task using an iterating implementation. If, on the other hand, the
+filter does fully evaluate the remaining keys using just the index
+information, then it should return <code>null</code> to indicate that no
+further filtering is necessary.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_CalculateEffectiveness_System_Collections_IDictionary_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.CalculateEffectiveness(System.Collections.IDictionary%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L111">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_CalculateEffectiveness_" data-uid="Tangosol.Util.Filter.ArrayFilter.CalculateEffectiveness*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_CalculateEffectiveness_System_Collections_IDictionary_System_Collections_ICollection_" data-uid="Tangosol.Util.Filter.ArrayFilter.CalculateEffectiveness(System.Collections.IDictionary,System.Collections.ICollection)">CalculateEffectiveness(IDictionary, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Given an IDictionary of available indexes, determine if this
+IIndexAwareFilter can use any of the indexes to assist in its
+processing, and if so, determine how effective the use of that
+index would be.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract int CalculateEffectiveness(IDictionary indexes, ICollection keys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">indexes</span></td>
+        <td><p>The available <a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a> objects keyed by the
+related IValueExtractor; read-only.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The set of keys that will be filtered; read-only.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An effectiveness estimate of how well this filter can use the
+specified indexes to filter the specified keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Filter_ArrayFilter_CalculateEffectiveness_System_Collections_IDictionary_System_Collections_ICollection__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The returned value is an effectiveness estimate of how well this 
+filter can use the specified indexes to filter the specified 
+keys. An operation that requires no more than a single access to 
+the index content (i.e. Equals, NotEquals) has an effectiveness of 
+<strong>one</strong>. Evaluation of a single entry is assumed to have an 
+effectiveness that depends on the index implementation and is 
+usually measured as a constant number of the single operations.  
+This number is referred to as <em>evaluation cost</em>.
+</p>
+<p>
+If the effectiveness of a filter evaluates to a number larger 
+than the keys.size() then a user could avoid using the index and 
+iterate through the keys calling <tt>Evaluate</tt> rather than 
+<tt>ApplyIndex</tt>.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L286">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_Equals_" data-uid="Tangosol.Util.Filter.ArrayFilter.Equals*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_Equals_System_Object_" data-uid="Tangosol.Util.Filter.ArrayFilter.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare the <strong>ArrayFilter</strong> with another object to determine
+equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The <strong>ArrayFilter</strong> to compare to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this <strong>ArrayFilter</strong> and the passed object are
+equivalent <strong>ArrayFilter</strong> objects.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.Equals(System.Object)</span></div>
+  <h5 id="Tangosol_Util_Filter_ArrayFilter_Equals_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Two <strong>ArrayFilter</strong> objects are considered equal if they are
+of same type and their filter arrays are equal.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_Evaluate_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.Evaluate(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L154">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_Evaluate_" data-uid="Tangosol.Util.Filter.ArrayFilter.Evaluate*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_Evaluate_System_Object_" data-uid="Tangosol.Util.Filter.ArrayFilter.Evaluate(System.Object)">Evaluate(Object)</h4>
+  <div class="markdown level1 summary"><p>Apply the test to the object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract bool Evaluate(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>An object to which the test is applied.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the test passes, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_EvaluateEntry_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.EvaluateEntry(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L165">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_EvaluateEntry_" data-uid="Tangosol.Util.Filter.ArrayFilter.EvaluateEntry*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_EvaluateEntry_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Util.Filter.ArrayFilter.EvaluateEntry(Tangosol.Net.Cache.ICacheEntry)">EvaluateEntry(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Apply the test to an <a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract bool EvaluateEntry(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The <strong>ICacheEntry</strong> to evaluate; never <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if the test passes, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L305">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_GetHashCode_" data-uid="Tangosol.Util.Filter.ArrayFilter.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_GetHashCode" data-uid="Tangosol.Util.Filter.ArrayFilter.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Determine a hash value for the <strong>ArrayFilter</strong> object
+according to the general <strong>object.GetHashCode()</strong> contract.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An integer hash value for this <strong>ArrayFilter</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.GetHashCode()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_HonorOrder.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.HonorOrder%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L177">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_HonorOrder_" data-uid="Tangosol.Util.Filter.ArrayFilter.HonorOrder*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_HonorOrder" data-uid="Tangosol.Util.Filter.ArrayFilter.HonorOrder">HonorOrder()</h4>
+  <div class="markdown level1 summary"><p>Ensure that the order of underlying filters is preserved by the
+<a class="xref" href="Tangosol.Util.Filter.ArrayFilter.html#Tangosol_Util_Filter_ArrayFilter_ApplyIndex_System_Collections_IDictionary_System_Collections_ICollection_">ApplyIndex(IDictionary, ICollection)</a> and
+<a class="xref" href="Tangosol.Util.Filter.ArrayFilter.html#Tangosol_Util_Filter_ArrayFilter_EvaluateEntry_Tangosol_Net_Cache_ICacheEntry_">EvaluateEntry(ICacheEntry)</a> implementations.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void HonorOrder()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_OptimizeFilterOrder_System_Collections_IDictionary_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.OptimizeFilterOrder(System.Collections.IDictionary%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L220">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_OptimizeFilterOrder_" data-uid="Tangosol.Util.Filter.ArrayFilter.OptimizeFilterOrder*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_OptimizeFilterOrder_System_Collections_IDictionary_System_Collections_ICollection_" data-uid="Tangosol.Util.Filter.ArrayFilter.OptimizeFilterOrder(System.Collections.IDictionary,System.Collections.ICollection)">OptimizeFilterOrder(IDictionary, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Sort all the participating filters according to their effectiveness.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void OptimizeFilterOrder(IDictionary indexes, ICollection keys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">indexes</span></td>
+        <td><p>The available ICacheIndex objects keyed by the related
+<strong>IValueExtractor</strong>; read-only.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>The set of keys that will be filtered; read-only</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L357">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_ReadExternal_" data-uid="Tangosol.Util.Filter.ArrayFilter.ReadExternal*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Util.Filter.ArrayFilter.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L323">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_ToString_" data-uid="Tangosol.Util.Filter.ArrayFilter.ToString*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_ToString" data-uid="Tangosol.Util.Filter.ArrayFilter.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Return a human-readable description for this <strong>ArrayFilter</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string description of the <strong>ArrayFilter</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L376">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Filter_ArrayFilter_WriteExternal_" data-uid="Tangosol.Util.Filter.ArrayFilter.WriteExternal*"></a>
+  <h4 id="Tangosol_Util_Filter_ArrayFilter_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Util.Filter.ArrayFilter.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Filter_ArrayFilter.md&amp;value=---%0Auid%3A%20Tangosol.Util.Filter.ArrayFilter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Filter/ArrayFilter.cs/#L24" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

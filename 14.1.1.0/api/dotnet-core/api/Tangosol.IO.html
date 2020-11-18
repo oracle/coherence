@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace Tangosol.IO
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace Tangosol.IO
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO">
+  
+  <h1 id="Tangosol_IO" data-uid="Tangosol.IO" class="text-break">Namespace Tangosol.IO
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="Tangosol.IO.AbstractEvolvable.html">AbstractEvolvable</a></h4>
+      <section><p>An abstract base class for implementing <a class="xref" href="Tangosol.IO.IEvolvable.html">IEvolvable</a>
+objects.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.BinaryDeltaCompressor.html">BinaryDeltaCompressor</a></h4>
+      <section><p>An IDeltaCompressor implementation that works with opaque (binary) values.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.BinarySerializer.html">BinarySerializer</a></h4>
+      <section><p><a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a> implementation that uses .NET binary
+serializer.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.ConfigurableSerializerFactory.html">ConfigurableSerializerFactory</a></h4>
+      <section><p>A <a class="xref" href="Tangosol.IO.ISerializerFactory.html">ISerializerFactory</a> implementation that creates instances of a
+Serializer class configured using an XmlElement of the following structure:</p>
+<pre>
+  &lt;!ELEMENT instance ((class-name | (class-factory-name, method-name), init-params?)>
+  &lt;!ELEMENT init-params (init-param*)>
+  &lt;!ELEMENT init-param ((param-name | param-type), param-value, description?)>
+</pre>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.DataReader.html">DataReader</a></h4>
+      <section><p><strong>BinaryReader</strong> extension that adds methods for reading 32 and
+64-bit integer values in a packed format.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></h4>
+      <section><p><strong>BinaryWriter</strong> extension that adds methods for writing 32 and
+64-bit integer values in a packed format.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.IndentingWriter.html">IndentingWriter</a></h4>
+      <section><p>An IndentingWriter is used to indent line-based output to an
+underlying <strong>TextWriter</strong>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.OptimizedBinarySerializer.html">OptimizedBinarySerializer</a></h4>
+      <section><p><a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a> implementation that optimizes serialization
+of primitive types and falls back to .NET BinaryFormatter for
+custom types.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.SimpleEvolvable.html">SimpleEvolvable</a></h4>
+      <section><p>Simple implementation of <a class="xref" href="Tangosol.IO.IEvolvable.html">IEvolvable</a> interface.</p>
+</section>
+    <h3 id="interfaces">Interfaces
+  </h3>
+      <h4><a class="xref" href="Tangosol.IO.IDeltaCompressor.html">IDeltaCompressor</a></h4>
+      <section><p>The IDeltaCompressor interface provides the capability of comparing two
+in-memory buffers containing an old and a new value, and producing a result
+(called a &quot;delta&quot;) that can be applied to the old value to create the new
+value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.IEvolvable.html">IEvolvable</a></h4>
+      <section><p>The <strong>IEvolvable</strong> interface is implemented by types that require
+forwards- and backwards-compatibility of their serialized form.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a></h4>
+      <section><p>Provides the capability of reading and writing a .NET object from and
+to an in-memory buffer.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.ISerializerFactory.html">ISerializerFactory</a></h4>
+      <section><p>A factory for <a class="xref" href="Tangosol.IO.ISerializer.html">ISerializer</a> objects.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.IO.IWrapperStreamFactory.html">IWrapperStreamFactory</a></h4>
+      <section><p>Provides the means to wrap a <strong>Stream</strong>, such that functionality
+such as compression and encryption can be implemented in a layered,
+pluggable fashion.</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

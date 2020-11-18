@@ -1,0 +1,288 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Namespace Tangosol.Util.Filter
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Namespace Tangosol.Util.Filter
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Filter">
+  
+  <h1 id="Tangosol_Util_Filter" data-uid="Tangosol.Util.Filter" class="text-break">Namespace Tangosol.Util.Filter
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+    <h3 id="classes">Classes
+  </h3>
+      <h4><a class="xref" href="Tangosol.Util.Filter.AllFilter.html">AllFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which returns the logical &quot;and&quot; of a filter
+array.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.AlwaysFilter.html">AlwaysFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which always evaluates to <strong>true</strong>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.AndFilter.html">AndFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which returns the logical &quot;and&quot; of two other
+filters.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.AnyFilter.html">AnyFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which returns the logical &quot;or&quot; of a filter
+array.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.ArrayFilter.html">ArrayFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which is a logical operator of a filter array.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.ArrayFilter.WeightedFilter.html">ArrayFilter.WeightedFilter</a></h4>
+      <section><p>A thin wrapper around a Filter allowing for sorting the filters
+according to their effectiveness.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.BetweenFilter.html">BetweenFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for &quot;Between&quot; condition.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.html">CacheEventFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which evaluates the content of a
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> object according to the specified
+criteria.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.CacheEventTransformerFilter.html">CacheEventTransformerFilter</a></h4>
+      <section><p>CacheEventTransformerFilter is a generic multiplexing wrapper that
+combines two implementations: an <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> (most commonly
+a <a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.html">CacheEventFilter</a>) and an
+<a class="xref" href="Tangosol.Net.Cache.ICacheEventTransformer.html">ICacheEventTransformer</a> and is used to register event
+listeners that allow to change the content of a
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.ComparisonFilter.html">ComparisonFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.ContainsAllFilter.html">ContainsAllFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which tests an <strong>ICollection</strong> or object
+array value returned from a member invocation for containment of all
+values in an collection.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.ContainsAnyFilter.html">ContainsAnyFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which tests an <strong>ICollection</strong> or object
+array value returned from a method invocation for containment of any
+value in a collection.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.ContainsFilter.html">ContainsFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which tests an <strong>ICollection</strong> or object
+array value returned from a method invocation for containment of a
+given value.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.EqualsFilter.html">EqualsFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for equality.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.ExtractorFilter.html">ExtractorFilter</a></h4>
+      <section><p>Base <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> implementation for doing extractor-based
+processing.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.FilterTrigger.html">FilterTrigger</a></h4>
+      <section><p>A generic Filter-based <a class="xref" href="Tangosol.Net.Cache.ICacheTrigger.html">ICacheTrigger</a> implementation.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.GreaterEqualsFilter.html">GreaterEqualsFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for &quot;Greater or Equal&quot; condition.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.GreaterFilter.html">GreaterFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for &quot;Greater&quot; condition.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.InFilter.html">InFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which checks whether the result of a member
+invocation belongs to a predefined collection of values.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.InKeySetFilter.html">InKeySetFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> that limits the underlying filter evaluation
+only to the specified collection of keys.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.IsNotNullFilter.html">IsNotNullFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which tests the result of a member invocation
+for inequality to <code>null</code>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.IsNullFilter.html">IsNullFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with <code>null</code>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.KeyAssociatedFilter.html">KeyAssociatedFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which limits the scope of another filter
+according to the key association information.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.KeyFilter.html">KeyFilter</a></h4>
+      <section><p>EntryFilter which checks whether an entry key belongs to a set.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.LessEqualsFilter.html">LessEqualsFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for &quot;Less or Equals&quot; condition.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.LessFilter.html">LessFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for &quot;Less&quot; condition.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.LikeFilter.html">LikeFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for pattern match.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.LimitFilter.html">LimitFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which truncates the results of another filter.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.NeverFilter.html">NeverFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which always evaluates to <strong>false</strong>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.NotEqualsFilter.html">NotEqualsFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which compares the result of a member
+invocation with a value for inequality.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.NotFilter.html">NotFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which negates the results of another filter.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.OrFilter.html">OrFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which returns the logical &quot;or&quot; of two other
+filters.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.PresentFilter.html">PresentFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which returns <strong>true</strong> for
+<a class="xref" href="Tangosol.Net.Cache.IInvocableCacheEntry.html">IInvocableCacheEntry</a> objects that currently exist
+in an <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.PriorityFilter.html">PriorityFilter</a></h4>
+      <section><p>PriorityFilter is used to explicitly control the scheduling priority
+and timeouts for execution of filter-based methods.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.ValueChangeEventFilter.html">ValueChangeEventFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which evaluates the content of a
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> values based on the specified value
+extractor.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.XorFilter.html">XorFilter</a></h4>
+      <section><p><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> which returns the logical exclusive or (&quot;xor&quot;)
+of two other filters.</p>
+</section>
+    <h3 id="interfaces">Interfaces
+  </h3>
+      <h4><a class="xref" href="Tangosol.Util.Filter.IEntryFilter.html">IEntryFilter</a></h4>
+      <section><p>IEntryFilter provides an extension to <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> for those
+cases in which both a key and a value may be necessary to evaluate
+the conditional inclusion of a particular object.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a></h4>
+      <section><p>IIndexAwareFilter is an extension to the EntryFilter interface that
+allows a filter to use a cache index to fully or partially evaluate
+itself.</p>
+</section>
+    <h3 id="enums">Enums
+  </h3>
+      <h4><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventMask.html">CacheEventFilter.CacheEventMask</a></h4>
+      <section><p>Event mask enum.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.CacheEventFilter.CacheEventSyntheticMask.html">CacheEventFilter.CacheEventSyntheticMask</a></h4>
+      <section><p>Event natural/synthetic mask enum.</p>
+</section>
+      <h4><a class="xref" href="Tangosol.Util.Filter.FilterTrigger.ActionCode.html">FilterTrigger.ActionCode</a></h4>
+      <section><p>The action taken if an evaluation of the
+<a class="xref" href="Tangosol.Net.Cache.ICacheTriggerEntry.html">ICacheTriggerEntry</a> object representing a pending
+change fails (returns <strong>false</strong>).</p>
+</section>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,383 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IPriorityTask
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IPriorityTask
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.IPriorityTask">
+  
+  
+  <h1 id="Tangosol_Net_IPriorityTask" data-uid="Tangosol.Net.IPriorityTask" class="text-break">Interface IPriorityTask
+  </h1>
+  <div class="markdown level0 summary"><p>The IPriorityTask interface allows to control the ordering in which a
+service schedules tasks for execution using a thread pool and limit
+their execution times to a specified duration.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.html">Tangosol.Net</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_IPriorityTask_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IPriorityTask</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_IPriorityTask_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+Instances of IPriorityTask typically also implement either
+<a class="xref" href="Tangosol.Net.IInvocable.html">IInvocable</a> or <span class="xref">Tangosol.Net.Messaging.IRunnable</span> interface.</p>
+<p>
+Depending on the value of <a class="xref" href="Tangosol.Net.IPriorityTask.html#Tangosol_Net_IPriorityTask_SchedulingPriority">SchedulingPriority</a> property,
+the scheduling order will be one of the following:
+<ul><li><a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html#Tangosol_Net_PriorityTaskScheduling_Standard">Standard</a>
+a task will be scheduled for execution in a natural (based on the
+request arrival time) order;
+</li><li><a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html#Tangosol_Net_PriorityTaskScheduling_First">First</a>
+a task will be scheduled in front of any equal or lower scheduling
+priority tasks and executed as soon as any of worker threads become
+available;
+</li><li><a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html#Tangosol_Net_PriorityTaskScheduling_Immediate">Immediate</a>
+a task will be immediately executed by any idle worker thread; if all
+of them are active, a new thread will be created to execute this
+task.
+</li></ul></p>
+<p>
+A best effort will be made to limit the task execution time according
+to the value of the <a class="xref" href="Tangosol.Net.IPriorityTask.html#Tangosol_Net_IPriorityTask_ExecutionTimeoutMillis">ExecutionTimeoutMillis</a> property.
+However,it should be noted that:
+<ul><li>
+for tasks with the scheduling priority of
+<a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html#Tangosol_Net_PriorityTaskScheduling_Immediate">Immediate</a>, factors that could
+make the execution time longer than the timeout value are long GC
+pauses and high network latency;
+</li><li>
+if the service has a task backlog (when there are more tasks
+scheduled for execution than the number of available worker threads),
+the request execution time (measured from the client&apos;s perspective)
+for tasks with the scheduling priorities of
+<a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html#Tangosol_Net_PriorityTaskScheduling_Standard">Standard</a> or
+<a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html#Tangosol_Net_PriorityTaskScheduling_First">First</a> could be longer and
+include the time those tasks were kept in a queue before invocation;
+</li><li>
+the corresponding service is free to cancel the task execution before
+the task is started and call the <a class="xref" href="Tangosol.Net.IPriorityTask.html#Tangosol_Net_IPriorityTask_RunCanceled_System_Boolean_">RunCanceled(Boolean)</a> method if
+it&apos;s known that the client is no longer interested in the results
+of the task execution.
+</li></ul></p>
+<p>
+In addition to allowing control of the task execution (as scheduled
+and measured on the server side), the IPriorityTask interface could
+also be used to control the request time from the calling thread
+perspective (measured on the client). A best effort will be made to
+limit the request time (the time period that the calling thread is
+blocked waiting for a response from the corresponding service) to the
+value of the <a class="xref" href="Tangosol.Net.IPriorityTask.html#Tangosol_Net_IPriorityTask_RequestTimeoutMillis">RequestTimeoutMillis</a> property.</p>
+<p>
+It should be noted that the request timeout value (RT) could be
+grater than, equal to or less than the task execution timeout value
+(ET). The value of RT which is less than ET indicates that even
+though the task execution is allowed to take longer period of time,
+the client thread will not wait for a result of the execution and
+will be able to handle a timeout exception if it arises. Since the
+time spent by the task waiting in the service backlog queue does not
+count toward the task execution time, a value of RT that is equal or
+slightly greater than ET still leaves a possibility that the client
+thread will throw a TimeoutException before the task completes its
+execution normally on a server.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IPriorityTask_ExecutionTimeoutMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.IPriorityTask.ExecutionTimeoutMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IPriorityTask.cs/#L137">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IPriorityTask_ExecutionTimeoutMillis_" data-uid="Tangosol.Net.IPriorityTask.ExecutionTimeoutMillis*"></a>
+  <h4 id="Tangosol_Net_IPriorityTask_ExecutionTimeoutMillis" data-uid="Tangosol.Net.IPriorityTask.ExecutionTimeoutMillis">ExecutionTimeoutMillis</h4>
+  <div class="markdown level1 summary"><p>The maximum amount of time this task is allowed to run before the
+corresponding service will attempt to stop it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long ExecutionTimeoutMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The execution timeout value in millisecods or one of the special
+<a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html">PriorityTaskTimeout</a> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_IPriorityTask_ExecutionTimeoutMillis_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The value of <a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html#Tangosol_Net_PriorityTaskTimeout_Default">Default</a> indicates
+a default timeout value configured for the corresponding service;
+the value of <a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html#Tangosol_Net_PriorityTaskTimeout_None">None</a> indicates
+that this task can execute indefinitely.</p>
+<p>
+If, by the time the specified amount of time passed, the task has
+not finished, the service will attempt to stop the execution by
+using the <strong>Thread.Interrupt()</strong> method. In the case that
+interrupting the thread does not result in the task&apos;s
+termination, the <a class="xref" href="Tangosol.Net.IPriorityTask.html#Tangosol_Net_IPriorityTask_RunCanceled_System_Boolean_">RunCanceled(Boolean)</a> method will be called.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IPriorityTask_RequestTimeoutMillis.md&amp;value=---%0Auid%3A%20Tangosol.Net.IPriorityTask.RequestTimeoutMillis%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IPriorityTask.cs/#L188">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IPriorityTask_RequestTimeoutMillis_" data-uid="Tangosol.Net.IPriorityTask.RequestTimeoutMillis*"></a>
+  <h4 id="Tangosol_Net_IPriorityTask_RequestTimeoutMillis" data-uid="Tangosol.Net.IPriorityTask.RequestTimeoutMillis">RequestTimeoutMillis</h4>
+  <div class="markdown level1 summary"><p>The maximum amount of time a calling thread is willing to wait
+for a result of the request execution.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">long RequestTimeoutMillis { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The request timeout value in milliseconds or one of the special
+<a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html">PriorityTaskTimeout</a> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_IPriorityTask_RequestTimeoutMillis_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The request time is measured on the client side as the time
+elapsed from the moment a request is sent for execution to the
+corresponding server node(s) and includes:</p>
+<ul><li>
+the time it takes to deliver the request to the executing
+node(s);
+</li><li>
+the interval between the time the task is received and placed
+into a service queue until the execution starts;
+</li><li>
+the task execution time;
+</li><li>
+the time it takes to deliver a result back to the client.
+</li></ul>
+<p>
+The value of <a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html#Tangosol_Net_PriorityTaskTimeout_Default">Default</a> indicates
+a default timeout value configured for the corresponding service;
+the value of <a class="xref" href="Tangosol.Net.PriorityTaskTimeout.html#Tangosol_Net_PriorityTaskTimeout_None">None</a> indicates
+that the client thread is willing to wait indefinitely until the
+task execution completes or is canceled by the service due to a
+task execution timeout specified by the
+<a class="xref" href="Tangosol.Net.IPriorityTask.html#Tangosol_Net_IPriorityTask_ExecutionTimeoutMillis">ExecutionTimeoutMillis</a> value.</p>
+<p>
+If the specified amount of time elapsed and the client has not
+received any response from the server, a RequestTimeoutException
+will be thrown to the caller.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IPriorityTask_SchedulingPriority.md&amp;value=---%0Auid%3A%20Tangosol.Net.IPriorityTask.SchedulingPriority%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IPriorityTask.cs/#L113">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IPriorityTask_SchedulingPriority_" data-uid="Tangosol.Net.IPriorityTask.SchedulingPriority*"></a>
+  <h4 id="Tangosol_Net_IPriorityTask_SchedulingPriority" data-uid="Tangosol.Net.IPriorityTask.SchedulingPriority">SchedulingPriority</h4>
+  <div class="markdown level1 summary"><p>This task's scheduling priority.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">PriorityTaskScheduling SchedulingPriority { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html">PriorityTaskScheduling</a></td>
+        <td><p>One of the <a class="xref" href="Tangosol.Net.PriorityTaskScheduling.html">PriorityTaskScheduling</a> constants.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IPriorityTask_RunCanceled_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.IPriorityTask.RunCanceled(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IPriorityTask.cs/#L207">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IPriorityTask_RunCanceled_" data-uid="Tangosol.Net.IPriorityTask.RunCanceled*"></a>
+  <h4 id="Tangosol_Net_IPriorityTask_RunCanceled_System_Boolean_" data-uid="Tangosol.Net.IPriorityTask.RunCanceled(System.Boolean)">RunCanceled(Boolean)</h4>
+  <div class="markdown level1 summary"><p>This method will be called if and only if all attempts to
+interrupt this task were unsuccesful in stopping the execution or
+if the execution was canceled <strong>before</strong> it had a chance to
+run at all.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void RunCanceled(bool isAbandoned)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isAbandoned</span></td>
+        <td><p><strong>true</strong> if the task has timed-out, but all attempts to
+interrupt it were unsuccesful in stopping the execution;
+otherwise the task was never started.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_IPriorityTask_RunCanceled_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Since this method is usually called on a service thread,
+implementors must exercise extreme caution since any delay
+introduced by the implementation will cause a delay of the
+corresponding service.</p>
+</div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IPriorityTask.md&amp;value=---%0Auid%3A%20Tangosol.Net.IPriorityTask%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IPriorityTask.cs/#L105" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,616 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IOperationalContext
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IOperationalContext
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.IOperationalContext">
+  
+  
+  <h1 id="Tangosol_Net_IOperationalContext" data-uid="Tangosol.Net.IOperationalContext" class="text-break">Interface IOperationalContext
+  </h1>
+  <div class="markdown level0 summary"><p>IOperationalConetxt is an interface for providing Oracle Coherence
+operational configuration.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.html">Tangosol.Net</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_IOperationalContext_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IOperationalContext</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_AddressProviderMap.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.AddressProviderMap%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L77">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_AddressProviderMap_" data-uid="Tangosol.Net.IOperationalContext.AddressProviderMap*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_AddressProviderMap" data-uid="Tangosol.Net.IOperationalContext.AddressProviderMap">AddressProviderMap</h4>
+  <div class="markdown level1 summary"><p>A dictionary of address provider factories.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IDictionary AddressProviderMap { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A dictionary of <a class="xref" href="Tangosol.Net.IAddressProviderFactory.html">IAddressProviderFactory</a> objects keyed
+by name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_DiscoveryTimeToLive.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.DiscoveryTimeToLive%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L26">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_DiscoveryTimeToLive_" data-uid="Tangosol.Net.IOperationalContext.DiscoveryTimeToLive*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_DiscoveryTimeToLive" data-uid="Tangosol.Net.IOperationalContext.DiscoveryTimeToLive">DiscoveryTimeToLive</h4>
+  <div class="markdown level1 summary"><p>The TTL for multicast based discovery.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int DiscoveryTimeToLive { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_Edition.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.Edition%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L34">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_Edition_" data-uid="Tangosol.Net.IOperationalContext.Edition*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_Edition" data-uid="Tangosol.Net.IOperationalContext.Edition">Edition</h4>
+  <div class="markdown level1 summary"><p>The product edition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int Edition { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The product edition.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_EditionName.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.EditionName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L42">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_EditionName_" data-uid="Tangosol.Net.IOperationalContext.EditionName*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_EditionName" data-uid="Tangosol.Net.IOperationalContext.EditionName">EditionName</h4>
+  <div class="markdown level1 summary"><p>The product edition in a formatted string.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string EditionName { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The product edition in a formatted string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_FilterMap.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.FilterMap%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L59">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_FilterMap_" data-uid="Tangosol.Net.IOperationalContext.FilterMap*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_FilterMap" data-uid="Tangosol.Net.IOperationalContext.FilterMap">FilterMap</h4>
+  <div class="markdown level1 summary"><p>A dictionary of network filter factories.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IDictionary FilterMap { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A dictionary of <a class="xref" href="Tangosol.IO.IWrapperStreamFactory.html">IWrapperStreamFactory</a> objects keyed
+by filter name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_IdentityAsserter.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.IdentityAsserter%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L86">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_IdentityAsserter_" data-uid="Tangosol.Net.IOperationalContext.IdentityAsserter*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_IdentityAsserter" data-uid="Tangosol.Net.IOperationalContext.IdentityAsserter">IdentityAsserter</h4>
+  <div class="markdown level1 summary"><p>An <a class="xref" href="Tangosol.Net.Security.IIdentityAsserter.html">IIdentityAsserter</a> that can be used to establish a
+user's identity.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IIdentityAsserter IdentityAsserter { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Security.IIdentityAsserter.html">IIdentityAsserter</a></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Security.IIdentityAsserter.html">IIdentityAsserter</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_IdentityTransformer.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.IdentityTransformer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L95">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_IdentityTransformer_" data-uid="Tangosol.Net.IOperationalContext.IdentityTransformer*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_IdentityTransformer" data-uid="Tangosol.Net.IOperationalContext.IdentityTransformer">IdentityTransformer</h4>
+  <div class="markdown level1 summary"><p>An <a class="xref" href="Tangosol.Net.Security.IIdentityTransformer.html">IIdentityTransformer</a> that can be used to transform
+an IPrincipal into an identity assertion.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IIdentityTransformer IdentityTransformer { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Security.IIdentityTransformer.html">IIdentityTransformer</a></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Security.IIdentityTransformer.html">IIdentityTransformer</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_IsPrincipalScopingEnabled.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.IsPrincipalScopingEnabled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L103">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_IsPrincipalScopingEnabled_" data-uid="Tangosol.Net.IOperationalContext.IsPrincipalScopingEnabled*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_IsPrincipalScopingEnabled" data-uid="Tangosol.Net.IOperationalContext.IsPrincipalScopingEnabled">IsPrincipalScopingEnabled</h4>
+  <div class="markdown level1 summary"><p>Indicates if principal scoping is enabled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsPrincipalScopingEnabled { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if principal scoping is enabled.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_LocalMember.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.LocalMember%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L50">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_LocalMember_" data-uid="Tangosol.Net.IOperationalContext.LocalMember*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_LocalMember" data-uid="Tangosol.Net.IOperationalContext.LocalMember">LocalMember</h4>
+  <div class="markdown level1 summary"><p>An <a class="xref" href="Tangosol.Net.IMember.html">IMember</a> object representing this process.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IMember LocalMember { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.IMember.html">IMember</a></td>
+        <td><p>The local <a class="xref" href="Tangosol.Net.IMember.html">IMember</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_LogCharacterLimit.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.LogCharacterLimit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L121">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_LogCharacterLimit_" data-uid="Tangosol.Net.IOperationalContext.LogCharacterLimit*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_LogCharacterLimit" data-uid="Tangosol.Net.IOperationalContext.LogCharacterLimit">LogCharacterLimit</h4>
+  <div class="markdown level1 summary"><p>The maximum number of characters for a logger daemon to queue
+before truncating.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int LogCharacterLimit { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The maximum number of characters for a logger daemon to queue
+before truncating.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_LogDestination.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.LogDestination%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L137">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_LogDestination_" data-uid="Tangosol.Net.IOperationalContext.LogDestination*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_LogDestination" data-uid="Tangosol.Net.IOperationalContext.LogDestination">LogDestination</h4>
+  <div class="markdown level1 summary"><p>The destination for log messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string LogDestination { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The destination for log messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_LogLevel.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.LogLevel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L111">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_LogLevel_" data-uid="Tangosol.Net.IOperationalContext.LogLevel*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_LogLevel" data-uid="Tangosol.Net.IOperationalContext.LogLevel">LogLevel</h4>
+  <div class="markdown level1 summary"><p>The logging severity level.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int LogLevel { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The loggng severity level.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_LogMessageFormat.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.LogMessageFormat%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L129">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_LogMessageFormat_" data-uid="Tangosol.Net.IOperationalContext.LogMessageFormat*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_LogMessageFormat" data-uid="Tangosol.Net.IOperationalContext.LogMessageFormat">LogMessageFormat</h4>
+  <div class="markdown level1 summary"><p>The log message format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string LogMessageFormat { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The log message format.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_LogName.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.LogName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L145">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_LogName_" data-uid="Tangosol.Net.IOperationalContext.LogName*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_LogName" data-uid="Tangosol.Net.IOperationalContext.LogName">LogName</h4>
+  <div class="markdown level1 summary"><p>The name of the logger.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string LogName { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The name of the logger.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext_SerializerMap.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext.SerializerMap%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L68">View Source</a>
+  </span>
+  <a id="Tangosol_Net_IOperationalContext_SerializerMap_" data-uid="Tangosol.Net.IOperationalContext.SerializerMap*"></a>
+  <h4 id="Tangosol_Net_IOperationalContext_SerializerMap" data-uid="Tangosol.Net.IOperationalContext.SerializerMap">SerializerMap</h4>
+  <div class="markdown level1 summary"><p>A dictionary of serializer factories.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IDictionary SerializerMap { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A dictionary of <a class="xref" href="Tangosol.IO.ISerializerFactory.html">ISerializerFactory</a> objects keyed
+by serializer name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_IOperationalContext.md&amp;value=---%0Auid%3A%20Tangosol.Net.IOperationalContext%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/IOperationalContext.cs/#L20" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

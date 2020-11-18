@@ -1,0 +1,472 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class AbstractKeySetBasedCache
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class AbstractKeySetBasedCache
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache">
+  
+  
+  <h1 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache" class="text-break">Class AbstractKeySetBasedCache
+  </h1>
+  <div class="markdown level0 summary"><p><strong>AbstractKeySetBasedCache</strong> is an extension to the
+<a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html">AbstractKeyBasedCache</a> that has a full awareness of the
+set of keys upon which the cache is based.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html">AbstractKeyBasedCache</a></div>
+    <div class="level2"><span class="xref">AbstractKeySetBasedCache</span></div>
+      <div class="level3"><a class="xref" href="Tangosol.Net.Cache.ContinuousQueryCache.html">ContinuousQueryCache</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a></div>
+    <div><span class="xref">System.Collections.IDictionary</span></div>
+    <div><span class="xref">System.Collections.ICollection</span></div>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Entries">AbstractKeyBasedCache.Entries</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_IsSynchronized">AbstractKeyBasedCache.IsSynchronized</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_IsReadOnly">AbstractKeyBasedCache.IsReadOnly</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_IsFixedSize">AbstractKeyBasedCache.IsFixedSize</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Keys">AbstractKeyBasedCache.Keys</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_SyncRoot">AbstractKeyBasedCache.SyncRoot</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Values">AbstractKeyBasedCache.Values</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Item_System_Object_">AbstractKeyBasedCache.Item[Object]</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Get_System_Object_">AbstractKeyBasedCache.Get(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_RemoveBlind_System_Object_">AbstractKeyBasedCache.RemoveBlind(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Add_System_Object_System_Object_">AbstractKeyBasedCache.Add(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_CopyTo_System_Array_System_Int32_">AbstractKeyBasedCache.CopyTo(Array, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Clear">AbstractKeyBasedCache.Clear()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_GetAll_System_Collections_ICollection_">AbstractKeyBasedCache.GetAll(ICollection)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_GetEnumerator">AbstractKeyBasedCache.GetEnumerator()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_System_Collections_IDictionary_GetEnumerator">AbstractKeyBasedCache.IDictionary.GetEnumerator()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_System_Collections_IEnumerable_GetEnumerator">AbstractKeyBasedCache.IEnumerable.GetEnumerator()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Insert_System_Object_System_Object_">AbstractKeyBasedCache.Insert(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Insert_System_Object_System_Object_System_Int64_">AbstractKeyBasedCache.Insert(Object, Object, Int64)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_InsertAll_System_Collections_IDictionary_">AbstractKeyBasedCache.InsertAll(IDictionary)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Remove_System_Object_">AbstractKeyBasedCache.Remove(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Equals_System_Object_">AbstractKeyBasedCache.Equals(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_GetHashCode">AbstractKeyBasedCache.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_ToString">AbstractKeyBasedCache.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_InstantiateKeysCollection">AbstractKeyBasedCache.InstantiateKeysCollection()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_InstantiateEntriesCollection">AbstractKeyBasedCache.InstantiateEntriesCollection()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_InstantiateValuesCollection">AbstractKeyBasedCache.InstantiateValuesCollection()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.Support.html">Tangosol.Net.Cache.Support</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class AbstractKeySetBasedCache : AbstractKeyBasedCache, ICache, IDictionary, ICollection, IEnumerable</code></pre>
+  </div>
+  <h5 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+As a result, it is possible to optimize the implementation of a
+number of methods that benefit from a knowledge of the entire set of
+keys.</p>
+<p>
+Read-only implementations must implement
+<a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetInternalKeysCollection">GetInternalKeysCollection()</a> and
+<a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Get_System_Object_">Get(Object)</a>.
+Read/write implementations must additionally implement
+<a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Insert_System_Object_System_Object_System_Int64_">Insert(Object, Object, Int64)</a> and
+<a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Remove_System_Object_">Remove(Object)</a>.
+If the implementation has any cost of returning an &quot;old value&quot;, then
+the <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_InsertAll_System_Collections_IDictionary_">InsertAll(IDictionary)</a> and
+<a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_RemoveBlind_System_Object_">RemoveBlind(Object)</a>
+methods should also be implemented. The only other obvious method for
+optimization is <a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Clear">Clear()</a>, if the
+implementation is able to do it in bulk.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_Count.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/AbstractKeySetBasedCache.cs/#L66">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_Count_" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.Count*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_Count" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.Count">Count</h4>
+  <div class="markdown level1 summary"><p>Returns the number of key-value mappings in this cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int Count { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of key-value mappings in this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Count">AbstractKeyBasedCache.Count</a></div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_Contains_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.Contains(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/AbstractKeySetBasedCache.cs/#L55">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_Contains_" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.Contains*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_Contains_System_Object_" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.Contains(System.Object)">Contains(Object)</h4>
+  <div class="markdown level1 summary"><p>Returns <strong>true</strong> if this cache contains a mapping for the
+specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Contains(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key whose mapping is searched for.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this cache contains a mapping for the specified
+key, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_Contains_System_Object_">AbstractKeyBasedCache.Contains(Object)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetInternalKeysCollection.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.GetInternalKeysCollection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/AbstractKeySetBasedCache.cs/#L101">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetInternalKeysCollection_" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.GetInternalKeysCollection*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetInternalKeysCollection" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.GetInternalKeysCollection">GetInternalKeysCollection()</h4>
+  <div class="markdown level1 summary"><p>Obtain a collection of keys that are represented by this cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected abstract ICollection GetInternalKeysCollection()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>An internal collection of keys that are contained by this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetInternalKeysCollection_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The AbstractKeySetBasedCache only utilizes the internal keys
+collection as a read-only resource.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetKeysEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.GetKeysEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/AbstractKeySetBasedCache.cs/#L82">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetKeysEnumerator_" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.GetKeysEnumerator*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetKeysEnumerator" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.GetKeysEnumerator">GetKeysEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Create an <strong>IEnumerator</strong> over the keys in this cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override IEnumerator GetKeysEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td><p>A new instance of an enumerator over the keys in this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Net.Cache.Support.AbstractKeyBasedCache.html#Tangosol_Net_Cache_Support_AbstractKeyBasedCache_GetKeysEnumerator">AbstractKeyBasedCache.GetKeysEnumerator()</a></div>
+  <h5 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_GetKeysEnumerator_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Note that this implementation delegates back to the keys
+collection, while the super type delegates from the keys
+collection to this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_InstantiateKeyEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.InstantiateKeyEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/AbstractKeySetBasedCache.cs/#L111">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_InstantiateKeyEnumerator_" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.InstantiateKeyEnumerator*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_AbstractKeySetBasedCache_InstantiateKeyEnumerator" data-uid="Tangosol.Net.Cache.Support.AbstractKeySetBasedCache.InstantiateKeyEnumerator">InstantiateKeyEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Factory pattern: Create an <strong>IEnumerator</strong> over the keys in
+the cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IEnumerator InstantiateKeyEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td><p>A new instance of <strong>IEnumerator</strong> that iterates over the keys
+in the cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IDictionary</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.ICollection</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_AbstractKeySetBasedCache.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.AbstractKeySetBasedCache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/AbstractKeySetBasedCache.cs/#L40" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

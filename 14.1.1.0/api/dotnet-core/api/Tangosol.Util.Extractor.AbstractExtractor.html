@@ -1,0 +1,677 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class AbstractExtractor
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class AbstractExtractor
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Extractor.AbstractExtractor">
+  
+  
+  <h1 id="Tangosol_Util_Extractor_AbstractExtractor" data-uid="Tangosol.Util.Extractor.AbstractExtractor" class="text-break">Class AbstractExtractor
+  </h1>
+  <div class="markdown level0 summary"><p>Abstract base for <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a> implementations.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">AbstractExtractor</span></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Extractor.AbstractCompositeExtractor.html">AbstractCompositeExtractor</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Extractor.ConditionalExtractor.html">ConditionalExtractor</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Extractor.EntryExtractor.html">EntryExtractor</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Extractor.IdentityExtractor.html">IdentityExtractor</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Extractor.KeyExtractor.html">KeyExtractor</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Extractor.PofExtractor.html">PofExtractor</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.Util.Extractor.ReflectionExtractor.html">ReflectionExtractor</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></div>
+    <div><a class="xref" href="Tangosol.Util.Comparator.IQueryCacheComparer.html">IQueryCacheComparer</a></div>
+    <div><span class="xref">System.Collections.IComparer</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Extractor.html">Tangosol.Util.Extractor</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Extractor_AbstractExtractor_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class AbstractExtractor : IValueExtractor, IQueryCacheComparer, IComparer</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Extractor_AbstractExtractor_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>It provides common functionality that allows any extending extractor
+to be used as a value Comparer.</p>
+<p>
+Starting with Coherence 3.5, when used to extract information that is
+coming from a <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>, subclasses have the additional
+ability to operate against the <a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a> instead of
+just the value. In other words, like the <a class="xref" href="Tangosol.Util.Extractor.EntryExtractor.html">EntryExtractor</a>
+class, this allows an extractor implementation to extract a desired
+value using all available information on the corresponding
+<strong>ICacheEntry</strong> object and is intended to be used in advanced
+custom scenarios, when application code needs to look at both key and
+value at the same time or can make some very specific assumptions
+regarding to the implementation details of the underlying Entry
+object. To maintain full backwards compatibility, the default behavior
+remains to extract from the Value property of the <strong>ICacheEntry</strong>.
+</p>
+<p>
+<strong>Note:</strong> Subclasses are responsible for initialization and POF and/or
+Lite serialization of the <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_m_target">m_target</a> field.
+</p>
+</div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_KEY.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.KEY%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L199">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_KEY" data-uid="Tangosol.Util.Extractor.AbstractExtractor.KEY">KEY</h4>
+  <div class="markdown level1 summary"><p>Indicates that the <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_">ExtractFromEntry(ICacheEntry)</a> operation
+should use the Entry's value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly int KEY</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_m_target.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.m_target%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L212">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_m_target" data-uid="Tangosol.Util.Extractor.AbstractExtractor.m_target">m_target</h4>
+  <div class="markdown level1 summary"><p>Specifies which part of the entry should be used by the
+<a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_">ExtractFromEntry(ICacheEntry)</a> operation. Legal values are
+<a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_VALUE">VALUE</a> (default) or <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_KEY">KEY</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int m_target</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Extractor_AbstractExtractor_m_target_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Subclasses are responsible for initialization and POF and/or
+Lite serialization of this field.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_VALUE.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.VALUE%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L192">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_VALUE" data-uid="Tangosol.Util.Extractor.AbstractExtractor.VALUE">VALUE</h4>
+  <div class="markdown level1 summary"><p>Indicates that the <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_">ExtractFromEntry(ICacheEntry)</a> operation
+should use the Entry's value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly int VALUE</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_Target.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.Target%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L51">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_AbstractExtractor_Target_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.Target*"></a>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_Target" data-uid="Tangosol.Util.Extractor.AbstractExtractor.Target">Target</h4>
+  <div class="markdown level1 summary"><p>The target of the extractor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Target { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_Compare_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.Compare(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L113">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_AbstractExtractor_Compare_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.Compare*"></a>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_Compare_System_Object_System_Object_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.Compare(System.Object,System.Object)">Compare(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Compares its two arguments for order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Compare(object o1, object o2)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o1</span></td>
+        <td><p>The first object to be compared.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o2</span></td>
+        <td><p>The second object to be compared.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>A negative integer, zero, or a positive integer as the first
+argument is less than, equal to, or greater than the second.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Extractor_AbstractExtractor_Compare_System_Object_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Returns a negative integer, zero, or a positive integer as the
+first argument is less than, equal to, or greater than the
+second. <code>null</code> values are evaluated as &quot;less then&quot; any
+non-null value.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_CompareEntries_Tangosol_Net_Cache_IQueryCacheEntry_Tangosol_Net_Cache_IQueryCacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.CompareEntries(Tangosol.Net.Cache.IQueryCacheEntry%2CTangosol.Net.Cache.IQueryCacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L140">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_AbstractExtractor_CompareEntries_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.CompareEntries*"></a>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_CompareEntries_Tangosol_Net_Cache_IQueryCacheEntry_Tangosol_Net_Cache_IQueryCacheEntry_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.CompareEntries(Tangosol.Net.Cache.IQueryCacheEntry,Tangosol.Net.Cache.IQueryCacheEntry)">CompareEntries(IQueryCacheEntry, IQueryCacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Compare two entries.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int CompareEntries(IQueryCacheEntry entry1, IQueryCacheEntry entry2)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IQueryCacheEntry.html">IQueryCacheEntry</a></td>
+        <td><span class="parametername">entry1</span></td>
+        <td><p>The first entry to compare values from; read-only.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IQueryCacheEntry.html">IQueryCacheEntry</a></td>
+        <td><span class="parametername">entry2</span></td>
+        <td><p>The second entry to compare values from; read-only.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>A negative integer, zero, or a positive integer as the first
+entry denotes a value that is is less than, equal to, or greater
+than the value denoted by the second entry</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If the arguments' types prevent them from being compared by this
+<strong>IComparer</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the extractor cannot handle the passed objects for any other
+reason; an implementor should include a descriptive message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_Extract_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.Extract(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L85">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_AbstractExtractor_Extract_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.Extract*"></a>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_Extract_System_Object_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.Extract(System.Object)">Extract(Object)</h4>
+  <div class="markdown level1 summary"><p>Extract the value from the passed object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Extract(object obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">obj</span></td>
+        <td><p>An object to retrieve the value from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The extracted value as an object; <code>null</code> is an acceptable
+value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Extractor_AbstractExtractor_Extract_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The returned value may be <code>null</code>.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If this IValueExtractor is incompatible with the passed object to
+extract a value from and the implementation <strong>requires</strong> the
+passed object to be of a certain type.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If this AbstractExtractor cannot handle the passed object for any
+other reason; an implementor should include a descriptive
+message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Extractor_AbstractExtractor_Extract_System_Object__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.Util.IValueExtractor.html#Tangosol_Util_IValueExtractor_Extract_System_Object_">Extract</a>(<span class="xref">System.Object</span>)</div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.ExtractFromEntry(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L162">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.ExtractFromEntry*"></a>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.ExtractFromEntry(Tangosol.Net.Cache.ICacheEntry)">ExtractFromEntry(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Extract the value from the passed Entry object. The returned
+value should follow the conventions outlined in the
+<a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_Extract_System_Object_">Extract(Object)</a> method.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object ExtractFromEntry(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>An Entry object to extract a desired value from</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The extracted value</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>By overriding this method, an extractor implementation is able
+to extract a desired value using all available information on the
+corresponding ICacheEntry object and is intended to be used in
+advanced custom scenarios, when application code needs to look at
+both key and value at the same time or can make some very
+specific assumptions regarding to the implementation details of
+the underlying Entry object.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor_ExtractOriginalFromEntry_Tangosol_Net_Cache_CacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor.ExtractOriginalFromEntry(Tangosol.Net.Cache.CacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L180">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Extractor_AbstractExtractor_ExtractOriginalFromEntry_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.ExtractOriginalFromEntry*"></a>
+  <h4 id="Tangosol_Util_Extractor_AbstractExtractor_ExtractOriginalFromEntry_Tangosol_Net_Cache_CacheEntry_" data-uid="Tangosol.Util.Extractor.AbstractExtractor.ExtractOriginalFromEntry(Tangosol.Net.Cache.CacheEntry)">ExtractOriginalFromEntry(CacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Extract the value from the &quot;original value&quot; of the passed
+CacheEntry object or the key (if targeted). This method's conventions are exactly the same
+as the <a class="xref" href="Tangosol.Util.Extractor.AbstractExtractor.html#Tangosol_Util_Extractor_AbstractExtractor_ExtractFromEntry_Tangosol_Net_Cache_ICacheEntry_">ExtractFromEntry(ICacheEntry)</a> method.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object ExtractOriginalFromEntry(CacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEntry.html">CacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>A CacheEntry object whose original value should be used to
+extract the desired value from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The extracted value or null if the original value is not present.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.Comparator.IQueryCacheComparer.html">IQueryCacheComparer</a>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IComparer</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Extractor_AbstractExtractor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Extractor.AbstractExtractor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Extractor/AbstractExtractor.cs/#L42" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

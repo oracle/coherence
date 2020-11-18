@@ -1,0 +1,560 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class AbstractEvictionPolicy
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class AbstractEvictionPolicy
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy">
+  
+  
+  <h1 id="Tangosol_Net_Cache_AbstractEvictionPolicy" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy" class="text-break">Class AbstractEvictionPolicy
+  </h1>
+  <div class="markdown level0 summary"><p>An abstract base class for custom cache eviction policies.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">AbstractEvictionPolicy</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.IEvictionPolicy.html">IEvictionPolicy</a></div>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_AbstractEvictionPolicy_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class AbstractEvictionPolicy : IEvictionPolicy, ICacheListener</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_Cache.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.Cache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L33">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_Cache_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.Cache*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_Cache" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.Cache">Cache</h4>
+  <div class="markdown level1 summary"><p>Return the <a class="xref" href="Tangosol.Net.Cache.IConfigurableCache.html">IConfigurableCache</a> that uses this
+eviction policy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IConfigurableCache Cache { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IConfigurableCache.html">IConfigurableCache</a></td>
+        <td><p>The <strong>IConfigurableCache</strong> or <code>null</code> if a cache event has
+not yet been processed by this eviction policy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_AbstractEvictionPolicy_Cache_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The <strong>IConfigurableCache</strong> is set the first time a cache event
+is processed by the eviction policy.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_Name.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L67">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_Name_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.Name*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_Name" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.Name">Name</h4>
+  <div class="markdown level1 summary"><p>Obtain the name of the eviction policy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string Name { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The name of the eviction policy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_EnsureCache_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.EnsureCache(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L140">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_EnsureCache_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EnsureCache*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_EnsureCache_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EnsureCache(Tangosol.Net.Cache.CacheEventArgs)">EnsureCache(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Return the <a class="xref" href="Tangosol.Net.Cache.IConfigurableCache.html">IConfigurableCache</a> that uses this eviction
+policy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IConfigurableCache EnsureCache(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> raised by the <strong>LocalCache</strong>
+that uses this eviction policy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IConfigurableCache.html">IConfigurableCache</a></td>
+        <td><p>The <strong>LocalCache</strong> that uses this eviction policy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_AbstractEvictionPolicy_EnsureCache_Tangosol_Net_Cache_CacheEventArgs__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>If the <strong>LocalCache</strong> property has not been intialized, it is
+set to the <strong>LocalCache</strong> that raised the given event.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_EntryDeleted_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.EntryDeleted(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L107">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryDeleted_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryDeleted*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryDeleted_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryDeleted(Tangosol.Net.Cache.CacheEventArgs)">EntryDeleted(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when a cache entry has been deleted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void EntryDeleted(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> carrying the remove
+information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_EntryInserted_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.EntryInserted(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L83">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryInserted_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryInserted*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryInserted_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryInserted(Tangosol.Net.Cache.CacheEventArgs)">EntryInserted(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when a cache entry has been inserted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void EntryInserted(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> carrying the insert
+information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_EntryTouched_Tangosol_Net_Cache_IConfigurableCacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.EntryTouched(Tangosol.Net.Cache.IConfigurableCacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L49">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryTouched_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryTouched*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryTouched_Tangosol_Net_Cache_IConfigurableCacheEntry_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryTouched(Tangosol.Net.Cache.IConfigurableCacheEntry)">EntryTouched(IConfigurableCacheEntry)</h4>
+  <div class="markdown level1 summary"><p>This method is called by the cache to indicate that an entry
+has been touched.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract void EntryTouched(IConfigurableCacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IConfigurableCacheEntry.html">IConfigurableCacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.IConfigurableCacheEntry.html">IConfigurableCacheEntry</a> that has been touched.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_EntryUpdated_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.EntryUpdated(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L95">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryUpdated_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryUpdated*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryUpdated_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryUpdated(Tangosol.Net.Cache.CacheEventArgs)">EntryUpdated(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Invoked when a cache entry has been updated.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void EntryUpdated(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> carrying the update
+information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_EntryUpdated_Tangosol_Net_Cache_IConfigurableCacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.EntryUpdated(Tangosol.Net.Cache.IConfigurableCacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L123">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryUpdated_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryUpdated*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_EntryUpdated_Tangosol_Net_Cache_IConfigurableCacheEntry_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.EntryUpdated(Tangosol.Net.Cache.IConfigurableCacheEntry)">EntryUpdated(IConfigurableCacheEntry)</h4>
+  <div class="markdown level1 summary"><p>This method is called to indicate that an entry has been either
+inserted or updated.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract void EntryUpdated(IConfigurableCacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IConfigurableCacheEntry.html">IConfigurableCacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The cache entry that has been updated.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_GetEntry_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.GetEntry(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L168">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_GetEntry_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.GetEntry*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_GetEntry_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.GetEntry(Tangosol.Net.Cache.CacheEventArgs)">GetEntry(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Return the cache entry associated with the given cache event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IConfigurableCacheEntry GetEntry(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>A cache event raised by the <a class="xref" href="Tangosol.Net.Cache.IConfigurableCache.html">IConfigurableCache</a>
+that uses this eviction policy.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IConfigurableCacheEntry.html">IConfigurableCacheEntry</a></td>
+        <td><p>The cache entry associated with the given event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy_RequestEviction_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy.RequestEviction(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L59">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_AbstractEvictionPolicy_RequestEviction_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.RequestEviction*"></a>
+  <h4 id="Tangosol_Net_Cache_AbstractEvictionPolicy_RequestEviction_System_Int64_" data-uid="Tangosol.Net.Cache.AbstractEvictionPolicy.RequestEviction(System.Int64)">RequestEviction(Int64)</h4>
+  <div class="markdown level1 summary"><p>This method is called by the cache when the cache requires
+the eviction policy to evict entries.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract void RequestEviction(long maximum)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">maximum</span></td>
+        <td><p>The maximum number of units that should remain in the cache
+when the eviction is complete.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.IEvictionPolicy.html">IEvictionPolicy</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_AbstractEvictionPolicy.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.AbstractEvictionPolicy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/AbstractEvictionPolicy.cs/#L17" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

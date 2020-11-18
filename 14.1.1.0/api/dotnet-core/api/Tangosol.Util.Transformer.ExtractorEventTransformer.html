@@ -1,0 +1,727 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ExtractorEventTransformer
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ExtractorEventTransformer
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer">
+  
+  
+  <h1 id="Tangosol_Util_Transformer_ExtractorEventTransformer" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer" class="text-break">Class ExtractorEventTransformer
+  </h1>
+  <div class="markdown level0 summary"><p><strong>ExtractorEventTransformer</strong> is a special purpose
+<a class="xref" href="Tangosol.Net.Cache.ICacheEventTransformer.html">ICacheEventTransformer</a> implementation that transforms
+emitted events, extracting one or more properties from either the
+&quot;OldValue&quot; or the &quot;NewValue&quot;.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">ExtractorEventTransformer</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICacheEventTransformer.html">ICacheEventTransformer</a></div>
+    <div><a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Transformer.html">Tangosol.Util.Transformer</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Transformer_ExtractorEventTransformer_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class ExtractorEventTransformer : ICacheEventTransformer, IPortableObject</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Transformer_ExtractorEventTransformer_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>This transformation will generally result in the change of the
+values' data type.</p>
+<p>
+Example: the following code will register a listener to receive
+events only if the value of the &quot;AccountBalance&quot; property changes.
+The transformed event&apos;s &quot;NewValue&quot; will be a <strong>IList</strong> containing
+the &quot;LastTransactionTime&quot; and &quot;AccountBalance&quot; properties. The
+&quot;OldValue&quot; will always be <code>null</code>.
+<pre><code>IFilter filter = new ValueChangeEventFilter(&quot;AccountBalance&quot;);
+IValueExtractor extractor = new MultiExtractor(&quot;LastTransactionTime,AccountBalance&quot;);
+ICacheEventTransformer transformer = new ExtractorEventTransformer(null, extractor);
+<p>cache.AddCacheListener(listener,
+new CacheEventTransformerFilter(filter,
+transformer),
+false);</code></pre></p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L80">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.#ctor*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.#ctor">ExtractorEventTransformer()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ExtractorEventTransformer()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.%23ctor(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L116">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.#ctor*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_System_String_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.#ctor(System.String)">ExtractorEventTransformer(String)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>ExtractorEventTransformer</strong> that transforms
+<strong>CacheEventArgs</strong>'s values based on the specified method name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ExtractorEventTransformer(string methodName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">methodName</span></td>
+        <td><p>The name of the method to invoke via reflection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The name could be a comma-delimited sequence of method names
+which will result in a <a class="xref" href="Tangosol.Util.Extractor.MultiExtractor.html">MultiExtractor</a> that is based
+on a corresponding array of <strong>IValueExtractor</strong> objects;
+individual array elements will be either
+<a class="xref" href="Tangosol.Util.Extractor.ReflectionExtractor.html">ReflectionExtractor</a> or
+<a class="xref" href="Tangosol.Util.Extractor.ChainedExtractor.html">ChainedExtractor</a> objects.</p>
+<p>
+Note: The specified extractor will be applied to both old and new values.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_Tangosol_Util_IValueExtractor_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.%23ctor(Tangosol.Util.IValueExtractor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L95">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.#ctor*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_Tangosol_Util_IValueExtractor_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.#ctor(Tangosol.Util.IValueExtractor)">ExtractorEventTransformer(IValueExtractor)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>ExtractorEventTransformer</strong> that transforms
+<strong>CacheEventArgs</strong> values based on the specified extractor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ExtractorEventTransformer(IValueExtractor extractor)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p><strong>IValueExtractor</strong> to extract <strong>CacheEventArgs</strong> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_Tangosol_Util_IValueExtractor__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+Note: The specified extractor will be applied to both old and new
+values.
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_Tangosol_Util_IValueExtractor_Tangosol_Util_IValueExtractor_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.%23ctor(Tangosol.Util.IValueExtractor%2CTangosol.Util.IValueExtractor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L135">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.#ctor*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_Tangosol_Util_IValueExtractor_Tangosol_Util_IValueExtractor_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.#ctor(Tangosol.Util.IValueExtractor,Tangosol.Util.IValueExtractor)">ExtractorEventTransformer(IValueExtractor, IValueExtractor)</h4>
+  <div class="markdown level1 summary"><p>Construct a <strong>ExtractorEventTransformer</strong> that transforms
+<strong>CacheEventArgs</strong> values based on the specified extractors.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ExtractorEventTransformer(IValueExtractor extractorOld, IValueExtractor extractorNew)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractorOld</span></td>
+        <td><p>Extractor to extract the OldValue property(s).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractorNew</span></td>
+        <td><p>Extractor to extract the NewValue property(s).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Transformer_ExtractorEventTransformer__ctor_Tangosol_Util_IValueExtractor_Tangosol_Util_IValueExtractor__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Passing <code>null</code> indicates that the corresponding values
+should be skipped completely.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_NewValueExtractor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.NewValueExtractor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L68">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_NewValueExtractor_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.NewValueExtractor*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_NewValueExtractor" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.NewValueExtractor">NewValueExtractor</h4>
+  <div class="markdown level1 summary"><p>Return a <strong>IValueExtractor</strong> used to transfrom the event's
+NewValue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IValueExtractor NewValueExtractor { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><p>An extractor from the NewValue.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_OldValueExtractor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.OldValueExtractor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L56">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_OldValueExtractor_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.OldValueExtractor*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_OldValueExtractor" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.OldValueExtractor">OldValueExtractor</h4>
+  <div class="markdown level1 summary"><p>Return a <strong>IValueExtractor</strong> used to transfrom the event's
+OldValue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IValueExtractor OldValueExtractor { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><p>An extractor from the OldValue.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L253">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_Equals_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.Equals*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_Equals_System_Object_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Compare the <strong>ExtractorEventTransformer</strong> with another object
+to determine equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object o)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">o</span></td>
+        <td><p>The object to compare with the current object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this <strong>ExtractorEventTransformer</strong> and the
+passed object are equivalent.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.Equals(System.Object)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_Equals_Tangosol_Util_Transformer_ExtractorEventTransformer_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.Equals(Tangosol.Util.Transformer.ExtractorEventTransformer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L234">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_Equals_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.Equals*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_Equals_Tangosol_Util_Transformer_ExtractorEventTransformer_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.Equals(Tangosol.Util.Transformer.ExtractorEventTransformer)">Equals(ExtractorEventTransformer)</h4>
+  <div class="markdown level1 summary"><p>Compare the <strong>ExtractorEventTransformer</strong> with another object
+to determine equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Equals(ExtractorEventTransformer that)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Transformer.ExtractorEventTransformer.html">ExtractorEventTransformer</a></td>
+        <td><span class="parametername">that</span></td>
+        <td><p>The object to compare with the current object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if this <strong>ExtractorEventTransformer</strong> and the
+passed object are equivalent.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L270">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_GetHashCode_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_GetHashCode" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Determine a hash value for the <strong>ExtractorEventTransformer</strong>
+object according to the general <strong>Object.GetHashCode</strong>
+contract.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An integer hash value for this object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.GetHashCode()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_ReadExternal_Tangosol_IO_Pof_IPofReader_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.ReadExternal(Tangosol.IO.Pof.IPofReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L183">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_ReadExternal_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.ReadExternal*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_ReadExternal_Tangosol_IO_Pof_IPofReader_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.ReadExternal(Tangosol.IO.Pof.IPofReader)">ReadExternal(IPofReader)</h4>
+  <div class="markdown level1 summary"><p>Restore the contents of a user type instance by reading its state
+using the specified <a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void ReadExternal(IPofReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofReader.html">IPofReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>IPofReader</strong> from which to read the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L285">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_ToString_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.ToString*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_ToString" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Provide a human-readable representation of this object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A String whose contents represent the value of this object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_Transform_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.Transform(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L156">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_Transform_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.Transform*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_Transform_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.Transform(Tangosol.Net.Cache.CacheEventArgs)">Transform(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Transform the specified <strong>CacheEventArgs</strong> using the
+corresponding extractors.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual CacheEventArgs Transform(CacheEventArgs eventArgs)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">eventArgs</span></td>
+        <td><p><strong>CacheEventArgs</strong> object to transform.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><p>A modified <strong>CacheEventArgs</strong> object that contains extracted
+values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer_WriteExternal_Tangosol_IO_Pof_IPofWriter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer.WriteExternal(Tangosol.IO.Pof.IPofWriter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L201">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Transformer_ExtractorEventTransformer_WriteExternal_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.WriteExternal*"></a>
+  <h4 id="Tangosol_Util_Transformer_ExtractorEventTransformer_WriteExternal_Tangosol_IO_Pof_IPofWriter_" data-uid="Tangosol.Util.Transformer.ExtractorEventTransformer.WriteExternal(Tangosol.IO.Pof.IPofWriter)">WriteExternal(IPofWriter)</h4>
+  <div class="markdown level1 summary"><p>Save the contents of a POF user type instance by writing its
+state using the specified <a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void WriteExternal(IPofWriter writer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofWriter.html">IPofWriter</a></td>
+        <td><span class="parametername">writer</span></td>
+        <td><p>The <strong>IPofWriter</strong> to which to write the object's state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheEventTransformer.html">ICacheEventTransformer</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.IPortableObject.html">IPortableObject</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Transformer_ExtractorEventTransformer.md&amp;value=---%0Auid%3A%20Tangosol.Util.Transformer.ExtractorEventTransformer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Transformer/ExtractorEventTransformer.cs/#L45" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

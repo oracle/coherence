@@ -1,0 +1,1518 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SortedDictionary
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SortedDictionary
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.Collections.SortedDictionary">
+  
+  
+  <h1 id="Tangosol_Util_Collections_SortedDictionary" data-uid="Tangosol.Util.Collections.SortedDictionary" class="text-break">Class SortedDictionary
+  </h1>
+  <div class="markdown level0 summary"><p>SortedList-based IDictionary implementation that allows <code>null</code>
+keys.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">SortedDictionary</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+    <div><span class="xref">ISerializable</span></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.Collections.html">Tangosol.Util.Collections</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_Collections_SortedDictionary_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SortedDictionary : SortedList, IEnumerable, ISerializable</code></pre>
+  </div>
+  <h5 id="Tangosol_Util_Collections_SortedDictionary_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>Note that <code>null</code> keys support intentionally breaks
+<span class="xref">System.Collections.IDictionary</span> contract, which states that an
+<code>ArgumentNullException</code> should be raised if the key is
+<code>null</code>.</p>
+<p>
+However, this is necessary in order to match the behavior in Java 
+and C++, where some Map implementations support <code>null</code> keys.
+<p>
+Note: This implementation is not thread safe. If you need it to be,
+you should wrap it with the <a class="xref" href="Tangosol.Util.Collections.SynchronizedDictionary.html">SynchronizedDictionary</a>.
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L57">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary__ctor" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor">SortedDictionary()</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+class that is empty, has the default initial capacity, and is
+sorted according to the <span class="xref">System.IComparable</span>
+interface implemented by each key added to the
+<a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SortedDictionary()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary__ctor_SerializationInfo_StreamingContext_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.%23ctor(SerializationInfo%2CStreamingContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L204">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary__ctor_SerializationInfo_StreamingContext_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor(SerializationInfo,StreamingContext)">SortedDictionary(SerializationInfo, StreamingContext)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+class that is serializable using the specified
+<span class="xref">System.Runtime.Serialization.SerializationInfo</span>
+and <span class="xref">System.Runtime.Serialization.StreamingContext</span>
+objects.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected SortedDictionary(SerializationInfo info, StreamingContext context)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">SerializationInfo</span></td>
+        <td><span class="parametername">info</span></td>
+        <td><p>A <span class="xref">System.Runtime.Serialization.SerializationInfo</span>
+object containing the information required to serialize the
+<a class="xref" href="Tangosol.Util.Collections.HashDictionary.html">HashDictionary</a> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">StreamingContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td><p>A <span class="xref">System.Runtime.Serialization.StreamingContext</span>
+object containing the source and destination of the serialized
+stream associated with the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">info</code> is null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary__ctor_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.%23ctor(System.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L96">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary__ctor_System_Collections_IComparer_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor(System.Collections.IComparer)">SortedDictionary(IComparer)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+class that is empty, has the default initial capacity, and is
+sorted according to the specified
+<span class="xref">System.Collections.IComparer</span> interface.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SortedDictionary(IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <span class="xref">System.Collections.IComparer</span> implementation
+to use when comparing keys.-or- null to use the
+<span class="xref">System.IComparable</span> implementation of each key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary__ctor_System_Collections_IComparer_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.%23ctor(System.Collections.IComparer%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L125">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary__ctor_System_Collections_IComparer_System_Int32_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor(System.Collections.IComparer,System.Int32)">SortedDictionary(IComparer, Int32)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+class that is empty, has the specified initial capacity, and is
+sorted according to the specified
+<span class="xref">System.Collections.IComparer</span> interface.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SortedDictionary(IComparer comparer, int capacity)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <span class="xref">System.Collections.IComparer</span> implementation
+to use when comparing keys.-or- null to use the
+<span class="xref">System.IComparable</span> implementation of each key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">capacity</span></td>
+        <td><p>The initial number of elements this <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+object can contain.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">capacity</code> is less than zero.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.OutOfMemoryException</span></td>
+        <td><p>There is not enough available memory to create a
+<a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> object with the specified
+<code data-dev-comment-type="paramref" class="paramref">capacity</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary__ctor_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.%23ctor(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L149">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary__ctor_System_Collections_IDictionary_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor(System.Collections.IDictionary)">SortedDictionary(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+class that contains elements copied from the specified dictionary,
+has the same initial capacity as the number of elements copied,
+and is sorted according to the <span class="xref">System.IComparable</span>
+interface implemented by each key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SortedDictionary(IDictionary d)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">d</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> implementation
+to copy to a new <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">d</code> is null.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>One or more elements in <code data-dev-comment-type="paramref" class="paramref">d</code> do not implement the
+<span class="xref">System.IComparable</span> interface.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary__ctor_System_Collections_IDictionary_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.%23ctor(System.Collections.IDictionary%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L178">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary__ctor_System_Collections_IDictionary_System_Collections_IComparer_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor(System.Collections.IDictionary,System.Collections.IComparer)">SortedDictionary(IDictionary, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+class that contains elements copied from the specified dictionary,
+has the same initial capacity as the number of elements copied,
+and is sorted according to the specified
+<span class="xref">System.Collections.IComparer</span> interface.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SortedDictionary(IDictionary d, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">d</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> implementation
+to copy to a new <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The <span class="xref">System.Collections.IComparer</span> implementation
+to use when comparing keys.-or- null to use the
+<span class="xref">System.IComparable</span> implementation of each key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">d</code> is null.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">comparer</code> is null, and one or more elements in
+<code data-dev-comment-type="paramref" class="paramref">d</code> do not implement the
+<span class="xref">System.IComparable</span> interface.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary__ctor_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.%23ctor(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L80">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary__ctor_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary__ctor_System_Int32_" data-uid="Tangosol.Util.Collections.SortedDictionary.#ctor(System.Int32)">SortedDictionary(Int32)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+class that is empty, has the specified initial capacity, and is
+sorted according to the <span class="xref">System.IComparable</span>
+interface implemented by each key added to the
+<a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SortedDictionary(int initialCapacity)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">initialCapacity</span></td>
+        <td><p>The initial number of elements this <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>
+object can contain.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">initialCapacity</code> is less than zero.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.OutOfMemoryException</span></td>
+        <td><p>There is not enough available memory to create a
+<a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> object with the specified
+<code data-dev-comment-type="paramref" class="paramref">initialCapacity</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Comparer.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Comparer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L41">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Comparer_" data-uid="Tangosol.Util.Collections.SortedDictionary.Comparer*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Comparer" data-uid="Tangosol.Util.Collections.SortedDictionary.Comparer">Comparer</h4>
+  <div class="markdown level1 summary"><p>Return the <span class="xref">System.Collections.IComparer</span> associated with this
+SortedDictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IComparer Comparer { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Count.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L522">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Count_" data-uid="Tangosol.Util.Collections.SortedDictionary.Count*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Count" data-uid="Tangosol.Util.Collections.SortedDictionary.Count">Count</h4>
+  <div class="markdown level1 summary"><p>Gets the number of elements contained in the
+<span class="xref">System.Collections.ICollection</span>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int Count { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of elements contained in the
+<span class="xref">System.Collections.ICollection</span>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_IsNullValueSet.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.IsNullValueSet%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L727">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_IsNullValueSet_" data-uid="Tangosol.Util.Collections.SortedDictionary.IsNullValueSet*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_IsNullValueSet" data-uid="Tangosol.Util.Collections.SortedDictionary.IsNullValueSet">IsNullValueSet</h4>
+  <div class="markdown level1 summary"><p>Returns true is the value for the <code>null</code> key is set,
+false otherwise.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool IsNullValueSet { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true is the value for the <code>null</code> key is set,
+false otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Item_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Item(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L364">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Item_" data-uid="Tangosol.Util.Collections.SortedDictionary.Item*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Item_System_Object_" data-uid="Tangosol.Util.Collections.SortedDictionary.Item(System.Object)">Item[Object]</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the element with the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object this[object key] { get; set; }</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key of the element to get or set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The element with the specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>The property is set and the dictionary is read-only.
+-or- The property is set, <code data-dev-comment-type="paramref" class="paramref">key</code> does not exist
+in the collection, and the dictionary has a fixed size.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Keys.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Keys%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L402">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Keys_" data-uid="Tangosol.Util.Collections.SortedDictionary.Keys*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Keys" data-uid="Tangosol.Util.Collections.SortedDictionary.Keys">Keys</h4>
+  <div class="markdown level1 summary"><p>Gets an <span class="xref">System.Collections.ICollection</span> object
+containing the keys of this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ICollection Keys { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>An <span class="xref">System.Collections.ICollection</span> object
+containing the keys of this dictionary object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Values.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Values%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L423">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Values_" data-uid="Tangosol.Util.Collections.SortedDictionary.Values*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Values" data-uid="Tangosol.Util.Collections.SortedDictionary.Values">Values</h4>
+  <div class="markdown level1 summary"><p>Gets an <span class="xref">System.Collections.ICollection</span> object
+containing the values in this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ICollection Values { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>An <span class="xref">System.Collections.ICollection</span> object
+containing the values in this dictionary object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Add_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Add(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L277">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Add_" data-uid="Tangosol.Util.Collections.SortedDictionary.Add*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Add_System_Object_System_Object_" data-uid="Tangosol.Util.Collections.SortedDictionary.Add(System.Object,System.Object)">Add(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Adds an element with the provided key and value to the
+<span class="xref">System.Collections.IDictionary</span> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Add(object key, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The <span class="xref">System.Object</span> to use as the key of
+the element to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The <span class="xref">System.Object</span> to use as the value of
+the element to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>An element with the same key already exists in the
+<span class="xref">System.Collections.IDictionary</span> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> is read-only.
+-or- The <span class="xref">System.Collections.IDictionary</span> has a
+fixed size.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_AssertIsVariableSize.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.AssertIsVariableSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L744">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_AssertIsVariableSize_" data-uid="Tangosol.Util.Collections.SortedDictionary.AssertIsVariableSize*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_AssertIsVariableSize" data-uid="Tangosol.Util.Collections.SortedDictionary.AssertIsVariableSize">AssertIsVariableSize()</h4>
+  <div class="markdown level1 summary"><p>Throw an exception if this dictionary is fixed size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void AssertIsVariableSize()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_AssertIsWriteable.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.AssertIsWriteable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L755">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_AssertIsWriteable_" data-uid="Tangosol.Util.Collections.SortedDictionary.AssertIsWriteable*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_AssertIsWriteable" data-uid="Tangosol.Util.Collections.SortedDictionary.AssertIsWriteable">AssertIsWriteable()</h4>
+  <div class="markdown level1 summary"><p>Throw an exception if this dictionary is read-only.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void AssertIsWriteable()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Clear.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Clear%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L305">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Clear_" data-uid="Tangosol.Util.Collections.SortedDictionary.Clear*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Clear" data-uid="Tangosol.Util.Collections.SortedDictionary.Clear">Clear()</h4>
+  <div class="markdown level1 summary"><p>Removes all elements from the
+<span class="xref">System.Collections.IDictionary</span> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Clear()</code></pre>
+  </div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>The <span class="xref">System.Collections.IDictionary</span> object is
+read-only.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Clone.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Clone%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L576">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Clone_" data-uid="Tangosol.Util.Collections.SortedDictionary.Clone*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Clone" data-uid="Tangosol.Util.Collections.SortedDictionary.Clone">Clone()</h4>
+  <div class="markdown level1 summary"><p>Creates a new object that is a copy of the current instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override object Clone()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>A new object that is a copy of this instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Contains_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Contains(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L251">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Contains_" data-uid="Tangosol.Util.Collections.SortedDictionary.Contains*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Contains_System_Object_" data-uid="Tangosol.Util.Collections.SortedDictionary.Contains(System.Object)">Contains(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether this dictionary contains an entry with the
+specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Contains(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to locate in this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the dictionary contains an element with the key;
+otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_ContainsKey_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.ContainsKey(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L542">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_ContainsKey_" data-uid="Tangosol.Util.Collections.SortedDictionary.ContainsKey*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_ContainsKey_System_Object_" data-uid="Tangosol.Util.Collections.SortedDictionary.ContainsKey(System.Object)">ContainsKey(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> contains
+a specific key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool ContainsKey(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to locate in the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> contains an element
+with the specified key; otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_ContainsValue_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.ContainsValue(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L559">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_ContainsValue_" data-uid="Tangosol.Util.Collections.SortedDictionary.ContainsValue*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_ContainsValue_System_Object_" data-uid="Tangosol.Util.Collections.SortedDictionary.ContainsValue(System.Object)">ContainsValue(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> contains
+a specific value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool ContainsValue(object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to locate in the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a>.
+The value can be null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the <a class="xref" href="Tangosol.Util.Collections.SortedDictionary.html">SortedDictionary</a> contains an element
+with the specified <code data-dev-comment-type="paramref" class="paramref">value</code>; otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_CopyTo_System_Array_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.CopyTo(System.Array%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L486">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_CopyTo_" data-uid="Tangosol.Util.Collections.SortedDictionary.CopyTo*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_CopyTo_System_Array_System_Int32_" data-uid="Tangosol.Util.Collections.SortedDictionary.CopyTo(System.Array,System.Int32)">CopyTo(Array, Int32)</h4>
+  <div class="markdown level1 summary"><p>Copies the elements of the collection to an array, starting at
+a particular array index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void CopyTo(Array array, int index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Array</span></td>
+        <td><span class="parametername">array</span></td>
+        <td><p>The one-dimensional array that is the destination of the elements
+copied from the collection. The array must have zero-based
+indexing.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>The zero-based index in the array at which copying begins.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">array</code> is null.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">index</code> is less than zero.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">array</code> is multidimensional.-or-
+<code data-dev-comment-type="paramref" class="paramref">index</code> is equal to or greater than the length
+of <code data-dev-comment-type="paramref" class="paramref">array</code>.-or- The number of elements in the
+source collection is greater than the available space from
+<code data-dev-comment-type="paramref" class="paramref">index</code> to the end of the destination
+<code data-dev-comment-type="paramref" class="paramref">array</code>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>The type of the source collection cannot be cast automatically
+to the type of the destination <code data-dev-comment-type="paramref" class="paramref">array</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Equals_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Equals(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L654">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Equals_" data-uid="Tangosol.Util.Collections.SortedDictionary.Equals*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Equals_System_Collections_IDictionary_" data-uid="Tangosol.Util.Collections.SortedDictionary.Equals(System.Collections.IDictionary)">Equals(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Compares this dictionary with another dictionary for equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Equals(IDictionary dict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">dict</span></td>
+        <td><p>Dictionary to compare this dictionary with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the two dictionaries are equal; <code>false</code>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_Collections_SortedDictionary_Equals_System_Collections_IDictionary__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method returns true if this dictionary and the specified
+dictionary have exactly the same entry set.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L623">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Equals_" data-uid="Tangosol.Util.Collections.SortedDictionary.Equals*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Equals_System_Object_" data-uid="Tangosol.Util.Collections.SortedDictionary.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether the specified object is equal to this object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">obj</span></td>
+        <td><p>The object to compare with this object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the specified object is equal to this object;
+otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L319">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_GetEnumerator_" data-uid="Tangosol.Util.Collections.SortedDictionary.GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_GetEnumerator" data-uid="Tangosol.Util.Collections.SortedDictionary.GetEnumerator">GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an <span class="xref">System.Collections.IDictionaryEnumerator</span>
+object for this dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IDictionaryEnumerator GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td><p>An <span class="xref">System.Collections.IDictionaryEnumerator</span>
+object for this dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L677">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_GetHashCode_" data-uid="Tangosol.Util.Collections.SortedDictionary.GetHashCode*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_GetHashCode" data-uid="Tangosol.Util.Collections.SortedDictionary.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Returns a hash code for this object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>A hash code for this object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_GetObjectData_SerializationInfo_StreamingContext_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.GetObjectData(SerializationInfo%2CStreamingContext)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L591">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_GetObjectData_" data-uid="Tangosol.Util.Collections.SortedDictionary.GetObjectData*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_GetObjectData_SerializationInfo_StreamingContext_" data-uid="Tangosol.Util.Collections.SortedDictionary.GetObjectData(SerializationInfo,StreamingContext)">GetObjectData(SerializationInfo, StreamingContext)</h4>
+  <div class="markdown level1 summary"><p>Overrides serialization method to add support for null value
+serialization.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void GetObjectData(SerializationInfo info, StreamingContext context)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">SerializationInfo</span></td>
+        <td><span class="parametername">info</span></td>
+        <td><p>Serialization info.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">StreamingContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td><p>Serialization context.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_Remove_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.Remove(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L335">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_Remove_" data-uid="Tangosol.Util.Collections.SortedDictionary.Remove*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_Remove_System_Object_" data-uid="Tangosol.Util.Collections.SortedDictionary.Remove(System.Object)">Remove(Object)</h4>
+  <div class="markdown level1 summary"><p>Removes the element with the specified key from the
+<span class="xref">System.Collections.IDictionary</span> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Remove(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key of the element to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>The dictionary is read-only.
+-or- The dictionary has a fixed size.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L701">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_ToString_" data-uid="Tangosol.Util.Collections.SortedDictionary.ToString*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_ToString" data-uid="Tangosol.Util.Collections.SortedDictionary.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Returns string representation of this instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>String representation of this instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L447">View Source</a>
+  </span>
+  <a id="Tangosol_Util_Collections_SortedDictionary_System_Collections_IEnumerable_GetEnumerator_" data-uid="Tangosol.Util.Collections.SortedDictionary.System#Collections#IEnumerable#GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_Collections_SortedDictionary_System_Collections_IEnumerable_GetEnumerator" data-uid="Tangosol.Util.Collections.SortedDictionary.System#Collections#IEnumerable#GetEnumerator">IEnumerable.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an enumerator that iterates through a collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IEnumerator IEnumerable.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IEnumerator</span></td>
+        <td><p>An <span class="xref">System.Collections.IEnumerator</span> object
+that can be used to iterate through the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+  <div>
+      <span class="xref">ISerializable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_Collections_SortedDictionary.md&amp;value=---%0Auid%3A%20Tangosol.Util.Collections.SortedDictionary%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/Collections/SortedDictionary.cs/#L32" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,781 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class DataReader
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class DataReader
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.DataReader">
+  
+  
+  <h1 id="Tangosol_IO_DataReader" data-uid="Tangosol.IO.DataReader" class="text-break">Class DataReader
+  </h1>
+  <div class="markdown level0 summary"><p><strong>BinaryReader</strong> extension that adds methods for reading 32 and
+64-bit integer values in a packed format.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">System.IO.BinaryReader</span></div>
+    <div class="level2"><span class="xref">DataReader</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Dispose()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Dispose(System.Boolean)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.FillBuffer(System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.PeekChar()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Read()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Read(System.Byte[], System.Int32, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Read(System.Char[], System.Int32, System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.Read7BitEncodedInt()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadBoolean()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadByte()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadBytes(System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadChar()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadChars(System.Int32)</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadDecimal()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.ReadSByte()</span>
+    </div>
+    <div>
+      <span class="xref">System.IO.BinaryReader.BaseStream</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.html">Tangosol.IO</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_DataReader_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class DataReader : BinaryReader, IDisposable</code></pre>
+  </div>
+  <h5 id="Tangosol_IO_DataReader_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>
+The &quot;packed&quot; format includes a sign bit (0x40) and a continuation
+bit (0x80) in the first byte, followed by the least 6 significant
+bits of the int value. Subsequent bytes (each appearing only if
+the previous byte had its continuation bit set) include a
+continuation bit (0x80) and the next least 7 significant bits of
+the int value.</p>
+<p>
+In this way, a 32-bit value is encoded into 1-5 bytes, and 64-bit
+value is encoded into 1-10 bytes, depending on the magnitude of the
+value being encoded.</p>
+</div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader__ctor_System_IO_Stream_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.%23ctor(System.IO.Stream)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L47">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader__ctor_" data-uid="Tangosol.IO.DataReader.#ctor*"></a>
+  <h4 id="Tangosol_IO_DataReader__ctor_System_IO_Stream_" data-uid="Tangosol.IO.DataReader.#ctor(System.IO.Stream)">DataReader(Stream)</h4>
+  <div class="markdown level1 summary"><p>Construct a new <strong>DataReader</strong> that will read from a passed
+<strong>Stream</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DataReader(Stream input)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">input</span></td>
+        <td><p>The <strong>Stream</strong> object to write from; must not be <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadDouble.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadDouble%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L314">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadDouble_" data-uid="Tangosol.IO.DataReader.ReadDouble*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadDouble" data-uid="Tangosol.IO.DataReader.ReadDouble">ReadDouble()</h4>
+  <div class="markdown level1 summary"><p>Reads bits which are stored in an <strong>Int64</strong> instance and
+converts them into the <strong>Double</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override double ReadDouble()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>A Double value read from the stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadDouble()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadInt16.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadInt16%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L209">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadInt16_" data-uid="Tangosol.IO.DataReader.ReadInt16*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadInt16" data-uid="Tangosol.IO.DataReader.ReadInt16">ReadInt16()</h4>
+  <div class="markdown level1 summary"><p>Reads a 2-byte signed integer from the current stream and
+advances the current position of the stream by two bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override short ReadInt16()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><p>A 2-byte signed integer read from the current stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadInt16()</span></div>
+  <h5 id="Tangosol_IO_DataReader_ReadInt16_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryReader.ReadInt16 by changing endian of the value
+read from the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadInt32.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadInt32%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L242">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadInt32_" data-uid="Tangosol.IO.DataReader.ReadInt32*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadInt32" data-uid="Tangosol.IO.DataReader.ReadInt32">ReadInt32()</h4>
+  <div class="markdown level1 summary"><p>Reads a 4-byte signed integer from the current stream and
+advances the current position of the stream by four bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int ReadInt32()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>A 4-byte signed integer read from the current stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadInt32()</span></div>
+  <h5 id="Tangosol_IO_DataReader_ReadInt32_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryReader.ReadInt32 by changing endian of the value
+read from the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadInt64.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadInt64%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L274">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadInt64_" data-uid="Tangosol.IO.DataReader.ReadInt64*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadInt64" data-uid="Tangosol.IO.DataReader.ReadInt64">ReadInt64()</h4>
+  <div class="markdown level1 summary"><p>Reads an 8-byte signed integer from the current stream and
+advances the current position of the stream by eight bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override long ReadInt64()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>An 8-byte signed integer read from the current stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadInt64()</span></div>
+  <h5 id="Tangosol_IO_DataReader_ReadInt64_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryReader.ReadInt64 by changing endian of the value
+read from the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadPackedInt32.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadPackedInt32%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L74">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadPackedInt32_" data-uid="Tangosol.IO.DataReader.ReadPackedInt32*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadPackedInt32" data-uid="Tangosol.IO.DataReader.ReadPackedInt32">ReadPackedInt32()</h4>
+  <div class="markdown level1 summary"><p>Reads an <strong>Int32</strong> value using a variable-length storage
+format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int ReadPackedInt32()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An <strong>Int32</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_DataReader_ReadPackedInt32_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The &quot;packed&quot; format includes a sign bit (0x40) and a continuation
+bit (0x80) in the first byte, followed by the least 6 significant
+bits of the int value. Subsequent bytes (each appearing only if
+the previous byte had its continuation bit set) include a
+continuation bit (0x80) and the next least 7 significant bits of
+the int value. In this way, a 32-bit value is encoded into 1-5
+bytes, depending on the magnitude of the value being encoded.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadPackedInt64.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadPackedInt64%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L116">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadPackedInt64_" data-uid="Tangosol.IO.DataReader.ReadPackedInt64*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadPackedInt64" data-uid="Tangosol.IO.DataReader.ReadPackedInt64">ReadPackedInt64()</h4>
+  <div class="markdown level1 summary"><p>Reads an <strong>Int64</strong> value using a variable-length storage
+format.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual long ReadPackedInt64()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>An <strong>Int64</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_DataReader_ReadPackedInt64_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The &quot;packed&quot; format includes a sign bit (0x40) and a continuation
+bit (0x80) in the first byte, followed by the least 6 significant
+bits of the int value. Subsequent bytes (each appearing only if
+the previous byte had its continuation bit set) include a
+continuation bit (0x80) and the next least 7 significant bits of
+the int value. In this way, a 64-bit value is encoded into 1-10
+bytes, depending on the magnitude of the value being encoded.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If an I/O error occurs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadPackedRawInt128_Tangosol_IO_DataReader_.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadPackedRawInt128(Tangosol.IO.DataReader)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L147">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadPackedRawInt128_" data-uid="Tangosol.IO.DataReader.ReadPackedRawInt128*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadPackedRawInt128_Tangosol_IO_DataReader_" data-uid="Tangosol.IO.DataReader.ReadPackedRawInt128(Tangosol.IO.DataReader)">ReadPackedRawInt128(DataReader)</h4>
+  <div class="markdown level1 summary"><p>Reads a <strong>RawInt128</strong> value from <strong>DataReader</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual RawInt128 ReadPackedRawInt128(DataReader reader)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.DataReader.html">DataReader</a></td>
+        <td><span class="parametername">reader</span></td>
+        <td><p>The <strong>DataReader</strong> to read from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.RawInt128.html">RawInt128</a></td>
+        <td><p><strong>RawInt128</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadSingle.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadSingle%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L302">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadSingle_" data-uid="Tangosol.IO.DataReader.ReadSingle*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadSingle" data-uid="Tangosol.IO.DataReader.ReadSingle">ReadSingle()</h4>
+  <div class="markdown level1 summary"><p>Reads bits which are stored in an <strong>Int32</strong> instance and
+converts them into the <strong>Single</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override float ReadSingle()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><p>A Single value read from the stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadSingle()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadString.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L329">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadString_" data-uid="Tangosol.IO.DataReader.ReadString*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadString" data-uid="Tangosol.IO.DataReader.ReadString">ReadString()</h4>
+  <div class="markdown level1 summary"><p>Reads string from the stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ReadString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A String value read from the stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadString()</span></div>
+  <h5 id="Tangosol_IO_DataReader_ReadString_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>String is prefixed with the string length encoded as &quot;packed&quot;
+Int32.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadUInt16.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadUInt16%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L226">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadUInt16_" data-uid="Tangosol.IO.DataReader.ReadUInt16*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadUInt16" data-uid="Tangosol.IO.DataReader.ReadUInt16">ReadUInt16()</h4>
+  <div class="markdown level1 summary"><p>Reads a 2-byte unsigned integer from the current stream using
+little endian encoding and advances the position of the stream by
+two bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ushort ReadUInt16()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><p>A 2-byte unsigned integer read from this stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadUInt16()</span></div>
+  <h5 id="Tangosol_IO_DataReader_ReadUInt16_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryReader.ReadUInt16 by changing endian of the value
+read from the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadUInt32.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadUInt32%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L258">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadUInt32_" data-uid="Tangosol.IO.DataReader.ReadUInt32*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadUInt32" data-uid="Tangosol.IO.DataReader.ReadUInt32">ReadUInt32()</h4>
+  <div class="markdown level1 summary"><p>Reads a 4-byte unsigned integer from the current stream and
+advances the position of the stream by four bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override uint ReadUInt32()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><p>A 4-byte unsigned integer read from this stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadUInt32()</span></div>
+  <h5 id="Tangosol_IO_DataReader_ReadUInt32_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryReader.ReadUInt32 by changing endian of the value
+read from the stream.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader_ReadUInt64.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader.ReadUInt64%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L290">View Source</a>
+  </span>
+  <a id="Tangosol_IO_DataReader_ReadUInt64_" data-uid="Tangosol.IO.DataReader.ReadUInt64*"></a>
+  <h4 id="Tangosol_IO_DataReader_ReadUInt64" data-uid="Tangosol.IO.DataReader.ReadUInt64">ReadUInt64()</h4>
+  <div class="markdown level1 summary"><p>Reads an 8-byte unsigned integer from the current stream and
+advances the position of the stream by eight bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ulong ReadUInt64()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><p>An 8-byte unsigned integer read from this stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.IO.BinaryReader.ReadUInt64()</span></div>
+  <h5 id="Tangosol_IO_DataReader_ReadUInt64_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Overrides BinaryReader.ReadUInt64 by changing endian of the value
+read from the stream.</p>
+</div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Tangosol.IO.DataWriter.html">DataWriter</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_DataReader.md&amp;value=---%0Auid%3A%20Tangosol.IO.DataReader%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/DataReader.cs/#L36" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1204 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class NetworkUtils
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class NetworkUtils
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.NetworkUtils">
+  
+  
+  <h1 id="Tangosol_Util_NetworkUtils" data-uid="Tangosol.Util.NetworkUtils" class="text-break">Class NetworkUtils
+  </h1>
+  <div class="markdown level0 summary"><p>Miscellaneuos utility methods for network related objects.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">NetworkUtils</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_NetworkUtils_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class NetworkUtils</code></pre>
+  </div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_NO_TIMEOUT.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.NO_TIMEOUT%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L28">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_NetworkUtils_NO_TIMEOUT" data-uid="Tangosol.Util.NetworkUtils.NO_TIMEOUT">NO_TIMEOUT</h4>
+  <div class="markdown level1 summary"><p>-1 is infinite for timeout.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly long NO_TIMEOUT</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_PreferredAddressFamily.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.PreferredAddressFamily%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L41">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_PreferredAddressFamily_" data-uid="Tangosol.Util.NetworkUtils.PreferredAddressFamily*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_PreferredAddressFamily" data-uid="Tangosol.Util.NetworkUtils.PreferredAddressFamily">PreferredAddressFamily</h4>
+  <div class="markdown level1 summary"><p>Gets or sets the preferred AddressFamily.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static AddressFamily PreferredAddressFamily { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">AddressFamily</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_Close_TcpClient_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.Close(TcpClient)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L509">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_Close_" data-uid="Tangosol.Util.NetworkUtils.Close*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_Close_TcpClient_" data-uid="Tangosol.Util.NetworkUtils.Close(TcpClient)">Close(TcpClient)</h4>
+  <div class="markdown level1 summary"><p>Closes the given <strong>TcpClient</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool Close(TcpClient client)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TcpClient</span></td>
+        <td><span class="parametername">client</span></td>
+        <td><p>The <strong>Socket</strong> object to close.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>Returns <strong>true</strong> if the operation was successful; <strong>false</strong>
+otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_GetAllAddresses_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.GetAllAddresses(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L151">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_GetAllAddresses_" data-uid="Tangosol.Util.NetworkUtils.GetAllAddresses*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_GetAllAddresses_System_String_" data-uid="Tangosol.Util.NetworkUtils.GetAllAddresses(System.String)">GetAllAddresses(String)</h4>
+  <div class="markdown level1 summary"><p>Returns all available IP addresses for the specified
+host name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IPAddress[] GetAllAddresses(string hostName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">hostName</span></td>
+        <td><p>The name of the host.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span>[]</td>
+        <td><p>An array of type IPAddress.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_GetAllAddresses_System_String_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.GetAllAddresses(System.String%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L169">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_GetAllAddresses_" data-uid="Tangosol.Util.NetworkUtils.GetAllAddresses*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_GetAllAddresses_System_String_System_Int64_" data-uid="Tangosol.Util.NetworkUtils.GetAllAddresses(System.String,System.Int64)">GetAllAddresses(String, Int64)</h4>
+  <div class="markdown level1 summary"><p>Returns all available IP addresses for the specified
+host name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IPAddress[] GetAllAddresses(string hostName, long cMillis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">hostName</span></td>
+        <td><p>The name of the host.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">cMillis</span></td>
+        <td><p>The maximum amount of time to wait in getting the address</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span>[]</td>
+        <td><p>An array of type IPAddress.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_GetAllLocalAddresses.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.GetAllLocalAddresses%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L258">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_GetAllLocalAddresses_" data-uid="Tangosol.Util.NetworkUtils.GetAllLocalAddresses*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_GetAllLocalAddresses" data-uid="Tangosol.Util.NetworkUtils.GetAllLocalAddresses">GetAllLocalAddresses()</h4>
+  <div class="markdown level1 summary"><p>Returns the list of all local addresses ofor all network interfaces
+on the local computer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IEnumerable&lt;IPAddress&gt; GetAllLocalAddresses()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;<span class="xref">IPAddress</span>&gt;</td>
+        <td><p>The list of all addresses for all network interfaces on the local computer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_GetHostAddress_System_String_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.GetHostAddress(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L117">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_GetHostAddress_" data-uid="Tangosol.Util.NetworkUtils.GetHostAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_GetHostAddress_System_String_" data-uid="Tangosol.Util.NetworkUtils.GetHostAddress(System.String)">GetHostAddress(String)</h4>
+  <div class="markdown level1 summary"><p>Returns first available IP address for the specified
+host name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IPAddress GetHostAddress(string hostName)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">hostName</span></td>
+        <td><p>The name of the host.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span></td>
+        <td><p>A first available IP address for the specified
+host name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_GetHostAddress_System_String_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.GetHostAddress(System.String%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L136">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_GetHostAddress_" data-uid="Tangosol.Util.NetworkUtils.GetHostAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_GetHostAddress_System_String_System_Int64_" data-uid="Tangosol.Util.NetworkUtils.GetHostAddress(System.String,System.Int64)">GetHostAddress(String, Int64)</h4>
+  <div class="markdown level1 summary"><p>Returns first available IP address for the specified
+host name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IPAddress GetHostAddress(string hostName, long cMillis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">hostName</span></td>
+        <td><p>The name of the host.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">cMillis</span></td>
+        <td><p>The maximum amount of time to wait in getting the address</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span></td>
+        <td><p>A first available IP address for the specified
+host name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_GetLocalHostAddress.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.GetLocalHostAddress%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L49">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_GetLocalHostAddress_" data-uid="Tangosol.Util.NetworkUtils.GetLocalHostAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_GetLocalHostAddress" data-uid="Tangosol.Util.NetworkUtils.GetLocalHostAddress">GetLocalHostAddress()</h4>
+  <div class="markdown level1 summary"><p>Returns the local host IP address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IPAddress GetLocalHostAddress()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span></td>
+        <td><p>The local host IP address.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_GetLocalHostAddress_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.GetLocalHostAddress(System.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L61">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_GetLocalHostAddress_" data-uid="Tangosol.Util.NetworkUtils.GetLocalHostAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_GetLocalHostAddress_System_Int64_" data-uid="Tangosol.Util.NetworkUtils.GetLocalHostAddress(System.Int64)">GetLocalHostAddress(Int64)</h4>
+  <div class="markdown level1 summary"><p>Returns the local host IP address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IPAddress GetLocalHostAddress(long cMillis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">cMillis</span></td>
+        <td><p>The maximum amount of time to wait in getting the address</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span></td>
+        <td><p>The local host IP address.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_IsAnyLocalAddress_IPAddress_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.IsAnyLocalAddress(IPAddress)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L214">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_IsAnyLocalAddress_" data-uid="Tangosol.Util.NetworkUtils.IsAnyLocalAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_IsAnyLocalAddress_IPAddress_" data-uid="Tangosol.Util.NetworkUtils.IsAnyLocalAddress(IPAddress)">IsAnyLocalAddress(IPAddress)</h4>
+  <div class="markdown level1 summary"><p>Determines if <strong>IPAddress</strong> is &quot;Any&quot; address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsAnyLocalAddress(IPAddress address)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span></td>
+        <td><span class="parametername">address</span></td>
+        <td><p>An <strong>IPAddress.</strong></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if <code data-dev-comment-type="paramref" class="paramref">address</code> is equal to &quot;Any&quot;
+address; otherwise, <strong>false</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_NetworkUtils_IsAnyLocalAddress_IPAddress__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The &quot;Any&quot; field is equivalent to 0.0.0.0 in dotted-quad notation.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_IsLinkLocalAddress_IPAddress_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.IsLinkLocalAddress(IPAddress)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L230">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_IsLinkLocalAddress_" data-uid="Tangosol.Util.NetworkUtils.IsLinkLocalAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_IsLinkLocalAddress_IPAddress_" data-uid="Tangosol.Util.NetworkUtils.IsLinkLocalAddress(IPAddress)">IsLinkLocalAddress(IPAddress)</h4>
+  <div class="markdown level1 summary"><p>Determines if <strong>IPAddress</strong> is link local address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsLinkLocalAddress(IPAddress address)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span></td>
+        <td><span class="parametername">address</span></td>
+        <td><p>An <strong>IPAddress.</strong></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if <code data-dev-comment-type="paramref" class="paramref">address</code> is link local address;
+otherwise, <strong>false</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_IsLoopbackAddress_IPAddress_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.IsLoopbackAddress(IPAddress)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L196">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_IsLoopbackAddress_" data-uid="Tangosol.Util.NetworkUtils.IsLoopbackAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_IsLoopbackAddress_IPAddress_" data-uid="Tangosol.Util.NetworkUtils.IsLoopbackAddress(IPAddress)">IsLoopbackAddress(IPAddress)</h4>
+  <div class="markdown level1 summary"><p>Determines if <strong>IPAddress</strong> is loopback address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsLoopbackAddress(IPAddress address)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span></td>
+        <td><span class="parametername">address</span></td>
+        <td><p>An <strong>IPAddress.</strong></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if <code data-dev-comment-type="paramref" class="paramref">address</code> is the loopback
+address; otherwise, <strong>false</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_IsSiteLocalAddress_IPAddress_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.IsSiteLocalAddress(IPAddress)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L246">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_IsSiteLocalAddress_" data-uid="Tangosol.Util.NetworkUtils.IsSiteLocalAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_IsSiteLocalAddress_IPAddress_" data-uid="Tangosol.Util.NetworkUtils.IsSiteLocalAddress(IPAddress)">IsSiteLocalAddress(IPAddress)</h4>
+  <div class="markdown level1 summary"><p>Determines if <strong>IPAddress</strong> is site local address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsSiteLocalAddress(IPAddress address)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPAddress</span></td>
+        <td><span class="parametername">address</span></td>
+        <td><p>An <strong>IPAddress.</strong></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if <code data-dev-comment-type="paramref" class="paramref">address</code> is site local address;
+otherwise, <strong>false</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_SetKeepAlive_TcpClient_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.SetKeepAlive(TcpClient%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L402">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_SetKeepAlive_" data-uid="Tangosol.Util.NetworkUtils.SetKeepAlive*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_SetKeepAlive_TcpClient_System_Boolean_" data-uid="Tangosol.Util.NetworkUtils.SetKeepAlive(TcpClient,System.Boolean)">SetKeepAlive(TcpClient, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Configure the <strong>KeepAlive</strong> option of the given <strong>Socket</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetKeepAlive(TcpClient client, bool keepAlive)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TcpClient</span></td>
+        <td><span class="parametername">client</span></td>
+        <td><p>Target <strong>Socket</strong> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">keepAlive</span></td>
+        <td><p>Boolean parameter that represents the new <strong>KeepAlive</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_SetLingerTime_TcpClient_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.SetLingerTime(TcpClient%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L351">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_SetLingerTime_" data-uid="Tangosol.Util.NetworkUtils.SetLingerTime*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_SetLingerTime_TcpClient_System_Int32_" data-uid="Tangosol.Util.NetworkUtils.SetLingerTime(TcpClient,System.Int32)">SetLingerTime(TcpClient, Int32)</h4>
+  <div class="markdown level1 summary"><p>Configure the linger time of the given <strong>Socket</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetLingerTime(TcpClient client, int secs)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TcpClient</span></td>
+        <td><span class="parametername">client</span></td>
+        <td><p>Target <strong>Socket</strong> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">secs</span></td>
+        <td><p>The linger time in seconds (-1 to disable linger).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_SetReceiveBufferSize_TcpClient_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.SetReceiveBufferSize(TcpClient%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L454">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_SetReceiveBufferSize_" data-uid="Tangosol.Util.NetworkUtils.SetReceiveBufferSize*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_SetReceiveBufferSize_TcpClient_System_Int32_" data-uid="Tangosol.Util.NetworkUtils.SetReceiveBufferSize(TcpClient,System.Int32)">SetReceiveBufferSize(TcpClient, Int32)</h4>
+  <div class="markdown level1 summary"><p>Configure the <strong>ReceiveBuffer</strong> option of the given <strong>Socket</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetReceiveBufferSize(TcpClient client, int bufferSize)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TcpClient</span></td>
+        <td><span class="parametername">client</span></td>
+        <td><p>Target <strong>Socket</strong> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">bufferSize</span></td>
+        <td><p>Integer parameter that represents the new <strong>ReceiveBuffer</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_SetReuseAddress_TcpClient_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.SetReuseAddress(TcpClient%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L428">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_SetReuseAddress_" data-uid="Tangosol.Util.NetworkUtils.SetReuseAddress*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_SetReuseAddress_TcpClient_System_Boolean_" data-uid="Tangosol.Util.NetworkUtils.SetReuseAddress(TcpClient,System.Boolean)">SetReuseAddress(TcpClient, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Configure the <strong>ReuseAddress</strong> option of the given <strong>Socket</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetReuseAddress(TcpClient client, bool reuseAddress)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TcpClient</span></td>
+        <td><span class="parametername">client</span></td>
+        <td><p>Target <strong>Socket</strong> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">reuseAddress</span></td>
+        <td><p>Boolean parameter that represents the new <strong>ReuseAddress</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_SetSendBufferSize_TcpClient_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.SetSendBufferSize(TcpClient%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L469">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_SetSendBufferSize_" data-uid="Tangosol.Util.NetworkUtils.SetSendBufferSize*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_SetSendBufferSize_TcpClient_System_Int32_" data-uid="Tangosol.Util.NetworkUtils.SetSendBufferSize(TcpClient,System.Int32)">SetSendBufferSize(TcpClient, Int32)</h4>
+  <div class="markdown level1 summary"><p>Configure the <strong>SendBuffer</strong> option of the given <strong>Socket</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetSendBufferSize(TcpClient client, int bufferSize)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TcpClient</span></td>
+        <td><span class="parametername">client</span></td>
+        <td><p>Target <strong>Socket</strong> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">bufferSize</span></td>
+        <td><p>Integer parameter that represents the new <strong>SendBuffer</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_SetTcpNoDelay_TcpClient_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.SetTcpNoDelay(TcpClient%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L484">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_SetTcpNoDelay_" data-uid="Tangosol.Util.NetworkUtils.SetTcpNoDelay*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_SetTcpNoDelay_TcpClient_System_Boolean_" data-uid="Tangosol.Util.NetworkUtils.SetTcpNoDelay(TcpClient,System.Boolean)">SetTcpNoDelay(TcpClient, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Configure the <strong>NoDelay</strong> option of the given <strong>Socket</strong> object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetTcpNoDelay(TcpClient client, bool noDelay)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TcpClient</span></td>
+        <td><span class="parametername">client</span></td>
+        <td><p>Target <strong>Socket</strong> object.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">noDelay</span></td>
+        <td><p>Boolean parameter that represents the new <strong>NoDelay</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_ToString_IPEndPoint_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.ToString(IPEndPoint)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L280">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_ToString_" data-uid="Tangosol.Util.NetworkUtils.ToString*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_ToString_IPEndPoint_" data-uid="Tangosol.Util.NetworkUtils.ToString(IPEndPoint)">ToString(IPEndPoint)</h4>
+  <div class="markdown level1 summary"><p>Utility method that prints out an <strong>IPEndPoint</strong> in a user-
+friendly manner.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string ToString(IPEndPoint addr)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPEndPoint</span></td>
+        <td><span class="parametername">addr</span></td>
+        <td><p><strong>IPEndPoint</strong> to print out.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The value in format ADDRESS:PORT.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_ToString_IPEndPoint_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.ToString(IPEndPoint%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L306">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_ToString_" data-uid="Tangosol.Util.NetworkUtils.ToString*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_ToString_IPEndPoint_System_Int32_" data-uid="Tangosol.Util.NetworkUtils.ToString(IPEndPoint,System.Int32)">ToString(IPEndPoint, Int32)</h4>
+  <div class="markdown level1 summary"><p>Utility method that prints out an <strong>IPEndPoint</strong> with
+optional subport in a user-friendly manner.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string ToString(IPEndPoint addr, int subport)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">IPEndPoint</span></td>
+        <td><span class="parametername">addr</span></td>
+        <td><p><strong>IPEndPoint</strong> to print out.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">subport</span></td>
+        <td><p>Subport, -1 if there is none.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The value in format ADDRESS:BASEPORT.SUBPORT.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils_WriteSubport_System_IO_Stream_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils.WriteSubport(System.IO.Stream%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L328">View Source</a>
+  </span>
+  <a id="Tangosol_Util_NetworkUtils_WriteSubport_" data-uid="Tangosol.Util.NetworkUtils.WriteSubport*"></a>
+  <h4 id="Tangosol_Util_NetworkUtils_WriteSubport_System_IO_Stream_System_Int32_" data-uid="Tangosol.Util.NetworkUtils.WriteSubport(System.IO.Stream,System.Int32)">WriteSubport(Stream, Int32)</h4>
+  <div class="markdown level1 summary"><p>Write out the 8 byte multiplexed protocol header which consists
+of two 4-byte words: first is the protocol ID 0x05AC1E000,
+second is the subport number.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteSubport(Stream stream, int subport)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">stream</span></td>
+        <td><p>The output stream to write to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">subport</span></td>
+        <td><p>The subport number.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_NetworkUtils.md&amp;value=---%0Auid%3A%20Tangosol.Util.NetworkUtils%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/NetworkUtils.cs/#L23" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

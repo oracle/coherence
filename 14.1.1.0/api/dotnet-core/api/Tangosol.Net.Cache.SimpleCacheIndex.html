@@ -1,0 +1,1933 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SimpleCacheIndex
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SimpleCacheIndex
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.SimpleCacheIndex">
+  
+  
+  <h1 id="Tangosol_Net_Cache_SimpleCacheIndex" data-uid="Tangosol.Net.Cache.SimpleCacheIndex" class="text-break">Class SimpleCacheIndex
+  </h1>
+  <div class="markdown level0 summary"><p>SimpleCacheIndex is an <a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a> implementation used to
+correlate property values extracted from resource cache entries with
+corresponding keys using what is commonly known as an <em>Inverted Index
+algorithm.</em>.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">SimpleCacheIndex</span></div>
+      <div class="level2"><a class="xref" href="Tangosol.Net.Cache.ConditionalIndex.html">ConditionalIndex</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.html">Tangosol.Net.Cache</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_SimpleCacheIndex_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SimpleCacheIndex : ICacheIndex</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex__ctor_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.%23ctor(Tangosol.Util.IValueExtractor%2CSystem.Boolean%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L125">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex__ctor_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.#ctor*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex__ctor_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.#ctor(Tangosol.Util.IValueExtractor,System.Boolean,System.Collections.IComparer)">SimpleCacheIndex(IValueExtractor, Boolean, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Construct an index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleCacheIndex(IValueExtractor extractor, bool ordered, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The IValueExtractor that is used to extract an indexed value from a
+resource cache entry.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ordered</span></td>
+        <td><p><strong>true</strong> iff the contents of the indexed information should be
+ordered; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The IComparator object which imposes an ordering on entries in the
+index map; or <tt>null</tt> if the entries' values natural ordering
+should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex__ctor_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.%23ctor(Tangosol.Util.IValueExtractor%2CSystem.Boolean%2CSystem.Collections.IComparer%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L150">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex__ctor_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.#ctor*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex__ctor_Tangosol_Util_IValueExtractor_System_Boolean_System_Collections_IComparer_System_Boolean_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.#ctor(Tangosol.Util.IValueExtractor,System.Boolean,System.Collections.IComparer,System.Boolean)">SimpleCacheIndex(IValueExtractor, Boolean, IComparer, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Construct an index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SimpleCacheIndex(IValueExtractor extractor, bool ordered, IComparer comparer, bool init)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td><span class="parametername">extractor</span></td>
+        <td><p>The IValueExtractor that is used to extract an indexed value from a
+resource cache entry.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ordered</span></td>
+        <td><p><strong>true</strong> iff the contents of the indexed information should be
+ordered; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The IComparator object which imposes an ordering on entries in the
+index map; or <tt>null</tt> if the entries' values natural ordering
+should be used.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">init</span></td>
+        <td><p>Initialize the index if <strong>true</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_m_cLogMissingIdx.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.m_cLogMissingIdx%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L892">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_m_cLogMissingIdx" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.m_cLogMissingIdx">m_cLogMissingIdx</h4>
+  <div class="markdown level1 summary"><p>The number of &quot;missing inverse index&quot; messages that have been logged.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int m_cLogMissingIdx</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_m_fImmutableValues.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.m_fImmutableValues%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L903">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_m_fImmutableValues" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.m_fImmutableValues">m_fImmutableValues</h4>
+  <div class="markdown level1 summary"><p>Specifies whether or not the index is based on the immutable values (e.g. keys).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool m_fImmutableValues</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_m_keysExcluded.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.m_keysExcluded%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L897">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_m_keysExcluded" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.m_keysExcluded">m_keysExcluded</h4>
+  <div class="markdown level1 summary"><p>A set of keys for the entries, which could not be included in the index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected SafeHashSet m_keysExcluded</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Collections.SafeHashSet.html">SafeHashSet</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_m_ldtLogMissingIdx.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.m_ldtLogMissingIdx%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L887">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_m_ldtLogMissingIdx" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.m_ldtLogMissingIdx">m_ldtLogMissingIdx</h4>
+  <div class="markdown level1 summary"><p>The time at which the most recent logging of &quot;missing inverse index&quot;
+messages started.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected long m_ldtLogMissingIdx</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_m_splitCollection.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.m_splitCollection%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L881">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_m_splitCollection" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.m_splitCollection">m_splitCollection</h4>
+  <div class="markdown level1 summary"><p>If a value extracted by the IValueExtractor is an ICollection, this
+property specifies whether or not it should be treated as a
+collection of contained attributes or indexed as a single composite
+attribute.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool m_splitCollection</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_NO_VALUE.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.NO_VALUE%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L873">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_NO_VALUE" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.NO_VALUE">NO_VALUE</h4>
+  <div class="markdown level1 summary"><p>Marker object used to represent extractor failure.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static readonly object NO_VALUE</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_Comparer.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.Comparer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L60">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_Comparer_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Comparer*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_Comparer" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Comparer">Comparer</h4>
+  <div class="markdown level1 summary"><p>IComparer used to sort the index. Used iff Ordered is <strong>true</strong>.
+Could be <code>null</code>, which implicates a natural order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IComparer Comparer { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_IndexContents.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.IndexContents%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L94">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_IndexContents_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IndexContents*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_IndexContents" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IndexContents">IndexContents</h4>
+  <div class="markdown level1 summary"><p>The IDictionary that contains the <em>index contents</em>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IDictionary IndexContents { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_SimpleCacheIndex_IndexContents_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+The keys of the IDictionary are the return values from the 
+IValueExtractor operating against the indexed ICache&apos;s values, and 
+for each key, the corresponding value stored in the 
+IDictionary is an ICollection of keys to the indexed value.</p>
+<p>
+If the ICacheIndex is known to be ordered, then the returned 
+IDictionary object will be an instance of SortedList (or wrapper
+thereof). The SortedList may or may not have an IComparer object 
+associated with it.</p>
+<p>
+A client should assume that the returned IDictionary object is 
+read-only and must not attempt to modify it.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_IndexForward.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.IndexForward%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L103">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_IndexForward_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IndexForward*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_IndexForward" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IndexForward">IndexForward</h4>
+  <div class="markdown level1 summary"><p>IDictionary that contains the index values (forward index). The
+keys of the IDictionary are the keys to the indexed cache and the
+values are the extracted values. This map is used by
+<a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a> implementations
+to avoid conversion and value extraction steps.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary IndexForward { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_IsOrdered.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.IsOrdered%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L54">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_IsOrdered_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IsOrdered*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_IsOrdered" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IsOrdered">IsOrdered</h4>
+  <div class="markdown level1 summary"><p>Specifies whether or not this ICacheIndex orders the contents of
+the indexed information.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsOrdered { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_IsPartial.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.IsPartial%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L75">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_IsPartial_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IsPartial*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_IsPartial" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IsPartial">IsPartial</h4>
+  <div class="markdown level1 summary"><p>Determine if indexed information for any entry in the indexed
+ICache has been excluded from this index. This information is used
+by <a class="xref" href="Tangosol.Util.Filter.IIndexAwareFilter.html">IIndexAwareFilter</a>
+implementations to determine the most optimal way to apply the
+index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsPartial { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if any entry of the indexed ICache has been excluded
+from the index, <strong>false</strong> otherwise</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_ValueExtractor.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.ValueExtractor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L48">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_ValueExtractor_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.ValueExtractor*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_ValueExtractor" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.ValueExtractor">ValueExtractor</h4>
+  <div class="markdown level1 summary"><p>IValueExtractor object that this ICacheIndex uses to extract an
+indexable Object from a [converted] value stored in the Storage.
+This property is never <code>null</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IValueExtractor ValueExtractor { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IValueExtractor.html">IValueExtractor</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_AddInverseCollectionMapping_System_Collections_IDictionary_System_Collections_ICollection_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.AddInverseCollectionMapping(System.Collections.IDictionary%2CSystem.Collections.ICollection%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L588">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_AddInverseCollectionMapping_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.AddInverseCollectionMapping*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_AddInverseCollectionMapping_System_Collections_IDictionary_System_Collections_ICollection_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.AddInverseCollectionMapping(System.Collections.IDictionary,System.Collections.ICollection,System.Object)">AddInverseCollectionMapping(IDictionary, ICollection, Object)</h4>
+  <div class="markdown level1 summary"><p>Add new mappings from the elements of the given value to the given
+key in the supplied index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void AddInverseCollectionMapping(IDictionary index, ICollection value, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>the index to which to add the mapping</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>the indexed ICollection value (each element
+serves as a key in the inverse index)</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>the key to insert into the inverse index</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_AddInverseMapping_System_Collections_IDictionary_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.AddInverseMapping(System.Collections.IDictionary%2CSystem.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L568">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_AddInverseMapping_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.AddInverseMapping*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_AddInverseMapping_System_Collections_IDictionary_System_Object_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.AddInverseMapping(System.Collections.IDictionary,System.Object,System.Object)">AddInverseMapping(IDictionary, Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Add a new mapping from the given indexed value to the given key in
+the supplied index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void AddInverseMapping(IDictionary index, object value, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>the index to which to add the mapping</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>the indexed value</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>the key to insert into the inverse index</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_AddInverseMapping_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.AddInverseMapping(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L546">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_AddInverseMapping_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.AddInverseMapping*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_AddInverseMapping_System_Object_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.AddInverseMapping(System.Object,System.Object)">AddInverseMapping(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Add a new mapping from the given indexed value to the given key in
+the inverse index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void AddInverseMapping(object value, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The index value (serves as a key in the inverse
+index).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>the key to insert into the inverse index</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_CollectRemoved_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.CollectRemoved(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L679">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_CollectRemoved_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.CollectRemoved*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_CollectRemoved_System_Object_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.CollectRemoved(System.Object,System.Object)">CollectRemoved(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Given that the old value is known to be a Collection or an array,
+collect all the enclosed elements that are not part of the new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected HashSet CollectRemoved(object valueOld, object valueNew)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">valueOld</span></td>
+        <td><p>The old value, must be a collection or an array.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">valueNew</span></td>
+        <td><p>The new value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Collections.HashSet.html">HashSet</a></td>
+        <td><p>The set of values that are contained in the old collection
+or array, but not part of the new value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_Delete_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.Delete(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L225">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_Delete_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Delete*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_Delete_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Delete(Tangosol.Net.Cache.ICacheEntry)">Delete(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a remove operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Delete(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being removed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_DeleteInternal_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.DeleteInternal(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L505">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_DeleteInternal_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.DeleteInternal*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_DeleteInternal_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.DeleteInternal(Tangosol.Net.Cache.ICacheEntry)">DeleteInternal(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a remove operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void DeleteInternal(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being removed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_EnsureCollection_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.EnsureCollection(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L331">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_EnsureCollection_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.EnsureCollection*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_EnsureCollection_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.EnsureCollection(System.Object)">EnsureCollection(Object)</h4>
+  <div class="markdown level1 summary"><p>Return a Collection representation of the specified value, which could be
+a Collection, Object[], scalar, or NO_VALUE.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static ICollection EnsureCollection(object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A Collection representation of the specified value, or an empty
+Collection if NO_VALUE.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_Equals_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.Equals(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L798">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_Equals_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Equals*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_Equals_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Equals(System.Object)">Equals(Object)</h4>
+  <div class="markdown level1 summary"><p>Determines whether the specified object is equal to this object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object obj)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">obj</span></td>
+        <td><p>The object to compare with this object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true if the specified object is equal to this object;
+otherwise, false.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.Equals(System.Object)</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_Equals_Tangosol_Net_Cache_SimpleCacheIndex_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.Equals(Tangosol.Net.Cache.SimpleCacheIndex)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L828">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_Equals_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Equals*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_Equals_Tangosol_Net_Cache_SimpleCacheIndex_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Equals(Tangosol.Net.Cache.SimpleCacheIndex)">Equals(SimpleCacheIndex)</h4>
+  <div class="markdown level1 summary"><p>Compares this index with another index for equality.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool Equals(SimpleCacheIndex index)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.SimpleCacheIndex.html">SimpleCacheIndex</a></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>index to compare this index with.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the two indexes are equal; <code>false</code> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_SimpleCacheIndex_Equals_Tangosol_Net_Cache_SimpleCacheIndex__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method returns true if this index and the specified index have
+exactly the same contents.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_ExtractNewValue_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.ExtractNewValue(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L282">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_ExtractNewValue_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.ExtractNewValue*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_ExtractNewValue_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.ExtractNewValue(Tangosol.Net.Cache.ICacheEntry)">ExtractNewValue(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Extract the &quot;new&quot; value from the specified entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected object ExtractNewValue(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry to extract the &quot;new&quot; value from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The extracted &quot;new&quot; value, or NO_VALUE if the extraction failed</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_ExtractOldValue_Tangosol_Net_Cache_CacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.ExtractOldValue(Tangosol.Net.Cache.CacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L308">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_ExtractOldValue_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.ExtractOldValue*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_ExtractOldValue_Tangosol_Net_Cache_CacheEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.ExtractOldValue(Tangosol.Net.Cache.CacheEntry)">ExtractOldValue(CacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Extract the &quot;old&quot; value from the specified entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected object ExtractOldValue(CacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEntry.html">CacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry to extract the &quot;old&quot; value from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The extracted &quot;old&quot; value, or NO_VALUE if the extraction failed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_Get_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.Get(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L189">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_Get_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Get*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_Get_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Get(System.Object)">Get(Object)</h4>
+  <div class="markdown level1 summary"><p>Using the index information if possible, get the value associated
+with the specified key. This is expected to be more efficient than
+using the IValueExtractor against an object containing the value,
+because the index should already have the necessary information at
+hand.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Get(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key that specifies the object to extract the value from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value that would be extracted by this ICacheIndex's
+IValueExtractor from the object specified by the passed key;
+<a class="xref" href="Tangosol.Util.ObjectUtils.html#Tangosol_Util_ObjectUtils_NO_VALUE">NO_VALUE</a> if the index does not have the
+necessary information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_GetForwardValue_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.GetForwardValue(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L252">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_GetForwardValue_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.GetForwardValue*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_GetForwardValue_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.GetForwardValue(System.Object)">GetForwardValue(Object)</h4>
+  <div class="markdown level1 summary"><p>Get the forward index value associated with the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual object GetForwardValue(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The value associated with the key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_GetHashCode.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.GetHashCode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L841">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_GetHashCode_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.GetHashCode*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_GetHashCode" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.GetHashCode">GetHashCode()</h4>
+  <div class="markdown level1 summary"><p>Returns a hash code for this object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>A hash code for this object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.GetHashCode()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_Initialize_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.Initialize(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L240">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_Initialize_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Initialize*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_Initialize_System_Boolean_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Initialize(System.Boolean)">Initialize(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Initialize the index's data structures.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void Initialize(bool forwardIndex)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">forwardIndex</span></td>
+        <td><p><strong>true</strong> If forward index is supported; <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_Insert_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.Insert(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L200">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_Insert_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Insert*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_Insert_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Insert(Tangosol.Net.Cache.ICacheEntry)">Insert(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a insert operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Insert(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being inserted.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_InsertInternal_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.InsertInternal(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L394">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_InsertInternal_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.InsertInternal*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_InsertInternal_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.InsertInternal(Tangosol.Net.Cache.ICacheEntry)">InsertInternal(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a insert operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void InsertInternal(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being inserted.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_InstantiateForwardIndex.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.InstantiateForwardIndex%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L357">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_InstantiateForwardIndex_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.InstantiateForwardIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_InstantiateForwardIndex" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.InstantiateForwardIndex">InstantiateForwardIndex()</h4>
+  <div class="markdown level1 summary"><p>Instantiate the forward index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IDictionary InstantiateForwardIndex()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>The forward index.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_InstatiateInverseIndex_System_Boolean_System_Collections_IComparer_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.InstatiateInverseIndex(System.Boolean%2CSystem.Collections.IComparer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L375">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_InstatiateInverseIndex_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.InstatiateInverseIndex*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_InstatiateInverseIndex_System_Boolean_System_Collections_IComparer_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.InstatiateInverseIndex(System.Boolean,System.Collections.IComparer)">InstatiateInverseIndex(Boolean, IComparer)</h4>
+  <div class="markdown level1 summary"><p>Instantiate the inverse index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual IDictionary InstatiateInverseIndex(bool ordered, IComparer comparer)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">ordered</span></td>
+        <td><p><strong>true</strong> iff the contents of the indexed information should be
+ordered; false otherwise.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.IComparer</span></td>
+        <td><span class="parametername">comparer</span></td>
+        <td><p>The IComparator object which imposes an ordering on entries in the
+index; or <tt>null</tt> if the entries' values natural ordering
+should be used.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>The inverse index.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_IsKeyExcluded_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.IsKeyExcluded(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L779">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_IsKeyExcluded_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IsKeyExcluded*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_IsKeyExcluded_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.IsKeyExcluded(System.Object)">IsKeyExcluded(Object)</h4>
+  <div class="markdown level1 summary"><p>Check if the entry with the given key is excluded from the index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool IsKeyExcluded(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to test</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>True if the key is in the list of keys currently excluded from
+the index, false if the entry with the key is in the index.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_LogMissingIdx_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.LogMissingIdx(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L708">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_LogMissingIdx_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.LogMissingIdx*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_LogMissingIdx_System_Object_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.LogMissingIdx(System.Object,System.Object)">LogMissingIdx(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Log messages for missing inverse index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void LogMissingIdx(object value, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>the indexed value</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>the key</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_RemoveForwardEntry_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.RemoveForwardEntry(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L265">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_RemoveForwardEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.RemoveForwardEntry*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_RemoveForwardEntry_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.RemoveForwardEntry(System.Object)">RemoveForwardEntry(Object)</h4>
+  <div class="markdown level1 summary"><p>Remove the forward index entry for the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void RemoveForwardEntry(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key to remove the forward index entry for.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Collections_IDictionary_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping(System.Collections.IDictionary%2CSystem.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L649">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Collections_IDictionary_System_Object_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping(System.Collections.IDictionary,System.Object,System.Object)">RemoveInverseMapping(IDictionary, Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Remove the mapping from the given indexed value to the given key
+from the supplied index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void RemoveInverseMapping(IDictionary index, object value, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">index</span></td>
+        <td><p>the index from which to remove the
+mapping</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>the indexed value</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>the key</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L636">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Object_System_Object_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping(System.Object,System.Object)">RemoveInverseMapping(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Remove the mapping from the given indexed value to the given key
+from the inverse index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void RemoveInverseMapping(object value, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The indexed value, or NO_VALUE if unknown.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Object_System_Object_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping(System.Object%2CSystem.Object%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L606">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_RemoveInverseMapping_System_Object_System_Object_System_Collections_ICollection_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.RemoveInverseMapping(System.Object,System.Object,System.Collections.ICollection)">RemoveInverseMapping(Object, Object, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Remove the mapping from the given indexed value to the given key
+from the inverse index.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void RemoveInverseMapping(object value, object key, ICollection colIgnore)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The indexed value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">colIgnore</span></td>
+        <td><p>The Collection of values to ignore (exclude from removal), or null.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L858">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_ToString_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.ToString*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_ToString" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Returns string representation of this instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>String representation of this instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_Update_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.Update(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L211">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_Update_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Update*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_Update_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.Update(Tangosol.Net.Cache.ICacheEntry)">Update(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a update operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Update(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being updated.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_UpdateExcludedKeys_Tangosol_Net_Cache_ICacheEntry_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.UpdateExcludedKeys(Tangosol.Net.Cache.ICacheEntry%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L754">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_UpdateExcludedKeys_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.UpdateExcludedKeys*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_UpdateExcludedKeys_Tangosol_Net_Cache_ICacheEntry_System_Boolean_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.UpdateExcludedKeys(Tangosol.Net.Cache.ICacheEntry,System.Boolean)">UpdateExcludedKeys(ICacheEntry, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Check the entry against the set of entries not included in the
+index and update the set if necessary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void UpdateExcludedKeys(ICacheEntry entry, bool excluded)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry to be checked.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">excluded</span></td>
+        <td><p>True if the insert or update of the entry into the index caused
+an exception.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex_UpdateInternal_Tangosol_Net_Cache_ICacheEntry_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex.UpdateInternal(Tangosol.Net.Cache.ICacheEntry)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L426">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_SimpleCacheIndex_UpdateInternal_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.UpdateInternal*"></a>
+  <h4 id="Tangosol_Net_Cache_SimpleCacheIndex_UpdateInternal_Tangosol_Net_Cache_ICacheEntry_" data-uid="Tangosol.Net.Cache.SimpleCacheIndex.UpdateInternal(Tangosol.Net.Cache.ICacheEntry)">UpdateInternal(ICacheEntry)</h4>
+  <div class="markdown level1 summary"><p>Update this index in response to a update operation on a cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void UpdateInternal(ICacheEntry entry)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a></td>
+        <td><span class="parametername">entry</span></td>
+        <td><p>The entry representing the object being updated.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICacheIndex.html">ICacheIndex</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_SimpleCacheIndex.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.SimpleCacheIndex%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/SimpleCacheIndex.cs/#L26" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

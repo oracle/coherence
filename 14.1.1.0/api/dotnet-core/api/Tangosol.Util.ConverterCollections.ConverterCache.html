@@ -1,0 +1,966 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ConverterCollections.ConverterCache
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ConverterCollections.ConverterCache
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Util.ConverterCollections.ConverterCache">
+  
+  
+  <h1 id="Tangosol_Util_ConverterCollections_ConverterCache" data-uid="Tangosol.Util.ConverterCollections.ConverterCache" class="text-break">Class ConverterCollections.ConverterCache
+  </h1>
+  <div class="markdown level0 summary"><p>A Converter Cache views an underlying <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>
+through a set of key and value <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a>s.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html">ConverterCollections.ConverterDictionary</a></div>
+    <div class="level2"><span class="xref">ConverterCollections.ConverterCache</span></div>
+      <div class="level3"><a class="xref" href="Tangosol.Util.ConverterCollections.ConverterConcurrentCache.html">ConverterCollections.ConverterConcurrentCache</a></div>
+      <div class="level3"><a class="xref" href="Tangosol.Util.ConverterCollections.ConverterInvocableCache.html">ConverterCollections.ConverterInvocableCache</a></div>
+      <div class="level3"><a class="xref" href="Tangosol.Util.ConverterCollections.ConverterNamedCache.html">ConverterCollections.ConverterNamedCache</a></div>
+      <div class="level3"><a class="xref" href="Tangosol.Util.ConverterCollections.ConverterObservableCache.html">ConverterCollections.ConverterObservableCache</a></div>
+      <div class="level3"><a class="xref" href="Tangosol.Util.ConverterCollections.ConverterQueryCache.html">ConverterCollections.ConverterQueryCache</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a></div>
+    <div><span class="xref">System.Collections.IDictionary</span></div>
+    <div><span class="xref">System.Collections.ICollection</span></div>
+    <div><span class="xref">System.Collections.IEnumerable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Dictionary">ConverterCollections.ConverterDictionary.Dictionary</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_ConverterKeyUp">ConverterCollections.ConverterDictionary.ConverterKeyUp</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_ConverterKeyDown">ConverterCollections.ConverterDictionary.ConverterKeyDown</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_ConverterValueUp">ConverterCollections.ConverterDictionary.ConverterValueUp</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_ConverterValueDown">ConverterCollections.ConverterDictionary.ConverterValueDown</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Contains_System_Object_">ConverterCollections.ConverterDictionary.Contains(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Add_System_Object_System_Object_">ConverterCollections.ConverterDictionary.Add(Object, Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Clear">ConverterCollections.ConverterDictionary.Clear()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Remove_System_Object_">ConverterCollections.ConverterDictionary.Remove(Object)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Item_System_Object_">ConverterCollections.ConverterDictionary.Item[Object]</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Keys">ConverterCollections.ConverterDictionary.Keys</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Values">ConverterCollections.ConverterDictionary.Values</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_IsReadOnly">ConverterCollections.ConverterDictionary.IsReadOnly</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_IsFixedSize">ConverterCollections.ConverterDictionary.IsFixedSize</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_CopyTo_System_Array_System_Int32_">ConverterCollections.ConverterDictionary.CopyTo(Array, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_Count">ConverterCollections.ConverterDictionary.Count</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_SyncRoot">ConverterCollections.ConverterDictionary.SyncRoot</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_IsSynchronized">ConverterCollections.ConverterDictionary.IsSynchronized</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_System_Collections_IEnumerable_GetEnumerator">ConverterCollections.ConverterDictionary.IEnumerable.GetEnumerator()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_InstantiateCollection_System_Collections_ICollection_Tangosol_Util_IConverter_Tangosol_Util_IConverter_">ConverterCollections.ConverterDictionary.InstantiateCollection(ICollection, IConverter, IConverter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_InstantiateDictionary_System_Collections_IDictionary_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_">ConverterCollections.ConverterDictionary.InstantiateDictionary(IDictionary, IConverter, IConverter, IConverter, IConverter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_InstantiateDictionaryEnumerator_System_Collections_IDictionaryEnumerator_Tangosol_Util_IConverter_Tangosol_Util_IConverter_">ConverterCollections.ConverterDictionary.InstantiateDictionaryEnumerator(IDictionaryEnumerator, IConverter, IConverter)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_ToString">ConverterCollections.ConverterDictionary.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_m_dictionary">ConverterCollections.ConverterDictionary.m_dictionary</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_m_convKeyUp">ConverterCollections.ConverterDictionary.m_convKeyUp</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_m_convKeyDown">ConverterCollections.ConverterDictionary.m_convKeyDown</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_m_convValUp">ConverterCollections.ConverterDictionary.m_convValUp</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_m_convValDown">ConverterCollections.ConverterDictionary.m_convValDown</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Util.html">Tangosol.Util</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Util_ConverterCollections_ConverterCache_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class ConverterCache : ConverterCollections.ConverterDictionary, ICache, IDictionary, ICollection, IEnumerable</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache__ctor_Tangosol_Net_Cache_ICache_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.%23ctor(Tangosol.Net.Cache.ICache%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1866">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache__ctor_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.#ctor*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache__ctor_Tangosol_Net_Cache_ICache_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.#ctor(Tangosol.Net.Cache.ICache,Tangosol.Util.IConverter,Tangosol.Util.IConverter,Tangosol.Util.IConverter,Tangosol.Util.IConverter)">ConverterCache(ICache, IConverter, IConverter, IConverter, IConverter)</h4>
+  <div class="markdown level1 summary"><p>Constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ConverterCache(ICache cache, IConverter convKeyUp, IConverter convKeyDown, IConverter convValUp, IConverter convValDown)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a></td>
+        <td><span class="parametername">cache</span></td>
+        <td><p>The underlying <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convKeyUp</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> to view the underlying cache's
+keys through.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convKeyDown</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> to use to pass keys down to the
+underlying cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convValUp</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> to view the underlying cache's
+values through.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convValDown</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> to use to pass values down to
+the underlying cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_m_entries.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.m_entries%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L2143">View Source</a>
+  </span>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_m_entries" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.m_entries">m_entries</h4>
+  <div class="markdown level1 summary"><p>The entry collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected ICollection m_entries</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_Cache.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.Cache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1835">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_Cache_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Cache*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_Cache" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Cache">Cache</h4>
+  <div class="markdown level1 summary"><p>The underlying <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICache Cache { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a></td>
+        <td><p>The underlying <strong>ICache</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_Entries.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.Entries%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L2032">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_Entries_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Entries*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_Entries" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Entries">Entries</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of <a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a> instances
+within the cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Entries { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_GetAll_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.GetAll(System.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1912">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_GetAll_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.GetAll*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_GetAll_System_Collections_ICollection_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.GetAll(System.Collections.ICollection)">GetAll(ICollection)</h4>
+  <div class="markdown level1 summary"><p>Get the values for all the specified keys, if they are in the
+cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary GetAll(ICollection keys)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">keys</span></td>
+        <td><p>A collection of keys that may be in the named cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>A dictionary of keys to values for the specified keys passed
+in <code data-dev-comment-type="paramref" class="paramref">keys</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ConverterCollections_ConverterCache_GetAll_System_Collections_ICollection__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+For each key that is in the cache, that key and its
+corresponding value will be placed in the dictionary that is
+returned by this method. The absence of a key in the returned
+dictionary indicates that it was not in the cache, which may
+imply (for caches that can load behind the scenes) that the
+requested data could not be loaded.</p>
+<p>
+The result of this method is defined to be semantically the
+same as the following implementation, without regards to
+threading issues:</p>
+<pre>
+IDictionary dict = new AnyDictionary();
+// could be a Hashtable (but does not have to)
+foreach (object key in colKeys)
+{
+    object value = this[key];
+    if (value != null || Contains(key))
+    {
+        dict[key] = value;
+    }
+}
+return dict;
+</pre>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L2065">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_GetEnumerator_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_GetEnumerator" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.GetEnumerator">GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an <span class="xref">System.Collections.IDictionaryEnumerator</span> object for the
+dictionary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IDictionaryEnumerator GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionaryEnumerator</span></td>
+        <td><p>An <strong>IDictionaryEnumerator</strong> for the dictionary.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Tangosol.Util.ConverterCollections.ConverterDictionary.html#Tangosol_Util_ConverterCollections_ConverterDictionary_GetEnumerator">ConverterCollections.ConverterDictionary.GetEnumerator()</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_Insert_System_Object_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.Insert(System.Object%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1950">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_Insert_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Insert*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_Insert_System_Object_System_Object_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Insert(System.Object,System.Object)">Insert(Object, Object)</h4>
+  <div class="markdown level1 summary"><p>Associates the specified value with the specified key in this
+cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Insert(object key, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key with which the specified value is to be associated.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value to be associated with the specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>Previous value associated with specified key, or <code>null</code>
+if there was no mapping for key. A <code>null</code> return can
+also indicate that the dictionary previously associated
+<code>null</code> with the specified key, if the implementation
+supports <code>null</code> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ConverterCollections_ConverterCache_Insert_System_Object_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+If the cache previously contained a mapping for this key, the
+old value is replaced.</p>
+<p>
+Invoking this method is equivalent to the following call:
+<pre>
+Insert(key, value, CacheExpiration.Default);
+</pre></p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_Insert_System_Object_System_Object_System_Int64_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.Insert(System.Object%2CSystem.Object%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1995">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_Insert_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Insert*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_Insert_System_Object_System_Object_System_Int64_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Insert(System.Object,System.Object,System.Int64)">Insert(Object, Object, Int64)</h4>
+  <div class="markdown level1 summary"><p>Associates the specified value with the specified key in this
+cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object Insert(object key, object value, long millis)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key with which the specified value is to be associated.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>Value to be associated with the specified key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">millis</span></td>
+        <td><p>The number of milliseconds until the cache entry will expire,
+also referred to as the entry's &quot;time to live&quot;; pass
+<a class="xref" href="Tangosol.Net.Cache.CacheExpiration.html#Tangosol_Net_Cache_CacheExpiration_DEFAULT">DEFAULT</a> to use the cache's
+default time-to-live setting; pass
+<a class="xref" href="Tangosol.Net.Cache.CacheExpiration.html#Tangosol_Net_Cache_CacheExpiration_NEVER">NEVER</a> to indicate that the
+cache entry should never expire; this milliseconds value is
+<strong>not</strong> a date/time value, but the amount of time object
+will be kept in the cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>Previous value associated with specified key, or <code>null</code>
+if there was no mapping for key. A <code>null</code> return can
+also indicate that the cache previously associated
+<code>null</code> with the specified key, if the implementation
+supports <code>null</code> values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ConverterCollections_ConverterCache_Insert_System_Object_System_Object_System_Int64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+If the cache previously contained a mapping for this key, the
+old value is replaced.</p>
+This variation of the <a class="xref" href="Tangosol.Util.ConverterCollections.ConverterCache.html#Tangosol_Util_ConverterCollections_ConverterCache_Insert_System_Object_System_Object_">Insert(Object, Object)</a>
+method allows the caller to specify an expiry (or &quot;time to
+live&quot;) for the cache entry.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>If the requested expiry is a positive value and the
+implementation does not support expiry of cache entries.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_InsertAll_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.InsertAll(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L2023">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_InsertAll_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.InsertAll*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_InsertAll_System_Collections_IDictionary_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.InsertAll(System.Collections.IDictionary)">InsertAll(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Copies all of the mappings from the specified dictionary to this
+cache (optional operation).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void InsertAll(IDictionary dictionary)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">dictionary</span></td>
+        <td><p>Mappings to be stored in this cache.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Util_ConverterCollections_ConverterCache_InsertAll_System_Collections_IDictionary__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>These mappings will replace any mappings that this cache had for
+any of the keys currently in the specified dictionary.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If the class of a key or value in the specified dictionary
+prevents it from being stored in this cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>If the lock could not be succesfully obtained for some key.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.NullReferenceException</span></td>
+        <td><p>This cache does not permit <code>null</code> keys or values, and the
+specified key or value is <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_InstantiateCacheEnumerator_Tangosol_Net_Cache_ICacheEnumerator_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.InstantiateCacheEnumerator(Tangosol.Net.Cache.ICacheEnumerator%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L2129">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_InstantiateCacheEnumerator_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.InstantiateCacheEnumerator*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_InstantiateCacheEnumerator_Tangosol_Net_Cache_ICacheEnumerator_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.InstantiateCacheEnumerator(Tangosol.Net.Cache.ICacheEnumerator,Tangosol.Util.IConverter,Tangosol.Util.IConverter,Tangosol.Util.IConverter)">InstantiateCacheEnumerator(ICacheEnumerator, IConverter, IConverter, IConverter)</h4>
+  <div class="markdown level1 summary"><p>Returns an instance of <a class="xref" href="Tangosol.Net.Cache.ICacheEnumerator.html">ICacheEnumerator</a> that
+uses <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a>s to view an underlying
+enumerator.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual ICacheEnumerator InstantiateCacheEnumerator(ICacheEnumerator enumerator, IConverter convKeyUp, IConverter convValUp, IConverter convValDown)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEnumerator.html">ICacheEnumerator</a></td>
+        <td><span class="parametername">enumerator</span></td>
+        <td><p>The underlying <strong>ICacheEnumerator</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convKeyUp</span></td>
+        <td><p>The <strong>IConverter</strong> to view the underlying
+<strong>ICacheEnumerator</strong> keys through.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convValUp</span></td>
+        <td><p>The <strong>IConverter</strong> to view the underlying
+<strong>ICacheEnumerator</strong> values through.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convValDown</span></td>
+        <td><p>The <strong>IConverter</strong> to change the underlying
+<strong>ICacheEnumerator</strong> values through.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEnumerator.html">ICacheEnumerator</a></td>
+        <td><p>An <a class="xref" href="Tangosol.Net.Cache.ICacheEnumerator.html">ICacheEnumerator</a> that views the passed
+enumerator through the specified <strong>IConverter</strong>s.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_InstantiateEntries_System_Collections_ICollection_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.InstantiateEntries(System.Collections.ICollection%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L2099">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_InstantiateEntries_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.InstantiateEntries*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_InstantiateEntries_System_Collections_ICollection_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_Tangosol_Util_IConverter_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.InstantiateEntries(System.Collections.ICollection,Tangosol.Util.IConverter,Tangosol.Util.IConverter,Tangosol.Util.IConverter,Tangosol.Util.IConverter)">InstantiateEntries(ICollection, IConverter, IConverter, IConverter, IConverter)</h4>
+  <div class="markdown level1 summary"><p>Create a Converter Entry collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual ConverterCollections.ConverterCacheEntries InstantiateEntries(ICollection col, IConverter convKeyUp, IConverter convKeyDown, IConverter convValUp, IConverter convValDown)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">col</span></td>
+        <td><p>The underlying collection of entries.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convKeyUp</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> to view the underlying cache's
+entry keys through.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convKeyDown</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> to use to pass keys down to the
+underlying cache's entry collection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convValUp</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> to view the underlying cache's
+entry values through.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convValDown</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a> to use to pass values down to
+the underlying cache's entry collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ConverterCollections.ConverterCacheEntries.html">ConverterCollections.ConverterCacheEntries</a></td>
+        <td><p>A Converter Entry collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache_Tangosol_Net_Cache_ICache_GetEnumerator.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache.Tangosol%23Net%23Cache%23ICache%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L2052">View Source</a>
+  </span>
+  <a id="Tangosol_Util_ConverterCollections_ConverterCache_Tangosol_Net_Cache_ICache_GetEnumerator_" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Tangosol#Net#Cache#ICache#GetEnumerator*"></a>
+  <h4 id="Tangosol_Util_ConverterCollections_ConverterCache_Tangosol_Net_Cache_ICache_GetEnumerator" data-uid="Tangosol.Util.ConverterCollections.ConverterCache.Tangosol#Net#Cache#ICache#GetEnumerator">ICache.GetEnumerator()</h4>
+  <div class="markdown level1 summary"><p>Returns an <a class="xref" href="Tangosol.Net.Cache.ICacheEnumerator.html">ICacheEnumerator</a> object for the
+<strong>ICache</strong> instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ICacheEnumerator ICache.GetEnumerator()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheEnumerator.html">ICacheEnumerator</a></td>
+        <td><p>An <strong>ICacheEnumerator</strong> object for the
+<strong>ICache</strong> instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.Cache.ICache.html">ICache</a>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IDictionary</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.ICollection</span>
+  </div>
+  <div>
+      <span class="xref">System.Collections.IEnumerable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Util_ConverterCollections_ConverterCache.md&amp;value=---%0Auid%3A%20Tangosol.Util.ConverterCollections.ConverterCache%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Util/ConverterCollections.cs/#L1824" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

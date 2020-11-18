@@ -1,0 +1,490 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SafeInvocationService
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SafeInvocationService
+   ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Impl.SafeInvocationService">
+  
+  
+  <h1 id="Tangosol_Net_Impl_SafeInvocationService" data-uid="Tangosol.Net.Impl.SafeInvocationService" class="text-break">Class SafeInvocationService
+  </h1>
+  <div class="markdown level0 summary"><p>&quot;Safe&quot; wrapper for Remote Invocation service.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Tangosol.Net.Impl.SafeService.html">SafeService</a></div>
+    <div class="level2"><span class="xref">SafeInvocationService</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.Net.IInvocationService.html">IInvocationService</a></div>
+    <div><a class="xref" href="Tangosol.Net.IService.html">IService</a></div>
+    <div><a class="xref" href="Tangosol.Util.IService.html">IService</a></div>
+    <div><a class="xref" href="Tangosol.Util.IControllable.html">IControllable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Config">SafeService.Config</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_OperationalContext">SafeService.OperationalContext</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_RunningService">SafeService.RunningService</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_SafeServiceState">SafeService.SafeServiceState</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Service">SafeService.Service</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_ServiceName">SafeService.ServiceName</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_ServiceType">SafeService.ServiceType</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_IsRunning">SafeService.IsRunning</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Principal">SafeService.Principal</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Info">SafeService.Info</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_UserContext">SafeService.UserContext</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Serializer">SafeService.Serializer</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_MemberJoined">SafeService.MemberJoined</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_MemberLeaving">SafeService.MemberLeaving</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_MemberLeft">SafeService.MemberLeft</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_ServiceStarting">SafeService.ServiceStarting</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_ServiceStarted">SafeService.ServiceStarted</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_ServiceStopping">SafeService.ServiceStopping</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_ServiceStopped">SafeService.ServiceStopped</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Configure_Tangosol_Run_Xml_IXmlElement_">SafeService.Configure(IXmlElement)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Start">SafeService.Start()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Shutdown">SafeService.Shutdown()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Stop">SafeService.Stop()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_OnMemberJoined_System_Object_Tangosol_Net_MemberEventArgs_">SafeService.OnMemberJoined(Object, MemberEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_OnMemberLeaving_System_Object_Tangosol_Net_MemberEventArgs_">SafeService.OnMemberLeaving(Object, MemberEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_OnMemberLeft_System_Object_Tangosol_Net_MemberEventArgs_">SafeService.OnMemberLeft(Object, MemberEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_OnServiceStarting_System_Object_Tangosol_Util_ServiceEventArgs_">SafeService.OnServiceStarting(Object, ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_OnServiceStarted_System_Object_Tangosol_Util_ServiceEventArgs_">SafeService.OnServiceStarted(Object, ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_OnServiceStopping_System_Object_Tangosol_Util_ServiceEventArgs_">SafeService.OnServiceStopping(Object, ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_OnServiceStopped_System_Object_Tangosol_Util_ServiceEventArgs_">SafeService.OnServiceStopped(Object, ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_EnsureRunningService_System_Boolean_">SafeService.EnsureRunningService(Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_DrainEvents">SafeService.DrainEvents()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_Cleanup">SafeService.Cleanup()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_RestartService">SafeService.RestartService()</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_StartService_Tangosol_Util_IService_">SafeService.StartService(IService)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_TranslateEvent_Tangosol_Net_MemberEventArgs_">SafeService.TranslateEvent(MemberEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_TranslateEvent_Tangosol_Util_ServiceEventArgs_">SafeService.TranslateEvent(ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_DispatchMemberEvent_Tangosol_Net_MemberEventArgs_">SafeService.DispatchMemberEvent(MemberEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_DispatchServiceEvent_Tangosol_Util_ServiceEventArgs_">SafeService.DispatchServiceEvent(ServiceEventArgs)</a>
+    </div>
+    <div>
+      <a class="xref" href="Tangosol.Net.Impl.SafeService.html#Tangosol_Net_Impl_SafeService_ToString">SafeService.ToString()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Impl.html">Tangosol.Net.Impl</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Impl_SafeInvocationService_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SafeInvocationService : SafeService, IInvocationService, IService, IService, IControllable</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeInvocationService__ctor.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeInvocationService.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeInvocationService.cs/#L38">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeInvocationService__ctor_" data-uid="Tangosol.Net.Impl.SafeInvocationService.#ctor*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeInvocationService__ctor" data-uid="Tangosol.Net.Impl.SafeInvocationService.#ctor">SafeInvocationService()</h4>
+  <div class="markdown level1 summary"><p>Default constructor.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SafeInvocationService()</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeInvocationService_RunningInvocationService.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeInvocationService.RunningInvocationService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeInvocationService.cs/#L26">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeInvocationService_RunningInvocationService_" data-uid="Tangosol.Net.Impl.SafeInvocationService.RunningInvocationService*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeInvocationService_RunningInvocationService" data-uid="Tangosol.Net.Impl.SafeInvocationService.RunningInvocationService">RunningInvocationService</h4>
+  <div class="markdown level1 summary"><p>Calculated property that returns the running wrapped
+<strong>IInvocationService</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IInvocationService RunningInvocationService { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.IInvocationService.html">IInvocationService</a></td>
+        <td><p>The wrapped <strong>IInvocationService</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeInvocationService_EnsureRunningInvocationService_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeInvocationService.EnsureRunningInvocationService(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeInvocationService.cs/#L124">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeInvocationService_EnsureRunningInvocationService_" data-uid="Tangosol.Net.Impl.SafeInvocationService.EnsureRunningInvocationService*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeInvocationService_EnsureRunningInvocationService_System_Boolean_" data-uid="Tangosol.Net.Impl.SafeInvocationService.EnsureRunningInvocationService(System.Boolean)">EnsureRunningInvocationService(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Return the wrapped <strong>IInvocationService</strong>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IInvocationService EnsureRunningInvocationService(bool drain)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">drain</span></td>
+        <td><p>If true and the wrapped <strong>IInvocationService</strong> is restarted,
+the calling thread will be blocked until the wrapped
+<strong>IInvocationService</strong> event dispatcher queue is empty and all
+outstanding tasks have been executed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.IInvocationService.html">IInvocationService</a></td>
+        <td><p>The running wrapped <strong>IInvocationService</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeInvocationService_EnsureRunningInvocationService_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method ensures that the returned <strong>IInvocationService</strong> is
+running before returning it. If the <strong>IInvocationService</strong> is
+not running and has not been explicitly stopped, the
+<strong>IInvocationService</strong> is restarted.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeInvocationService_Query_Tangosol_Net_IInvocable_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeInvocationService.Query(Tangosol.Net.IInvocable%2CSystem.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeInvocationService.cs/#L97">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Impl_SafeInvocationService_Query_" data-uid="Tangosol.Net.Impl.SafeInvocationService.Query*"></a>
+  <h4 id="Tangosol_Net_Impl_SafeInvocationService_Query_Tangosol_Net_IInvocable_System_Collections_ICollection_" data-uid="Tangosol.Net.Impl.SafeInvocationService.Query(Tangosol.Net.IInvocable,System.Collections.ICollection)">Query(IInvocable, ICollection)</h4>
+  <div class="markdown level1 summary"><p>Synchronously invoke the specified task on each of the specified
+members.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IDictionary Query(IInvocable task, ICollection col)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.IInvocable.html">IInvocable</a></td>
+        <td><span class="parametername">task</span></td>
+        <td><p>The <strong>IInvocable</strong> object to distribute to the specified
+members in order to be invoked on those members.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">col</span></td>
+        <td><p>Optional collection of cluster members to which the
+<strong>IInvocable</strong> object will be distributed; if <code>null</code>, the
+<strong>IInvocable</strong> object will be distributed to all cluster
+members that are running this service.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>An <strong>IDictionary</strong> of result objects keyed by <a class="xref" href="Tangosol.Net.IMember.html">IMember</a>
+object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Impl_SafeInvocationService_Query_Tangosol_Net_IInvocable_System_Collections_ICollection__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>
+This method will not return until the specified members have
+completed their processing, failed in their processing, or died
+trying.</p>
+<p>
+<strong>IMember</strong>s that are specified but are not currently running
+the <strong>IInvocationService</strong> will not invoke the specified
+<a class="xref" href="Tangosol.Net.IInvocable.html">IInvocable</a> object.</p>
+<p>
+<strong>IMember</strong>s that leave (gracefully or otherwise) before the
+invocation completes will not register a result, and the amount
+of processing that completed is indeterminate. <strong>IMember</strong>s
+that encounter an exception during invocation will not be
+retried; whatever result has been registered by that point by
+that member for that <strong>IInvocable</strong> object will be returned.
+Specifically, the result for a given member will be null under
+the following conditions:</p>
+<ul><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+</div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.Net.IInvocationService.html">IInvocationService</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Net.IService.html">IService</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IService.html">IService</a>
+  </div>
+  <div>
+      <a class="xref" href="Tangosol.Util.IControllable.html">IControllable</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Impl_SafeInvocationService.md&amp;value=---%0Auid%3A%20Tangosol.Net.Impl.SafeInvocationService%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Impl/SafeInvocationService.cs/#L15" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

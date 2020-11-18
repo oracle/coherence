@@ -1,0 +1,1942 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class CacheListenerSupport
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class CacheListenerSupport
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport">
+  
+  
+  <h1 id="Tangosol_Net_Cache_Support_CacheListenerSupport" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport" class="text-break">Class CacheListenerSupport
+  </h1>
+  <div class="markdown level0 summary"><p>This class provides support for advanced
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> functionality.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">CacheListenerSupport</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.Net.Cache.Support.html">Tangosol.Net.Cache.Support</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class CacheListenerSupport</code></pre>
+  </div>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_m_cachedListeners.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.m_cachedListeners%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1385">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_m_cachedListeners" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.m_cachedListeners">m_cachedListeners</h4>
+  <div class="markdown level1 summary"><p>A cached list of Listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected Listeners m_cachedListeners</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheKeyListeners.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.m_cacheKeyListeners%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1356">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheKeyListeners" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.m_cacheKeyListeners">m_cacheKeyListeners</h4>
+  <div class="markdown level1 summary"><p>The collections of ICacheListener objects that have signed up for
+key based notifications from an IObservableCache implementation
+keyed by the corresponding key objects.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary m_cacheKeyListeners</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheListeners.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.m_cacheListeners%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1349">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheListeners" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.m_cacheListeners">m_cacheListeners</h4>
+  <div class="markdown level1 summary"><p>The collections of ICacheListener objects that have signed up for
+notifications from an IObservableCache implementation keyed by
+the corresponding IFilter objects.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary m_cacheListeners</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheStandardKeyListeners.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.m_cacheStandardKeyListeners%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1374">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheStandardKeyListeners" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.m_cacheStandardKeyListeners">m_cacheStandardKeyListeners</h4>
+  <div class="markdown level1 summary"><p>The subset of standard (not lite) key listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary m_cacheStandardKeyListeners</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheStandardKeyListeners_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The keys are the key objects, the values are collections of
+corresponding standard listeners.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheStandardListeners.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.m_cacheStandardListeners%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1365">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheStandardListeners" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.m_cacheStandardListeners">m_cacheStandardListeners</h4>
+  <div class="markdown level1 summary"><p>The subset of standard (not lite) global listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IDictionary m_cacheStandardListeners</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_m_cacheStandardListeners_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The keys are the IFilter objects, the values are collections of
+corresponding standard listeners.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_m_optimizationPlan.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.m_optimizationPlan%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1380">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_m_optimizationPlan" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.m_optimizationPlan">m_optimizationPlan</h4>
+  <div class="markdown level1 summary"><p>The optimization plan which indicates the fastest way to put
+together a list of listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected CacheListenerSupport.OptimizationPlan m_optimizationPlan</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.Support.CacheListenerSupport.OptimizationPlan.html">CacheListenerSupport.OptimizationPlan</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_NO_LISTENERS.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.NO_LISTENERS%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1394">View Source</a>
+  </span>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_NO_LISTENERS" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.NO_LISTENERS">NO_LISTENERS</h4>
+  <div class="markdown level1 summary"><p>An empty list of Listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected readonly Listeners NO_LISTENERS</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_NO_LISTENERS_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Because this is a theoretically mutable object that is used as a
+return value, it is purposefully not static.</p>
+</div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_Filters.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.Filters%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L39">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_Filters_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Filters*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Filters" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Filters">Filters</h4>
+  <div class="markdown level1 summary"><p>Obtain a collection of all <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> objects that
+have associated global listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Filters { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A collection of all filters that have associated global
+listeners.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Filters_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>Note</strong>: The returned value must be treated as an immutable.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_Keys.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.Keys%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L58">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_Keys_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Keys*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Keys" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Keys">Keys</h4>
+  <div class="markdown level1 summary"><p>Obtain a collection of all keys that have associated key
+listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection Keys { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>A collection of all keys that have associated key listeners.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Keys_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>Note</strong>: The returned value must be treated as an immutable.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_AddListener_Tangosol_Net_Cache_ICacheListener_System_Object_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.AddListener(Tangosol.Net.Cache.ICacheListener%2CSystem.Object%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L132">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddListener_Tangosol_Net_Cache_ICacheListener_System_Object_System_Boolean_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddListener(Tangosol.Net.Cache.ICacheListener,System.Object,System.Boolean)">AddListener(ICacheListener, Object, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Add a cache listener for a specific key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddListener(ICacheListener listener, object key, bool isLite)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key that identifies the <a class="xref" href="Tangosol.Net.Cache.ICacheEntry.html">ICacheEntry</a> for
+which to raise events.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isLite</span></td>
+        <td><p><strong>true</strong> to indicate that the <strong>CacheEventArgs</strong> objects
+do not have to include the <strong>OldValue</strong> and <strong>NewValue</strong>
+property values in order to allow optimizations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_AddListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.AddListener(Tangosol.Net.Cache.ICacheListener%2CTangosol.Util.IFilter%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L91">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_System_Boolean_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddListener(Tangosol.Net.Cache.ICacheListener,Tangosol.Util.IFilter,System.Boolean)">AddListener(ICacheListener, IFilter, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Add a cache listener that receives events based on a filter
+evaluation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void AddListener(ICacheListener listener, IFilter filter, bool isLite)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to add.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>An <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> that will be passed
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> objects to select from; a
+<strong>CacheEventArgs</strong> will be delivered to the listener only if
+the filter evaluates to <strong>true</strong> for that
+<strong>CacheEventArgs</strong>; <code>null</code> is equivalent to a filter
+that alway returns <strong>true</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isLite</span></td>
+        <td><p><strong>true</strong> to indicate that the <strong>CacheEventArgs</strong> objects
+do not have to include the <strong>OldValue</strong> and <strong>NewValue</strong>
+property values in order to allow optimizations.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_AddListenerState_System_Collections_IDictionary_System_Object_Tangosol_Net_Cache_ICacheListener_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.AddListenerState(System.Collections.IDictionary%2CSystem.Object%2CTangosol.Net.Cache.ICacheListener%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L376">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddListenerState_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddListenerState*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddListenerState_System_Collections_IDictionary_System_Object_Tangosol_Net_Cache_ICacheListener_System_Boolean_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddListenerState(System.Collections.IDictionary,System.Object,Tangosol.Net.Cache.ICacheListener,System.Boolean)">AddListenerState(IDictionary, Object, ICacheListener, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Add a state information (lite or standard) assosiated with
+specified key and listener.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static void AddListenerState(IDictionary cacheStandardListeners, object key, ICacheListener listener, bool isLite)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">cacheStandardListeners</span></td>
+        <td><p>Dictionary of cache listeners.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key that the specified listener should be associated to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>Cache listener.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isLite</span></td>
+        <td><p><strong>true</strong> if listener is &quot;lite&quot;, <strong>false</strong> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_AddSafeListener_System_Collections_IDictionary_System_Object_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.AddSafeListener(System.Collections.IDictionary%2CSystem.Object%2CTangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L293">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddSafeListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddSafeListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddSafeListener_System_Collections_IDictionary_System_Object_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddSafeListener(System.Collections.IDictionary,System.Object,Tangosol.Net.Cache.ICacheListener)">AddSafeListener(IDictionary, Object, ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Ensure that the specified cache has an
+<a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> object associated with the specified key
+and add the specified listener to it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static void AddSafeListener(IDictionary cacheListeners, object key, ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">cacheListeners</span></td>
+        <td><p>Dictionary of cache listeners.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key that specified listener should be associated to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>Listener to associate to specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_AddSafeListener_System_Collections_IDictionary_Tangosol_Util_IFilter_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.AddSafeListener(System.Collections.IDictionary%2CTangosol.Util.IFilter%2CTangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L319">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddSafeListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddSafeListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_AddSafeListener_System_Collections_IDictionary_Tangosol_Util_IFilter_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.AddSafeListener(System.Collections.IDictionary,Tangosol.Util.IFilter,Tangosol.Net.Cache.ICacheListener)">AddSafeListener(IDictionary, IFilter, ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Ensure that the specified cache has an
+<a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> object associated with the specified filter
+and add the specified listener to it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static void AddSafeListener(IDictionary cacheListeners, IFilter anyFilter, ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">cacheListeners</span></td>
+        <td><p>Dictionary of cache listeners.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">anyFilter</span></td>
+        <td><p>Filter that specified listener should be associated to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>Listener to associate to specified key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_Clear.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.Clear%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L427">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_Clear_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Clear*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Clear" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Clear">Clear()</h4>
+  <div class="markdown level1 summary"><p>Remove all signed up listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Clear()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_CollectListeners_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.CollectListeners(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L713">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_CollectListeners_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.CollectListeners*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_CollectListeners_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.CollectListeners(Tangosol.Net.Cache.CacheEventArgs)">CollectListeners(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Collect all <a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> that should be notified for a
+given event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Listeners CollectListeners(CacheEventArgs cacheEvent)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">cacheEvent</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td><p>The <strong>Listeners</strong> object containing the relevant listeners.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_CollectListeners_Tangosol_Net_Cache_CacheEventArgs__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>Note</strong>: The returned value must be treated as an immutable.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_ContainsStandardListeners_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.ContainsStandardListeners(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L526">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_ContainsStandardListeners_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ContainsStandardListeners*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_ContainsStandardListeners_System_Object_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ContainsStandardListeners(System.Object)">ContainsStandardListeners(Object)</h4>
+  <div class="markdown level1 summary"><p>Checks whether or not this CacheListenerSupport object
+contains any standard (not lite) listeners for a given key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool ContainsStandardListeners(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if there are no standard listeners for the specified
+filter encapsulated by this CacheListenerSupport object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_ContainsStandardListeners_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.ContainsStandardListeners(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L503">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_ContainsStandardListeners_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ContainsStandardListeners*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_ContainsStandardListeners_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ContainsStandardListeners(Tangosol.Util.IFilter)">ContainsStandardListeners(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Checks whether or not this CacheListenerSupport object
+contains any standard (not lite) listeners for a given filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool ContainsStandardListeners(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The filter.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if there are no standard listeners for the specified
+filter encapsulated by this CacheListenerSupport object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_ConvertEvent_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Net_Cache_IObservableCache_Tangosol_Util_IConverter_Tangosol_Util_IConverter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.ConvertEvent(Tangosol.Net.Cache.CacheEventArgs%2CTangosol.Net.Cache.IObservableCache%2CTangosol.Util.IConverter%2CTangosol.Util.IConverter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L937">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_ConvertEvent_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ConvertEvent*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_ConvertEvent_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Net_Cache_IObservableCache_Tangosol_Util_IConverter_Tangosol_Util_IConverter_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ConvertEvent(Tangosol.Net.Cache.CacheEventArgs,Tangosol.Net.Cache.IObservableCache,Tangosol.Util.IConverter,Tangosol.Util.IConverter)">ConvertEvent(CacheEventArgs, IObservableCache, IConverter, IConverter)</h4>
+  <div class="markdown level1 summary"><p>Convert the specified cache event into another
+<a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> that ensures the lazy event data
+conversion using the specified converters.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static CacheEventArgs ConvertEvent(CacheEventArgs evt, IObservableCache cacheConv, IConverter convKey, IConverter convVal)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The cache event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.IObservableCache.html">IObservableCache</a></td>
+        <td><span class="parametername">cacheConv</span></td>
+        <td><p>The source for the converted event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convKey</span></td>
+        <td><p>(Optional) the key <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a></td>
+        <td><span class="parametername">convVal</span></td>
+        <td><p>(Optional) the value <a class="xref" href="Tangosol.Util.IConverter.html">IConverter</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><p>The converted <strong>CacheEventArgs</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch(Tangosol.Net.Cache.CacheEventArgs%2CTangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L675">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch(Tangosol.Net.Cache.CacheEventArgs,Tangosol.Net.Cache.ICacheListener)">Dispatch(CacheEventArgs, ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Dispatch the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> to the specified
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Dispatch(CacheEventArgs evt, ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <strong>CacheEventArgs</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The listener.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Util_Listeners_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch(Tangosol.Net.Cache.CacheEventArgs%2CTangosol.Util.Listeners)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L612">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Util_Listeners_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch(Tangosol.Net.Cache.CacheEventArgs,Tangosol.Util.Listeners)">Dispatch(CacheEventArgs, Listeners)</h4>
+  <div class="markdown level1 summary"><p>Dispatch the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> to the specified
+<a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Dispatch(CacheEventArgs evt, Listeners listeners)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <strong>CacheEventArgs</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td><span class="parametername">listeners</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Util_Listeners__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This call is equivalent to</p>
+<pre>
+Dispatch(evt, listeners, true);
+</pre>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If any of the targets is not an instance of
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> interface.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Util_Listeners_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch(Tangosol.Net.Cache.CacheEventArgs%2CTangosol.Util.Listeners%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L637">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_Dispatch_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Util_Listeners_System_Boolean_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.Dispatch(Tangosol.Net.Cache.CacheEventArgs,Tangosol.Util.Listeners,System.Boolean)">Dispatch(CacheEventArgs, Listeners, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Dispatch the <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a> to the specified
+<a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> collection.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Dispatch(CacheEventArgs evt, Listeners listeners, bool isStrict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <strong>CacheEventArgs</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td><span class="parametername">listeners</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> collection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isStrict</span></td>
+        <td><p>If <strong>true</strong> then any <strong>Exception</strong> thrown by event
+handlers stops all further event processing and the exception is
+re-thrown; if <strong>false</strong> then all exceptions are logged and the
+process continues.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If any of the targets is not an instance of
+<a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> interface.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_EnrichEvent_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Util_Listeners_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.EnrichEvent(Tangosol.Net.Cache.CacheEventArgs%2CTangosol.Util.Listeners)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L965">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_EnrichEvent_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.EnrichEvent*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_EnrichEvent_Tangosol_Net_Cache_CacheEventArgs_Tangosol_Util_Listeners_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.EnrichEvent(Tangosol.Net.Cache.CacheEventArgs,Tangosol.Util.Listeners)">EnrichEvent(CacheEventArgs, Listeners)</h4>
+  <div class="markdown level1 summary"><p>Enrich the event with the filters associated with the listener.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static CacheEventArgs EnrichEvent(CacheEventArgs evt, Listeners listners)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The cache event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td><span class="parametername">listners</span></td>
+        <td><p>The Listeners object that has the associated filters.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><p>The enriched <strong>FilterEventArgs</strong> object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_EvaluateEvent_Tangosol_Util_IFilter_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.EvaluateEvent(Tangosol.Util.IFilter%2CTangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1057">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_EvaluateEvent_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.EvaluateEvent*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_EvaluateEvent_Tangosol_Util_IFilter_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.EvaluateEvent(Tangosol.Util.IFilter,Tangosol.Net.Cache.CacheEventArgs)">EvaluateEvent(IFilter, CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Evaluate whether or not the specified event should be delivered to the
+listener associated with the specified filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool EvaluateEvent(IFilter filter, CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The filter.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true iff the event should be delivered to the corresponding listener</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_FireEvent_Tangosol_Net_Cache_CacheEventArgs_System_Boolean_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.FireEvent(Tangosol.Net.Cache.CacheEventArgs%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L911">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_FireEvent_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.FireEvent*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_FireEvent_Tangosol_Net_Cache_CacheEventArgs_System_Boolean_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.FireEvent(Tangosol.Net.Cache.CacheEventArgs,System.Boolean)">FireEvent(CacheEventArgs, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Fire the specified cache event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void FireEvent(CacheEventArgs evt, bool isStrict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isStrict</span></td>
+        <td><p>If <strong>true</strong> then any <strong>Exception</strong> thrown by event
+handlers stops all further event processing and the exception
+is re-thrown; if <strong>false</strong> then all exceptions are logged and
+the process continues.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_GetListeners_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.GetListeners(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L576">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_GetListeners_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.GetListeners*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_GetListeners_System_Object_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.GetListeners(System.Object)">GetListeners(Object)</h4>
+  <div class="markdown level1 summary"><p>Obtain the <a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> object for a given key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Listeners GetListeners(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td><p>The <strong>Listeners</strong> object for the key; <code>null</code> if none
+exists.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_GetListeners_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>Note</strong>: The returned value must be treated as an immutable.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_GetListeners_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.GetListeners(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L551">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_GetListeners_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.GetListeners*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_GetListeners_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.GetListeners(Tangosol.Util.IFilter)">GetListeners(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Obtain the <a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a> object for a given filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Listeners GetListeners(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The filter.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a></td>
+        <td><p>The <strong>Listeners</strong> object for the filter; <code>null</code> if none
+exists.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_Net_Cache_Support_CacheListenerSupport_GetListeners_Tangosol_Util_IFilter__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>Note</strong>: The returned value must be treated as an immutable.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L453">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty">IsEmpty()</h4>
+  <div class="markdown level1 summary"><p>Checks whether or not this CacheListenerSupport object
+contains any listeners.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsEmpty()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if there are no listeners encapsulated by this
+CacheListenerSupport object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L486">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty_System_Object_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty(System.Object)">IsEmpty(Object)</h4>
+  <div class="markdown level1 summary"><p>Checks whether or not this CacheListenerSupport object
+contains any listeners for a given key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsEmpty(object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if there are no listeners for the specified filter
+encapsulated by this CacheListenerSupport object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty(Tangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L469">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsEmpty_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsEmpty(Tangosol.Util.IFilter)">IsEmpty(IFilter)</h4>
+  <div class="markdown level1 summary"><p>Checks whether or not this CacheListenerSupport object
+contains any listeners for a given filter.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsEmpty(IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><strong>true</strong> if there are no listeners for the specified filter
+encapsulated by this CacheListenerSupport object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_IsPrimingListener_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.IsPrimingListener(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1008">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsPrimingListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsPrimingListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsPrimingListener_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsPrimingListener(Tangosol.Net.Cache.ICacheListener)">IsPrimingListener(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Check if the given listener is a PrimingListener or if it wraps one.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsPrimingListener(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>Cache listener to check.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true iff the listener is a PrimingListener or wraps one.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_IsTransformedEvent_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.IsTransformedEvent(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1079">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsTransformedEvent_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsTransformedEvent*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_IsTransformedEvent_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.IsTransformedEvent(Tangosol.Net.Cache.CacheEventArgs)">IsTransformedEvent(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Return true iff the specified event represents a transformed CacheEvent.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool IsTransformedEvent(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The event to tests</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>true iff the event has been transformed</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListener_Tangosol_Net_Cache_ICacheListener_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListener(Tangosol.Net.Cache.ICacheListener%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L227">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListener_Tangosol_Net_Cache_ICacheListener_System_Object_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListener(Tangosol.Net.Cache.ICacheListener,System.Object)">RemoveListener(ICacheListener, Object)</h4>
+  <div class="markdown level1 summary"><p>Remove a cache listener that previously signed up for events
+about a specific key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveListener(ICacheListener listener, object key)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to remove.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>The key that identifies the entry for which to raise events.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListener(Tangosol.Net.Cache.ICacheListener%2CTangosol.Util.IFilter)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L185">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListener_Tangosol_Net_Cache_ICacheListener_Tangosol_Util_IFilter_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListener(Tangosol.Net.Cache.ICacheListener,Tangosol.Util.IFilter)">RemoveListener(ICacheListener, IFilter)</h4>
+  <div class="markdown level1 summary"><p>Remove a cache listener that previously signed up for events
+based on a filter evaluation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RemoveListener(ICacheListener listener, IFilter filter)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>The <a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a> to remove.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a></td>
+        <td><span class="parametername">filter</span></td>
+        <td><p>An <a class="xref" href="Tangosol.Util.IFilter.html">IFilter</a> used to evaluate events.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListenerState_System_Collections_IDictionary_System_Object_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListenerState(System.Collections.IDictionary%2CSystem.Object%2CTangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L411">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListenerState_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListenerState*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveListenerState_System_Collections_IDictionary_System_Object_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveListenerState(System.Collections.IDictionary,System.Object,Tangosol.Net.Cache.ICacheListener)">RemoveListenerState(IDictionary, Object, ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Remove a state information (lite or standard) associated with
+specified key and listener.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static void RemoveListenerState(IDictionary cacheStandardListeners, object key, ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">cacheStandardListeners</span></td>
+        <td><p>Dictionary of cache listeners.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key that the specified listener is associated to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>Cache listener.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveSafeListener_System_Collections_IDictionary_System_Object_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveSafeListener(System.Collections.IDictionary%2CSystem.Object%2CTangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L347">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveSafeListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveSafeListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_RemoveSafeListener_System_Collections_IDictionary_System_Object_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.RemoveSafeListener(System.Collections.IDictionary,System.Object,Tangosol.Net.Cache.ICacheListener)">RemoveSafeListener(IDictionary, Object, ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Remove the specified listener from the <a class="xref" href="Tangosol.Util.Listeners.html">Listeners</a>
+object associated with the specified key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static void RemoveSafeListener(IDictionary cacheListeners, object key, ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">cacheListeners</span></td>
+        <td><p>Dictionary of cache listeners.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">key</span></td>
+        <td><p>Key that determines listener to be removed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>Listener to remove.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_ToString.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1096">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_ToString_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ToString*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_ToString" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Provide a string representation of the CacheListenerSupport
+object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A human-readable description of the CacheListenerSupport
+instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_UnwrapEvent_Tangosol_Net_Cache_CacheEventArgs_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.UnwrapEvent(Tangosol.Net.Cache.CacheEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L988">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_UnwrapEvent_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.UnwrapEvent*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_UnwrapEvent_Tangosol_Net_Cache_CacheEventArgs_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.UnwrapEvent(Tangosol.Net.Cache.CacheEventArgs)">UnwrapEvent(CacheEventArgs)</h4>
+  <div class="markdown level1 summary"><p>Unwrap the specified map event and return the underlying source event.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static CacheEventArgs UnwrapEvent(CacheEventArgs evt)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><span class="parametername">evt</span></td>
+        <td><p>The event to unwrap.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.CacheEventArgs.html">CacheEventArgs</a></td>
+        <td><p>The unwrapped event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport_UnwrapListener_Tangosol_Net_Cache_ICacheListener_.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport.UnwrapListener(Tangosol.Net.Cache.ICacheListener)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L1023">View Source</a>
+  </span>
+  <a id="Tangosol_Net_Cache_Support_CacheListenerSupport_UnwrapListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.UnwrapListener*"></a>
+  <h4 id="Tangosol_Net_Cache_Support_CacheListenerSupport_UnwrapListener_Tangosol_Net_Cache_ICacheListener_" data-uid="Tangosol.Net.Cache.Support.CacheListenerSupport.UnwrapListener(Tangosol.Net.Cache.ICacheListener)">UnwrapListener(ICacheListener)</h4>
+  <div class="markdown level1 summary"><p>Unwrap the specified cache listener and return the underlying cache listener.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static ICacheListener UnwrapListener(ICacheListener listener)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><span class="parametername">listener</span></td>
+        <td><p>Cache listener to unwrap.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Net.Cache.ICacheListener.html">ICacheListener</a></td>
+        <td><p>the unwrapped listener.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_Net_Cache_Support_CacheListenerSupport.md&amp;value=---%0Auid%3A%20Tangosol.Net.Cache.Support.CacheListenerSupport%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/Net/Cache/Support/CacheListenerSupport.cs/#L24" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

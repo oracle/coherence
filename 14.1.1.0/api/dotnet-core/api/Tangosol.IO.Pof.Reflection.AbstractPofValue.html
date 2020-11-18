@@ -1,0 +1,2231 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class AbstractPofValue
+   | Oracle&#174; Coherence Client for .NET </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class AbstractPofValue
+   | Oracle&#174; Coherence Client for .NET ">
+    <meta name="generator" content="docfx 2.56.5.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../images/logo.png" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue">
+  
+  
+  <h1 id="Tangosol_IO_Pof_Reflection_AbstractPofValue" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue" class="text-break">Class AbstractPofValue
+  </h1>
+  <div class="markdown level0 summary"><p>An abstract base class that implements common functionality for all
+IPofValue types.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">AbstractPofValue</span></div>
+      <div class="level2"><a class="xref" href="Tangosol.IO.Pof.Reflection.ComplexPofValue.html">ComplexPofValue</a></div>
+      <div class="level2"><a class="xref" href="Tangosol.IO.Pof.Reflection.SimplePofValue.html">SimplePofValue</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html">IPofValue</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Tangosol.IO.Pof.Reflection.html">Tangosol.IO.Pof.Reflection</a></h6>
+  <h6><strong>Assembly</strong>: Coherence.Core.dll</h6>
+  <h5 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class AbstractPofValue : IPofValue</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue__ctor_Tangosol_IO_Pof_Reflection_IPofValue_Tangosol_Util_Binary_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.%23ctor(Tangosol.IO.Pof.Reflection.IPofValue%2CTangosol.Util.Binary%2CTangosol.IO.Pof.IPofContext%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L44">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue__ctor_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.#ctor*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue__ctor_Tangosol_IO_Pof_Reflection_IPofValue_Tangosol_Util_Binary_Tangosol_IO_Pof_IPofContext_System_Int32_System_Int32_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.#ctor(Tangosol.IO.Pof.Reflection.IPofValue,Tangosol.Util.Binary,Tangosol.IO.Pof.IPofContext,System.Int32,System.Int32)">AbstractPofValue(IPofValue, Binary, IPofContext, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Construct a PofValue instance wrapping the supplied binary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected AbstractPofValue(IPofValue valueParent, Binary binValue, IPofContext ctx, int of, int nType)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html">IPofValue</a></td>
+        <td><span class="parametername">valueParent</span></td>
+        <td><p>Parent value within the POF stream.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><span class="parametername">binValue</span></td>
+        <td><p>Binary representation of this value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><span class="parametername">ctx</span></td>
+        <td><p>POF context to use when reading or writing properties.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">of</span></td>
+        <td><p>Offset of this value from the beginning of POF stream.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nType</span></td>
+        <td><p>POF type identifier for this value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="fields">Fields
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_m_nType.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.m_nType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L1304">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_m_nType" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.m_nType">m_nType</h4>
+  <div class="markdown level1 summary"><p>POF type identifer of this value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected int m_nType</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_m_oValue.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.m_oValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L1309">View Source</a>
+  </span>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_m_oValue" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.m_oValue">m_oValue</h4>
+  <div class="markdown level1 summary"><p>Deserialized representation of this value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected object m_oValue</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_BinaryValue.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.BinaryValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L806">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_BinaryValue_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.BinaryValue*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_BinaryValue" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.BinaryValue">BinaryValue</h4>
+  <div class="markdown level1 summary"><p>Return binary representation of this value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual Binary BinaryValue { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>Binary representation of this value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_DirtyBytesCount.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.DirtyBytesCount%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L851">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_DirtyBytesCount_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.DirtyBytesCount*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_DirtyBytesCount" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.DirtyBytesCount">DirtyBytesCount</h4>
+  <div class="markdown level1 summary"><p>Get the estimated number of dirty bytes in this POF value
+hierarchy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual int DirtyBytesCount { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The number of dirty bytes.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_IsDirty.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.IsDirty%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L678">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IsDirty_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IsDirty*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IsDirty" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IsDirty">IsDirty</h4>
+  <div class="markdown level1 summary"><p>Return <code>true</code> if this value has been modified,
+<code>false</code> otherwise.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsDirty { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this value has been modified,
+<code>false</code> otherwise.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_IsRoot.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.IsRoot%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L818">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IsRoot_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IsRoot*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IsRoot" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IsRoot">IsRoot</h4>
+  <div class="markdown level1 summary"><p>Return <code>true</code> if this instance is the root of the IPofValue
+hierarchy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual bool IsRoot { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this is the root value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_IsUniformEncoded.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.IsUniformEncoded%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L830">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IsUniformEncoded_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IsUniformEncoded*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IsUniformEncoded" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IsUniformEncoded">IsUniformEncoded</h4>
+  <div class="markdown level1 summary"><p>Return <code>true</code> if the buffer contains only the value, without
+the type identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual bool IsUniformEncoded { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the buffer contains only the value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_Offset.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.Offset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L654">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_Offset_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.Offset*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_Offset" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.Offset">Offset</h4>
+  <div class="markdown level1 summary"><p>Return the offset of this value from the beginning of POF stream.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Offset { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The offset of this value from the beginning of POF stream.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_Parent.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.Parent%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L122">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_Parent_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.Parent*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_Parent" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.Parent">Parent</h4>
+  <div class="markdown level1 summary"><p>Return the parent of this value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IPofValue Parent { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html">IPofValue</a></td>
+        <td><p>The parent value, or <code>null</code> if this is the root value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_PofContext.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.PofContext%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L643">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_PofContext_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.PofContext*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_PofContext" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.PofContext">PofContext</h4>
+  <div class="markdown level1 summary"><p>Return the POF context to use for serialization and
+deserialization.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IPofContext PofContext { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.IPofContext.html">IPofContext</a></td>
+        <td><p>The POF context.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_Root.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.Root%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L99">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_Root_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.Root*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_Root" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.Root">Root</h4>
+  <div class="markdown level1 summary"><p>Return the root of the hierarchy this value belongs to.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IPofValue Root { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html">IPofValue</a></td>
+        <td><p>The root value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_Size.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.Size%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L665">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_Size_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.Size*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_Size" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.Size">Size</h4>
+  <div class="markdown level1 summary"><p>Return the size of the encoded value in bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int Size { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The size of the encoded value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_TypeId.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.TypeId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L88">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_TypeId_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.TypeId*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_TypeId" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.TypeId">TypeId</h4>
+  <div class="markdown level1 summary"><p>Obtain the POF type identifier for this value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int TypeId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>POF type identifier for this value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_ApplyChanges.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.ApplyChanges%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L231">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_ApplyChanges_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.ApplyChanges*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_ApplyChanges" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.ApplyChanges">ApplyChanges()</h4>
+  <div class="markdown level1 summary"><p>Apply all the changes that were made to this value and return a
+binary representation of the new value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Binary ApplyChanges()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>New Binary object that contains modified PofValue.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_ApplyChanges_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Any format prefixes and/or decorations that were present in the original
+buffer this value orginated from will be preserved.</p>
+<p>
+<strong>Note:</strong> This method can only be called on the root PofValue.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>If called on a non-root PofValue.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_EnsureReferenceRegistry.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.EnsureReferenceRegistry%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L737">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_EnsureReferenceRegistry_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.EnsureReferenceRegistry*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_EnsureReferenceRegistry" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.EnsureReferenceRegistry">EnsureReferenceRegistry()</h4>
+  <div class="markdown level1 summary"><p>Obtain the registry for identity-reference pairs, creating it if
+necessary.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual ILongArray EnsureReferenceRegistry()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.ILongArray.html">ILongArray</a></td>
+        <td><p>The identity-reference registry, never <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetBoolean.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetBoolean%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L296">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetBoolean_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetBoolean*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetBoolean" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetBoolean">GetBoolean()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Boolean</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool GetBoolean()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>The <strong>Boolean</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetBooleanArray.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetBooleanArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L384">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetBooleanArray_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetBooleanArray*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetBooleanArray" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetBooleanArray">GetBooleanArray()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Boolean[]</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool[] GetBooleanArray()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span>[]</td>
+        <td><p>The <strong>Boolean[]</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetByte.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetByte%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L307">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetByte_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetByte*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetByte" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetByte">GetByte()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Byte</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual byte GetByte()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span></td>
+        <td><p>The <strong>Byte</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetByteArray.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetByteArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L395">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetByteArray_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetByteArray*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetByteArray" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetByteArray">GetByteArray()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Byte[]</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual byte[] GetByteArray()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><p>The <strong>Byte[]</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChanges.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChanges%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L268">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChanges_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChanges*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChanges" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChanges">GetChanges()</h4>
+  <div class="markdown level1 summary"><p>Return a binary containing changes made to this IPofValue in the
+format defined by the <a class="xref" href="Tangosol.IO.BinaryDeltaCompressor.html">BinaryDeltaCompressor</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Binary GetChanges()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>A binary containing changes made to this IPofValue.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChanges_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p><strong>Note:</strong> This method can only be called on the root
+IPofValue.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>If called on a non-root IPofValue.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChar.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChar%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L318">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChar_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChar*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChar" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChar">GetChar()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Char</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual char GetChar()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span></td>
+        <td><p>The <strong>Char</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCharArray.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCharArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L406">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCharArray_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCharArray*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCharArray" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCharArray">GetCharArray()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Char[]</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual char[] GetCharArray()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Char</span>[]</td>
+        <td><p>The <strong>Char[]</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChild_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChild(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L76">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChild_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChild*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChild_System_Int32_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetChild(System.Int32)">GetChild(Int32)</h4>
+  <div class="markdown level1 summary"><p>Locate a child IPofValue contained within this IPofValue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract IPofValue GetChild(int nIndex)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">nIndex</span></td>
+        <td><p>The index of the child value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html">IPofValue</a></td>
+        <td><p>The child IPofValue.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetChild_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The returned IPofValue could represent a non-existent (null)
+value.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.PofNavigationException.html">PofNavigationException</a></td>
+        <td><p>If this value is a &quot;terminal&quot; or the child value cannot be
+located
+for any other reason.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCollection_System_Collections_ICollection_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCollection(System.Collections.ICollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L536">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCollection_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCollection*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCollection_System_Collections_ICollection_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCollection(System.Collections.ICollection)">GetCollection(ICollection)</h4>
+  <div class="markdown level1 summary"><p>Return an <strong>ICollection</strong> of object values which this IPofValue
+represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection GetCollection(ICollection coll)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><span class="parametername">coll</span></td>
+        <td><p>The optional <strong>ICollection</strong> to use to store the values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.ICollection</span></td>
+        <td><p>An <strong>ICollection</strong> of object values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCollection__1_System_Collections_Generic_ICollection___0__.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCollection%60%601(System.Collections.Generic.ICollection%7B%60%600%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L562">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCollection_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCollection*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetCollection__1_System_Collections_Generic_ICollection___0__" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetCollection``1(System.Collections.Generic.ICollection{``0})">GetCollection&lt;T&gt;(ICollection&lt;T&gt;)</h4>
+  <div class="markdown level1 summary"><p>Return an <strong>ICollection&lt;T&gt;</strong> of object values which this
+IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual ICollection&lt;T&gt; GetCollection&lt;T&gt;(ICollection&lt;T&gt; coll)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.ICollection</span>&lt;T&gt;</td>
+        <td><span class="parametername">coll</span></td>
+        <td><p>The optional <strong>ICollection&lt;T&gt;</strong> to use to store the values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.ICollection</span>&lt;T&gt;</td>
+        <td><p>An <strong>ICollection&lt;T&gt;</strong> of object values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>The type of the elements in the collection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDate.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L510">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDate_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDate*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDate" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDate">GetDate()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>DateTime</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual DateTime GetDate()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><p>The <strong>DateTime</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDate_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will return only the date component. It will ignore the
+time component if present and initialize the time-related fields of
+the return value to their default values.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDateTime.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDateTime%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L494">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDateTime_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDateTime*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDateTime" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDateTime">GetDateTime()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>DateTime</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual DateTime GetDateTime()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTime</span></td>
+        <td><p>The <strong>DateTime</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDayTimeInterval.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDayTimeInterval%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L521">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDayTimeInterval_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDayTimeInterval*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDayTimeInterval" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDayTimeInterval">GetDayTimeInterval()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>TimeSpan</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual TimeSpan GetDayTimeInterval()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><p>The <strong>TimeSpan</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDecimal.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDecimal%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L472">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDecimal_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDecimal*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDecimal" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDecimal">GetDecimal()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Decimal</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual decimal GetDecimal()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Decimal</span></td>
+        <td><p>The <strong>Decimal</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDictionary_System_Collections_IDictionary_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDictionary(System.Collections.IDictionary)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L586">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDictionary_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDictionary*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDictionary_System_Collections_IDictionary_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDictionary(System.Collections.IDictionary)">GetDictionary(IDictionary)</h4>
+  <div class="markdown level1 summary"><p>Return an <strong>IDictionary</strong> of key/value pairs which this
+IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary GetDictionary(IDictionary dict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><span class="parametername">dict</span></td>
+        <td><p>The optional <strong>IDictionary</strong> to use to store the key/value pairs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.IDictionary</span></td>
+        <td><p>An <strong>IDictionary</strong> of key/value pairs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDictionary__2_System_Collections_Generic_IDictionary___0___1__.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDictionary%60%602(System.Collections.Generic.IDictionary%7B%60%600%2C%60%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L619">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDictionary_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDictionary*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDictionary__2_System_Collections_Generic_IDictionary___0___1__" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDictionary``2(System.Collections.Generic.IDictionary{``0,``1})">GetDictionary&lt;TKey, TValue&gt;(IDictionary&lt;TKey, TValue&gt;)</h4>
+  <div class="markdown level1 summary"><p>Read an <strong>IDictionar&lt;TKey, TValue&gt;y</strong> of key/value pairs
+which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IDictionary&lt;TKey, TValue&gt; GetDictionary&lt;TKey, TValue&gt;(IDictionary&lt;TKey, TValue&gt; dict)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;TKey, TValue&gt;</td>
+        <td><span class="parametername">dict</span></td>
+        <td><p>The optional <strong>IDictionary&lt;TKey, TValue&gt;</strong> use to store
+the key/value pairs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IDictionary</span>&lt;TKey, TValue&gt;</td>
+        <td><p>An <strong>IDictionary&lt;TKey, TValue&gt;</strong> of key/value pairs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TKey</span></td>
+        <td><p>The key type of the <strong>IDictionary&lt;TKey, TValue&gt;</strong>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="parametername">TValue</span></td>
+        <td><p>The value type of the <strong>IDictionary&lt;TKey, TValue&gt;</strong>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDouble.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDouble%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L373">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDouble_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDouble*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDouble" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDouble">GetDouble()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Double</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual double GetDouble()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span></td>
+        <td><p>The <strong>Double</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDoubleArray.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDoubleArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L461">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDoubleArray_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDoubleArray*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetDoubleArray" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetDoubleArray">GetDoubleArray()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Double[]</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual double[] GetDoubleArray()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Double</span>[]</td>
+        <td><p>The <strong>Double[]</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt16.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt16%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L329">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt16_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt16*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt16" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt16">GetInt16()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Int16</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual short GetInt16()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><p>The <strong>Int16</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt16Array.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt16Array%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L417">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt16Array_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt16Array*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt16Array" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt16Array">GetInt16Array()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Int16[]</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual short[] GetInt16Array()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span>[]</td>
+        <td><p>The <strong>Int16[]</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt32.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt32%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L340">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt32_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt32*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt32" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt32">GetInt32()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Int32</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int GetInt32()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The <strong>Int32</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt32Array.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt32Array%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L428">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt32Array_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt32Array*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt32Array" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt32Array">GetInt32Array()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Int32[]</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int[] GetInt32Array()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span>[]</td>
+        <td><p>The <strong>Int32[]</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt64.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt64%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L351">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt64_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt64*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt64" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt64">GetInt64()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Int64</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual long GetInt64()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><p>The <strong>Int64</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt64Array.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt64Array%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L439">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt64Array_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt64Array*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetInt64Array" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetInt64Array">GetInt64Array()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Int64[]</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual long[] GetInt64Array()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int64</span>[]</td>
+        <td><p>The <strong>Int64[]</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSerializedValue.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSerializedValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L702">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSerializedValue_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSerializedValue*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSerializedValue" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSerializedValue">GetSerializedValue()</h4>
+  <div class="markdown level1 summary"><p>Return this value's serialized form.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Binary GetSerializedValue()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.Util.Binary.html">Binary</a></td>
+        <td><p>This value's serialized form.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSingle.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSingle%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L362">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSingle_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSingle*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSingle" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSingle">GetSingle()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Single</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual float GetSingle()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><p>The <strong>Single</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSingleArray.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSingleArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L450">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSingleArray_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSingleArray*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetSingleArray" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetSingleArray">GetSingleArray()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>Single[]</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual float[] GetSingleArray()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Single</span>[]</td>
+        <td><p>The <strong>Single[]</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetString.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L483">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetString_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetString*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetString" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetString">GetString()</h4>
+  <div class="markdown level1 summary"><p>Return the <strong>String</strong> which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string GetString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The <strong>String</strong> value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L133">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue">GetValue()</h4>
+  <div class="markdown level1 summary"><p>Return the deserialized value which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object GetValue()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L172">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue_System_Int32_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue(System.Int32)">GetValue(Int32)</h4>
+  <div class="markdown level1 summary"><p>Return the deserialized value which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object GetValue(int typeId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">typeId</span></td>
+        <td><p>The required Pof type of the returned value or
+<span class="xref">Tangosol.IO.Pof.PofConstants.T_UNKNOWN</span> if the type is to be
+inferred from the serialized state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If the value is incompatible with the specified type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue_System_Type_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue(System.Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L151">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_GetValue_System_Type_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.GetValue(System.Type)">GetValue(Type)</h4>
+  <div class="markdown level1 summary"><p>Return the deserialized value which this IPofValue represents.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual object GetValue(Type type)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The required type of the returned value or <code>null</code> if the
+type is to be inferred from the serialized state.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidCastException</span></td>
+        <td><p>If the value is incompatible with the specified type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_IncrementDirtyBytesCount_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.IncrementDirtyBytesCount(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L872">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IncrementDirtyBytesCount_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IncrementDirtyBytesCount*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IncrementDirtyBytesCount_System_Int32_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IncrementDirtyBytesCount(System.Int32)">IncrementDirtyBytesCount(Int32)</h4>
+  <div class="markdown level1 summary"><p>Increment the counter representing the estimated number of bytes
+in the original buffer that have been modified.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void IncrementDirtyBytesCount(int cb)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">cb</span></td>
+        <td><p>The number of bytes to increment counter for.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_IncrementDirtyValuesCount.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.IncrementDirtyValuesCount%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L860">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IncrementDirtyValuesCount_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IncrementDirtyValuesCount*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_IncrementDirtyValuesCount" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.IncrementDirtyValuesCount">IncrementDirtyValuesCount()</h4>
+  <div class="markdown level1 summary"><p>Increment the counter representing the number of values within
+this POF hierarchy that have been modified.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void IncrementDirtyValuesCount()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_LookupIdentity_System_Int32_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.LookupIdentity(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L789">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_LookupIdentity_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.LookupIdentity*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_LookupIdentity_System_Int32_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.LookupIdentity(System.Int32)">LookupIdentity(Int32)</h4>
+  <div class="markdown level1 summary"><p>Look up the specified identity and return the object to which it
+refers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected IPofValue LookupIdentity(int id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The identity.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html">IPofValue</a></td>
+        <td><p>The object registered under that identity.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.IOException</span></td>
+        <td><p>If the requested identity is not registered.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_RegisterIdentity_System_Int32_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.RegisterIdentity(System.Int32%2CSystem.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L761">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_RegisterIdentity_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.RegisterIdentity*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_RegisterIdentity_System_Int32_System_Object_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.RegisterIdentity(System.Int32,System.Object)">RegisterIdentity(Int32, Object)</h4>
+  <div class="markdown level1 summary"><p>Register the passed value with the passed identity.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void RegisterIdentity(int id, object value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The identity.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The object registerd under the passed identity.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the specified identity is already registered with a different object.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_SetDirty.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.SetDirty%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L686">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_SetDirty_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.SetDirty*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_SetDirty" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.SetDirty">SetDirty()</h4>
+  <div class="markdown level1 summary"><p>Set the dirty flag for this value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void SetDirty()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_SetUniformEncoded.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.SetUniformEncoded%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L839">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_SetUniformEncoded_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.SetUniformEncoded*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_SetUniformEncoded" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.SetUniformEncoded">SetUniformEncoded()</h4>
+  <div class="markdown level1 summary"><p>Specifies that the buffer contains only a value, without a type
+identifier.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void SetUniformEncoded()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue_SetValue_System_Object_.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue.SetValue(System.Object)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L209">View Source</a>
+  </span>
+  <a id="Tangosol_IO_Pof_Reflection_AbstractPofValue_SetValue_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.SetValue*"></a>
+  <h4 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_SetValue_System_Object_" data-uid="Tangosol.IO.Pof.Reflection.AbstractPofValue.SetValue(System.Object)">SetValue(Object)</h4>
+  <div class="markdown level1 summary"><p>Update this PofValue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void SetValue(object oValue)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">oValue</span></td>
+        <td><p>New deserialized value for this IPofValue.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Tangosol_IO_Pof_Reflection_AbstractPofValue_SetValue_System_Object__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The changes made using this method will be immediately reflected
+in the result of <a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html#Tangosol_IO_Pof_Reflection_IPofValue_GetValue">GetValue()</a> method, but
+will not be applied to the underlying POF stream until the
+<a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html#Tangosol_IO_Pof_Reflection_IPofValue_ApplyChanges">ApplyChanges()</a> method is invoked on the
+root IPofValue.</p>
+</div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Tangosol.IO.Pof.Reflection.IPofValue.html">IPofValue</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/new/v14.1.1.0-net-core/apiSpec/new?filename=Tangosol_IO_Pof_Reflection_AbstractPofValue.md&amp;value=---%0Auid%3A%20Tangosol.IO.Pof.Reflection.AbstractPofValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/oracle/coherence-dotnet-extend-client/blob/v14.1.1.0-net-core/src/Coherence.Core/IO/Pof/Reflection/AbstractPofValue.cs/#L22" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Copyright © 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>
