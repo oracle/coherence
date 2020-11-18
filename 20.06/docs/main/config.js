@@ -275,7 +275,13 @@ function createNav(){
             target: '_blank'
         },
         {
-            title: 'Coherence CE .Net API',
+            title: 'Coherence CE .NET Core API',
+            action: 'library_books',
+            href: 'https://coherence.community/14.1.1.0/api/dotnet-core/index.html',
+            target: '_blank'
+        },
+        {
+            title: 'Coherence CE .NET API',
             action: 'library_books',
             href: 'https://oracle.github.io/coherence/14.1.1.0/api/dotnet/index.html',
             target: '_blank'
