@@ -69,9 +69,9 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -DskipTests clean install
         echo "Forcing download of surfire-juni4 before full verify"
-        mvn --file prj/coherence-http-netty/pom.xml --batch-mode -e -s .github/maven/synoki.xml verify
+        mvn --file prj/coherence-http-netty/pom.xml --batch-mode -e -s .github/maven/settings.xml verify
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
@@ -82,7 +82,7 @@ jobs:
       run: |
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -o -s .github/maven/synoki.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
+        mvn --file prj/pom.xml --batch-mode -e -o -s .github/maven/settings.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs

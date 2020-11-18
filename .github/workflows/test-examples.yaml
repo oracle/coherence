@@ -37,7 +37,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml -B -e -s .github/maven/synoki.xml -DskipTests clean install
+        mvn --file prj/pom.xml -B -e -s .github/maven/settings.xml -DskipTests clean install
 
     - name: Set up Java 11 to Test Examples
       uses: actions/setup-java@v1
@@ -51,4 +51,4 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         echo "Testing REST Example"
-        mvn --file examples/rest/pom.xml -B -e -s .github/maven/synoki.xml clean verify
+        mvn --file examples/rest/pom.xml -B -e -s .github/maven/settings.xml clean verify
