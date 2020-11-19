@@ -15,6 +15,7 @@ Some of the examples are externally hosted on other GitHub repositories and othe
 1. [Coherence Demo](#coherence-demo)
 1. [Helidon Sock Shop](#helidon-sock-shop)
 1. [Coherence REST Example](#coherence-rest-example)
+1. [To Do List](#to-do-list)
 
 ## <a name="coherence-demo"></a>1. Coherence Demo
 
@@ -53,3 +54,19 @@ GitHub Location: https://github.com/helidon-sockshop/sockshop
 This example shows a basic application built using Oracle JavaScript Extension Toolkit (JET) and how Coherence REST endpoints can be integrated into such an application.
 
 Location: [Coherence REST Example](rest)
+
+## <a name="to-do-list"></a> 4. To Do List
+
+<img src="https://github.com/coherence-community/todo-list-example/raw/master/assets/react-client.png" width="800"/>
+
+This example contains a set of simple task management examples written in various languages to showcase Coherence CE.
+
+It is an extension of the [Quick Start](https://coherence.community/index.html#quickstart) that adds various client implementations (React.js, Oracle JET, JavaFX), as well as the additional REST API implementation (Node.js/Express). It demonstrates how the same Web Server that is used to host REST API can be used to serve modern static web front ends.
+
+This application showcases:
+* Integration with Helidon
+* Integration with Node.js/Express
+* Client-side Events
+* React and Oracle JET Web Front End access as well as JavaFX Client
+
+GitHub Location: https://github.com/coherence-community/todo-list-example
