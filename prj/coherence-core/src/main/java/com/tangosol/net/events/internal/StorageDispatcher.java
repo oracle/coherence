@@ -8,12 +8,17 @@ package com.tangosol.net.events.internal;
 
 import com.oracle.coherence.common.base.Continuation;
 
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+
 import com.tangosol.net.BackingMapContext;
+
 import com.tangosol.net.events.EventDispatcher;
+
+import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
+import com.tangosol.net.events.partition.cache.CacheLifecycleEventDispatcher;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.Event;
 import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
-import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
 import com.tangosol.util.BinaryEntry;
@@ -364,10 +369,39 @@ public class StorageDispatcher
             }
 
         @Override
+        public CacheLifecycleEventDispatcher getEventDispatcher()
+            {
+            return (CacheLifecycleEventDispatcher) m_dispatcher;
+            }
+
+        @Override
         public String getCacheName()
             {
             return f_sCacheName;
             }
+
+        @Override
+        public String getServiceName()
+            {
+            return getService().getInfo().getServiceName();
+            }
+
+        @Override
+        public String getScopeName()
+            {
+            return getService().getBackingMapManager().getCacheFactory().getScopeName();
+            }
+
+        @Override
+        public String getSessionName()
+            {
+            return getService()
+                    .getBackingMapManager()
+                    .getCacheFactory()
+                    .getResourceRegistry()
+                    .getResource(String.class, ConfigurableCacheFactorySession.SESSION_NAME);
+            }
+
 
         // ----- data members -----------------------------------------------
 

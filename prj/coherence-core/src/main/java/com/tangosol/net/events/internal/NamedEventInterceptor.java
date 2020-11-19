@@ -20,9 +20,9 @@ import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.net.events.partition.UnsolicitedCommitEvent;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
+import com.tangosol.net.events.partition.cache.CacheLifecycleEventDispatcher;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryProcessorEvent;
-import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
@@ -321,9 +321,9 @@ public class NamedEventInterceptor<E extends Event<?>>
             return true;
             }
 
-        if (dispatcher instanceof PartitionedCacheDispatcher)
+        if (dispatcher instanceof CacheLifecycleEventDispatcher)
             {
-            PartitionedCacheDispatcher bmd = (PartitionedCacheDispatcher) dispatcher;
+            CacheLifecycleEventDispatcher bmd = (CacheLifecycleEventDispatcher) dispatcher;
             sActualServiceName = bmd.getServiceName();
             sActualCacheName   = bmd.getCacheName();
             }

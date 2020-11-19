@@ -178,9 +178,21 @@ public class DefaultCacheServer
         }
 
     /**
-    * Shutdown the DefaultCacheServer.
+    * Shutdown the DefaultCacheServer and Coherence cluster.
     */
     public void shutdownServer()
+        {
+        stop();
+        CacheFactory.shutdown();
+        }
+
+    /**
+    * Stop this DefaultCacheServer and dispose the {@link ConfigurableCacheFactory}
+    * that this server wraps.
+    * 
+    * @see ConfigurableCacheFactory#dispose()
+    */
+    public void stop()
         {
         List<LifecycleListener> listListener = ensureLifecycleListeners();
         Context                 ctx          = new LifecycleContext();
@@ -198,7 +210,10 @@ public class DefaultCacheServer
             }
 
         stopMonitoring();
-        CacheFactory.shutdown();
+        if (m_factory != null)
+            {
+            m_factory.dispose();
+            }
 
         for (LifecycleListener listener : listListener)
             {

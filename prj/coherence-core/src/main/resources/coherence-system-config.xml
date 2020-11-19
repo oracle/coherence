@@ -14,7 +14,9 @@ It will be loaded automatically when CDI integration is used.
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
 
-  <scope-name>SYS</scope-name>
+  <defaults>
+    <scope-name>$SYS</scope-name>
+  </defaults>
 
   <caching-scheme-mapping>
     <cache-mapping>

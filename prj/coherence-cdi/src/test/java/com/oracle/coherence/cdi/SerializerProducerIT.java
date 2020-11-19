@@ -6,13 +6,12 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.cdi.Name;
-
-import com.oracle.coherence.cdi.SerializerProducer;
 import com.oracle.coherence.cdi.data.Person;
+
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.WriteBuffer;
+
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import java.lang.annotation.Annotation;
@@ -28,6 +27,7 @@ import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -43,6 +43,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.10.19
 */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SerializerProducerIT
     {
     @WeldSetup

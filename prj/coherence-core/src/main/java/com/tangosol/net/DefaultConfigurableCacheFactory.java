@@ -459,6 +459,15 @@ public class DefaultConfigurableCacheFactory
         return m_store.getCache(sCacheName, ensureClassLoader(loader)) != null;
         }
 
+    /**
+    * {@inheritDoc}
+    */
+    @Override
+    public boolean isTopicActive(String sTopicName, ClassLoader loader)
+        {
+        throw new UnsupportedOperationException("NamedTopic is not supported by DefaultConfigurableCacheFactory");
+        }
+
     // ----- helpers and inheritance support --------------------------------
 
     /**

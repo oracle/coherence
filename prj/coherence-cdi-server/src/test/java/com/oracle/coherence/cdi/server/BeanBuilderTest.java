@@ -8,94 +8,115 @@
 package com.oracle.coherence.cdi.server;
 
 import com.oracle.coherence.cdi.Injectable;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.se.SeContainer;
-import javax.enterprise.inject.se.SeContainerInitializer;
-import javax.inject.Named;
+
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.CDI;
 
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+
 import org.junit.jupiter.api.Test;
+
+import java.lang.annotation.Annotation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link com.oracle.coherence.cdi.Injectable}.
  *
  * @author Aleks Seovic  2019.10.02
  */
+@SuppressWarnings("unchecked")
 class BeanBuilderTest
     {
     public static final SystemPropertyParameterResolver RESOLVER = new SystemPropertyParameterResolver();
 
-    private static SeContainer container;
-
-    @BeforeAll
-    static void initContainer()
-        {
-        SeContainerInitializer containerInit = SeContainerInitializer.newInstance();
-        container = containerInit.initialize();
-        }
-
-    @AfterAll
-    static void shutdownContainer()
-        {
-        container.close();
-        }
-
     @Test
     void testRealizeSuccess()
         {
-        BeanBuilder builder = new BeanBuilder("beanX");
-        Object bean = builder.realize(new SystemPropertyParameterResolver(), null, null);
-        assertThat(bean, notNullValue());
-        assertThat(bean, instanceOf(BeanX.class));
+        Object           bean     = new BeanX();
+        CDI<Object>      cdi      = mock(CDI.class);
+        Instance<Object> instance = mock(Instance.class);
+
+        when(cdi.select(any(Annotation.class))).thenReturn(instance);
+        when(instance.isResolvable()).thenReturn(true);
+        when(instance.get()).thenReturn(bean);
+
+        BeanBuilder builder = new BeanBuilder(cdi, "beanX");
+        Object      result  = builder.realize(new SystemPropertyParameterResolver(), null, null);
+        assertThat(result, notNullValue());
+        assertThat(result, is(sameInstance(bean)));
         }
 
     @Test
     void testRealizeMissingBean()
         {
+        CDI<Object>      cdi      = mock(CDI.class);
+        Instance<Object> instance = mock(Instance.class);
+
+        when(cdi.select(any(Annotation.class))).thenReturn(instance);
+        when(instance.isResolvable()).thenReturn(false);
+
         assertThrows(ConfigurationException.class, () ->
-        {
-        BeanBuilder builder = new BeanBuilder("beanY");
-        Object bean = builder.realize(RESOLVER, null, null);
-        assertThat(bean, notNullValue());
-        assertThat(bean, instanceOf(BeanX.class));
-        });
+            {
+            BeanBuilder builder = new BeanBuilder(cdi,"beanY");
+            Object      result  = builder.realize(RESOLVER, null, null);
+            assertThat(result, notNullValue());
+            assertThat(result, instanceOf(BeanX.class));
+            });
         }
 
     @Test
     void testRealizesSuccess()
         {
-        BeanBuilder builder = new BeanBuilder("beanX");
-        boolean fRealizes = builder.realizes(BeanX.class, RESOLVER, null);
+        CDI<Object>     cdi      = mock(CDI.class);
+        Instance<BeanX> instance = mock(Instance.class);
+
+        when(cdi.select(eq(BeanX.class), any(Annotation.class))).thenReturn(instance);
+        when(instance.isResolvable()).thenReturn(true);
+
+        BeanBuilder builder   = new BeanBuilder(cdi,"beanX");
+        boolean     fRealizes = builder.realizes(BeanX.class, RESOLVER, null);
         assertThat(fRealizes, is(true));
         }
 
     @Test
     void testRealizesFailureWrongClass()
         {
-        BeanBuilder builder = new BeanBuilder("beanX");
-        boolean fRealizes = builder.realizes(Injectable.class, RESOLVER, null);
+        CDI<Object>     cdi      = mock(CDI.class);
+        Instance<BeanX> instance = mock(Instance.class);
+
+        when(cdi.select(any(Class.class), any(Annotation.class))).thenReturn(instance);
+        when(instance.isResolvable()).thenReturn(false);
+
+        BeanBuilder builder   = new BeanBuilder(cdi,"beanX");
+        boolean     fRealizes = builder.realizes(Injectable.class, RESOLVER, null);
         assertThat(fRealizes, is(false));
         }
 
     @Test
     void testRealizesFailureMissingBean()
         {
-        BeanBuilder builder = new BeanBuilder("beanY");
-        boolean fRealizes = builder.realizes(BeanX.class, RESOLVER, null);
+        CDI<Object>     cdi      = mock(CDI.class);
+        Instance<BeanX> instance = mock(Instance.class);
+
+        when(cdi.select(eq(BeanX.class), any(Annotation.class))).thenReturn(instance);
+        when(instance.isResolvable()).thenReturn(false);
+
+        BeanBuilder builder   = new BeanBuilder(cdi,"beanY");
+        boolean     fRealizes = builder.realizes(BeanX.class, RESOLVER, null);
         assertThat(fRealizes, is(false));
         }
 
-    @Named("beanX")
-    @ApplicationScoped
     static class BeanX
         {
         }

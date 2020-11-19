@@ -31,11 +31,8 @@ public interface SessionProvider
      *
      * @param options  the {@link Session.Option}s for creating the {@link Session}
      *
-     * @return a new {@link Session}
-     *
-     * @throws IllegalArgumentException
-     *              when a {@link Session} can't be creating using the
-     *              specified {@link Option}.
+     * @return a new {@link Session} or {@code null} if this provider cannot
+     *         supply a {@link Session} from the specified options
      */
     Session createSession(Session.Option... options);
 

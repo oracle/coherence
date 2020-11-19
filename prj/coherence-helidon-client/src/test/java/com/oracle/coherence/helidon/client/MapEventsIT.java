@@ -10,8 +10,8 @@ package com.oracle.coherence.helidon.client;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.PropertyExtractor;
-import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.cdi.SessionName;
 import com.oracle.coherence.cdi.WhereFilter;
 
 import com.oracle.coherence.cdi.events.CacheName;
@@ -26,8 +26,7 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
 
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.Session;
@@ -74,15 +73,12 @@ public class MapEventsIT
         System.setProperty("coherence.ttl",              "0");
         System.setProperty("coherence.clustername",      "MapEventsIT");
         System.setProperty("coherence.cacheconfig",      "coherence-config.xml");
-        System.setProperty("coherence.cacheconfig.test", "coherence-config-two.xml");
         System.setProperty("coherence.pof.config",       "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled",      "true");
         System.setProperty("coherence.log.level",        "9");
 
         // The CDI server will start DCS which will in turn cause the gRPC server to start
         s_server = Server.create().start();
-        s_ccf    = CacheFactory.getCacheFactoryBuilder()
-                               .getConfigurableCacheFactory("coherence-config.xml", null);
 
         // wait at most 1 minute for the gRPC Server
         GrpcServerController.INSTANCE.whenStarted()
@@ -96,9 +92,8 @@ public class MapEventsIT
         try
             {
             SessionHolder holder = CDI.current().select(SessionHolder.class).get();
-            holder.getSessionOne().close();
-            holder.getSessionTwo().close();
-            holder.getSessionThree().close();
+            holder.getDefaultClientSession().close();
+            holder.getTestClientSession().close();
             }
         catch (Exception e)
             {
@@ -114,7 +109,8 @@ public class MapEventsIT
     @Test
     void testEvents()
         {
-        NamedCache<String, Person> cache = s_ccf.ensureCache("people", null);
+        Session                    session = ensureSession(Coherence.DEFAULT_NAME);
+        NamedCache<String, Person> cache   = session.getCache("people");
 
         // Wait for the listeners to be registered as it happens async
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cache), is(greaterThanOrEqualTo(2)));
@@ -164,45 +160,54 @@ public class MapEventsIT
     @Test
     void testNamedSessionEvents()
         {
-        SessionHolder              holder   = CDI.current().select(SessionHolder.class).get();
-        NamedCache<String, Person> cacheOne = holder.getSessionOne().getCache("named-people");
-        NamedCache<String, Person> cacheTwo = holder.getSessionTwo().getCache("named-people");
-
+        Session                    sessionOne = ensureSession(Coherence.DEFAULT_NAME);
+        NamedCache<String, Person> cacheOne   = sessionOne.getCache("named-people");
+        Session                    sessionTwo = ensureSession(SessionConfigurations.SERVER_TEST);
+        NamedCache<String, Person> cacheTwo   = sessionTwo.getCache("named-people");
+        
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));
         cacheTwo.put("marge", new Person("Marge", "Simpson", 43, "female"));
 
         NamedSessionListener listener = CDI.current().select(NamedSessionListener.class).get();
-        // any events listener will get six events as there a three Sessions, the server side Session
-        // and two remote sessions and two inserts to the cache making six
-        Eventually.assertDeferred(() -> listener.getAnyEvents().size(), is(6));
-        // default events will get two events from the two inserts into the cache
-        Eventually.assertDeferred(() -> listener.getDefaultEvents().size(), is(2));
-        // test events will get two events from the two inserts into the cache
-        Eventually.assertDeferred(() -> listener.getTestEvents().size(), is(2));
+        Eventually.assertDeferred(() -> listener.getAnyEvents().size(), is(4));
+        Eventually.assertDeferred(() -> listener.getDefaultEvents().size(), is(1));
+        Eventually.assertDeferred(() -> listener.getTestEvents().size(), is(1));
         }
 
     @Test
-    void testNamedScopedSessionEvents()
+    void testScopedNamedEvents()
         {
-        SessionHolder              holder       = CDI.current().select(SessionHolder.class).get();
-        Session                    sessionTwo   = holder.getSessionTwo();
-        NamedCache<String, Person> cacheOne     = sessionTwo.getCache("named-scoped-people");
-        Session                    sessionThree = holder.getSessionThree();
-        NamedCache<String, Person> cacheTwo     = sessionThree.getCache("named-scoped-people");
+        String                     sCacheName = "named-scoped-people";
+        Session                    sessionOne = ensureSession(Coherence.DEFAULT_NAME);
+        NamedCache<String, Person> cacheOne   = sessionOne.getCache(sCacheName);
+        Session                    sessionTwo = ensureSession(SessionConfigurations.SERVER_TEST);
+        NamedCache<String, Person> cacheTwo   = sessionTwo.getCache(sCacheName);
+
+        // we need to get the client side caches otherwise the listener will only get server side events
+        // as the listeners are for "any" session the CDI extension cannot ensure the caches automatically
+        SessionHolder holder = CDI.current().select(SessionHolder.class).get();
+        holder.getDefaultClientSession().getCache(sCacheName);
+        holder.getTestClientSession().getCache(sCacheName);
 
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));
         cacheTwo.put("marge", new Person("Marge", "Simpson", 43, "female"));
 
+        // Because the server side cache is actually running inside the test JVM the listener will receive
+        // events for the server side caches as well as the client side caches.
         NamedScopedSessionListener listener = CDI.current().select(NamedScopedSessionListener.class).get();
-        // any events listener will get six events as there a three Sessions, the server side Session
-        // and two remote sessions and two inserts to the cache making six
-        Eventually.assertDeferred(() -> listener.getAnyEvents().size(), is(2));
-        // default events will get two events from the two inserts into the cache
-        Eventually.assertDeferred(() -> listener.getDefaultEvents().size(), is(1));
-        // test events will get two events from the two inserts into the cache
-        Eventually.assertDeferred(() -> listener.getTestEvents().size(), is(1));
+        Eventually.assertDeferred(() -> listener.getAnyEvents().size(), is(4));
+        Eventually.assertDeferred(() -> listener.getDefaultEvents().size(), is(2));
+        Eventually.assertDeferred(() -> listener.getTestEvents().size(), is(2));
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    private Session ensureSession(String sName)
+        {
+        return Coherence.findSession(sName)
+                        .orElseThrow(() -> new AssertionError("Could not find Session"));
         }
 
     // ---- helper classes --------------------------------------------------
@@ -211,31 +216,21 @@ public class MapEventsIT
     public static class SessionHolder
         {
         @Inject
-        @Remote
+        @SessionName(SessionConfigurations.CLIENT_DEFAULT)
         Session m_sessionOne;
 
         @Inject
-        @Remote("test")
+        @SessionName(SessionConfigurations.CLIENT_TEST)
         Session m_sessionTwo;
 
-        @Inject
-        @Remote("test")
-        @Scope("test")
-        Session m_sessionThree;
-
-        public Session getSessionOne()
+        public Session getDefaultClientSession()
             {
             return m_sessionOne;
             }
 
-        public Session getSessionTwo()
+        public Session getTestClientSession()
             {
             return m_sessionTwo;
-            }
-
-        public Session getSessionThree()
-            {
-            return m_sessionThree;
             }
         }
 
@@ -249,40 +244,33 @@ public class MapEventsIT
             }
 
         @Synchronous
-        private void onPersonInserted(@Observes @Remote @Inserted @MapName("people") MapEvent<String, Person> event)
+        private void onPersonInserted(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @Inserted @MapName("people") MapEvent<String, Person> event)
             {
             record(event);
             }
 
         @Synchronous
-        private void onPersonUpdated(@Observes @Remote @Updated @MapName("people") MapEvent<String, Person> event)
+        private void onPersonUpdated(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @Updated @MapName("people") MapEvent<String, Person> event)
             {
             record(event);
             }
 
         @Synchronous
-        private void onPersonDeleted(@Observes @Remote @Deleted @CacheName("people") MapEvent<String, Person> event)
+        private void onPersonDeleted(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @Deleted @CacheName("people") MapEvent<String, Person> event)
             {
             record(event);
             }
 
         @WhereFilter("firstName = 'Bart' and lastName = 'Simpson'")
-        private void onBart(@Observes @Remote @MapName("people") MapEvent<String, Person> event)
+        private void onBart(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @MapName("people") MapEvent<String, Person> event)
             {
             f_listFilteredEvents.add(event);
             }
 
         @PropertyExtractor("firstName")
-        private void onPersonInsertedTransformed(@Observes @Remote @Inserted @MapName("people") MapEvent<String, String> event)
+        private void onPersonInsertedTransformed(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @Inserted @MapName("people") MapEvent<String, String> event)
             {
             f_listTransformedEvents.add(event);
-            }
-
-        void clear()
-            {
-            f_listEvents.clear();
-            f_listFilteredEvents.clear();
-            f_listTransformedEvents.clear();
             }
 
         public List<MapEvent<String, Person>> getFilteredEvents()
@@ -313,23 +301,26 @@ public class MapEventsIT
     public static class NamedSessionListener
         {
         @Synchronous
-        private void onDefaultPerson(@Observes @Remote @MapName("named-people") MapEvent<String, Person> event)
+        private void onDefaultPerson(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @MapName("named-people") MapEvent<String, Person> event)
             {
-            System.out.println("Received event (default): " + event);
+            String sClass = event.getMap().getClass().getSimpleName();
+            System.out.println("Received event (default): class=" + sClass + " event=" + event);
             f_listDefaultEvents.add(event);
             }
 
         @Synchronous
-        private void onTestPerson(@Observes @Remote("test") @MapName("named-people") MapEvent<String, Person> event)
+        private void onTestPerson(@Observes @SessionName(SessionConfigurations.CLIENT_TEST) @MapName("named-people") MapEvent<String, Person> event)
             {
-            System.out.println("Received event (test): " + event);
+            String sClass = event.getMap().getClass().getSimpleName();
+            System.out.println("Received event (test): class=" + sClass + " event=" + event);
             f_listTestEvents.add(event);
             }
 
         @Synchronous
         private void onAnyPerson(@Observes @MapName("named-people") MapEvent<String, Person> event)
             {
-            System.out.println("Received event (any): " + event);
+            String sClass = event.getMap().getClass().getSimpleName();
+            System.out.println("Received event (any): class=" + sClass + " event=" + event);
             f_listAnyEvents.add(event);
             }
 
@@ -359,23 +350,26 @@ public class MapEventsIT
     public static class NamedScopedSessionListener
         {
         @Synchronous
-        private void onDefaultPerson(@Observes @Remote("test") @ScopeName(Scope.DEFAULT) @MapName("named-scoped-people") MapEvent<String, Person> event)
+        private void onDefaultPerson(@Observes @ScopeName(Scope.DEFAULT) @MapName("named-scoped-people") MapEvent<String, Person> event)
             {
-            System.out.println("Received event (default): " + event);
+            String sClass = event.getMap().getClass().getSimpleName();
+            System.out.println("Received event (default): class=" + sClass + " event=" + event);
             f_listDefaultEvents.add(event);
             }
 
         @Synchronous
-        private void onTestPerson(@Observes @Remote("test") @ScopeName("test") @MapName("named-scoped-people") MapEvent<String, Person> event)
+        private void onTestPerson(@Observes @ScopeName(SessionConfigurations.TEST_SCOPE) @MapName("named-scoped-people") MapEvent<String, Person> event)
             {
-            System.out.println("Received event (test): " + event);
+            String sClass = event.getMap().getClass().getSimpleName();
+            System.out.println("Received event (test): class=" + sClass + " event=" + event);
             f_listTestEvents.add(event);
             }
 
         @Synchronous
-        private void onAnyPerson(@Observes @Remote("test") @MapName("named-scoped-people") MapEvent<String, Person> event)
+        private void onAnyPerson(@Observes @MapName("named-scoped-people") MapEvent<String, Person> event)
             {
-            System.out.println("Received event (any): " + event);
+            String sClass = event.getMap().getClass().getSimpleName();
+            System.out.println("Received event (any): class=" + sClass + " event=" + event);
             f_listAnyEvents.add(event);
             }
 
@@ -402,8 +396,6 @@ public class MapEventsIT
         }
 
     // ----- data members ---------------------------------------------------
-
-    private static ConfigurableCacheFactory s_ccf;
 
     private static Server s_server;
     }

@@ -12,6 +12,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -43,7 +44,7 @@ public class Options<T>
      * @param clsType the {@link Class} of the base type of the options
      *                in the collection
      */
-    private Options(Class<T> clsType)
+    Options(Class<T> clsType)
         {
         m_mapOptions = new LinkedHashMap<>();
         m_clsType    = clsType;
@@ -63,7 +64,13 @@ public class Options<T>
         m_mapOptions = new LinkedHashMap<>();
         m_clsType    = clsType;
 
-        addAll(aOptions);
+        if (aOptions != null)
+            {
+            for (T option : aOptions)
+                {
+                m_mapOptions.put(getClassOf(option), option);
+                }
+            }
         }
 
     // ----- Options methods ------------------------------------------------
@@ -185,9 +192,10 @@ public class Options<T>
      *
      * @return an array of options
      */
+    @SuppressWarnings("unchecked")
     public T[] asArray()
         {
-        T[] aOptions = (T[]) new Object[m_mapOptions.size()];
+        T[] aOptions = (T[]) Array.newInstance(m_clsType, m_mapOptions.size());
         int i        = 0;
 
         for (T option : m_mapOptions.values())
@@ -264,63 +272,6 @@ public class Options<T>
     // ----- internal methods -----------------------------------------------
 
     /**
-     * Adds an option to the collection, replacing an
-     * existing option of the same concrete type if one exists.
-     *
-     * @param option  the option to add
-     *
-     * @return the {@link Options} to permit fluent-style method calls
-     */
-    private Options<T> add(T option)
-        {
-        Class<T> clz = getClassOf(option);
-
-        m_mapOptions.put(clz, option);
-
-        return this;
-        }
-
-    /**
-     * Adds an array of options to the collection, replacing
-     * existing options of the same concrete type where they exist.
-     *
-     * @param aOptions  the options to add
-     *
-     * @return the {@link Options} to permit fluent-style method calls
-     */
-    private Options<T> addAll(T[] aOptions)
-        {
-        if (aOptions != null)
-            {
-            for (T option : aOptions)
-                {
-                add(option);
-                }
-            }
-
-        return this;
-        }
-
-    /**
-     * Adds all of the options in the specified {@link Options}
-     * to this collection, replacing existing options of the same concrete
-     * type where they exist.
-     *
-     * @param options  the {@link Options} to add
-     *
-     * @return the {@link Options} to permit fluent-style method calls
-     */
-    private Options<T> addAll(Options<? extends T> options)
-        {
-        for (T option : options.asArray())
-            {
-            add(option);
-            }
-
-        return this;
-        }
-
-    /**
      * Obtains the concrete type of an option.
      *
      * @param option  the option
@@ -329,7 +280,7 @@ public class Options<T>
      *          the value interface
      *          or <code>null</code> if the value is <code>null</code>
      */
-    private Class<T> getClassOf(T option)
+    Class<T> getClassOf(T option)
         {
         return option == null ? null : getClassOf(option.getClass());
         }
@@ -511,7 +462,7 @@ public class Options<T>
     /**
      * The map of the options, keyed by their concrete class.
      */
-    private LinkedHashMap<Class<? extends T>, T> m_mapOptions;
+    LinkedHashMap<Class<? extends T>, T> m_mapOptions;
 
     private Class<T> m_clsType;
 

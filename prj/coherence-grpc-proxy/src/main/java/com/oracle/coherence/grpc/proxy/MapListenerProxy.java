@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.ByteString;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.CacheDestroyedResponse;
 import com.oracle.coherence.grpc.CacheRequestHolder;
@@ -152,7 +153,7 @@ class MapListenerProxy
             }
         catch (Throwable t)
             {
-            CacheFactory.err(t);
+            Logger.err(t);
             f_observer.onNext(MapListenerResponse.newBuilder().setError(error(request.getUid(), t)).build());
             }
         }

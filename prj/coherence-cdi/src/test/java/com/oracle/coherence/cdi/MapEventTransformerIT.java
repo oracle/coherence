@@ -10,18 +10,26 @@ package com.oracle.coherence.cdi;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.ValueExtractor;
+
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.UniversalExtractor;
+
 import com.tangosol.util.transformer.ExtractorEventTransformer;
+
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.enterprise.context.ApplicationScoped;
+
 import javax.enterprise.util.Nonbinding;
+
 import javax.inject.Inject;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -36,6 +44,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author jk  2020.06.16
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MapEventTransformerIT
     {
     @WeldSetup

@@ -9,10 +9,11 @@ package com.oracle.coherence.helidon.client;
 
 import com.oracle.coherence.cdi.CdiMapListener;
 import com.oracle.coherence.cdi.CoherenceExtension;
-import com.oracle.coherence.cdi.Remote;
-import com.oracle.coherence.cdi.Scope;
+
+import com.oracle.coherence.cdi.SessionName;
 
 import com.oracle.coherence.common.base.Exceptions;
+
 import com.tangosol.net.Session;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -66,18 +67,17 @@ public class CoherenceClientExtension
         // we need to wait for it to start so we wait for the future to complete
         checkStart().thenRun(() ->
             {
-            Instance<Object>                  instance  = beanManager.createInstance();
-            Map<String, Map<String, Session>> sessions  = new HashMap<>();
-            Set<CdiMapListener<?, ?>>         listeners = extension.getRemoteMapListeners();
+            Instance<Object>          instance  = beanManager.createInstance();
+            Map<String, Session>      sessions  = new HashMap<>();
 
+            // Ensure caches required for CDI MapEvent observer methods
+            Set<CdiMapListener<?, ?>> listeners = extension.getNonWildcardMapListeners();
             for (CdiMapListener<?, ?> listener : listeners)
                 {
-                String               sSession = listener.getRemoteSessionName();
-                String               sScope   = listener.getScopeName();
-                Map<String, Session> map      = sessions.computeIfAbsent(sScope, k -> new HashMap<>());
-                Session              session  = map.computeIfAbsent(sSession, k -> instance.select(Session.class,
-                                                         Remote.Literal.of(sSession),
-                                                         Scope.Literal.of(sScope)).get());
+                String               sSession = listener.getSessionName();
+                Session              session  = sessions.computeIfAbsent(sSession,
+                                                       k -> instance.select(Session.class,
+                                                                            SessionName.Literal.of(sSession)).get());
 
                 session.getCache(listener.getCacheName());
                 }

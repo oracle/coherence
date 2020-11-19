@@ -7,7 +7,12 @@
 package com.tangosol.net;
 
 import com.tangosol.net.cache.TypeAssertion;
+
+import com.tangosol.net.events.InterceptorRegistry;
+
 import com.tangosol.net.topic.NamedTopic;
+
+import com.tangosol.util.ResourceRegistry;
 
 /**
  * A thread-safe mechanism to request Coherence-based resources, like
@@ -84,6 +89,81 @@ public interface Session extends AutoCloseable
      * @since Coherence 14.1.1
      */
     <V> NamedTopic<V> getTopic(String sName, NamedTopic.Option... options);
+
+    /**
+     * Return the {@link ResourceRegistry} for this session.
+     *
+     * @return the ResourceRegistry for this session
+     */
+    ResourceRegistry getResourceRegistry();
+
+    /**
+     * Return the {@link InterceptorRegistry} for this session.
+     * {@link com.tangosol.net.events.EventInterceptor}s registered with
+     * this session will be scoped to services and caches created by
+     * this session.
+     *
+     * @return the {@link InterceptorRegistry} for this session
+     */
+    InterceptorRegistry getInterceptorRegistry();
+
+    /**
+     * Validate whether a map with the given name is active in the context
+     * of the given {@link ClassLoader}. The ClassLoader should be the same
+     * as provided to a previous call to {@link #getMap(String, NamedMap.Option...)}.
+     *
+     * @param sMapName  the map name
+     * @param loader    the ClassLoader used to originally obtain the map
+     *
+     * @return true if map is active in context of the provided ClassLoader
+     */
+    boolean isMapActive(String sMapName, ClassLoader loader);
+
+    /**
+     * Validate whether a cache with the given name is active in the context
+     * of the given {@link ClassLoader}. The ClassLoader should be the same
+     * as provided to a previous call to {@link #getCache(String, NamedCache.Option...)}.
+     *
+     * @param sCacheName  the cache name
+     * @param loader      the ClassLoader used to originally obtain the cache
+     *
+     * @return true if cache is active in context of the provided ClassLoader
+     */
+    boolean isCacheActive(String sCacheName, ClassLoader loader);
+
+    /**
+     * Validate whether a topic with the given name is active in the context
+     * of the given {@link ClassLoader}. The ClassLoader should be the same
+     * as provided to a previous call to {@link #getTopic(String, NamedTopic.Option...)}.
+     *
+     * @param sTopicName  the cache name
+     * @param loader      the ClassLoader used to originally obtain the topic
+     *
+     * @return true if topic is active in context of the provided ClassLoader
+     */
+    boolean isTopicActive(String sTopicName, ClassLoader loader);
+
+    /**
+     * Return the name of this session, if available.
+     *
+     * @return the name of this session, if available; {@code null} otherwise
+     */
+    String getName();
+
+    /**
+     * Return the scope name of this cache factory, if available.
+     *
+     * @return the scope name of this cache factory, if available; {@code null} otherwise
+     */
+    String getScopeName();
+
+    /**
+     * Return {@code true} if this {@link Session} is active
+     * and has not been closed.
+     *
+     * @return  {@code true} if this {@link Session} is active
+     */
+    boolean isActive();
 
     // ----- Option interface -----------------------------------------------
 

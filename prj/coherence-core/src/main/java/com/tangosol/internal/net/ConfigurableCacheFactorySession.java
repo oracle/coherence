@@ -13,16 +13,23 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
+
 import com.tangosol.net.cache.TypeAssertion;
+
+import com.tangosol.net.events.InterceptorRegistry;
+
+import com.tangosol.net.options.WithClassLoader;
+
 import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
 
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.tangosol.util.BuilderHelper.using;
 
 /**
  * A {@link Session} that uses a specific {@link ConfigurableCacheFactory}
@@ -30,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author bo  2015.07.27
  */
+@SuppressWarnings("rawtypes")
 public class ConfigurableCacheFactorySession
         implements Session
     {
@@ -43,11 +51,41 @@ public class ConfigurableCacheFactorySession
      */
     public ConfigurableCacheFactorySession(ConfigurableCacheFactory ccf, ClassLoader loader)
         {
-        m_ccf = ccf;
+        this(ccf, loader, null);
+        }
+
+    /**
+     * Constructs a named {@link ConfigurableCacheFactorySession}.
+     *
+     * @param ccf     the {@link ConfigurableCacheFactory}
+     * @param loader  the {@link ClassLoader}
+     * @param sName   the optional name of this session
+     */
+    public ConfigurableCacheFactorySession(ConfigurableCacheFactory ccf, ClassLoader loader, String sName)
+        {
+        m_ccf         = ccf;
         m_classLoader = loader == null ? Base.ensureClassLoader(null) : loader;
+        f_sName       = sName;
         m_mapCaches   = new ConcurrentHashMap<>();
         m_mapTopics   = new ConcurrentHashMap<>();
         m_fActive     = true;
+
+        // if there is a session name add it as a resource to the CCF resource registry
+        if (f_sName != null)
+            {
+            ResourceRegistry registry      = ccf.getResourceRegistry();
+            String           sNameExisting = registry.getResource(String.class, SESSION_NAME);
+            if (sNameExisting == null)
+                {
+                registry.registerResource(String.class, SESSION_NAME, f_sName);
+                }
+            else if (!sNameExisting.equals(f_sName))
+                {
+                throw new IllegalStateException("Failed to register Session name " + f_sName +
+                                                " with ConfigurableCacheFactory, a different Session name " +
+                                                sNameExisting + " has already been registered");
+                }
+            }
         }
 
     // ----- Session interface ----------------------------------------------
@@ -59,6 +97,7 @@ public class ConfigurableCacheFactorySession
         }
 
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public <K, V> NamedCache<K, V> getCache(String sName, NamedCache.Option... options)
         {
         if (m_fActive)
@@ -76,9 +115,12 @@ public class ConfigurableCacheFactorySession
                     m_mapCaches.computeIfAbsent(sName,
                                                 any -> new ConcurrentHashMap<>());
 
-            // grab the type assertion from the provided options
-            Options<NamedCache.Option> optionSet = Options.from(NamedCache.Option.class, options);
-            TypeAssertion typeAssertion          = optionSet.get(TypeAssertion.class);
+            // grab the type assertion and ClassLoader from the provided options
+            Options<NamedCache.Option> optionSet     = Options.from(NamedCache.Option.class, options);
+            TypeAssertion              typeAssertion = optionSet.get(TypeAssertion.class);
+            ClassLoader                loader        = optionSet.get(WithClassLoader.class,
+                                                                     WithClassLoader.using(m_classLoader))
+                                                                .getClassLoader();
 
             // grab the session-based named cache for the type of assertion, creating one if necessary
             SessionNamedCache<K, V> cacheSession = mapCachesByTypeAssertion.compute(
@@ -94,7 +136,7 @@ public class ConfigurableCacheFactorySession
                         // request an underlying NamedCache from the CCF
                         NamedCache<K, V> cacheUnderlying = m_ccf.ensureTypedCache(
                                 sName,
-                                m_classLoader,
+                                loader,
                                 typeAssertion);
 
                         SessionNamedCache<K, V> cache = new SessionNamedCache<>(this,
@@ -118,7 +160,7 @@ public class ConfigurableCacheFactorySession
 
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <V> NamedTopic<V> getTopic(String sName, NamedTopic.Option... options)
         {
         assertActive();
@@ -135,11 +177,14 @@ public class ConfigurableCacheFactorySession
         ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic> mapTopicsByTypeAssertion =
                 m_mapTopics.computeIfAbsent(sName, any -> new ConcurrentHashMap<>());
 
-        // grab the type assertion from the provided options
+        // grab the type assertion and ClassLoader from the provided options
         Options<NamedTopic.Option> optionSet     = Options.from(NamedTopic.Option.class, options);
         ValueTypeAssertion<V>      typeAssertion = optionSet.get(ValueTypeAssertion.class);
+        ClassLoader                loader        = optionSet.get(WithClassLoader.class,
+                                                                  WithClassLoader.using(m_classLoader))
+                                                            .getClassLoader();
 
-        SessionNamedTopic<V>  topicSession = mapTopicsByTypeAssertion.computeIfAbsent(
+        SessionNamedTopic<V>       topicSession  = mapTopicsByTypeAssertion.computeIfAbsent(
             typeAssertion,
             any -> {
             try
@@ -148,7 +193,7 @@ public class ConfigurableCacheFactorySession
                 registry.getResource(NamedTopicReferenceCounter.class, sName).incrementAndGet();
 
                 // request an underlying NamedTopic from the CCF
-                NamedTopic<V> topicUnderlying = m_ccf.ensureTopic(sName, m_classLoader, typeAssertion);
+                NamedTopic<V> topicUnderlying = m_ccf.ensureTopic(sName, loader, typeAssertion);
 
                 return new SessionNamedTopic<>(this, topicUnderlying, typeAssertion);
                 }
@@ -192,6 +237,66 @@ public class ConfigurableCacheFactorySession
             }
         }
 
+    @Override
+    public ResourceRegistry getResourceRegistry()
+        {
+        return m_ccf.getResourceRegistry();
+        }
+
+    @Override
+    public InterceptorRegistry getInterceptorRegistry()
+        {
+        return m_ccf.getInterceptorRegistry();
+        }
+
+    @Override
+    public boolean isCacheActive(String sCacheName, ClassLoader loader)
+        {
+        return m_ccf.isCacheActive(sCacheName, loader);
+        }
+
+    @Override
+    public boolean isMapActive(String sMapName, ClassLoader loader)
+        {
+        return m_ccf.isCacheActive(sMapName, loader);
+        }
+
+    @Override
+    public boolean isTopicActive(String sTopicName, ClassLoader loader)
+        {
+        return m_ccf.isTopicActive(sTopicName, loader);
+        }
+
+    @Override
+    public String getName()
+        {
+        return f_sName;
+        }
+
+    @Override
+    public String getScopeName()
+        {
+        return m_ccf.getScopeName();
+        }
+
+    @Override
+    public boolean isActive()
+        {
+        return m_fActive;
+        }
+
+    // ----- ConfigurableCacheFactory.Supplier methods ----------------------
+
+    /**
+     * Return the {@link ConfigurableCacheFactory} that this session wraps.
+     *
+     * @return  the {@link ConfigurableCacheFactory} that this session wraps
+     */
+    public ConfigurableCacheFactory getConfigurableCacheFactory()
+        {
+        return m_ccf;
+        }
+
     // ----- ConfigurableCacheFactorySession methods ------------------------
 
     private void assertActive()
@@ -199,59 +304,6 @@ public class ConfigurableCacheFactorySession
         if (!m_fActive)
             {
             throw new IllegalStateException("Session is closed");
-            }
-        }
-
-    private <K, V> SessionNamedCache createSessionNamedCache(String sName, TypeAssertion<K, V> typeAssertion,
-                                                             ResourceRegistry registry)
-        {
-        try
-            {
-            // increment the reference count for the underlying NamedCache
-            registry.getResource(NamedCacheReferenceCounter.class,
-                                 sName).incrementAndGet();
-
-            // request an underlying NamedCache from the CCF
-            NamedCache<K, V> cacheUnderlying = m_ccf.ensureTypedCache(
-                    sName,
-                    m_classLoader,
-                    typeAssertion);
-
-            return new SessionNamedCache<>(this,
-                                           cacheUnderlying,
-                                           typeAssertion);
-            }
-        catch (Exception e)
-            {
-            // when we can't acquire the NamedCache,
-            // ensure we don't impact the reference count
-            registry.getResource(NamedCacheReferenceCounter.class,
-                                 sName).decrementAndGet();
-
-            throw e;
-            }
-        }
-
-    private <V> SessionNamedTopic<V> createSessionNamedTopic(String sName, ValueTypeAssertion<V> typeAssertion,
-            ResourceRegistry registry)
-        {
-        try
-            {
-            // increment the reference count for the underlying NamedTopic
-            registry.getResource(NamedTopicReferenceCounter.class, sName).incrementAndGet();
-
-            // request an underlying NamedTopic from the CCF
-            NamedTopic<V> topicUnderlying = m_ccf.ensureTopic(sName, m_classLoader, typeAssertion);
-
-            return new SessionNamedTopic<>(this, topicUnderlying, typeAssertion);
-            }
-        catch (Exception e)
-            {
-            // when we can't acquire the NamedTopic,
-            // ensure we don't impact the reference count
-            registry.getResource(NamedTopicReferenceCounter.class, sName).decrementAndGet();
-
-            throw e;
             }
         }
 
@@ -288,6 +340,7 @@ public class ConfigurableCacheFactorySession
         topic.onDestroyed();
         }
 
+    @SuppressWarnings("rawtypes")
     <V> void dropNamedTopic(SessionNamedTopic<V> namedCache)
         {
         // drop the NamedCache from this session
@@ -335,6 +388,7 @@ public class ConfigurableCacheFactorySession
         namedCache.onDestroyed();
         }
 
+    @SuppressWarnings("rawtypes")
     <K, V> void dropNamedCache(SessionNamedCache<K, V> namedCache)
         {
         // drop the NamedCache from this session
@@ -347,7 +401,20 @@ public class ConfigurableCacheFactorySession
             }
         }
 
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The key used to register the session name in the {@link ConfigurableCacheFactory}
+     * resource registry.
+     */
+    public static final String SESSION_NAME = "$SESSION$";
+
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The optional name of this {@link Session}
+     */
+    private final String f_sName;
 
     /**
      * The {@link ConfigurableCacheFactory} on which the {@link Session}

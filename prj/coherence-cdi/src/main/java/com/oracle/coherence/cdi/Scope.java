@@ -6,11 +6,15 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.tangosol.net.Coherence;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
 import javax.enterprise.util.AnnotationLiteral;
 import javax.enterprise.util.Nonbinding;
+
 import javax.inject.Qualifier;
 
 /**
@@ -38,12 +42,12 @@ public @interface Scope
     /**
      * Predefined constant for system scope.
      */
-    String DEFAULT = "";
+    String DEFAULT = Coherence.DEFAULT_SCOPE;
 
     /**
      * Predefined constant for system scope.
      */
-    String SYSTEM = "SYS";
+    String SYSTEM = Coherence.SYSTEM_SCOPE;
 
     // ---- inner class: Literal --------------------------------------------
 

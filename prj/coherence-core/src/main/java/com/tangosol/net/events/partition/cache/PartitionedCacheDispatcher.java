@@ -16,6 +16,7 @@ import com.tangosol.net.events.EventDispatcher;
  * A PartitionedCacheDispatcher raises the following server-side {@link
  * com.tangosol.net.events.Event}s pertaining to backing-map operations:
  * <ul>
+ *   <li>{@link CacheLifecycleEvent}s</li>
  *   <li>{@link EntryEvent}s</li>
  *   <li>{@link EntryProcessorEvent}s</li>
  * </ul>
@@ -24,7 +25,7 @@ import com.tangosol.net.events.EventDispatcher;
  * @since Coherence 12.1.2
  */
 public interface PartitionedCacheDispatcher
-        extends EventDispatcher
+        extends CacheLifecycleEventDispatcher
     {
     /**
      * Return the {@link BackingMapContext} for this dispatcher.
@@ -39,6 +40,7 @@ public interface PartitionedCacheDispatcher
      *
      * @return  the cache name
      */
+    @Override
     public default String getCacheName()
         {
         return getBackingMapContext().getCacheName();
@@ -50,8 +52,15 @@ public interface PartitionedCacheDispatcher
      *
      * @return  the service name
      */
+    @Override
     public default String getServiceName()
         {
         return getBackingMapContext().getManagerContext().getCacheService().getInfo().getServiceName();
+        }
+
+    @Override
+    public default String getScopeName()
+        {
+        return getBackingMapContext().getManagerContext().getManager().getCacheFactory().getScopeName();
         }
     }

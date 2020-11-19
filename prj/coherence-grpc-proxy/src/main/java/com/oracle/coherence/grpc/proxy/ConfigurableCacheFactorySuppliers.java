@@ -9,7 +9,9 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.oracle.coherence.grpc.Requests;
 import com.tangosol.coherence.config.Config;
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.util.Base;
 import io.grpc.Status;
@@ -58,6 +60,25 @@ public interface ConfigurableCacheFactorySuppliers
                 {
                 return CacheFactory.getCacheFactoryBuilder()
                         .getConfigurableCacheFactory(Base.getContextClassLoader());
+                }
+
+            // Try to find a Session with the required scope in a Coherence instance
+            ConfigurableCacheFactory[] aCCF = Coherence.findSessionsByScope(scope)
+                    .stream()
+                    .filter(ConfigurableCacheFactorySession.class::isInstance)
+                    .map(ConfigurableCacheFactorySession.class::cast)
+                    .map(ConfigurableCacheFactorySession::getConfigurableCacheFactory)
+                    .toArray(ConfigurableCacheFactory[]::new);
+
+            if (aCCF.length == 1)
+                {
+                return aCCF[0];
+                }
+            else if (aCCF.length > 1)
+                {
+                throw Status.INVALID_ARGUMENT
+                        .withDescription("Multiple ConfigurableCacheFactory instances have been configured with scope name "+ scope)
+                        .asRuntimeException();
                 }
 
             String sURI = Config.getProperty("coherence.cacheconfig." + scope);
@@ -125,5 +146,5 @@ public interface ConfigurableCacheFactorySuppliers
     /**
      * The default instance of the DefaultCacheFactorySupplier.
      */
-    public static final Function<String, ConfigurableCacheFactory> DEFAULT = new DefaultCacheFactorySupplier();
+    Function<String, ConfigurableCacheFactory> DEFAULT = new DefaultCacheFactorySupplier();
     }

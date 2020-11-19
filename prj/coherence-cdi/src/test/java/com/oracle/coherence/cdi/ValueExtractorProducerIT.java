@@ -11,12 +11,15 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
 import java.time.LocalDate;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
+
 import javax.inject.Inject;
 
 import com.oracle.coherence.cdi.data.Person;
@@ -24,8 +27,11 @@ import com.oracle.coherence.cdi.data.PhoneNumber;
 
 import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.ConfigurablePofContext;
+
 import com.tangosol.net.BackingMapContext;
+
 import com.tangosol.net.cache.BackingMapBinaryEntry;
+
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMapHelper;
@@ -35,14 +41,18 @@ import com.tangosol.util.ValueExtractor;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +63,7 @@ import static org.mockito.Mockito.when;
  */
 @SuppressWarnings("unchecked")
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ValueExtractorProducerIT
     {
 

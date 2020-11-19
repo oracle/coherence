@@ -20,11 +20,15 @@ import com.tangosol.io.Serializer;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionProvider;
 
-import io.grpc.Channel;
+import com.tangosol.net.options.WithName;
+import com.tangosol.net.options.WithScopeName;
 
+import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannelBuilder;
+
 import io.grpc.inprocess.InProcessChannelBuilder;
+
 import io.opentracing.Tracer;
 import io.opentracing.contrib.grpc.TracingClientInterceptor;
 import io.opentracing.util.GlobalTracer;
@@ -82,7 +86,7 @@ public class GrpcSessions
      */
     public static Session.Option scope(String sScope)
         {
-        return sScope == null ? ScopeOption.DEFAULT : new ScopeOption(sScope);
+        return sScope == null ? WithScopeName.defaultScope() : WithScopeName.of(sScope);
         }
 
     /**
@@ -112,7 +116,7 @@ public class GrpcSessions
      */
     public static Session.Option named(String sName)
         {
-        return new NameOption(sName);
+        return WithName.of(sName);
         }
 
     /**
@@ -239,8 +243,8 @@ public class GrpcSessions
     private synchronized GrpcRemoteSession ensureSession(Options<Session.Option> options)
         {
         Channel          channel          = options.get(ChannelOption.class).getChannel();
-        String           sName            = options.get(NameOption.class, NameOption.DEFAULT).getName();
-        String           sScope           = options.get(ScopeOption.class, ScopeOption.DEFAULT).getScope();
+        String           sName            = options.get(WithName.class, WithName.defaultName()).getName();
+        String           sScope           = options.get(WithScopeName.class, WithScopeName.defaultScope()).getScopeName();
         SerializerOption serializerOption = options.get(SerializerOption.class, SerializerOption.DEFAULT);
         Serializer       serializer       = serializerOption.getSerializer();
         String           sFormat          = serializerOption.getFormat();
@@ -259,46 +263,6 @@ public class GrpcSessions
                          .get(builder.getScope())
                          .get(builder.ensureSerializerFormat())
                          .get(builder.ensureSerializer(), builder);
-        }
-
-    // ----- inner class: ScopeOption ---------------------------------------
-
-    /**
-     * A {@link Session.Option} to use to specify the scope name for a session.
-     */
-    protected static class ScopeOption
-            implements Session.Option
-        {
-        // ----- constructors -----------------------------------------------
-
-        protected ScopeOption(String sScope)
-            {
-            f_sScope = sScope == null ? Requests.DEFAULT_SCOPE : sScope;
-            }
-
-        /**
-         * Return the scope name.
-         *
-         * @return the scope name.
-         */
-        protected String getScope()
-            {
-            return f_sScope;
-            }
-
-        // ----- constants --------------------------------------------------
-
-        /**
-         * Default session scope option.
-         */
-        protected static final ScopeOption DEFAULT = new ScopeOption(Requests.DEFAULT_SCOPE);
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The remote session name.
-         */
-        protected final String f_sScope;
         }
 
     // ----- inner class: ChannelOption -------------------------------------
@@ -340,47 +304,6 @@ public class GrpcSessions
          * The gRPC {@link Channel}.
          */
         protected final Channel f_channel;
-        }
-
-    // ----- inner class: MapLifecycleListenerOption ------------------------
-
-    /**
-     * A {@link Session.Option} to use to specify an optional
-     * name for the session.
-     */
-    protected static class NameOption
-            implements Session.Option
-        {
-        // ----- constructors -----------------------------------------------
-
-        protected NameOption(String sName)
-            {
-            f_sName = sName;
-            }
-
-        /**
-         * Return the optional name for the session.
-         *
-         * @return the optional name for the session
-         */
-        protected String getName()
-            {
-            return f_sName == null ? Requests.DEFAULT_SESSION_NAME : f_sName;
-            }
-
-        // ----- constants --------------------------------------------------
-
-        /**
-         * Default session name option.
-         */
-        protected static final NameOption DEFAULT = new NameOption(Requests.DEFAULT_SCOPE);
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The optional name for the session.
-         */
-        protected final String f_sName;
         }
 
     // ----- inner class: ChannelOption -------------------------------------

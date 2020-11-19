@@ -22,11 +22,14 @@ import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.MapListener;
 
 import java.lang.annotation.Annotation;
-import java.util.EnumSet;
 
+import java.util.EnumSet;
 import java.util.Set;
+
 import java.util.concurrent.CompletableFuture;
+
 import java.util.stream.Collectors;
+
 import javax.enterprise.inject.spi.ObserverMethod;
 
 /**
@@ -77,9 +80,9 @@ public class CdiMapListener<K, V>
                 {
                 addType(Type.DELETED);
                 }
-            else if (a instanceof Remote)
+            else if (a instanceof SessionName)
                 {
-                m_sRemoteSession = ((Remote) a).value();
+                m_sSession = ((SessionName) a).value();
                 }
             }
 
@@ -132,24 +135,13 @@ public class CdiMapListener<K, V>
     // ---- helpers ---------------------------------------------------------
 
     /**
-     * Returns {@code true} if this listener is for a remote resource.
+     * Return the name of the session that this listener is for
      *
-     * @return  {@code true} if this listener is for a remote resource
+     * @return  the name of the session this listener is for
      */
-    public boolean isRemote()
+    public String getSessionName()
         {
-        return m_sRemoteSession != null;
-        }
-
-    /**
-     * Return the name of the remote session this listener is for, or {@code null} if
-     * it should be registered regardless of the session name.
-     *
-     * @return  the name of the remote session this listener is for
-     */
-    public String getRemoteSessionName()
-        {
-        return m_sRemoteSession;
+        return m_sSession;
         }
 
     /**
@@ -365,7 +357,7 @@ public class CdiMapListener<K, V>
                 "cacheName='" + m_sCacheName + '\'' +
                 ", serviceName='" + m_sServiceName + '\'' +
                 ", scopeName='" + m_sScopeName + '\'' +
-                ", remoteSession='" + m_sRemoteSession + '\'' +
+                ", session='" + m_sSession + '\'' +
                 '}';
         }
 
@@ -433,10 +425,11 @@ public class CdiMapListener<K, V>
     private final Set<Annotation> m_setAnnExtractor;
 
     /**
-     * The name of the remote session if this listener is for a remote resource
-     * or {@code null} if this listener is for a local resource.
+     * The name of the session if this listener is for a resource
+     * managed by a specific session or {@code null} if this listener
+     * is for a resource in any session.
      */
-    private String m_sRemoteSession;
+    private String m_sSession;
 
     /**
      * A flag indicating whether to subscribe to lite-events.

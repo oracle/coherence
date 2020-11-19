@@ -8,8 +8,10 @@ package com.oracle.coherence.cdi;
 
 import com.oracle.coherence.cdi.events.Created;
 
-import com.tangosol.net.NamedMap;
+import com.tangosol.net.Coherence;
+import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.Session;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.Filter;
@@ -22,6 +24,7 @@ import com.tangosol.util.filter.MapEventTransformerFilter;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
+
 import javax.enterprise.event.Observes;
 
 import javax.inject.Inject;
@@ -39,18 +42,13 @@ public class CdiMapListenerManager
     {
     private void registerCacheListeners(@Observes @Created CacheLifecycleEvent event)
         {
-        registerListeners(event.getCache(), event.getScope(), null, event.getServiceName());
+        registerListeners(event, event.getCacheName(), event.getScopeName(), event.getSessionName(), event.getServiceName());
         }
 
-    private void registerRemoteListeners(@Observes @Created RemoteMapLifecycleEvent event)
-        {
-        registerListeners(event.getMap(), event.getScope(), event.getSessionName(), event.getServiceName());
-        }
-
-    private void registerListeners(NamedMap cache, String sEventScope, String sEventSession, String sEventService)
+    private void registerListeners(CacheLifecycleEvent event, String sCacheName, String sEventScope, String sEventSession, String sEventService)
         {
         Set<CdiMapListener<?, ?>> setListeners = m_extension
-                .getMapListeners(removeScope(sEventService), cache.getName());
+                .getMapListeners(removeScope(sEventService), sCacheName);
 
         for (CdiMapListener<?, ?> listener : setListeners)
             {
@@ -70,7 +68,7 @@ public class CdiMapListenerManager
 
             String  sScope     = listener.getScopeName();
             boolean fScopeOK   = sScope == null || sScope.equals(sEventScope);
-            String  sSession   = listener.getRemoteSessionName();
+            String  sSession   = listener.getSessionName();
             boolean fSessionOK = sSession == null || sSession.equals(sEventSession);
 
             if (fScopeOK && fSessionOK)
@@ -88,7 +86,10 @@ public class CdiMapListenerManager
                     }
 
                 boolean fLite = listener.isLite();
+                Session session = Coherence.findSession(sEventSession)
+                           .orElseThrow(() -> new IllegalStateException("Cannot find a Session with name " + sSession));
 
+                NamedCache cache = session.getCache(sCacheName);
                 if (listener.isSynchronous())
                     {
                     cache.addMapListener(listener.synchronous(), filter, fLite);

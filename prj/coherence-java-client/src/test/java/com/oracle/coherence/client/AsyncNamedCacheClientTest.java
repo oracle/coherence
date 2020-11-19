@@ -85,11 +85,12 @@ class AsyncNamedCacheClientTest
 
     <K, V> AsyncNamedCacheClient<K, V> createClient()
         {
-        NamedCacheGrpcClient client  = createMockService();
-        Channel              channel = mock(Channel.class);
+        NamedCacheGrpcClient              client     = createMockService();
+        Channel                           channel    = mock(Channel.class);
+        GrpcCacheLifecycleEventDispatcher dispatcher = mock(GrpcCacheLifecycleEventDispatcher.class);
 
         AsyncNamedCacheClient.DefaultDependencies deps
-                = new  AsyncNamedCacheClient.DefaultDependencies("test", channel);
+                = new  AsyncNamedCacheClient.DefaultDependencies("test", channel, dispatcher);
 
         deps.setScope(DEFAULT_SCOPE);
         deps.setSerializer(SERIALIZER, FORMAT);

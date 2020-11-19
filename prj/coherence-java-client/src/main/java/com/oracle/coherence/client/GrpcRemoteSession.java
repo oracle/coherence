@@ -6,7 +6,6 @@
  */
 package com.oracle.coherence.client;
 
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
 import com.oracle.coherence.grpc.Requests;
 
@@ -18,15 +17,24 @@ import com.tangosol.io.Serializer;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
+import com.tangosol.net.events.EventDispatcherRegistry;
+import com.tangosol.net.events.InterceptorRegistry;
+
+import com.tangosol.net.events.internal.Registry;
+
 import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.MapEvent;
+
+import com.tangosol.util.ResourceRegistry;
+import com.tangosol.util.SimpleResourceRegistry;
 
 import io.grpc.Channel;
 
@@ -35,16 +43,15 @@ import io.grpc.ClientInterceptors;
 
 import io.opentracing.contrib.grpc.TracingClientInterceptor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * A client {@link Session} that connects to a remote gRPC proxy.
@@ -65,20 +72,26 @@ public class GrpcRemoteSession
      */
     protected GrpcRemoteSession(Builder builder)
         {
-        f_sName                    = builder.getName().orElse(Requests.DEFAULT_SESSION_NAME);
-        f_sScopeName               = builder.getScope();
-        f_channel                  = builder.getChannel();
-        f_sSerializerFormat        = builder.ensureSerializerFormat();
-        f_serializer               = builder.ensureSerializer();
-        m_executor                 = builder.ensureExecutor();
-        f_tracing                  = builder.ensureTracing();
-        f_mapCaches                = new ConcurrentHashMap<>();
-        f_deactivationListener     = new ClientDeactivationListener<>();
-        f_truncateListener         = new TruncateListener();
-        f_listMapLifecycleListener = Collections.synchronizedList(new ArrayList<>());
+        f_sName                = builder.getName().orElse(Coherence.DEFAULT_NAME);
+        f_sScopeName           = builder.getScope();
+        f_channel              = builder.getChannel();
+        f_sSerializerFormat    = builder.ensureSerializerFormat();
+        f_serializer           = builder.ensureSerializer();
+        m_executor             = builder.ensureExecutor();
+        f_tracing              = builder.ensureTracing();
+        f_registry             = builder.getResourceRegistry();
+        f_mapCaches            = new ConcurrentHashMap<>();
+        f_deactivationListener = new ClientDeactivationListener<>();
+        f_truncateListener     = new TruncateListener();
         }
 
     // ----- public methods -------------------------------------------------
+
+    @Override
+    public boolean isActive()
+        {
+        return isClosed();
+        }
 
     /**
      * Obtain the scope name used to link this {@link GrpcRemoteSession}
@@ -87,7 +100,7 @@ public class GrpcRemoteSession
      *
      * @return the scope name for this {@link GrpcRemoteSession}
      */
-    public String getScope()
+    public String getScopeName()
         {
         return f_sScopeName;
         }
@@ -148,69 +161,6 @@ public class GrpcRemoteSession
     public String scope()
         {
         return f_sScopeName;
-        }
-
-    /**
-     * Add a {@link DeactivationListener} that will be notified when this
-     * {@link GrpcRemoteSession} is closed.
-     * <p>
-     * If this {@link GrpcRemoteSession} is already closed then the listener's
-     * {@link DeactivationListener#destroyed(Object)} method will be called
-     * immediately on the calling thread.
-     *
-     * @param listener  the {@link DeactivationListener} to add
-     *
-     * @throws NullPointerException if the listener is null
-     */
-    public synchronized void addDeactivationListener(DeactivationListener<GrpcRemoteSession> listener)
-        {
-        Objects.requireNonNull(listener);
-        if (!m_fClosed)
-            {
-            f_listDeactivationListeners.add(listener);
-            }
-        else
-            {
-            listener.destroyed(this);
-            }
-        }
-
-    /**
-     * Remove a {@link DeactivationListener} that will be notified when this
-     * {@link GrpcRemoteSession} is closed.
-     *
-     * @param listener  the {@link DeactivationListener} to remove
-     */
-    public synchronized void removeDeactivationListener(DeactivationListener<GrpcRemoteSession> listener)
-        {
-        f_listDeactivationListeners.remove(listener);
-        }
-
-    /**
-     * Add a {@link RemoteMapLifecycleListener} to this session.
-     * <p>
-     * If the current session already contains the listener (based on Object equality)
-     * then this method is a no-op.
-     *
-     * @param listener  the {@link RemoteMapLifecycleListener} to add
-     */
-    public synchronized void addMapLifecycleListener(RemoteMapLifecycleListener listener)
-        {
-        if (f_listMapLifecycleListener.contains(listener))
-            {
-            return;
-            }
-        f_listMapLifecycleListener.add(listener);
-        }
-
-    /**
-     * Remove a {@link RemoteMapLifecycleListener} from this session.
-     *
-     * @param listener  the {@link RemoteMapLifecycleListener} to remove
-     */
-    public synchronized void removeMapLifecycleListener(RemoteMapLifecycleListener listener)
-        {
-        f_listMapLifecycleListener.remove(listener);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -293,23 +243,57 @@ public class GrpcRemoteSession
                 }
             }
         f_mapCaches.clear();
+        f_registry.dispose();
+        }
 
-        for (DeactivationListener<GrpcRemoteSession> listener : f_listDeactivationListeners)
-            {
-            try
-                {
-                listener.destroyed(this);
-                }
-            catch (Throwable e)
-                {
-                e.printStackTrace();
-                }
-            }
-        f_listDeactivationListeners.clear();
-        f_listMapLifecycleListener.clear();
+    @Override
+    public ResourceRegistry getResourceRegistry()
+        {
+        return f_registry;
+        }
+
+    @Override
+    public InterceptorRegistry getInterceptorRegistry()
+        {
+        return getResourceRegistry().getResource(InterceptorRegistry.class);
+        }
+
+    @Override
+    public boolean isCacheActive(String sCacheName, ClassLoader loader)
+        {
+        AsyncNamedCacheClient<?, ?> cache = f_mapCaches.get(sCacheName);
+        return cache != null && cache.isActiveInternal();
+        }
+
+    @Override
+    public boolean isMapActive(String sMapName, ClassLoader loader)
+        {
+        return isCacheActive(sMapName, loader);
+        }
+
+    @Override
+    public boolean isTopicActive(String sTopicName, ClassLoader loader)
+        {
+        // ToDo: Implement this when we add topic support
+        return false;
         }
 
     // ----- accessor methods -----------------------------------------------
+
+    /**
+     * Returns the set of names of currently active caches that have been
+     * previously created by this session.
+     *
+     * @return the set of cache names
+     */
+    public Set<String> getCacheNames()
+        {
+        return f_mapCaches.entrySet()
+                          .stream()
+                          .filter(e -> e.getValue().getNamedCacheClient().isActive())
+                          .map(Map.Entry::getKey)
+                          .collect(Collectors.toSet());
+        }
 
     /**
      * Returns {@code true} if this session has been closed, otherwise returns {@link false}.
@@ -396,8 +380,10 @@ public class GrpcRemoteSession
                 .map(t -> ClientInterceptors.intercept(f_channel, t))
                 .orElse(f_channel);
 
+        GrpcCacheLifecycleEventDispatcher dispatcher = new GrpcCacheLifecycleEventDispatcher(sCacheName, this);
+
         AsyncNamedCacheClient.DefaultDependencies deps
-                = new  AsyncNamedCacheClient.DefaultDependencies(sCacheName, channel);
+                = new  AsyncNamedCacheClient.DefaultDependencies(sCacheName, channel, dispatcher);
 
         deps.setScope(f_sScopeName);
         deps.setSerializer(f_serializer, f_sSerializerFormat);
@@ -405,17 +391,14 @@ public class GrpcRemoteSession
 
         AsyncNamedCacheClient<?, ?> client = new AsyncNamedCacheClient<>(deps);
 
-        for (RemoteMapLifecycleListener listener : f_listMapLifecycleListener)
+        EventDispatcherRegistry dispatcherReg = f_registry.getResource(EventDispatcherRegistry.class);
+        if (dispatcherReg != null)
             {
-            try
-                {
-                listener.onCreate(client.getNamedMap(), f_sScopeName, this);
-                }
-            catch (Throwable t)
-                {
-                Logger.err(t);
-                }
+            dispatcherReg.registerEventDispatcher(dispatcher);
             }
+
+        // We must dispatch the created event async
+        m_executor.execute(() -> dispatcher.dispatchCacheCreated(client.getNamedCache()));
 
         client.addDeactivationListener(f_truncateListener);
         client.addDeactivationListener(f_deactivationListener);
@@ -446,17 +429,10 @@ public class GrpcRemoteSession
             AsyncNamedCacheClient<?, ?> removed = session.f_mapCaches.remove(client.getCacheName());
             if (removed != null)
                 {
-                for (RemoteMapLifecycleListener listener : f_listMapLifecycleListener)
-                    {
-                    try
-                        {
-                        listener.onDestroy(removed.getNamedMap(), f_sScopeName, session);
-                        }
-                    catch (Throwable t)
-                        {
-                        Logger.err(t);
-                        }
-                    }
+                GrpcCacheLifecycleEventDispatcher dispatcher    = removed.getEventDispatcher();
+                EventDispatcherRegistry           dispatcherReg = f_registry.getResource(EventDispatcherRegistry.class);
+                dispatcher.dispatchCacheDestroyed(removed.getNamedCache());
+                dispatcherReg.unregisterEventDispatcher(removed.getEventDispatcher());
                 }
             }
         }
@@ -478,17 +454,11 @@ public class GrpcRemoteSession
         @Override
         public void entryUpdated(MapEvent evt)
             {
-            GrpcRemoteSession session = GrpcRemoteSession.this;
-            for (RemoteMapLifecycleListener listener : f_listMapLifecycleListener)
+            NamedCache                  cacheEvent = (NamedCache) evt.getMap();
+            AsyncNamedCacheClient<?, ?> client     = f_mapCaches.get(cacheEvent.getCacheName());
+            if (client != null)
                 {
-                try
-                    {
-                    listener.onTruncate((NamedMap<?, ?>) evt.getMap(), f_sScopeName, session);
-                    }
-                catch (Throwable t)
-                    {
-                    Logger.err(t);
-                    }
+                client.getEventDispatcher().dispatchCacheTruncated((NamedCache) evt.getMap());
                 }
             }
         }
@@ -504,7 +474,13 @@ public class GrpcRemoteSession
 
         private Builder(Channel channel)
             {
-            f_channel = Objects.requireNonNull(channel);
+            f_channel  = Objects.requireNonNull(channel);
+            f_registry = new SimpleResourceRegistry();
+
+            Registry eventRegistry = new Registry();
+
+            f_registry.registerResource(InterceptorRegistry.class, eventRegistry);
+            f_registry.registerResource(EventDispatcherRegistry.class, eventRegistry);
             }
 
         // ----- public methods ---------------------------------------------
@@ -604,6 +580,18 @@ public class GrpcRemoteSession
             {
             m_tracingClientInterceptor = interceptor;
             return this;
+            }
+
+        /**
+         * Returns the {@link ResourceRegistry} that the {@link GrpcRemoteSession}
+         * will use.
+         *
+         * @return  the {@link ResourceRegistry} that the {@link GrpcRemoteSession}
+         *          will use
+         */
+        public ResourceRegistry getResourceRegistry()
+            {
+            return f_registry;
             }
 
         // ----- Builder interface ------------------------------------------
@@ -760,61 +748,14 @@ public class GrpcRemoteSession
          */
         protected ClientInterceptor m_tracingClientInterceptor;
 
+        /**
+         * The {@link ResourceRegistry} that will be used by the session.
+         */
+        protected ResourceRegistry f_registry;
+
         private static final Serializer f_defaultJavaSerializer = new DefaultSerializer();
 
         private static final Serializer f_defaultPofSerializer = new ConfigurablePofContext();
-        }
-
-    // ----- inner class: SessionDeactivationListener -----------------------
-
-    /**
-     * A listener that will be called when a session is closed.
-     */
-    public interface SessionDeactivationListener
-            extends DeactivationListener<GrpcRemoteSession>
-        {
-        // ----- DeactivationListener interface -----------------------------
-
-        @Override
-        default void released(GrpcRemoteSession resource)
-            {
-            }
-        }
-
-    // ----- inner class: SessionDeactivationListener -----------------------
-
-    /**
-     * A listener that will be called for lifecycle events on remote {@link NamedMap}
-     * instances controlled by this session.
-     */
-    public interface RemoteMapLifecycleListener
-        {
-        /**
-         * Indicates that a {@link NamedMap} has been created.
-         *
-         * @param map      the {@link NamedMap} that the event is for
-         * @param sScope   the name of the scope that the map is in
-         * @param session  the {@link com.tangosol.net.Session} that owns the map
-         */
-        void onCreate(NamedMap<?, ?> map, String sScope, Session session);
-
-        /**
-         * Indicates that a {@link NamedMap} has been destroyed.
-         *
-         * @param map      the {@link NamedMap} that the event is for
-         * @param sScope   the name of the scope that the map is in
-         * @param session  the {@link com.tangosol.net.Session} that owns the map
-         */
-        void onDestroy(NamedMap<?, ?> map, String sScope, Session session);
-
-        /**
-         * Indicates that a {@link NamedMap} has been truncated.
-         *
-         * @param map      the {@link NamedMap} that the event is for
-         * @param sScope   the name of the scope that the map is in
-         * @param session  the {@link com.tangosol.net.Session} that owns the map
-         */
-        void onTruncate(NamedMap<?, ?> map, String sScope, Session session);
         }
 
     // ----- constants ------------------------------------------------------
@@ -872,12 +813,6 @@ public class GrpcRemoteSession
     private final TruncateListener f_truncateListener;
 
     /**
-     * A list of {@link DeactivationListener} instances to be notified if this
-     * session is closed.
-     */
-    protected final List<DeactivationListener<GrpcRemoteSession>> f_listDeactivationListeners = new ArrayList<>();
-
-    /**
      * The optional client tracer to use.
      */
     protected final Optional<ClientInterceptor> f_tracing;
@@ -893,7 +828,7 @@ public class GrpcRemoteSession
     protected Executor m_executor;
 
     /**
-     * The list of remote map lifecycle listeners.
+     * This session's {@link ResourceRegistry}.
      */
-    protected final List<RemoteMapLifecycleListener> f_listMapLifecycleListener;
+    protected final ResourceRegistry f_registry;
     }

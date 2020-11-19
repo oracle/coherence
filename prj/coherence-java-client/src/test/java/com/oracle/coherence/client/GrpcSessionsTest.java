@@ -25,6 +25,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -42,7 +43,7 @@ public class GrpcSessionsTest
         assertThat(session, is(notNullValue()));
         assertThat(session, is(instanceOf(GrpcRemoteSession.class)));
         assertThat(((GrpcRemoteSession) session).getChannel(), is(sameInstance(channel)));
-        assertThat(((GrpcRemoteSession) session).getScope(), is(Requests.DEFAULT_SCOPE));
+        assertThat(session.getScopeName(), is(Requests.DEFAULT_SCOPE));
         }
 
     @Test
@@ -112,7 +113,7 @@ public class GrpcSessionsTest
         GrpcRemoteSession session2   = factory.createSession(optChannel, optScope);
         assertThat(session1, is(sameInstance(session2)));
         assertThat(session1.getChannel(), is(sameInstance(session2.getChannel())));
-        assertThat(session1.getScope(), is(session2.getScope()));
+        assertThat(session1.getScopeName(), is(session2.getScopeName()));
         }
 
     @Test

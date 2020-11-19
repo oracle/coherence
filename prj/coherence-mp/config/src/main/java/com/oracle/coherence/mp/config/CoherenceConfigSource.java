@@ -6,25 +6,29 @@
  */
 package com.oracle.coherence.mp.config;
 
-import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.events.Activated;
-import com.oracle.coherence.cdi.events.CacheName;
 import com.oracle.coherence.cdi.events.MapName;
 import com.oracle.coherence.cdi.events.ScopeName;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedMap;
+
 import com.tangosol.net.events.application.LifecycleEvent;
 
 import com.tangosol.util.MapEvent;
+
 import java.util.Collections;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
+
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 
 import javax.inject.Inject;
+
 import org.eclipse.microprofile.config.Config;
+
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
@@ -114,7 +118,7 @@ public class CoherenceConfigSource
 
     // ---- property change notification ------------------------------------
 
-    void onPropertyChange(@Observes @ScopeName(Scope.SYSTEM) @MapName(MAP_NAME) MapEvent<String, String> event)
+    void onPropertyChange(@Observes @ScopeName(Coherence.SYSTEM_SCOPE) @MapName(MAP_NAME) MapEvent<String, String> event)
         {
         ConfigPropertyChanged changed = new ConfigPropertyChanged(event);
         m_propertyChanged.fireAsync(changed);
@@ -123,7 +127,7 @@ public class CoherenceConfigSource
 
     // ---- lifecycle observer ----------------------------------------------
 
-    void onSystemScopeActivated(@Observes @ScopeName(Scope.SYSTEM) @Activated LifecycleEvent e)
+    void onSystemScopeActivated(@Observes @ScopeName(Coherence.SYSTEM_SCOPE) @Activated LifecycleEvent e)
         {
         m_configMap = e.getConfigurableCacheFactory().ensureCache(MAP_NAME, null);
         }
