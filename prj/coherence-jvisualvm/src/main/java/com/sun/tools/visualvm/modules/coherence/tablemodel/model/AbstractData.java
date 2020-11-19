@@ -6,6 +6,7 @@
  */
 package com.sun.tools.visualvm.modules.coherence.tablemodel.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.tools.visualvm.modules.coherence.Localization;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
@@ -293,6 +294,41 @@ public abstract class AbstractData
         String   sServiceName     = sDomainPartition == null ? sRawServiceName : asParts[1];
 
         return new String[] {sDomainPartition, sServiceName};
+        }
+
+    /**
+     * Get the first member of an array, if the provided field is an array. The default value in case
+     * if not an array or null element is zero.
+     *
+     * @param nodeJson        the parent JSON node
+     * @param sAttributeName  the attribute name
+     *
+     * @return the first member of the array
+     */
+    protected String getFirstMemberOfArray(JsonNode nodeJson, String sAttributeName)
+        {
+        JsonNode partitionsVulnerableNode = nodeJson.get(sAttributeName);
+        return partitionsVulnerableNode == null && partitionsVulnerableNode.isArray()
+                ? 0 + ""
+                : partitionsVulnerableNode.get(0).asText();
+        }
+
+    /**
+     * Return a child valid from a {@link JsonNode}.
+     * @param sChildFieldName child field name
+     * @param sFieldName      field name
+     * @param rootNode        {@link JsonNode}
+     * @return  a child valid
+     */
+    protected String getChildValue(String sChildFieldName, String sFieldName, JsonNode rootNode)
+        {
+        JsonNode node = rootNode.get(sFieldName);
+        if (node != null && node.isContainerNode())
+            {
+            JsonNode jsonNode = node.get(sChildFieldName);
+            return jsonNode != null ? jsonNode.asText(null) : null;
+            }
+        return null;
         }
 
     // ----- constants ------------------------------------------------------

@@ -6,6 +6,8 @@
  */
 package com.sun.tools.visualvm.modules.coherence.tablemodel.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
@@ -113,48 +115,52 @@ public class HttpProxyMemberData extends AbstractData
     public SortedMap<Object, Data> getAggregatedDataFromHttpQuerying(VisualVMModel model, HttpRequestSender requestSender)
             throws Exception
         {
-        Set<ObjectName> setProxyMembers = requestSender.getAllProxyServerMembers();
-        SortedMap<Object, Data> mapData = new TreeMap<Object, Data>();
+        String sSelectedService = model.getSelectedHttpProxyService();
 
-        for (ObjectName objName : setProxyMembers)
+        if (sSelectedService != null)
             {
-            AttributeList list = requestSender.getAttributes(objName, new String[]{"NodeId", "HostIP", "AverageRequestTime" ,
-                    "RequestsPerSecond" , "TotalErrorCount", "TotalRequestCount", "DomainPartition", "Protocol",
-                    "ResponseCount1xx", "ResponseCount2xx", "ResponseCount3xx",
-                    "ResponseCount5xx", "ResponseCount4xx"});
+            SortedMap<Object, Data> mapData = new TreeMap<>();
 
-            Map<String, Object> mapAttributes =
-                    list.asList().stream().collect(Collectors.toMap(a -> a.getName(), a-> a.getValue()));
+            JsonNode dataForProxyMembers  = requestSender.getDataForProxyMembers();
+            JsonNode nodeProxyMemberItems = dataForProxyMembers.get("items");
 
-            Data data = new HttpProxyMemberData();
+            if (nodeProxyMemberItems != null && nodeProxyMemberItems.isArray())
+                {
+                for (int k = 0; k < ((ArrayNode) nodeProxyMemberItems).size(); k++)
+                    {
+                    JsonNode proxyDetails     = nodeProxyMemberItems.get(k);
+                    String   sServiceName     = proxyDetails.get("name").asText();
+                    JsonNode domainPartition  = proxyDetails.get("domainPartition");
+                    String   sDomainPartition = domainPartition == null ? null : domainPartition.asText();
+                    String   sService         = sDomainPartition == null
+                                                ? sServiceName : sDomainPartition + "/" +  sServiceName;
 
-            data.setColumn(HttpProxyMemberData.NODE_ID,
-                    Integer.valueOf(mapAttributes.get("NodeId").toString()));
-            data.setColumn(HttpProxyMemberData.HOST_IP,
-                    mapAttributes.get("HostIP"));
-            data.setColumn(HttpProxyMemberData.AVG_REQ_TIME,
-                    Float.valueOf(mapAttributes.get("AverageRequestTime").toString()));
-            data.setColumn(HttpProxyMemberData.REQ_PER_SECOND,
-                    Float.valueOf(mapAttributes.get("RequestsPerSecond").toString()));
-            data.setColumn(HttpProxyMemberData.TOTAL_ERROR_COUNT,
-                    Long.valueOf(mapAttributes.get("TotalErrorCount").toString()));
-            data.setColumn(HttpProxyMemberData.TOTAL_REQUEST_COUNT,
-                    Long.valueOf(mapAttributes.get("TotalRequestCount").toString()));
-            data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_1,
-                    Long.valueOf(mapAttributes.get("ResponseCount1xx").toString()));
-            data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_2,
-                    Long.valueOf(mapAttributes.get("ResponseCount2xx").toString()));
-            data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_3,
-                    Long.valueOf(mapAttributes.get("ResponseCount3xx").toString()));
-            data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_4,
-                    Long.valueOf(mapAttributes.get("ResponseCount4xx").toString()));
-            data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_5,
-                    Long.valueOf(mapAttributes.get("ResponseCount5xx").toString()));
+                    // only include selected service
+                    if (sService.equals(sSelectedService))
+                        {
+                        Data data = new HttpProxyMemberData();
 
-            mapData.put(data.getColumn(0), data);
+                        data.setColumn(HttpProxyMemberData.NODE_ID, proxyDetails.get("nodeId").asInt());
+                        data.setColumn(HttpProxyMemberData.HOST_IP, proxyDetails.get("hostIP").asText());
+                        data.setColumn(HttpProxyMemberData.AVG_REQ_TIME,
+                                Float.valueOf(proxyDetails.get("averageRequestTime").asText()));
+                        data.setColumn(HttpProxyMemberData.REQ_PER_SECOND,
+                                Float.valueOf(proxyDetails.get("requestsPerSecond").asText()));
+                        data.setColumn(HttpProxyMemberData.TOTAL_ERROR_COUNT, proxyDetails.get("totalErrorCount").asLong());
+                        data.setColumn(HttpProxyMemberData.TOTAL_REQUEST_COUNT, proxyDetails.get("totalRequestCount").asLong());
+                        data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_1, proxyDetails.get("responseCount1xx").asLong());
+                        data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_2, proxyDetails.get("responseCount2xx").asLong());
+                        data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_3, proxyDetails.get("responseCount3xx").asLong());
+                        data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_4, proxyDetails.get("responseCount4xx").asLong());
+                        data.setColumn(HttpProxyMemberData.RESPONSE_COUNT_5, proxyDetails.get("responseCount5xx").asLong());
+
+                        mapData.put(data.getColumn(0), data);
+                        }
+                    }
+                    return mapData;
+                }
             }
-
-        return mapData;
+        return null;
         }
 
     // ----- constants ------------------------------------------------------

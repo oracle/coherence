@@ -58,22 +58,20 @@ public class MachineData
         double                  loadAverage;
 
         // get the list of machines, along with a member id on that machine
-        SortedMap<Pair<String, Integer>, Data> initialMachineMap = model.getInitialMachineMap();
+        SortedMap<String, Integer> initialMachineMap = model.getInitialMachineMap();
 
         try
             {
             // loop through each of the entries and get the data for a given node only
             // as we know that nodes on the same machine will have the same results
-            Iterator<Map.Entry<Pair<String, Integer>, Data>> iter = initialMachineMap.entrySet().iterator();
+            Iterator<Map.Entry<String, Integer>> iter = initialMachineMap.entrySet().iterator();
 
             while (iter.hasNext())
                 {
-                Map.Entry<Pair<String, Integer>, Data> entry = iter.next();
+                Map.Entry<String, Integer> entry = iter.next();
+                String machineName = entry.getKey();
 
-                String sQuery = "Coherence:type=Platform,Domain=java.lang,subType=OperatingSystem,nodeId="
-                                + entry.getKey().getY() + ",*";
-
-                Set<ObjectName> resultSet = requestSender.getClusterMemberOS(entry.getKey().getY());
+                Set<ObjectName> resultSet = requestSender.getClusterMemberOS(entry.getValue());
 
                 for (Iterator<ObjectName> iterResults = resultSet.iterator(); iterResults.hasNext(); )
                     {
@@ -91,10 +89,10 @@ public class MachineData
                             new String[] { "Name", ATTR_FREE_MEM, ATTR_LOAD_AVG, ATTR_AVAIL_PROC, ATTR_TOTAL_MEM_AIX, ATTR_TOTAL_MEM });
 
                     String sOSType     = getAttributeValueAsString(listAttr, "Name");
-                    String sMemoryAttr = sOSType.toLowerCase().indexOf("aix") >= 0 ? ATTR_TOTAL_MEM_AIX : ATTR_TOTAL_MEM;
+                    String sMemoryAttr = sOSType.toLowerCase().contains("aix") ? ATTR_TOTAL_MEM_AIX : ATTR_TOTAL_MEM;
 
-                    data.setColumn(MachineData.MACHINE_NAME, entry.getKey().getX());
-                    data.setColumn(MachineData.FREE_PHYSICAL_MEMORY, Long.parseLong(getAttributeValueAsString(listAttr, ATTR_FREE_MEM)));
+                    data.setColumn(MACHINE_NAME, machineName);
+                    data.setColumn(FREE_PHYSICAL_MEMORY, Long.parseLong(getAttributeValueAsString(listAttr, ATTR_FREE_MEM)));
 
                     loadAverage = Double.parseDouble(getAttributeValueAsString(listAttr, ATTR_LOAD_AVG));
                     if (loadAverage == -1)
@@ -106,17 +104,16 @@ public class MachineData
                         loadAverage = Double.parseDouble(requestSender.getAttribute(objectName, "SystemCpuLoad"));
                         }
 
-                    data.setColumn(MachineData.SYSTEM_LOAD_AVERAGE, Double.valueOf(loadAverage));
-                    data.setColumn(MachineData.PROCESSOR_COUNT, Integer.parseInt(getAttributeValueAsString(listAttr, ATTR_AVAIL_PROC)));
-                    data.setColumn(MachineData.TOTAL_PHYSICAL_MEMORY, Long.parseLong(getAttributeValueAsString(listAttr, sMemoryAttr)));
+                    data.setColumn(SYSTEM_LOAD_AVERAGE, Double.valueOf(loadAverage));
+                    data.setColumn(PROCESSOR_COUNT, Integer.parseInt(getAttributeValueAsString(listAttr, ATTR_AVAIL_PROC)));
+                    data.setColumn(TOTAL_PHYSICAL_MEMORY, Long.parseLong(getAttributeValueAsString(listAttr, sMemoryAttr)));
 
-                    data.setColumn(MachineData.PERCENT_FREE_MEMORY,
-                                   ((Long) data.getColumn(MachineData.FREE_PHYSICAL_MEMORY) * 1.0f)
-                                   / (Long) data.getColumn(MachineData.TOTAL_PHYSICAL_MEMORY));
+                    data.setColumn(PERCENT_FREE_MEMORY,
+                                   ((Long) data.getColumn(FREE_PHYSICAL_MEMORY) * 1.0f)
+                                   / (Long) data.getColumn(TOTAL_PHYSICAL_MEMORY));
 
                     // put it into the mapData with just a machine as the key
-                    mapData.put(entry.getKey().getX(), data);
-
+                    mapData.put(machineName, data);
                     }
                 }
 

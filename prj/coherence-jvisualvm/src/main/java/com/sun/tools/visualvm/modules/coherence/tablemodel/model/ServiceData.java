@@ -7,6 +7,7 @@
 package com.sun.tools.visualvm.modules.coherence.tablemodel.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
@@ -231,124 +232,71 @@ public class ServiceData
     public SortedMap<Object, Data> getAggregatedDataFromHttpQuerying(VisualVMModel     model,
                                                                      HttpRequestSender requestSender) throws Exception
         {
-        setDistributedCaches = new HashSet<String>();
+        setDistributedCaches = new HashSet<>();
         model.setDistributedCaches(setDistributedCaches);
 
-        Set<ObjectName> setServiceMembers = requestSender.getAllServiceMembers();
-        Set<String>     setServices       = new HashSet<>();
-        for (ObjectName objName : setServiceMembers)
+        JsonNode                rootClusterMembers = requestSender.getListOfServices();
+        SortedMap<Object, Data> mapData            = new TreeMap<Object, Data>();
+
+        JsonNode itemsNode = rootClusterMembers.get("items");
+
+        if (itemsNode != null && itemsNode.isArray())
             {
-            String sServiceName     = objName.getKeyProperty("name");
-            String sDomainPartition = objName.getKeyProperty("domainPartition");
-
-            setServices.add(sDomainPartition == null ? sServiceName : sDomainPartition + "/" +  sServiceName);
-            }
-
-        SortedMap<Object, Data> mapData = new TreeMap<Object, Data>();
-
-        for (String sService : setServices)
-            {
-            String[] as               = sService.split("/");
-            String   sServiceName     = as.length == 2 ? as[1] : as[0];
-            String   sDomainPartition = as.length == 2 ? as[0] : null;
-            JsonNode rootNode         = requestSender.getAggregatedServiceData(sServiceName, sDomainPartition);
-            Data    data = new ServiceData();
-
-            String sServiceType = rootNode.get("type").asText();
-            data.setColumn(ServiceData.SERVICE_NAME, sService);
-
-            JsonNode statusHaNode = rootNode.get("statusHA");
-            String sStatusHA = statusHaNode == null ? "n/a" : statusHaNode.get(0).asText();
-
-            data.setColumn(ServiceData.STATUS_HA, sStatusHA);
-
-            data.setColumn(ServiceData.MEMBERS,
-                    Integer.valueOf(getFirstMemberOfArray(rootNode,"memberCount")));
-
-            // record the list of distributed, federated or replicated caches
-            if (DISTRIBUTED_CACHE_TYPE.equals(sServiceType) || FEDERATED_CACHE_TYPE.equals(sServiceType) ||
-                REPLICATED_CACHE_TYPE.equals(sServiceType))
+            for (int i = 0; i < ((ArrayNode) itemsNode).size(); i++)
                 {
-                data.setColumn(ServiceData.PARTITION_COUNT,
-                        Integer.valueOf(getFirstMemberOfArray(rootNode,"partitionsAll")));
+                Data     data             = new ServiceData();
+                JsonNode serviceDetails   = itemsNode.get(i);
+                String   sServiceName     = serviceDetails.get("name").asText();
+                JsonNode domainPartition  = serviceDetails.get("domainPartition");
+                String   sDomainPartition = domainPartition == null ? null : domainPartition.asText();
+                String   sService         = sDomainPartition == null
+                                            ? sServiceName : sDomainPartition + "/" +  sServiceName;
 
-                if (!REPLICATED_CACHE_TYPE.equals(sServiceType))
+                String sServiceType = serviceDetails.get("type").asText();
+                data.setColumn(ServiceData.SERVICE_NAME, sService);
+
+                String sStatusHA = serviceDetails.get("statusHA").asText();
+                data.setColumn(ServiceData.STATUS_HA, sStatusHA == null ? "n/a" : sStatusHA);
+
+                int nTotalMemberCount = serviceDetails.get("memberCount").asInt();
+                data.setColumn(ServiceData.MEMBERS, nTotalMemberCount);
+
+                // record the list of distributed, federated or replicated caches
+                if (DISTRIBUTED_CACHE_TYPE.equals(sServiceType) || FEDERATED_CACHE_TYPE.equals(sServiceType) ||
+                    REPLICATED_CACHE_TYPE.equals(sServiceType))
                     {
-                    setDistributedCaches.add(data.getColumn(ServiceData.SERVICE_NAME).toString());
+                    data.setColumn(ServiceData.PARTITION_COUNT, serviceDetails.get("partitionsAll").asInt());
+
+                    if (!REPLICATED_CACHE_TYPE.equals(sServiceType))
+                        {
+                        setDistributedCaches.add(data.getColumn(ServiceData.SERVICE_NAME).toString());
+                        }
+
+                    // retrieve data that is only relevant for Distributed or Federated services
+                    data.setColumn(ServiceData.PARTITIONS_ENDANGERED, serviceDetails.get("partitionsEndangered").asInt());
+                    data.setColumn(ServiceData.PARTITIONS_VULNERABLE, serviceDetails.get("partitionsVulnerable").asInt());
+                    data.setColumn(ServiceData.PARTITIONS_UNBALANCED, serviceDetails.get("partitionsUnbalanced").asInt());
+                    data.setColumn(ServiceData.PARTITIONS_PENDING, serviceDetails.get("requestPendingCount").asInt());
+
+                    data.setColumn(ServiceData.STORAGE_MEMBERS, serviceDetails.get("storageEnabledCount").asInt());
+                    }
+                else
+                    {
+                    // is another type such as proxy/http
+                    data.setColumn(ServiceData.STORAGE_MEMBERS, 0);
                     }
 
-                JsonNode storageEnabledNode      = rootNode.get("storageEnabled");
-                JsonNode storageEnabledTrueNode  = storageEnabledNode == null ? null : storageEnabledNode.get("true");
-                JsonNode storageEnabledTrueFalse = storageEnabledNode == null ? null : storageEnabledNode.get("false");
-                String   storageEnabledMembers   = storageEnabledTrueNode == null ? "0" : storageEnabledTrueNode.asText();
-                String   storageDisabledMembers  = storageEnabledTrueFalse == null ? "0" : storageEnabledTrueFalse.asText();
-                
-                // divide partitions stats by member count as these are aggregated from management over rest
-                int nStorageMemberCount   = Integer.valueOf(storageEnabledMembers).intValue();
-                int nTotalMemberCount     = Integer.valueOf(storageDisabledMembers).intValue() + nStorageMemberCount;
-                int nPartitionsEndangered = Integer.valueOf(getFirstMemberOfArray(rootNode, "partitionsEndangered")).intValue();
-                int nPartitionsVulnerable = Integer.valueOf(getFirstMemberOfArray(rootNode, "partitionsVulnerable")).intValue();
-                int nPartitionsUnbalanced = Integer.valueOf(getFirstMemberOfArray(rootNode, "partitionsUnbalanced")).intValue();
-                int nPartitionsPending    = Integer.valueOf(getChildValue("requestPendingCount", rootNode)).intValue();
+                 // check if the service is federation
+                if ("FederatedCache".equals(sServiceType))
+                    {
+                    model.setFederationAvailable(true);
+                    }
 
-                // retrieve data that is only relevant for Distributed or Federated services
-                data.setColumn(ServiceData.PARTITIONS_ENDANGERED, Integer.valueOf(nPartitionsEndangered));
-                data.setColumn(ServiceData.PARTITIONS_VULNERABLE, Integer.valueOf(nPartitionsVulnerable));
-                data.setColumn(ServiceData.PARTITIONS_UNBALANCED, Integer.valueOf(nPartitionsUnbalanced));
-                data.setColumn(ServiceData.PARTITIONS_PENDING, Integer.valueOf(nPartitionsPending / nTotalMemberCount));
-
-                data.setColumn(ServiceData.STORAGE_MEMBERS, Integer.valueOf(nStorageMemberCount));
+                mapData.put(data.getColumn(0), data);
                 }
-            else
-                {
-                // is another type such as proxy/http
-                data.setColumn(ServiceData.STORAGE_MEMBERS, Integer.valueOf(0));
-                }
-
-            // check if the service is federation
-            if ("FederatedCache".equals(sServiceType))
-                {
-                model.setFederationAvailable(true);
-                }
-
-            mapData.put(data.getColumn(0), data);
             }
+
         return mapData;
-        }
-
-    /**
-     * Get the first member of an array, if the provided field is an array. The default value in case
-     * if not an array or null element is zero.
-     *
-     * @param nodeJson        the parent JSON node
-     * @param sAttributeName  the attribute name
-     *
-     * @return the first member of the array
-     */
-    private String getFirstMemberOfArray(JsonNode nodeJson, String sAttributeName)
-        {
-        JsonNode partitionsVulnerableNode = nodeJson.get(sAttributeName);
-        return partitionsVulnerableNode == null && partitionsVulnerableNode.isArray()
-                ? 0 + ""
-                : partitionsVulnerableNode.get(0).asText();
-        }
-
-    /**
-     * Get the child attribute of a json node. The default value in case the child element is absent or null is zero.
-     *
-     * @param sAttributeName  the attribute name
-     * @param nodeJson        the parent JSON node
-     *
-     * @return the value of a member variable or zero if null
-     */
-    private String getChildValue(String sAttributeName, JsonNode nodeJson)
-        {
-        JsonNode node = nodeJson.get(sAttributeName);
-        if (node != null)
-            {
-            return node.asText();
-            }
-        return 0 + "";
         }
 
     // ----- constants ------------------------------------------------------
