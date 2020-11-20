@@ -17,9 +17,10 @@ import com.tangosol.coherence.config.builder.ActionPolicyBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
 import com.tangosol.coherence.config.builder.ServiceFailurePolicyBuilder;
 import com.tangosol.coherence.config.builder.SimpleParameterizedBuilderRegistry;
-
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
+
 import com.tangosol.config.annotation.Injectable;
+
 import com.tangosol.config.expression.NullParameterResolver;
 
 import com.tangosol.io.ClassLoaderAware;
@@ -54,6 +55,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
+
+import javax.inject.Named;
 
 /**
  * DefaultClusterDependencies is a base implementation for ClusterDependencies.
@@ -1477,7 +1481,8 @@ public class DefaultClusterDependencies
                         @Override
                         public Serializer createSerializer(ClassLoader loader)
                             {
-                            Serializer serializer = (Serializer) r.getBuilder().realize(new NullParameterResolver(), loader, null);
+                            Serializer serializer = (Serializer) r.getBuilder().realize(
+                                    new NullParameterResolver(), loader, null);
                             if (serializer instanceof ClassLoaderAware)
                                 {
                                 ((ClassLoaderAware) serializer).setContextClassLoader(loader);
@@ -1487,6 +1492,8 @@ public class DefaultClusterDependencies
                         });
                     }
                 }
+
+            discoverSerializers();
             }
             return m_mapSerializer;
         }
@@ -2064,6 +2071,94 @@ public class DefaultClusterDependencies
         }
 
     // ----- internal methods -----------------------------------------------
+
+    /**
+     * Loads {@link SerializerFactory} and {@link Serializer} (in that order)
+     * implementations using the {@link ServiceLoader} mechanism.
+     *
+     * Implementations loaded in this fashion, <em>must</em> be annotated
+     * with the {@link Named} annotation with a non-default value or it will
+     * be ignored.
+     *
+     * Implementation class name <em>must</em> be referenced in
+     * {@code META-INF/services/com.tangosol.io.SerializerFactory}.
+     *
+     * If a {@link SerializerFactory} or {@link Serializer} has already been
+     * registered with the same name as a discovered implementation, the
+     * discovered implementation will be ignored.
+     *
+     * @since 20.12
+     */
+    protected void discoverSerializers()
+        {
+        ClassLoader clzLoader = Base.getContextClassLoader();
+        loadService(ServiceLoader.load(SerializerFactory.class, clzLoader));
+        loadService(ServiceLoader.load(Serializer.class, clzLoader));
+        }
+
+    /**
+     * Helper method for {@link #discoverSerializers()}.
+     *
+     * @param loader the {@link ServiceLoader}
+     * @param <T>     the service type
+     *
+     * @see #discoverSerializers()
+     *
+     * @since 20.12
+     */
+    protected <T> void loadService(ServiceLoader<T> loader)
+        {
+        for (T service : loader)
+            {
+            Class<?> clz = service.getClass();
+            Named named = clz.getAnnotation(Named.class);
+            if (named == null)
+                {
+                Logger.warn(String.format("Discovered serializer [%s] is not annotated with javax.inject.Named",
+                                          clz.getName()));
+                }
+            else
+                {
+                String sName = named.value();
+                if (sName.isEmpty())
+                    {
+                    Logger.warn(String.format("Named annotation for discovered serializer [%s]"
+                                              + " returned the default value; ignoring", clz.getName()));
+
+                    }
+
+                SerializerFactory serializerFactory = service instanceof SerializerFactory
+                        ? (SerializerFactory) service
+                        : clzLoader ->
+                            {
+                            try
+                                {
+                                Serializer serializer = (Serializer) clz.getConstructor().newInstance();
+                                if (serializer instanceof ClassLoaderAware)
+                                    {
+                                    ((ClassLoaderAware) serializer).setContextClassLoader(clzLoader);
+                                    }
+                                return serializer;
+                                }
+                            catch (Exception e)
+                                {
+                                throw Base.ensureRuntimeException(e,
+                                        String.format("Unable to create serializer type [%s]",
+                                                      clz.getName()));
+                                }
+                            };
+
+                SerializerFactory factory = m_mapSerializer.putIfAbsent(sName, serializerFactory);
+
+                if (factory != null)
+                    {
+                    Logger.warn(String.format("serializer already defined for %s, type [%s]; ignoring this"
+                                              + " discovered implementation [%s]",
+                                              sName, service.getClass().getName(), clz.getName()));
+                    }
+                }
+            }
+        }
 
     /**
      * Validate the guardian timeout.  If is not valid then use a default value and

@@ -5,13 +5,4 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-
-
-
-
-
-
-
-
-
-com.oracle.coherence.io.json.JsonSerializer$Factory
+com.oracle.coherence.io.json.JsonSerializer
