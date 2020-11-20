@@ -6,6 +6,11 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.inject.SessionName;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
@@ -54,16 +59,16 @@ class NamedTopicProducerIT
     {
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
-                                                              .addBeanClass(SessionOne.class)
+                                                              .addPackages(CoherenceExtension.class)
                                                               .addExtension(new CoherenceExtension())
+                                                              .addBeanClass(SessionOne.class)
                                                               .addBeanClass(CtorBean.class)
                                                               .addBeanClass(DifferentSessionBean.class)
                                                               .addBeanClass(NamedTopicFieldsBean.class)
                                                               .addBeanClass(NamedTopicPublisherFieldsBean.class)
                                                               .addBeanClass(NamedTopicSubscriberFieldsBean.class)
                                                               .addBeanClass(RequestScopedPublishers.class)
-                                                              .addBeanClass(RequestScopedSubscribers.class)
-                                                              .addBeanClass(NamedTopicProducer.class));
+                                                              .addBeanClass(RequestScopedSubscribers.class));
 
     @Inject
     private RequestContextController contextController;

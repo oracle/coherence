@@ -8,20 +8,27 @@ package com.oracle.coherence.cdi;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.PropertyExtractor;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.inject.WhereFilter;
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
 
-import com.oracle.coherence.cdi.events.CacheName;
-import com.oracle.coherence.cdi.events.Deleted;
-import com.oracle.coherence.cdi.events.Inserted;
-import com.oracle.coherence.cdi.events.MapName;
-import com.oracle.coherence.cdi.events.ScopeName;
-import com.oracle.coherence.cdi.events.ServiceName;
-import com.oracle.coherence.cdi.events.Synchronous;
-import com.oracle.coherence.cdi.events.Updated;
+import com.oracle.coherence.event.CacheName;
+import com.oracle.coherence.event.Deleted;
+import com.oracle.coherence.event.Inserted;
+import com.oracle.coherence.event.MapName;
+import com.oracle.coherence.event.ScopeName;
+import com.oracle.coherence.event.ServiceName;
+import com.oracle.coherence.event.Synchronous;
+import com.oracle.coherence.event.Updated;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
+import com.oracle.coherence.event.EventObserverSupport;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 
@@ -61,7 +68,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
- * Integration test for the {@link CdiInterceptorSupport} using the Weld JUnit
+ * Integration test for the {@link EventObserverSupport} using the Weld JUnit
  * extension.
  *
  * @author Aleks Seovic  2020.04.03
@@ -72,17 +79,10 @@ class CdiMapListenerIT
     {
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
-                                                          .addExtension(new CoherenceExtension())
-                                                          .addBeanClass(SessionProducer.class)
-                                                          .addBeanClass(EventsSession.class)
-                                                          .addBeanClass(CdiMapListenerManager.class)
-                                                          .addBeanClass(ExtractorProducer.class)
-                                                          .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
-                                                          .addBeanClass(FilterProducer.class)
-                                                          .addBeanClass(FilterProducer.WhereFilterSupplier.class)
-                                                          .addBeanClass(MapEventTransformerProducer.class)
-                                                          .addBeanClass(TestListener.class));
+                                                        .addPackages(CoherenceExtension.class)
+                                                        .addExtension(new CoherenceExtension())
+                                                        .addBeanClass(EventsSession.class)
+                                                        .addBeanClass(TestListener.class));
 
     @ApplicationScoped
     @Named("ClientEvents")

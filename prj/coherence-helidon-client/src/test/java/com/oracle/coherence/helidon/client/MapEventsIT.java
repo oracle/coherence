@@ -9,18 +9,18 @@ package com.oracle.coherence.helidon.client;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.oracle.coherence.cdi.PropertyExtractor;
-import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.SessionName;
-import com.oracle.coherence.cdi.WhereFilter;
+import com.oracle.coherence.inject.PropertyExtractor;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionName;
+import com.oracle.coherence.inject.WhereFilter;
 
-import com.oracle.coherence.cdi.events.CacheName;
-import com.oracle.coherence.cdi.events.Deleted;
-import com.oracle.coherence.cdi.events.Inserted;
-import com.oracle.coherence.cdi.events.MapName;
-import com.oracle.coherence.cdi.events.ScopeName;
-import com.oracle.coherence.cdi.events.Synchronous;
-import com.oracle.coherence.cdi.events.Updated;
+import com.oracle.coherence.event.CacheName;
+import com.oracle.coherence.event.Deleted;
+import com.oracle.coherence.event.Inserted;
+import com.oracle.coherence.event.MapName;
+import com.oracle.coherence.event.ScopeName;
+import com.oracle.coherence.event.Synchronous;
+import com.oracle.coherence.event.Updated;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 

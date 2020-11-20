@@ -6,6 +6,12 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.event.AnnotatedMapListener;
+import com.oracle.coherence.inject.AlwaysFilter;
+import com.oracle.coherence.inject.AnnotationInstance;
+import com.oracle.coherence.inject.FilterBinding;
+import com.oracle.coherence.inject.FilterFactory;
+import com.oracle.coherence.inject.WhereFilter;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.QueryHelper;
@@ -37,6 +43,7 @@ import javax.inject.Inject;
  */
 @ApplicationScoped
 public class FilterProducer
+        implements AnnotatedMapListener.FilterProducer
     {
     // ---- constructors ----------------------------------------------------
 
@@ -74,8 +81,9 @@ public class FilterProducer
         return Filters.always();
         }
 
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    <T> com.tangosol.util.Filter<T> resolve(Set<Annotation> annotations)
+    public <T> com.tangosol.util.Filter<T> resolve(Set<Annotation> annotations)
         {
         List<Filter<?>> list = new ArrayList<>();
 

@@ -6,6 +6,17 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.event.AnnotatedMapListener;
+
+import com.oracle.coherence.inject.AnnotationInstance;
+import com.oracle.coherence.inject.ExtractorBinding;
+import com.oracle.coherence.inject.ExtractorFactory;
+import com.oracle.coherence.inject.FilterBinding;
+import com.oracle.coherence.inject.FilterFactory;
+import com.oracle.coherence.inject.MapEventTransformerBinding;
+import com.oracle.coherence.inject.MapEventTransformerFactory;
+import com.oracle.coherence.event.EventObserverSupport;
+
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.DefaultCacheServer;
@@ -23,12 +34,9 @@ import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.util.MapEvent;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -75,7 +83,7 @@ public class CoherenceExtension
     private void processCoherenceLifecycleEventObservers(
             @Observes ProcessObserverMethod<CoherenceLifecycleEvent, ?> event)
         {
-        m_listInterceptors.add(new CdiInterceptorSupport.CoherenceLifecycleEventHandler(new CdiEventObserver<>(event)));
+        m_listInterceptors.add(new EventObserverSupport.CoherenceLifecycleEventHandler(new CdiEventObserver<>(event)));
         }
 
     /**
@@ -86,7 +94,7 @@ public class CoherenceExtension
     private void processLifecycleEventObservers(
             @Observes ProcessObserverMethod<LifecycleEvent, ?> event)
         {
-        m_listInterceptors.add(new CdiInterceptorSupport.LifecycleEventHandler(new CdiEventObserver<>(event)));
+        m_listInterceptors.add(new EventObserverSupport.LifecycleEventHandler(new CdiEventObserver<>(event)));
         }
 
     /**
@@ -97,7 +105,7 @@ public class CoherenceExtension
     private void processCacheLifecycleEventObservers(
             @Observes ProcessObserverMethod<CacheLifecycleEvent, ?> event)
         {
-        m_listInterceptors.add(new CdiInterceptorSupport.CacheLifecycleEventHandler(new CdiEventObserver<>(event)));
+        m_listInterceptors.add(new EventObserverSupport.CacheLifecycleEventHandler(new CdiEventObserver<>(event)));
         }
 
     /**
@@ -107,11 +115,10 @@ public class CoherenceExtension
      * @param <K>    the type of {@code EntryEvent} keys
      * @param <V>    the type of {@code EntryEvent} values
      */
-    private <K, V> void processMapEventObservers(
-            @Observes ProcessObserverMethod<MapEvent<K, V>, ?> event)
+    private <K, V> void processMapEventObservers(@Observes ProcessObserverMethod<MapEvent<K, V>, ?> event)
         {
-        addMapListener(new CdiMapListener<>(event.getObserverMethod(),
-                                            event.getAnnotatedMethod().getAnnotations()));
+        m_listListener.add(new AnnotatedMapListener<>(new CdiMapEventObserver<>(event),
+                                                      event.getAnnotatedMethod().getAnnotations()));
         }
 
     // ---- Filter and Extractor injection support --------------------------
@@ -206,73 +213,13 @@ public class CoherenceExtension
         }
 
     /**
-     * Add specified listener to the collection of discovered observer-based listeners.
+     * Returns the discovered map listeners.
      *
-     * @param listener  the listener to add
+     * @return the discovered map listeners
      */
-    private void addMapListener(CdiMapListener<?, ?> listener)
+    public List<AnnotatedMapListener<?, ?>> getMapListeners()
         {
-        String svc   = listener.getServiceName();
-        String cache = listener.getCacheName();
-
-        Map<String, Set<CdiMapListener<?, ?>>> mapByCache = m_mapListeners.computeIfAbsent(svc, s -> new HashMap<>());
-        Set<CdiMapListener<?, ?>> setListeners = mapByCache.computeIfAbsent(cache, c -> new HashSet<>());
-        setListeners.add(listener);
-        }
-
-    /**
-     * Return all map listeners that should be registered for a particular
-     * service and cache combination.
-     *
-     * @param serviceName  the name of the service
-     * @param cacheName    the name of the cache
-     *
-     * @return a set of all listeners that should be registered
-     */
-    public Set<CdiMapListener<?, ?>> getMapListeners(String serviceName, String cacheName)
-        {
-        HashSet<CdiMapListener<?, ?>> setResults = new HashSet<>();
-        collectMapListeners(setResults, "*", "*");
-        collectMapListeners(setResults, "*", cacheName);
-        collectMapListeners(setResults, serviceName, "*");
-        collectMapListeners(setResults, serviceName, cacheName);
-
-        return setResults;
-        }
-
-    /**
-     * Return all map listeners that should be registered against a specific
-     * remote cache or map in a specific session.
-     *
-     * @return  all map listeners that should be registered against a
-     *          specific cache or map in a specific session
-     */
-    public Set<CdiMapListener<?, ?>> getNonWildcardMapListeners()
-        {
-        return m_mapListeners.values()
-                             .stream()
-                             .flatMap(map -> map.values().stream())
-                             .flatMap(Set::stream)
-                             .filter(listener -> listener.getSessionName() != null)
-                             .filter(listener -> !listener.isWildCardCacheName())
-                             .collect(Collectors.toSet());
-        }
-
-    /**
-     * Add all map listeners for the specified service and cache combination to
-     * the specified result set.
-     *
-     * @param setResults   the set of results to accumulate listeners into
-     * @param serviceName  the name of the service
-     * @param cacheName    the name of the cache
-     */
-    private void collectMapListeners(HashSet<CdiMapListener<?, ?>> setResults, String serviceName, String cacheName)
-        {
-        Map<String, Set<CdiMapListener<?, ?>>> mapByCache = m_mapListeners.get(serviceName);
-        if (mapByCache != null)
-            {
-            setResults.addAll(mapByCache.getOrDefault(cacheName, Collections.emptySet()));
-            }
+        return m_listListener;
         }
 
     // ---- lifecycle support -----------------------------------------------
@@ -362,11 +309,6 @@ public class CoherenceExtension
     // ---- data members ----------------------------------------------------
 
     /**
-     * A list of event interceptors for all discovered observer methods.
-     */
-    private final Map<String, Map<String, Set<CdiMapListener<?, ?>>>> m_mapListeners = new HashMap<>();
-
-    /**
      * A map of {@link FilterBinding} annotation to {@link FilterFactory} bean
      * class.
      */
@@ -393,5 +335,10 @@ public class CoherenceExtension
     /**
      * A list of event interceptors for all discovered observer methods.
      */
-    private final List<CdiInterceptorSupport.EventHandler<?, ?>> m_listInterceptors = new ArrayList<>();
+    private final List<EventObserverSupport.EventHandler<?, ?>> m_listInterceptors = new ArrayList<>();
+
+    /**
+     * A list of discovered map listeners.
+     */
+    private final List<AnnotatedMapListener<?, ?>> m_listListener = new ArrayList<>();
     }

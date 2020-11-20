@@ -6,6 +6,11 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.inject.SessionName;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.CacheMap;
@@ -54,24 +59,14 @@ class NamedCacheProducerIT
 
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                          .addPackages(CoherenceExtension.class)
+                                                          .addExtension(new CoherenceExtension())
                                                           .addBeanClass(SessionOne.class)
                                                           .addBeanClass(CtorBean.class)
                                                           .addBeanClass(NamedCacheFieldsBean.class)
                                                           .addBeanClass(AsyncNamedCacheFieldsBean.class)
                                                           .addBeanClass(SuperTypesBean.class)
-                                                          .addBeanClass(DifferentSessionBean.class)
-                                                          .addBeanClass(FilterProducer.class)
-                                                          .addBeanClass(FilterProducer.AlwaysFilterSupplier.class)
-                                                          .addBeanClass(FilterProducer.WhereFilterSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.class)
-                                                          .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.ChainedExtractorSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.ChainedExtractorsSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.PofExtractorSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.PofExtractorsSupplier.class)
-                                                          .addBeanClass(NamedCacheProducer.class)
-                                                          .addExtension(new CoherenceExtension()));
+                                                          .addBeanClass(DifferentSessionBean.class));
 
     @Test
     void shouldGetDynamicNamedCache()

@@ -6,9 +6,9 @@
  */
 package com.oracle.coherence.helidon.client;
 
-import com.oracle.coherence.cdi.ConfigUri;
-import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.SessionInitializer;
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
 import com.oracle.coherence.client.GrpcSessionConfiguration;
 import com.tangosol.net.SessionConfiguration;
 import io.grpc.Channel;

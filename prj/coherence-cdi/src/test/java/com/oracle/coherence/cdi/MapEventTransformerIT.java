@@ -7,6 +7,11 @@
 
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.ChainedExtractor;
+import com.oracle.coherence.inject.MapEventTransformerBinding;
+import com.oracle.coherence.inject.MapEventTransformerFactory;
+import com.oracle.coherence.inject.PofExtractor;
+import com.oracle.coherence.inject.PropertyExtractor;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.ValueExtractor;
@@ -49,17 +54,10 @@ public class MapEventTransformerIT
     {
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                  .addPackages(CoherenceExtension.class)
+                                                  .addExtension(new CoherenceExtension())
                                                   .addBeanClass(TransformerBean.class)
-                                                  .addBeanClass(TestTransformerFactory.class)
-                                                  .addBeanClass(MapEventTransformerProducer.class)
-                                                  .addBeanClass(ExtractorProducer.class)
-                                                  .addBeanClass(ExtractorProducer.ChainedExtractorSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.ChainedExtractorsSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.PofExtractorSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.PofExtractorsSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
-                                                  .addExtension(new CoherenceExtension()));
+                                                  .addBeanClass(TestTransformerFactory.class));
 
 
     @Test
@@ -119,7 +117,7 @@ public class MapEventTransformerIT
     @ApplicationScoped
     @TestTransformer
     public static class TestTransformerFactory
-        implements MapEventTransformerFactory<TestTransformer, String, String, String>
+            implements MapEventTransformerFactory<TestTransformer, String, String, String>
         {
         @Override
         public MapEventTransformer<String, String, String> create(TestTransformer annotation)

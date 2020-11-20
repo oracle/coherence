@@ -7,7 +7,7 @@
 
 package com.oracle.coherence.cdi.server;
 
-import com.oracle.coherence.cdi.Injectable;
+import com.oracle.coherence.inject.Injectable;
 
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link com.oracle.coherence.cdi.Injectable}.
+ * Unit tests for {@link Injectable}.
  *
  * @author Aleks Seovic  2019.10.02
  */

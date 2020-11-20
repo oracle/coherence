@@ -6,9 +6,9 @@
  */
 package com.oracle.coherence.mp.config;
 
-import com.oracle.coherence.cdi.events.Activated;
-import com.oracle.coherence.cdi.events.MapName;
-import com.oracle.coherence.cdi.events.ScopeName;
+import com.oracle.coherence.event.Activated;
+import com.oracle.coherence.event.MapName;
+import com.oracle.coherence.event.ScopeName;
 
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedMap;

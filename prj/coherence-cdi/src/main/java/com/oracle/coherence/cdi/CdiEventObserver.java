@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.event.EventObserverSupport;
 import com.tangosol.net.events.Event;
 
 import javax.enterprise.inject.spi.ObserverMethod;
@@ -23,41 +24,57 @@ import java.util.Set;
  */
 @SuppressWarnings("rawtypes")
 public class CdiEventObserver<E extends Event>
-    implements CdiInterceptorSupport.EventObserver<E>
+        implements EventObserverSupport.EventObserver<E>
     {
+    /**
+     * Create a {@link CdiEventObserver} from an observed method event.
+     *
+     * @param event  the observed method event
+     */
     public CdiEventObserver(ProcessObserverMethod<E, ?> event)
         {
         this(event.getObserverMethod());
         }
 
+    /**
+     * Create a {@link CdiEventObserver} from an {@link ObserverMethod}
+     *
+     * @param method  the {@link ObserverMethod}
+     */
     public CdiEventObserver(ObserverMethod<E> method)
         {
-        m_method = method;
+        f_method = method;
         }
 
+    // ----- EventObserverSupport.EventObserver methods ---------------------
     @Override
     public String getId()
         {
-        return m_method.toString();
+        return f_method.toString();
         }
 
     @Override
     public void notify(E event)
         {
-        m_method.notify(event);
+        f_method.notify(event);
         }
 
     @Override
     public boolean isAsync()
         {
-        return m_method.isAsync();
+        return f_method.isAsync();
         }
 
     @Override
     public Set<Annotation> getObservedQualifiers()
         {
-        return m_method.getObservedQualifiers();
+        return f_method.getObservedQualifiers();
         }
 
-    private final ObserverMethod<E> m_method;
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The wrapped CDI {@link ObserverMethod}.
+     */
+    private final ObserverMethod<E> f_method;
     }

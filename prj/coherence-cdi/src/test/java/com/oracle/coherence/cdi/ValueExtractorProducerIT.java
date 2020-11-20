@@ -22,6 +22,11 @@ import javax.enterprise.context.ApplicationScoped;
 
 import javax.inject.Inject;
 
+import com.oracle.coherence.inject.ChainedExtractor;
+import com.oracle.coherence.inject.ExtractorBinding;
+import com.oracle.coherence.inject.ExtractorFactory;
+import com.oracle.coherence.inject.PofExtractor;
+import com.oracle.coherence.inject.PropertyExtractor;
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
 

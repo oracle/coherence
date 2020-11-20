@@ -7,13 +7,13 @@
 package com.oracle.coherence.cdi.server;
 
 import com.oracle.coherence.cdi.CdiEventObserver;
-import com.oracle.coherence.cdi.CdiInterceptorSupport;
+import com.oracle.coherence.event.EventObserverSupport;
 import com.oracle.coherence.cdi.CoherenceExtension;
-import com.oracle.coherence.cdi.CdiInterceptorSupport.EntryEventHandler;
-import com.oracle.coherence.cdi.CdiInterceptorSupport.EntryProcessorEventHandler;
-import com.oracle.coherence.cdi.CdiInterceptorSupport.TransactionEventHandler;
-import com.oracle.coherence.cdi.CdiInterceptorSupport.TransferEventHandler;
-import com.oracle.coherence.cdi.CdiInterceptorSupport.UnsolicitedCommitEventHandler;
+import com.oracle.coherence.event.EventObserverSupport.EntryEventHandler;
+import com.oracle.coherence.event.EventObserverSupport.EntryProcessorEventHandler;
+import com.oracle.coherence.event.EventObserverSupport.TransactionEventHandler;
+import com.oracle.coherence.event.EventObserverSupport.TransferEventHandler;
+import com.oracle.coherence.event.EventObserverSupport.UnsolicitedCommitEventHandler;
 
 import com.tangosol.net.events.internal.NamedEventInterceptor;
 import com.tangosol.net.events.partition.TransactionEvent;
@@ -116,5 +116,5 @@ public class CoherenceServerExtension
     /**
      * A list of event interceptors for all discovered observer methods.
      */
-    private final List<CdiInterceptorSupport.EventHandler<?, ?>> m_listInterceptors = new ArrayList<>();
+    private final List<EventObserverSupport.EventHandler<?, ?>> m_listInterceptors = new ArrayList<>();
     }

@@ -6,6 +6,12 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.AnnotationInstance;
+import com.oracle.coherence.inject.ChainedExtractor;
+import com.oracle.coherence.inject.ExtractorBinding;
+import com.oracle.coherence.inject.ExtractorFactory;
+import com.oracle.coherence.inject.PofExtractor;
+import com.oracle.coherence.inject.PropertyExtractor;
 import com.tangosol.util.Extractors;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.MultiExtractor;

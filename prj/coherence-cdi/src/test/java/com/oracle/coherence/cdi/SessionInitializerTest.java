@@ -6,6 +6,9 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.net.Coherence;
@@ -33,7 +36,7 @@ public class SessionInitializerTest
     public void shouldUseDefaultName()
         {
         class TestSession
-            implements SessionInitializer
+                implements SessionInitializer
             {
             }
 

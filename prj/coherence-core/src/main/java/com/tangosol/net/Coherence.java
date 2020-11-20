@@ -114,6 +114,16 @@ public class Coherence
     // ----- factory methods ------------------------------------------------
 
     /**
+     * Create a default {@link Coherence} instance.
+     *
+     * @return a default {@link Coherence} instance
+     */
+    public static Coherence create()
+        {
+        return builder(CoherenceConfiguration.create()).build();
+        }
+
+    /**
      * Create a {@link Coherence} instance from the specified {@link CoherenceConfiguration}.
      *
      * @param config  the configuration to use to create the
@@ -510,11 +520,7 @@ public class Coherence
      */
     public static void main(String[] args)
         {
-        CoherenceConfiguration cfg = CoherenceConfiguration.builder()
-                .withSession(SessionConfiguration.defaultSession())
-                .build();
-
-        Coherence coherence = Coherence.create(cfg);
+        Coherence coherence = Coherence.create();
         coherence.start();
         // block forever (or until the Coherence instance is shutdown)
         coherence.whenClosed().join();

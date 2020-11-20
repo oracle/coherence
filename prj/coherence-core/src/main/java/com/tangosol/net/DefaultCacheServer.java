@@ -213,6 +213,7 @@ public class DefaultCacheServer
         if (m_factory != null)
             {
             m_factory.dispose();
+            CacheFactory.getCacheFactoryBuilder().release(m_factory);
             }
 
         for (LifecycleListener listener : listListener)

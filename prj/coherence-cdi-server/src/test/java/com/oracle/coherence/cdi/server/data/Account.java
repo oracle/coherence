@@ -7,7 +7,7 @@
 package com.oracle.coherence.cdi.server.data;
 
 
-import com.oracle.coherence.cdi.Injectable;
+import com.oracle.coherence.inject.Injectable;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;

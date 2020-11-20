@@ -7,6 +7,16 @@
 
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.AlwaysFilter;
+import com.oracle.coherence.inject.ChainedExtractor;
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.PropertyExtractor;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.inject.SessionName;
+import com.oracle.coherence.inject.View;
+import com.oracle.coherence.inject.WhereFilter;
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
 
@@ -68,25 +78,15 @@ class CacheViewProducerIT
 
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                          .addPackages(CoherenceExtension.class)
+                                                          .addExtension(new CoherenceExtension())
                                                           .addBeanClass(SessionOne.class)
                                                           .addBeanClass(CtorBean.class)
                                                           .addBeanClass(ContinuousQueryCacheFieldsBean.class)
                                                           .addBeanClass(SuperTypesBean.class)
                                                           .addBeanClass(DifferentSessionsBean.class)
                                                           .addBeanClass(ContinuousQueryCacheWithFiltersBean.class)
-                                                          .addBeanClass(WithTransformersBean.class)
-                                                          .addBeanClass(NamedCacheProducer.class)
-                                                          .addBeanClass(FilterProducer.class)
-                                                          .addBeanClass(FilterProducer.AlwaysFilterSupplier.class)
-                                                          .addBeanClass(FilterProducer.WhereFilterSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.class)
-                                                          .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.ChainedExtractorSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.ChainedExtractorsSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.PofExtractorSupplier.class)
-                                                          .addBeanClass(ExtractorProducer.PofExtractorsSupplier.class)
-                                                          .addExtension(new CoherenceExtension()));
+                                                          .addBeanClass(WithTransformersBean.class));
 
     @BeforeAll
     static void setup()

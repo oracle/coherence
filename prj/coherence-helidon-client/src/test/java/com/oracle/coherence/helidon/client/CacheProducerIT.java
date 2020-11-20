@@ -7,7 +7,7 @@
 
 package com.oracle.coherence.helidon.client;
 
-import com.oracle.coherence.cdi.SessionName;
+import com.oracle.coherence.inject.SessionName;
 import com.oracle.coherence.client.NamedCacheClient;
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
 

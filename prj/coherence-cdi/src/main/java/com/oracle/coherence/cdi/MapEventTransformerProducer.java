@@ -6,6 +6,11 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.event.AnnotatedMapListener;
+import com.oracle.coherence.inject.AnnotationInstance;
+import com.oracle.coherence.inject.ExtractorBinding;
+import com.oracle.coherence.inject.MapEventTransformerBinding;
+import com.oracle.coherence.inject.MapEventTransformerFactory;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.transformer.ExtractorEventTransformer;
@@ -32,6 +37,7 @@ import java.util.Set;
  */
 @ApplicationScoped
 public class MapEventTransformerProducer
+        implements AnnotatedMapListener.MapEventTransformerProducer
     {
     // ---- constructors ----------------------------------------------------
 
@@ -77,7 +83,7 @@ public class MapEventTransformerProducer
         }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    <K, V, U> MapEventTransformer<K, V, U> resolve(Set<Annotation> annotations)
+    public <K, V, U> MapEventTransformer<K, V, U> resolve(Set<Annotation> annotations)
         {
         Optional<Annotation> optional = annotations.stream()
                 .filter(a -> a.annotationType().isAnnotationPresent(MapEventTransformerBinding.class))

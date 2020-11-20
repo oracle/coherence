@@ -6,6 +6,10 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 
