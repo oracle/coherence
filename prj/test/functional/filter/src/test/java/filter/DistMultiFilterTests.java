@@ -15,14 +15,24 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.Filter;
+import com.tangosol.util.filter.EqualsFilter;
+
+import common.TestMapListener;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.io.DataInput;
+import java.io.IOException;
 
 import util.PartitionedCacheServiceIsBalanced;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -82,6 +92,82 @@ public class DistMultiFilterTests
         {
         stopCacheServer("DistMultiFilterTests-1");
         stopCacheServer("DistMultiFilterTests-2");
+        }
+
+    /*
+     * Test that a request with bad filter is handled.
+     * See bug 32152844.
+     */
+    @Test
+    public void testFilter()
+        {
+        NamedCache cache = getNamedCache();
+
+        // fill the cache with some data
+        for (int i = 0; i < 5000; i++)
+            {
+            cache.put(i, i);
+            }
+
+        Filter filter = new CustomFilter();
+        try
+            {
+            TestMapListener listener = new TestMapListener();
+            cache.addMapListener(listener, filter, true);
+            fail("Expected Exception, but got none");
+            }
+        catch (Exception e)
+            {
+            }
+
+        try
+            {
+            cache.entrySet(filter);
+            fail("Expected Exception, but got none");
+            }
+        catch (Exception e)
+            {
+            }
+
+        CoherenceCacheServer clusterMember3 = (CoherenceCacheServer) startCacheServer("DistMultiFilterTests-3",
+                                      "filter", null, PROPS_SEONE);
+        Eventually.assertThat(invoking(m_helper).getClusterSize(clusterMember3), is(4));
+        stopCacheServer("DistMultiFilterTests-3");
+        }
+
+    // ----- inner class: CustomFilter --------------------------------
+
+    class CustomFilter extends EqualsFilter
+        {
+        // ----- constructors -----------------------------------------
+
+        /**
+         * Default constructor (necessary for the ExternalizableLite interface).
+         */
+        public CustomFilter()
+            {
+            }
+
+        /**
+         * Construct a IsNullFilter for testing equality to null.
+         *
+         * @param sMethod  the name of the method to invoke via reflection
+         */
+        public CustomFilter(String sMethod)
+            {
+            super(sMethod, null);
+            }
+
+        // ----- ExternalizableLite interface -----------------------------------
+
+        /**
+         * Throw StackOverflowError to simulate a bad filter.
+         */
+        public void readExternal(DataInput in)
+                throws IOException
+            {
+            throw new StackOverflowError();
+            }
         }
 
 
