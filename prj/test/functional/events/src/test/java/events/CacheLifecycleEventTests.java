@@ -6,16 +6,19 @@
  */
 package events;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
+import com.tangosol.net.events.partition.cache.CacheLifecycleEvent.Type;
+
+import com.tangosol.util.CompositeKey;
+
 import common.AbstractFunctionalTest;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -49,12 +52,11 @@ public class CacheLifecycleEventTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
-        System.setProperty("tangosol.coherence.management", "all");
-
         AbstractFunctionalTest._startup();
-        }
 
+        startCacheServer("cacheLife-1", "events", CFG_FILE);
+        startCacheServer("cacheLife-2", "events", CFG_FILE);
+        }
 
     // ----- test methods ---------------------------------------------------
 
@@ -65,30 +67,57 @@ public class CacheLifecycleEventTests
     public void testEvents()
             throws InterruptedException
         {
-        NamedCache result = getNamedCache("result");
-        NamedCache cache  = getNamedCache("cacheLife");
+        NamedCache<CompositeKey<Integer, String>, String> cacheResults = getNamedCache("result");
 
-        Eventually.assertThat(invoking(result).get("created"), is("cacheLife"));
+        Integer NLocalId    = CacheFactory.getCluster().getLocalMember().getId();
+        Integer NStorageId1 = findCacheServer("cacheLife-1").getId();
+        Integer NStorageId2 = findCacheServer("cacheLife-2").getId();
+
+        NamedCache<String, String> cache = getNamedCache("cacheLife");
+
+        Eventually.assertDeferred(() -> cacheResults,
+                Matchers.allOf(
+                        Matchers.hasEntry(new CompositeKey<>(NLocalId, Type.CREATED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId1, Type.CREATED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId2, Type.CREATED.name()), "cacheLife")));
 
         cache.put("k1", "v1");
         cache.put("k2", "v2");
 
         cache.truncate();
-        Eventually.assertThat(invoking(result).get("truncated"), is("cacheLife"));
-        result.remove("truncated");
+
+        Eventually.assertDeferred(() -> cacheResults,
+                Matchers.allOf(
+                        Matchers.hasEntry(new CompositeKey<>(NLocalId, Type.TRUNCATED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId1, Type.TRUNCATED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId2, Type.TRUNCATED.name()), "cacheLife")));
+
+        cacheResults.clear();
 
         cache.put("k1", "v1");
         cache.put("k2", "v2");
 
         // test that uem event is raised for second time cache truncate
         cache.truncate();
-        Eventually.assertThat(invoking(result).get("truncated"), is("cacheLife"));
+
+        Eventually.assertDeferred(() -> cacheResults,
+                Matchers.allOf(
+                        Matchers.hasEntry(new CompositeKey<>(NLocalId, Type.TRUNCATED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId1, Type.TRUNCATED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId2, Type.TRUNCATED.name()), "cacheLife")));
 
         cache.put("k1", "v1");
         cache.put("k2", "v2");
 
         cache.destroy();
-        Eventually.assertThat(invoking(result).get("destroyed"), is("cacheLife"));
+
+        Eventually.assertDeferred(() -> cacheResults,
+                Matchers.allOf(
+                        Matchers.hasEntry(new CompositeKey<>(NLocalId, Type.DESTROYED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId1, Type.DESTROYED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId2, Type.DESTROYED.name()), "cacheLife")));
+
+        cacheResults.destroy();
         }
 
     // ----- data members ---------------------------------------------------

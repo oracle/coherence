@@ -7,6 +7,9 @@
 package com.tangosol.net.events.internal;
 
 import com.tangosol.net.BackingMapContext;
+import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.CacheService;
+import com.tangosol.net.ServiceInfo;
 import com.tangosol.net.events.*;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent;
@@ -21,6 +24,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test the public ServiceDispatcher methods
@@ -35,7 +39,7 @@ public class StorageDispatcherTest
     @Test
     public void testGetBackingMapContext()
         {
-        BackingMapContext mockCtx    = mock(BackingMapContext.class);
+        BackingMapContext mockCtx    = createMockContext();
         StorageDispatcher dispatcher = new StorageDispatcher(mockCtx);
 
         assertEquals(dispatcher.getBackingMapContext(), mockCtx);
@@ -47,7 +51,7 @@ public class StorageDispatcherTest
     @Test
     public void testSupportedTypes()
         {
-        BackingMapContext mockCtx    = mock(BackingMapContext.class);
+        BackingMapContext mockCtx    = createMockContext();
         StorageDispatcher dispatcher = new StorageDispatcher(mockCtx);
         Set<Enum>         types      = dispatcher.getSupportedTypes();
 
@@ -71,7 +75,7 @@ public class StorageDispatcherTest
     @Test
     public void testNotSubscribed()
         {
-        BackingMapContext mockCtx    = mock(BackingMapContext.class);
+        BackingMapContext mockCtx    = createMockContext();
         StorageDispatcher dispatcher = new StorageDispatcher(mockCtx);
 
         assertFalse(dispatcher.isSubscribed(EntryEvent.Type.INSERTED));
@@ -93,7 +97,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedAll()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         TestInterceptor   interceptor = new TestInterceptor(false);
         String            sKey        = "testInterceptor";
@@ -119,7 +123,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedInserted()
         {
-        BackingMapContext        mockCtx    = mock(BackingMapContext.class);
+        BackingMapContext        mockCtx    = createMockContext();
         StorageDispatcher        dispatcher = new StorageDispatcher(mockCtx);
         String                   sKey       = "testInterceptor";
         HashSet<EntryEvent.Type> setTypes   = new HashSet<EntryEvent.Type>();
@@ -145,7 +149,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedInserting()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -171,7 +175,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedUpdated()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -198,7 +202,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedUpdating()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -224,7 +228,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedRemoved()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -250,7 +254,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedRemoving()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -276,7 +280,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedExecuting()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -302,7 +306,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedExecuted()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -328,7 +332,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchInserting()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -355,7 +359,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchInserted()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -382,7 +386,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchRemoving()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -409,7 +413,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchRemoved()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -436,7 +440,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchUpdating()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -463,7 +467,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchUpdated()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -490,7 +494,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchExecuting()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -518,7 +522,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchExecuted()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -546,7 +550,7 @@ public class StorageDispatcherTest
     @Test
     public void testSubscribedCreated()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -567,7 +571,7 @@ public class StorageDispatcherTest
     @Test
     public void testDispatchCreated()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         String            sCache      = "cacheTest";
@@ -578,7 +582,7 @@ public class StorageDispatcherTest
 
         dispatcher.addEventInterceptor(sKey, interceptor, setTypes, false);
 
-        dispatcher.getCacheLifecycleEventContinuation(CacheLifecycleEvent.Type.CREATED, sCache, null).proceed(Boolean.TRUE);
+        dispatcher.getCacheLifecycleEventContinuation(CacheLifecycleEvent.Type.CREATED, null).proceed(Boolean.TRUE);
 
         assertNotNull(interceptor.m_Event);
         assertEquals(CacheLifecycleEvent.Type.CREATED, interceptor.m_Event.getType());
@@ -595,7 +599,7 @@ public class StorageDispatcherTest
     //@Test(expected=IllegalStateException.class)
     public void testTerminalException()
         {
-        BackingMapContext mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext mockCtx     = createMockContext();
         StorageDispatcher disp        = new StorageDispatcher(mockCtx);
         String            sKey        = "testInterceptor";
         HashSet           setTypes    = new HashSet();
@@ -611,6 +615,22 @@ public class StorageDispatcherTest
 
         assertNotNull(interceptor.m_Event);
         assertEquals(EntryEvent.Type.INSERTING, interceptor.m_Event.getType());
+        }
+    
+    protected BackingMapContext createMockContext()
+        {
+        ServiceInfo  info    = mock(ServiceInfo.class);
+        CacheService service = mock(CacheService.class);
+
+        BackingMapManagerContext mgrCtx     = mock(BackingMapManagerContext.class);
+        BackingMapContext        mockCtx    = mock(BackingMapContext.class);
+
+        when(info.getServiceName()).thenReturn("DistributedCache");
+        when(service.getInfo()).thenReturn(info);
+        when(mgrCtx.getCacheService()).thenReturn(service);
+        when(mockCtx.getManagerContext()).thenReturn(mgrCtx);
+        
+        return mockCtx;
         }
 
     /**

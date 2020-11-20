@@ -130,7 +130,7 @@ public class RegistryTest
     public void testRegisterUnRegisterInterceptorWithDispatcher()
         {
         TestInterceptor           interceptor = new TestInterceptor();
-        BackingMapContext         mockCtx     = mock(BackingMapContext.class);
+        BackingMapContext         mockCtx     = mockBMC("DistributedCache", "foo");
         AbstractEventDispatcher   dispatcher  = new StorageDispatcher(mockCtx);
         Registry                  registry    = new Registry();
         String                    sKey        = "testInterceptor";
@@ -162,7 +162,7 @@ public class RegistryTest
         {
         TestInterceptor           interceptor  = new TestInterceptor();
         TestInterceptor           interceptor2 = new TestInterceptor();
-        BackingMapContext         mockCtx      = mock(BackingMapContext.class);
+        BackingMapContext         mockCtx      = mockBMC("DistributedCache", "foo");
         AbstractEventDispatcher   dispatcher   = new StorageDispatcher(mockCtx);
         Registry                  registry     = new Registry();
         String                    sKey         = "testInterceptor";
@@ -211,7 +211,7 @@ public class RegistryTest
         String                    sKey2        = "testInterceptor2";
         TestInterceptor           interceptor  = new TestInterceptor();
         NamedEventInterceptor     interceptor2 = new NamedEventInterceptor(sKey2, new TestInterceptor(), null, null, Order.HIGH, null);
-        BackingMapContext         mockCtx      = mock(BackingMapContext.class);
+        BackingMapContext         mockCtx      = mockBMC("DistributedCache", "foo");
         AbstractEventDispatcher   dispatcher   = new StorageDispatcher(mockCtx);
         Registry                  registry     = new Registry();
 
@@ -252,7 +252,7 @@ public class RegistryTest
     public void testDispatcherLast()
         {
         TestInterceptor           interceptor  = new TestInterceptor();
-        BackingMapContext         mockCtx      = mock(BackingMapContext.class);
+        BackingMapContext         mockCtx      = mockBMC("DistributedCache", "foo");
         AbstractEventDispatcher   dispatcher   = new StorageDispatcher(mockCtx);
         Registry                  registry     = new Registry();
         String                    sKey         = "testInterceptor";
@@ -282,7 +282,7 @@ public class RegistryTest
         {
         TestInterceptor           interceptor  = new TestInterceptor();
         TestInterceptor           interceptor2 = new TestInterceptor();
-        BackingMapContext         mockCtx      = mock(BackingMapContext.class);
+        BackingMapContext         mockCtx      = mockBMC("DistributedCache", "foo");
         AbstractEventDispatcher   dispatcher   = new StorageDispatcher(mockCtx);
         Registry                  registry     = new Registry();
         String                    sKey         = "testInterceptor";
@@ -351,8 +351,9 @@ public class RegistryTest
     @Test
     public void testEventDispatcherAwareInterceptor()
         {
-        EventDispatcherAwareInterceptor incptr      = mock(EventDispatcherAwareInterceptor.class);
-        BackingMapContext       mockCtx     = mock(BackingMapContext.class);
+        EventDispatcherAwareInterceptor incptr = mock(EventDispatcherAwareInterceptor.class);
+
+        BackingMapContext       mockCtx     = mockBMC("DistributedCache", "foo");
         AbstractEventDispatcher dispatcher  = new StorageDispatcher(mockCtx);
         AbstractEventDispatcher dispatcher2 = new StorageDispatcher(mockCtx);
         Registry                registry    = new Registry();

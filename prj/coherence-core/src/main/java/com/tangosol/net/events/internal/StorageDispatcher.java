@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Continuation;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 
 import com.tangosol.net.BackingMapContext;
+import com.tangosol.net.CacheService;
 
 import com.tangosol.net.events.EventDispatcher;
 
@@ -44,15 +45,32 @@ public class StorageDispatcher
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Construct a dispatcher for the specified service.
+     * Construct a dispatcher for the specified {@link BackingMapContext cache}.
      *
-     * @param ctx  the service associated with this dispatcher
+     * @param ctx  the cache associated with this dispatcher
      */
     public StorageDispatcher(BackingMapContext ctx)
         {
-        super(EVENT_TYPES);
+        super(EVENT_TYPES_STORAGE);
 
-        m_ctxBM = ctx;
+        f_ctxBM      = ctx;
+        f_sCacheName = ctx.getCacheName();
+        f_service    = ctx.getManagerContext().getCacheService();
+        }
+
+    /**
+     * Construct a dispatcher for the specified cache name and service.
+     *
+     * @param sCacheName  the name of the cache dispatching events
+     * @param service     the name of the associated service
+     */
+    public StorageDispatcher(String sCacheName, CacheService service)
+        {
+        super(EVENT_TYPES_CACHE);
+
+        f_ctxBM      = null;
+        f_sCacheName = sCacheName;
+        f_service    = service;
         }
 
     // ----- PartitionedCacheDispatcher interface ---------------------------
@@ -62,7 +80,25 @@ public class StorageDispatcher
      */
     public BackingMapContext getBackingMapContext()
         {
-        return m_ctxBM;
+        return f_ctxBM;
+        }
+
+    @Override
+    public String getCacheName()
+        {
+        return f_sCacheName;
+        }
+
+    @Override
+    public String getServiceName()
+        {
+        return f_service.getInfo().getServiceName();
+        }
+
+    @Override
+    public String getScopeName()
+        {
+        return f_service.getBackingMapManager().getCacheFactory().getScopeName();
         }
 
     // ----- StorageDispatcher methods --------------------------------------
@@ -110,16 +146,15 @@ public class StorageDispatcher
      * CacheLifecycleEvent} to be dispatched.
      *
      * @param eventType     the {@link CacheLifecycleEvent.Type} to raise
-     * @param sCacheName    the cache name that the event is associated with
      * @param continuation  the continuation to complete after dispatching
      *
      * @return a continuation whose completion will post an invocation event
      */
     public Continuation getCacheLifecycleEventContinuation(
-            CacheLifecycleEvent.Type eventType, String sCacheName, Continuation continuation)
+            CacheLifecycleEvent.Type eventType, Continuation continuation)
         {
         return getDispatchContinuation(
-                new StorageLifecycleEvent(this, eventType, sCacheName), continuation);
+                new StorageLifecycleEvent(this, eventType), continuation);
         }
 
 
@@ -337,15 +372,12 @@ public class StorageDispatcher
         /**
          * Construct a cache truncate event.
          *
-         * @param dispatcher   the dispatcher that raised this event
-         * @param sCacheName   the cache name that the event is associated with
-         * @param eventType    the event type
+         * @param dispatcher  the dispatcher that raised this event
+         * @param eventType   the event type
          */
-        protected StorageLifecycleEvent(EventDispatcher dispatcher, Type eventType, String sCacheName)
+        protected StorageLifecycleEvent(StorageDispatcher dispatcher, Type eventType)
             {
             super(dispatcher, eventType);
-
-            f_sCacheName = sCacheName;
             }
 
         // ----- AbstractEvent methods --------------------------------------
@@ -364,7 +396,7 @@ public class StorageDispatcher
         protected String getDescription()
             {
             return super.getDescription() +
-                   ", Service=" + getService().getInfo().getServiceName() +
+                   ", Service=" + getServiceName() +
                    ", Cache=" + getCacheName();
             }
 
@@ -377,19 +409,25 @@ public class StorageDispatcher
         @Override
         public String getCacheName()
             {
-            return f_sCacheName;
+            return getDispatcher().getCacheName();
+            }
+
+        @Override
+        public CacheService getService()
+            {
+            return ((StorageDispatcher) getDispatcher()).f_service;
             }
 
         @Override
         public String getServiceName()
             {
-            return getService().getInfo().getServiceName();
+            return getDispatcher().getServiceName();
             }
 
         @Override
         public String getScopeName()
             {
-            return getService().getBackingMapManager().getCacheFactory().getScopeName();
+            return getDispatcher().getScopeName();
             }
 
         @Override
@@ -401,36 +439,45 @@ public class StorageDispatcher
                     .getResourceRegistry()
                     .getResource(String.class, ConfigurableCacheFactorySession.SESSION_NAME);
             }
-
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The name of the cache that the event is associated with.
-         */
-        private final String f_sCacheName;
         }
 
 
     // ----- constants and data members -------------------------------------
 
     /**
-     * The event types raised by this dispatcher.
+     * The event types raised by this dispatcher when it is storage enabled.
      */
-    protected static final Set<Enum> EVENT_TYPES = new HashSet<Enum>();
+    protected static final Set<Enum> EVENT_TYPES_STORAGE = new HashSet<Enum>();
 
     /**
-     * Service context.
+     * The event types raised by this dispatcher when it is storage disabled.
      */
-    protected final BackingMapContext m_ctxBM;
+    protected static final Set<Enum> EVENT_TYPES_CACHE = new HashSet<Enum>();
+
+    /**
+     * Service context; can be null if storage disabled
+     */
+    protected final BackingMapContext f_ctxBM;
+
+    /**
+     * The name of the cache.
+     */
+    protected final String f_sCacheName;
+
+    /**
+     * The service this dispatcher is associated with.
+     */
+    protected final CacheService f_service;
 
 
     // ----- static initializer ---------------------------------------------
 
     static
         {
-        EVENT_TYPES.addAll(Arrays.asList(EntryEvent.Type.values()));
-        EVENT_TYPES.addAll(Arrays.asList(EntryProcessorEvent.Type.values()));
-        EVENT_TYPES.addAll(Arrays.asList(CacheLifecycleEvent.Type.values()));
+        EVENT_TYPES_STORAGE.addAll(Arrays.asList(EntryEvent.Type.values()));
+        EVENT_TYPES_STORAGE.addAll(Arrays.asList(EntryProcessorEvent.Type.values()));
+        EVENT_TYPES_STORAGE.addAll(Arrays.asList(CacheLifecycleEvent.Type.values()));
+
+        EVENT_TYPES_CACHE.addAll(Arrays.asList(CacheLifecycleEvent.Type.values()));
         }
     }
