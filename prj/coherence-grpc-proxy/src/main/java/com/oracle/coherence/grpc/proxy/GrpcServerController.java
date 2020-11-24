@@ -32,6 +32,7 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 /**
  * A controller class that starts and stops the default gRPC server
@@ -68,10 +69,16 @@ public class GrpcServerController
         try
             {
             m_inProcessName = Config.getProperty(Requests.PROP_IN_PROCESS_NAME, Requests.DEFAULT_CHANNEL_NAME);
-            int port = Config.getInteger(Requests.PROP_PORT, Requests.DEFAULT_PORT);
 
-            ServerBuilder<?>       serverBuilder = ServerBuilder.forPort(port);
-            InProcessServerBuilder inProcBuilder = InProcessServerBuilder.forName("default");
+            int                       port     = Config.getInteger(Requests.PROP_PORT, Requests.DEFAULT_PORT);
+            GrpcServerBuilderProvider provider =
+                    StreamSupport.stream(ServiceLoader.load(GrpcServerBuilderProvider.class).spliterator(), false)
+                                .sorted()
+                                .findFirst()
+                                .orElse(() -> ServerBuilder.forPort(port));
+
+            ServerBuilder<?>       serverBuilder = provider.getServerBuilder();
+            InProcessServerBuilder inProcBuilder = InProcessServerBuilder.forName(m_inProcessName);
 
             for (BindableGrpcProxyService service : createGrpcServices())
                 {

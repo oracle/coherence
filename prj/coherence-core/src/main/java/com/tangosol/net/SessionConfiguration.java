@@ -363,13 +363,28 @@ public interface SessionConfiguration
             }
 
         /**
+         * Set the session creation priority.
+         *
+         * @param nPriority  the session creation priority
+         *
+         * @return  this {@link Builder}
+         * @see SessionConfiguration#getPriority()
+         */
+        public Builder withPriority(int nPriority)
+            {
+            m_nPriority = nPriority;
+            return this;
+            }
+
+        /**
          * Build the {@link SessionConfiguration}.
          *
          * @return the {@link SessionConfiguration}
          */
         public SessionConfiguration build()
             {
-            return new ConfigurableCacheFactorySessionConfig(m_sName, m_sURI, m_loader, m_sScope, f_listInterceptor);
+            return new ConfigurableCacheFactorySessionConfig(m_sName, m_sURI, m_loader, m_sScope,
+                    f_listInterceptor, m_nPriority);
             }
 
         // ----- data members -----------------------------------------------
@@ -400,6 +415,11 @@ public interface SessionConfiguration
          * The event interceptors to add for this session.
          */
         private final List<EventInterceptor<?>> f_listInterceptor = new ArrayList<>();
+
+        /**
+         * The priority order for this configuration.
+         */
+        private int m_nPriority;
         }
 
     // ----- inner class: ConfigurableCacheFactorySessionConfig -------------
@@ -422,16 +442,18 @@ public interface SessionConfiguration
          * @param sScope           the scope name for the {@link Session}
          * @param listInterceptor  the event interceptors to add to the session
          */
-        public ConfigurableCacheFactorySessionConfig(String                    sName,
-                                                     String                    sURI,
-                                                     ClassLoader               loader,
-                                                     String                    sScope,
-                                                     List<EventInterceptor<?>> listInterceptor)
+        ConfigurableCacheFactorySessionConfig(String                    sName,
+                                              String                    sURI,
+                                              ClassLoader               loader,
+                                              String                    sScope,
+                                              List<EventInterceptor<?>> listInterceptor,
+                                              int                       nPriority)
             {
             f_sName           = sName == null || sName.trim().isEmpty() ? Coherence.DEFAULT_NAME : sName;
             f_sURI            = sURI;
             f_loader          = loader;
             f_listInterceptor = new ArrayList<>(listInterceptor);
+            f_nPriority       = nPriority;
 
             if (sScope == null)
                 {
@@ -488,6 +510,12 @@ public interface SessionConfiguration
             return Collections.unmodifiableList(f_listInterceptor);
             }
 
+        @Override
+        public int getPriority()
+            {
+            return f_nPriority;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -516,6 +544,11 @@ public interface SessionConfiguration
          * The event interceptors to add for this session.
          */
         private final List<EventInterceptor<?>> f_listInterceptor;
+
+        /**
+         * The priority order for this configuration.
+         */
+        private final int f_nPriority;
         }
 
     // ----- constants --------------------------------------------------

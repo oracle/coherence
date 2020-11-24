@@ -122,7 +122,7 @@ public interface CoherenceConfiguration
          */
         public Builder withSession(SessionConfiguration config)
             {
-            if (config != null)
+            if (config != null && config.isEnabled())
                 {
                 String sName = config.getName();
                 if (sName == null || sName.trim().isEmpty())

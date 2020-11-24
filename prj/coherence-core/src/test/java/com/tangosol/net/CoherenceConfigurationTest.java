@@ -10,9 +10,7 @@ import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -132,6 +130,26 @@ public class CoherenceConfigurationTest
         SessionConfiguration   session = SessionConfiguration.create("Foo", "foo.xml");
         CoherenceConfiguration cfg     = CoherenceConfiguration.builder()
                 .withSession(session)
+                .build();
+
+        assertThat(cfg, is(notNullValue()));
+        assertThat(cfg.getName(), is(Coherence.DEFAULT_NAME));
+        assertThat(cfg.getInterceptors(), is(emptyIterable()));
+
+        Map<String, SessionConfiguration> mapSession = cfg.getSessionConfigurations();
+        assertThat(mapSession, is(notNullValue()));
+        assertThat(mapSession.size(), is(1));
+        assertThat(mapSession.get(session.getName()), is(sameInstance(session)));
+        }
+
+    @Test
+    public void shouldNotAddDisabledSession()
+        {
+        SessionConfiguration   session  = SessionConfiguration.create("Foo", "foo.xml");
+        SessionConfiguration   disabled = new SessionConfigurationStub(SessionConfiguration.create("Bar", "bar.xml"), false);
+        CoherenceConfiguration cfg      = CoherenceConfiguration.builder()
+                .withSession(session)
+                .withSession(disabled)
                 .build();
 
         assertThat(cfg, is(notNullValue()));
@@ -269,5 +287,48 @@ public class CoherenceConfigurationTest
         assertThat(session.getSessionProvider(), is(notNullValue()));
         assertThat(session.getSessionProvider().isPresent(), is(false));
         assertThat(session.getPriority(), is(SessionConfiguration.DEFAULT_PRIORITY));
+        }
+
+    static class SessionConfigurationStub
+            implements SessionConfiguration
+        {
+        public SessionConfigurationStub(SessionConfiguration wrapped)
+            {
+            this(wrapped, true);
+            }
+
+        public SessionConfigurationStub(SessionConfiguration wrapped, boolean fEnabled)
+            {
+            f_wrapped  = wrapped;
+            f_fEnabled = fEnabled;
+            }
+
+        @Override
+        public boolean isEnabled()
+            {
+            return f_fEnabled;
+            }
+
+        @Override
+        public String getName()
+            {
+            return f_wrapped.getName();
+            }
+
+        @Override
+        public String getScopeName()
+            {
+            return f_wrapped.getScopeName();
+            }
+
+        @Override
+        public Session.Option[] getOptions()
+            {
+            return f_wrapped.getOptions();
+            }
+
+        private final SessionConfiguration f_wrapped;
+
+        private final boolean f_fEnabled;
         }
     }
