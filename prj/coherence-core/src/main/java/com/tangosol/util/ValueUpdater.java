@@ -20,7 +20,8 @@ import java.io.Serializable;
 * @since Coherence 3.1
 */
 @FunctionalInterface
-public interface ValueUpdater<T, U> extends Serializable
+public interface ValueUpdater<T, U>
+        extends Serializable
     {
     /**
     * Update the state of the passed target object using the passed value.
