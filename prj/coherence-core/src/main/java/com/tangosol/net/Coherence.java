@@ -185,6 +185,11 @@ public class Coherence
      */
     public static Coherence getInstance()
         {
+        Coherence coherence = s_mapInstance.get(Coherence.DEFAULT_NAME);
+        if (coherence != null)
+            {
+            return coherence;
+            }
         return s_mapInstance.entrySet()
                 .stream()
                 .findFirst()
@@ -286,6 +291,18 @@ public class Coherence
         }
 
     /**
+     * Obtain the default {@link Session} from the {@link Coherence} instance.
+     *
+     * @return the default {@link Session}
+     *
+     * @throws IllegalStateException  if this instance has been closed
+     */
+    public Session getSession()
+        {
+        return getSession(DEFAULT_NAME);
+        }
+
+    /**
      * Obtain the {@link Session} from the {@link Coherence} instance that was
      * configured with the specified configuration name.
      *
@@ -309,7 +326,7 @@ public class Coherence
         SessionConfiguration configuration = f_config.getSessionConfigurations().get(sSessionName);
         if (configuration == null || !configuration.isEnabled())
             {
-            return null;
+            throw new IllegalArgumentException("No Session has been configured with the name " + sSessionName);
             }
 
         return f_mapSession.compute(sSessionName, (k, session) ->
@@ -504,6 +521,16 @@ public class Coherence
     public InterceptorRegistry getInterceptorRegistry()
         {
         return f_registry.getResource(InterceptorRegistry.class);
+        }
+
+    /**
+     * Return a {@link Cluster} object for Coherence services.
+     *
+     * @return a {@link Cluster} object, which may or may not be running
+     */
+    public Cluster getCluster()
+        {
+        return CacheFactory.getCluster();
         }
 
     /**

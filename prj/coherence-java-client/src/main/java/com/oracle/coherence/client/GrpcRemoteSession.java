@@ -21,6 +21,7 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
 import com.tangosol.net.NamedMap;
+import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.events.EventDispatcherRegistry;
@@ -276,6 +277,12 @@ public class GrpcRemoteSession
         {
         // ToDo: Implement this when we add topic support
         return false;
+        }
+
+    @Override
+    public Service getService(String sServiceName)
+        {
+        return null;
         }
 
     // ----- accessor methods -----------------------------------------------

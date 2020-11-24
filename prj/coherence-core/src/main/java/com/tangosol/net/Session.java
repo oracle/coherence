@@ -165,6 +165,18 @@ public interface Session extends AutoCloseable
      */
     boolean isActive();
 
+    /**
+     * Returns a service for the given name or {@code null}
+     * if no service exists in this session with the specified
+     * name.
+     *
+     * @param sServiceName  the service name
+     *
+     * @return  the requested Service or {@code null} if no service
+     *           exists in this session with the specified name
+     */
+    public Service getService(String sServiceName);
+
     // ----- Option interface -----------------------------------------------
 
     /**

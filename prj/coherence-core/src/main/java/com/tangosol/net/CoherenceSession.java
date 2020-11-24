@@ -117,6 +117,12 @@ public class CoherenceSession
         return m_session.isActive();
         }
 
+    @Override
+    public Service getService(String sServiceName)
+        {
+        return m_session.getService(sServiceName);
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**

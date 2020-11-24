@@ -11,6 +11,7 @@ import com.oracle.coherence.common.util.Options;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
+import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
 
@@ -283,6 +284,12 @@ public class ConfigurableCacheFactorySession
     public boolean isActive()
         {
         return m_fActive;
+        }
+
+    @Override
+    public Service getService(String sServiceName)
+        {
+        return m_ccf.ensureService(sServiceName);
         }
 
     // ----- ConfigurableCacheFactory.Supplier methods ----------------------

@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,6 +40,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -297,6 +299,147 @@ public class CoherenceTest
         assertThat(lifecycleEvents.get(2).getType(), is(CoherenceLifecycleEvent.Type.STOPPING));
         assertThat(lifecycleEvents.get(3).getCoherence(), is(sameInstance(coherence)));
         assertThat(lifecycleEvents.get(3).getType(), is(CoherenceLifecycleEvent.Type.STOPPED));
+        }
+
+    @Test
+    public void shouldGetDefaultSession() throws Exception
+        {
+        ConfigurableCacheFactorySession    sessionSys    = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfSys        = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registrySys   = mock(InterceptorRegistry.class);
+
+        ConfigurableCacheFactorySession    sessionOne    = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfOne        = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registryOne   = mock(InterceptorRegistry.class);
+        SessionProvider                    providerOne   = mock(SessionProvider.class);
+        SessionConfiguration               cfgOne        = new SessionConfigStub(Coherence.DEFAULT_NAME, new Session.Option[0], Collections.emptyList(), providerOne);
+
+        ConfigurableCacheFactorySession    sessionTwo    = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfTwo        = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registryTwo   = mock(InterceptorRegistry.class);
+        SessionProvider                    providerTwo   = mock(SessionProvider.class);
+        SessionConfiguration               cfgTwo        = new SessionConfigStub("Two", new Session.Option[0], Collections.emptyList(), providerTwo);
+
+        CoherenceConfiguration             configuration = CoherenceConfiguration.builder()
+                                                                    .withSession(cfgOne)
+                                                                    .withSessions(cfgTwo)
+                                                                    .build();
+        Coherence                          coherence     = Coherence.create(configuration);
+        CompletableFuture<Void>            future        = coherence.whenStarted();
+
+        when(sessionSys.getConfigurableCacheFactory()).thenReturn(ccfSys);
+        when(sessionSys.getInterceptorRegistry()).thenReturn(registrySys);
+
+        when(providerOne.createSession(any(Session.Option.class))).thenReturn(sessionOne);
+        when(sessionOne.getConfigurableCacheFactory()).thenReturn(ccfOne);
+        when(sessionOne.getInterceptorRegistry()).thenReturn(registryOne);
+        when(ccfOne.getServiceMap()).thenReturn(Collections.emptyMap());
+
+        when(providerTwo.createSession(any(Session.Option.class))).thenReturn(sessionTwo);
+        when(sessionTwo.getConfigurableCacheFactory()).thenReturn(ccfTwo);
+        when(sessionTwo.getInterceptorRegistry()).thenReturn(registryTwo);
+        when(ccfTwo.getServiceMap()).thenReturn(Collections.emptyMap());
+
+        Coherence.setSystemSession(sessionSys);
+        coherence.start();
+
+        future.toCompletableFuture().get(1, TimeUnit.MINUTES);
+
+        Session session = coherence.getSession();
+        assertThat(session, is(sameInstance(sessionOne)));
+        }
+
+    @Test
+    public void shouldThrowGettingDefaultSessionIfNotExists() throws Exception
+        {
+        SessionProvider        providerOne   = mock(SessionProvider.class);
+        SessionConfiguration   cfgOne        = new SessionConfigStub("Foo", new Session.Option[0], Collections.emptyList(), providerOne);
+
+        CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                                                                    .withSession(cfgOne)
+                                                                    .build();
+        Coherence              coherence     = Coherence.create(configuration);
+
+        try
+            {
+            coherence.getSession();
+            fail("Expected IllegalArgumentException");
+            }
+        catch (IllegalArgumentException e)
+            {
+            // expected
+            }
+        }
+
+    @Test
+    public void shouldGetNamedSession() throws Exception
+        {
+        ConfigurableCacheFactorySession    sessionSys    = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfSys        = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registrySys   = mock(InterceptorRegistry.class);
+
+        ConfigurableCacheFactorySession    sessionOne    = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfOne        = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registryOne   = mock(InterceptorRegistry.class);
+        SessionProvider                    providerOne   = mock(SessionProvider.class);
+        SessionConfiguration               cfgOne        = new SessionConfigStub(Coherence.DEFAULT_NAME, new Session.Option[0], Collections.emptyList(), providerOne);
+
+        ConfigurableCacheFactorySession    sessionTwo    = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfTwo        = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registryTwo   = mock(InterceptorRegistry.class);
+        SessionProvider                    providerTwo   = mock(SessionProvider.class);
+        SessionConfiguration               cfgTwo        = new SessionConfigStub("Two", new Session.Option[0], Collections.emptyList(), providerTwo);
+
+        CoherenceConfiguration             configuration = CoherenceConfiguration.builder()
+                                                                    .withSession(cfgOne)
+                                                                    .withSessions(cfgTwo)
+                                                                    .build();
+        Coherence                          coherence     = Coherence.create(configuration);
+        CompletableFuture<Void>            future        = coherence.whenStarted();
+
+        when(sessionSys.getConfigurableCacheFactory()).thenReturn(ccfSys);
+        when(sessionSys.getInterceptorRegistry()).thenReturn(registrySys);
+
+        when(providerOne.createSession(any(Session.Option.class))).thenReturn(sessionOne);
+        when(sessionOne.getConfigurableCacheFactory()).thenReturn(ccfOne);
+        when(sessionOne.getInterceptorRegistry()).thenReturn(registryOne);
+        when(ccfOne.getServiceMap()).thenReturn(Collections.emptyMap());
+
+        when(providerTwo.createSession(any(Session.Option.class))).thenReturn(sessionTwo);
+        when(sessionTwo.getConfigurableCacheFactory()).thenReturn(ccfTwo);
+        when(sessionTwo.getInterceptorRegistry()).thenReturn(registryTwo);
+        when(ccfTwo.getServiceMap()).thenReturn(Collections.emptyMap());
+
+        Coherence.setSystemSession(sessionSys);
+        coherence.start();
+
+        future.toCompletableFuture().get(1, TimeUnit.MINUTES);
+
+        Session session = coherence.getSession(cfgTwo.getName());
+        assertThat(session, is(sameInstance(sessionTwo)));
+        }
+
+
+    @Test
+    public void shouldThrowGettingNamedSessionIfNotExists() throws Exception
+        {
+        SessionProvider        providerOne   = mock(SessionProvider.class);
+        SessionConfiguration   cfgOne        = new SessionConfigStub("Foo", new Session.Option[0], Collections.emptyList(), providerOne);
+
+        CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                                                                     .withSession(cfgOne)
+                                                                     .build();
+        Coherence              coherence     = Coherence.create(configuration);
+
+        try
+            {
+            coherence.getSession("Bar");
+            fail("Expected IllegalArgumentException");
+            }
+        catch (IllegalArgumentException e)
+            {
+            // expected
+            }
         }
 
     // ----- inner class: ConfigStub ----------------------------------------
