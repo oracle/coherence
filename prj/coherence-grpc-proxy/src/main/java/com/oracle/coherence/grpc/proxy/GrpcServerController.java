@@ -75,10 +75,20 @@ public class GrpcServerController
                     StreamSupport.stream(ServiceLoader.load(GrpcServerBuilderProvider.class).spliterator(), false)
                                 .sorted()
                                 .findFirst()
-                                .orElse(() -> ServerBuilder.forPort(port));
+                                .orElse(GrpcServerBuilderProvider.INSTANCE);
 
-            ServerBuilder<?>       serverBuilder = provider.getServerBuilder();
-            InProcessServerBuilder inProcBuilder = InProcessServerBuilder.forName(m_inProcessName);
+            ServerBuilder<?>       serverBuilder = provider.getServerBuilder(port);
+            InProcessServerBuilder inProcBuilder = provider.getInProcessServerBuilder(m_inProcessName);
+
+            if (serverBuilder == null)
+                {
+                serverBuilder = GrpcServerBuilderProvider.INSTANCE.getServerBuilder(port);
+                }
+
+            if (inProcBuilder == null)
+                {
+                inProcBuilder = GrpcServerBuilderProvider.INSTANCE.getInProcessServerBuilder(m_inProcessName);
+                }
 
             for (BindableGrpcProxyService service : createGrpcServices())
                 {
