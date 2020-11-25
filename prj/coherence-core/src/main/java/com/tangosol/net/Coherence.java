@@ -32,6 +32,7 @@ import com.tangosol.util.SimpleResourceRegistry;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -441,7 +442,7 @@ public class Coherence
                 {
                 try
                     {
-                    f_mapServer.values().forEach(DefaultCacheServer::waitForServiceStart);
+                    f_mapServer.values().forEach(holder -> holder.getServer().waitForServiceStart());
                     f_futureStarted.complete(null);
                     }
                 catch (Throwable thrown)
@@ -478,7 +479,14 @@ public class Coherence
             if (m_fStarted)
                 {
                 m_fStarted = false;
-                f_mapServer.values().forEach(this::stopServer);
+
+                // Stop servers in revers order
+                f_mapServer.values()
+                        .stream()
+                        .sorted(Comparator.reverseOrder())
+                        .map(PriorityHolder::getServer)
+                        .forEach(this::stopServer);
+
                 f_mapServer.clear();
                 }
             f_futureClosed.complete(null);
@@ -601,7 +609,8 @@ public class Coherence
                                 {
                                 ConfigurableCacheFactorySession supplier = (ConfigurableCacheFactorySession) session;
                                 ConfigurableCacheFactory        ccf      = supplier.getConfigurableCacheFactory();
-                                f_mapServer.put(sName, startCCF(sName, ccf));
+                                DefaultCacheServer              dcs      = startCCF(sName, ccf);
+                                f_mapServer.put(sName, new PriorityHolder(configuration.getPriority(), dcs));
                                 }
                             }
                     });
@@ -801,6 +810,49 @@ public class Coherence
             }
         }
 
+    // ----- inner class: PriorityHolder ------------------------------------
+
+    /**
+     * A holder of a priority and a {@link DefaultCacheServer}.
+     */
+    private static class PriorityHolder
+            implements Comparable<PriorityHolder>
+        {
+        public PriorityHolder(int nPriority, DefaultCacheServer server)
+            {
+            f_nPriority = nPriority;
+            f_server    = server;
+            }
+
+        public int getPriority()
+            {
+            return f_nPriority;
+            }
+
+        public DefaultCacheServer getServer()
+            {
+            return f_server;
+            }
+
+        @Override
+        public int compareTo(PriorityHolder o)
+            {
+            return Integer.compare(f_nPriority, o.f_nPriority);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The priority of this holder.
+         */
+        private final int f_nPriority;
+
+        /**
+         * The {@link DefaultCacheServer} instance.
+         */
+        private final DefaultCacheServer f_server;
+        }
+
     // ----- inner class: Builder -------------------------------------------
 
     /**
@@ -952,10 +1004,10 @@ public class Coherence
     private final CoherenceConfiguration f_config;
 
     /**
-     * The map of named {@link DefaultCacheServer} instances wrapping the
-     * sessions in this instance.
+     * The map of named {@link PriorityHolder} instances containing a {@link DefaultCacheServer}
+     * instance wrapping a session.
      */
-    private final Map<String, DefaultCacheServer> f_mapServer = new HashMap<>();
+    private final Map<String, PriorityHolder> f_mapServer = new HashMap<>();
 
     /**
      * The map of named {@link Session} instances.

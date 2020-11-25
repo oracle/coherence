@@ -19,6 +19,7 @@ import com.tangosol.util.RegistrationBehavior;
 
 import org.junit.After;
 import org.junit.Test;
+import org.mockito.InOrder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +45,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -174,7 +176,7 @@ public class CoherenceTest
         Session.Option[]                   options      = new Session.Option[0];
         EventInterceptor<?>                interceptor  = mock(EventInterceptor.class);
         Iterable<EventInterceptor<?>>      interceptors = Collections.singletonList(interceptor);
-        SessionConfiguration               cfg          = new SessionConfigStub("SYS", options, interceptors, provider);
+        SessionConfiguration               cfg          = new SessionConfigStub("SYS", options, interceptors, 0, provider);
 
         when(provider.createSession(any(Session.Option.class))).thenReturn(session);
         when(session.getConfigurableCacheFactory()).thenReturn(ccf);
@@ -207,7 +209,7 @@ public class CoherenceTest
         Session.Option[]                   optionsOne      = new Session.Option[0];
         EventInterceptor<?>                interceptorOne  = mock(EventInterceptor.class);
         Iterable<EventInterceptor<?>>      interceptorsOne = Collections.singletonList(interceptorOne);
-        SessionConfiguration               cfgOne          = new SessionConfigStub("One", optionsOne, interceptorsOne, providerOne);
+        SessionConfiguration               cfgOne          = new SessionConfigStub("One", optionsOne, interceptorsOne, 1, providerOne);
 
         ConfigurableCacheFactorySession    sessionTwo      = mock(ConfigurableCacheFactorySession.class);
         ExtensibleConfigurableCacheFactory ccfTwo          = mock(ExtensibleConfigurableCacheFactory.class);
@@ -216,7 +218,7 @@ public class CoherenceTest
         Session.Option[]                   optionsTwo      = new Session.Option[0];
         EventInterceptor<?>                interceptorTwo  = mock(EventInterceptor.class);
         Iterable<EventInterceptor<?>>      interceptorsTwo = Collections.singletonList(interceptorTwo);
-        SessionConfiguration               cfgTwo          = new SessionConfigStub("Two", optionsTwo, interceptorsTwo, providerTwo);
+        SessionConfiguration               cfgTwo          = new SessionConfigStub("Two", optionsTwo, interceptorsTwo, 0, providerTwo);
 
         CoherenceConfiguration             configuration   = CoherenceConfiguration.builder()
                                                                     .withSession(cfgOne)
@@ -248,14 +250,73 @@ public class CoherenceTest
 
         verify(providerOne, times(2)).createSession(any(Session.Option.class));
         verify(providerTwo, times(2)).createSession(any(Session.Option.class));
-        
+
         verify(registryOne).registerEventInterceptor(interceptorOne, RegistrationBehavior.FAIL);
         verify(registryTwo).registerEventInterceptor(interceptorTwo, RegistrationBehavior.FAIL);
 
-        verify(ccfOne).activate();
-        verify(ccfTwo).activate();
+        // should start in lowest priority order
+        InOrder inOrder = inOrder(ccfOne, ccfTwo);
+        inOrder.verify(ccfTwo).activate();
+        inOrder.verify(ccfOne).activate();
         }
 
+    @Test
+    public void shouldStopConfiguredSessionsInOrder() throws Exception
+        {
+        ConfigurableCacheFactorySession    sessionSys      = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfSys          = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registrySys     = mock(InterceptorRegistry.class);
+
+        ConfigurableCacheFactorySession    sessionOne      = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfOne          = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registryOne     = mock(InterceptorRegistry.class);
+        SessionProvider                    providerOne     = mock(SessionProvider.class);
+        Session.Option[]                   optionsOne      = new Session.Option[0];
+        EventInterceptor<?>                interceptorOne  = mock(EventInterceptor.class);
+        Iterable<EventInterceptor<?>>      interceptorsOne = Collections.singletonList(interceptorOne);
+        SessionConfiguration               cfgOne          = new SessionConfigStub("One", optionsOne, interceptorsOne, 1, providerOne);
+
+        ConfigurableCacheFactorySession    sessionTwo      = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfTwo          = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registryTwo     = mock(InterceptorRegistry.class);
+        SessionProvider                    providerTwo     = mock(SessionProvider.class);
+        Session.Option[]                   optionsTwo      = new Session.Option[0];
+        EventInterceptor<?>                interceptorTwo  = mock(EventInterceptor.class);
+        Iterable<EventInterceptor<?>>      interceptorsTwo = Collections.singletonList(interceptorTwo);
+        SessionConfiguration               cfgTwo          = new SessionConfigStub("Two", optionsTwo, interceptorsTwo, 0, providerTwo);
+
+        CoherenceConfiguration             configuration   = CoherenceConfiguration.builder()
+                                                                    .withSession(cfgOne)
+                                                                    .withSessions(cfgTwo)
+                                                                    .build();
+        Coherence                          coherence       = Coherence.create(configuration);
+        CompletableFuture<Void>            future          = coherence.whenStarted();
+
+        when(sessionSys.getConfigurableCacheFactory()).thenReturn(ccfSys);
+        when(sessionSys.getInterceptorRegistry()).thenReturn(registrySys);
+
+        when(providerOne.createSession(any(Session.Option.class))).thenReturn(sessionOne);
+        when(sessionOne.getConfigurableCacheFactory()).thenReturn(ccfOne);
+        when(sessionOne.getInterceptorRegistry()).thenReturn(registryOne);
+        when(ccfOne.getServiceMap()).thenReturn(Collections.emptyMap());
+
+        when(providerTwo.createSession(any(Session.Option.class))).thenReturn(sessionTwo);
+        when(sessionTwo.getConfigurableCacheFactory()).thenReturn(ccfTwo);
+        when(sessionTwo.getInterceptorRegistry()).thenReturn(registryTwo);
+        when(ccfTwo.getServiceMap()).thenReturn(Collections.emptyMap());
+
+        Coherence.setSystemSession(sessionSys);
+        coherence.start();
+
+        future.toCompletableFuture().get(1, TimeUnit.MINUTES);
+
+        coherence.close();
+
+        // should start in highest priority order
+        InOrder inOrder = inOrder(ccfOne, ccfTwo);
+        inOrder.verify(ccfOne).dispose();
+        inOrder.verify(ccfTwo).dispose();
+        }
 
     @Test
     public void shouldRegisterLifecycleInterceptor()
@@ -312,13 +373,13 @@ public class CoherenceTest
         ExtensibleConfigurableCacheFactory ccfOne        = mock(ExtensibleConfigurableCacheFactory.class);
         InterceptorRegistry                registryOne   = mock(InterceptorRegistry.class);
         SessionProvider                    providerOne   = mock(SessionProvider.class);
-        SessionConfiguration               cfgOne        = new SessionConfigStub(Coherence.DEFAULT_NAME, new Session.Option[0], Collections.emptyList(), providerOne);
+        SessionConfiguration               cfgOne        = new SessionConfigStub(Coherence.DEFAULT_NAME, new Session.Option[0], Collections.emptyList(), 0, providerOne);
 
         ConfigurableCacheFactorySession    sessionTwo    = mock(ConfigurableCacheFactorySession.class);
         ExtensibleConfigurableCacheFactory ccfTwo        = mock(ExtensibleConfigurableCacheFactory.class);
         InterceptorRegistry                registryTwo   = mock(InterceptorRegistry.class);
         SessionProvider                    providerTwo   = mock(SessionProvider.class);
-        SessionConfiguration               cfgTwo        = new SessionConfigStub("Two", new Session.Option[0], Collections.emptyList(), providerTwo);
+        SessionConfiguration               cfgTwo        = new SessionConfigStub("Two", new Session.Option[0], Collections.emptyList(), 0, providerTwo);
 
         CoherenceConfiguration             configuration = CoherenceConfiguration.builder()
                                                                     .withSession(cfgOne)
@@ -353,7 +414,7 @@ public class CoherenceTest
     public void shouldThrowGettingDefaultSessionIfNotExists() throws Exception
         {
         SessionProvider        providerOne   = mock(SessionProvider.class);
-        SessionConfiguration   cfgOne        = new SessionConfigStub("Foo", new Session.Option[0], Collections.emptyList(), providerOne);
+        SessionConfiguration   cfgOne        = new SessionConfigStub("Foo", new Session.Option[0], Collections.emptyList(), 0, providerOne);
 
         CoherenceConfiguration configuration = CoherenceConfiguration.builder()
                                                                     .withSession(cfgOne)
@@ -382,13 +443,13 @@ public class CoherenceTest
         ExtensibleConfigurableCacheFactory ccfOne        = mock(ExtensibleConfigurableCacheFactory.class);
         InterceptorRegistry                registryOne   = mock(InterceptorRegistry.class);
         SessionProvider                    providerOne   = mock(SessionProvider.class);
-        SessionConfiguration               cfgOne        = new SessionConfigStub(Coherence.DEFAULT_NAME, new Session.Option[0], Collections.emptyList(), providerOne);
+        SessionConfiguration               cfgOne        = new SessionConfigStub(Coherence.DEFAULT_NAME, new Session.Option[0], Collections.emptyList(), 0, providerOne);
 
         ConfigurableCacheFactorySession    sessionTwo    = mock(ConfigurableCacheFactorySession.class);
         ExtensibleConfigurableCacheFactory ccfTwo        = mock(ExtensibleConfigurableCacheFactory.class);
         InterceptorRegistry                registryTwo   = mock(InterceptorRegistry.class);
         SessionProvider                    providerTwo   = mock(SessionProvider.class);
-        SessionConfiguration               cfgTwo        = new SessionConfigStub("Two", new Session.Option[0], Collections.emptyList(), providerTwo);
+        SessionConfiguration               cfgTwo        = new SessionConfigStub("Two", new Session.Option[0], Collections.emptyList(), 0, providerTwo);
 
         CoherenceConfiguration             configuration = CoherenceConfiguration.builder()
                                                                     .withSession(cfgOne)
@@ -424,7 +485,7 @@ public class CoherenceTest
     public void shouldThrowGettingNamedSessionIfNotExists() throws Exception
         {
         SessionProvider        providerOne   = mock(SessionProvider.class);
-        SessionConfiguration   cfgOne        = new SessionConfigStub("Foo", new Session.Option[0], Collections.emptyList(), providerOne);
+        SessionConfiguration   cfgOne        = new SessionConfigStub("Foo", new Session.Option[0], Collections.emptyList(), 0, providerOne);
 
         CoherenceConfiguration configuration = CoherenceConfiguration.builder()
                                                                      .withSession(cfgOne)
@@ -491,18 +552,20 @@ public class CoherenceTest
         {
         public SessionConfigStub(String sName)
             {
-            this(sName, new Session.Option[0], Collections.emptyList(), null);
+            this(sName, new Session.Option[0], Collections.emptyList(), 0, null);
             }
 
         public SessionConfigStub(String sName,
                                  Session.Option[] options,
                                  Iterable<EventInterceptor<?>> interceptors,
+                                 int nPriority,
                                  SessionProvider provider)
             {
             f_sName        = sName;
             f_options      = options;
             f_interceptors = interceptors;
-            m_provider = provider;
+            f_nPriority    = nPriority;
+            m_provider     = provider;
             }
 
         @Override
@@ -551,9 +614,16 @@ public class CoherenceTest
             m_provider = provider;
             }
 
+        @Override
+        public int getPriority()
+            {
+            return f_nPriority;
+            }
+
         private final String f_sName;
         private final Session.Option[] f_options;
         private final Iterable<EventInterceptor<?>> f_interceptors;
+        private final int f_nPriority;
         private SessionProvider m_provider;
         private boolean m_fEnabled = true;
         }

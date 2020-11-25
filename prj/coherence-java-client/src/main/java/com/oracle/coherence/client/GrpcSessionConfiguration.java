@@ -147,6 +147,7 @@ public class GrpcSessionConfiguration
          *
          * @return  this {@link Builder}
          * @see SessionConfiguration#getPriority()
+         * @see #DEFAULT_PRIORITY
          */
         public Builder withPriority(int nPriority)
             {
@@ -279,7 +280,7 @@ public class GrpcSessionConfiguration
         /**
          * The session creation priority.
          */
-        private int m_nPriority;
+        private int m_nPriority = GrpcSessionConfiguration.DEFAULT_PRIORITY;
 
         /**
          * The serializer for the session.
@@ -301,6 +302,13 @@ public class GrpcSessionConfiguration
          */
         private boolean m_fTracing;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The default priority for gRPC Sessions.
+     */
+    public static final int DEFAULT_PRIORITY = SessionConfiguration.DEFAULT_PRIORITY + 1;
 
     // ----- data members ---------------------------------------------------
 
