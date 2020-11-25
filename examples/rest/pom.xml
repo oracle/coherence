@@ -23,7 +23,7 @@
 
   <properties>
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
-    <coherence.version>14.1.1-0-2-SNAPSHOT</coherence.version>
+    <coherence.version>14.1.1-0-4-SNAPSHOT</coherence.version>
     <http.port>8080</http.port>
     <http.address>0.0.0.0</http.address>
 
