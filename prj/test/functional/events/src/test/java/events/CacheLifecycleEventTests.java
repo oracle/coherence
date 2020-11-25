@@ -75,11 +75,19 @@ public class CacheLifecycleEventTests
 
         NamedCache<String, String> cache = getNamedCache("cacheLife");
 
+        // start a cache server after the ensureCache
+        startCacheServer("cacheLife-3", "events", CFG_FILE);
+
+        Integer NStorageId3 = findCacheServer("cacheLife-3").getId();
+
         Eventually.assertDeferred(() -> cacheResults,
                 Matchers.allOf(
-                        Matchers.hasEntry(new CompositeKey<>(NLocalId, Type.CREATED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NLocalId,    Type.CREATED.name()), "cacheLife"),
                         Matchers.hasEntry(new CompositeKey<>(NStorageId1, Type.CREATED.name()), "cacheLife"),
-                        Matchers.hasEntry(new CompositeKey<>(NStorageId2, Type.CREATED.name()), "cacheLife")));
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId2, Type.CREATED.name()), "cacheLife"),
+                        Matchers.hasEntry(new CompositeKey<>(NStorageId3, Type.CREATED.name()), "cacheLife")));
+
+        stopCacheServer("cacheLife-3");
 
         cache.put("k1", "v1");
         cache.put("k2", "v2");
