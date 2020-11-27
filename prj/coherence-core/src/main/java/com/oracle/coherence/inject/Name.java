@@ -11,6 +11,7 @@ import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -24,6 +25,7 @@ import java.lang.annotation.RetentionPolicy;
 @Qualifier
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(Names.class)
 public @interface Name
     {
     /**
@@ -33,11 +35,19 @@ public @interface Name
      */
     @Nonbinding String value();
 
+    /**
+     * Return {@code true} to indicate whether name is a regular expression.
+     *
+     * @return {@code true} to indicate whether name is a regular expression
+     */
+    @Nonbinding boolean regex() default false;
+
     // ---- inner class: Literal --------------------------------------------
 
     /**
      * An annotation literal for the {@link Name} annotation.
      */
+    @SuppressWarnings("ClassExplicitlyAnnotation")
     class Literal
             extends AnnotationLiteral<Name>
             implements Name
@@ -49,7 +59,19 @@ public @interface Name
          */
         private Literal(String sName)
             {
-            m_sName = sName;
+            this(sName, false);
+            }
+
+        /**
+         * Construct {@link Name.Literal} instance.
+         *
+         * @param sName   the resource name
+         * @param fRegex  {@code true} to indicate whether name is a regular expression
+         */
+        public Literal(String sName, boolean fRegex)
+            {
+            m_sName  = sName;
+            m_fRegex = fRegex;
             }
 
         /**
@@ -69,9 +91,21 @@ public @interface Name
          *
          * @return the name used to identify a specific resource
          */
+        @Override
         public String value()
             {
             return m_sName;
+            }
+
+        /**
+         * Return {@code true} to indicate whether name is a regular expression.
+         *
+         * @return {@code true} to indicate whether name is a regular expression
+         */
+        @Override
+        public boolean regex()
+            {
+            return m_fRegex;
             }
 
         // ---- data members ------------------------------------------------
@@ -80,5 +114,10 @@ public @interface Name
          * The resource name.
          */
         private final String m_sName;
+
+        /**
+         * {@code true} to indicate whether name is a regular expression.
+         */
+        private final boolean m_fRegex;
         }
     }
