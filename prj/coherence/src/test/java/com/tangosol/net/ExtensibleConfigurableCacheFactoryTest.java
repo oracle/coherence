@@ -103,12 +103,13 @@ public class ExtensibleConfigurableCacheFactoryTest
     public void testInterceptorParsing()
             throws Exception
         {
-        ServiceInfo              info   = mock(ServiceInfo.class);
-        CacheService             cs     = mock(CacheService.class);
-        BackingMapManagerContext ctxMgr = mock(BackingMapManagerContext.class);
-        BackingMapContext        ctx    = mock(BackingMapContext.class);
+        ServiceInfo                info   = mock(ServiceInfo.class);
+        CacheService               cs     = mock(CacheService.class);
+        BackingMapManagerContext   ctxMgr = mock(BackingMapManagerContext.class);
+        BackingMapContext          ctx    = mock(BackingMapContext.class);
         PartitionedCacheDispatcher bmd    = mock(PartitionedCacheDispatcher.class);
 
+        when(bmd.getServiceName()).thenReturn("ear:DistributedCache");
         when(info.getServiceName()).thenReturn("ear:DistributedCache");
         when(cs.getInfo()).thenReturn(info);
         when(ctxMgr.getCacheService()).thenReturn(cs);

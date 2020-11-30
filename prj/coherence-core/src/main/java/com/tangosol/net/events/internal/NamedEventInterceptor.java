@@ -311,8 +311,8 @@ public class NamedEventInterceptor<E extends Event<?>>
         if (dispatcher instanceof PartitionedCacheDispatcher)
             {
             PartitionedCacheDispatcher bmd = (PartitionedCacheDispatcher) dispatcher;
-            sActualServiceName = bmd.getBackingMapContext().getManagerContext().getCacheService().getInfo().getServiceName();
-            sActualCacheName   = bmd.getBackingMapContext().getCacheName();
+            sActualServiceName = bmd.getServiceName();
+            sActualCacheName   = bmd.getCacheName();
             }
         else if (dispatcher instanceof PartitionedServiceDispatcher)
             {

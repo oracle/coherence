@@ -32,7 +32,14 @@ public interface CacheLifecycleEvent
         {
         /**
          * {@link CacheLifecycleEvent}s of the type {@code CREATED} are raised
-         * when a storage for a given cache is created.
+         * when the relevant data structures to support a cache are created locally.
+         * <p>
+         * This event can be raised on both ownership enabled and disabled members.
+         * <p>
+         * The event may be raised based on a "natural" call to {@link
+         * com.tangosol.net.CacheService#ensureCache(String, ClassLoader) ensureCache},
+         * or for synthetic reasons such as a member joining an existing service
+         * with pre-existing caches.
          */
         CREATED,
 

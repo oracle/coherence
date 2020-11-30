@@ -13,6 +13,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.events.annotation.Interceptor;
+import com.tangosol.util.CompositeKey;
 
 import java.io.Serializable;
 
@@ -40,22 +41,23 @@ public class CacheLifecycleInterceptor
     @Override
     public void onEvent(CacheLifecycleEvent event)
         {
-        String sCache = event.getCacheName();
-        if (m_resultCache == null)
-            {
-            m_resultCache = CacheFactory.getCache("result");
-            }
+        NamedCache<CompositeKey<Integer, String>, String> cacheResults = ensureResultsCache();
 
-        switch (event.getType())
-            {
-            case CREATED:
-                m_resultCache.put("created", sCache);
-            case TRUNCATED:
-                m_resultCache.put("truncated", sCache);
-            case DESTROYED:
-                m_resultCache.put("destroyed", sCache);
-            }
+        int nMemberId = CacheFactory.getCluster().getLocalMember().getId();
+
+        cacheResults.put(
+                new CompositeKey<>(nMemberId, event.getType().name()),
+                event.getCacheName());
         }
 
-    private NamedCache m_resultCache = null;
+    protected NamedCache<CompositeKey<Integer, String>, String> ensureResultsCache()
+        {
+        if (m_cacheResults == null)
+            {
+            m_cacheResults = CacheFactory.getCache("result");
+            }
+        return m_cacheResults;
+        }
+
+    private NamedCache<CompositeKey<Integer, String>, String> m_cacheResults = null;
     }

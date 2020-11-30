@@ -53,6 +53,7 @@
 
     <distributed-scheme>
       <scheme-name>dist-default</scheme-name>
+      <service-name>PartitionedCache</service-name>
       <lease-granularity>member</lease-granularity>
       <backing-map-scheme>
         <local-scheme/>
@@ -62,6 +63,7 @@
 
     <distributed-scheme>
       <scheme-name>dist-cacheLife</scheme-name>
+      <service-name>PartitionedCacheLife</service-name>
       <lease-granularity>member</lease-granularity>
       <backing-map-scheme>
         <local-scheme/>

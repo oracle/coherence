@@ -143,12 +143,14 @@ public class NamedEventInterceptorBuilderTest
         PartitionedServiceDispatcher psd  = mock(PartitionedServiceDispatcher.class);
 
         // mimic call stacks
+        when(bmd.getCacheName()).thenReturn("dist-bonjour");
+        when(bmd.getServiceName()).thenReturn("PartitionedService");
         when(si.getServiceName()).thenReturn("PartitionedService");
-        when(cs.getInfo()).thenReturn(si);
-        when(bmmc.getCacheService()).thenReturn(cs);
-        when(bmc.getManagerContext()).thenReturn(bmmc);
-        when(bmc.getCacheName()).thenReturn("dist-bonjour");
-        when(bmd.getBackingMapContext()).thenReturn(bmc);
+        //when(cs.getInfo()).thenReturn(si);
+        //when(bmmc.getCacheService()).thenReturn(cs);
+        //when(bmc.getManagerContext()).thenReturn(bmmc);
+        //when(bmc.getCacheName()).thenReturn("dist-bonjour");
+        //when(bmd.getBackingMapContext()).thenReturn(bmc);
 
         when(ps.getInfo()).thenReturn(si);
         when(psd.getService()).thenReturn(ps);
@@ -177,6 +179,7 @@ public class NamedEventInterceptorBuilderTest
         // verify service-name filtering
         assertTrue(incptrNamed.isAcceptable(bmd));
         assertTrue(incptrNamed.isAcceptable(psd));
+        when(bmd.getServiceName()).thenReturn("WrongPartService");
         when(si.getServiceName()).thenReturn("WrongPartService");
         assertFalse(incptrNamed.isAcceptable(bmd));
         assertFalse(incptrNamed.isAcceptable(psd));
