@@ -18,6 +18,7 @@ import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 
+import com.tangosol.net.management.annotation.MetricsLabels;
 import com.tangosol.net.management.annotation.MetricsScope;
 import com.tangosol.net.management.annotation.MetricsTag;
 import com.tangosol.net.management.annotation.MetricsValue;
@@ -462,6 +463,10 @@ public class MetricSupport
         String            sAttribType    = attributeInfo.getType();
         MBeanMetric.Scope scope          = getRegistryType(mBeanInfo, objectName);
         String            sAttributeName = attributeInfo.getName();
+        Descriptor        descriptor     = attributeInfo.getDescriptor();
+        String[]          asLabels       = descriptor == null
+                                                ? null
+                                                : (String[]) descriptor.getFieldValue(MetricsLabels.DESCRIPTOR_KEY);
 
         if (attributeInfo instanceof OpenMBeanAttributeInfo)
             {
@@ -483,9 +488,29 @@ public class MetricSupport
             }
         else
             {
-            String      sMetricName  = createMetricName(objectName, attributeInfo);
-            String      sDescription = attributeInfo.getDescription();
-            MBeanMetric metric       = createSimpleMetric(sMBeanName, sMetricName, sAttributeName, scope, mapTag, sDescription);
+            String              sMetricName  = createMetricName(objectName, attributeInfo);
+            String              sDescription = attributeInfo.getDescription();
+            Map<String, String> mapMetricTag;
+
+            if (asLabels == null || asLabels.length == 0)
+                {
+                mapMetricTag = mapTag;
+                }
+            else
+                {
+                mapMetricTag = new HashMap<>(mapTag);
+                for (int i = 0; i < asLabels.length; i++)
+                    {
+                    String sKey = asLabels[i++];
+                    if (i < asLabels.length)
+                        {
+                        mapMetricTag.put(sKey, asLabels[i]);
+                        }
+                    }
+                }
+
+            MBeanMetric metric = createSimpleMetric(sMBeanName, sMetricName, sAttributeName,
+                                                    scope, mapMetricTag, sDescription);
 
             // If the metric value is not set then do not create a metric from it.
             // This stops us creating metrics for meaningless attributes, for example

@@ -15,18 +15,15 @@
 package com.oracle.coherence.io.json.genson;
 
 
+import com.oracle.coherence.io.json.genson.reflect.*;
+import com.oracle.coherence.io.json.genson.stream.*;
+
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.oracle.coherence.io.json.genson.reflect.BeanDescriptor;
-import com.oracle.coherence.io.json.genson.reflect.BeanDescriptorProvider;
-import com.oracle.coherence.io.json.genson.reflect.DefaultTypes;
-import com.oracle.coherence.io.json.genson.reflect.RuntimePropertyFilter;
-import com.oracle.coherence.io.json.genson.reflect.UnknownPropertyHandler;
-import com.oracle.coherence.io.json.genson.stream.*;
 
 /**
  * <p/>
@@ -81,6 +78,7 @@ public final class Genson {
   private final Map<String, Class<?>> aliasClassMap;
   private final Map<String, String> aliasPackageMap;
   private final Map<String, String> packageAliasMap;
+  private final Map<String, String> compatibilityAliasMap;
   private final boolean skipNull;
   private final boolean htmlSafe;
   private final boolean withClassMetadata;
@@ -88,11 +86,13 @@ public final class Genson {
   private final boolean strictDoubleParse;
   private final boolean indent;
   private final boolean failOnMissingProperty;
+  private final boolean enforceTypeAliases;
   private final EncodingAwareReaderFactory readerFactory = new EncodingAwareReaderFactory();
   private final Map<Class<?>, Object> defaultValues;
   private final DefaultTypes defaultTypes;
   private final RuntimePropertyFilter runtimePropertyFilter;
   private final UnknownPropertyHandler unknownPropertyHandler;
+  private final ClassFilter classFilter;
   private volatile ClassLoader loader;
 
   /**
@@ -101,10 +101,10 @@ public final class Genson {
    */
   public Genson() {
     this(_default.converterFactory, _default.beanDescriptorFactory,
-      _default.skipNull, _default.htmlSafe, _default.aliasClassMap, _default.aliasPackageMap,
+      _default.skipNull, _default.htmlSafe, _default.aliasClassMap, _default.aliasPackageMap, _default.compatibilityAliasMap,
       _default.withClassMetadata, _default.strictDoubleParse, _default.indent,
-      _default.withMetadata, _default.failOnMissingProperty, _default.defaultValues,
-      _default.defaultTypes, _default.runtimePropertyFilter, _default.unknownPropertyHandler,
+      _default.withMetadata, _default.failOnMissingProperty, _default.enforceTypeAliases, _default.defaultValues,
+      _default.defaultTypes, _default.runtimePropertyFilter, _default.unknownPropertyHandler, _default.classFilter,
         Genson.class.getClassLoader());
   }
 
@@ -136,37 +136,37 @@ public final class Genson {
    * @param defaultValues contains a mapping from the raw class to the default value that should be used when the property is missing.
    * @param runtimePropertyFilter is used to define what bean properties should be excluded from ser/de at runtime.
    * @param unknownPropertyHandler is used to handle unknown properties during ser/de.
+   * @param classFilter the {@link ClassFilter} to check before ser/deser operations
    */
   public Genson(Factory<Converter<?>> converterFactory, BeanDescriptorProvider beanDescProvider,
                 boolean skipNull, boolean htmlSafe, Map<String, Class<?>> classAliases,
-                Map<String,String> packageAliases, boolean withClassMetadata,
+                Map<String,String> packageAliases, Map<String, String> compatibilityAliases, boolean withClassMetadata,
                 boolean strictDoubleParse, boolean indent, boolean withMetadata, boolean failOnMissingProperty,
-                Map<Class<?>, Object> defaultValues, DefaultTypes defaultTypes,
+                boolean enforceTypeAliases, Map<Class<?>, Object> defaultValues, DefaultTypes defaultTypes,
                 RuntimePropertyFilter runtimePropertyFilter, UnknownPropertyHandler unknownPropertyHandler,
-                ClassLoader classLoader) {
+                ClassFilter classFilter, ClassLoader classLoader) {
     this.converterFactory = converterFactory;
     this.beanDescriptorFactory = beanDescProvider;
     this.skipNull = skipNull;
     this.htmlSafe = htmlSafe;
+    this.enforceTypeAliases = enforceTypeAliases;
     this.aliasClassMap = classAliases;
     this.aliasPackageMap = packageAliases;
     this.withClassMetadata = withClassMetadata;
     this.defaultValues = defaultValues;
     this.defaultTypes = defaultTypes;
     this.runtimePropertyFilter = runtimePropertyFilter;
-    this.classAliasMap = new HashMap<Class<?>, String>(classAliases.size());
-    for (Map.Entry<String, Class<?>> entry : classAliases.entrySet()) {
-      classAliasMap.put(entry.getValue(), entry.getKey());
-    }
+    this.classAliasMap = new HashMap<>(aliasClassMap.size());
+    aliasClassMap.forEach((key, value) -> classAliasMap.put(value, key));
     this.packageAliasMap = new HashMap<>(aliasPackageMap.size());
-    for (Map.Entry<String, String> entry : aliasPackageMap.entrySet()) {
-      packageAliasMap.put(entry.getValue(), entry.getKey());
-    }
+    aliasPackageMap.forEach((key, value) -> packageAliasMap.put(value, key));
+    this.compatibilityAliasMap = compatibilityAliases;
     this.strictDoubleParse = strictDoubleParse;
     this.indent = indent;
     this.withMetadata = withClassMetadata || withMetadata;
     this.failOnMissingProperty = failOnMissingProperty;
     this.unknownPropertyHandler = unknownPropertyHandler;
+    this.classFilter = classFilter;
     this.loader = classLoader;
   }
 
@@ -552,24 +552,41 @@ public final class Genson {
     /**
      * Searches if an alias has been registered for clazz or package. If not, it will take the class full name and
      * use it as alias. This method never returns <code>null</code>.
+     *
+     * @throws JsonBindingException if no alias can be found for {@code clazz} and {@code enforceTypeAliases} is
+     *                              {@code true}
      */
   public <T> String aliasFor(Class<T> clazz) {
     String alias = classAliasMap.get(clazz);
     if (alias == null) {
       alias = clazz.getName();
+      if (alias.charAt(0) == '[') // array
+        {
+        alias = alias.substring(2, alias.length() -1);
+        }
+        // next, check if the alias matches any defined package aliases
+        int classNameBoundary = alias.lastIndexOf('.');
+        String packageName = alias.substring(0, classNameBoundary);
 
-      // next, check if the alias matches any defined package aliases
-      int classNameBoundary = alias.lastIndexOf('.');
-      String packageName = alias.substring(0, classNameBoundary);
-
-      String packageAlias = packageAliasMap.get(packageName);
-      if (packageAlias != null) {
-        String className = alias.substring(classNameBoundary);
-        alias = packageAlias + className;
-        aliasClassMap.put(alias, clazz);
-      }
-
-      classAliasMap.put(clazz, alias);
+        String packageAlias = packageAliasMap.get(packageName);
+        if (packageAlias != null)
+          {
+          String className = alias.substring(classNameBoundary);
+          alias = packageAlias + className;
+          aliasClassMap.put(alias, clazz);
+          }
+        else if (enforceTypeAliases)
+          {
+          if (alias.startsWith("java.") || alias.startsWith("javax."))
+            {
+            String sOrigName = clazz.getName();
+            classAliasMap.put(clazz, sOrigName);
+            aliasClassMap.put(sOrigName, clazz);
+            return sOrigName;
+            }
+          throw new JsonBindingException(String.format("Unable to find type or package alias for %s", clazz.toString()));
+          }
+        classAliasMap.put(clazz, alias);
     }
     return alias;
   }
@@ -586,16 +603,32 @@ public final class Genson {
   public Class<?> classFor(String alias) throws ClassNotFoundException {
     Class<?> clazz = aliasClassMap.get(alias);
     if (clazz == null) {
-      // check to see if this was an aliased package
-      int separator = alias.indexOf('.');
-      if (alias.indexOf('.', separator + 1) < 0) {
-        String packageAlias = alias.substring(0, separator);
-        String packageToUse = aliasPackageMap.get(packageAlias);
-        if (packageToUse != null) {
-          String className = alias.substring(separator);
-          alias = packageToUse + className;
+      // check for a compatibility alias
+      String sAliasFor = compatibilityAliasMap.get(alias);
+      if (sAliasFor != null)
+        {
+        return classFor(sAliasFor); // return the result of the compat alias
         }
-      }
+
+      // check to see if this was an aliased package
+      int cIdx = alias.lastIndexOf('.');
+      if (cIdx != -1)
+        {
+        String packageAlias = alias.substring(0, cIdx);
+        String packageToUse = aliasPackageMap.get(packageAlias);
+        if (packageToUse != null)
+          {
+          String className = alias.substring(cIdx);
+          alias = packageToUse + className;
+          }
+        else if (enforceTypeAliases)
+          {
+          if (!alias.startsWith("java.") && !alias.startsWith("javax."))
+            {
+            throw new JsonBindingException(String.format("Unable to find matching type or package alias for %s", alias));
+            }
+          }
+        }
 
       if (loader != null) {
         clazz = Class.forName(alias, true, loader);
@@ -712,6 +745,10 @@ public final class Genson {
 
   public UnknownPropertyHandler unknownPropertyHandler() {
     return unknownPropertyHandler;
+  }
+
+  public ClassFilter classFilter() {
+    return classFilter;
   }
 
   public ClassLoader getClassLoader() {

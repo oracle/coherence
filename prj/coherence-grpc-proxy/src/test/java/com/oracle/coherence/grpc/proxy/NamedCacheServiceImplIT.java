@@ -21,7 +21,6 @@ import com.oracle.coherence.grpc.InvokeRequest;
 import com.oracle.coherence.grpc.MapEventResponse;
 import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
-import com.oracle.coherence.grpc.NamedCacheService;
 import com.oracle.coherence.grpc.OptionalValue;
 import com.oracle.coherence.grpc.Requests;
 

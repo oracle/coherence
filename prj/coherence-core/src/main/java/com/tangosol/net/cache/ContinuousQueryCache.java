@@ -1130,12 +1130,8 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
     public <R> R invoke(K key, EntryProcessor<K, V_FRONT, R> processor)
         {
         NamedCache<K, V_FRONT> cache = (NamedCache<K, V_FRONT>) getCache();
-        if (containsKey(key) || !cache.containsKey(key))
-            {
-            return (R) fromInternal(cache.invoke(key, ensureConverted(processor)));
-            }
-            throw new IllegalStateException(getCacheName()
-                                            + ": key=" + key + " is outside the ContinuousQueryCache");
+
+        return (R) fromInternal(cache.invoke(key, ensureConverted(processor)));
         }
 
     /**
@@ -1154,7 +1150,6 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             }
 
         NamedCache<K, V_FRONT> cache = (NamedCache<K, V_FRONT>) getCache();
-        ensureValidCache(cache, collKeys);
 
         return instantiateConverterMap(cache.invokeAll(collKeys, ensureConverted(processor)));
         }
@@ -1193,7 +1188,6 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         else
             {
             NamedCache<K, V_FRONT> cache = (NamedCache<K, V_FRONT>) getCache();
-            ensureValidCache(cache, collKeys);
 
             return cache.aggregate(collKeys, aggregator);
             }
@@ -2855,7 +2849,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         {
         azzert(m_converterFromBinary != null);
 
-        return m_converterFromBinary != NullImplementation.getClassLoader();
+        return m_converterFromBinary != NullImplementation.getConverter();
         }
 
     /**
@@ -2919,32 +2913,6 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             m_converterToBinary   = convDown;
             }
         return cacheLocal;
-        }
-
-    /**
-    * Verify that the non-existent keys are NOT present in the
-    * underlying cache (assumption is most keys in the collection are
-    * already in the {@code ContinuousQueryCache}).
-    *
-    * @param cache     the cache to validate against
-    * @param collKeys  the keys to validate
-    *
-    * @throws IllegalStateException if any of the keys in {@code collKeys} doesn't exist within
-    *                               the {@code ContinuousQueryCache}
-    *
-    * @since 12.2.1.4
-    */
-    private void ensureValidCache(NamedCache<K, V_FRONT> cache, Collection<? extends K> collKeys)
-        {
-        Set<K> setView = getInternalKeySet();
-        for (K key : collKeys)
-            {
-            if (!setView.contains(key) && cache.containsKey(key))
-                {
-                throw new IllegalStateException(getCacheName()
-                        + ": key=" + key + " is outside the ContinuousQueryCache");
-                }
-            }
         }
 
     /**

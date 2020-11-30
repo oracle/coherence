@@ -60,6 +60,12 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Coherence Metrics -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-micrometer</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Coherence MP -->
     <dependency>
@@ -140,6 +146,21 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Helidon -->
+    <dependency>
+      <groupId>io.helidon.microprofile.grpc</groupId>
+      <artifactId>helidon-microprofile-grpc-server</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-codec-http2</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+
     <!-- jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -188,6 +209,12 @@
     <dependency>
       <groupId>jakarta.json</groupId>
       <artifactId>jakarta.json-api</artifactId>
+    </dependency>
+
+    <!-- Micrometer API -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
     </dependency>
 
     <!-- MP metrics -->
@@ -318,6 +345,10 @@
 
                     <resource>
                       <directory>../coherence-cdi-server/src/main/java</directory>
+                    </resource>
+
+                    <resource>
+                      <directory>../coherence-micrometer/src/main/java</directory>
                     </resource>
 
                     <resource>

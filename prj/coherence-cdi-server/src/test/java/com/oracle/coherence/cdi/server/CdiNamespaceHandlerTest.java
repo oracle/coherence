@@ -7,28 +7,33 @@
 package com.oracle.coherence.cdi.server;
 
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
-
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
 import com.tangosol.config.xml.DefaultProcessingContext;
 import com.tangosol.config.xml.DocumentProcessor;
 import com.tangosol.config.xml.ElementProcessor;
-import com.tangosol.config.xml.ProcessingContext;
 
+import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
-import javax.enterprise.inject.se.SeContainer;
-import javax.enterprise.inject.se.SeContainerInitializer;
-
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.CDI;
+
+import java.lang.annotation.Annotation;
+
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link CdiNamespaceHandler}.
@@ -37,39 +42,30 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class CdiNamespaceHandlerTest
     {
-    private static SeContainer container;
-
     private static ProcessingContext context;
 
     @BeforeAll
     static void initContainer()
         {
-        SeContainerInitializer containerInit = SeContainerInitializer.newInstance();
-        container = containerInit.initialize();
         context = new DefaultProcessingContext(
                 new DocumentProcessor.DefaultDependencies()
                         .setExpressionParser(new ParameterMacroExpressionParser()));
         }
 
-    @AfterAll
-    static void shutdownContainer()
-        {
-        container.close();
-        }
-
     @Test
     void testSuccess()
         {
-        Object bean = realize("<cdi:bean>beanX</cdi:bean>");
-        assertThat(bean, notNullValue());
-        assertThat(bean, instanceOf(BeanBuilderTest.BeanX.class));
+        Object bean   = new Object();
+        Object result = realize("<cdi:bean>beanX</cdi:bean>", "beanX", bean);
+        assertThat(result, notNullValue());
+        assertThat(result, is(sameInstance(bean)));
         }
 
     @Test
     void testFailureMissingBean()
         {
         assertThrows(ConfigurationException.class, () ->
-                realize("<cdi:bean>beanY</cdi:bean>")
+                realize("<cdi:bean>beanY</cdi:bean>", "foo", null)
         );
         }
 
@@ -77,16 +73,25 @@ class CdiNamespaceHandlerTest
     void testFailureUndefined()
         {
         assertThrows(ConfigurationException.class, () ->
-                realize("<cdi:bean/>")
+                realize("<cdi:bean/>", "foo", null)
         );
         }
 
-    private Object realize(String sXml)
+    @SuppressWarnings("unchecked")
+    private Object realize(String sXml, String sName, Object bean)
         {
-        XmlElement xml = XmlHelper.loadXml(sXml).getRoot();
-        CdiNamespaceHandler handler = new CdiNamespaceHandler();
+        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
+        CdiNamespaceHandler handler   = new CdiNamespaceHandler();
         ElementProcessor<?> processor = handler.getElementProcessor(xml);
+        CDI<Object>         cdi       = mock(CDI.class);
+        Instance<Object>    instance  = mock(Instance.class);
+
+        when(cdi.select(any(Annotation.class))).thenReturn(instance);
+        when(instance.isResolvable()).thenReturn(bean != null);
+        when(instance.get()).thenReturn(bean);
+
         assertThat(processor, instanceOf(BeanProcessor.class));
+        ((BeanProcessor) processor).setCDI(cdi);
 
         BeanBuilder builder = ((BeanProcessor) processor).process(context, xml);
         return builder.realize(new SystemPropertyParameterResolver(), null, null);

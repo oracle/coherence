@@ -30,6 +30,7 @@ import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
 import com.oracle.coherence.grpc.OptionalValue;
 import com.oracle.coherence.grpc.Requests;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.io.NamedSerializerFactory;
@@ -122,55 +123,19 @@ public class AsyncNamedCacheClient<K, V>
     AsyncNamedCacheClient(Dependencies dependencies)
         {
         f_sCacheName                = dependencies.getCacheName();
+        f_dispatcher                = dependencies.getEventDispatcher();
         f_sScopeName                = dependencies.getScopeName().orElse(Requests.DEFAULT_SCOPE);
         f_synchronousCache          = new NamedCacheClient<>(this);
         f_listDeactivationListeners = new ArrayList<>();
-        f_executor                  = dependencies.getExecutor().orElse(createDefaultExecutor());
+        f_executor                  = dependencies.getExecutor().orElseGet(AsyncNamedCacheClient::createDefaultExecutor);
         f_sFormat                   = dependencies.getSerializerFormat()
-                                                  .orElse(dependencies.getSerializer()
-                                                                      .map(Serializer::getName)
-                                                                      .orElse(getDefaultSerializerFormat()));
-        f_serializer                = dependencies.getSerializer().orElse(createSerializer(f_sFormat));
+                                                  .orElseGet(() -> dependencies.getSerializer()
+                                                       .map(Serializer::getName)
+                                                       .orElseGet(AsyncNamedCacheClient::getDefaultSerializerFormat));
+        f_serializer                = dependencies.getSerializer().orElseGet(() -> createSerializer(f_sFormat));
         f_service                   = dependencies.getClient()
-                                                  .orElse(new NamedCacheGrpcClient(dependencies.getChannel()));
+                                                  .orElseGet(() -> new NamedCacheGrpcClient(dependencies.getChannel()));
         initEvents();
-        }
-
-    // ----- factory methods ------------------------------------------------
-
-    /**
-     * A factory method to create an {@link AsyncNamedCacheClient}.
-     *
-     * @param sCacheName  the name of the underlying cache
-     * @param channel     the gRPC {@link Channel} to use to connect to the server
-     * @param <K>         they type of the cache keys
-     * @param <V>         the type of the cache values
-     *
-     * @return an {@link AsyncNamedCacheClient} instance.
-     */
-    public static <K, V> AsyncNamedCacheClient<K, V> newInstance(String sCacheName, Channel channel)
-        {
-        return new AsyncNamedCacheClient<>(new DefaultDependencies(sCacheName, channel));
-        }
-
-    /**
-     * A factory method to create an {@link AsyncNamedCacheClient}.
-     *
-     * @param sCacheName  the name of the underlying cache
-     * @param channel     the gRPC {@link Channel} to use to connect to the server
-     * @param serializer  the {@link Serializer} to use to serialize request and response payloads
-     * @param <K>         they type of the cache keys
-     * @param <V>         the type of the cache values
-     *
-     * @return an {@link AsyncNamedCacheClient} instance.
-     */
-    public static <K, V> AsyncNamedCacheClient<K, V> newInstance(String     sCacheName,
-                                                                 Channel    channel,
-                                                                 Serializer serializer)
-        {
-        DefaultDependencies deps = new DefaultDependencies(sCacheName, channel);
-        deps.setSerializer(serializer);
-        return new AsyncNamedCacheClient<>(deps);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -1171,8 +1136,22 @@ public class AsyncNamedCacheClient<K, V>
         // initialise the bi-directional stream so that this client will receive
         // destroy and truncate events
         m_evtRequestObserver.onNext(request);
+
+        // create a future to allow us to wait for the init request to complete
+        CompletableFuture<Void> future = m_evtResponseObserver.whenSubscribed().toCompletableFuture();
+        // handle subscription completion errors
+        future.handle((v, err) ->
+            {
+            if (err != null)
+                {
+                // close the channel if subscription failed
+                m_evtRequestObserver.onCompleted();
+                }
+            return null;
+            });
+
         // wait for the init request to complete
-        m_evtResponseObserver.whenSubscribed().toCompletableFuture().join();
+        future.join();
         }
 
     /**
@@ -1993,7 +1972,17 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected static String getDefaultSerializerFormat()
         {
-        return Boolean.getBoolean("coherence.pof.enabled") ? "pof" : "java";
+        return Config.getBoolean("coherence.pof.enabled") ? "pof" : "java";
+        }
+
+    /**
+     * Returns the event dispatcher for this cache.
+     *
+     * @return the event dispatcher for this cache
+     */
+    protected GrpcCacheLifecycleEventDispatcher getEventDispatcher()
+        {
+        return f_dispatcher;
         }
 
     // ----- inner class: EventTask -----------------------------------------
@@ -2160,14 +2149,21 @@ public class AsyncNamedCacheClient<K, V>
                     break;
                 case EVENT:
                     dispatch(response.getEvent());
-
                     break;
                 case ERROR:
                     MapListenerErrorResponse error = response.getError();
-                    future = f_mapFuture.remove(error.getUid());
-                    if (future != null)
+                    responseUid = error.getUid();
+                    if (f_sUid.equals(responseUid))
                         {
-                        future.completeExceptionally(new RuntimeException(error.getMessage()));
+                        f_future.completeExceptionally(new RuntimeException(error.getMessage()));
+                        }
+                    else
+                        {
+                        future = f_mapFuture.remove(responseUid);
+                        if (future != null)
+                            {
+                            future.completeExceptionally(new RuntimeException(error.getMessage()));
+                            }
                         }
                     break;
                 case DESTROYED:
@@ -2342,6 +2338,13 @@ public class AsyncNamedCacheClient<K, V>
          * @return the optional {@link Executor} to use
          */
         Optional<Executor> getExecutor();
+
+        /**
+         * Returns the event dispatcher for the cache.
+         *
+         * @return the event dispatcher for the cache
+         */
+        GrpcCacheLifecycleEventDispatcher getEventDispatcher();
         }
         // ----- DefaultDependencies ----------------------------------------
 
@@ -2361,11 +2364,12 @@ public class AsyncNamedCacheClient<K, V>
          *                    represent
          * @param channel     the gRPC {@link Channel} to use
          */
-        public DefaultDependencies(String sCacheName, Channel channel)
+        public DefaultDependencies(String sCacheName, Channel channel, GrpcCacheLifecycleEventDispatcher dispatcher)
             {
-            m_sCacheName = sCacheName;
-            m_channel    = channel;
+            f_sCacheName = sCacheName;
+            f_channel = channel;
             m_sScopeName = Requests.DEFAULT_SCOPE;
+            f_dispatcher = dispatcher;
             }
 
         // ----- Dependencies methods ---------------------------------------
@@ -2373,13 +2377,13 @@ public class AsyncNamedCacheClient<K, V>
         @Override
         public String getCacheName()
             {
-            return m_sCacheName;
+            return f_sCacheName;
             }
 
         @Override
         public Channel getChannel()
             {
-            return m_channel;
+            return f_channel;
             }
 
         @Override
@@ -2410,6 +2414,12 @@ public class AsyncNamedCacheClient<K, V>
         public Optional<Executor> getExecutor()
             {
             return Optional.ofNullable(m_executor);
+            }
+
+        @Override
+        public GrpcCacheLifecycleEventDispatcher getEventDispatcher()
+            {
+            return f_dispatcher;
             }
 
         // ----- setters ----------------------------------------------------
@@ -2500,12 +2510,17 @@ public class AsyncNamedCacheClient<K, V>
          * The underlying cache name that the {@link AsyncNamedCacheClient}
          * will represent.
          */
-        private final String m_sCacheName;
+        private final String f_sCacheName;
 
         /**
          * The gRPC {@link Channel} to use to connect to the server.
          */
-        private final Channel m_channel;
+        private final Channel f_channel;
+
+        /**
+         * The event dispatcher for the cache.
+         */
+        private final GrpcCacheLifecycleEventDispatcher f_dispatcher;
 
         /**
          * The server side scope name to use in requests.
@@ -2627,4 +2642,9 @@ public class AsyncNamedCacheClient<K, V>
      * The map of future keyed by request id.
      */
     protected final Map<String, CompletableFuture<Void>> f_mapFuture = new ConcurrentHashMap<>();
+
+    /**
+     * The event dispatcher for this cache.
+     */
+    protected final GrpcCacheLifecycleEventDispatcher f_dispatcher;
     }

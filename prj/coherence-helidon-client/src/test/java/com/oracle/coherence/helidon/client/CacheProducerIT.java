@@ -7,16 +7,10 @@
 
 package com.oracle.coherence.helidon.client;
 
-import com.oracle.coherence.cdi.Remote;
-import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.client.GrpcRemoteSession;
-import com.oracle.coherence.client.GrpcSessions;
+import com.oracle.coherence.inject.SessionName;
+import com.oracle.coherence.client.NamedCacheClient;
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
 
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.net.ConfigurableCacheFactory;
-import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.SessionProvider;
 import io.helidon.microprofile.server.Server;
@@ -32,6 +26,7 @@ import javax.inject.Inject;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -47,19 +42,14 @@ public class CacheProducerIT
     static void setupBaseTest() throws Exception
         {
         System.setProperty("coherence.ttl",              "0");
-        System.setProperty("coherence.clustername",      "MapEventsIT");
+        System.setProperty("coherence.clustername",      "CacheProducerIT");
         System.setProperty("coherence.cacheconfig",      "coherence-config.xml");
-        System.setProperty("coherence.cacheconfig.test", "coherence-config-two.xml");
         System.setProperty("coherence.pof.config",       "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled",      "true");
         System.setProperty("coherence.log.level",        "9");
 
         // The CDI server will start DCS which will in turn cause the gRPC server to start
-        s_server  = Server.create().start();
-        s_ccf     = CacheFactory.getCacheFactoryBuilder()
-                                .getConfigurableCacheFactory("coherence-config.xml", null);
-        s_ccfTest = CacheFactory.getCacheFactoryBuilder()
-                                .getConfigurableCacheFactory("coherence-config-two.xml", null);
+        s_server = Server.create().start();
 
         // wait at most 1 minute for the gRPC Server
         GrpcServerController.INSTANCE.whenStarted()
@@ -89,8 +79,8 @@ public class CacheProducerIT
         NamedCache<String, String> cacheOne = holder.getCacheOne();
         NamedCache<String, String> cacheTwo = holder.getCacheTwo();
 
-        assertThat(cacheOne, is(notNullValue()));
-        assertThat(cacheTwo, is(notNullValue()));
+        assertThat(cacheOne, is(instanceOf(NamedCacheClient.class)));
+        assertThat(cacheTwo, is(instanceOf(NamedCacheClient.class)));
 
         cacheOne.put("key-1", "value-one");
         cacheTwo.put("key-1", "value-two");
@@ -106,12 +96,11 @@ public class CacheProducerIT
     public static class CacheHolder
         {
         @Inject
-        @Remote
+        @SessionName(SessionConfigurations.CLIENT_DEFAULT)
         private NamedCache<String, String> cacheOne;
 
         @Inject
-        @Remote
-        @Scope("test")
+        @SessionName(SessionConfigurations.CLIENT_TEST)
         private NamedCache<String, String> cacheTwo;
 
         public NamedCache<String, String> getCacheOne()
@@ -126,10 +115,6 @@ public class CacheProducerIT
         }
 
     // ----- data members ---------------------------------------------------
-
-    private static ConfigurableCacheFactory s_ccf;
-
-    private static ConfigurableCacheFactory s_ccfTest;
 
     private static Server s_server;
     }

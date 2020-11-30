@@ -6,22 +6,56 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.event.AnnotatedMapListener;
+
+import com.oracle.coherence.inject.AnnotationInstance;
+import com.oracle.coherence.inject.ExtractorBinding;
+import com.oracle.coherence.inject.ExtractorFactory;
+import com.oracle.coherence.inject.FilterBinding;
+import com.oracle.coherence.inject.FilterFactory;
+import com.oracle.coherence.inject.MapEventTransformerBinding;
+import com.oracle.coherence.inject.MapEventTransformerFactory;
+import com.oracle.coherence.event.EventObserverSupport;
+
+import com.tangosol.net.Coherence;
+import com.tangosol.net.CoherenceConfiguration;
+import com.tangosol.net.DefaultCacheServer;
+import com.tangosol.net.SessionConfiguration;
+import com.tangosol.net.SessionProvider;
+
+import com.tangosol.net.events.CoherenceLifecycleEvent;
+
+import com.tangosol.net.events.application.LifecycleEvent;
+
+import com.tangosol.net.events.internal.NamedEventInterceptor;
+
+import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
+
 import com.tangosol.util.MapEvent;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import javax.annotation.Priority;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Initialized;
+
 import javax.enterprise.event.Observes;
 
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
+import javax.enterprise.inject.Instance;
 
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.AnnotatedType;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.ProcessObserverMethod;
@@ -42,17 +76,49 @@ public class CoherenceExtension
     // ---- client-side event support ---------------------------------------
 
     /**
+     * Process observer methods for {@link CoherenceLifecycleEvent}s.
+     *
+     * @param event  the event to process
+     */
+    private void processCoherenceLifecycleEventObservers(
+            @Observes ProcessObserverMethod<CoherenceLifecycleEvent, ?> event)
+        {
+        m_listInterceptors.add(new EventObserverSupport.CoherenceLifecycleEventHandler(new CdiEventObserver<>(event)));
+        }
+
+    /**
+     * Process observer methods for {@link LifecycleEvent}s.
+     *
+     * @param event  the event to process
+     */
+    private void processLifecycleEventObservers(
+            @Observes ProcessObserverMethod<LifecycleEvent, ?> event)
+        {
+        m_listInterceptors.add(new EventObserverSupport.LifecycleEventHandler(new CdiEventObserver<>(event)));
+        }
+
+    /**
+     * Process observer methods for {@link CacheLifecycleEvent}s.
+     *
+     * @param event  the event to process
+     */
+    private void processCacheLifecycleEventObservers(
+            @Observes ProcessObserverMethod<CacheLifecycleEvent, ?> event)
+        {
+        m_listInterceptors.add(new EventObserverSupport.CacheLifecycleEventHandler(new CdiEventObserver<>(event)));
+        }
+
+    /**
      * Process observer methods for {@link MapEvent}s.
      *
      * @param event  the event to process
      * @param <K>    the type of {@code EntryEvent} keys
      * @param <V>    the type of {@code EntryEvent} values
      */
-    private <K, V> void processMapEventObservers(
-            @Observes ProcessObserverMethod<MapEvent<K, V>, ?> event)
+    private <K, V> void processMapEventObservers(@Observes ProcessObserverMethod<MapEvent<K, V>, ?> event)
         {
-        addMapListener(new CdiMapListener<>(event.getObserverMethod(),
-                                            event.getAnnotatedMethod().getAnnotations()));
+        m_listListener.add(new AnnotatedMapListener<>(new CdiMapEventObserver<>(event),
+                                                      event.getAnnotatedMethod().getAnnotations()));
         }
 
     // ---- Filter and Extractor injection support --------------------------
@@ -147,81 +213,100 @@ public class CoherenceExtension
         }
 
     /**
-     * Add specified listener to the collection of discovered observer-based listeners.
+     * Returns the discovered map listeners.
      *
-     * @param listener  the listener to add
+     * @return the discovered map listeners
      */
-    private void addMapListener(CdiMapListener<?, ?> listener)
+    public List<AnnotatedMapListener<?, ?>> getMapListeners()
         {
-        String svc   = listener.getServiceName();
-        String cache = listener.getCacheName();
+        return m_listListener;
+        }
 
-        Map<String, Set<CdiMapListener<?, ?>>> mapByCache = m_mapListeners.computeIfAbsent(svc, s -> new HashMap<>());
-        Set<CdiMapListener<?, ?>> setListeners = mapByCache.computeIfAbsent(cache, c -> new HashSet<>());
-        setListeners.add(listener);
+    // ---- lifecycle support -----------------------------------------------
+
+    /**
+     * Start {@link DefaultCacheServer} as a daemon and wait
+     * for all services to start.
+     *
+     * @param event the event fired once the CDI container is initialized
+     */
+    @SuppressWarnings("unused")
+    synchronized void startServer(@Observes @Priority(1) @Initialized(ApplicationScoped.class)
+                                  Object event, BeanManager beanManager)
+        {
+        Instance<SessionConfiguration> configurations = beanManager.createInstance()
+                .select(SessionConfiguration.class, Any.Literal.INSTANCE);
+
+        Instance<SessionConfiguration.Provider> configurationProviders = beanManager.createInstance()
+                .select(SessionConfiguration.Provider.class, Any.Literal.INSTANCE);
+
+        Instance<InterceptorProvider> interceptorProviders = beanManager.createInstance()
+                .select(InterceptorProvider.class, Any.Literal.INSTANCE);
+
+        List<NamedEventInterceptor<?>> listInterceptor = m_listInterceptors.stream()
+                .map(handler -> new NamedEventInterceptor<>(handler.getId(), handler))
+                .collect(Collectors.toList());
+
+        interceptorProviders.stream()
+                .flatMap(provider -> StreamSupport.stream(provider.getInterceptors().spliterator(), false))
+                .forEach(listInterceptor::add);
+
+        // Create a configuration (include the default CCF as well as any discovered configurations)
+        CoherenceConfiguration config = CoherenceConfiguration.builder()
+                .named(Coherence.DEFAULT_NAME)
+                .withSession(SessionConfiguration.defaultSession())
+                .withSessions(configurations)
+                .withSessionProviders(configurationProviders)
+                .withEventInterceptors(listInterceptor)
+                .build();
+
+        // build and start the Coherence instance
+        m_coherence = Coherence.builder(config).build();
+        // wait for start-up to complete
+        m_coherence.start().join();
         }
 
     /**
-     * Return all map listeners that should be registered for a particular
-     * service and cache combination.
+     * Stop the {@link Coherence} instance.
      *
-     * @param serviceName  the name of the service
-     * @param cacheName    the name of the cache
-     *
-     * @return a set of all listeners that should be registered
+     * @param event the event fired before the CDI container is shut down
      */
-    public Set<CdiMapListener<?, ?>> getMapListeners(String serviceName, String cacheName)
+    @SuppressWarnings("unused")
+    synchronized void stopServer(@Observes BeforeShutdown event)
         {
-        HashSet<CdiMapListener<?, ?>> setResults = new HashSet<>();
-        collectMapListeners(setResults, "*", "*");
-        collectMapListeners(setResults, "*", cacheName);
-        collectMapListeners(setResults, serviceName, "*");
-        collectMapListeners(setResults, serviceName, cacheName);
-
-        return setResults;
-        }
-
-    /**
-     * Return all map listeners that should be registered against a specific
-     * remote cache or map.
-     *
-     * @return  all map listeners that should be registered against a
-     *          specific remote cache or map
-     */
-    public Set<CdiMapListener<?, ?>> getRemoteMapListeners()
-        {
-        return m_mapListeners.values()
-                             .stream()
-                             .flatMap(map -> map.values().stream())
-                             .flatMap(Set::stream)
-                             .filter(CdiMapListener::isRemote)
-                             .filter(listener -> !listener.isWildCardCacheName())
-                             .collect(Collectors.toSet());
-        }
-
-    /**
-     * Add all map listeners for the specified service and cache combination to
-     * the specified result set.
-     *
-     * @param setResults   the set of results to accumulate listeners into
-     * @param serviceName  the name of the service
-     * @param cacheName    the name of the cache
-     */
-    private void collectMapListeners(HashSet<CdiMapListener<?, ?>> setResults, String serviceName, String cacheName)
-        {
-        Map<String, Set<CdiMapListener<?, ?>>> mapByCache = m_mapListeners.get(serviceName);
-        if (mapByCache != null)
+        SessionProvider.get().close();
+        if (m_coherence != null)
             {
-            setResults.addAll(mapByCache.getOrDefault(cacheName, Collections.emptySet()));
+            m_coherence.close();
             }
         }
 
-    // ---- data members ----------------------------------------------------
+    /**
+     * Returns the {@link Coherence} instance started by the extension.
+     *
+     * @return  the {@link Coherence} instance started by the extension
+     */
+    public Coherence getCoherence()
+        {
+        return m_coherence;
+        }
+
+    // ----- inner interface: InterceptorProvider ---------------------------
 
     /**
-     * A list of event interceptors for all discovered observer methods.
+     * A provider of {@link NamedEventInterceptor} instances.
      */
-    private final Map<String, Map<String, Set<CdiMapListener<?, ?>>>> m_mapListeners = new HashMap<>();
+    public interface InterceptorProvider
+        {
+        /**
+         * Returns the {@link NamedEventInterceptor} instances.
+         *
+         * @return  the {@link NamedEventInterceptor} instances
+         */
+        Iterable<NamedEventInterceptor<?>> getInterceptors();
+        }
+
+    // ---- data members ----------------------------------------------------
 
     /**
      * A map of {@link FilterBinding} annotation to {@link FilterFactory} bean
@@ -242,4 +327,18 @@ public class CoherenceExtension
     private final Map<AnnotationInstance, Class<? extends MapEventTransformerFactory<?, ?, ?, ?>>>
             m_mapMapEventTransformerSupplier = new HashMap<>();
 
+    /**
+     * The {@link Coherence} instance.
+     */
+    private Coherence m_coherence;
+
+    /**
+     * A list of event interceptors for all discovered observer methods.
+     */
+    private final List<EventObserverSupport.EventHandler<?, ?>> m_listInterceptors = new ArrayList<>();
+
+    /**
+     * A list of discovered map listeners.
+     */
+    private final List<AnnotatedMapListener<?, ?>> m_listListener = new ArrayList<>();
     }

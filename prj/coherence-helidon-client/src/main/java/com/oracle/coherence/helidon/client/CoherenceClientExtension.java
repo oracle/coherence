@@ -7,12 +7,15 @@
 
 package com.oracle.coherence.helidon.client;
 
-import com.oracle.coherence.cdi.CdiMapListener;
+import com.oracle.coherence.cdi.CdiMapListenerManager;
+import com.oracle.coherence.event.AnnotatedMapListener;
 import com.oracle.coherence.cdi.CoherenceExtension;
-import com.oracle.coherence.cdi.Remote;
-import com.oracle.coherence.cdi.Scope;
 
+import com.oracle.coherence.inject.SessionName;
+
+import com.oracle.coherence.event.MapName;
 import com.oracle.coherence.common.base.Exceptions;
+
 import com.tangosol.net.Session;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -50,34 +53,33 @@ public class CoherenceClientExtension
 
     /**
      * Initialize any {@link com.tangosol.util.MapEvent} observers for specific caches (annotated with
-     * {@link com.oracle.coherence.cdi.events.MapName} after CDI {@link ApplicationScoped} context has
+     * {@link MapName} after CDI {@link ApplicationScoped} context has
      * started.
      *
      * @param event        the CDI context initialized event
      * @param beanManager  the CDI {@link BeanManager}
-     * @param extension    the {@link CoherenceExtension}
+     * @param manager      the {@link CdiMapListenerManager}
      */
     synchronized void initMapEventObservers(@Observes
                                             @Initialized(ApplicationScoped.class) Object event,
-                                            BeanManager        beanManager,
-                                            CoherenceExtension extension)
+                                            BeanManager                                  beanManager,
+                                            CdiMapListenerManager                        manager)
         {
         // If we're in an environment where the server is starting too then
         // we need to wait for it to start so we wait for the future to complete
         checkStart().thenRun(() ->
             {
-            Instance<Object>                  instance  = beanManager.createInstance();
-            Map<String, Map<String, Session>> sessions  = new HashMap<>();
-            Set<CdiMapListener<?, ?>>         listeners = extension.getRemoteMapListeners();
+            Instance<Object>          instance  = beanManager.createInstance();
+            Map<String, Session>      sessions  = new HashMap<>();
 
-            for (CdiMapListener<?, ?> listener : listeners)
+            // Ensure caches required for CDI MapEvent observer methods
+            Set<AnnotatedMapListener<?, ?>> listeners = manager.getNonWildcardMapListeners();
+            for (AnnotatedMapListener<?, ?> listener : listeners)
                 {
-                String               sSession = listener.getRemoteSessionName();
-                String               sScope   = listener.getScopeName();
-                Map<String, Session> map      = sessions.computeIfAbsent(sScope, k -> new HashMap<>());
-                Session              session  = map.computeIfAbsent(sSession, k -> instance.select(Session.class,
-                                                         Remote.Literal.of(sSession),
-                                                         Scope.Literal.of(sScope)).get());
+                String               sSession = listener.getSessionName();
+                Session              session  = sessions.computeIfAbsent(sSession,
+                                                       k -> instance.select(Session.class,
+                                                                            SessionName.Literal.of(sSession)).get());
 
                 session.getCache(listener.getCacheName());
                 }

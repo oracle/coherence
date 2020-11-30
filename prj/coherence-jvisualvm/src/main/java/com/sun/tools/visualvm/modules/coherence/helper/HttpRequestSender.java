@@ -332,7 +332,9 @@ public class HttpRequestSender
             throws Exception
         {
         URLBuilder urlBuilder = getBasePath().addPathSegment("services")
-                .addPathSegment("members").addQueryParameter("fields", "name,type,domainPartition,nodeId");
+                .addPathSegment("members").addQueryParameter("fields", "name,type,domainPartition,nodeId," +
+                                     "storageEnabled,persistenceActiveSpaceUsed,persistenceLatencyMax,persistenceLatencyAverage")
+                .addQueryParameter("links", "");
 
         JsonNode        rootNode                = getResponseJson(sendGetRequest(urlBuilder));
         JsonNode        nodeServiceMembersItems = (JsonNode) rootNode.get("items");
@@ -349,7 +351,6 @@ public class HttpRequestSender
 
                 // the type attribute returned in the response is the service type, but in the object name,
                 // type is always Service
-
                 mapKeysProps.put("type", "Service");
                 setObjectNames.add(new ObjectName("Coherence", mapKeysProps));
                 }
@@ -607,6 +608,74 @@ public class HttpRequestSender
     // ------ HttpRequestSender methods -------------------------------------
 
     /**
+     * Get the cache data for the given service
+     *
+     * @param sServiceName      the service to which the cache belongs to
+     * @param sDomainPartition  the domain partition to which the service belongs
+     *
+     * @return the storage manager data for all the cache members of the cache
+     *
+     * @throws Exception in case of errors
+     */
+    public JsonNode getListOfServiceCaches(String sServiceName, String sDomainPartition)
+            throws Exception
+        {
+        URLBuilder urlBuilder = getBasePath().addPathSegment("services")
+                .addPathSegment(encodeServiceName(sServiceName)).addPathSegment("caches")
+                .addQueryParameter("links", "")
+                .addQueryParameter("fields", "nodeId,name,unitFactor,size,unitsBytes,units,memoryUnits,"
+                                   + "averageMissMillis");
+
+        if (sDomainPartition != null)
+            {
+            urlBuilder.addQueryParameter("domainPartition", sDomainPartition);
+            }
+
+        return getResponseJson(sendGetRequest(urlBuilder));
+        }
+
+    /**
+     * Get the storage data for the given service
+     *
+     * @param sServiceName      the service to which the cache belongs to
+     * @param sDomainPartition  the domain partition to which the service belongs
+     *
+     * @return the storage manager data for all the cache members of the cache
+     *
+     * @throws Exception in case of errors
+     */
+    public JsonNode getListOfStorageMembers(String sServiceName, String sDomainPartition)
+            throws Exception
+        {
+        URLBuilder urlBuilder = getBasePath().addPathSegment("services")
+                .addPathSegment(encodeServiceName(sServiceName)).addPathSegment("members")
+                .addQueryParameter("links", "")
+                .addQueryParameter("fields", "ownedPartitionsPrimary,nodeId");
+
+        if (sDomainPartition != null)
+            {
+            urlBuilder.addQueryParameter("domainPartition", sDomainPartition);
+            }
+
+        return getResponseJson(sendGetRequest(urlBuilder));
+        }
+
+    /**
+     * Get a list of all storage members.
+     * @return a list of all storage members
+     * @throws Exception  in case of errors
+     */
+    public JsonNode getAllStorageMembers() throws Exception
+        {
+        URLBuilder urlBuilder = getBasePath().addPathSegment("services")
+            .addPathSegment("members")
+            .addQueryParameter("links", "")
+            .addQueryParameter("fields", "type,name,domainPartition,nodeId,persistenceMode," +
+                               "storageEnabled,persistenceActiveSpaceUsed,persistenceLatencyMax,persistenceLatencyAverage");
+        return getResponseJson(sendGetRequest(urlBuilder));
+        }
+
+    /**
      * Get the data for all the StorageManager members of the provided cache.
      *
      * @param sServiceName      the service to which the cache belongs to
@@ -685,6 +754,23 @@ public class HttpRequestSender
         }
 
     /**
+     * Get the data for all services.
+     * @return he data for all services
+     * @throws Exception in case of errors
+     */
+    public JsonNode getListOfServices() throws Exception
+        {
+        URLBuilder urlBuilder = getBasePath().addPathSegment("services")
+                     .addPathSegment("members")
+                     .addQueryParameter("fields", "name,type,domainPartition,nodeId," +
+                                                  "statusHA,memberCount,partitionsAll,partitionsEndangered," +
+                                                  "partitionsVulnerable,partitionsUnbalanced,requestPendingCount," +
+                                                  "storageEnabledCount,type")
+                     .addQueryParameter("links", "");
+        return getResponseJson(sendGetRequest(urlBuilder));
+    }
+
+    /**
      * Get the data for all the proxy members in the cluster.
      *
      * @return the data for all the cluster members
@@ -693,11 +779,13 @@ public class HttpRequestSender
      */
     public JsonNode getDataForProxyMembers() throws Exception
         {
-
         URLBuilder urlBuilder = getBasePath().addPathSegment("services")
                 .addPathSegment("proxy").addPathSegment("members").addQueryParameter("fields", "hostIP,name,nodeId," +
                         "connectionCount,outgoingMessageBacklog,totalBytesReceived,totalBytesSent," +
-                        "totalMessagesReceived,totalMessagesSent,protocol");
+                        "totalMessagesReceived,totalMessagesSent,protocol," +
+                        "domainPartition,httpServerType,totalRequestCount," +
+                        "totalErrorCount,requestsPerSecond,averageRequestTime," +
+                        "responseCount1xx,responseCount2xx,responseCount3xx,responseCount4xx,responseCount5xx");
 
         return getResponseJson(sendGetRequest(urlBuilder));
         }
@@ -900,6 +988,7 @@ public class HttpRequestSender
      */
     private InputStream sendGetRequest(URLBuilder urlBuilder) throws Exception
         {
+        long start = System.currentTimeMillis();
         URL url = urlBuilder.getUrl();
         java.net.HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(REQUEST_TIMEOUT);
@@ -912,7 +1001,9 @@ public class HttpRequestSender
             return null;
             }
 
-        return connection.getInputStream();
+        InputStream inputStream = connection.getInputStream();
+        LOGGER.fine((System.currentTimeMillis() - start) + "ms to open connection to " + urlBuilder.getUrl().toString() + " ");
+        return inputStream;
         }
 
     /**

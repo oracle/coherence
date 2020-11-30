@@ -11,23 +11,28 @@ import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.Requests;
+
 import com.tangosol.application.Context;
 import com.tangosol.application.LifecycleListener;
 
 import com.tangosol.coherence.config.Config;
 
-import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptors;
+import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessServerBuilder;
 
 import java.io.IOException;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 /**
  * A controller class that starts and stops the default gRPC server
@@ -56,7 +61,7 @@ public class GrpcServerController
      */
     public synchronized void start()
         {
-        if (isRunning())
+        if (isRunning() || !m_fEnabled)
             {
             return;
             }
@@ -64,15 +69,33 @@ public class GrpcServerController
         try
             {
             m_inProcessName = Config.getProperty(Requests.PROP_IN_PROCESS_NAME, Requests.DEFAULT_CHANNEL_NAME);
-            int port = Config.getInteger(Requests.PROP_PORT, Requests.DEFAULT_PORT);
 
-            ServerBuilder<?>          serverBuilder = ServerBuilder.forPort(port);
-            InProcessServerBuilder    inProcBuilder = InProcessServerBuilder.forName("default");
+            int                       port     = Config.getInteger(Requests.PROP_PORT, Requests.DEFAULT_PORT);
+            GrpcServerBuilderProvider provider =
+                    StreamSupport.stream(ServiceLoader.load(GrpcServerBuilderProvider.class).spliterator(), false)
+                                .sorted()
+                                .findFirst()
+                                .orElse(GrpcServerBuilderProvider.INSTANCE);
 
-            for (BindableService service : createGrpcServices())
+            ServerBuilder<?>       serverBuilder = provider.getServerBuilder(port);
+            InProcessServerBuilder inProcBuilder = provider.getInProcessServerBuilder(m_inProcessName);
+
+            if (serverBuilder == null)
                 {
-                serverBuilder.addService(service);
-                inProcBuilder.addService(service);
+                serverBuilder = GrpcServerBuilderProvider.INSTANCE.getServerBuilder(port);
+                }
+
+            if (inProcBuilder == null)
+                {
+                inProcBuilder = GrpcServerBuilderProvider.INSTANCE.getInProcessServerBuilder(m_inProcessName);
+                }
+
+            for (BindableGrpcProxyService service : createGrpcServices())
+                {
+                GrpcMetricsInterceptor  interceptor = new GrpcMetricsInterceptor(service.getMetrics());
+                ServerServiceDefinition definition  = ServerInterceptors.intercept(service, interceptor);
+                serverBuilder.addService(definition);
+                inProcBuilder.addService(definition);
                 }
 
             configure(serverBuilder, inProcBuilder);
@@ -185,9 +208,29 @@ public class GrpcServerController
         throw new IllegalStateException("The gRPC server is not running");
         }
 
-    public List<BindableService> createGrpcServices()
+    /**
+     * Obtain the list of gRPC proxy services to bind to a gRPC server.
+     *
+     * @return  the list of gRPC proxy services to bind to a gRPC server
+     */
+    public List<BindableGrpcProxyService> createGrpcServices()
         {
         return Collections.singletonList(new NamedCacheServiceGrpcImpl());
+        }
+
+    /**
+     * Enable or disable this controller.
+     * <p>
+     * If disabled then the gRPC proxy will not be started.
+     * this method can be used in applications where the
+     * gRPC services are being deploed manually or by some
+     * other mechanism such as CDI.
+     *
+     * @param fEnabled {@code false} to disable the controller.
+     */
+    public void setEnabled(boolean fEnabled)
+        {
+        m_fEnabled = fEnabled;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -293,6 +336,11 @@ public class GrpcServerController
      * The name of the in-process server.
      */
     private String m_inProcessName;
+
+    /**
+     * A flag indicating whether this controller is enabled.
+     */
+    private boolean m_fEnabled = true;
 
     /**
      * A {@link CompletableFuture} that will be completed when the server has started.

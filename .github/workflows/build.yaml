@@ -69,7 +69,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -DskipTests clean install
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
@@ -80,7 +80,7 @@ jobs:
       run: |
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/synoki.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs

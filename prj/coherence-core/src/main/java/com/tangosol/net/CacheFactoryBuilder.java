@@ -12,8 +12,11 @@ import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 
+import com.tangosol.internal.net.ScopedUriScopeResolver;
 import com.tangosol.net.options.WithClassLoader;
 import com.tangosol.net.options.WithConfiguration;
+import com.tangosol.net.options.WithName;
+import com.tangosol.net.options.WithScopeName;
 
 import com.tangosol.run.xml.XmlElement;
 
@@ -117,20 +120,18 @@ public interface CacheFactoryBuilder
     @Override
     default Session createSession(Session.Option... aOptions)
         {
-        Options<Session.Option> options = Options.from(Session.Option.class, aOptions);
-
-        WithConfiguration withConfiguration = options.get(WithConfiguration.class);
-        WithClassLoader withClassLoader     = options.get(WithClassLoader.class);
-
-        ClassLoader loader = withClassLoader.getClassLoader();
+        Options<Session.Option> options       = Options.from(Session.Option.class, aOptions);
+        WithConfiguration       configuration = options.get(WithConfiguration.class);
+        WithClassLoader         loader        = options.get(WithClassLoader.class);
+        WithScopeName           scopeName     = options.get(WithScopeName.class);
+        WithName                name          = options.get(WithName.class, WithName.none());
+        String                  sConfigUri    = ScopedUriScopeResolver.encodeScope(configuration.getLocation(),
+                                                                                   scopeName.getScopeName());
 
         // this request assumes the class loader for the session can be used
         // for loading both the configuration descriptor and the cache models
-        ConfigurableCacheFactory factory = getConfigurableCacheFactory(
-                withConfiguration.getLocation(),
-                loader);
-
-        return new ConfigurableCacheFactorySession(factory, loader);
+        ConfigurableCacheFactory factory = getConfigurableCacheFactory(sConfigUri, loader.getClassLoader());
+        return new ConfigurableCacheFactorySession(factory, loader.getClassLoader(), name.getName());
         }
 
     // ----- constants ------------------------------------------------------

@@ -723,8 +723,26 @@ public interface InvocableMap<K, V>
          *                   be treated as a synthetic event
          */
         public void remove(boolean fSynthetic);
-        }
 
+        /**
+         * Return this entry as a {@link BinaryEntry}.
+         * <p>
+         * This is a convenience method that allows you to avoid casting an
+         * {@code Entry} into a {@code BinaryEntry} within an {@link EntryProcessor}
+         * implementation. It will *not* attempt to coerce this instance into a
+         * {@code BinaryEntry}.
+         *
+         * @return this entry as a {@link BinaryEntry}
+         *
+         * @throws ClassCastException  if this entry is not an instance of a
+         *                             {@code BinaryEntry}
+         * @since 20.12
+         */
+        public default BinaryEntry<K, V> asBinaryEntry()
+            {
+            return (BinaryEntry<K, V>) this;
+            }
+        }
 
     // ----- EntryProcessor interface ---------------------------------------
 

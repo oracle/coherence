@@ -9,21 +9,24 @@ package com.oracle.coherence.cdi.server;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
-import com.oracle.coherence.cdi.ConfigUri;
-import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.inject.ConfigUri;
 
-import com.oracle.coherence.cdi.events.Activated;
-import com.oracle.coherence.cdi.events.Activating;
-import com.oracle.coherence.cdi.events.CacheName;
-import com.oracle.coherence.cdi.events.Created;
-import com.oracle.coherence.cdi.events.Destroyed;
-import com.oracle.coherence.cdi.events.Disposing;
-import com.oracle.coherence.cdi.events.ServiceName;
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.cdi.SessionProducer;
+import com.oracle.coherence.event.Activated;
+import com.oracle.coherence.event.Activating;
+import com.oracle.coherence.event.CacheName;
+import com.oracle.coherence.event.Created;
+import com.oracle.coherence.event.Destroyed;
+import com.oracle.coherence.event.Disposing;
+import com.oracle.coherence.event.ServiceName;
 
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.Session;
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventDispatcher.InterceptorRegistrationEvent;
 import com.tangosol.net.events.EventInterceptor;
@@ -32,6 +35,7 @@ import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.LifecycleEvents;
 import com.tangosol.net.events.application.LifecycleEvent;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
+import com.tangosol.net.events.partition.cache.CacheLifecycleEventDispatcher;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 
 import com.tangosol.net.partition.PartitionEvent;
@@ -82,9 +86,8 @@ class CdiNamespaceHandlerIT
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
                                                           .addExtension(new CoherenceServerExtension())
-                                                          .addBeanClass(CdiBeansScope.class)
-                                                          .addBeanClass(CacheFactoryUriResolver.Default.class)
-                                                          .addBeanClass(ConfigurableCacheFactoryProducer.class)
+                                                          .addBeanClass(SessionProducer.class)
+                                                          .addBeanClass(CdiBeansSession.class)
                                                           .addBeanClass(CacheStore.class)
                                                           .addBeanClass(PartitionListener.class)
                                                           .addBeanClass(MemberListener.class)
@@ -95,14 +98,15 @@ class CdiNamespaceHandlerIT
 
     @ApplicationScoped
     @Named("cdi-beans")
+    @Scope("CDI")
     @ConfigUri("cdi-beans-config.xml")
-    private static class CdiBeansScope
-            implements ScopeInitializer
+    private static class CdiBeansSession
+            implements SessionInitializer
         {}
 
     @Inject
-    @Scope("cdi-beans")
-    private ConfigurableCacheFactory ccf;
+    @Name("cdi-beans")
+    private Session m_session;
 
     @Inject
     private ActivationListener activationListener;
@@ -123,7 +127,6 @@ class CdiNamespaceHandlerIT
     @Order(10)
     void shouldNotifyActivationListener()
         {
-        ccf.activate();
         assertThat(activationListener.isActivated(), is(true));
         }
 
@@ -131,7 +134,7 @@ class CdiNamespaceHandlerIT
     @Order(20)
     void shouldConvertValuesToUppercase()
         {
-        NamedCache<Long, String> numbers = ccf.ensureCache("numbers", null);
+        NamedCache<Long, String> numbers = m_session.getCache("numbers");
         numbers.put(1L, "one");
         numbers.put(2L, "two");
         assertThat(numbers.get(1L), is("ONE"));
@@ -150,7 +153,7 @@ class CdiNamespaceHandlerIT
     @Order(25)
     void shouldLoadFromCacheStore()
         {
-        NamedCache<Long, String> numbers = ccf.ensureCache("numbers", null);
+        NamedCache<Long, String> numbers = m_session.getCache("numbers");
         assertThat(numbers.get(10L), is("10"));
         assertThat(numbers.get(20L), is("20"));
         }
@@ -160,9 +163,9 @@ class CdiNamespaceHandlerIT
     void shouldUpdateCacheNames()
         {
         assertThat(serviceListener.hasCache("apples"), is(false));
-        NamedCache<?, ?> apples = ccf.ensureCache("apples", null);
+        NamedCache<?, ?> apples = m_session.getCache("apples");
         Eventually.assertDeferred(() -> serviceListener.hasCache("apples"), is(true));
-        ccf.destroyCache(apples);
+        apples.destroy();
         Eventually.assertDeferred(() -> serviceListener.hasCache("apples"), is(false));
         }
 
@@ -306,9 +309,9 @@ class CdiNamespaceHandlerIT
             {
             System.out.println(e);
 
-            CacheName cache = CacheName.Literal.of(e.getCacheName());
-            ServiceName service = ServiceName.Literal.of(e.getDispatcher().getBackingMapContext()
-                                                                 .getManagerContext().getCacheService().getInfo().getServiceName());
+            CacheName                     cache      = CacheName.Literal.of(e.getCacheName());
+            CacheLifecycleEventDispatcher dispatcher = e.getEventDispatcher();
+            ServiceName                   service    = ServiceName.Literal.of(dispatcher.getServiceName());
 
             if (e.getType() == CREATED)
                 {

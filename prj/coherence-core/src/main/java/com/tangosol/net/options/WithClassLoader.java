@@ -8,20 +8,21 @@ package com.tangosol.net.options;
 
 import com.oracle.coherence.common.util.Options;
 
+import com.tangosol.net.NamedCollection;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
+
 import com.tangosol.util.Base;
 
 /**
- * An {@link com.tangosol.net.Session.Option} specifying how to resolve
- * the {@link ClassLoader} to use when creating a {@link Session}
- * with a {@link com.tangosol.net.SessionProvider}.
- *
- * @see Session
- * @see com.tangosol.net.SessionProvider
+ * An option specifying how to resolve the {@link ClassLoader} to use when
+ * creating a {@link Session}, {@link NamedMap}, {@link com.tangosol.net.NamedCache},
+ * or {@link com.tangosol.net.topic.NamedTopic}.
  *
  * @author bo  2015.07.27
  */
-public interface WithClassLoader extends Session.Option
+public interface WithClassLoader
+        extends Session.Option, NamedMap.Option, NamedCollection.Option
     {
 
     // ----- WithClassLoader methods ----------------------------------------

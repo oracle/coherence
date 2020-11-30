@@ -16,8 +16,10 @@ import com.oracle.coherence.io.json.genson.convert.NullConverterFactory;
 
 import com.oracle.coherence.io.json.genson.datetime.JavaDateTimeBundle;
 
-import com.oracle.coherence.io.json.genson.ext.jackson.JacksonBundle;
+import com.oracle.coherence.io.json.genson.ext.GensonBundle;
+
 import com.oracle.coherence.io.json.genson.ext.jsonb.JsonbBundle;
+
 import com.oracle.coherence.io.json.genson.ext.jsr353.JSR353Bundle;
 
 import com.oracle.coherence.io.json.genson.reflect.EvolvableHandler;
@@ -38,10 +40,11 @@ import com.oracle.coherence.io.json.internal.SerializationSupportConverter;
 import com.oracle.coherence.io.json.internal.ThrowableConverter;
 import com.oracle.coherence.io.json.internal.VersionableSerializer;
 
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
-import com.tangosol.io.SerializerFactory;
 import com.tangosol.io.WrapperDataInputStream;
 import com.tangosol.io.WrapperDataOutputStream;
 import com.tangosol.io.WriteBuffer;
@@ -73,7 +76,7 @@ import javax.inject.Named;
 public class JsonSerializer
         implements Serializer, ClassLoaderAware
     {
-    // ---- constructors ----------------------------------------------------
+    // ----- constructors ---------------------------------------------------
 
     /**
      * Default constructor.
@@ -86,14 +89,14 @@ public class JsonSerializer
     /**
      * Create a {@link JsonSerializer}.
      *
-     * @param compatibleMode  {@code true} if consuming JSON from an endpoint
-     *                        that doesn't use our JSON serialization library.
+     * @param fCompatibleMode  {@code true} if consuming JSON from an endpoint
+     *                         that doesn't use our JSON serialization library.
      *
      * @see #JsonSerializer(ClassLoader, Modifier, boolean)
      */
-    public JsonSerializer(boolean compatibleMode)
+    public JsonSerializer(boolean fCompatibleMode)
         {
-        this(null, null, compatibleMode);
+        this(null, null, fCompatibleMode);
         }
 
     @Override
@@ -117,20 +120,21 @@ public class JsonSerializer
      * Constructs a {@code GensonJsonSerializer} that will use the
      * provided {@code ClassLoader}.
      *
-     * @param loader           the {@link ClassLoader} to use during deserialization
-     *                         operations
-     * @param builderModifier  the {@link Modifier} that will be invoked to allow
-     *                         customization of the serialization
-     * @param compatibleMode   {@code true} if consuming JSON from an endpoint
-     *                         that doesn't use our JSON serialization library.
+     * @param loader            the {@link ClassLoader} to use during deserialization
+     *                          operations
+     * @param builderModifier   the {@link Modifier} that will be invoked to allow
+     *                          customization of the serialization
+     * @param fCompatibleMode   {@code true} if consuming JSON from an endpoint
+     *                          that doesn't use our JSON serialization library.
      */
-    public JsonSerializer(ClassLoader loader, Modifier<GensonBuilder> builderModifier, boolean compatibleMode)
+    public JsonSerializer(ClassLoader loader, Modifier<GensonBuilder> builderModifier, boolean fCompatibleMode)
         {
 
-        this.f_fCompatibleMode = compatibleMode;
+        this.f_fCompatibleMode = fCompatibleMode;
 
         GensonBuilder builder = new GensonBuilder()
-                .withBundle(new JacksonBundle())
+                .withBundle(new BundleProxy("com.fasterxml.jackson.annotation.JacksonAnnotation",
+                                            "com.oracle.coherence.io.json.genson.ext.jackson.JacksonBundle"))
                 .withBundle(new JsonbBundle())
                 .withBundle(new JSR353Bundle())
                 .withBundle(new JavaDateTimeBundle())
@@ -176,7 +180,7 @@ public class JsonSerializer
         setContextClassLoader(loader);
         }
 
-    // ---- ClassLoaderAware interface --------------------------------------
+    // ----- ClassLoaderAware interface -------------------------------------
 
     @Override
     public ClassLoader getContextClassLoader()
@@ -196,12 +200,12 @@ public class JsonSerializer
             }
         }
 
-    // ---- Serializer interface --------------------------------------------
+    // ----- Serializer interface -------------------------------------------
 
     @Override
-    @SuppressWarnings("RedundantThrows")
     public void serialize(WriteBuffer.BufferOutput bufferOutput, Object oValue) throws IOException
         {
+        //noinspection rawtypes
         GenericType type = OBJECT_TYPE;
         if (oValue != null)
             {
@@ -210,6 +214,7 @@ public class JsonSerializer
                 if (c.isInstance(oValue))
                     {
                     type = GenericType.of(oValue.getClass());
+                    break;
                     }
                 }
             }
@@ -264,7 +269,7 @@ public class JsonSerializer
             }
         }
 
-    // ---- public methods ---------------------------------------------------
+    // ----- public methods -------------------------------------------------
 
     /**
      * @return this {@code JsonSerializer}'s configured {@link Genson} instance.
@@ -274,19 +279,78 @@ public class JsonSerializer
         return f_genson;
         }
 
-    // ---- nested class: Factory --------------------------------------------
+    // ----- inner class: BundleProxy ------------------------------
 
     /**
-     * Factory for default serializer.
+     * Proxies a {@link GensonBundle} by checking if the required
+     * classes are available prior to instantiation and invocation
+     * of the actual bundle.
+     *
+     * @since 20.12
      */
-    public static class Factory
-            implements SerializerFactory
+    protected static final class BundleProxy
+            extends GensonBundle
         {
-        @Override
-        public Serializer createSerializer(ClassLoader loader)
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Constructs a new {@code BundleProxy} that will attempt to load, instantiate
+         * and invoke the {@link GensonBundle} specified by {@code sClzGensonBundle}
+         * if the class specified by {@code sClzGuard} can be loaded.
+         *
+         * @param sClzGuard         the class that must be loadable before instantiating
+         *                          and invoking the proxied {@link GensonBundle}
+         * @param sClzGensonBundle  the {@link GensonBundle} class (as String) to instantiate
+         *                          and invoke if {@code sClzGuard} can be loaded
+         */
+        protected BundleProxy(String sClzGuard, String sClzGensonBundle)
             {
-            return new JsonSerializer(loader);
+            f_sClzName        = sClzGuard;
+            f_sClzGensonBundle = sClzGensonBundle;
             }
+
+        // ----- methods from GensonBundle ----------------------------------
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void configure(GensonBuilder builder)
+            {
+            String      sClzGensonBundle = f_sClzGensonBundle;
+            ClassLoader loader           = builder.getClassLoader();
+            try
+                {
+                Class.forName(f_sClzName, false, loader);
+                try
+                    {
+                    Class<? extends GensonBundle> clzGensonBundle = (Class<? extends GensonBundle>)
+                            Class.forName(sClzGensonBundle, true, loader);
+                    GensonBundle bundle = clzGensonBundle.getDeclaredConstructor().newInstance();
+                    bundle.configure(builder);
+                    }
+                catch (Exception e)
+                    {
+                    throw Base.ensureRuntimeException(e, String.format("Unexpected error loading bundle [%s]",
+                            sClzGensonBundle));
+                    }
+                }
+            catch (ClassNotFoundException ignored)
+                {
+                }
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The type that must be loadable before the {@link GensonBundle}
+         * may be instantiated and invoked.
+         */
+        protected final String f_sClzName;
+
+        /**
+         * The {@link GensonBundle} (as String) to instantiate and invoke if the type
+         * guard was successfully loaded.
+         */
+        protected final String f_sClzGensonBundle;
         }
 
     // ----- constants ------------------------------------------------------
@@ -311,7 +375,7 @@ public class JsonSerializer
      * <p>
      * This will impact performance and should only be used in testing.
      */
-    public static final boolean DEBUG_MODE = Boolean.getBoolean(PROP_DEBUG_MODE);
+    public static final boolean DEBUG_MODE = Config.getBoolean(PROP_DEBUG_MODE);
 
     // ----- data members ---------------------------------------------------
 

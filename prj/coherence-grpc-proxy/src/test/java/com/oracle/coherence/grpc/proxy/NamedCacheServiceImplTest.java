@@ -52,6 +52,7 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.WrapperNamedCache;
 
+import com.tangosol.net.management.Registry;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
@@ -83,6 +84,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 import java.util.function.Function;
@@ -106,6 +108,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -153,9 +156,14 @@ class NamedCacheServiceImplTest
         when(m_testCCF.getScopeName()).thenReturn(Requests.DEFAULT_SCOPE);
 
         m_ccfSupplier = ConfigurableCacheFactorySuppliers.fixed(m_testCCF);
-        
+
+        Registry registry = mock(Registry.class);
+        when(registry.ensureGlobalName(anyString())).thenReturn("foo");
+
         m_dependencies = new NamedCacheServiceImpl.DefaultDependencies();
         m_dependencies.setSerializerFactory(s_serializerProducer);
+        m_dependencies.setRegistry(registry);
+        m_dependencies.setExecutor(ForkJoinPool.commonPool());
         m_dependencies.setConfigurableCacheFactorySupplier(m_ccfSupplier); 
         }
 

@@ -221,14 +221,27 @@ public interface ConfigurableCacheFactory
      * as provided to a previous call to {@link #ensureCache(String, ClassLoader, NamedCache.Option...)}.
      *
      * @param sCacheName  the cache name
-     * @param loader      the ClassLoader that should be used to deserialize
-     *                    objects in the cache
+     * @param loader      the ClassLoader used to originally obtain the cache
      *
      * @return true if cache is active in context of the provided ClassLoader
      *
      * @since Coherence 12.2.1
      */
     public boolean isCacheActive(String sCacheName, ClassLoader loader);
+
+    /**
+     * Validate whether a topic with the given name is active in the context
+     * of the given {@link ClassLoader}. The ClassLoader should be the same
+     * as provided to a previous call to {@link #ensureTopic(String, ClassLoader, NamedTopic.Option...)}.
+     *
+     * @param sTopicName  the topic name
+     * @param loader      the ClassLoader used to originally obtain the topic
+     *
+     * @return true if topic is active in context of the provided ClassLoader
+     *
+     * @since Coherence 20.12
+     */
+    public boolean isTopicActive(String sTopicName, ClassLoader loader);
 
     /**
      * Return the scope name of this cache factory, if available.

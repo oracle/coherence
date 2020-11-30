@@ -12,13 +12,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.oracle.coherence.common.base.SimpleHolder;
 
+import com.oracle.coherence.io.json.genson.Genson;
+import com.oracle.coherence.io.json.genson.JsonBindingException;
+
 import com.tangosol.io.ByteArrayWriteBuffer;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 
 import com.tangosol.util.ExternalizableHelper;
 
 import com.tangosol.util.comparator.SafeComparator;
+
+import com.tangosol.util.filter.AlwaysFilter;
 
 import com.tangosol.util.function.Remote;
 
@@ -30,11 +36,14 @@ import java.io.IOException;
 
 import java.math.BigInteger;
 
+import java.nio.charset.StandardCharsets;
+
 import java.time.Duration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,14 +55,20 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import javax.naming.Name;
+import org.junit.BeforeClass;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 /**
  * JSON serialization tests.
@@ -66,13 +81,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class JsonSerializerTest
         extends AbstractSerializerTest
     {
+    // ----- test lifecycle -------------------------------------------------
+
+    @BeforeClass
+    public void _beforeClass()
+        {
+        System.setProperty("coherence.log.level", "9");
+        }
+
     // ----- test cases -----------------------------------------------------
     @Test
     void shouldFallBackToJsonObjectWhenClassIsMissing()
         {
         String json = "{\"@class\":\"com.missing.Point\",\"x\":22,\"y\":42}";
 
-        JsonSerializer serializer = new JsonSerializer();
+        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
+
         JsonObject     obj        = (JsonObject) serializer.underlying().deserialize(json, Object.class);
         assertEquals("com.missing.Point", obj.getClassName());
         assertEquals(22, obj.getInt("x"));
@@ -460,6 +486,143 @@ class JsonSerializerTest
 
         Holder result = m_serializer.deserialize(buf.getReadBuffer().getBufferInput(), Holder.class);
         assertThat(result.getValues(), is(holder.getValues()));
+        }
+
+    @Test
+    void shouldNotSerializeWithoutAlias()
+        {
+        JsonSerializer       serializer = new JsonSerializer();
+        List<String>         list       = new ArrayList<>();
+        Holder               holder     = new Holder(list);
+        ByteArrayWriteBuffer buf        = new ByteArrayWriteBuffer(512);
+
+        list.add("foo");
+        list.add("bar");
+
+        assertThrows(JsonBindingException.class, () ->
+                serializer.serialize(buf.getBufferOutput(), holder));
+        }
+
+    @Test
+    void shouldNotDeserializeWithoutAlias()
+        {
+        JsonSerializer       serializer = new JsonSerializer();
+        ByteArrayWriteBuffer buf        = new ByteArrayWriteBuffer(512);
+        byte[]               bytes      = ("{\"@class\": \"" +  Holder.class.getName() +
+                                           "\"}").getBytes(StandardCharsets.UTF_8);
+        buf.write(0, bytes);
+
+        assertThrows(JsonBindingException.class, () ->
+                serializer.deserialize(buf.getReadBuffer().getBufferInput()));
+        }
+
+    @Test
+    void shouldSupportBackwardsCompatAliases() throws Exception
+        {
+        JsonSerializer       serializer   = new JsonSerializer();
+        ByteArrayWriteBuffer buf          = new ByteArrayWriteBuffer(512);
+        byte[]               bytesAliased = "{\"@class\": \"filter.AlwaysFilter\"}".getBytes(StandardCharsets.UTF_8);
+        byte[]               bytesFQC     = "{\"@class\": \"util.filter.AlwaysFilter\"}".getBytes(StandardCharsets.UTF_8);
+
+        buf.write(0, bytesAliased);
+
+        Object result = serializer.deserialize(buf.getReadBuffer().getBufferInput());
+        assertThat(result, is(AlwaysFilter.INSTANCE()));
+
+        buf.clear();
+        buf.write(0, bytesFQC);
+
+        result = serializer.deserialize(buf.getReadBuffer().getBufferInput());
+        assertThat(result, is(AlwaysFilter.INSTANCE()));
+        }
+
+    @Test
+    public void shouldBeAbleToDisableTypeEnforcementSysProp()
+        {
+        System.setProperty("coherence.json.type.enforcement", "false");
+        JsonSerializer       serializer = new JsonSerializer();
+        List<String>         list       = new ArrayList<>();
+        Holder               holder     = new Holder(list);
+        ByteArrayWriteBuffer buf        = new ByteArrayWriteBuffer(512);
+
+        list.add("foo");
+        list.add("bar");
+
+        try
+            {
+            assertDoesNotThrow(() -> serializer.serialize(buf.getBufferOutput(), holder));
+            }
+        finally
+            {
+            System.setProperty("coherence.json.type.enforcement", "true");
+            }
+        }
+
+    @Test
+    void testAliasing() throws Exception
+        {
+        JsonSerializer serializer = new JsonSerializer();
+        Genson         genson = serializer.underlying();
+
+        Class<?> clz = String.class;
+        String sName = clz.getName();
+        assertThat(genson.aliasFor(clz), is(sName));
+        assertThat(genson.classFor(sName), notNullValue());
+        assertThat(genson.classFor(sName).getName(), is(sName));
+
+        clz = Name.class;
+        sName = clz.getName();
+        assertThat(genson.aliasFor(clz), is(sName));
+        assertThat(genson.classFor(sName), notNullValue());
+        assertThat(genson.classFor(sName).getName(), is(sName));
+
+        clz = Object[].class;
+        sName = clz.getName();
+        assertThat(genson.aliasFor(clz), is(sName));
+        assertThat(genson.classFor(sName), notNullValue());
+        assertThat(genson.classFor(sName).getName(), is(sName));
+
+        assertThrows(JsonBindingException.class, () -> genson.aliasFor(SafeJsonSerializer.class));
+        assertThrows(JsonBindingException.class, () -> genson.aliasFor(SafeJsonSerializer[].class));
+        assertThrows(JsonBindingException.class, () -> genson.classFor(SafeJsonSerializer.class.getName()));
+        assertThrows(JsonBindingException.class, () -> genson.classFor(SafeJsonSerializer[].class.getName()));
+        }
+
+    @Test
+    void testClassFilteringDisabledByDefault()
+        {
+
+        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
+        assertThat(serializer.underlying().classFilter(), nullValue());
+        }
+
+    @Test
+    void testClassFilteringEnabledWhenPropPresent()
+        {
+        System.setProperty("jdk.serialFilter", "!java.util.Date");
+        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
+        try
+            {
+            assertThat(serializer.underlying().classFilter(), notNullValue());
+            }
+        finally
+            {
+            System.setProperty("jdk.serialFilter", "");
+            }
+        }
+
+    @Test
+    void testSanityBasicClassFilter()
+        {
+        System.setProperty("jdk.serialFilter", "!java.util.Date;java.lang.String");
+        ClassFilter filter = new ClassFilter();
+
+        assertThat(filter.evaluate(Date.class),   is(false));
+        assertThat(filter.evaluate(String.class), is(true));
         }
 
     @Test

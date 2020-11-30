@@ -58,10 +58,30 @@
       <version>${netty.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.helidon.microprofile.grpc</groupId>
+      <artifactId>helidon-microprofile-grpc-server</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-codec-http2</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+
     <!-- test dependencies -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-json</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-cdi-server</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -105,10 +125,43 @@
       <artifactId>rxjava</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.6.0</version>
+      </extension>
+    </extensions>
+
     <plugins>
+      <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>${maven.protobuf.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <goals>
+              <goal>test-compile</goal>
+              <goal>test-compile-custom</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <protocArtifact>com.google.protobuf:protoc:3.12.0:exe:${os.detected.classifier}</protocArtifact>
+          <pluginId>grpc-java</pluginId>
+          <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+        </configuration>
+      </plugin>
+
       <!-- we deploy this module to a Maven repository -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

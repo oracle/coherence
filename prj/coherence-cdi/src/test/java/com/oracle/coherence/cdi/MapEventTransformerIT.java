@@ -7,21 +7,34 @@
 
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.ChainedExtractor;
+import com.oracle.coherence.inject.MapEventTransformerBinding;
+import com.oracle.coherence.inject.MapEventTransformerFactory;
+import com.oracle.coherence.inject.PofExtractor;
+import com.oracle.coherence.inject.PropertyExtractor;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.ValueExtractor;
+
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.UniversalExtractor;
+
 import com.tangosol.util.transformer.ExtractorEventTransformer;
+
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.enterprise.context.ApplicationScoped;
+
 import javax.enterprise.util.Nonbinding;
+
 import javax.inject.Inject;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -36,21 +49,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author jk  2020.06.16
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MapEventTransformerIT
     {
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                  .addPackages(CoherenceExtension.class)
+                                                  .addExtension(new CoherenceExtension())
                                                   .addBeanClass(TransformerBean.class)
-                                                  .addBeanClass(TestTransformerFactory.class)
-                                                  .addBeanClass(MapEventTransformerProducer.class)
-                                                  .addBeanClass(ExtractorProducer.class)
-                                                  .addBeanClass(ExtractorProducer.ChainedExtractorSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.ChainedExtractorsSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.PofExtractorSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.PofExtractorsSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
-                                                  .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)
-                                                  .addExtension(new CoherenceExtension()));
+                                                  .addBeanClass(TestTransformerFactory.class));
 
 
     @Test
@@ -110,7 +117,7 @@ public class MapEventTransformerIT
     @ApplicationScoped
     @TestTransformer
     public static class TestTransformerFactory
-        implements MapEventTransformerFactory<TestTransformer, String, String, String>
+            implements MapEventTransformerFactory<TestTransformer, String, String, String>
         {
         @Override
         public MapEventTransformer<String, String, String> create(TestTransformer annotation)

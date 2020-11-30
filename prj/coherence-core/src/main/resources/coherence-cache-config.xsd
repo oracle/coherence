@@ -1383,7 +1383,7 @@
         <xsd:complexType>
             <xsd:sequence>
                 <xsd:element ref="federate-apply-synthetic" minOccurs="0" />
-                <xsd:group ref="backing-map-scheme-group" />
+                <xsd:group ref="backing-map-scheme-group" minOccurs="0" />
                 <xsd:any namespace="##other" processContents="lax"
                          minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>

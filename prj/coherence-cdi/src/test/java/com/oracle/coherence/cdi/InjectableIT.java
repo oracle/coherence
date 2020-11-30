@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.inject.Injectable;
 import com.oracle.coherence.cdi.data.Account;
 
 import com.tangosol.net.CacheFactory;

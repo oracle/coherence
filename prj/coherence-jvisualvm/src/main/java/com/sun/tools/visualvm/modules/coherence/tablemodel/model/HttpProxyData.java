@@ -7,6 +7,7 @@
 package com.sun.tools.visualvm.modules.coherence.tablemodel.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
@@ -73,11 +74,11 @@ public class HttpProxyData extends AbstractData
                                           : sHttpServer.substring(sHttpServer.lastIndexOf('.') + 1);
 
         data.setColumn(HttpProxyData.HTTP_SERVER_TYPE, sHttpServer);
-        data.setColumn(HttpProxyData.MEMBER_COUNT, new Integer(getNumberValue(aoColumns[nStart++].toString())));
-        data.setColumn(HttpProxyData.TOTAL_REQUEST_COUNT, new Long(getNumberValue(aoColumns[nStart++].toString())));
-        data.setColumn(HttpProxyData.TOTAL_ERROR_COUNT, new Long(getNumberValue(aoColumns[nStart++].toString())));
-        data.setColumn(HttpProxyData.AVERAGE_REQ_PER_SECOND, new Float(aoColumns[nStart++].toString()));
-        data.setColumn(HttpProxyData.AVERAGE_REQ_TIME, new Float(aoColumns[nStart++].toString()));
+        data.setColumn(HttpProxyData.MEMBER_COUNT, Integer.valueOf(getNumberValue(aoColumns[nStart++].toString())));
+        data.setColumn(HttpProxyData.TOTAL_REQUEST_COUNT, Long.valueOf(getNumberValue(aoColumns[nStart++].toString())));
+        data.setColumn(HttpProxyData.TOTAL_ERROR_COUNT, Long.valueOf(getNumberValue(aoColumns[nStart++].toString())));
+        data.setColumn(HttpProxyData.AVERAGE_REQ_PER_SECOND, Float.valueOf(aoColumns[nStart++].toString()));
+        data.setColumn(HttpProxyData.AVERAGE_REQ_TIME, Float.valueOf(aoColumns[nStart++].toString()));
 
         return data;
         }
@@ -86,81 +87,54 @@ public class HttpProxyData extends AbstractData
     public SortedMap<Object, Data> getAggregatedDataFromHttpQuerying(VisualVMModel     model,
                                                                      HttpRequestSender requestSender) throws Exception
         {
-        Set<ObjectName> setProxyMembers = requestSender.getAllProxyServerMembers();
-
-        Set<String> setServices = new HashSet<>();
-        for (ObjectName objName : setProxyMembers)
+        JsonNode                rootNode             = requestSender.getDataForProxyMembers();
+        SortedMap<Object, Data> mapData              = new TreeMap<>();
+        JsonNode                nodeProxyMemberItems = rootNode.get("items");
+        
+        if (nodeProxyMemberItems != null && nodeProxyMemberItems.isArray())
             {
-            String sServiceName     = objName.getKeyProperty("name");
-            String sDomainPartition = objName.getKeyProperty("domainPartition");
-
-            setServices.add(sDomainPartition == null ? sServiceName : sDomainPartition + "/" +  sServiceName);
-            }
-
-        SortedMap<Object, Data> mapData = new TreeMap<Object, Data>();
-
-        for (String sService : setServices)
-            {
-            String[] as               = sService.split("/");
-            String   sServiceName     = as.length == 2 ? as[1] : as[0];
-            String   sDomainPartition = as.length == 2 ? as[0] : null;
-            JsonNode rootNode         = requestSender.getAggregatedProxyData(sServiceName, sDomainPartition);
-            String   protocol         = rootNode.get("protocol").get(0).textValue();
-
-            if (protocol.equals("http"))
+            for (int k = 0; k < ((ArrayNode) nodeProxyMemberItems).size(); k++)
                 {
+                JsonNode proxyDetails     = nodeProxyMemberItems.get(k);
+                String   sServiceName     = proxyDetails.get("name").asText();
+                JsonNode domainPartition  = proxyDetails.get("domainPartition");
+                String   sDomainPartition = domainPartition == null ? null : domainPartition.asText();
+                String   sService         = sDomainPartition == null
+                                            ? sServiceName : sDomainPartition + "/" +  sServiceName;
 
-                String   sHttpServer    = "unknown";
-                JsonNode httpServerType = rootNode.get("httpServerType");
-
-                if (httpServerType != null && httpServerType.isArray())
+                String protocol = proxyDetails.get("protocol").asText();
+                if ("http".equals(protocol))
                     {
-                    sHttpServer = httpServerType.get(0).asText();
+                    String   sHttpServer    = "unknown";
+                    JsonNode httpServerType = proxyDetails.get("httpServerType");
+
+                    if (httpServerType != null)
+                        {
+                        sHttpServer = httpServerType.asText();
+                        }
+
+                    Data data = mapData.get(sService);
+                    if (data == null) {
+                        data = new HttpProxyData();
+                        data.setColumn(SERVICE_NAME, sService);
+                        data.setColumn(HTTP_SERVER_TYPE, sHttpServer);
+                        data.setColumn(MEMBER_COUNT, 0);
+                        data.setColumn(TOTAL_REQUEST_COUNT, 0);
+                        data.setColumn(TOTAL_ERROR_COUNT, 0);
                     }
 
-                Data data = new HttpProxyData();
+                    data.setColumn(MEMBER_COUNT, (int) data.getColumn(MEMBER_COUNT) + 1);
+                    data.setColumn(TOTAL_REQUEST_COUNT, (int) data.getColumn(TOTAL_REQUEST_COUNT)
+                                                        + proxyDetails.get("totalRequestCount").asInt());
+                    data.setColumn(TOTAL_ERROR_COUNT, (int) data.getColumn(TOTAL_ERROR_COUNT)
+                                                        + proxyDetails.get("totalErrorCount").asInt());
 
-                data.setColumn(HttpProxyData.SERVICE_NAME, sService);
-                data.setColumn(HttpProxyData.HTTP_SERVER_TYPE, sHttpServer);
-                data.setColumn(HttpProxyData.MEMBER_COUNT,
-                        Integer.parseInt(getChildValue("count", "totalRequestCount", rootNode)));
-                data.setColumn(HttpProxyData.TOTAL_REQUEST_COUNT,
-                        Integer.parseInt(getChildValue("sum", "totalRequestCount", rootNode)));
-                data.setColumn(HttpProxyData.TOTAL_ERROR_COUNT,
-                        Integer.parseInt(getChildValue("sum", "totalErrorCount", rootNode)));
-
-                float nSumRequestPerSecond = Float.parseFloat(getChildValue("sum",
-                        "requestsPerSecond", rootNode));
-                float nCountRequestPerSecond = Float.parseFloat(getChildValue("count",
-                        "requestsPerSecond", rootNode));
-
-                data.setColumn(HttpProxyData.AVERAGE_REQ_PER_SECOND, nCountRequestPerSecond != 0
-                        ? nSumRequestPerSecond/nCountRequestPerSecond
-                        : 0);
-
-                float nSumAverageRequestTime = Float.parseFloat(getChildValue("sum",
-                        "averageRequestTime", rootNode));
-                float nCountAverageRequestTime = Float.parseFloat(getChildValue("count",
-                        "averageRequestTime", rootNode));
-
-                data.setColumn(HttpProxyData.AVERAGE_REQ_TIME, nCountAverageRequestTime != 0
-                        ? nSumAverageRequestTime/nCountAverageRequestTime
-                        : 0);
-
-                mapData.put(data.getColumn(0), data);
+                    mapData.put(sService, data);
+                    }
                 }
             }
-        return mapData;
-        }
 
-    private String getChildValue(String sChildFieldName, String sFieldName, JsonNode rootNode)
-        {
-        JsonNode node = rootNode.get(sFieldName);
-        if (node != null && node.isContainerNode())
-            {
-            return node.get(sChildFieldName).asText(null);
-            }
-        return null;
+        return mapData;
         }
 
     // ----- constants ------------------------------------------------------

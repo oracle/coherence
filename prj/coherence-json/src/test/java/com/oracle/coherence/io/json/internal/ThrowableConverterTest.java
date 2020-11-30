@@ -39,7 +39,9 @@ class ThrowableConverterTest
     @Test
     void shouldSerializeThrowable()
         {
-        JsonSerializer serializer = new JsonSerializer();
+        JsonSerializer serializer = new JsonSerializer(null,
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
         Throwable      throwable  = getThrowable();
         Binary         binary     = ExternalizableHelper.toBinary(throwable, serializer);
         Throwable      result     = ExternalizableHelper.fromBinary(binary, serializer);

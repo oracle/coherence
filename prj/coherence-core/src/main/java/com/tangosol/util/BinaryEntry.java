@@ -249,6 +249,90 @@ public interface BinaryEntry<K, V>
         return getBinaryValue() == null && getOriginalBinaryValue() != null;
         }
 
+    /**
+     * Return an associated entry from the specified map, obtaining exclusive
+     * access to that map entry.
+     * <p>
+     * This method may only be called within the context of an entry processor
+     * invocation. Any changes made to the entry will be persisted with the same
+     * lifecycle as those made by the enclosing invocation. The returned entry
+     * is only valid for the duration of the enclosing invocation and multiple
+     * calls to this method within the same invocation context will return the
+     * same entry object.
+     * <p>
+     * Because this method implicitly locks the specified map entry, callers
+     * may use it to access, insert, update, modify, or remove map entries
+     * from within the context of an entry processor invocation. Operating on the
+     * entries returned by this method differs from operating directly against
+     * the backing map, as the returned entries provide an isolated,
+     * read-consistent view. The implicit lock acquisition attempted by this
+     * method could create a deadlock if entries are locked in conflicting
+     * orders on different threads. It is the caller's responsibility to ensure
+     * that cache entries are accessed (locked) in a deadlock-free manner.
+     *
+     * @param sMapName  the name of the associated map to return the entry from
+     * @param key       the key of the associated entry to return, in
+     *                  deserialized form
+     * @param <K1>      the key type of the specified associated map
+     * @param <V1>      the value type of the specified associated map
+     *
+     * @return an {@code InvocableMap.Entry} for the specified key, or null if the
+     *         specified key is not owned by this service member
+     *
+     * @since 20.12
+     */
+    @SuppressWarnings("unchecked")
+    default public <K1, V1> BinaryEntry<K1, V1> getAssociatedEntry(String sMapName, K1 key)
+        {
+        return getAssociatedEntry(sMapName, key, false);
+        }
+
+    /**
+     * Return an associated entry from the specified map, obtaining either
+     * an exclusive or shared (read-only) access to that map entry.
+     * <p>
+     * This method may only be called within the context of an entry processor
+     * invocation. Any changes made to the entry obtained for exclusive access
+     * (non read-only) will be persisted with the same lifecycle as those made
+     * by the enclosing invocation. The returned entry is only valid for the
+     * duration of the enclosing invocation and multiple calls to this method
+     * within the same invocation context will return the same entry object.
+     * <p>
+     * When this method locks the specified map entry for exclusive, not read-only,
+     * callers may use it to access, insert, update, modify, or remove map entries
+     * from within the context of an entry processor invocation. Operating on the
+     * entries returned by this method differs from operating directly against
+     * the backing map, as the returned entries provide an isolated,
+     * read-consistent view. The implicit lock acquisition attempted by this
+     * method could create a deadlock if entries are locked in conflicting
+     * orders on different threads. It is the caller's responsibility to ensure
+     * that cache entries are accessed (locked) in a deadlock-free manner.
+     *
+     * @param sMapName   the name of the associated map to return the entry from
+     * @param key        the key of the associated entry to return, in
+     *                   deserialized form
+     * @param fReadOnly  {@code true} to obtain non-exclusive, read-only access
+     *                   to associated entry, or {@code false} to lock associated
+     *                   entry for exclusive access
+     * @param <K1>       the key type of the specified associated map
+     * @param <V1>       the value type of the specified associated map
+     *
+     * @return an {@code InvocableMap.Entry} for the specified key, or null if the
+     *         specified key is not owned by this service member
+     *
+     * @since 20.12
+     */
+    @SuppressWarnings("unchecked")
+    default public <K1, V1> BinaryEntry<K1, V1> getAssociatedEntry(
+            String sMapName, K1 key, boolean fReadOnly)
+        {
+        BackingMapManagerContext ctx = getBackingMapContext().getManagerContext();
+        Object binKey = ctx.getKeyToInternalConverter().convert(key);
+
+        BackingMapContext bmc = ctx.getBackingMapContext(sMapName);
+        return (BinaryEntry<K1, V1>)
+                (fReadOnly ? bmc.getReadOnlyEntry(binKey) : bmc.getBackingMapEntry(binKey));
+        }
 
     // ----- InvocableMap.Entry interface -----------------------------------
 

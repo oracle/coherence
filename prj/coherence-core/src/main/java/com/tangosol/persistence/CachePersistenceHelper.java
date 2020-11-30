@@ -6,6 +6,8 @@
  */
 package com.tangosol.persistence;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.persistence.FatalAccessException;
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistentStore;
@@ -543,7 +545,8 @@ public class CachePersistenceHelper
     public static Properties readMetadata(File fileDir)
             throws IOException
         {
-        FileInputStream in = new FileInputStream(new File(fileDir, META_FILENAME));
+        File            fileMeta = new File(fileDir, META_FILENAME);
+        FileInputStream in       = new FileInputStream(fileMeta);
         try
             {
             Properties prop = new Properties();
@@ -558,7 +561,7 @@ public class CachePersistenceHelper
                 }
             catch (IOException e)
                 {
-                // ignore
+                Logger.finer("Error in reading metadata file: " + fileMeta.getCanonicalPath(), e);
                 }
             }
         }
@@ -580,7 +583,8 @@ public class CachePersistenceHelper
             throw new IllegalArgumentException("incomplete metadata");
             }
 
-        FileOutputStream out = new FileOutputStream(new File(fileDir, META_FILENAME));
+        File             fileMeta = new File(fileDir, META_FILENAME);
+        FileOutputStream out      = new FileOutputStream(fileMeta);
         try
             {
             prop.store(out, null);
@@ -593,7 +597,7 @@ public class CachePersistenceHelper
                 }
             catch (IOException e)
                 {
-                // ignore
+                Logger.finer("Error in writing metadata file: " + fileMeta.getCanonicalPath(), e);
                 }
             }
         }

@@ -114,7 +114,7 @@ public final class ServerHelper
     public AsyncNamedCacheClient<?, ?> newClient(String sScope, String sCacheName, String sFormat, Serializer serializer)
         {
         AsyncNamedCacheClient.DefaultDependencies deps
-                = new  AsyncNamedCacheClient.DefaultDependencies(sCacheName, m_channel);
+                = new  AsyncNamedCacheClient.DefaultDependencies(sCacheName, m_channel, null);
 
         deps.setScope(sScope);
         deps.setSerializer(serializer, sFormat);

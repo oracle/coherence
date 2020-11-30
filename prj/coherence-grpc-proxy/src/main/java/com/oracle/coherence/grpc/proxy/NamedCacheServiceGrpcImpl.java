@@ -30,7 +30,6 @@ import com.oracle.coherence.grpc.IsEmptyRequest;
 import com.oracle.coherence.grpc.KeySetRequest;
 import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
-import com.oracle.coherence.grpc.NamedCacheService;
 import com.oracle.coherence.grpc.NamedCacheServiceGrpc;
 import com.oracle.coherence.grpc.OptionalValue;
 import com.oracle.coherence.grpc.PageRequest;
@@ -58,6 +57,7 @@ import java.util.concurrent.CompletionStage;
  */
 public class NamedCacheServiceGrpcImpl
         extends NamedCacheServiceGrpc.NamedCacheServiceImplBase
+        implements BindableGrpcProxyService
     {
     // ----- constructors ---------------------------------------------------
 
@@ -78,6 +78,14 @@ public class NamedCacheServiceGrpcImpl
     public NamedCacheServiceGrpcImpl(NamedCacheService service)
         {
         m_service = service;
+        }
+
+    // ----- BindableGrpcProxyService methods -------------------------------
+
+    @Override
+    public GrpcProxyMetrics getMetrics()
+        {
+        return m_service.getMetrics();
         }
 
     // ----- NamedCacheServiceGrpc.NamedCacheServiceImplBase methods --------

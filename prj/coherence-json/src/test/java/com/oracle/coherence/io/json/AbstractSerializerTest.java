@@ -14,7 +14,6 @@ import com.tangosol.internal.util.invoke.Remotable;
 import com.tangosol.internal.util.invoke.RemoteConstructor;
 
 import com.tangosol.io.ByteArrayWriteBuffer;
-
 import com.tangosol.io.Serializer;
 
 import com.tangosol.util.Binary;
@@ -48,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Base class for serialization tests.
  *
  * @author Aleks Seovic  2017.10.03
-* @since 20.06
+ * @since 20.06
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractSerializerTest
@@ -58,7 +57,11 @@ public abstract class AbstractSerializerTest
     @BeforeEach
     public void before()
         {
-        m_serializer = new JsonSerializer(null, builder -> builder.useIndentation(true), false);
+        m_serializer = new JsonSerializer(null, builder ->
+                {
+                builder.setEnforceTypeAliases(false);
+                return builder.useIndentation(true);
+                }, false);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -117,9 +120,8 @@ public abstract class AbstractSerializerTest
 
         T actual = m_serializer.deserialize(buf.getReadBuffer().getBufferInput(), expectedClass);
 
-        System.out.println(
-                String.format("Json deserialization of expected type: %s, actual type: %s, actual value: %s\n\n",
-                              expectedClass, actual == null ? "null" : actual.getClass(), actual));
+        System.out.printf("Json deserialization of expected type: %s, actual type: %s, actual value: %s\n\n%n",
+                          expectedClass, actual == null ? "null" : actual.getClass(), actual);
         assertTrue(equalityFunction.apply(expected, actual),
                    "Equality BiFunction failed for expected=" + expected + ", actual=" + actual);
         return actual;

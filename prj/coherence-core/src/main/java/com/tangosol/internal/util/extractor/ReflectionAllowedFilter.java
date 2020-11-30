@@ -51,11 +51,11 @@ public class ReflectionAllowedFilter
      *
      * @param sPatterns  a string containing one or more patterns delimited by {@link #REFLECT_FILTER_SEPARATOR}
      *
-     * @throws IllegalArgumentException       if the pattern is malformed or empty
+     * @throws IllegalArgumentException if the pattern is malformed or empty
      *
      * @see com.tangosol.util.ClassHelper#REFLECT_FILTER_PROPERTY
      */
-    private ReflectionAllowedFilter(String sPatterns)
+    protected ReflectionAllowedFilter(String sPatterns)
         {
         Objects.requireNonNull(sPatterns, "sPatterns");
         validate(sPatterns);
@@ -84,7 +84,7 @@ public class ReflectionAllowedFilter
     /**
      * Return {@code true} if {@code clz} can be accessed via reflection.
      *
-     * @param clz  class name that is compared agasint filter's patterns
+     * @param clz  class name that is compared against filter's patterns
      *
      * @return {@code true} if reflection is allowed for {@code clz}
      */
@@ -194,7 +194,7 @@ public class ReflectionAllowedFilter
      *
      * @return {@link AbstractReflectionAllowedFilter} for {@code sPattern}
      *
-     * @throws {@link IllegalArgumentException} if invalid pattern
+     * @throws IllegalArgumentException if invalid pattern
      */
     protected AbstractReflectionAllowedFilter createPatternFilter(String sPattern)
         {

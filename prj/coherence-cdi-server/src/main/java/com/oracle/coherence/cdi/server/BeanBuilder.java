@@ -16,8 +16,12 @@ import com.tangosol.config.expression.LiteralExpression;
 import com.tangosol.config.expression.ParameterResolver;
 
 import javax.enterprise.inject.Instance;
+
 import javax.enterprise.inject.literal.NamedLiteral;
+
 import javax.enterprise.inject.spi.CDI;
+
+import java.util.Objects;
 
 /**
  * Element processor for {@code <cdi:bean>} XML element.
@@ -30,16 +34,15 @@ public class BeanBuilder
         implements ParameterizedBuilder<Object>,
                    ParameterizedBuilder.ReflectionSupport
     {
-    private final Expression<String> m_exprBeanName;
-
     /**
      * Construct {@code BeanBuilder} instance.
      *
      * @param exprBeanName  the name of the CDI bean
      */
-    BeanBuilder(String exprBeanName)
+    BeanBuilder(CDI<Object> cdi, String exprBeanName)
         {
-        m_exprBeanName = new LiteralExpression<>(exprBeanName);
+        f_cdi          = Objects.requireNonNull(cdi);
+        f_exprBeanName = new LiteralExpression<>(exprBeanName);
         }
 
     // ---- ParameterizedBuilder interface ----------------------------------
@@ -47,8 +50,8 @@ public class BeanBuilder
     @Override
     public Object realize(ParameterResolver resolver, ClassLoader loader, ParameterList parameterList)
         {
-        String beanName = m_exprBeanName.evaluate(resolver);
-        Instance<Object> instance = CDI.current().select(NamedLiteral.of(beanName));
+        String beanName = f_exprBeanName.evaluate(resolver);
+        Instance<Object> instance = f_cdi.select(NamedLiteral.of(beanName));
         if (instance.isResolvable())
             {
             return instance.get();
@@ -65,9 +68,15 @@ public class BeanBuilder
     @Override
     public boolean realizes(Class<?> aClass, ParameterResolver resolver, ClassLoader loader)
         {
-        String beanName = m_exprBeanName.evaluate(resolver);
-        Instance<?> instance = CDI.current().select(aClass, NamedLiteral.of(beanName));
+        String      beanName = f_exprBeanName.evaluate(resolver);
+        Instance<?> instance = f_cdi.select(aClass, NamedLiteral.of(beanName));
 
         return instance.isResolvable();
         }
+
+    // ----- data members ---------------------------------------------------
+
+    private final Expression<String> f_exprBeanName;
+
+    private final CDI<Object> f_cdi;
     }

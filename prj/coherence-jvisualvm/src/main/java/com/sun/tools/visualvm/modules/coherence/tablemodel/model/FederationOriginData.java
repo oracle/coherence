@@ -9,6 +9,7 @@ package com.sun.tools.visualvm.modules.coherence.tablemodel.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.tools.visualvm.modules.coherence.VisualVMModel;
 
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
@@ -77,22 +78,9 @@ public class FederationOriginData
                                                                      HttpRequestSender requestSender)
             throws Exception
         {
-        Set<ObjectName> setServiceMembers = requestSender.getAllServiceMembers();
-        Set<String>     setServices       = new HashSet<>();
-        for (ObjectName objName : setServiceMembers)
-            {
-            String sServiceName     = objName.getKeyProperty("name");
-            String sDomainPartition = objName.getKeyProperty("domainPartition");
-
-            String sServiceType = requestSender.getAttribute(objName, "type");
-
-            if (sServiceType != null && sServiceType.equals("FederatedCache"))
-                {
-                setServices.add(sDomainPartition == null ? sServiceName : sDomainPartition + "/" +  sServiceName);
-                }
-            }
-
-        SortedMap<Object, Data> mapData = new TreeMap<Object, Data>();
+        Set<String> setServices = retrieveFederatedServices(requestSender);
+        
+        SortedMap<Object, Data> mapData = new TreeMap<>();
 
         for (String sService : setServices)
             {
@@ -143,24 +131,9 @@ public class FederationOriginData
         return mapData;
         }
 
-    private String getChildValue(String sChildFieldName, String sFieldName, JsonNode rootNode)
-        {
-        JsonNode node = rootNode.get(sFieldName);
-        if (node != null && node.isContainerNode())
-            {
-            return node.get(sChildFieldName).asText(null);
-            }
-        return null;
-        }
-
     // ----- constants ------------------------------------------------------
 
     private static final long serialVersionUID = -2052543737741081327L;
-
-    /**
-     * The logger object to use.
-     */
-    private static final Logger LOGGER = Logger.getLogger(FederationOriginData.class.getName());
 
     /**
      * Report for destination data.

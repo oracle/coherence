@@ -69,20 +69,7 @@ public class ScopedCacheFactoryBuilder
      */
     public ScopedCacheFactoryBuilder()
         {
-        XmlElement xmlConfig   = CacheFactory.getCacheFactoryBuilderConfig();
-        XmlElement xmlResolver = xmlConfig.getElement("scope-resolver");
-        if (xmlResolver != null)
-            {
-            try
-                {
-                m_scopeResolver = (ScopeResolver) XmlHelper.createInstance(
-                        xmlResolver, getClass().getClassLoader(), null);
-                }
-            catch (Exception e)
-                {
-                throw ensureRuntimeException(e, "Could not create scope resolver");
-                }
-            }
+        this(null);
         }
 
     /**
@@ -92,7 +79,7 @@ public class ScopedCacheFactoryBuilder
      */
     public ScopedCacheFactoryBuilder(ScopeResolver resolver)
         {
-        m_scopeResolver = resolver;
+        f_scopeResolver = resolver == null ? instantiateScopeResolver() : resolver;
         }
 
 
@@ -105,7 +92,7 @@ public class ScopedCacheFactoryBuilder
      */
     public ScopeResolver getScopeResolver()
         {
-        return m_scopeResolver;
+        return f_scopeResolver;
         }
 
 
@@ -223,6 +210,43 @@ public class ScopedCacheFactoryBuilder
 
 
     // ----- helper methods -----------------------------------------------
+
+    /**
+     * Instantiate the default {@link ScopeResolver}.
+     * <p>
+     * If the the {@code scope-resolver} element of the {@code cache-factory-builder}
+     * element of the operational configuration has been specified this will be used
+     * to determine the {@link ScopeResolver} implementation to use otherwise the
+     * {@link ScopeResolver#INSTANCE NullImplementation} resolver will be
+     * used.
+     * 
+     * @return the default {@link ScopeResolver}
+     */
+    protected ScopeResolver instantiateScopeResolver()
+        {
+        ScopeResolver scopeResolver = null;
+        XmlElement    xmlConfig     = CacheFactory.getCacheFactoryBuilderConfig();
+        XmlElement    xmlResolver   = xmlConfig.getElement("scope-resolver");
+        if (xmlResolver != null)
+            {
+            try
+                {
+                scopeResolver = (ScopeResolver) XmlHelper.createInstance(
+                        xmlResolver, ScopedCacheFactoryBuilder.class.getClassLoader(), null);
+                }
+            catch (Exception e)
+                {
+                throw ensureRuntimeException(e, "Could not create scope resolver");
+                }
+            }
+
+        if (scopeResolver == null)
+            {
+            scopeResolver = ScopeResolver.INSTANCE;
+            }
+
+        return scopeResolver;
+        }
 
     /**
      * Helper method to return a {@link ConfigurableCacheFactory} instance for the
@@ -428,12 +452,11 @@ public class ScopedCacheFactoryBuilder
      */
     protected ConfigurableCacheFactory buildFactory(String sConfigURI, ClassLoader loader)
         {
-        String     sResolved  = resolveURI(sConfigURI);
-        XmlElement xmlConfig  = loadConfigFromURI(sResolved, loader);
-
-        ScopeResolver resolver = getScopeResolver();
-        String        sScope   = resolver == null ? null :
-            resolver.resolveScopeName(sConfigURI, loader, null);
+        ScopeResolver resolver     = getScopeResolver();
+        String        sDescopedURI = resolver == null ? sConfigURI : resolver.resolveURI(sConfigURI);
+        String        sResolvedURI = resolveURI(sDescopedURI);
+        XmlElement    xmlConfig    = loadConfigFromURI(sResolvedURI, loader);
+        String        sScope       = resolver == null ? null : resolver.resolveScopeName(sConfigURI, loader, null);
 
         return instantiateFactory(loader, xmlConfig,
             getConfigurableCacheFactoryConfig(), null, sScope);
@@ -571,7 +594,7 @@ public class ScopedCacheFactoryBuilder
     /**
      * Scope resolver used to resolve scope name upon CCF construction.
      */
-    protected ScopeResolver m_scopeResolver;
+    protected final ScopeResolver f_scopeResolver;
 
     /**
      * Mapping used to associate class loaders with the cache factories that are

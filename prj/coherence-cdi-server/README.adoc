@@ -44,7 +44,7 @@ and vice versa, as the following sections describe.
  ** <<inject-namedtopic,Injecting `NamedTopic` and related objects>>
  ** <<other-injection-points,Other Supported Injection Points>>
   *** <<inject-cluster,`Cluster` and `OperationalContext` Injection>>
-  *** <<inject-ccf,`ConfigurableCacheFactory` and `Scope` Injection>>
+  *** <<inject-ccf,Named `Session` Injection>>
   *** <<inject-serializer,`Serializer` Injection>>
 * <<inject-into-coherence,Injecting CDI Beans into Coherence-managed Objects>>
  ** <<cdi-events,Using CDI Observers to Handle Coherence Server-Side Events>>
@@ -115,16 +115,17 @@ All the examples above assume that you want to use the default scope, which is o
 For example, you may have an Extend client that connects  to multiple Coherence clusters, in which case you would have
 multiple scopes.
 
-In this case you would use `@Scope` qualifier to specify the scope name, or the URI of the  configuration file to use:
+In this case you would use `@SessionName` qualifier to specify the name of the configured `Session`,
+that will be used to supply the cache or map:
 
 [source,java]
 ----
 @Inject
-@Scope("products-cluster.xml")
+@SessionName("Products")
 private NamedCache<Long, Product> products;
 
 @Inject
-@Scope("customers-cluster.xml")
+@SessionName("Customers")
 private NamedCache<Long, Customer> customers;
 ----
 
@@ -137,7 +138,7 @@ respectively, in order to inject  asynchronous variant of those APIs:
 private AsyncNamedMap<Long, Person> people;
 
 @Inject
-@Scope("products-cluster.xml")
+@SessionName("Products")
 private AsyncNamedCache<Long, Person> Product;
 ----
 
@@ -237,16 +238,17 @@ All the examples above assume that you want to use the default scope, which is o
 For example, you may have an Extend client that connects to multiple Coherence clusters, in which case you would have
 multiple scopes.
 
-In this case you would use `@Scope` qualifier to specify the scope name or the URI of the  configuration file to use:
+In this case you would use `@SessionName` qualifier to specify the name of the configured `Session`,
+that will be used to supply the topic:
 
 [source,java]
 ----
 @Inject
-@Scope("payments-cluster.xml")
+@SessionName("Finance")
 private NamedTopic<PaymentRequest> payments;
 
 @Inject
-@Scope("shipments-cluster.xml")
+@SessionName("Shipping")
 private NamedTopic<ShippingRequest> shipments;
 ----
 
@@ -265,7 +267,7 @@ private Publisher<Order> orders;
 private Publisher<Order> m_orders;
 
 @Inject
-@Scope("payments-cluster.xml")
+@SessionName("payments-cluster.xml")
 private Publisher<PaymentRequest> payments;
 ----
 
@@ -281,7 +283,7 @@ private Subscriber<Order> orders;
 private Subscriber<Order> m_orders;
 
 @Inject
-@Scope("payments-cluster.xml")
+@SessionName("Finance")
 private Subscriber<PaymentRequest> payments;
 ----
 
@@ -326,34 +328,68 @@ private OperationalContext ctx;
 ----
 
 [#inject-ccf]
-===== `ConfigurableCacheFactory` and `Session` Injection
+===== Named `Session` Injection
 
-On rare occasions when you need to use either of these directly, Coherence CDI makes it trivial to do so.
+On rare occasions when you need to use a `Session` directly, Coherence CDI makes it trivial to do so.
 
-To obtain an instance of a default `ConfigurableCacheFactory` or `Session`, all you need to do is inject them into the
-class which needs to use them:
+Coherence will create a default `Session` when the CDI server starts, this will be created using the normal default
+cache configuration file.
+Other named sessions can be configured as CDI beans of type `SessionConfiguration`.
+
+For example:
+[source,java]
+----
+@ApplicationScoped
+public class MySession
+        implements SessionConfiguration
+    {
+    public String getName()
+        {
+        return "Foo";
+        }
+    // implement session configuration methods
+    }
+----
+The bean above will create the configuration for a `Session` named `Foo`. When the CDI server starts the session
+will be created and can then be injected into other beans.
+
+A simpler way to create a `SessionConfiguration` is to implement the `SessionIntializer` interface and annotate the class.
+For example:
+[source,java]
+----
+@ApplicationScoped
+@Named("Foo")
+@Scope("Foo")
+@ConfigUri("my-coherence-config.xml")
+public class MySession
+        implements SessionInitializer
+    {
+    }
+----
+The above configuration will create a `Session` bean with a name of `Foo` a scoep of `Foo` with an underlying
+`ConfigurableCacheFactory` created from the `my-coherence-config.xml` configuration file.
+
+To obtain an instance of the default `Session`, all you need to do is inject it into the
+class which needs to use it:
 
 [source,java]
 ----
-@Inject
-private ConfigurableCacheFactory ccf;
-
 @Inject
 private Session session;
 ----
 
-If you need a specific `ConfigurableCacheFactory` or `Session` you can simply qualify them using `@Scope` qualifier and
-specifying the scope name, or the URI, of the configuration file to use:
+If you need a specific named `Session` you can simply qualify one using `@Name` qualifier and
+specifying the `Session` name:
 
 [source,java]
 ----
 @Inject
-@Scope("my-cache-config.xml")
-private ConfigurableCacheFactory ccf;
+@Name("SessionOne")
+private Session sessionOne;
 
 @Inject
-@Scope("my-cache-config.xml")
-private ConfigurableCacheFactory session;
+@Name("SessionTwo")
+private Session sessionTwo;
 ----
 
 [#inject-serializer]
@@ -832,7 +868,7 @@ extensions can recognise that it represents a `Filter`.
 
 ==== Create the Custom Filter Factory
 
-Once the custom annotation has been created a `FilterFactory` implementation can be created that will be responsible
+Once the custom annotation has been created a `FilterFactories` implementation can be created that will be responsible
 for producing instances of the required `Filter`.
 
 [source,java]
@@ -852,12 +888,12 @@ static class CustomFilterSupplier
 <1> The `CustomFilterSupplier` class has been annotated with `@ApplicationScoped` to make is discoverable by CDI.
 <2> The `CustomFilterSupplier` class has been annotated with the new filter binding annotation `@CustomFilter`
 so that the Coherence CDI extension can locate it when it needs to create `Filters`.
-<3> The `CustomFilterSupplier` implements the `FilterFactory` interface's `create` method where it creates the
+<3> The `CustomFilterSupplier` implements the `FilterFactories` interface's `create` method where it creates the
 custom `Filter` implementation.
 
 ==== Annotate the Injection Point
 
-Now there is both a custom annotation, and an annotated `FilterFactory`, the injection point requiring the `Filter`
+Now there is both a custom annotation, and an annotated `FilterFactories`, the injection point requiring the `Filter`
 can be annotated with the new annotation.
 
 [source,java]

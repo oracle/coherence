@@ -282,9 +282,9 @@ public class MBeanServerProxyNotificationTests
     @Test
     public void shouldRegisterNotificationListenersForMBeansOnAllMembers() throws Exception
         {
-        String           sMBeanNode1 = String.format(UNIQUE_MBEAN_PATTERN, "1");
-        String           sMBeanNode2 = String.format(UNIQUE_MBEAN_PATTERN, "2");
-        String           sMBeanNode3 = String.format(UNIQUE_MBEAN_PATTERN, "3");
+        String[]         asMBeanNode = new String[]{String.format(UNIQUE_MBEAN_PATTERN, "1"),
+                                                    String.format(UNIQUE_MBEAN_PATTERN, "2"),
+                                                    String.format(UNIQUE_MBEAN_PATTERN, "3")};
         int              nValue1     = 123123;
         int              nValue2     = 456456;
         int              nValue3     = 789789;
@@ -292,14 +292,29 @@ public class MBeanServerProxyNotificationTests
         Listener         listener1   = new Listener(1, "One");
         Listener         listener2   = new Listener(1, "Two");
         Listener         listener3   = new Listener(1, "Three");
+        int[]            cBefore     = new int[3];
 
-        proxy.addNotificationListener(sMBeanNode1, listener1, null, "One");
-        proxy.addNotificationListener(sMBeanNode2, listener2, null, "Two");
-        proxy.addNotificationListener(sMBeanNode3, listener3, null, "Three");
+        // get listener count before
+        for (CoherenceClusterMember member : s_cluster)
+            {
+            int index = member.getLocalMemberId() - 1;
+            cBefore[index] = countMBeanListeners(member, asMBeanNode[index]);
+            }
 
-        setValue(s_registry, sMBeanNode1, nValue1);
-        setValue(s_registry, sMBeanNode2, nValue2);
-        setValue(s_registry, sMBeanNode3, nValue3);
+        proxy.addNotificationListener(asMBeanNode[0], listener1, null, "One");
+        proxy.addNotificationListener(asMBeanNode[1], listener2, null, "Two");
+        proxy.addNotificationListener(asMBeanNode[2], listener3, null, "Three");
+
+        // wait for listener registration
+        for (CoherenceClusterMember member : s_cluster)
+            {
+            int index = member.getLocalMemberId() - 1;
+            Eventually.assertDeferred(() -> countMBeanListeners(member, asMBeanNode[index]), is(cBefore[index] + 1));
+            }
+
+        setValue(s_registry, asMBeanNode[0], nValue1);
+        setValue(s_registry, asMBeanNode[1], nValue2);
+        setValue(s_registry, asMBeanNode[2], nValue3);
 
         assertThat(listener1.await(1, TimeUnit.MINUTES), is(true));
         assertThat(listener2.await(1, TimeUnit.MINUTES), is(true));

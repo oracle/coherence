@@ -13,18 +13,28 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import javax.enterprise.context.ApplicationScoped;
+
 import javax.enterprise.util.Nonbinding;
+
 import javax.inject.Inject;
 
+import com.oracle.coherence.inject.AlwaysFilter;
+import com.oracle.coherence.inject.FilterBinding;
+import com.oracle.coherence.inject.FilterFactory;
+import com.oracle.coherence.inject.WhereFilter;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.filter.AllFilter;
+
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -38,17 +48,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Jonathan Knight  2019.10.24
  */
 @ExtendWith(WeldJunit5Extension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FilterProducerIT
     {
 
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
-                                                          .addBeanClass(FilterProducer.class)
-                                                          .addBeanClass(FilterProducer.AlwaysFilterSupplier.class)
-                                                          .addBeanClass(FilterProducer.WhereFilterSupplier.class)
+                                                          .addPackages(CoherenceExtension.class)
+                                                          .addExtension(new CoherenceExtension())
                                                           .addBeanClass(TestFilterFactory.class)
-                                                          .addBeanClass(FilterBean.class)
-                                                          .addExtension(new CoherenceExtension()));
+                                                          .addBeanClass(FilterBean.class));
 
     @Test
     void shouldInjectAlwaysFilter()

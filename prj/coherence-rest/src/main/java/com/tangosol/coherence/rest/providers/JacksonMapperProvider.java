@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+import com.tangosol.coherence.config.Config;
 
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
@@ -58,7 +59,7 @@ public class JacksonMapperProvider
         mapper.registerModule(module);
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT,
-                Boolean.getBoolean(com.tangosol.coherence.rest.io.Marshaller.FORMAT_OUTPUT));
+                         Config.getBoolean(com.tangosol.coherence.rest.io.Marshaller.FORMAT_OUTPUT));
         mapper.configure(MapperFeature.AUTO_DETECT_FIELDS, false);
         mapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
         mapper.configure(MapperFeature.USE_WRAPPER_NAME_AS_PROPERTY_NAME, true);

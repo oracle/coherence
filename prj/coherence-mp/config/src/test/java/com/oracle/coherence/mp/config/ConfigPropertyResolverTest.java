@@ -45,11 +45,17 @@ class ConfigPropertyResolverTest
     @Test
     void testPropertyApplication()
         {
-        DefaultCacheServer.startServerDaemon().waitForServiceStart();
-        Cluster cluster = CacheFactory.ensureCluster();
-        assertThat(cluster.getClusterName(), is("test"));
-        assertThat(cluster.getLocalMember().getMemberName(), is("sysprop01"));
-        assertThat(cluster.getLocalMember().getRoleName(), is("proxy"));
-        DefaultCacheServer.getInstance().shutdownServer();
+        try
+            {
+            DefaultCacheServer.startServerDaemon().waitForServiceStart();
+            Cluster cluster = CacheFactory.ensureCluster();
+            assertThat(cluster.getClusterName(), is("test"));
+            assertThat(cluster.getLocalMember().getMemberName(), is("sysprop01"));
+            assertThat(cluster.getLocalMember().getRoleName(), is("proxy"));
+            }
+        finally
+            {
+            DefaultCacheServer.getInstance().shutdownServer();
+            }
         }
     }

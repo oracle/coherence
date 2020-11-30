@@ -28,8 +28,8 @@ import javax.json.JsonObject;
 import javax.json.JsonValue;
 
 import javax.json.bind.annotation.JsonbCreator;
-
 import javax.json.bind.annotation.JsonbProperty;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test case for evolvability.
  *
  * @author Aleks Seovic  2018.06.06
-* @since 20.06
+ * @since 20.06
  */
 class EvolvableHandlerTest
     {
@@ -306,5 +306,7 @@ class EvolvableHandlerTest
 
     // ----- data members ---------------------------------------------------
 
-    protected static final Serializer SERIALIZER = new JsonSerializer();
+    protected static final Serializer SERIALIZER = new JsonSerializer(null,
+                                                                      builder -> builder.setEnforceTypeAliases(false),
+                                                                      false);
     }

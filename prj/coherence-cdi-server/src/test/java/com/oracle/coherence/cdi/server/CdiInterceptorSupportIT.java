@@ -6,30 +6,39 @@
  */
 package com.oracle.coherence.cdi.server;
 
+import com.oracle.coherence.event.EventObserverSupport;
 import com.oracle.coherence.cdi.CoherenceExtension;
-import com.oracle.coherence.cdi.ConfigUri;
-import com.oracle.coherence.cdi.Scope;
-import com.oracle.coherence.cdi.events.MapName;
-import com.oracle.coherence.cdi.events.ScopeName;
-import com.oracle.coherence.cdi.events.ServiceName;
-import com.oracle.coherence.cdi.events.CacheName;
-import com.oracle.coherence.cdi.events.Created;
-import com.oracle.coherence.cdi.events.Destroyed;
-import com.oracle.coherence.cdi.events.Executed;
-import com.oracle.coherence.cdi.events.Executing;
-import com.oracle.coherence.cdi.events.Inserted;
-import com.oracle.coherence.cdi.events.Processor;
-import com.oracle.coherence.cdi.events.Removed;
-import com.oracle.coherence.cdi.events.Updated;
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.cdi.SessionProducer;
+import com.oracle.coherence.event.MapName;
+import com.oracle.coherence.event.ScopeName;
+import com.oracle.coherence.event.ServiceName;
+import com.oracle.coherence.event.CacheName;
+import com.oracle.coherence.event.Created;
+import com.oracle.coherence.event.Destroyed;
+import com.oracle.coherence.event.Executed;
+import com.oracle.coherence.event.Executing;
+import com.oracle.coherence.event.Inserted;
+import com.oracle.coherence.event.Processor;
+import com.oracle.coherence.event.Removed;
+import com.oracle.coherence.event.Updated;
 
 import com.oracle.coherence.cdi.server.data.Person;
 import com.oracle.coherence.cdi.server.data.PhoneNumber;
 
-import com.tangosol.net.ConfigurableCacheFactory;
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
 
+import com.tangosol.net.events.CoherenceLifecycleEvent;
 import com.tangosol.net.events.Event;
+
 import com.tangosol.net.events.application.LifecycleEvent;
+
 import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
@@ -41,6 +50,7 @@ import com.tangosol.util.InvocableMap;
 import java.time.LocalDate;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -64,7 +74,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Integration test for the {@link CdiInterceptorSupport} using the Weld JUnit
+ * Integration test for the {@link EventObserverSupport} using the Weld JUnit
  * extension.
  *
  * @author Aleks Seovic  2020.04.03
@@ -77,21 +87,21 @@ class CdiInterceptorSupportIT
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
                                                           .addExtension(new CoherenceServerExtension())
-                                                          .addBeanClass(CacheFactoryUriResolver.Default.class)
-                                                          .addBeanClass(ConfigurableCacheFactoryProducer.class)
-                                                          .addBeanClass(EventsScope.class)
+                                                          .addBeanClass(SessionProducer.class)
+                                                          .addBeanClass(EventsSession.class)
                                                           .addBeanClass(TestObservers.class));
 
     @ApplicationScoped
-    @Named("server-events")
+    @Named("Events")
+    @Scope("server-events")
     @ConfigUri("cdi-events-config.xml")
-    private static class EventsScope
-            implements ScopeInitializer
+    private static class EventsSession
+            implements SessionInitializer
         {}
 
     @Inject
-    @Scope("server-events")
-    private ConfigurableCacheFactory ccf;
+    @Name("Events")
+    private Session session;
 
     @Inject
     private TestObservers observers;
@@ -99,9 +109,7 @@ class CdiInterceptorSupportIT
     @Test
     void testEvents()
         {
-        ccf.activate();
-
-        NamedCache<String, Person> people = ccf.ensureCache("people", null);
+        NamedCache<String, Person> people = session.getCache("people");
         people.put("homer", new Person("Homer", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("marge", new Person("Marge", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("bart", new Person("Bart", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
@@ -114,25 +122,31 @@ class CdiInterceptorSupportIT
         people.truncate();
         people.destroy();
 
-        ccf.dispose();
+        Coherence.getInstances().forEach(Coherence::close);
 
-        assertThat(observers.getEvents(), hasItem(LifecycleEvent.Type.ACTIVATING));
-        assertThat(observers.getEvents(), hasItem(LifecycleEvent.Type.ACTIVATED));
-        assertThat(observers.getEvents(), hasItem(LifecycleEvent.Type.DISPOSING));
-        assertThat(observers.getEvents(), hasItem(CacheLifecycleEvent.Type.CREATED));
-        assertThat(observers.getEvents(), hasItem(CacheLifecycleEvent.Type.DESTROYED));
-        assertThat(observers.getEvents(), hasItem(CacheLifecycleEvent.Type.TRUNCATED));
-        assertThat(observers.getEvents(), hasItem(TransferEvent.Type.ASSIGNED));
-        assertThat(observers.getEvents(), hasItem(TransactionEvent.Type.COMMITTING));
-        assertThat(observers.getEvents(), hasItem(TransactionEvent.Type.COMMITTED));
-        assertThat(observers.getEvents(), hasItem(EntryProcessorEvent.Type.EXECUTING));
-        assertThat(observers.getEvents(), hasItem(EntryProcessorEvent.Type.EXECUTED));
-        assertThat(observers.getEvents(), hasItem(EntryEvent.Type.INSERTING));
-        assertThat(observers.getEvents(), hasItem(EntryEvent.Type.INSERTED));
-        assertThat(observers.getEvents(), hasItem(EntryEvent.Type.UPDATING));
-        assertThat(observers.getEvents(), hasItem(EntryEvent.Type.UPDATED));
-        assertThat(observers.getEvents(), hasItem(EntryEvent.Type.REMOVING));
-        assertThat(observers.getEvents(), hasItem(EntryEvent.Type.REMOVED));
+        Set<Enum<?>> events = observers.getEvents();
+
+        assertThat(events, hasItem(LifecycleEvent.Type.ACTIVATING));
+        assertThat(events, hasItem(LifecycleEvent.Type.ACTIVATED));
+        assertThat(events, hasItem(LifecycleEvent.Type.DISPOSING));
+        assertThat(events, hasItem(CacheLifecycleEvent.Type.CREATED));
+        assertThat(events, hasItem(CacheLifecycleEvent.Type.DESTROYED));
+        assertThat(events, hasItem(CacheLifecycleEvent.Type.TRUNCATED));
+        assertThat(events, hasItem(TransferEvent.Type.ASSIGNED));
+        assertThat(events, hasItem(TransactionEvent.Type.COMMITTING));
+        assertThat(events, hasItem(TransactionEvent.Type.COMMITTED));
+        assertThat(events, hasItem(EntryProcessorEvent.Type.EXECUTING));
+        assertThat(events, hasItem(EntryProcessorEvent.Type.EXECUTED));
+        assertThat(events, hasItem(EntryEvent.Type.INSERTING));
+        assertThat(events, hasItem(EntryEvent.Type.INSERTED));
+        assertThat(events, hasItem(EntryEvent.Type.UPDATING));
+        assertThat(events, hasItem(EntryEvent.Type.UPDATED));
+        assertThat(events, hasItem(EntryEvent.Type.REMOVING));
+        assertThat(events, hasItem(EntryEvent.Type.REMOVED));
+        assertThat(events, hasItem(CoherenceLifecycleEvent.Type.STARTED));
+        assertThat(events, hasItem(CoherenceLifecycleEvent.Type.STARTING));
+        assertThat(events, hasItem(CoherenceLifecycleEvent.Type.STOPPED));
+        assertThat(events, hasItem(CoherenceLifecycleEvent.Type.STOPPING));
         }
 
     // ---- helper classes --------------------------------------------------
@@ -150,20 +164,27 @@ class CdiInterceptorSupportIT
             }
         }
 
-    @SuppressWarnings("unchecked")
     @ApplicationScoped
     public static class TestObservers
         {
-        private Set<Enum> events = new TreeSet<>(Comparator.comparing(Enum::name));
+        private final Map<Enum<?>, Boolean> events = new ConcurrentHashMap<>();
 
-        Set<Enum> getEvents()
+        Set<Enum<?>> getEvents()
             {
-            return events;
+            Set<Enum<?>> set = new TreeSet<>(Comparator.comparing(Enum::name));
+            set.addAll(events.keySet());
+            return set;
             }
 
-        private void record(Event<?> event)
+        void record(Event<?> event)
             {
-            events.add(event.getType());
+            events.put(event.getType(), true);
+            }
+
+        // lifecycle events
+        private void onCoherenceLifecycleEvent(@Observes CoherenceLifecycleEvent event)
+            {
+            record(event);
             }
 
         // lifecycle events

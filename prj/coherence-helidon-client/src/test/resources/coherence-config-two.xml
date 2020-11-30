@@ -9,8 +9,6 @@
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
 
-    <scope-name>test</scope-name>
-
     <caching-scheme-mapping>
         <cache-mapping>
             <cache-name>*</cache-name>

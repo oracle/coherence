@@ -76,6 +76,14 @@ backend:
                     - "coherence-grpc/README.adoc"
                     - "coherence-grpc-proxy/README.adoc"
                     - "coherence-java-client/README.adoc"
+            - title: "Coherence Metrics"
+              pathprefix: "/coherence-metrics"
+              glyph:
+                type: "icon"
+                value: "speed"
+              items:
+                - includes:
+                    - "coherence-micrometer/README.adoc"
             - title: "Plugins"
               pathprefix: "/plugins"
               glyph:
@@ -104,7 +112,12 @@ backend:
                 type: "icon"
                 value: "library_books"
               href: "https://oracle.github.io/coherence/20.06/api/java/index.html"
-            - title: "Coherence CE .Net API"
+            - title: "Coherence CE .NET Core API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://coherence.community/14.1.1.0/api/dotnet-core/index.html"
+            - title: "Coherence CE .NET API"
               glyph:
                 type: "icon"
                 value: "library_books"

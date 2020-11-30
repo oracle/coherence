@@ -6,7 +6,11 @@
  */
 package com.tangosol.net;
 
+import com.tangosol.net.events.InterceptorRegistry;
+
 import com.tangosol.net.topic.NamedTopic;
+
+import com.tangosol.util.ResourceRegistry;
 
 /**
  * An implementation of a {@link Session} allowing applications to use
@@ -31,7 +35,12 @@ public class CoherenceSession
      */
     public CoherenceSession(Option... options)
         {
-        m_session = SessionProvider.get().createSession(options);
+        Session session = SessionProvider.get().createSession(options);
+        if (session == null)
+            {
+            throw new IllegalStateException("SessionProvider did not create a Session from the specified options");
+            }
+        m_session = session;
         }
 
     // ----- Session methods ------------------------------------------------
@@ -58,6 +67,60 @@ public class CoherenceSession
     public void close() throws Exception
         {
         m_session.close();
+        }
+
+    @Override
+    public ResourceRegistry getResourceRegistry()
+        {
+        return m_session.getResourceRegistry();
+        }
+
+    @Override
+    public InterceptorRegistry getInterceptorRegistry()
+        {
+        return m_session.getInterceptorRegistry();
+        }
+
+    @Override
+    public String getName()
+        {
+        return m_session.getName();
+        }
+
+    @Override
+    public String getScopeName()
+        {
+        return m_session.getScopeName();
+        }
+
+    @Override
+    public boolean isCacheActive(String sCacheName, ClassLoader loader)
+        {
+        return m_session.isCacheActive(sCacheName, loader);
+        }
+
+    @Override
+    public boolean isMapActive(String sMapName, ClassLoader loader)
+        {
+        return m_session.isMapActive(sMapName, loader);
+        }
+
+    @Override
+    public boolean isTopicActive(String sTopicName, ClassLoader loader)
+        {
+        return m_session.isTopicActive(sTopicName, loader);
+        }
+
+    @Override
+    public boolean isActive()
+        {
+        return m_session.isActive();
+        }
+
+    @Override
+    public Service getService(String sServiceName)
+        {
+        return m_session.getService(sServiceName);
         }
 
     // ----- data members ---------------------------------------------------

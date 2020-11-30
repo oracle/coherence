@@ -87,6 +87,8 @@ import com.tangosol.net.internal.ScopedReferenceStore;
 
 import com.tangosol.net.management.MBeanHelper;
 
+import com.tangosol.net.options.WithClassLoader;
+
 import com.tangosol.net.partition.ObservableSplittingBackingCache;
 import com.tangosol.net.partition.ObservableSplittingBackingMap;
 
@@ -233,13 +235,18 @@ public class ExtensibleConfigurableCacheFactory
     /**
      * Implementation of {@link #ensureTypedCache(String, ClassLoader, TypeAssertion)}
      */
-    private <K, V> NamedCache<K, V> ensureCacheInternal(String sCacheName,
-                                                        ClassLoader loader,
+    private <K, V> NamedCache<K, V> ensureCacheInternal(String               sCacheName,
+                                                        ClassLoader          loader,
                                                         NamedCache.Option... options)
         {
-        loader = ensureClassLoader(loader);
-
         Options<NamedCache.Option> optsNamedCache = Options.from(NamedCache.Option.class, options);
+
+        if (loader == null)
+            {
+            // No ClassLoader specified so check whether there is an option specifying one
+            // If there was no ClassLoader option the default will be the context classloader
+            loader = optsNamedCache.get(WithClassLoader.class, WithClassLoader.autoDetect()).getClassLoader();
+            }
 
         // acquire the type assertion option
         // (when non-defined the @Options.Default will be used which is raw-types)
@@ -405,16 +412,23 @@ public class ExtensibleConfigurableCacheFactory
      *
      * @return  an Object-based collection for the given name
      */
-    private <C extends NamedCollection, V> C ensureCollectionInternal(String sName, Class<C> clsCollection, ClassLoader loader,
-        ScopedReferenceStore<C> store, NamedCollection.Option... options)
+    private <C extends NamedCollection, V> C ensureCollectionInternal(String sName, Class<C> clsCollection,
+        ClassLoader loader, ScopedReferenceStore<C> store, NamedCollection.Option... options)
         {
-        loader = ensureClassLoader(loader);
-
         Options<NamedTopic.Option> optsNamedTopic = Options.from(NamedTopic.Option.class, options);
         ValueTypeAssertion<V>      constraint     = optsNamedTopic.get(ValueTypeAssertion.class);
         C                          collection;
         ParameterResolver          resolver;
         MapBuilder.Dependencies    dependencies;
+
+        if (loader == null)
+            {
+            // No ClassLoader specified so check whether there is an option specifying one
+            // If there was no ClassLoader option the default will be the context classloader
+            loader = optsNamedTopic.get(WithClassLoader.class, WithClassLoader.autoDetect()).getClassLoader();
+            }
+
+        loader = Base.ensureClassLoader(loader);
 
         while (true)
             {
@@ -1253,6 +1267,15 @@ public class ExtensibleConfigurableCacheFactory
     public boolean isCacheActive(String sCacheName, ClassLoader loader)
         {
         return f_store.getCache(sCacheName, ensureClassLoader(loader)) != null;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isTopicActive(String sTopicName, ClassLoader loader)
+        {
+        return f_storeTopics.get(sTopicName, ensureClassLoader(loader)) != null;
         }
 
     // ----- Dependencies interface -----------------------------------------

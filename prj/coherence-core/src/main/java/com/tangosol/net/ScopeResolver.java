@@ -40,4 +40,30 @@ public interface ScopeResolver
      *                                   (for example if a duplicate scope name is detected)
      */
     public String resolveScopeName(String sConfigURI, ClassLoader loader, String sScopeName);
+
+    /**
+     * Resolve the URI that identifies the cache configuration.  The URI provided
+     * may be a normal URL or Resource, or it may be a "special" default URI that
+     * is used when a specific cache configuration file is not indicated (for
+     * example, if the user requests a factory via {@link CacheFactory#getConfigurableCacheFactory()}.
+     * If the "default" URI is requested, the URI is resolved to the default
+     * cache configuration name indicated in the operational configuration file;
+     * otherwise the provided URI is returned.
+     *
+     * @param sConfigURI  the passed in URI
+     *
+     * @return the resolved URI
+     *
+     * @see CacheFactoryBuilder#URI_DEFAULT
+     */
+    default String resolveURI(String sConfigURI)
+        {
+        return sConfigURI;
+        }
+
+    /**
+     * A default implementation of a {@link ScopeResolver}
+     * that always returns passed in scope name.
+     */
+    ScopeResolver INSTANCE = (sConfigURI, loader, sScopeName) -> sScopeName;
     }
