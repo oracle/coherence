@@ -9,11 +9,13 @@ package com.oracle.coherence.maven.pof;
 import com.oracle.coherence.common.schema.ClassFileSchemaSource;
 import com.oracle.coherence.common.schema.Schema;
 import com.oracle.coherence.common.schema.SchemaBuilder;
+import com.oracle.coherence.common.schema.XmlSchemaSource;
 
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +87,7 @@ public abstract class PortableTypeMojo
         try
             {
             MavenLogger           log            = new MavenLogger(getLog());
+            SchemaBuilder         builder        = new SchemaBuilder();
             ClassFileSchemaSource source         = new ClassFileSchemaSource();
             File[]                aDirs          = getClassesDirectories();
             List<File>            listInstrument = new ArrayList<>();
@@ -101,6 +104,12 @@ public abstract class PortableTypeMojo
                     source.withClassesFromDirectory(dir)
                           .withTypeFilter(hasAnnotation(PortableType.class))
                           .withMissingPropertiesAsObject();
+
+                    File xmlSchema = Paths.get(dir.getPath(), "META-INF", "schema.xml").toFile();
+                    if (xmlSchema.exists())
+                        {
+                        builder.addSchemaSource(new XmlSchemaSource(xmlSchema));
+                        }
 
                     listInstrument.add(dir);
                     }
@@ -128,7 +137,7 @@ public abstract class PortableTypeMojo
                         .peek(f -> log.debug("Adding classes from " + f + " to schema"))
                         .forEach(dependencies::withClassesFromJarFile);
 
-                Schema schema = new SchemaBuilder()
+                Schema schema = builder
                         .addSchemaSource(dependencies)
                         .addSchemaSource(source)
                         .build();

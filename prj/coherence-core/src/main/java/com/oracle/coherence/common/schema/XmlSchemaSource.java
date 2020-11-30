@@ -67,6 +67,26 @@ public class XmlSchemaSource
     /**
      * Construct {@code XmlSchemaSource} instance.
      *
+     * @param file  the file to populate the schema from
+     *
+     * @throws IllegalArgumentException  if the specified XML file cannot be found
+     */
+    public XmlSchemaSource(File file)
+        {
+        try
+            {
+            m_inputXml = new FileInputStream(file);
+            }
+        catch (FileNotFoundException e)
+            {
+            throw new IllegalArgumentException(
+                    String.format("The specified XML file %s cannot be found", file.getAbsolutePath()), e);
+            }
+        }
+
+    /**
+     * Construct {@code XmlSchemaSource} instance.
+     *
      * @param inputXml  the input XML stream to populate the schema from
      */
     public XmlSchemaSource(InputStream inputXml)
