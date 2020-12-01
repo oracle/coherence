@@ -579,7 +579,7 @@
         <artifactId>jandex</artifactId>
         <version>${jandex.version}</version>
       </dependency>
-      
+
       <!-- rxjava -->
       <dependency>
         <groupId>io.reactivex.rxjava3</groupId>
@@ -816,7 +816,7 @@
       Note that this property has to be named 'revision' and that it has
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
-    <revision>20.06-SNAPSHOT</revision>
+    <revision>21.06-SNAPSHOT</revision>
 
     <!-- version prefix used for cluster compatibility -->
     <project.version.prefix>14.1.1</project.version.prefix>
@@ -1113,7 +1113,7 @@
 
                   props.setProperty("project.version.official",
                           major + "." + minor + (micro ? "." + micro : ""))
-                  
+
                   props.setProperty("project.version.next",
                           nextRelease.format(pattern) + ".0")
 
