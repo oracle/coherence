@@ -1103,16 +1103,21 @@ public class LiteTxnProcessorTests
         */
         public Object process(Entry entry)
             {
+            String sName = Thread.currentThread().getName();
+
             f_cInvocations.decrementAndGet();
 
-            Eventually.assertThat(invoking(this).dereference(f_cInvocations), lessThanOrEqualTo(0));
+            Eventually.assertDeferred(() -> dereference(f_cInvocations), lessThanOrEqualTo(0));
 
             BinaryEntry              binEntry  = (BinaryEntry) entry;
             BackingMapManagerContext context   = binEntry.getContext();
             Converter                converter = context.getKeyToInternalConverter();
 
+            Base.log("Thread: " + sName + " Before getBackingMapEntry cache=" + m_sCache + " key=" + m_oKey);
             BinaryEntry binEntryOther = (BinaryEntry)
                     context.getBackingMapContext(m_sCache).getBackingMapEntry(converter.convert(m_oKey));
+            Base.log("Thread: " + sName + " After getBackingMapEntry cache=" + m_sCache + " key=" + m_oKey);
+
 
             Integer NValue      = (Integer) binEntry     .getValue();
             Integer NValueOther = (Integer) binEntryOther.getValue();
@@ -1123,7 +1128,7 @@ public class LiteTxnProcessorTests
             binEntry     .setValue(NValue);
             binEntryOther.setValue(NValueOther);
 
-            System.out.println("Thread: " + Thread.currentThread().getName() + " Returning value " + NValue + " from DeadlockProcessor.process(cacheName=" +
+            Base.log("Thread: " + sName + " Returning value " + NValue + " from DeadlockProcessor.process(cacheName=" +
                 m_sCache + ",oKey=" + m_oKey + ", value=" + NValue +")");
             return NValue;
             }
