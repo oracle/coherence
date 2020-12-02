@@ -291,7 +291,7 @@ public class CacheData
 
                         data.setColumn(UNIT_CALCULATOR, sUnitCalculator);
                         long cMemoryUsageBytes = Long.parseLong(getFirstMemberOfArray(cacheDetails, "unitFactor"))
-                                            * cacheDetails.get("units").asInt();
+                                            * cacheDetails.get("units").asLong();
                         data.setColumn(MEMORY_USAGE_BYTES, cMemoryUsageBytes);
                         data.setColumn(MEMORY_USAGE_MB, (int) (cMemoryUsageBytes / 1024 / 1024));
 
