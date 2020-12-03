@@ -109,30 +109,30 @@ public class ReadWriteBackingMap
     /**
     * Construct a ReadWriteBackingMap based on a CacheLoader (CacheStore).
     *
-    * @param ctxService            the context provided by the CacheService
-    *                              which is using this backing map
-    * @param mapInternal           the ObservableMap used to store the data
-    *                              internally in this backing map
-    * @param mapMisses             the Map used to cache CacheStore misses
-    *                              (optional)
-    * @param loader                the CacheLoader responsible for the
-    *                              persistence of the cached data (optional)
-    * @param fReadOnly             pass true is the specified loader is in fact
-    *                              a CacheStore that needs to be used only for
-    *                              read operations; changes to the cache will
-    *                              not be persisted
-    * @param cWriteBehindSeconds   number of seconds to write if there is a
-    *                              CacheStore; zero disables write-behind
-    *                              caching, which (combined with !fReadOnly)
-    *                              implies write-through
-    * @param dflRefreshAheadFactor the interval before an entry expiration time
-    *                              (expressed as a percentage of the internal
-    *                              cache expiration interval) during which an
-    *                              asynchronous load request for the
-    *                              entry will be scheduled; zero disables
-    *                              refresh-ahead; only applicable when
-    *                              the <tt>mapInternal</tt> parameter is an
-    *                              instance of {@link ConfigurableCacheMap}
+    * @param ctxService             the context provided by the CacheService
+    *                               which is using this backing map
+    * @param mapInternal            the ObservableMap used to store the data
+    *                               internally in this backing map
+    * @param mapMisses              the Map used to cache CacheStore misses
+    *                               (optional)
+    * @param loader                 the CacheLoader responsible for the
+    *                               persistence of the cached data (optional)
+    * @param fReadOnly              pass true is the specified loader is in fact
+    *                               a CacheStore that needs to be used only for
+    *                               read operations; changes to the cache will
+    *                               not be persisted
+    * @param cWriteBehindSeconds    number of seconds to write if there is a
+    *                               CacheStore; zero disables write-behind
+    *                               caching, which (combined with !fReadOnly)
+    *                               implies write-through
+    * @param dflRefreshAheadFactor  the interval before an entry expiration time
+    *                               (expressed as a percentage of the internal
+    *                               cache expiration interval) during which an
+    *                               asynchronous load request for the
+    *                               entry will be scheduled; zero disables
+    *                               refresh-ahead; only applicable when
+    *                               the <tt>mapInternal</tt> parameter is an
+    *                               instance of {@link ConfigurableCacheMap}
     */
     public ReadWriteBackingMap(BackingMapManagerContext ctxService, ObservableMap mapInternal,
             Map mapMisses, CacheLoader loader, boolean fReadOnly, int cWriteBehindSeconds,
@@ -145,30 +145,30 @@ public class ReadWriteBackingMap
     /**
     * Construct a ReadWriteBackingMap based on a BinaryEntryStore.
     *
-    * @param ctxService            the context provided by the CacheService
-    *                              which is using this backing map
-    * @param mapInternal           the ObservableMap used to store the data
-    *                              internally in this backing map
-    * @param mapMisses             the Map used to cache CacheStore misses
-    *                              (optional)
-    * @param storeBinary           the BinaryEntryStore responsible for the
-    *                              persistence of the cached data (optional)
-    * @param fReadOnly             pass true is the specified loader is in fact
-    *                              a CacheStore that needs to be used only for
-    *                              read operations; changes to the cache will
-    *                              not be persisted
-    * @param cWriteBehindSeconds   number of seconds to write if there is a
-    *                              CacheStore; zero disables write-behind
-    *                              caching, which (combined with !fReadOnly)
-    *                              implies write-through
-    * @param dflRefreshAheadFactor the interval before an entry expiration time
-    *                              (expressed as a percentage of the internal
-    *                              cache expiration interval) during which an
-    *                              asynchronous load request for the
-    *                              entry will be scheduled; zero disables
-    *                              refresh-ahead; only applicable when
-    *                              the <tt>mapInternal</tt> parameter is an
-    *                              instance of {@link ConfigurableCacheMap}
+    * @param ctxService             the context provided by the CacheService
+    *                               which is using this backing map
+    * @param mapInternal            the ObservableMap used to store the data
+    *                               internally in this backing map
+    * @param mapMisses              the Map used to cache CacheStore misses
+    *                               (optional)
+    * @param storeBinary            the BinaryEntryStore responsible for the
+    *                               persistence of the cached data (optional)
+    * @param fReadOnly              pass true is the specified loader is in fact
+    *                               a CacheStore that needs to be used only for
+    *                               read operations; changes to the cache will
+    *                               not be persisted
+    * @param cWriteBehindSeconds    number of seconds to write if there is a
+    *                               CacheStore; zero disables write-behind
+    *                               caching, which (combined with !fReadOnly)
+    *                               implies write-through
+    * @param dflRefreshAheadFactor  the interval before an entry expiration time
+    *                               (expressed as a percentage of the internal
+    *                               cache expiration interval) during which an
+    *                               asynchronous load request for the
+    *                               entry will be scheduled; zero disables
+    *                               refresh-ahead; only applicable when
+    *                               the <tt>mapInternal</tt> parameter is an
+    *                               instance of {@link ConfigurableCacheMap}
     * @since Coherence 3.6
     */
     public ReadWriteBackingMap(BackingMapManagerContext ctxService, ObservableMap mapInternal,
@@ -182,31 +182,31 @@ public class ReadWriteBackingMap
     /**
     * Initialize the ReadWriteBackingMap.
     *
-    * @param ctxService            the context provided by the CacheService
-    *                              which is using this backing map
-    * @param mapInternal           the ObservableMap used to store the data
-    *                              internally in this backing map
-    * @param mapMisses             the Map used to cache CacheStore misses
-    *                              (optional)
-    * @param loader                the object responsible for the persistence
-    *                              of the cached data (optional)
-    * @param storeBinary           the BinaryEntryStore to wrap
-    * @param fReadOnly             pass true is the specified loader is in fact
-    *                              a CacheStore that needs to be used only for
-    *                              read operations; changes to the cache will
-    *                              not be persisted
-    * @param cWriteBehindSeconds   number of seconds to write if there is a
-    *                              CacheStore; zero disables write-behind
-    *                              caching, which (combined with !fReadOnly)
-    *                              implies write-through
-    * @param dflRefreshAheadFactor the interval before an entry expiration time
-    *                              (expressed as a percentage of the internal
-    *                              cache expiration interval) during which an
-    *                              asynchronous load request for the
-    *                              entry will be scheduled; zero disables
-    *                              refresh-ahead; only applicable when
-    *                              the <tt>mapInternal</tt> parameter is an
-    *                              instance of {@link ConfigurableCacheMap}
+    * @param ctxService             the context provided by the CacheService
+    *                               which is using this backing map
+    * @param mapInternal            the ObservableMap used to store the data
+    *                               internally in this backing map
+    * @param mapMisses              the Map used to cache CacheStore misses
+    *                               (optional)
+    * @param loader                 the object responsible for the persistence
+    *                               of the cached data (optional)
+    * @param storeBinary            the BinaryEntryStore to wrap
+    * @param fReadOnly              pass true is the specified loader is in fact
+    *                               a CacheStore that needs to be used only for
+    *                               read operations; changes to the cache will
+    *                               not be persisted
+    * @param cWriteBehindSeconds    number of seconds to write if there is a
+    *                               CacheStore; zero disables write-behind
+    *                               caching, which (combined with !fReadOnly)
+    *                               implies write-through
+    * @param dflRefreshAheadFactor  the interval before an entry expiration time
+    *                               (expressed as a percentage of the internal
+    *                               cache expiration interval) during which an
+    *                               asynchronous load request for the
+    *                               entry will be scheduled; zero disables
+    *                               refresh-ahead; only applicable when
+    *                               the <tt>mapInternal</tt> parameter is an
+    *                               instance of {@link ConfigurableCacheMap}
     */
     private void init(BackingMapManagerContext ctxService, ObservableMap mapInternal,
             Map mapMisses, CacheLoader loader, BinaryEntryStore storeBinary,
@@ -287,7 +287,7 @@ public class ReadWriteBackingMap
     * synchronous CacheStore operations are rethrown to the calling thread; if
     * false, exceptions are logged.
     *
-    * @param fRethrow true to indicate that exceptions should be rethrown
+    * @param fRethrow  true to indicate that exceptions should be rethrown
     */
     public void setRethrowExceptions(boolean fRethrow)
         {
@@ -320,7 +320,7 @@ public class ReadWriteBackingMap
     * <p>
     * This method has no effect if refresh-ahead is disabled.
     *
-    * @param dflRefreshAheadFactor the new refresh-ahead factor
+    * @param dflRefreshAheadFactor  the new refresh-ahead factor
     *
     * @see #getRefreshAheadFactor
     */
@@ -445,7 +445,7 @@ public class ReadWriteBackingMap
     * <p>
     * This method has no effect if write-behind is disabled.
     *
-    * @param dflWriteBatchFactor the new write-batch factor
+    * @param dflWriteBatchFactor  the new write-batch factor
     *
     * @see #getWriteBatchFactor
     */
@@ -493,7 +493,7 @@ public class ReadWriteBackingMap
     * <p>
     * This method has not effect if write-behind is not enabled.
     *
-    * @param cSecs the new write-behind delay in seconds
+    * @param cSecs  the new write-behind delay in seconds
     */
     public void setWriteBehindSeconds(int cSecs)
         {
@@ -518,7 +518,7 @@ public class ReadWriteBackingMap
     * <p>
     * This method has not effect if write-behind is not enabled.
     *
-    * @param cMillis the new write-behind delay in milliseconds
+    * @param cMillis  the new write-behind delay in milliseconds
     *
     * @since Coherence 3.4
     */
@@ -581,7 +581,7 @@ public class ReadWriteBackingMap
     * <p>
     * This method has not effect if write-behind is not enabled.
     *
-    * @param cThreshold the new write-behind requeue threshold
+    * @param cThreshold  the new write-behind requeue threshold
     */
     public void setWriteRequeueThreshold(int cThreshold)
         {
@@ -778,7 +778,7 @@ public class ReadWriteBackingMap
     * Removes the mapping for this key from this map if present.
     * Expensive: updates both the underlying cache and the local cache.
     *
-    * @param oKey key whose mapping is to be removed from the map
+    * @param oKey  key whose mapping is to be removed from the map
     *
     * @return previous value associated with specified key, or <tt>null</tt>
     *         if there was no mapping for key.  A <tt>null</tt> return can
@@ -899,10 +899,10 @@ public class ReadWriteBackingMap
      * value CacheMap.EXPIRY_DEFAULT and the internal map is not an
      * instance of {@link CacheMap} then an exception will be thrown.
      *
-     * @param binKey   the key in internal format
-     * @param binValue the value in internal format; null if the value should be
-     *                 cached as "missing"
-     * @param cExpiry  the cache entry expiry value
+     * @param binKey    the key in internal format
+     * @param binValue  the value in internal format; null if the value should be
+     *                  cached as "missing"
+     * @param cExpiry   the cache entry expiry value
      *
      * @return any previous value tht was mapped to the key.
      *
@@ -1065,11 +1065,11 @@ public class ReadWriteBackingMap
     /**
     * Associates the specified value with the specified key in this map.
     *
-    * @param oKey    key with which the specified value is to be associated
-    * @param oValue  value to be associated with the specified key
-    * @param cMillis the number of milliseconds until the entry will expire;
-    *                pass zero to use the cache's default ExpiryDelay settings;
-    *                pass -1 to indicate that the entry should never expire
+    * @param oKey     key with which the specified value is to be associated
+    * @param oValue   value to be associated with the specified key
+    * @param cMillis  the number of milliseconds until the entry will expire;
+    *                 pass zero to use the cache's default ExpiryDelay settings;
+    *                 pass -1 to indicate that the entry should never expire
     *
     * @return previous value associated with specified key, or <tt>null</tt>
     *         if there was no mapping for key
@@ -1082,7 +1082,7 @@ public class ReadWriteBackingMap
     /**
     * Retrieve values for all the specified keys.
     *
-    * @param colKeys a collection of keys that may be in the named cache
+    * @param colKeys  a collection of keys that may be in the named cache
     *
     * @return a Map of keys to values for the specified keys passed in
     *         <tt>colKeys</tt>
@@ -1400,9 +1400,9 @@ public class ReadWriteBackingMap
     /**
     * An actual implementation for the extended put() method.
     *
-    * @param oKey    key with which the specified value is to be associated
-    * @param oValue  value to be associated with the specified key
-    * @param cMillis the number of milliseconds until the entry will expire
+    * @param oKey     key with which the specified value is to be associated
+    * @param oValue   value to be associated with the specified key
+    * @param cMillis  the number of milliseconds until the entry will expire
     *
     * @return previous value associated with specified key, or <tt>null</tt>
     *         if there was no mapping for key.
@@ -1663,7 +1663,7 @@ public class ReadWriteBackingMap
         * collection contains at least one element <tt>e</tt> such that
         * <tt>(o==null ? e==null : o.equals(e))</tt>.
         *
-        * @param o object to be checked for containment in this collection
+        * @param o  object to be checked for containment in this collection
         *
         * @return <tt>true</tt> if this collection contains the specified element
         */
@@ -2170,7 +2170,7 @@ public class ReadWriteBackingMap
     * <tt>true</tt> if the given object is also a map and the two maps
     * represent the same mappings.
     *
-    * @param o object to be compared for equality with this map
+    * @param o  object to be compared for equality with this map
     *
     * @return <tt>true</tt> if the specified object is equal to this map
     */
@@ -2580,7 +2580,7 @@ public class ReadWriteBackingMap
         /**
         * Create a new <tt>ReadLatch</tt> for the specified key.
         *
-        * @param oKey the key that is being loaded by the refresh-ahead thread
+        * @param oKey  the key that is being loaded by the refresh-ahead thread
         */
         protected ReadLatch(Object oKey)
             {
@@ -2763,7 +2763,7 @@ public class ReadWriteBackingMap
         * Add a key to the queue. This method has no effect if the key is
         * already queued.
         *
-        * @param oKey the key object
+        * @param oKey  the key object
         *
         * @return true if the key was added to the queue; false otherwise
         */
@@ -2804,8 +2804,8 @@ public class ReadWriteBackingMap
         * queue and return it without removing it from the queue, or null if
         * the specified wait time has passed).
         *
-        * @param  cMillis  the number of ms to wait for a key in the queue; pass
-        *                  -1 to wait indefinitely or 0 for no wait
+        * @param cMillis  the number of ms to wait for a key in the queue; pass
+        *                 -1 to wait indefinitely or 0 for no wait
         *
         * @return the next item in the queue, or null if the wait time has passed
         *         or if the backing map is no longer active
@@ -4039,8 +4039,8 @@ public class ReadWriteBackingMap
     * the cache returned by {@link #getInternalConfigurableCache()} is null or
     * non-expiring.
     *
-    * @param dflRefreshAheadFactor the refresh-ahead factor expressed as a
-    *                              percentage of the internal cache expiry
+    * @param dflRefreshAheadFactor  the refresh-ahead factor expressed as a
+    *                               percentage of the internal cache expiry
     */
     protected void configureReadThread(double dflRefreshAheadFactor)
         {
@@ -6244,9 +6244,9 @@ public class ReadWriteBackingMap
         // ----- helpers ------------------------------------------------
 
         /**
-         * Return a {@link Span.Builder} for the specified operation
+         * Return a {@link Span.Builder} for the specified operation.
          *
-         * @param sOperation  the operation
+         * @param sOperation  the operation name
          *
          * @return the {@link Span.Builder}
          */
@@ -6259,7 +6259,8 @@ public class ReadWriteBackingMap
         /**
          * Return a {@link Span.Builder} for a given operation on an entry.
          *
-         * @param entry the entry
+         * @param sOperation  the operation name
+         * @param entry       the entry
          *
          * @return the {@link Span.Builder}
          */
@@ -6274,24 +6275,28 @@ public class ReadWriteBackingMap
             }
 
         /**
-         * Return a {@link Span.Builder} for a given operation on a set of entries
+         * Return a {@link Span.Builder} for a given operation on a set of entries.
          *
-         * @param setEntry the set of entries
+         * @param sOperation  the operation name
+         * @param setEntries  the set of entries
          *
          * @return the {@link Span.Builder}
          */
-        protected Span.Builder newSpan(String sOperation, Set<Entry> setEntry)
+        protected Span.Builder newSpan(String sOperation, Set<Entry> setEntries)
             {
             Span.Builder builder  = newSpan(sOperation);
             Span         spanLast = TracingHelper.getActiveSpan();
 
-            for (Entry entry : setEntry)
+            if (spanLast != null)
                 {
-                Span span = entry.getParentSpan();
-                if (span != null && span != spanLast)
+                for (Entry entry : setEntries)
                     {
-                    builder  = builder.withAssociation(Span.Association.FOLLOWS_FROM.key(), span.getContext());
-                    spanLast = span;
+                    Span span = entry.getParentSpan();
+                    if (span != null && span != spanLast)
+                        {
+                        builder = builder.withAssociation(Span.Association.FOLLOWS_FROM.key(), span.getContext());
+                        spanLast = span;
+                        }
                     }
                 }
 

@@ -8,8 +8,6 @@
 package com.tangosol.util;
 
 
-import com.tangosol.internal.tracing.TracingHelper;
-
 import java.io.Serializable;
 
 import java.util.EventListener;
@@ -310,12 +308,12 @@ public class Listeners
     /**
     * Return a comma separated list of the listener class names.
     *
-    * @return a comma separated list of the listener class names, or null if Tracing is not enabled
+    * @return a comma separated list of the listener class names
     */
     protected String getListenerClassNames()
         {
         String sNames = m_sListenerNames;
-        if (sNames == null && TracingHelper.isEnabled())
+        if (sNames == null)
             {
             synchronized (this)
                 {

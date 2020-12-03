@@ -7,20 +7,21 @@
 package com.tangosol.net.events.internal;
 
 import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.tracing.Scope;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.TracingHelper;
-import com.tangosol.net.CacheFactory;
+
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventInterceptor;
+
 import com.tangosol.net.events.internal.AbstractEventDispatcher.EventStats;
 
 import com.tangosol.util.Base;
 
 import java.util.Collection;
 import java.util.Iterator;
-
 
 /**
  * Abstract base implementation of {@link Event}.
@@ -106,6 +107,7 @@ public abstract class AbstractEvent<T extends Enum<T>>
         {
         EventDispatcher dispatcher = m_dispatcher;
         EventStats      stats      = null;
+        boolean         fTracing   = TracingHelper.isEnabled();
 
         if (dispatcher instanceof AbstractEventDispatcher)
             {
@@ -120,10 +122,18 @@ public abstract class AbstractEvent<T extends Enum<T>>
         for (Iterator<? extends EventInterceptor<?>> iter = getIterator(); iter.hasNext(); )
             {
             EventInterceptor interceptor = iter.next();
-            Span  span  = TracingHelper.newSpan("process", this)
-                    .withMetadata("interceptor", interceptor.getClass().getName())
-                    .startSpan();
-            try (Scope ignored = TracingHelper.getTracer().withSpan(span))
+            Span             span        = null;
+            Scope            scope       = null;
+
+            if (fTracing)
+                {
+                span  = TracingHelper.newSpan("process", this)
+                        .withMetadata("interceptor", interceptor.getClass().getName())
+                        .startSpan();
+                scope = TracingHelper.getTracer().withSpan(span);
+                }
+
+            try
                 {
                 // dispatch the event
                 interceptor.onEvent(this);
@@ -139,7 +149,10 @@ public abstract class AbstractEvent<T extends Enum<T>>
                 if (isVetoable())
                     {
                     String sMsg = "Exception vetoed by \"" + interceptor + "\".";
-                    span.log(sMsg);
+                    if (fTracing)
+                        {
+                        span.log(sMsg);
+                        }
                     // Drain the iterator so no one else can re-start processing
                     while (iter.hasNext())
                         {
@@ -154,7 +167,11 @@ public abstract class AbstractEvent<T extends Enum<T>>
                 }
             finally
                 {
-                span.end();
+                if (fTracing)
+                    {
+                    scope.close();
+                    span.end();
+                    }
                 }
             }
         }
