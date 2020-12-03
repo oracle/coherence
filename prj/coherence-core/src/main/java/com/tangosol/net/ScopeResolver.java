@@ -62,6 +62,18 @@ public interface ScopeResolver
         }
 
     /**
+     * Returns {@code true} if any scope set in the defaults section
+     * of the XML configuration file should take precedence over
+     * any scope decoded from the URI.
+     *
+     * @return {@code true} to use any scope defined in the XML configuration file
+     */
+    default boolean useScopeInConfig()
+        {
+        return true;
+        }
+
+    /**
      * A default implementation of a {@link ScopeResolver}
      * that always returns passed in scope name.
      */

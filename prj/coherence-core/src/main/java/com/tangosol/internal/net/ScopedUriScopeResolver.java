@@ -34,6 +34,28 @@ import java.net.URI;
 public class ScopedUriScopeResolver
         implements ScopeResolver
     {
+    /**
+     * Create a {@link ScopedUriScopeResolver} that will not override
+     * any scope defined in the cache configuration XML.
+     */
+    public ScopedUriScopeResolver()
+        {
+        this(true);
+        }
+
+    /**
+     * Create a {@link ScopedUriScopeResolver} that may override
+     * any scope defined in the cache configuration XML.
+     *
+     * @param fUseScopeInConfig {@code true} to use any scope defined in the cache
+     *                          configuration XML or {@code false} to use the scope
+     *                          decoded from the URI
+     */
+    public ScopedUriScopeResolver(boolean fUseScopeInConfig)
+        {
+        this.f_fUseScopeInConfig = fUseScopeInConfig;
+        }
+
     @Override
     public String resolveScopeName(String sConfigURI, ClassLoader loader, String sScopeName)
         {
@@ -61,6 +83,12 @@ public class ScopedUriScopeResolver
             return sQuery;
             }
         return sConfigURI;
+        }
+
+    @Override
+    public boolean useScopeInConfig()
+        {
+        return f_fUseScopeInConfig;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -106,4 +134,12 @@ public class ScopedUriScopeResolver
      * The format is "scoped://scope-name?configURI"
      */
     public static final String SCOPED_PATTERN = "%s://%s?%s";
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * {@code true} to use any scope defined in the cache configuration XML
+     * or {@code false} to use the scope decoded from the URI.
+     */
+    private final boolean f_fUseScopeInConfig;
     }

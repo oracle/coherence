@@ -458,6 +458,19 @@ public class ScopedCacheFactoryBuilder
         XmlElement    xmlConfig    = loadConfigFromURI(sResolvedURI, loader);
         String        sScope       = resolver == null ? null : resolver.resolveScopeName(sConfigURI, loader, null);
 
+        if (sScope != null && !Coherence.DEFAULT_SCOPE.equals(sScope) && !resolver.useScopeInConfig())
+            {
+            XmlElement xmlDefaults = xmlConfig.getElement("defaults");
+            if (xmlDefaults != null)
+                {
+                XmlElement xmlScope = xmlDefaults.getElement("scope-name");
+                if (xmlScope != null)
+                    {
+                    xmlScope.setString(sScope);
+                    }
+                }
+            }
+
         return instantiateFactory(loader, xmlConfig,
             getConfigurableCacheFactoryConfig(), null, sScope);
         }

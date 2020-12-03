@@ -711,7 +711,7 @@ public class Coherence
             return;
             }
         s_fInitialized = true;
-        CacheFactory.setCacheFactoryBuilder(new ScopedCacheFactoryBuilder(new ScopedUriScopeResolver()));
+        CacheFactory.setCacheFactoryBuilder(new ScopedCacheFactoryBuilder(new ScopedUriScopeResolver(false)));
         }
 
     /**
