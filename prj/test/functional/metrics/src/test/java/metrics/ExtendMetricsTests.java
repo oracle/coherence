@@ -8,29 +8,21 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
+import com.tangosol.internal.net.cluster.DefaultMemberIdentity;
+
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
-import com.tangosol.internal.util.processor.CacheProcessors;
-
 import com.tangosol.io.FileHelper;
-import com.tangosol.io.pof.PortableObject;
-import com.tangosol.io.pof.PofReader;
-import com.tangosol.io.pof.PofWriter;
-
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.net.partition.SimpleStrategyMBean;
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.InvocationService;
 
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.UUID;
-import com.tangosol.util.ValueExtractor;
-import com.tangosol.util.aggregator.Count;
-import com.tangosol.util.filter.AlwaysFilter;
 
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -41,16 +33,12 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -63,7 +51,6 @@ import static org.hamcrest.CoreMatchers.is;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-
 
 import static org.junit.Assert.assertThat;
 
@@ -93,7 +80,7 @@ public class ExtendMetricsTests
      * Initialize the test class.
      */
     @BeforeClass
-    public static void startup()
+    public static void _startup()
         {
         try
             {
@@ -118,11 +105,12 @@ public class ExtendMetricsTests
         props.put("com.sun.management.jmxremote", "true");
         props.put("coherence.management.extendedmbeanname", "true");
         props.put("coherence.management", "all");
-        //props.put("coherence.management", "dynamic");
+        props.put("coherence.role", "Server");
 
         // extend client properties
         System.setProperty("coherence.management.extendedmbeanname", "true");
         System.setProperty("coherence.member", "ExtendMetricsTestsClient");
+        System.setProperty("coherence.role", "TestClient");
         System.setProperty("coherence.management.remote", "true");
         System.setProperty("coherence.management.all", "true");
         System.setProperty("com.sun.management.jmxremote", "true");
@@ -275,6 +263,9 @@ public class ExtendMetricsTests
             Map<String, String> connectionTags = new LinkedHashMap<>();
             connectionTags.put("cluster", cache.getCacheService().getCluster().getClusterName());
             connectionTags.put("member", "ExtendMetricsTestsProxy");
+            connectionTags.put("clientRole", "TestClient");
+            connectionTags.put("clientProcessName", new DefaultMemberIdentity().getProcessName());
+            connectionTags.put("clientAddress","127.0.0.1");
 
             String currentMetric = null;
 

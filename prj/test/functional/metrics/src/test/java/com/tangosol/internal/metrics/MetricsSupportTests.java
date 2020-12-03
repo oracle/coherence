@@ -658,6 +658,9 @@ public class MetricsSupportTests
         mapTags.put("name", "ExtendTcpProxyService");
         mapTags.put("remoteAddress", null);
         mapTags.put("remotePort", null);
+        mapTags.put("clientAddress", "127.0.0.1");
+        mapTags.put("clientProcessName", null);
+        mapTags.put("clientRole", null);
 
         assertMetricsWithoutAfterGC(adapter.getMetrics(),
                                     mapTags,
