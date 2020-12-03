@@ -433,15 +433,15 @@ public class Coherence
 
         try
             {
-            if (f_mapServer.isEmpty())
-                {
-                startInternal();
-                }
-
             CompletableFuture.runAsync(() ->
                 {
                 try
                     {
+                    if (f_mapServer.isEmpty())
+                        {
+                        startInternal();
+                        }
+
                     f_mapServer.values().forEach(holder -> holder.getServer().waitForServiceStart());
                     f_futureStarted.complete(null);
                     }
