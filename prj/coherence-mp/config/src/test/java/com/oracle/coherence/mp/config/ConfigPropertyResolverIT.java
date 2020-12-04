@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.is;
  *
  * @author Aleks Seovic  2019.10.11
  */
-class ConfigPropertyResolverTest
+class ConfigPropertyResolverIT
     {
     @BeforeAll
     static void setup()

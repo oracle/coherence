@@ -95,6 +95,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>io.helidon.microprofile.bundles</groupId>
+      <artifactId>helidon-microprofile-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.helidon.microprofile.config</groupId>
       <artifactId>helidon-microprofile-config</artifactId>
       <scope>test</scope>

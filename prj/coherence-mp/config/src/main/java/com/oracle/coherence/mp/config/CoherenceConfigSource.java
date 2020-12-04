@@ -6,19 +6,32 @@
  */
 package com.oracle.coherence.mp.config;
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.event.Activated;
 import com.oracle.coherence.event.MapName;
 import com.oracle.coherence.event.ScopeName;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedMap;
 
+import com.tangosol.net.events.EventDispatcher;
+import com.tangosol.net.events.EventDispatcherAwareInterceptor;
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.annotation.CacheLifecycleEvents;
+import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.application.LifecycleEvent;
 
+import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
+import com.tangosol.net.events.partition.cache.CacheLifecycleEventDispatcher;
+import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 import com.tangosol.util.MapEvent;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -51,7 +64,7 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
  */
 @ApplicationScoped
 public class CoherenceConfigSource
-        implements ConfigSource
+        implements ConfigSource, EventDispatcherAwareInterceptor<CacheLifecycleEvent>
     {
     // ---- ConfigSource interface ------------------------------------------
 
@@ -87,7 +100,19 @@ public class CoherenceConfigSource
     @Override
     public String getValue(String key)
         {
-        return m_configMap == null ? null : m_configMap.get(key);
+        if (m_configMap == null)
+            {
+            return null;
+            }
+        CacheService service = m_configMap.getService();
+        if (service instanceof PartitionedCache)
+            {
+            if (((PartitionedCache) service).isServiceThread(true))
+                {
+                return null;
+                }
+            }
+        return m_configMap.get(key);
         }
 
     @Override
@@ -108,12 +133,20 @@ public class CoherenceConfigSource
      */
     public String setValue(String sKey, String sValue)
         {
-        if (m_configMap != null)
+        if (m_configMap == null)
             {
-            return m_configMap.put(sKey, sValue);
+            return null;
             }
 
-        return null;
+        CacheService service = m_configMap.getService();
+        if (service instanceof PartitionedCache)
+            {
+            if (((PartitionedCache) service).isServiceThread(true))
+                {
+                return null;
+                }
+            }
+        return m_configMap.put(sKey, sValue);
         }
 
     // ---- property change notification ------------------------------------
@@ -127,9 +160,45 @@ public class CoherenceConfigSource
 
     // ---- lifecycle observer ----------------------------------------------
 
+//    void onSystemCache(@Observes @ScopeName(Coherence.SYSTEM_SCOPE) CacheLifecycleEvent event)
+//        {
+//        if (event.getType() == CacheLifecycleEvent.Type.CREATED)
+//            {
+//            m_configMap = ((PartitionedCacheDispatcher) event.getEventDispatcher()).getBackingMapContext()
+//                    .getManagerContext().getCacheService().ensureCache(MAP_NAME, Classes.getContextClassLoader());
+//            }
+//        }
+
     void onSystemScopeActivated(@Observes @ScopeName(Coherence.SYSTEM_SCOPE) @Activated LifecycleEvent e)
         {
-        m_configMap = e.getConfigurableCacheFactory().ensureCache(MAP_NAME, null);
+//        m_configMap = e.getConfigurableCacheFactory().ensureCache(MAP_NAME, null);
+        ConfigurableCacheFactory ccf = e.getConfigurableCacheFactory();
+        ccf.getInterceptorRegistry().registerEventInterceptor(this);
+        CompletableFuture.runAsync(() -> ccf.ensureCache(MAP_NAME, null));
+        }
+
+    @Override
+    public void introduceEventDispatcher(String sIdentifier, EventDispatcher dispatcher)
+        {
+        if (dispatcher instanceof CacheLifecycleEventDispatcher && ((CacheLifecycleEventDispatcher) dispatcher).getCacheName().equals(MAP_NAME))
+            {
+            dispatcher.addEventInterceptor("$SYS:Config", this);
+            }
+        }
+
+    @Override
+    public void onEvent(CacheLifecycleEvent event)
+        {
+        if (!event.getCacheName().equals(MAP_NAME))
+            {
+            return;
+            }
+
+        if (event.getType() == CacheLifecycleEvent.Type.CREATED)
+            {
+            m_configMap = ((PartitionedCacheDispatcher) event.getEventDispatcher()).getBackingMapContext()
+                    .getManagerContext().getCacheService().ensureCache(MAP_NAME, Classes.getContextClassLoader());
+            }
         }
 
     /**

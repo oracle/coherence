@@ -10,8 +10,11 @@ import com.tangosol.coherence.config.EnvironmentVariableResolver;
 import com.tangosol.coherence.config.SystemPropertyResolver;
 
 import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.spi.ConfigBuilder;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
+import org.eclipse.microprofile.config.spi.ConfigSource;
+
+import java.util.Arrays;
+import java.util.stream.StreamSupport;
 
 /**
  * An implementation of Coherence property resolvers that reads system
@@ -30,13 +33,19 @@ public class ConfigPropertyResolver
 
     /**
      * Construct {@code ConfigPropertyResolver} instance.
+     * <p>
+     * This class is loaded by the {@link java.util.ServiceLoader} so
+     * must have a default constructor.
      */
     public ConfigPropertyResolver()
         {
         ConfigProviderResolver resolver = ConfigProviderResolver.instance();
-        ConfigBuilder builder = resolver.getBuilder();
-        m_config = builder
-                .addDefaultSources()
+        ConfigSource[] aSource = StreamSupport.stream(resolver.getConfig().getConfigSources().spliterator(), false)
+                .filter(p -> !CoherenceConfigSource.class.isAssignableFrom(p.getClass()))
+                .toArray(ConfigSource[]::new);
+
+        m_config = resolver.getBuilder()
+                .withSources(aSource)
                 .withSources(new CoherenceDefaultsConfigSource())
                 .build();
         }
@@ -46,7 +55,7 @@ public class ConfigPropertyResolver
     @Override
     public String getEnv(String name)
         {
-        return m_config.getOptionalValue(name, String.class).orElse(null);
+        return getProperty(name);
         }
 
     // ---- SystemPropertyResolver interface --------------------------------

@@ -7,7 +7,6 @@
 
 package com.oracle.coherence.mp.config;
 
-import com.tangosol.net.CacheFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

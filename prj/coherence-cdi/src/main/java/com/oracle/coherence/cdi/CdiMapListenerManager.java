@@ -9,6 +9,9 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.event.AnnotatedMapListenerManager;
 import com.oracle.coherence.event.Created;
 
+import com.tangosol.net.Coherence;
+import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.MapListener;
@@ -18,6 +21,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 
 import javax.inject.Inject;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Registers discovered CDI observer-based {@link MapListener}s when the cache is
@@ -41,6 +45,9 @@ public class CdiMapListenerManager
 
     private void registerCacheListeners(@Observes @Created CacheLifecycleEvent event)
         {
-        registerListeners(event.getCacheName(), event.getScopeName(), event.getSessionName(), event.getServiceName());
+        // We need to add the listeners async' as we're on the event dispatcher thread for the same cache
+        CompletableFuture.runAsync(() ->registerListeners(event.getCacheName(), event.getScopeName(),
+                event.getSessionName(), event.getServiceName()));
+
         }
     }

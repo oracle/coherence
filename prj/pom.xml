@@ -234,11 +234,6 @@
         <version>${helidon.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.helidon.metrics</groupId>
-        <artifactId>helidon-metrics</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
         <groupId>io.helidon.microprofile.config</groupId>
         <artifactId>helidon-microprofile-config</artifactId>
         <version>${helidon.version}</version>
@@ -260,37 +255,12 @@
       </dependency>
       <dependency>
         <groupId>io.helidon.microprofile.grpc</groupId>
-        <artifactId>helidon-microprofile-grpc-metrics</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.microprofile.grpc</groupId>
         <artifactId>helidon-microprofile-grpc-client</artifactId>
         <version>${helidon.version}</version>
       </dependency>
       <dependency>
         <groupId>io.helidon.grpc</groupId>
-        <artifactId>helidon-grpc-metrics</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.grpc</groupId>
-        <artifactId>io.grpc</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.grpc</groupId>
         <artifactId>helidon-grpc-core</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.tracing</groupId>
-        <artifactId>helidon-tracing-jaeger</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.microprofile.cdi</groupId>
-        <artifactId>helidon-microprofile-cdi</artifactId>
         <version>${helidon.version}</version>
       </dependency>
 

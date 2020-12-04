@@ -6,10 +6,10 @@
  */
 package com.oracle.coherence.mp.config;
 
-import com.oracle.coherence.common.base.Logger;
-
 import java.util.Collections;
 import java.util.ServiceLoader;
+import java.util.logging.Logger;
+
 import java.util.stream.Collectors;
 
 import javax.enterprise.inject.Instance;
@@ -28,6 +28,11 @@ import org.eclipse.microprofile.config.spi.ConfigSourceProvider;
 public class CdiConfigSourceProvider
         implements ConfigSourceProvider
     {
+    // We use JUL logger and not Coherence logger because using Coherence logging will
+    // cause Coherence to be initialised too early before the configuration sources are
+    // all in place.
+    private static final Logger LOG = Logger.getLogger(CdiConfigSourceProvider.class.getName());
+
     public Iterable<ConfigSource> getConfigSources(ClassLoader forClassLoader)
         {
         try
@@ -35,21 +40,20 @@ public class CdiConfigSourceProvider
             Instance<ConfigSource> sources = CDI.current().select(ConfigSource.class);
             if (sources.isUnsatisfied())
                 {
-                Logger.config("No CDI-managed configuration sources were discovered");
+                LOG.config("No CDI-managed configuration sources were discovered");
                 }
             else
                 {
                 String sSourceNames = sources.stream()
                         .map(ConfigSource::getName)
                         .collect(Collectors.joining(", "));
-                Logger.config("Registering CDI-managed configuration sources: " + sSourceNames);
+                LOG.config("Registering CDI-managed configuration sources: " + sSourceNames);
                 }
-
             return sources;
             }
         catch (IllegalStateException cdiNotAvailable)
             {
-            Logger.info("CDI is not available. No CDI-managed configuration sources will be used.");
+            LOG.info("CDI is not available. No CDI-managed configuration sources will be used.");
             return Collections.emptySet();
             }
         }

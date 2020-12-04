@@ -6,8 +6,11 @@
  */
 package com.oracle.coherence.event;
 
+import com.oracle.coherence.common.base.Exceptions;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapEventTransformer;
@@ -20,6 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +48,10 @@ public class AnnotatedMapListenerManager
     protected void registerListeners(String sCacheName, String sEventScope, String sEventSession, String sEventService)
         {
         Set<AnnotatedMapListener<?, ?>> setListeners = getMapListeners(removeScope(sEventService), sCacheName);
+
+        Session session = Coherence.findSession(sEventSession)
+              .orElseThrow(() -> new IllegalStateException("Cannot find a Session with name " + sEventSession));
+        NamedCache cache = session.getCache(sCacheName);
 
         for (AnnotatedMapListener<?, ?> listener : setListeners)
             {
@@ -79,18 +88,21 @@ public class AnnotatedMapListenerManager
                     filter = new MapEventTransformerFilter(filter, transformer);
                     }
 
-                boolean fLite = listener.isLite();
-                Session session = Coherence.findSession(sEventSession)
-                           .orElseThrow(() -> new IllegalStateException("Cannot find a Session with name " + sSession));
-
-                NamedCache cache = session.getCache(sCacheName);
-                if (listener.isSynchronous())
+                try
                     {
-                    cache.addMapListener(listener.synchronous(), filter, fLite);
+                    boolean fLite = listener.isLite();
+                    if (listener.isSynchronous())
+                        {
+                        cache.addMapListener(listener.synchronous(), filter, fLite);
+                        }
+                    else
+                        {
+                        cache.addMapListener(listener, filter, fLite);
+                        }
                     }
-                else
+                catch (Exception e)
                     {
-                    cache.addMapListener(listener, filter, fLite);
+                    throw Exceptions.ensureRuntimeException(e);
                     }
                 }
             }
