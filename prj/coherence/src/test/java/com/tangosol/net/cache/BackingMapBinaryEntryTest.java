@@ -47,7 +47,7 @@ public class BackingMapBinaryEntryTest
         long ldt2   = Base.getSafeTimeMillis() + entry.getExpiry();
         long ldtOff = Math.abs(ldt1 - ldt2);
 
-        assertTrue("Expiry is off by " + ldtOff,  ldtOff <= 1L);
+        assertTrue("Expiry is off by " + ldtOff,  ldtOff <= 5L);
 
         entry.expire(-19L);
         assertEquals(CacheMap.EXPIRY_NEVER, entry.getExpiry());
