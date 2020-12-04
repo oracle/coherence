@@ -1,0 +1,29 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Overview
+:description: Coherence APIs
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Overview
+
+Coherence has a number of core API features that are documented in this section.
+
+== Core APIs
+
+[PILLARS]
+====
+[CARD]
+.Bootstrap
+[icon=fa-rocket,link=docs/core/02_bootstrap.adoc]
+--
+Boot-strapping a Coherence application.
+--
+
+====
+

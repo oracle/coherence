@@ -68,6 +68,13 @@ Browse the Coherence CE API Docs.
 [PILLARS]
 ====
 [CARD]
+.Core
+[icon=fa-cubes,link=docs/core/01_overview.adoc]
+--
+Coherence Core APIs.
+--
+
+[CARD]
 .CDI
 [icon=extension,link=coherence-cdi-server/README.adoc]
 --

@@ -48,6 +48,14 @@ backend:
               items:
                 - includes:
                     - "docs/about/*.adoc"
+            - title: "Core"
+              pathprefix: "/core"
+              glyph:
+                type: "icon"
+                value: "fa-cubes"
+              items:
+                - includes:
+                    - "docs/core/*.adoc"
             - title: "CDI"
               pathprefix: "/coherence-cdi-server"
               glyph:
