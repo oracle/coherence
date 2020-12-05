@@ -523,23 +523,6 @@ public abstract class AbstractEntryProcessorTests
         }
 
     /**
-     * Test to ensure ValueUpdater is Serializable.
-     */
-    @Test
-    public void testBug32168588()
-        {
-        NamedCache cache = getNamedCache();
-        cache.clear();
-        TestValue testValue = new TestValue();
-        cache.put(1, testValue);
-        assertEquals(cache.size(), 1);
-        assertEquals(cache.get(1), testValue);
-        cache.invoke(1, Processors.update(TestValue::setLongValue, 1L));
-        testValue = (TestValue) cache.get(1);
-        assertEquals(testValue.getLongValue().longValue(), 1L);
-        }
-
-    /**
     * Test of the {@link NumberIncrementor} on a Byte property.
     */
     @Test
