@@ -8,8 +8,6 @@
 package com.tangosol.util;
 
 
-import java.io.Serializable;
-
 /**
 * ValueUpdater is used to update an object's state.
 *
@@ -19,9 +17,7 @@ import java.io.Serializable;
 * @author jh/gg 2005.10.25
 * @since Coherence 3.1
 */
-@FunctionalInterface
 public interface ValueUpdater<T, U>
-        extends Serializable
     {
     /**
     * Update the state of the passed target object using the passed value.

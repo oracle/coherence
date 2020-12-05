@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -467,23 +466,6 @@ public abstract class AbstractEntryProcessorTests
         assertTrue("Size=" + cache.size(), cache.size() == 0);
 
         cache.release();
-        }
-
-    /**
-     * Test to ensure ValueUpdater is Serializable.
-     */
-    @Test
-    public void testBug32168588()
-        {
-        NamedCache cache = getNamedCache();
-        cache.clear();
-        TestValue testValue = new TestValue();
-        cache.put(1, testValue);
-        assertEquals(cache.size(), 1);
-        assertEquals(cache.get(1), testValue);
-        cache.invoke(1, Processors.update(TestValue::setLongValue, 1L));
-        testValue = (TestValue) cache.get(1);
-        assertEquals(testValue.getLongValue().longValue(), 1L);
         }
 
     /**
