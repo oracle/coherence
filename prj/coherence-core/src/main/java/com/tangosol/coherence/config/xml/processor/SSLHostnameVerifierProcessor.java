@@ -7,10 +7,13 @@
 package com.tangosol.coherence.config.xml.processor;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
+import com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder.HostnameVerifierBuilder;
+
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
+
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
@@ -25,26 +28,23 @@ import javax.net.ssl.HostnameVerifier;
  */
 @XmlSimpleName("hostname-verifier")
 public class SSLHostnameVerifierProcessor
-        implements ElementProcessor<ParameterizedBuilder<HostnameVerifier>>
+        implements ElementProcessor<HostnameVerifierBuilder>
     {
     /**
      * {@inheritDoc}
      */
     @Override
-    public ParameterizedBuilder<HostnameVerifier> process(ProcessingContext context, XmlElement xmlElement)
+    public HostnameVerifierBuilder process(ProcessingContext context, XmlElement xmlElement)
             throws ConfigurationException
         {
         if (XmlHelper.hasElement(xmlElement, "hostname-verifier"))
             {
             xmlElement = xmlElement.getElement("hostname-verifier");
             }
-
-        if (xmlElement == null || XmlHelper.isInstanceConfigEmpty(xmlElement))
-            {
-            return null;
-            }
-
-        // assume a custom builder has been provided
-        return (ParameterizedBuilder<HostnameVerifier>)ElementProcessorHelper.processParameterizedBuilder(context, xmlElement);
+        HostnameVerifierBuilder builder = new HostnameVerifierBuilder();
+        context.inject(builder, xmlElement);
+        builder.setBuilder((ParameterizedBuilder<HostnameVerifier>)
+                                   ElementProcessorHelper.processParameterizedBuilder(context, xmlElement));
+        return builder;
         }
     }

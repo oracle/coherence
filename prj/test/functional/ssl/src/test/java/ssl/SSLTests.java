@@ -340,6 +340,55 @@ public class SSLTests
         }
 
     @Test
+    public void testClientDefaultHostnameVerifierConfig()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client-hostname-default.xml");
+        EchoServer server = createServer("provider-config-guest.xml");
+
+        final String sMsg = "HELLO!";
+
+        server.start();
+        try
+            {
+            assertEquals(server.getConnectionCount(), 0);
+            client.echo(sMsg);
+            fail("SSL exception expected");
+            }
+        catch (SSLException e)
+            {
+            // expected
+            }
+        finally
+            {
+            client.disconnect();
+            server.stop();
+            }
+        }
+
+    @Test
+    public void testClientAllowHostnameVerifierConfig()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client-hostname-allow.xml");
+        EchoServer server = createServer("provider-config-guest.xml");
+
+        final String sMsg = "HELLO!";
+
+        server.start();
+        try
+            {
+            assertEquals(server.getConnectionCount(), 0);
+            client.echo(sMsg);
+            }
+        finally
+            {
+            client.disconnect();
+            server.stop();
+            }
+        }
+
+    @Test
     public void testServerHostnameVerifierConfig()
             throws IOException
         {
@@ -358,6 +407,82 @@ public class SSLTests
         catch (IOException e)
             {
             // expected
+            }
+        finally
+            {
+            client.disconnect();
+            server.stop();
+            }
+        }
+
+    @Test
+    public void testServerDefaultHostnameVerifierConfig()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client-trust.xml");
+        EchoServer server = createServer("provider-config-server-hostname-default.xml");
+
+        final String sMsg = "HELLO!";
+
+        server.start();
+        try
+            {
+            assertEquals(server.getConnectionCount(), 0);
+            client.echo(sMsg);
+            fail("IO exception expected");
+            }
+        catch (IOException e)
+            {
+            // expected
+            }
+        finally
+            {
+            client.disconnect();
+            server.stop();
+            }
+        }
+
+    @Test
+    public void testServerRejectHostnameVerifierConfig()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client-trust.xml");
+        EchoServer server = createServer("provider-config-server-hostname-default.xml");
+
+        final String sMsg = "HELLO!";
+
+        server.start();
+        try
+            {
+            assertEquals(server.getConnectionCount(), 0);
+            client.echo(sMsg);
+            fail("IO exception expected");
+            }
+        catch (IOException e)
+            {
+            // expected
+            }
+        finally
+            {
+            client.disconnect();
+            server.stop();
+            }
+        }
+
+    @Test
+    public void testServerAcceptHostnameVerifierConfig()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client-trust.xml");
+        EchoServer server = createServer("provider-config-server-hostname-accept.xml");
+
+        final String sMsg = "HELLO!";
+
+        server.start();
+        try
+            {
+            assertEquals(server.getConnectionCount(), 0);
+            client.echo(sMsg);
             }
         finally
             {

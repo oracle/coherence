@@ -1271,6 +1271,50 @@
         </xsd:complexType>
     </xsd:element>
 
+    <xsd:simpleType name="hostname-verifier-action-base-type">
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value="allow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Allow all connections, even where the URL's host
+                        name and the server's identification
+                        host name do not match.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="default">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Use the default hostname verifier.
+                        Host name verification passes if the host name in the certificate matches
+                        the local machine’s host name, and if the URL specifies localhost, 127.0.0.1,
+                        or the default IP address of the local machine.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="hostname-verifier-action-type">
+        <xsd:simpleContent>
+            <xsd:extension base="hostname-verifier-action-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="action" type="hostname-verifier-action-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The action that the default hostname verifier should
+                take if during the SSL handshake, if the URL's host name
+                and the server's identification host name do not match.
+
+                Used in: hostname-verifier
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="hostname-verifier">
         <xsd:annotation>
             <xsd:documentation>
@@ -1282,11 +1326,16 @@
                 will call back to this instance to determine if the connection
                 should be allowed.
 
+                The default action is to allow connections.
+
                 Used in: ssl
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
-            <xsd:group ref="instance" />
+            <xsd:choice>
+                <xsd:element ref="action" />
+                <xsd:group ref="instance" />
+            </xsd:choice>
             <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
             <xsd:anyAttribute namespace="##other" processContents="lax"/>
         </xsd:complexType>
