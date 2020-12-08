@@ -867,7 +867,6 @@ public abstract class AbstractTestInfrastructure
             }
 
         optionsByType.add(JvmOptions.include("-server",
-                                             "-XX:CompileCommand=exclude,com/tangosol/coherence/component/util/daemon/queueProcessor/service/Grid.onInterval",
                                              "-XX:+HeapDumpOnOutOfMemoryError",
                                              "-XX:HeapDumpPath=" + System.getProperty("test.project.dir") + File.separatorChar + "target",
                                              "-XX:+ExitOnOutOfMemoryError"));
