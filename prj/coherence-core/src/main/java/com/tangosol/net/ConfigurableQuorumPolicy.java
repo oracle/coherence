@@ -789,7 +789,17 @@ public abstract class ConfigurableQuorumPolicy
                         String sAddress = address.getAddress().getHostAddress();
                         if (!setAddresses.contains(sAddress))
                             {
-                            listReasons = addReason(listReasons, "address not present " + sAddress, "");
+                            if (m_fLogged)
+                                {
+                                listReasons = addReason(listReasons, "Address in <recovery-hosts> is not present: " + sAddress, "");
+                                }
+                            else
+                                {
+                                listReasons = addReason(listReasons, "Address in <recovery-hosts> is not present: " + sAddress,
+                                        "Persistence recovery will be deferred until a member from the missing host(s) joins the service.\n" +
+                                               "To commence recovery regardless of the missing hosts use the forceRecovery operation on the PersistenceManagerMBean.");
+                                m_fLogged = true;
+                                }
                             }
                         }
                     }
@@ -1281,6 +1291,11 @@ public abstract class ConfigurableQuorumPolicy
          * If set to true, indicates a dynamic active recovery strategy.
          */
         protected boolean m_fDynamic;
+
+        /**
+         * Only log once.
+         */
+        private boolean m_fLogged = false;
         }
 
 
