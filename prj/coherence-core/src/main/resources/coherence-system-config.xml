@@ -20,7 +20,7 @@ It will be loaded automatically when CDI integration is used.
 
   <caching-scheme-mapping>
     <cache-mapping>
-      <cache-name>sys$config</cache-name>
+      <cache-name>sys$config*</cache-name>
       <scheme-name>config</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
