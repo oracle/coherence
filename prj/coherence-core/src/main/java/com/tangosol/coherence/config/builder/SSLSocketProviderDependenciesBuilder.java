@@ -6,8 +6,10 @@
  */
 package com.tangosol.coherence.config.builder;
 
+import com.oracle.coherence.common.internal.net.ssl.SSLCertUtility;
 import com.oracle.coherence.common.net.SocketProvider;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ParameterList;
 import com.tangosol.coherence.config.xml.processor.PasswordProviderBuilderProcessor;
 
@@ -18,6 +20,7 @@ import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.PasswordProvider;
 import com.tangosol.net.SocketProviderFactory;
 import com.tangosol.net.security.SecurityProvider;
@@ -26,7 +29,9 @@ import com.tangosol.util.Base;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -35,6 +40,7 @@ import java.security.SecureRandom;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -45,6 +51,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
@@ -178,7 +185,7 @@ public class SSLSocketProviderDependenciesBuilder
      * @param bldr HostnameVerifierBuilder
      */
     @Injectable("hostname-verifier")
-    public void setHostnameVerifierBuilder(ParameterizedBuilder<HostnameVerifier> bldr)
+    public void setHostnameVerifierBuilder(HostnameVerifierBuilder bldr)
         {
         m_bldrHostnameVerifier = bldr;
         }
@@ -406,7 +413,7 @@ public class SSLSocketProviderDependenciesBuilder
             if (bldrHostnameVerifier != null)
                 {
                 deps.setHostnameVerifier(bldrHostnameVerifier.realize(null, null, null));
-                sbDesc.append(", hostname-verifier=enabled");
+                sbDesc.append(", hostname-verifier=custom");
                 }
 
             // intialize a random number source
@@ -895,6 +902,198 @@ public class SSLSocketProviderDependenciesBuilder
         }
 
     /**
+     * HostnameVerifier dependencies
+     */
+    static public class HostnameVerifierBuilder
+            implements ParameterizedBuilder<HostnameVerifier>
+        {
+        /**
+         * The action to take on a name mismatch.
+         *
+         * @param sAction action to take on a name mismatch
+         */
+        @Injectable("action")
+        public void setAction(String sAction)
+            {
+            m_sAction = sAction;
+            }
+
+        /**
+         * The action to take on a name mismatch.
+         *
+         * @return the action to take on a name mismatch
+         */
+        public String getAction()
+            {
+            return m_sAction;
+            }
+
+        @Injectable("instance")
+        public void setBuilder(ParameterizedBuilder<HostnameVerifier> builder)
+            {
+            m_builder = builder;
+            }
+
+        @Override
+        public HostnameVerifier realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
+            {
+            if (m_builder != null)
+                {
+                // A custom verifier was specified so use it
+                return m_builder.realize(resolver, loader, listParameters);
+                }
+            else if (ACTION_DEFAULT.equals(m_sAction))
+                {
+                // the action was set to "default" - so use the default verifier
+                return new DefaultHostnameVerifier();
+                }
+            // the action is "allow" or no builder or action was specified - so allow all connections
+            return (s, sslSession) -> true;
+            }
+
+        // ----- data members ------------------------------------------------
+
+        private String m_sAction;
+
+        private ParameterizedBuilder<HostnameVerifier> m_builder;
+        }
+
+    /**
+     * The default {@link HostnameVerifier} to use if none is specified in the configuration.
+     * <p>
+     * This {@link HostnameVerifier} verifies the CommonName attribute of the peer certificate's SubjectDN or
+     * the DNSNames of the peer certificate's SubjectAlternativeNames extension against the url hostname.
+     * The certificate attribute must (case insensitively) match the url hostname.
+     * <p>
+     * The SubjectDN CommonName attribute is verified first, and if successful, the SubjectAlternativeNames
+     * attributes are not verified.  If the peer certificate doesn't have a SubjectDN, or the SubjectDN doesn't have
+     * a CommonName attribute, then the SubjectAlternativeName attributes of type DNSNames are compared to the
+     * url hostname. The first successful comparison to a DNSName causes this method to return true without comparing
+     * any other DNSNames.
+     * <p>
+     * To verify successfully the url hostname must be case-insensitively equal to the certificate attribute being
+     * compared.
+     * <p>
+     * Alternatively, this method will return true if one of the following is true:
+     * <ul>
+     * <li>the SSL session's peer certificate's SubjectDN CommonName attribute is equal to
+     *     the local machine's hostname AND the local machine's hostname or ip address
+     *     matches the url hostname parameter.
+     * <li>the url hostname parameter can be verified to be a loopback address or the local hostname.
+     * </ul>
+     */
+    static class DefaultHostnameVerifier
+            implements HostnameVerifier
+        {
+        @Override
+        public boolean verify(String sUrlHostname, SSLSession sslSession)
+            {
+            boolean fMatched = false;
+
+            if (sUrlHostname != null && sUrlHostname.length() > 0 && sslSession != null)
+                {
+                // non-wildcard SAN DNS Names
+                Collection<String> colSubAltNames = SSLCertUtility.getDNSSubjAltNames(sslSession, false, true);
+                String             sCertHostname  = SSLCertUtility.getCommonName(sslSession);
+                if (colSubAltNames != null && colSubAltNames.size() > 0)
+                    {
+                    fMatched = VERIFY_CN_AFTER_SAN
+                            ? doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames) || doVerify(sUrlHostname, sCertHostname)
+                            : doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames);
+                    }
+                else
+                    {
+                    // seek match against CN if there are no non-wildcard DNS Names
+                    fMatched = doVerify(sUrlHostname, sCertHostname);
+                    }
+                }
+
+            return fMatched;
+            }
+
+        private boolean doVerify(String sUrlHostname, String sCertHostname)
+            {
+            if (sCertHostname == null || sCertHostname.length() == 0)
+                {
+                return false;
+                }
+
+            if (sUrlHostname.equalsIgnoreCase(sCertHostname))
+                {
+                return true;
+                }
+
+            try
+                {
+                // get this machine's local host's host name
+                InetAddress addrLocalhost = InetAddressHelper.getLocalHost();
+                String      sHostname     = addrLocalhost.getHostName();
+
+                // see if the cert's hostname matches this machine's local host's host name
+                if (sHostname.equalsIgnoreCase(sCertHostname))
+                    {
+                    // it does.  if the url maps to this machine, then we're the same
+
+                    // first see if the local hostname happens to be an ipaddress
+                    if (addrLocalhost.getHostAddress().equalsIgnoreCase(sUrlHostname))
+                        {
+                        return true;
+                        }
+
+                    // need to figure out if the urlhostname is "localhost" or "127.0.0.1"
+                    // there are two approaches:
+                    //
+                    // a) look for these strings explicitly
+                    //    positive : quick - avoids DNS
+                    //    negative : what if a machine configures the loopback addr a different way?
+                    //
+                    // b) map the urlhostname to an InetAddress and see if it's the loopback addr
+                    //    positive : doesn't matter how machine's loopback addr is configured
+                    //    negative : uses DNS (but this should be fast since whoever called the
+                    //               hostname verifier probably already did something with the url
+                    //    negative : is it possible to hack DNS to make another ipaddress look
+                    //               like localhost?  I'm assuming the answer is NO.
+                    //
+                    // The decision is that if the server allows reverse DNS lookups, use (b)
+                    // since it covers cases where the customer can have an alternate hostname
+                    // for localhost.  If reverse DNS lookups are not allowed, then use (a).
+                    //
+                    // Note that we do this check as a last resort - this should help with
+                    // performance.
+
+                    if (LOCALHOST_HOSTNAME.equalsIgnoreCase(sUrlHostname) ||
+                            LOCALHOST_IPADDRESS.equalsIgnoreCase(sUrlHostname))
+                        {
+                        return true;
+                        }
+                    }
+                }
+            catch (UnknownHostException e)
+                {
+                CacheFactory.err("HostnameVerifier: " + e.getMessage());
+                }
+            return false;
+            }
+
+        // match against non-wildcard DNS names
+        private boolean doDNSSubjAltNamesVerify(String urlhostname, Collection<String> dnsAltNames)
+            {
+            if (dnsAltNames != null && (!dnsAltNames.isEmpty()))
+                {
+                // peer cert has DNS subject alternative names, check them.
+                for (String dnsName : dnsAltNames)
+                    {
+                    if (dnsName.equalsIgnoreCase(urlhostname))
+                        {
+                        return true;
+                        }
+                    }
+                }
+            return false;
+            }
+        }
+
+    /**
      * Provider dependencies
      */
     static public class ProviderBuilder
@@ -1041,8 +1240,27 @@ public class SSLSocketProviderDependenciesBuilder
         private USAGE        m_usage    = USAGE_DEFAULT;
         }
 
+    // ----- constants ------------------------------------------------------
 
-    // ----- data members ----------------------------------------------------
+    /**
+     * The value of the hostname-verifier action to allow all connections.
+     */
+    public static final String ACTION_ALLOW = "allow";
+
+    /**
+     * The value of the hostname-verifier action to use the default verifier.
+     */
+    public static final String ACTION_DEFAULT = "default";
+
+    // RFC 6125 indicates not to seek a match against CN if SAN DNS Names are present
+    // Setting this system property to true allows CN to be checked if SAN is present but has no match
+    private final static boolean VERIFY_CN_AFTER_SAN = Config.getBoolean("coherence.security.ssl.verifyCNAfterSAN", true);
+
+    private final static String LOCALHOST_HOSTNAME = "localhost";
+
+    private final static String LOCALHOST_IPADDRESS = "127.0.0.1";
+
+    // ----- data members ---------------------------------------------------
 
     /**
      * Delegate socket provider builder
@@ -1057,7 +1275,7 @@ public class SSLSocketProviderDependenciesBuilder
     /**
      * Hostname verifier builder
      */
-    private ParameterizedBuilder<HostnameVerifier> m_bldrHostnameVerifier;
+    private HostnameVerifierBuilder m_bldrHostnameVerifier;
 
     /**
      * Provider buidler
