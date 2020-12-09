@@ -6,6 +6,8 @@
  */
 package com.sun.tools.visualvm.modules.coherence;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import com.sun.tools.visualvm.modules.coherence.datasource.CoherenceClusterDataSource;
 
 import com.sun.tools.visualvm.modules.coherence.helper.HttpRequestSender;
@@ -47,10 +49,8 @@ import java.awt.event.ActionListener;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.management.ObjectName;
 import javax.swing.ImageIcon;
 import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
@@ -97,28 +97,26 @@ public class VisualVMView
         {
         super(dataSource, "Oracle Coherence", new ImageIcon(Utilities.loadImage(IMAGE_PATH, true)).getImage(), 60,
                 false);
-        requestSender = new HttpRequestSender(dataSource.getUrl());
+        String   sUrl =  dataSource.getUrl();
+        requestSender = new HttpRequestSender(sUrl);
 
         // BUG 29213475 - Check for a valid HttpRequestSender URL before we start the refresh
-        if (requestSender instanceof HttpRequestSender)
+        String sMessage = Localization.getLocalText("ERR_Invalid_URL", new String[] { sUrl });
+        try
             {
-            String sMessage = Localization.getLocalText("ERR_Invalid_URL");
-            try
-                {
-                Set<ObjectName> allClusters = requestSender.getAllClusters();
-                if (allClusters == null || allClusters.size() == 0)
-                    {
-                    LOGGER.warning(sMessage);
-                    DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(sMessage));
-                    }
-                }
-            catch (Exception e)
+            JsonNode rootClusterMembers = ((HttpRequestSender) requestSender).getListOfClusterMembers();
+            if (rootClusterMembers == null)
                 {
                 LOGGER.warning(sMessage);
-                DialogDisplayer.getDefault().notify(new NotifyDescriptor.Message(sMessage));
-                throw new RuntimeException(sMessage, e);
+                DialogDisplayer.getDefault().notify(
+                    new NotifyDescriptor.Message(sMessage));
                 }
+            }
+        catch (Exception e)
+            {
+            LOGGER.warning(sMessage);
+            DialogDisplayer.getDefault().notify(new NotifyDescriptor.Message(sMessage));
+            throw new RuntimeException(sMessage, e);
             }
         }
 
