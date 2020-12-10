@@ -991,7 +991,6 @@
     <javadoc.locale>en_US</javadoc.locale>
     <javadoc.window.title>Java API Reference for Oracle&#174; Coherence Community Edition</javadoc.window.title>
     <javadoc.doctitle>Coherence CE ${project.version.official} API</javadoc.doctitle>
-    <doclint.check>reference</doclint.check>
   </properties>
 
   <build>
@@ -1738,7 +1737,7 @@
           <breakiterator>true</breakiterator>
           <source>${java.version}</source>
 
-          <doclint>${doclint.check}</doclint>
+          <doclint>none</doclint>
 
           <skip>${skip.docs}</skip>
 
