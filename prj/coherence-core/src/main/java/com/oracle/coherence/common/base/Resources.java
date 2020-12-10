@@ -96,7 +96,7 @@ public abstract class Resources
      * ClassLoader or the following Classes:
      * <ul>
      * <li>The Thread Context {@link ClassLoader}</li>
-     * <li>The {@link ClassLoader} used to load {@link ClassLoaderHelper}, which represents the Coherence Class Loader</li>
+     * <li>The {@link ClassLoader} used to load {@link Classes}, which represents the Coherence Class Loader</li>
      * <li>The System {@link ClassLoader}</li>
      * </ul>
      * <p/>

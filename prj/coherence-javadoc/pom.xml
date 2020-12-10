@@ -408,6 +408,8 @@
                   <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
                   <reportOutputDirectory>${project.build.directory}/javadoc</reportOutputDirectory>
                   <skip>false</skip>
+                  <doclint>${doclint.check}</doclint>
+
                   <sourceFileIncludes>
                     <include>com/oracle/coherence/common/base/*.java</include>
                     <include>com/oracle/coherence/cdi/**/*.java</include>

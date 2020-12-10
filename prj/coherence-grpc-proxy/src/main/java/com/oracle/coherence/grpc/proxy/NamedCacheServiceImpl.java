@@ -1291,7 +1291,7 @@ public class NamedCacheServiceImpl
      * to the {@link StreamObserver}.
      *
      * @param holder        the {@link CacheRequestHolder} containing the request
-     * @param entries       a {@link Stream<Entry>} of entries
+     * @param entries       a {@link Stream} of entries
      * @param observer      the {@link StreamObserver} to receive the results
      * @param fDeserialize  a flag indicating whether the {@link Binary} values should be deserialized
      */
