@@ -10,8 +10,6 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
-
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.NamedCache;
@@ -32,14 +30,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.runners.Parameterized;
+import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import org.junit.runners.Parameterized;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import static tracing.TestingUtils.validateReporter;
 
@@ -97,15 +95,14 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
         propsMain.setProperty("tangosol.coherence.role",                     "storage");
         propsMain.setProperty("tangosol.coherence.distributed.localstorage", "true");
         propsMain.setProperty("java.security.debug",                         "access,domain,failure");
+        propsMain.setProperty("tangosol.coherence.cacheconfig",              f_sCacheConfig);
 
-        m_memberStorageNode = startCacheServer(m_testName.getMethodName() + "-storage",
-                                               "jaeger", f_sCacheConfig, propsMain);
-
-        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(EXPECTED_CLUSTER_SIZE));
+        m_memberStorageNode = startMember(2, propsMain);
         }
 
     // ----- methods from AbstractCacheOperationsTracingTest ----------------
 
+    @SuppressWarnings("rawtypes")
     @Override
     protected NamedCache getNamedCache()
         {
@@ -130,6 +127,7 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
     /**
      * Validate generated spans for a {@code GET} operation.
      */
+    @Test
     public void testGetTracing()
         {
         super.testGetTracing(() ->
@@ -150,6 +148,7 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
     /**
      * Validate generated spans for a {@code PUT} operation.
      */
+    @Test
     public void testPutTracing()
         {
         super.testPutTracing(() ->
@@ -170,6 +169,7 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
     /**
      * Validate generated spans for a {@code REMOVE} operation.
      */
+    @Test
     public void testRemoveTracing()
         {
         super.testRemoveTracing(() ->
@@ -284,6 +284,7 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
             if (spansFound[i] == null)
                 {
                 final String searchFor = sOpNames[i];
+
                 spansFound[i] = spans.stream().filter(
                         span -> Base.equals(searchFor, span.getOperationName())).findFirst().orElse(null);
                 }
@@ -318,9 +319,9 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
          */
         public RemoteSpanValidator(String[] sOpsNames, boolean fInternalMessage, MutationType mutationType)
             {
-            f_sOpNames      = sOpsNames;
-            f_fInternalMessage  = fInternalMessage;
-            f_sMutationType = mutationType;
+            f_sOpNames         = sOpsNames;
+            f_fInternalMessage = fInternalMessage;
+            f_sMutationType    = mutationType;
             }
 
         // ----- RemoteCallable interface -----------------------------------
@@ -329,9 +330,9 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
         @Override
         public Void call() throws Exception
             {
-            List<JaegerSpan> spans = new ArrayList<>(AdaptiveTracerFactory.getReporter().getSpans());
-            JaegerSpan[] spansOfInterest = validateOpsPresent(f_sOpNames, spans);
-            System.out.println("Captured Spans: " + spans);
+            List<JaegerSpan> spans           = new ArrayList<>(AdaptiveTracerFactory.getReporter().getSpans());
+            JaegerSpan[]     spansOfInterest = validateOpsPresent(f_sOpNames, spans);
+
             Arrays.stream(spansOfInterest).forEach(
                     span -> validateTagsForSpan(span, false, f_sMutationType));
             return null;
@@ -360,6 +361,7 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
     /**
      * Enums for expected cache event mutation types.
      */
+    @SuppressWarnings("unused")
     protected enum MutationType
         {
         /**
@@ -409,9 +411,4 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
                     {"java", "cache-config.xml"},
                     {"pof",  "cache-config-pof.xml"}
                 };
-
-    /**
-     * Expected cluster size after all storage members have joined the cluster.
-     */
-    protected static final int EXPECTED_CLUSTER_SIZE = 2;
     }
