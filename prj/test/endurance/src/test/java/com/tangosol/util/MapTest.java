@@ -16,6 +16,7 @@ import com.tangosol.net.cache.SimpleSerializationMap;
 import com.tangosol.net.cache.SerializationCache;
 import com.tangosol.net.cache.SerializationPagedCache;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Comparator;
@@ -411,6 +412,7 @@ public class MapTest
     /**
     * Test SerializationPagedCache.
     */
+    @Ignore("COH-22510")
     @Test
     public void testSerializationPagedCache()
         {
@@ -418,9 +420,6 @@ public class MapTest
         testObservableMap(new SerializationPagedCache(instantiateTestBinaryStoreManager(), 10, 3600));
         testMultithreadedMap(new SerializationPagedCache(instantiateTestBinaryStoreManager(), 1000, 5));
         }
-
-
-
 
     // ----- regression tests -----------------------------------------------
 
@@ -616,5 +615,4 @@ public class MapTest
             }
         return map;
         }
-
     }

@@ -21,6 +21,10 @@
   <artifactId>coherence-endurance-tests</artifactId>
   <name>Coherence Endurance Tests</name>
 
+  <properties>
+  <test.heap.max>2048</test.heap.max>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -66,7 +70,6 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <skip>true</skip>
-          <argLine>-Xms8g -Xms8g</argLine>
         </configuration>
       </plugin>
 
@@ -104,7 +107,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven.surefire.plugin.version}</version>
         <configuration>
           <skip>true</skip>
         </configuration>
@@ -122,15 +124,19 @@
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
               <skip>false</skip>
+              <argLine>-Xmx8g -Xms8g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./</argLine>
+              <systemPropertyVariables>
+                <test.heap.max>${test.heap.max}</test.heap.max>
+              </systemPropertyVariables>
             </configuration>
           </plugin>
 
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>${maven.surefire.plugin.version}</version>
             <configuration>
               <skip>false</skip>
+              <argLine>-Xmx8g -Xms8g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./</argLine>
             </configuration>
           </plugin>
         </plugins>
