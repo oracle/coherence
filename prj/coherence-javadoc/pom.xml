@@ -28,6 +28,9 @@
     <!-- the location of the source to javadoc -->
     <javadoc.src>${project.build.directory}/src</javadoc.src>
 
+    <!-- javadoc configuration -->
+    <doclint.check>reference</doclint.check>
+
     <!-- ignore default javadoc execution -->
     <skip.docs>true</skip.docs>
 
@@ -395,6 +398,7 @@
             <configuration>
               <stylesheetfile>${stylesheet.file}</stylesheetfile>
               <sourcepath>${javadoc.src}</sourcepath>
+              <doclint>${doclint.check}</doclint>
             </configuration>
 
             <executions>
