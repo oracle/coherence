@@ -5,24 +5,29 @@
     http://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Overview
-:description: Coherence APIs
+:description: Coherence Core Improvements
 :keywords: coherence, java, documentation
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Overview
 
-Coherence has a number of core API features that are documented in this section.
-
-== Core APIs
+Coherence has a number of core improvements documented in this section.
 
 [PILLARS]
 ====
 [CARD]
-.Bootstrap
+.Bootstrap API
 [icon=fa-rocket,link=docs/core/02_bootstrap.adoc]
 --
 Boot-strapping a Coherence application.
+--
+
+[CARD]
+.Parallel Recovery
+[icon=library_books,link=docs/core/03_parallel_recovery.adoc]
+--
+Recover data from Coherence's Persistence mechanism in parallel.
 --
 
 ====

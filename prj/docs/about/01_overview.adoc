@@ -71,7 +71,7 @@ Browse the Coherence CE API Docs.
 .Core
 [icon=fa-cubes,link=docs/core/01_overview.adoc]
 --
-Coherence Core APIs.
+Coherence Core Improvements.
 --
 
 [CARD]
