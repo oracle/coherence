@@ -14,6 +14,7 @@ import com.tangosol.net.NamedCache;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.WebTarget;
 
@@ -25,6 +26,7 @@ import org.glassfish.jersey.media.sse.InboundEvent;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.Matchers.is;
 
 
@@ -51,18 +53,8 @@ public abstract class AbstractServerSentEventsTests
         {
         final Map<String, Integer> mapCounts = new HashMap<>();
 
-        WebTarget target = getWebTarget("dist-test-named-query");
-        EventSource source = new EventSource(target)
-            {
-            @Override
-            public void onEvent(InboundEvent inboundEvent)
-                {
-                mapCounts.merge(inboundEvent.getName(), 1, (v1, v2) -> v1 + 1);
-                System.out.println("received " + inboundEvent.getName() + " event: "
-                                   + inboundEvent.readData(SimpleMapEvent.class));
-                }
-            };
-        Eventually.assertDeferred(() -> source.isOpen(), is(true));
+        WebTarget   target = getWebTarget("dist-test-named-query");
+        EventSource source = createEventSource(target, mapCounts);
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.remove(2);
@@ -84,18 +76,8 @@ public abstract class AbstractServerSentEventsTests
         {
         final Map<String, Integer> mapCounts = new HashMap<>();
 
-        WebTarget target = getWebTarget("dist-test-named-query?q=age=37");
-        EventSource source = new EventSource(target)
-            {
-            @Override
-            public void onEvent(InboundEvent inboundEvent)
-                {
-                mapCounts.merge(inboundEvent.getName(), 1, (v1, v2) -> v1 + 1);
-                System.out.println("received " + inboundEvent.getName() + " event: "
-                                   + inboundEvent.readData(SimpleMapEvent.class));
-                }
-            };
-        Eventually.assertDeferred(() -> source.isOpen(), is(true));
+        WebTarget   target = getWebTarget("dist-test-named-query?q=age=37");
+        EventSource source = createEventSource(target, mapCounts);
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
@@ -119,18 +101,8 @@ public abstract class AbstractServerSentEventsTests
         {
         final Map<String, Integer> mapCounts = new HashMap<>();
 
-        WebTarget target = getWebTarget("dist-test-named-query/age-37-query");
-        EventSource source = new EventSource(target)
-            {
-            @Override
-            public void onEvent(InboundEvent inboundEvent)
-                {
-                mapCounts.merge(inboundEvent.getName(), 1, (v1, v2) -> v1 + 1);
-                System.out.println("received " + inboundEvent.getName() + " event: "
-                                   + inboundEvent.readData(SimpleMapEvent.class));
-                }
-            };
-        Eventually.assertDeferred(() -> source.isOpen(), is(true));
+        WebTarget   target = getWebTarget("dist-test-named-query/age-37-query");
+        EventSource source = createEventSource(target, mapCounts);
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
@@ -154,18 +126,8 @@ public abstract class AbstractServerSentEventsTests
         {
         final Map<String, Integer> mapCounts = new HashMap<>();
 
-        WebTarget target = getWebTarget("dist-test-named-query/1");
-        EventSource source = new EventSource(target)
-            {
-            @Override
-            public void onEvent(InboundEvent inboundEvent)
-                {
-                mapCounts.merge(inboundEvent.getName(), 1, (v1, v2) -> v1 + 1);
-                System.out.println("received " + inboundEvent.getName() + " event: "
-                                   + inboundEvent.readData(SimpleMapEvent.class));
-                }
-            };
-        Eventually.assertDeferred(() -> source.isOpen(), is(true));
+        WebTarget   target = getWebTarget("dist-test-named-query/1");
+        EventSource source = createEventSource(target, mapCounts);
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
@@ -183,5 +145,34 @@ public abstract class AbstractServerSentEventsTests
         Eventually.assertDeferred(() -> mapCounts.get("delete"), is(1));
 
         source.close();
+        }
+
+    protected EventSource createEventSource(WebTarget target, Map<String, Integer> mapCounts)
+        {
+        EventSource source = new EventSource(target)
+            {
+            @Override
+            public void onEvent(InboundEvent inboundEvent)
+                {
+                mapCounts.merge(inboundEvent.getName(), 1, (v1, v2) -> v1 + 1);
+                System.out.println("received " + inboundEvent.getName() + " event: "
+                        + inboundEvent.readData(SimpleMapEvent.class));
+                }
+            };
+        int i = 0;
+        while (i++ < 3)
+            {
+            try{
+                Eventually.assertThat(invoking(source).isOpen(), is(true), within(2, TimeUnit.MINUTES));
+                return source;
+                }
+            catch (Exception e)
+                {
+                System.out.println("createEventSource() got an exception: " + e);
+                source.open();
+                }
+            }
+
+        return null;
         }
     }
