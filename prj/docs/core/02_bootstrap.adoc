@@ -23,31 +23,54 @@ itself configured from a configuration file, or a session might be a client-side
 An example of some application boot-strap code might look like this:
 [source,java]
 ----
-// Create a Session configuration                                <1>
-SessionConfiguration session = SessionConfiguration.builder()
-        .named("Carts")
-        .withConfigUri("cache-config.xml")
-        .build();
+import com.tangosol.net.Coherence;
+import com.tangosol.net.CoherenceConfiguration;
+import com.tangosol.net.SessionConfiguration;
 
-// Create a Coherence instance configuration                     <2>
-CoherenceConfiguration cfg = CoherenceConfiguration.builder()
-        .withSession(SessionConfiguration.defaultSession())
-        .withSession(session)
-        .build();
+public class Main
+    {
+    public static void main(String[] args)
+        {
+        // Create a Session configuration                                <1>
+        SessionConfiguration session = SessionConfiguration.builder()
+                .named("Carts")
+                .withConfigUri("cache-config.xml")
+                .build();
 
-// Create the Coherence instance from the configuration
-Coherence coherence = Coherence.create(cfg);                     <3>
+        // Create a Coherence instance configuration                     <2>
+        CoherenceConfiguration cfg = CoherenceConfiguration.builder()
+                .withSession(SessionConfiguration.defaultSession())
+                .withSession(session)
+                .build();
 
-// Start Coherence
-coherence.start();                                               <4>
+        // Create the Coherence instance from the configuration          <3>
+        Coherence coherence = Coherence.clusterMember(cfg);
+
+        // Start Coherence                                               <4>
+        coherence.start();
+        }
+    }
 ----
 
 <1> A `SessionConfiguration` is created. In this case the `Session` will be named `Carts` and will be created
 from the `cache-config.xml` configuration file.
 <2> A `CoherenceConfiguration` is created to configure the `Coherence` instance. This configuration contains
-the default `Session` configuration and the `Carts` session configuration.
-<3> A `Coherence` instance is created from the `CoherenceConfiguration`
+the `Carts` session configuration.
+<3> A `Coherence` cluster member instance is created from the `CoherenceConfiguration`
 <4> The `Coherence` instance is started.
+
+=== Running A Coherence Server
+
+The `com.tangol.net.Coherence` contains a `main` method that allows it to be used to run a Coherence server as a
+more powerful to alternative `DefaultCahceServer`.
+[source,bash]
+----
+$ java -cp coherence.jar com.tangosol.net.Coherence
+----
+
+Without any other configuration, the default `Coherence` instance started this way will run an identical server
+to that run using `DefaultCahceServer`.
+
 
 The steps above are covered in more detail below.
 
@@ -56,10 +79,31 @@ The steps above are covered in more detail below.
 
 A `SessionConfiguration` is created by using the `SessionConfiguration` builder as shown in the example above.
 
+==== The Default Session
+
+When running Coherence if no configuration is specified the default behaviour is to use the default configuration file
+to configure Coherence. This behaviour still applies to the boot-strap API. If a `Coherence` instance is started without
+specifying any session configurations then a single default `Session` will be created.
+This default `Session` will wrap a `ConfigurableCacheFactory` that has been created from the default configuration file.
+The default file name is `coherence-cache-config.xml` unless this has been overridden with the `coherence.cacheconfig`
+system property.
+
+When creating a `CoherenceConfiguration` the default session can be added using the `SessionConfiguration.defaultSession()`
+helper method. This method returns a `SessionConfiguration` configured to create the default `Session`.
+
+For example, in the code below the default session configuration is specifically added to the `CoherenceConfiguration`.
+[source,java]
+----
+CoherenceConfiguration cfg = CoherenceConfiguration.builder()
+        .withSession(SessionConfiguration.defaultSession())
+        .build();
+----
+
 ==== Session Name
 
 All sessions have a name that must be unique within the application. If a name has not been specified when the
-`SessionConfiguration` is built the default name of `$Default$` will be used.
+`SessionConfiguration` is built the default name of `$Default$` will be used. A `Coherence` instance will fail to start
+if duplicate `Session` names exist.
 
 For example, this configuration will have the default name.
 [source,java]
@@ -120,7 +164,7 @@ from other services with the same name. For example multiple `ConfigurableCacheF
 from the same XML configuration file but given different scope names so that each CCF will have its own services
 in the cluster.
 
-Unless multiple Sessions are required, a scope will not generally be used in a configuration.
+Unless you require multiple Sessions, a scope will not generally be used in a configuration.
 
 A scope for a session can be configured using the configuration's `withScopeName()` method, for example:
 
@@ -134,11 +178,6 @@ SessionConfiguration session = SessionConfiguration.builder()
 The session (and any `ConfigurableCacheFactory` it wraps) created from the configuration above will have a scope name
 of `Test`.
 
-If no scope name is set in the `SessionConfiguration` then the session will have a scope that matches the session name.
-If the session uses the default name then the scope name will also be the default scope.
-
-[NOTE]
-====
 It is possible to set a scope name in the `<defaults>` section of the XML configuration file.
 [source,xml]
 .scoped-configuration.xml
@@ -155,6 +194,8 @@ It is possible to set a scope name in the `<defaults>` section of the XML config
 A `ConfigurableCacheFactory` created from the XML above, and hence any `Session` that wraps it will have a scope
 of `Test`.
 
+[NOTE]
+====
 When using the boot-strap API any scope name specifically configured in the `SessionConfiguration`
 (that is not the default scope name) will override the scope name in the XML file.
 
@@ -199,9 +240,6 @@ SessionConfiguration session = SessionConfiguration.builder()
         .withConfigUri("scoped-configuration.xml")
         .build();
 ----
-
-
-
 ====
 
 
@@ -257,6 +295,27 @@ CoherenceConfiguration cfg = CoherenceConfiguration.builder()
 Whilst there is no limit to the number of sessions that can be configured the majority of applications would only ever
 require a single session - more than likely just the default session.
 
+[#session-discovery]
+==== Session Configuration Auto-Discovery
+
+A `CoherenceConfiguration` can be configured to automatically discover `SessionConfiguration` instances.
+These are discovered using the Java `ServiceLoader`. Any instances of `SessionConfiguration` or
+`SessionConfiguration.Provider` configured as services in `META-INF/services/` files will be loaded.
+
+This is useful if you are building modular applications where you want to include functionality in a separate application
+module that uses its own `Session`. The `SessionConfiguration` for the module is made discoverable by the `ServiceLoader`
+then whenever the module's jar file is on the classpath the `Session` will be created, and the module's functionality
+will be available to the application.
+
+For example:
+[source,java]
+----
+CoherenceConfiguration cfg = CoherenceConfiguration.builder()
+        .discoverSessions() <1>
+        .build();
+----
+<1> The call to `discoverSessions()` will load discovered `SessionConfiguration` instances.
+
 
 ==== Coherence Instance Name
 
@@ -301,26 +360,65 @@ Now the `CacheInterceptor` will receive events for both the default session and 
 
 === Create a Coherence Instance
 
-Once a `CoherenceConfiguration` has been created it can be used to create a `Coherence` instance.
+A `CoherenceConfiguration` can be used to create a `Coherence` instance.
 
+A `Coherence` instance is created in one of two modes, either cluster member or client. The mode chosen affects how some
+types of `Session` are created and whether auto-start services are started.
+
+As the name suggests a "cluster member" is a `Coherence` instance that expects to start or join a Coherence cluster.
+In a cluster member any `Session` that wraps a `ConfigurableCacheFactory` will be have its services auto-started and
+monitored (this is the same behaviour that would have happened when using `DefaultCacheServer` to start a server).
+
+A "client" `Coherence` instance is typically not a cluster member, i.e. it is a Coherence*Extend or gRPC client.
+As such, `Session` instances that wrap a `ConfigurableCacheFactory` will not be auto-started, they will start on demand
+as resources such as maps, caches or topics are requested from them.
+
+The `com.tangosol.net.Coherence` class has static factory methods to create `Coherence` instances in different modes.
+
+For example, to create a `Coherence` instance that is a cluster member the `Coherence.clusterMember` method is used:
 [source,java]
 ----
 CoherenceConfiguration cfg = CoherenceConfiguration.builder()
         .build();
 
-Coherence coherence = Coherence.create(cfg);
+Coherence coherence = Coherence.clusterMember(cfg);
 ----
 
-The above example creates a default `Coherence` instance.
+For example, to create a `Coherence` instance that is a client the `Coherence.client` method is used:
+[source,java]
+----
+CoherenceConfiguration cfg = CoherenceConfiguration.builder()
+        .build();
+
+Coherence coherence = Coherence.client(cfg);
+----
+
+==== Create a Default Coherence Instance
+
+It is possible to create a `Coherence` instance without specifying any configuration.
+
+[source,java]
+----
+Coherence coherence = Coherence.clusterMember();
+----
+
+[source,java]
+----
+Coherence coherence = Coherence.client();
+----
+
+In both of the above examples the `Coherence` instance will have the default `Session` and any
+<<session-discovery,discovered sessions>>.
+
 
 === Start Coherence
 
-After creating a `Coherence` instance it must be started to start all the sessions that the `Coherence` instance
+A `Coherence` instance it must be started to start all the sessions that the `Coherence` instance
 is managing. This is done by calling the `start()` method.
 
 [source,java]
 ----
-Coherence coherence = Coherence.create(cfg);
+Coherence coherence = Coherence.clusterMember(cfg);
 
 coherence.start();
 ----

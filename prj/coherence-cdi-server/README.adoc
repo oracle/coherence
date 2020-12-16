@@ -13,8 +13,8 @@
 Coherence CDI provides support for http://cdi-spec.org/[CDI] (Contexts and Dependency  Injection) within Coherence
 cluster members.
 
-It allows you both to inject Coherence-managed resources, such as `NamedMap`, `NamedCache` and `Scope`  instances into
-CDI managed beans, to inject CDI beans into Coherence-managed resources,  such as event interceptors and cache stores,
+It allows you both to inject Coherence-managed resources, such as `NamedMap`, `NamedCache` and `Session`  instances into
+CDI managed beans, to inject CDI beans into Coherence-managed resources, such as event interceptors and cache stores,
 and to handle Coherence server-side events using CDI observer methods.
 
 In addition, Coherence CDI provides support for automatic injection of transient objects upon deserialization.
@@ -69,7 +69,7 @@ and vice versa, as the following sections describe.
 
 CDI, and dependency injection in general, make it easy for application classes to declare the dependencies they need and
 let the runtime provide them when necessary.
-This makes the applications easier to develop, test and reason about, and the code significantly cleaner.
+This makes the applications easier to develop, test and reason about, and the code extremely clean.
 
 Coherence CDI allows you to do the same for Coherence objects, such as `Cluster`, `Session`, `NamedMap`,`NamedCache`,
 `ContinuousQueryCache`, `ConfigurableCacheFactory`, etc.
@@ -81,6 +81,8 @@ In order to inject an instance of a `NamedMap` into your CDI bean, you simply ne
 
 [source,java]
 ----
+import javax.inject.Inject;
+
 @Inject
 private NamedMap<Long, Person> people;
 ----
@@ -91,6 +93,10 @@ If that's not the case, you can use `@Name` qualifier to specify the name of the
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.tangosol.net.NamedMap;
+import javax.inject.Inject;
+
 @Inject
 @Name("people")
 private NamedMap<Long, Person> m_people;
@@ -100,6 +106,10 @@ This is also what you have to do if you are using constructor injection or sette
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.tangosol.net.NamedMap;
+import javax.inject.Inject;
+
 @Inject
 public MyClass(@Name("people") NamedMap<Long, Person> people) {
     ...
@@ -120,8 +130,12 @@ that will be used to supply the cache or map:
 
 [source,java]
 ----
+import com.oracle.coherence.inject.SessionName;
+import com.tangosol.net.NamedMap;
+import javax.inject.Inject;
+
 @Inject
-@SessionName("Products")
+@Name("Products")
 private NamedCache<Long, Product> products;
 
 @Inject
@@ -134,6 +148,10 @@ respectively, in order to inject  asynchronous variant of those APIs:
 
 [source,java]
 ----
+import com.oracle.coherence.inject.SessionName;
+import com.tangosol.net.AsyncNamedMap;
+import javax.inject.Inject;
+
 @Inject
 private AsyncNamedMap<Long, Person> people;
 
@@ -148,6 +166,11 @@ You can also inject *views*, by simply adding `View` qualifier to either `NamedM
 
 [source,java]
 ----
+import com.oracle.coherence.inject.View;
+import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
+import javax.inject.Inject;
+
 @Inject
 @View
 private NamedMap<Long, Person> people;
@@ -164,6 +187,12 @@ If you want to limit the data in the view to a subset, you can implement a <<fil
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.View;
+import com.oracle.coherence.inject.WhereFilter;
+import com.tangosol.net.NamedMap;
+import javax.inject.Inject;
+
 @Inject
 @View
 @WhereFilter("gender = 'MALE'")
@@ -187,6 +216,12 @@ In that case, you can implement a custom <<custom-extractor,ExtractorBinding>> (
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.View;
+import com.oracle.coherence.inject.PropertyExtractor;
+import com.tangosol.net.NamedMap;
+import javax.inject.Inject;
+
 @Inject
 @View
 @PropertyExtractor("fullName")
@@ -204,6 +239,9 @@ In order to inject an instance of a `NamedTopic` into your CDI bean, you simply 
 
 [source,java]
 ----
+import com.tangosol.net.NamedTopic;
+import javax.inject.Inject;
+
 @Inject
 private NamedTopic<Order> orders;
 ----
@@ -214,15 +252,23 @@ If that's not the case, you  can use `@Name` qualifier to specify the name of th
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.tangosol.net.NamedTopic;
+import javax.inject.Inject;
+
 @Inject
 @Name("orders")
-private NamedTopic<Order> m_orders;
+private NamedTopic<Order> topic;
 ----
 
 This is also what you have to do if you are using constructor or setter injection instead:
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.tangosol.net.NamedTopic;
+import javax.inject.Inject;
+
 @Inject
 public MyClass(@Name("orders") NamedTopic<Order> orders) {
     ...
@@ -243,6 +289,10 @@ that will be used to supply the topic:
 
 [source,java]
 ----
+import com.oracle.coherence.inject.SessionName;
+import com.tangosol.net.NamedTopic;
+import javax.inject.Inject;
+
 @Inject
 @SessionName("Finance")
 private NamedTopic<PaymentRequest> payments;
@@ -259,6 +309,11 @@ This can be easily accomplished by replacing `NamedTopic<T>` in any of the examp
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.SessionName;
+import com.tangosol.net.topic.Publisher;
+import javax.inject.Inject;
+
 @Inject
 private Publisher<Order> orders;
 
@@ -275,6 +330,11 @@ or `Subscriber<T>`:
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.inject.SessionName;
+import com.tangosol.net.topic.Subscriber;
+import javax.inject.Inject;
+
 @Inject
 private Subscriber<Order> orders;
 
@@ -296,6 +356,10 @@ queue), you can easily accomplish that by adding `@SubscriberGroup` qualifier to
 
 [source,java]
 ----
+import com.oracle.coherence.inject.SubscriberGroup;
+import com.tangosol.net.topic.Subscriber;
+import javax.inject.Inject;
+
 @Inject
 @SubscriberGroup("orders-queue")
 private Subscriber<Order> orders;
@@ -315,6 +379,9 @@ If you need an instance of a `Cluster` interface somewhere in your application, 
 
 [source,java]
 ----
+import com.tangosol.net.Cluster;
+import javax.inject.Inject;
+
 @Inject
 private Cluster cluster;
 ----
@@ -323,6 +390,9 @@ You can do the same if you need an instance of an `OperationalContext`:
 
 [source,java]
 ----
+import com.tangosol.net.OperationalContext;
+import javax.inject.Inject;
+
 @Inject
 private OperationalContext ctx;
 ----
@@ -337,11 +407,15 @@ cache configuration file.
 Other named sessions can be configured as CDI beans of type `SessionConfiguration`.
 
 For example:
+
 [source,java]
 ----
+import com.oracle.coherence.inject.SessionInitializer;
+import javax.enterprise.context.ApplicationScoped;
+
 @ApplicationScoped
 public class MySession
-        implements SessionConfiguration
+        implements SessionInitializer
     {
     public String getName()
         {
@@ -357,6 +431,12 @@ A simpler way to create a `SessionConfiguration` is to implement the `SessionInt
 For example:
 [source,java]
 ----
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Scope;
+import com.oracle.coherence.inject.SessionInitializer;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
 @ApplicationScoped
 @Named("Foo")
 @Scope("Foo")
@@ -374,6 +454,9 @@ class which needs to use it:
 
 [source,java]
 ----
+import com.tangosol.net.Session;
+import javax.inject.Inject;
+
 @Inject
 private Session session;
 ----
@@ -383,6 +466,10 @@ specifying the `Session` name:
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.tangosol.net.Session;
+import javax.inject.Inject;
+
 @Inject
 @Name("SessionOne")
 private Session sessionOne;
@@ -402,6 +489,9 @@ To get a default `Serializer` for the current context class loader, you can simp
 
 [source,java]
 ----
+import com.tangosol.io.Serializer;
+import javax.inject.Inject;
+
 @Inject
 private Serializer defaultSerializer;
 ----
@@ -411,6 +501,10 @@ can be easily accomplished using `@Name` qualifier:
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.tangosol.io.Serializer;
+import javax.inject.Inject;
+
 @Inject
 @Name("java")
 private Serializer javaSerializer;
@@ -427,6 +521,10 @@ That means that if you implemented a custom `Serializer` bean, such as:
 
 [source,java]
 ----
+import com.tangosol.io.Serializer;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
 @Named("json")
 @ApplicationScoped
 public class JsonSerializer implements Serializer {
@@ -439,6 +537,10 @@ as the named serializers defined in the operational config:
 
 [source,java]
 ----
+import com.oracle.coherence.inject.Name;
+import com.tangosol.io.Serializer;
+import javax.inject.Inject;
+
 @Inject
 @Name("json")
 private Serializer jsonSerializer;
@@ -451,6 +553,11 @@ which uses a specific POF configuration file.
 
 [source,java]
 ----
+import com.oracle.coherence.inject.ConfigUri;
+import com.oracle.coherence.inject.Name;
+import com.tangosol.io.Serializer;
+import javax.inject.Inject;
+
 @Inject
 @Name("pof")
 @ConfigUri("test-pof-config.xml")

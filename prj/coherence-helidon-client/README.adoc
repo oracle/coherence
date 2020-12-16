@@ -32,9 +32,7 @@ using the Coherence gRPC proxy service to expose the required gRPC endpoints.
 
 Once the necessary dependency is in place, the simplest way to start using it is to just inject Coherence resources
 into the application's beans. A lot of the annotations and qualifiers are identical to those described in the
-<<coherence-cdi/README.adoc,Coherence CDI>> documentation. The major difference being that the `@Remote` qualifier
-will be used to indicate that the Coherence beans to be injected connect remotely (in this case using gRPC) to a
-Coherence server.
+<<coherence-cdi/README.adoc,Coherence CDI>> documentation.
 
 The following sections describe different injection points in more detail.
 
@@ -104,7 +102,7 @@ grpc:
 The configuration may contain as many channels as required, the only stipulation being that each has a unique name.
 
 [#sessions]
-=== Coherence Sessions
+=== Coherence gRPC Sessions
 
 Coherence uses the concept of a `Session` to manage a set of related Coherence resources, such as maps, caches,
 topics, etc. When using the Coherence Java gRPC client a `Session` connects to a specific gRPC channel (described above)
@@ -161,28 +159,6 @@ grpc:
 In the example above, there are two Coherence sessions configured and two corresponding gRPC channels.
 
 
-==== Referring to Sessions at Injection Points
-
-Coherence CDI uses the `@Remote` qualifier to indicate that the Coherence bean to be injected refers to a remote
-resource. In the case of the gRPC client, the value set when using the `@Remote` qualifier refers to the name of the
-name of the Coherence session to use.
-
-For example:
-[source,java]
-----
-@Remote // <1>
-----
-<1> The `@Remote` annotation has no value, so the Coherence gRPC client CDI extensions will look-up the configuration
-for the Session named `default`.
-
-[source,java]
-----
-@Remote("test") // <1>
-----
-<1> The `@Remote` annotation here has a value of `test`, so the Coherence gRPC client CDI extensions will look-up the
-configuration for a session named `test`.
-
-
 [#inject-coherence-objects]
 === Injecting Coherence Objects into CDI Beans
 
@@ -197,17 +173,13 @@ point for it:
 [source,java]
 ----
 @Inject
-@Remote  // <1>
 private NamedMap<Long, Person> people;
 ----
-<1> The important annotation here is the `@Remote` qualifier that tell's the Coherence CDI extensions that the map to be
-injected is remote. In this case the `NamedMap` will come from the `default` Coherence session as the `@Remote`
-annotation does not specify a session name.
 
 [source,java]
 ----
 @Inject
-@Remote("products")  // <1>
+@SesionName("products")  // <1>
 private NamedMap<Long, Product> products;
 ----
 <1> In this example the Coherence CDI extensions will use the `products` session to provide the client side `NamedMap`
@@ -217,12 +189,11 @@ Other remote resources, such a `NamedCache` can be injected the same way:
 [source,java]
 ----
 @Inject
-@Remote
 private NamedCache<Long, Product> products;
 ----
 
 The <<coherence-cdi/README.adoc,Coherence CDI>> documentation covers the different types of resources supported by CDI.
-When using them with the gRPC Java client, remember to also include the `@Remote` qualifier on the injection point.
+When using them with the gRPC Java client.
 
 [#inject-session]
 === Injecting Sessions
@@ -235,20 +206,11 @@ The required maps or caches can then be obtained from the `Session` by calling m
 [source,java]
 ----
 @Inject
-@Remote   // <1>
+@Name("products")   // <1>
 private Session session;
 ----
-<1> The plain `@Remote` qualifier has been used, so the default `Session` will be injected here.
-
-
-[source,java]
-----
-@Inject
-@Remote("products")   // <1>
-private Session session;
-----
-<1> The `@Remote` qualifier has the value `products`, so the `Session` injected here will be configured from the
-`coherence.sessions.products` session configuration.
+<1> The `@Name` qualifier has the value `products`, so the `Session` injected here will be the pre-configured
+`Session` named `products`.
 
 
 [#cdi-events]
@@ -265,14 +227,10 @@ type `Person`, you would define a CDI observer such as this one:
 [source,java]
 ----
 private void onMapChange(@Observes
-                         @Remote
                          @MapName("people") MapEvent<Long, Person> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----
-
-NOTE: The important qualifier here is the `@Remote` annotation. This tells the Coherence CDI extensions that the map
-or cache to be observed is a remote cache.
 
 The `Observes` qualifier is what makes this method a standard CDI observer.
 
@@ -332,7 +290,7 @@ See the following sections on how to qualify the observer to restrict the maps a
 ==== Observe Events for Maps and Caches from Specific Sessions
 
 In addition, to the `@MapName` qualifier, you can also specify a `Session` name as a way to limit the events received
-to maps or caches from a specific `Session`. This is achieved by specifying a value for the `@Remote` qualifier.
+to maps or caches from a specific `Session`. This is achieved by specifying a value for the `@SessionName` qualifier.
 See the <<sessions,Sessions>> section for more details on multiple `Session`s.
 
 For example:
@@ -340,13 +298,13 @@ For example:
 [source,java]
 ----
 private void onMapChange(@Observes
-                         @Remote("test")
+                         @SesionName("test")
                          @MapName("people") MapEvent<Long, Person> event) {
     // handle all events raised by the 'people' map/cache owned by the test Session.
 }
 ----
 
-In the example above the `@Remote` qualifier has a value `test`, so the events will only be observed from the `people`
+In the example above the `@SesionName` qualifier has a value `test`, so the events will only be observed from the `people`
 map on the server that corresponds to the map of the same name owned by the client side `Session` named `test`.
 
 [NOTE]
@@ -363,13 +321,13 @@ The two observers below are on the client:
 [source,java]
 ----
 private void onMapChange(@Observes
-                         @Remote("session-one")
+                         @SesionName("session-one")
                          @MapName("people") MapEvent<Long, Person> event) {
     //...
 }
 
 private void onMapChange(@Observes
-                         @Remote("session-two")
+                         @SesionName("session-two")
                          @MapName("people") MapEvent<Long, Person> event) {
     //...
 }
@@ -393,7 +351,6 @@ For example:
 [source,java]
 ----
 private void onMapChange(@ObservesAsync
-                         @Remote
                          @ScopeName("employees")
                          @MapName("people") MapEvent<Long, Person> event) {
     // handle all events raised by the 'people' map/cache owned by the employees scope.
@@ -420,7 +377,7 @@ For example to receive all event types in the `people` map, but only for `People
 [source,java]
 ----
 @WhereFilter("lastName = 'Smith'")
-private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, Person> event) {
+private void onMapChange(@Observes @MapName("people") MapEvent<Long, Person> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----
@@ -448,7 +405,7 @@ the built in `@PropertyExtractor` annotation can be used.
 [source,java]
 ----
 @PropertyExtractor("lastName")
-private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, String> event) {
+private void onMapChange(@Observes @MapName("people") MapEvent<Long, String> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----
@@ -470,7 +427,7 @@ example above both the `lastName` and `city` can be observed in the event.
 ----
 @PropertyExtractor("lastName")
 @ChainedExtractor({"address", "city"})
-private void onMapChange(@Observes @Remote @MapName("people") MapEvent<Long, List<String>> event) {
+private void onMapChange(@Observes @MapName("people") MapEvent<Long, List<String>> event) {
     // handle all events raised by the 'people' map/cache
 }
 ----
@@ -498,7 +455,6 @@ All you need to do is replace `@Observes` with `@ObservesAsync` in any of the ex
 [source,java]
 ----
 private void onMapChange(@ObservesAsync
-                         @Remote
                          @MapName("people") MapEvent<Long, Person> event) {
     // handle all events raised by the 'people' map/cache
 }
