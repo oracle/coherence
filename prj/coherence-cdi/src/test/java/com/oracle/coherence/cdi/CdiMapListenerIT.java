@@ -81,6 +81,7 @@ class CdiMapListenerIT
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                         .addPackages(CoherenceExtension.class)
                                                         .addExtension(new CoherenceExtension())
+                                                        .addBeanClass(TestServerCoherenceProducer.class)
                                                         .addBeanClass(EventsSession.class)
                                                         .addBeanClass(TestListener.class));
 

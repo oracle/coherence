@@ -37,7 +37,7 @@ import com.oracle.bedrock.runtime.docker.options.ContainerCloseBehaviour;
 import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Console;
 
-import com.oracle.coherence.client.GrpcSessions;
+import com.oracle.coherence.client.GrpcSessionConfiguration;
 import com.oracle.coherence.io.json.JsonSerializer;
 import com.tangosol.internal.net.management.HttpHelper;
 
@@ -72,9 +72,9 @@ import java.net.URL;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 
 import java.util.concurrent.TimeUnit;
@@ -89,9 +89,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
-
-import static org.junit.Assert.assertThat;
 
 /**
  * Various tests to verify basic functionality of an Oracle Coherence Docker image.
@@ -358,9 +357,14 @@ public class DockerImageTests
                     .build();
 
             Serializer                 serializer = new JsonSerializer();
-            Session                    session    = Session.create(GrpcSessions.channel(channel),
-                                                                   GrpcSessions.serializer(serializer, "json"));
-            NamedCache<Object, Object> cache      = session.getCache("grpc-test");
+            GrpcSessionConfiguration   cfg        = GrpcSessionConfiguration.builder(channel)
+                                                            .withSerializer(serializer, "json")
+                                                            .build();
+            Optional<Session>          optional   = Session.create(cfg);
+
+            assertThat(optional.isPresent(), is(true));
+
+            NamedCache<Object, Object> cache      = optional.get().getCache("grpc-test");
 
             cache.put("key-1", "value-1");
             assertThat(cache.get("key-1"), is("value-1"));

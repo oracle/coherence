@@ -7,6 +7,9 @@
 
 package com.oracle.coherence.cdi;
 
+import com.oracle.coherence.cdi.data.Person;
+import com.oracle.coherence.cdi.data.PhoneNumber;
+
 import com.oracle.coherence.inject.AlwaysFilter;
 import com.oracle.coherence.inject.ChainedExtractor;
 import com.oracle.coherence.inject.ConfigUri;
@@ -17,8 +20,6 @@ import com.oracle.coherence.inject.SessionInitializer;
 import com.oracle.coherence.inject.SessionName;
 import com.oracle.coherence.inject.View;
 import com.oracle.coherence.inject.WhereFilter;
-import com.oracle.coherence.cdi.data.Person;
-import com.oracle.coherence.cdi.data.PhoneNumber;
 
 import com.tangosol.net.NamedCache;
 
@@ -31,21 +32,6 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.QueryMap;
 
-import java.lang.annotation.Annotation;
-
-import java.time.LocalDate;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.enterprise.context.ApplicationScoped;
-
-import javax.enterprise.inject.Instance;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 
@@ -57,6 +43,20 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import java.lang.annotation.Annotation;
+
+import java.time.LocalDate;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -78,15 +78,16 @@ class CacheViewProducerIT
 
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
-                                                          .addPackages(CoherenceExtension.class)
-                                                          .addExtension(new CoherenceExtension())
-                                                          .addBeanClass(SessionOne.class)
-                                                          .addBeanClass(CtorBean.class)
-                                                          .addBeanClass(ContinuousQueryCacheFieldsBean.class)
-                                                          .addBeanClass(SuperTypesBean.class)
-                                                          .addBeanClass(DifferentSessionsBean.class)
-                                                          .addBeanClass(ContinuousQueryCacheWithFiltersBean.class)
-                                                          .addBeanClass(WithTransformersBean.class));
+                                              .addPackages(CoherenceExtension.class)
+                                              .addExtension(new CoherenceExtension())
+                                              .addBeanClass(TestServerCoherenceProducer.class)
+                                              .addBeanClass(SessionOne.class)
+                                              .addBeanClass(CtorBean.class)
+                                              .addBeanClass(ContinuousQueryCacheFieldsBean.class)
+                                              .addBeanClass(SuperTypesBean.class)
+                                              .addBeanClass(DifferentSessionsBean.class)
+                                              .addBeanClass(ContinuousQueryCacheWithFiltersBean.class)
+                                              .addBeanClass(WithTransformersBean.class));
 
     @BeforeAll
     static void setup()

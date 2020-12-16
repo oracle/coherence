@@ -6,12 +6,9 @@
  */
 package com.tangosol.net;
 
-import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.config.expression.ParameterResolver;
 
-import com.tangosol.net.options.WithClassLoader;
-import com.tangosol.net.options.WithConfiguration;
-import com.tangosol.net.options.WithName;
-import com.tangosol.net.options.WithScopeName;
+import com.tangosol.net.events.EventInterceptor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,15 +49,6 @@ public interface SessionConfiguration
     String getScopeName();
 
     /**
-     * Return the {@link Session.Option}s to be used to configure
-     * a {@link Session}.
-     *
-     * @return  the {@link Session.Option}s to be used to configure
-     *          a {@link Session}
-     */
-    Session.Option[] getOptions();
-
-    /**
      * Return the interceptors to add to the session.
      *
      * @return  the interceptors to add to the session
@@ -82,13 +70,23 @@ public interface SessionConfiguration
         }
 
     /**
-     * Return an optional {@link SessionProvider} that should be used to create the
-     * {@link Session} from this configuration.
+     * Return the optional configuration file URI for a session that
+     * wraps a {@link ConfigurableCacheFactory}.
      *
-     * @return  the {@link SessionProvider} that should be used to create the
-     *          {@link Session} from this configuration.
+     * @return the optional configuration file URI for a session that
+     *         wraps a {@link ConfigurableCacheFactory}
      */
-    default Optional<SessionProvider> getSessionProvider()
+    default Optional<String> getConfigUri()
+        {
+        return Optional.empty();
+        }
+
+    /**
+     * Return the optional {@link ClassLoader} to use for the session.
+     *
+     * @return the optional {@link ClassLoader} to use for the session
+     */
+    default Optional<ClassLoader> getClassLoader()
         {
         return Optional.empty();
         }
@@ -96,12 +94,12 @@ public interface SessionConfiguration
     /**
      * Returns the priority for this configurations.
      * <p>
-     * Sessions will be created in priority order, lowest
+     * Sessions will be created in priority order, highest
      * priority first.
      * <p>
      * The default priority is zero (see {@link #DEFAULT_PRIORITY}.
      *
-     * @return  the priority for this configurations
+     * @return  the priority for this configuration
      */
     default int getPriority()
         {
@@ -123,6 +121,18 @@ public interface SessionConfiguration
         return Integer.compare(getPriority(), other.getPriority());
         }
 
+    /**
+     * Returns an optional {@link ParameterResolver} to use to resolve configuration
+     * parameters when creating the session.
+     *
+     * @return an optional {@link ParameterResolver} to use to resolve configuration
+     *         parameters
+     */
+    default Optional<ParameterResolver> getParameterResolver()
+        {
+        return Optional.empty();
+        }
+
     // ----- factory methods ------------------------------------------------
 
     /**
@@ -137,129 +147,19 @@ public interface SessionConfiguration
 
     /**
      * Create a {@link SessionConfiguration} for the default {@link Session}.
+     * <p>
+     * The default session will wrap a {@link ConfigurableCacheFactory} that is
+     * configured from the default cache configuration file.
+     * <p>
+     * The default session will have a name {@link Coherence#DEFAULT_NAME}
+     * and the default scope name {@link Coherence#DEFAULT_SCOPE}.
      *
      * @return  a {@link SessionConfiguration} for the default {@link Session}
      */
     static SessionConfiguration defaultSession()
         {
-        return create(Coherence.DEFAULT_NAME, CacheFactoryBuilder.URI_DEFAULT, null, null);
-        }
-
-    /**
-     * Create a default named {@link SessionConfiguration}.
-     * <p>
-     * If the uri parameter is {@code null} or blank the default configuration file will be used.
-     *
-     * @param sURI   the URI of the configuration file to use to configure the underlying
-     *               {@link com.tangosol.net.ConfigurableCacheFactory} for the {@link Session}
-     *
-     * @return  a default named {@link SessionConfiguration}
-     */
-    static SessionConfiguration create(String sURI)
-        {
-        return create(null, sURI, null, null);
-        }
-
-    /**
-     * Create a {@link SessionConfiguration}.
-     * <p>
-     * If the uri parameter is {@code null} or blank the default configuration
-     * file will be used.
-     * <p>
-     * If the name parameter is {@code null} or blank the {@link Coherence#DEFAULT_NAME}
-     * will be used for the name.
-     *
-     * @param sName  the name of the {@link Session} to create from the configuration
-     * @param sURI   the URI of the configuration file to use to configure the underlying
-     *               {@link com.tangosol.net.ConfigurableCacheFactory} for the {@link Session}
-     *
-     * @return  a {@link SessionConfiguration}
-     */
-    static SessionConfiguration create(String sName, String sURI)
-        {
-        return create(sName, sURI, null, null);
-        }
-
-    /**
-     * Create a default named {@link SessionConfiguration}.
-     * <p>
-     * If the uri parameter is {@code null} or blank the default configuration file will be used.
-     *
-     * @param sURI    the URI of the configuration file to use to configure the underlying
-     *                {@link com.tangosol.net.ConfigurableCacheFactory} for the {@link Session}
-     * @param loader  the {@link ClassLoader} to use for the {@link Session} and the underlying
-     *                {@link com.tangosol.net.ConfigurableCacheFactory}
-     *
-     * @return  a {@link SessionConfiguration}
-     */
-    static SessionConfiguration create(String sURI, ClassLoader loader)
-        {
-        return create(null, sURI, loader, null);
-        }
-
-    /**
-     * Create a {@link SessionConfiguration}.
-     * <p>
-     * If the uri parameter is {@code null} or blank the default configuration file will be used.
-     * <p>
-     * If the name parameter is {@code null} or blank the {@link Coherence#DEFAULT_NAME}
-     * will be used for the name.
-     *
-     * @param sName   the name of the {@link Session} to create from the configuration
-     * @param sURI    the URI of the configuration file to use to configure the underlying
-     *                {@link com.tangosol.net.ConfigurableCacheFactory} for the {@link Session}
-     * @param loader  the {@link ClassLoader} to use for the {@link Session} and the underlying
-     *                {@link com.tangosol.net.ConfigurableCacheFactory}
-     *
-     * @return  a {@link SessionConfiguration}
-     */
-    static SessionConfiguration create(String sName, String sURI, ClassLoader loader)
-        {
-        return create(sName, sURI, loader, null);
-        }
-
-    /**
-     * Create a {@link SessionConfiguration}.
-     * <p>
-     * If the uri parameter is {@code null} or blank the default configuration file will be used.
-     * <p>
-     * If the name parameter is {@code null} or blank a unique UID wil be used for the name.
-     *
-     * @param sName   the name of the {@link Session} to create from the configuration
-     * @param sURI    the URI of the configuration file to use to configure the underlying
-     *                {@link com.tangosol.net.ConfigurableCacheFactory} for the {@link Session}
-     * @param sScope  the scope name for the {@link Session}
-     *
-     * @return  a {@link SessionConfiguration}
-     */
-    static SessionConfiguration create(String sName, String sURI, String sScope)
-        {
-        return create(sName, sURI, null, sScope);
-        }
-
-    /**
-     * Create a {@link SessionConfiguration}.
-     * <p>
-     * If the uri parameter is {@code null} or blank the default configuration file will be used.
-     * <p>
-     * If the name parameter is {@code null} or blank a unique UID wil be used for the name.
-     *
-     * @param sName   the name of the {@link Session} to create from the configuration
-     * @param sURI    the URI of the configuration file to use to configure the underlying
-     *                {@link com.tangosol.net.ConfigurableCacheFactory} for the {@link Session}
-     * @param loader  the {@link ClassLoader} to use for the {@link Session} and the underlying
-     *                {@link com.tangosol.net.ConfigurableCacheFactory}
-     * @param sScope  the scope name for the {@link Session}
-     *
-     * @return  a {@link SessionConfiguration}
-     */
-    static SessionConfiguration create(String sName, String sURI, ClassLoader loader, String sScope)
-        {
-        return builder()
-                .named(sName)
-                .withConfigUri(sURI)
-                .withClassLoader(loader)
-                .withScopeName(sScope)
+        return builder().named(Coherence.DEFAULT_NAME)
+                .withConfigUri(CacheFactoryBuilder.URI_DEFAULT)
                 .build();
         }
 
@@ -286,6 +186,15 @@ public interface SessionConfiguration
      */
     class Builder
         {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Create a {@link SessionConfiguration} builder.
+         */
+        private Builder()
+            {
+            }
+
         // ----- Builder methods --------------------------------------------
 
         /**
@@ -377,14 +286,28 @@ public interface SessionConfiguration
             }
 
         /**
+         * Set the optional {@link ParameterResolver} to use to resolve
+         * configuration parameters.
+         *
+         * @param resolver  the optional {@link ParameterResolver} to use
+         *                  to resolve configuration parameters
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder withParameterResolver(ParameterResolver resolver)
+            {
+            m_parameterResolver = resolver;
+            return this;
+            }
+
+        /**
          * Build the {@link SessionConfiguration}.
          *
          * @return the {@link SessionConfiguration}
          */
         public SessionConfiguration build()
             {
-            return new ConfigurableCacheFactorySessionConfig(m_sName, m_sURI, m_loader, m_sScope,
-                    f_listInterceptor, m_nPriority);
+            return new ConfigurableCacheFactorySessionConfig(this);
             }
 
         // ----- data members -----------------------------------------------
@@ -420,6 +343,11 @@ public interface SessionConfiguration
          * The priority order for this configuration.
          */
         private int m_nPriority;
+
+        /**
+         * An optional {@link ParameterResolver} to use to resolve configuration parameters.
+         */
+        private ParameterResolver m_parameterResolver;
         }
 
     // ----- inner class: ConfigurableCacheFactorySessionConfig -------------
@@ -434,35 +362,18 @@ public interface SessionConfiguration
         /**
          * Create a {@link ConfigurableCacheFactorySessionConfig}.
          *
-         * @param sName            the name of the {@link Session} to create from the configuration
-         * @param sURI             the URI of the configuration file to use to configure the underlying
-         *                         {@link com.tangosol.net.ConfigurableCacheFactory} for the {@link Session}
-         * @param loader           the {@link ClassLoader} to use for the {@link Session} and the underlying
-         *                         {@link com.tangosol.net.ConfigurableCacheFactory}
-         * @param sScope           the scope name for the {@link Session}
-         * @param listInterceptor  the event interceptors to add to the session
+         * @param builder  the {@link Builder} to create this session configuration from
          */
-        ConfigurableCacheFactorySessionConfig(String                    sName,
-                                              String                    sURI,
-                                              ClassLoader               loader,
-                                              String                    sScope,
-                                              List<EventInterceptor<?>> listInterceptor,
-                                              int                       nPriority)
+        ConfigurableCacheFactorySessionConfig(Builder builder)
             {
-            f_sName           = sName == null || sName.trim().isEmpty() ? Coherence.DEFAULT_NAME : sName;
-            f_sURI            = sURI;
-            f_loader          = loader;
-            f_listInterceptor = new ArrayList<>(listInterceptor);
-            f_nPriority       = nPriority;
-
-            if (sScope == null)
-                {
-                f_sScope = Coherence.DEFAULT_NAME.equals(f_sName) ? Coherence.DEFAULT_SCOPE : f_sName;
-                }
-            else
-                {
-                f_sScope = sScope;
-                }
+            f_sName             = builder.m_sName == null || builder.m_sName.trim().isEmpty()
+                                        ? Coherence.DEFAULT_NAME : builder.m_sName;
+            f_sURI              = builder.m_sURI;
+            f_loader            = builder.m_loader;
+            f_listInterceptor   = new ArrayList<>(builder.f_listInterceptor);
+            f_nPriority         = builder.m_nPriority;
+            f_sScope            = builder.m_sScope == null ? Coherence.DEFAULT_SCOPE : builder.m_sScope;
+            f_parameterResolver = builder.m_parameterResolver;
             }
 
         // ----- SessionConfiguration methods -------------------------------
@@ -480,31 +391,6 @@ public interface SessionConfiguration
             }
 
         @Override
-        public Session.Option[] getOptions()
-            {
-            List<Session.Option> listOps = new ArrayList<>();
-
-            listOps.add(WithName.of(f_sName));
-
-            if (f_sURI != null && !f_sURI.trim().isEmpty())
-                {
-                listOps.add(WithConfiguration.using(f_sURI));
-                }
-
-            if (f_sScope != null)
-                {
-                listOps.add(WithScopeName.of(f_sScope));
-                }
-
-            if (f_loader != null)
-                {
-                listOps.add(WithClassLoader.using(f_loader));
-                }
-
-            return listOps.toArray(new Session.Option[0]);
-            }
-
-        @Override
         public Iterable<EventInterceptor<?>> getInterceptors()
             {
             return Collections.unmodifiableList(f_listInterceptor);
@@ -514,6 +400,24 @@ public interface SessionConfiguration
         public int getPriority()
             {
             return f_nPriority;
+            }
+
+        @Override
+        public Optional<ParameterResolver> getParameterResolver()
+            {
+            return Optional.ofNullable(f_parameterResolver);
+            }
+
+        @Override
+        public Optional<String> getConfigUri()
+            {
+            return Optional.ofNullable(f_sURI);
+            }
+
+        @Override
+        public Optional<ClassLoader> getClassLoader()
+            {
+            return Optional.ofNullable(f_loader);
             }
 
         // ----- data members -----------------------------------------------
@@ -549,6 +453,11 @@ public interface SessionConfiguration
          * The priority order for this configuration.
          */
         private final int f_nPriority;
+
+        /**
+         * An optional {@link ParameterResolver} to use to resolve configuration parameters.
+         */
+        private ParameterResolver f_parameterResolver;
         }
 
     // ----- constants --------------------------------------------------

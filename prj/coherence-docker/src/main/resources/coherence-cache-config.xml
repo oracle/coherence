@@ -8,29 +8,70 @@
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
-
   <caching-scheme-mapping>
     <cache-mapping>
       <cache-name>*</cache-name>
-      <scheme-name>default-storage</scheme-name>
+      <scheme-name>${coherence.profile near}-${coherence.client direct}</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
   <topic-scheme-mapping>
     <topic-mapping>
       <topic-name>*</topic-name>
-      <scheme-name>default-topic</scheme-name>
+      <scheme-name>topic-server</scheme-name>
     </topic-mapping>
   </topic-scheme-mapping>
 
   <caching-schemes>
-    <!-- partitioned storage scheme for servers -->
+    <!-- near caching scheme for clustered clients -->
+    <near-scheme>
+      <scheme-name>near-direct</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>{front-limit-entries 10000}</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>thin-direct</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!-- near caching scheme for extend clients -->
+    <near-scheme>
+      <scheme-name>near-remote</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>thin-remote</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!-- remote caching scheme for accessing the proxy from extend clients -->
+    <remote-cache-scheme>
+      <scheme-name>thin-remote</scheme-name>
+      <service-name>RemoteCache</service-name>
+      <proxy-service-name>Proxy</proxy-service-name>
+    </remote-cache-scheme>
+
+    <!-- partitioned caching scheme for clustered clients -->
     <distributed-scheme>
-      <scheme-name>default-storage</scheme-name>
-      <service-name>${coherence.service.prefix Storage}Service</service-name>
+      <scheme-name>thin-direct</scheme-name>
+      <scheme-ref>server</scheme-ref>
+      <local-storage system-property="coherence.distributed.localstorage">false</local-storage>
+      <autostart>false</autostart>
+    </distributed-scheme>
+
+    <!-- partitioned caching scheme for servers -->
+    <distributed-scheme>
+      <scheme-name>server</scheme-name>
+      <service-name>PartitionedCache</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
       <backing-map-scheme>
         <local-scheme>
-          <unit-calculator>BINARY</unit-calculator>
+          <high-units>{back-limit-bytes 0B}</high-units>
         </local-scheme>
       </backing-map-scheme>
       <autostart>true</autostart>
@@ -38,11 +79,11 @@
 
     <!-- partitioned topic scheme for servers -->
     <paged-topic-scheme>
-      <scheme-name>default-topic</scheme-name>
-      <service-name>${coherence.service.prefix Default}TopicService</service-name>
-      <local-storage system-property="coherence.topic.localstorage">true</local-storage>
-      <autostart system-property="coherence.topic.enabled">true</autostart>
-      <high-units system-property="coherence.topic.max_size">0B</high-units>
+      <scheme-name>topic-server</scheme-name>
+      <service-name>PartitionedTopic</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <autostart>true</autostart>
+      <high-units>{topic-high-units-bytes 0B}</high-units>
     </paged-topic-scheme>
 
     <!-- proxy scheme that allows extend clients to connect to the cluster over TCP/IP -->

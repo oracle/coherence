@@ -15,6 +15,8 @@ import com.tangosol.net.Session;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -43,8 +46,13 @@ class SessionProducerIT
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
+                                                          .addBeanClass(TestServerCoherenceProducer.class)
+                                                          .addBeanClass(CoherenceProducer.class)
                                                           .addBeanClass(SessionOne.class)
                                                           .addBeanClass(SessionProducer.class));
+
+    @Inject
+    BeanManager m_beanManager;
 
     @ApplicationScoped
     @Named("TestSession")
@@ -93,6 +101,14 @@ class SessionProducerIT
     void shouldInjectDefaultSession()
         {
         assertThat(defaultSession, is(notNullValue()));
+        }
+
+    @Test
+    void shouldInjectNamedSession()
+        {
+        Instance<Session> instance = m_beanManager.createInstance().select(Session.class, Name.Literal.of("TestSession"));
+        assertThat(instance.isResolvable(), is(true));
+        assertThat(instance.get(), is(sameInstance(testSession)));
         }
 
     @Test

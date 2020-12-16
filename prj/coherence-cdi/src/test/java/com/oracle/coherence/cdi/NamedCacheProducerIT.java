@@ -61,6 +61,7 @@ class NamedCacheProducerIT
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addPackages(CoherenceExtension.class)
                                                           .addExtension(new CoherenceExtension())
+                                                          .addBeanClass(TestServerCoherenceProducer.class)
                                                           .addBeanClass(SessionOne.class)
                                                           .addBeanClass(CtorBean.class)
                                                           .addBeanClass(NamedCacheFieldsBean.class)

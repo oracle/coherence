@@ -7,6 +7,7 @@
 
 package com.tangosol.coherence.docker;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 
 import java.lang.reflect.Method;
@@ -46,7 +47,7 @@ public class Runner
         String mainClass = System.getenv("COH_MAIN_CLASS");
         if (mainClass == null || DefaultCacheServer.class.getName().equals(mainClass))
             {
-            DefaultCacheServer.main(args);
+            Coherence.main(args);
             }
         else
             {

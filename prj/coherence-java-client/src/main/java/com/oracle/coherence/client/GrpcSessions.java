@@ -7,34 +7,27 @@
 package com.oracle.coherence.client;
 
 import com.oracle.coherence.common.base.Logger;
-import com.oracle.coherence.common.util.Options;
-
-import com.oracle.coherence.grpc.Requests;
-
-import com.tangosol.coherence.config.Config;
-
-import com.tangosol.internal.tracing.TracingHelper;
 
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.Session;
+import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
 
-import com.tangosol.net.options.WithName;
-import com.tangosol.net.options.WithScopeName;
-
+import com.tangosol.net.internal.DefaultSessionProvider;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
-import io.grpc.ManagedChannelBuilder;
-
-import io.grpc.inprocess.InProcessChannelBuilder;
 
 import io.opentracing.Tracer;
 import io.opentracing.contrib.grpc.TracingClientInterceptor;
 import io.opentracing.util.GlobalTracer;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.ServiceLoader;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -49,17 +42,42 @@ public class GrpcSessions
     // ----- SessionProvider interface --------------------------------------
 
     @Override
-    public GrpcRemoteSession createSession(Session.Option... options)
+    public int getPriority()
         {
-        Options<Session.Option> sessionOptions = Options.from(Session.Option.class, options);
+        // Make sure that client providers get to handle configurations ahead
+        // of any default providers.
+        return DefaultSessionProvider.DEFAULT_PRIORITY + 1;
+        }
 
-        if (!sessionOptions.contains(ChannelOption.class))
+    @Override
+    public Context createSession(SessionConfiguration configuration, Context context)
+        {
+        Context grpcContext = new DefaultContext(context.getMode(), DefaultProvider.INSTANCE);
+        for (SessionProvider provider : ensureProviders())
             {
-            // the request is not for a gRPC session
-            return null;
+            Context result = provider.createSession(configuration, grpcContext);
+            if (result.isComplete())
+                {
+                return result;
+                }
             }
 
-        return ensureSession(sessionOptions);
+        // none of the providers created a session, try the default
+        return ensureSession(configuration, context);
+        }
+
+    /**
+     * This method will throw {@link UnsupportedOperationException}.
+     *
+     * @param options  the {@link Session.Option}s for creating the {@link Session}
+     *
+     * @return this method will throw {@link UnsupportedOperationException}.
+     */
+    @Override
+    @Deprecated
+    public Session createSession(Session.Option... options)
+        {
+        throw new UnsupportedOperationException("Cannot create a gRPC session using optiona");
         }
 
     /**
@@ -71,163 +89,6 @@ public class GrpcSessions
         f_sessions.shutdown();
         }
 
-    // ----- public methods -------------------------------------------------
-
-    /**
-     * Obtain a {@link Session.Option} to specify the scope of the
-     * required {@link GrpcRemoteSession}.
-     * <p>
-     * If the scope name parameter is {@code null} the default scope
-     * name {@link Requests#DEFAULT_SCOPE} will be used.
-     *
-     * @param sScope  the scope name of the {@link GrpcRemoteSession}
-     *
-     * @return a {@link Session.Option} to specify the scope of the {@link GrpcRemoteSession}
-     */
-    public static Session.Option scope(String sScope)
-        {
-        return sScope == null ? WithScopeName.defaultScope() : WithScopeName.of(sScope);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} to specify that the required {@link GrpcRemoteSession} should
-     * use an in-process gRPC channel.
-     * <p>
-     * The in-process channel will use the {@link Requests#DEFAULT_CHANNEL_NAME} for the in-process
-     * channel name unless a name options is also specified.
-     *
-     * @return a {@link Session.Option} to specify the {@link GrpcRemoteSession} should use an
-     *         in-process channel
-     */
-    public static Session.Option inProcessChannel()
-        {
-        return channel(s_inProcessChannel);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} to specify an optional name for the session.
-     * <p>
-     * If the name parameter is {@code null} the default name {@link Requests#DEFAULT_SESSION_NAME}
-     * will be used.
-     *
-     * @param sName the name to use for the {@link GrpcRemoteSession}
-     *
-     * @return  a {@link Session.Option} to specify an optional name for the session
-     */
-    public static Session.Option named(String sName)
-        {
-        return WithName.of(sName);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} to specify the {@link Channel} of the required {@link GrpcRemoteSession}.
-     * <p>
-     * A channel of {@code null} will use the default in-process channel connecting using the session's name
-     * as the channel name.
-     *
-     * @param channel  the gRPC {@link Channel} to use
-     *
-     * @return a {@link Session.Option} to specify the gRPC {@link Channel} of the {@link GrpcRemoteSession}
-     *
-     * @throws NullPointerException if the {@link Channel} is {@code null}
-     */
-    public static Session.Option channel(Channel channel)
-        {
-        return channel == null
-                ? inProcessChannel()
-                : new ChannelOption(channel);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} to specify that the required {@link GrpcRemoteSession} should
-     * use an gRPC channel that connects to a gRPC server on localhost using plain text transport.
-     * <p>
-     * This is useful in a test environment where a test server is running on localhost.
-     * <p>
-     * The port used will be taken from the value of the {@code coherence.grpc.port} system property,
-     * or 1408 if the property is not set.
-     *
-     * @return a {@link Session.Option} to specify the {@link GrpcRemoteSession} should use a channel
-     *         that connects to localhost
-     */
-    public static Session.Option localChannel()
-        {
-        int     port    = Config.getInteger(Requests.PROP_PORT, Requests.DEFAULT_PORT);
-        Channel channel = ManagedChannelBuilder.forAddress("localhost", port)
-                                               .usePlaintext()
-                                               .build();
-        return channel(channel);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} to specify the {@link Serializer} of the required {@link GrpcRemoteSession}.
-     * <p>
-     * A serializer of {@code null} will use the default {@link Serializer}, which will be Java unless
-     * POF has been enabled with the {@code coherence.pof.enabled} System property.
-     *
-     * @param serializer  the {@link Serializer} the session should use
-     *
-     * @return a {@link Session.Option} to specify the {@link Serializer} of the {@link GrpcRemoteSession}
-     */
-    public static Session.Option serializer(Serializer serializer)
-        {
-        String sName = serializer == null ? null : serializer.getName();
-        return serializer(serializer, sName);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} to specify the {@link Serializer} and serialization format name
-     * of the required {@link GrpcRemoteSession}.
-     *
-     * @param serializer  the {@link Serializer} the session should use
-     * @param sFormat     the serialization format name
-     *
-     * @return a {@link Session.Option} to specify the {@link Serializer} and serialization
-     *         format name of the {@link GrpcRemoteSession}
-     */
-    public static Session.Option serializer(Serializer serializer, String sFormat)
-        {
-        return new SerializerOption(serializer, sFormat);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} to specify the serialization
-     * format of the required {@link GrpcRemoteSession}.
-     *
-     * @param sFormat  the serialization format name
-     *
-     * @return a {@link Session.Option} to specify the serialization
-     *         format of the {@link GrpcRemoteSession}
-     */
-    public static Session.Option serializerFormat(String sFormat)
-        {
-        return serializer(null, sFormat);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} to enable or disable tracing for the session.
-     *
-     * @param enabled  {@code true} to enable tracing
-     *
-     * @return a {@link Session.Option} to enable or disable tracing
-     */
-    public static Session.Option tracing(boolean enabled)
-        {
-        return new TracingOption(enabled);
-        }
-
-    /**
-     * Obtain a {@link Session.Option} setting the tracing interceptor to use.
-     *
-     * @param interceptor  the {@link TracingClientInterceptor} to use
-     *
-     * @return a {@link Session.Option} setting the tracing interceptor to use.
-     */
-    public static Session.Option tracing(ClientInterceptor interceptor)
-        {
-        return new TracingOption(interceptor);
-        }
-
     // ----- helper methods -------------------------------------------------
 
     /**
@@ -236,212 +97,77 @@ public class GrpcSessions
      * Requests for a session with the same {@link Channel}, scope name, serialization
      * format and {@link Serializer} will return the same {@link GrpcRemoteSession}.
      *
-     * @param options the options to use to build the {@link GrpcRemoteSession}
+     * @param configuration the {@link SessionConfiguration} to configure the session
+     * @param context       the {@link com.tangosol.net.SessionProvider.Context} to use
      *
-     * @return a {@link GrpcRemoteSession} instance
+     * @return the result context
      */
-    private synchronized GrpcRemoteSession ensureSession(Options<Session.Option> options)
+    synchronized Context ensureSession(SessionConfiguration configuration, Context context)
         {
-        Channel          channel          = options.get(ChannelOption.class).getChannel();
-        String           sName            = options.get(WithName.class, WithName.defaultName()).getName();
-        String           sScope           = options.get(WithScopeName.class, WithScopeName.defaultScope()).getScopeName();
-        SerializerOption serializerOption = options.get(SerializerOption.class, SerializerOption.DEFAULT);
-        Serializer       serializer       = serializerOption.getSerializer();
-        String           sFormat          = serializerOption.getFormat();
-
-        GrpcRemoteSession.Builder builder = GrpcRemoteSession.builder(channel)
-                .setName(sName)
-                .setScope(sScope)
-                .serializer(serializer, sFormat);
-
-        options.get(TracingOption.class, TracingOption.DEFAULT)
-                .getInterceptor()
-                .ifPresent(builder::tracing);
-
-        return f_sessions.get(sName)
-                         .get(channel)
-                         .get(builder.getScope())
-                         .get(builder.ensureSerializerFormat())
-                         .get(builder.ensureSerializer(), builder);
-        }
-
-    // ----- inner class: ChannelOption -------------------------------------
-
-    /**
-     * A {@link Session.Option} to use to specify the gRPC {@link Channel}.
-     */
-    protected static class ChannelOption
-            implements Session.Option
-        {
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Create a {@link ChannelOption} with the specified {@link Channel}.
-         *
-         * @param channel  the {@link Channel} that should be used by
-         *                 the {@link GrpcRemoteSession}
-         *
-         * @throws NullPointerException if the {@link Channel} is {@code null}
-         */
-        protected ChannelOption(Channel channel)
+        if (configuration instanceof GrpcSessionConfiguration)
             {
-            f_channel = Objects.requireNonNull(channel);
-            }
+            GrpcSessionConfiguration  grpcConfiguration = (GrpcSessionConfiguration) configuration;
+            Channel                   channel           = Objects.requireNonNull(grpcConfiguration.getChannel());
+            String                    sName             = grpcConfiguration.getName();
+            String                    sScope            = grpcConfiguration.getScopeName();
+            Serializer                serializer        = grpcConfiguration.getSerializer();
+            String                    sFormat           = grpcConfiguration.getFormat();
+            GrpcRemoteSession.Builder builder           = GrpcRemoteSession.builder(channel)
+                                                                           .setName(sName)
+                                                                           .setScope(sScope)
+                                                                           .serializer(serializer, sFormat);
 
-        /**
-         * Return the gRPC {@link Channel}.
-         *
-         * @return the gRPC {@link Channel}
-         */
-        protected Channel getChannel()
-            {
-            return f_channel;
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The gRPC {@link Channel}.
-         */
-        protected final Channel f_channel;
-        }
-
-    // ----- inner class: ChannelOption -------------------------------------
-
-    /**
-     * A {@link Session.Option} to use to enable or disable tracing.
-     */
-    protected static class TracingOption
-            implements Session.Option
-        {
-        // ----- constructors -----------------------------------------------
-
-        protected TracingOption(boolean fEnabled)
-            {
-            this(fEnabled, null);
-            }
-
-        protected TracingOption(ClientInterceptor interceptor)
-            {
-            this(interceptor != null, interceptor);
-            }
-
-        protected TracingOption(boolean fEnabled, ClientInterceptor interceptor)
-            {
-            f_fEnabled    = fEnabled;
-            f_interceptor = interceptor;
-            }
-
-        /**
-         * Return whether tracing should be enabled.
-         *
-         * @return {@code true} if tracing should be enabled
-         */
-        protected boolean isEnabled()
-            {
-            return f_fEnabled;
-            }
-
-        /**
-         * Return the {@link ClientInterceptor} to use.
-         *
-         * @return the {@link ClientInterceptor} to use
-         */
-        public Optional<ClientInterceptor> getInterceptor()
-            {
-            if (f_interceptor != null)
+            if (grpcConfiguration.enableTracing())
                 {
-                return Optional.of(f_interceptor);
+                builder.tracing(createTracingInterceptor());
                 }
-            else if (f_fEnabled)
+
+            GrpcRemoteSession session = f_sessions.get(sName)
+                    .get(channel)
+                    .get(builder.getScope())
+                    .get(builder.ensureSerializerFormat())
+                    .get(builder.ensureSerializer(), builder);
+
+            if (session != null)
                 {
-                Tracer tracer = GlobalTracer.get();
-                TracingClientInterceptor interceptor = TracingClientInterceptor.newBuilder()
-                        .withTracer(tracer)
-                        .build();
-                return Optional.of(interceptor);
-                }
-            else
-                {
-                return Optional.empty();
+                return context.complete(session);
                 }
             }
-
-        // ----- constants --------------------------------------------------
-
-        /**
-         * Default tracing option.
-         */
-        protected static final TracingOption DEFAULT = new TracingOption(TracingHelper.isEnabled());
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The tracing flag.
-         */
-        protected final boolean f_fEnabled;
-
-        /**
-         * The {@link ClientInterceptor} to use.
-         */
-        protected final ClientInterceptor f_interceptor;
+        return context;
         }
 
-    // ----- inner class: ChannelOption -------------------------------------
+    /**
+     * Return the {@link ClientInterceptor} to use for tracing.
+     *
+     * @return the {@link ClientInterceptor} to use for tracing
+     */
+    private ClientInterceptor createTracingInterceptor()
+        {
+        Tracer tracer = GlobalTracer.get();
+        return TracingClientInterceptor.newBuilder()
+                .withTracer(tracer)
+                .build();
+        }
 
     /**
-     * A {@link Session.Option} to use to specify the {@link Serializer}
-     * and format name to use to serialize request and response payloads.
+     * Obtain the list of discovered {@link GrpcSessionProvider} instances.
+     *
+     * @return the list of discovered {@link GrpcSessionProvider} instances
      */
-    protected static class SerializerOption
-            implements Session.Option
+    private synchronized List<GrpcSessionProvider> ensureProviders()
         {
-        // ----- constructors -----------------------------------------------
-
-        protected SerializerOption(Serializer serializer, String sFormat)
+        if (m_listProvider == null)
             {
-            f_serializer = serializer;
-            f_sFormat    = sFormat;
+            List<GrpcSessionProvider>          list   = new ArrayList<>();
+            ServiceLoader<GrpcSessionProvider> loader = ServiceLoader.load(GrpcSessionProvider.class);
+            for (GrpcSessionProvider provider : loader)
+                {
+                list.add(provider);
+                }
+            list.sort(Comparator.reverseOrder());
+            m_listProvider = list;
             }
-
-        /**
-         * Return the {@link Serializer}.
-         *
-         * @return the gRPC {@link Serializer}
-         */
-        protected Serializer getSerializer()
-            {
-            return f_serializer;
-            }
-
-        /**
-         * Return the serialization format.
-         *
-         * @return the serialization format
-         */
-        protected String getFormat()
-            {
-            return f_sFormat;
-            }
-
-        // ----- constants --------------------------------------------------
-
-        /**
-         * Default serializer option.
-         */
-        protected static final SerializerOption DEFAULT = new SerializerOption(null, null);
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The {@link Serializer}.
-         */
-        protected final Serializer f_serializer;
-
-        /**
-         * The serialization format.
-         */
-        protected final String f_sFormat;
+        return m_listProvider;
         }
 
     // ----- inner class: SessionsByName ------------------------------------
@@ -560,6 +286,32 @@ public class GrpcSessions
         private final ConcurrentHashMap<Serializer, GrpcRemoteSession> f_map = new ConcurrentHashMap<>();
         }
 
+    // ----- inner class: DefaultProvider -----------------------------------
+
+    /**
+     * The default gRPC session provider that does not delegate to any other provider.
+     */
+    private static class DefaultProvider
+            extends GrpcSessions
+        {
+        @Override
+        public Context createSession(SessionConfiguration configuration, Context context)
+            {
+            if (configuration instanceof GrpcSessionConfiguration)
+                {
+                return ensureSession(configuration, context);
+                }
+            return context;
+            }
+
+        // ----- constants --------------------------------------------------
+
+        /**
+         * The singleton {@link DefaultProvider} instance.
+         */
+        static DefaultProvider INSTANCE = new DefaultProvider();
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -568,9 +320,7 @@ public class GrpcSessions
     private final SessionsByName f_sessions = new SessionsByName();
 
     /**
-     * The default in-process {@link Channel}.
+     * The list of {@link GrpcSessionProvider} instances to use to provide gRPC sessions.
      */
-    private static final Channel s_inProcessChannel = InProcessChannelBuilder.forName(Requests.DEFAULT_CHANNEL_NAME)
-            .usePlaintext()
-            .build();
+    private List<GrpcSessionProvider> m_listProvider;
     }

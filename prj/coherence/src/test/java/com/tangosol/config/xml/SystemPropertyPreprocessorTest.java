@@ -10,6 +10,8 @@ import com.tangosol.coherence.config.xml.preprocessor.SystemPropertyPreprocessor
 
 import com.tangosol.config.ConfigurationException;
 
+import com.tangosol.config.expression.SystemPropertyParameterResolver;
+
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
@@ -18,6 +20,9 @@ import common.SystemPropertyResource;
 import org.junit.Assert;
 
 import org.junit.Test;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link SystemPropertyPreprocessor}s.
@@ -37,18 +42,21 @@ public class SystemPropertyPreprocessorTest
         {
         String                      sXml = "<element system-property=\"custom\">undefined</element>";
         XmlElement                  xml  = XmlHelper.loadXml(sXml);
+        ProcessingContext           ctx  = mock(ProcessingContext.class);
+
+        when(ctx.getDefaultParameterResolver()).thenReturn(SystemPropertyParameterResolver.INSTANCE);
 
         DocumentElementPreprocessor dep  = new DocumentElementPreprocessor();
 
         dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);
 
-        dep.preprocess(null, xml);
+        dep.preprocess(ctx, xml);
         Assert.assertEquals("undefined", xml.getString());
         Assert.assertNull(xml.getAttribute("system-property"));
 
         System.setProperty("custom", "hello");
         xml = XmlHelper.loadXml(sXml);
-        dep.preprocess(null, xml);
+        dep.preprocess(ctx, xml);
 
         Assert.assertEquals("hello", xml.getString());
         Assert.assertNull(xml.getAttribute("system-property"));
@@ -65,19 +73,22 @@ public class SystemPropertyPreprocessorTest
         {
         String                      sXml = "<element system-property=\"coherence.system.property\">undefined</element>";
         XmlElement                  xml  = XmlHelper.loadXml(sXml);
+        ProcessingContext           ctx  = mock(ProcessingContext.class);
+
+        when(ctx.getDefaultParameterResolver()).thenReturn(SystemPropertyParameterResolver.INSTANCE);
 
         DocumentElementPreprocessor dep  = new DocumentElementPreprocessor();
 
         dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);
 
-        dep.preprocess(null, xml);
+        dep.preprocess(ctx, xml);
         Assert.assertEquals("undefined", xml.getString());
         Assert.assertNull(xml.getAttribute("system-property"));
 
         try (SystemPropertyResource p = new SystemPropertyResource("tangosol.coherence.system.property", "backwardscompatibilehello"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("backwardscompatibilehello", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -85,7 +96,7 @@ public class SystemPropertyPreprocessorTest
         try (SystemPropertyResource p = new SystemPropertyResource("coherence.system.property", "goodbye"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("goodbye", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -103,19 +114,22 @@ public class SystemPropertyPreprocessorTest
         String sXml =
             "<scheme-name system-property=\"coherence.profile\">near-${coherence.client direct}</scheme-name>\n";
         XmlElement                  xml = XmlHelper.loadXml(sXml);
+        ProcessingContext           ctx  = mock(ProcessingContext.class);
+
+        when(ctx.getDefaultParameterResolver()).thenReturn(SystemPropertyParameterResolver.INSTANCE);
 
         DocumentElementPreprocessor dep = new DocumentElementPreprocessor();
 
         dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);
 
-        dep.preprocess(null, xml);
+        dep.preprocess(ctx, xml);
         Assert.assertEquals("near-direct", xml.getString());
         Assert.assertNull(xml.getAttribute("system-property"));
 
         try (SystemPropertyResource p = new SystemPropertyResource("coherence.client", "remote"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("near-remote", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -123,7 +137,7 @@ public class SystemPropertyPreprocessorTest
         try (SystemPropertyResource p = new SystemPropertyResource("coherence.client", "direct"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("near-direct", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -141,12 +155,15 @@ public class SystemPropertyPreprocessorTest
         String sXml =
             "<element system-property=\"coherence.profile\">near-${coherence.client direct}-${coherence.macro default}</element>\n";
         XmlElement                  xml = XmlHelper.loadXml(sXml);
+        ProcessingContext           ctx  = mock(ProcessingContext.class);
+
+        when(ctx.getDefaultParameterResolver()).thenReturn(SystemPropertyParameterResolver.INSTANCE);
 
         DocumentElementPreprocessor dep = new DocumentElementPreprocessor();
 
         dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);
 
-        dep.preprocess(null, xml);
+        dep.preprocess(ctx, xml);
         Assert.assertEquals("near-direct-default", xml.getString());
         Assert.assertNull(xml.getAttribute("system-property"));
 
@@ -154,7 +171,7 @@ public class SystemPropertyPreprocessorTest
              SystemPropertyResource p2 = new SystemPropertyResource("coherence.macro", "notdefault"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("near-remote-notdefault", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -163,7 +180,7 @@ public class SystemPropertyPreprocessorTest
              SystemPropertyResource p2 = new SystemPropertyResource("coherence.macro", "anotherValue"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("near-direct-anotherValue", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -174,7 +191,7 @@ public class SystemPropertyPreprocessorTest
                 "system-property-macro-replacement-${coherence.client direct}-${coherence.macro default}"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("system-property-macro-replacement-remote-anotherValue", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -183,7 +200,7 @@ public class SystemPropertyPreprocessorTest
             "system-property-macro-replacement-${coherence.client direct}-${coherence.macro default}"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("system-property-macro-replacement-direct-default", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -193,7 +210,7 @@ public class SystemPropertyPreprocessorTest
                 "system-property-macro-replacement-${coherence.client direct}-${coherence.client altdefault}"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("system-property-macro-replacement-remote-remote", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -202,7 +219,7 @@ public class SystemPropertyPreprocessorTest
             "system-property-macro-replacement-${coherence.client default}-${coherence.client altdefault}"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("system-property-macro-replacement-default-altdefault", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -214,10 +231,12 @@ public class SystemPropertyPreprocessorTest
     @Test
     public void testRecursiveMacroProcessing()
         {
-
         String sXml =
                 "<element system-property=\"coherence.profile\">near-${coherence.client direct}-${coherence.macro default}</element>\n";
-        XmlElement xml = XmlHelper.loadXml(sXml);
+        XmlElement        xml = XmlHelper.loadXml(sXml);
+        ProcessingContext ctx = mock(ProcessingContext.class);
+
+        when(ctx.getDefaultParameterResolver()).thenReturn(SystemPropertyParameterResolver.INSTANCE);
 
         DocumentElementPreprocessor dep = new DocumentElementPreprocessor();
 
@@ -227,7 +246,7 @@ public class SystemPropertyPreprocessorTest
              SystemPropertyResource p2 = new SystemPropertyResource("coherence.macro", "notdefault"))
             {
             xml = XmlHelper.loadXml(sXml);
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             Assert.assertEquals("near-direct-notdefault", xml.getString());
             Assert.assertNull(xml.getAttribute("system-property"));
             }
@@ -239,9 +258,11 @@ public class SystemPropertyPreprocessorTest
     @Test
     public void testRecursiveMacroProcessingOfCycleOfMacros()
         {
+        String            sXml = "<config><enable-pof-serialization system-property=\"tangosol.pof.enabled\">false</enable-pof-serialization></config>\n";
+        XmlElement        xml  = XmlHelper.loadXml(sXml);
+        ProcessingContext ctx  = mock(ProcessingContext.class);
 
-        String sXml = "<config><enable-pof-serialization system-property=\"tangosol.pof.enabled\">false</enable-pof-serialization></config>\n";
-        XmlElement xml = XmlHelper.loadXml(sXml);
+        when(ctx.getDefaultParameterResolver()).thenReturn(SystemPropertyParameterResolver.INSTANCE);
 
         DocumentElementPreprocessor dep = new DocumentElementPreprocessor();
 
@@ -250,14 +271,14 @@ public class SystemPropertyPreprocessorTest
         try (SystemPropertyResource p1 = new SystemPropertyResource("coherence.pof.enabled", "${alternate.pof.enabled}");
              SystemPropertyResource p2 = new SystemPropertyResource("alternate.pof.enabled", "${coherence.pof.enabled}"))
             {
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             //Assert.assertEquals("near-remote-notdefault", xml.getString());
             //Assert.assertNull(xml.getAttribute("system-property"));
             }
 
         try (SystemPropertyResource p1 = new SystemPropertyResource("tangosol.pof.enabled", "${tangosol.pof.enabled}"))
             {
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             }
 
         }
@@ -268,9 +289,11 @@ public class SystemPropertyPreprocessorTest
     @Test
     public void testCOH14214()
         {
+        String            sXml = "<config><enable-pof-serialization system-property=\"tangosol.pof.enabled\">false</enable-pof-serialization></config>\n";
+        XmlElement        xml  = XmlHelper.loadXml(sXml);
+        ProcessingContext ctx  = mock(ProcessingContext.class);
 
-        String sXml = "<config><enable-pof-serialization system-property=\"tangosol.pof.enabled\">false</enable-pof-serialization></config>\n";
-        XmlElement xml = XmlHelper.loadXml(sXml);
+        when(ctx.getDefaultParameterResolver()).thenReturn(SystemPropertyParameterResolver.INSTANCE);
 
         DocumentElementPreprocessor dep = new DocumentElementPreprocessor();
 
@@ -278,7 +301,7 @@ public class SystemPropertyPreprocessorTest
 
         try (SystemPropertyResource p1 = new SystemPropertyResource("tangosol.pof.enabled", "${tangosol.pof.enabled}"))
             {
-            dep.preprocess(null, xml);
+            dep.preprocess(ctx, xml);
             }
         }
     }

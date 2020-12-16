@@ -11,12 +11,17 @@ import com.oracle.coherence.grpc.Requests;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 
+import com.tangosol.net.SessionConfiguration;
+import com.tangosol.net.options.WithConfiguration;
 import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
 
 import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -33,13 +38,21 @@ import static org.mockito.Mockito.mock;
  *
  * @author Jonathan Knight  2020.09.25
  */
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class GrpcSessionsTest
     {
     @Test
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void shouldGetSessionFromCoherenceSessionsFactory()
         {
-        Channel channel = mock(Channel.class);
-        Session session = Session.create(GrpcSessions.channel(channel));
+        Channel                  channel       = mock(Channel.class);
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).build();
+        Optional<Session>        optional      = Session.create(configuration);
+
+        assertThat(optional, is(notNullValue()));
+        assertThat(optional.isPresent(), is(notNullValue()));
+
+        Session session = optional.get();
         assertThat(session, is(notNullValue()));
         assertThat(session, is(instanceOf(GrpcRemoteSession.class)));
         assertThat(((GrpcRemoteSession) session).getChannel(), is(sameInstance(channel)));
@@ -47,41 +60,24 @@ public class GrpcSessionsTest
         }
 
     @Test
-    public void shouldNotGetSessionWithoutChannel()
-        {
-        GrpcSessions factory = new GrpcSessions();
-        Session      session = factory.createSession();
-        assertThat(session, is(nullValue()));
-        }
-
-    @Test
-    public void shouldGetSessionWithInProcessChannel()
-        {
-        GrpcSessions      factory = new GrpcSessions();
-        GrpcRemoteSession session = factory.createSession(GrpcSessions.inProcessChannel());
-        assertThat(session, is(notNullValue()));
-        assertThat(session.getChannel(), is(notNullValue()));
-        }
-
-    @Test
-    public void shouldGetSessionWithInProcessChannelIfSpecifiedChannelIsNull()
+    public void shouldNotGetSessionForNonGrpcSessionConfiguration()
         {
         GrpcSessions      factory  = new GrpcSessions();
-        GrpcRemoteSession session1 = factory.createSession(GrpcSessions.inProcessChannel());
-        GrpcRemoteSession session2 = factory.createSession(GrpcSessions.channel(null));
-        assertThat(session1, is(notNullValue()));
-        assertThat(session2, is(notNullValue()));
-        assertThat(session1.getChannel(), is(sameInstance(session2.getChannel())));
+        Optional<Session> optional = factory.createSession(SessionConfiguration.defaultSession(), Coherence.Mode.Client);
+        assertThat(optional, is(notNullValue()));
+        assertThat(optional.isPresent(), is(false));
         }
 
     @Test
     public void shouldGetSameSessionForSameChannel()
         {
-        Channel           channel    = ManagedChannelBuilder.forAddress("localhost", 1408).build();
-        GrpcSessions      factory    = new GrpcSessions();
-        Session.Option    optChannel = GrpcSessions.channel(channel);
-        GrpcRemoteSession session1   = factory.createSession(optChannel);
-        GrpcRemoteSession session2   = factory.createSession(optChannel);
+        Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).build();
+        GrpcSessions             factory       = new GrpcSessions();
+        GrpcRemoteSession session1   = factory.createSession(configuration, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
+        GrpcRemoteSession session2   = factory.createSession(configuration, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
         assertThat(session1, is(sameInstance(session2)));
         assertThat(session1.getChannel(), is(sameInstance(session2.getChannel())));
         }
@@ -89,14 +85,16 @@ public class GrpcSessionsTest
     @Test
     public void shouldGetNewSessionIfOriginalSessionClosed()
         {
-        Channel           channel    = ManagedChannelBuilder.forAddress("localhost", 1408).build();
-        GrpcSessions      factory    = new GrpcSessions();
-        Session.Option    optChannel = GrpcSessions.channel(channel);
-        GrpcRemoteSession session1   = factory.createSession(optChannel);
+        Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).build();
+        GrpcSessions             factory       = new GrpcSessions();
+        GrpcRemoteSession        session1      = factory.createSession(configuration, Coherence.Mode.Client)
+                                                        .map(GrpcRemoteSession.class::cast).get();
 
         session1.close();
 
-        GrpcRemoteSession session2 = factory.createSession(optChannel);
+        GrpcRemoteSession session2 = factory.createSession(configuration, Coherence.Mode.Client)
+                .map(GrpcRemoteSession.class::cast).get();
 
         assertThat(session1, is(not(sameInstance(session2))));
         assertThat(session1.getChannel(), is(sameInstance(session2.getChannel())));
@@ -105,12 +103,16 @@ public class GrpcSessionsTest
     @Test
     public void shouldGetSameSessionForSameScope()
         {
-        Channel           channel    = ManagedChannelBuilder.forAddress("localhost", 1408).build();
-        Session.Option    optScope   = GrpcSessions.scope("foo");
+        Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel)
+                .withScopeName("foo")
+                .build();
+
         GrpcSessions      factory    = new GrpcSessions();
-        Session.Option    optChannel = GrpcSessions.channel(channel);
-        GrpcRemoteSession session1   = factory.createSession(optChannel, optScope);
-        GrpcRemoteSession session2   = factory.createSession(optChannel, optScope);
+        GrpcRemoteSession session1   = factory.createSession(configuration, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
+        GrpcRemoteSession session2   = factory.createSession(configuration, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
         assertThat(session1, is(sameInstance(session2)));
         assertThat(session1.getChannel(), is(sameInstance(session2.getChannel())));
         assertThat(session1.getScopeName(), is(session2.getScopeName()));
@@ -119,23 +121,35 @@ public class GrpcSessionsTest
     @Test
     public void shouldGetDifferentSessionForDifferentScope()
         {
-        Channel           channel    = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        Channel                  channel        = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        GrpcSessionConfiguration configuration1 = GrpcSessionConfiguration.builder(channel)
+                .withScopeName("foo")
+                .build();
+        GrpcSessionConfiguration configuration2 = GrpcSessionConfiguration.builder(channel)
+                .withScopeName("bar")
+                .build();
+
         GrpcSessions      factory    = new GrpcSessions();
-        Session.Option    optChannel = GrpcSessions.channel(channel);
-        GrpcRemoteSession session1   = factory.createSession(optChannel, GrpcSessions.scope("foo"));
-        GrpcRemoteSession session2   = factory.createSession(optChannel, GrpcSessions.scope("bar"));
+        GrpcRemoteSession session1   = factory.createSession(configuration1, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
+        GrpcRemoteSession session2   = factory.createSession(configuration2, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
         assertThat(session1, is(not(sameInstance(session2))));
         }
 
     @Test
     public void shouldGetSameSessionForSameSerializerFormat()
         {
-        Channel           channel    = ManagedChannelBuilder.forAddress("localhost", 1408).build();
-        Session.Option    optFormat  = GrpcSessions.serializerFormat("pof");
+        Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel)
+                .withSerializerFormat("pof")
+                .build();
+
         GrpcSessions      factory    = new GrpcSessions();
-        Session.Option    optChannel = GrpcSessions.channel(channel);
-        GrpcRemoteSession session1   = factory.createSession(optChannel, optFormat);
-        GrpcRemoteSession session2   = factory.createSession(optChannel, optFormat);
+        GrpcRemoteSession session1   = factory.createSession(configuration, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
+        GrpcRemoteSession session2   = factory.createSession(configuration, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
         assertThat(session1, is(sameInstance(session2)));
         assertThat(session1.getChannel(), is(sameInstance(session2.getChannel())));
         assertThat(session1.getSerializerFormat(), is(session2.getSerializerFormat()));
@@ -144,24 +158,35 @@ public class GrpcSessionsTest
     @Test
     public void shouldGetDifferentSessionForSerializerFormat()
         {
-        Channel           channel    = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        Channel                  channel        = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        GrpcSessionConfiguration configuration1 = GrpcSessionConfiguration.builder(channel)
+                .withSerializerFormat("pof")
+                .build();
+        GrpcSessionConfiguration configuration2 = GrpcSessionConfiguration.builder(channel)
+                .withSerializerFormat("java")
+                .build();
+
         GrpcSessions      factory    = new GrpcSessions();
-        Session.Option    optChannel = GrpcSessions.channel(channel);
-        GrpcRemoteSession session1   = factory.createSession(optChannel, GrpcSessions.serializerFormat("pof"));
-        GrpcRemoteSession session2   = factory.createSession(optChannel, GrpcSessions.serializerFormat("java"));
+        GrpcRemoteSession session1   = factory.createSession(configuration1, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
+        GrpcRemoteSession session2   = factory.createSession(configuration2, Coherence.Mode.Client)
+                                              .map(GrpcRemoteSession.class::cast).get();
         assertThat(session1, is(not(sameInstance(session2))));
         }
 
     @Test
     public void shouldGetSameSessionForSameSerializer()
         {
-        Channel           channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
-        Session.Option    optFormat     = GrpcSessions.serializerFormat("pof");
-        Session.Option    optSerializer = GrpcSessions.serializer(new ConfigurablePofContext());
+        Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel)
+                .withSerializer(new ConfigurablePofContext())
+                .build();
+
         GrpcSessions      factory       = new GrpcSessions();
-        Session.Option    optChannel    = GrpcSessions.channel(channel);
-        GrpcRemoteSession session1      = factory.createSession(optChannel, optFormat, optSerializer);
-        GrpcRemoteSession session2      = factory.createSession(optChannel, optFormat, optSerializer);
+        GrpcRemoteSession session1      = factory.createSession(configuration, Coherence.Mode.Client)
+                                                 .map(GrpcRemoteSession.class::cast).get();
+        GrpcRemoteSession session2      = factory.createSession(configuration, Coherence.Mode.Client)
+                                                 .map(GrpcRemoteSession.class::cast).get();
         assertThat(session1, is(sameInstance(session2)));
         assertThat(session1.getChannel(), is(sameInstance(session2.getChannel())));
         assertThat(session1.getSerializerFormat(), is(session2.getSerializerFormat()));
@@ -170,14 +195,21 @@ public class GrpcSessionsTest
     @Test
     public void shouldGetDifferentSessionForSerializer()
         {
-        Channel           channel        = ManagedChannelBuilder.forAddress("localhost", 1408).build();
-        Session.Option    optFormat      = GrpcSessions.serializerFormat("pof");
-        Session.Option    optSerializer1 = GrpcSessions.serializer(new ConfigurablePofContext());
-        Session.Option    optSerializer2 = GrpcSessions.serializer(new ConfigurablePofContext());
+        Channel                  channel        = ManagedChannelBuilder.forAddress("localhost", 1408).build();
+        GrpcSessionConfiguration configuration1 = GrpcSessionConfiguration.builder(channel)
+                .withSerializerFormat("pof")
+                .withSerializer(new ConfigurablePofContext())
+                .build();
+        GrpcSessionConfiguration configuration2 = GrpcSessionConfiguration.builder(channel)
+                .withSerializerFormat("pof")
+                .withSerializer(new ConfigurablePofContext())
+                .build();
+
         GrpcSessions      factory        = new GrpcSessions();
-        Session.Option    optChannel     = GrpcSessions.channel(channel);
-        GrpcRemoteSession session1       = factory.createSession(optChannel, optFormat, optSerializer1);
-        GrpcRemoteSession session2       = factory.createSession(optChannel, optFormat, optSerializer2);
+        GrpcRemoteSession session1       = factory.createSession(configuration1, Coherence.Mode.Client)
+                                                  .map(GrpcRemoteSession.class::cast).get();
+        GrpcRemoteSession session2       = factory.createSession(configuration2, Coherence.Mode.Client)
+                                                  .map(GrpcRemoteSession.class::cast).get();
         assertThat(session1, is(not(sameInstance(session2))));
         }
     }

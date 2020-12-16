@@ -56,6 +56,7 @@ public class MapEventTransformerIT
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                   .addPackages(CoherenceExtension.class)
                                                   .addExtension(new CoherenceExtension())
+                                                  .addBeanClass(TestServerCoherenceProducer.class)
                                                   .addBeanClass(TransformerBean.class)
                                                   .addBeanClass(TestTransformerFactory.class));
 

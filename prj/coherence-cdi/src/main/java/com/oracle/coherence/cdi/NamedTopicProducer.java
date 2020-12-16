@@ -9,6 +9,7 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.inject.Name;
 import com.oracle.coherence.inject.SessionName;
 import com.oracle.coherence.inject.SubscriberGroup;
+
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.Session;
@@ -24,8 +25,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Disposes;
 import javax.enterprise.inject.Produces;
 
-import javax.enterprise.inject.spi.DefinitionException;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
+
+import javax.inject.Inject;
 
 /**
  * A CDI producer for {@link com.tangosol.net.topic.NamedTopic}, {@link
@@ -38,6 +41,19 @@ import javax.enterprise.inject.spi.InjectionPoint;
 @ApplicationScoped
 class NamedTopicProducer
     {
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * Create the {2link NamedTopicProducer}.
+     *
+     * @param beanManager  the CDI bean manager
+     */
+    @Inject
+    public NamedTopicProducer(BeanManager beanManager)
+        {
+        f_beanManager = beanManager;
+        }
+
     // ---- producer methods ------------------------------------------------
 
     /**
@@ -99,9 +115,10 @@ class NamedTopicProducer
             sName = injectionPoint.getMember().getName();
             }
 
-        String sSessionName = sSession;
-        Session session = Coherence.findSession(sSessionName)
-                .orElseThrow(() -> new DefinitionException("No Session is configured with name " + sSessionName));
+        String  sSessionName = sSession;
+        Session session      = f_beanManager.createInstance()
+                                            .select(Session.class, Name.Literal.of(sSessionName))
+                                            .get();
 
         return session.getTopic(sName);
         }
@@ -262,4 +279,11 @@ class NamedTopicProducer
         {
         subscriber.close();
         }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The CDI bean manager.
+     */
+    private final BeanManager f_beanManager;
     }

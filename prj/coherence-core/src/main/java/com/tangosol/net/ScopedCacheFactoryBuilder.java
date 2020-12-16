@@ -6,6 +6,8 @@
  */
 package com.tangosol.net;
 
+import com.tangosol.config.expression.ParameterResolver;
+
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.Dependencies;
 
 import com.tangosol.run.xml.XmlElement;
@@ -27,9 +29,11 @@ import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -103,7 +107,7 @@ public class ScopedCacheFactoryBuilder
      */
     public ConfigurableCacheFactory getConfigurableCacheFactory(ClassLoader loader)
         {
-        return getFactory(URI_DEFAULT, loader);
+        return getFactory(URI_DEFAULT, loader, null);
         }
 
     /**
@@ -111,7 +115,17 @@ public class ScopedCacheFactoryBuilder
      */
     public ConfigurableCacheFactory getConfigurableCacheFactory(String sConfigURI, ClassLoader loader)
         {
-        return getFactory(sConfigURI, loader);
+        return getFactory(sConfigURI, loader, null);
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigurableCacheFactory getConfigurableCacheFactory(String            sConfigURI,
+                                                                ClassLoader       loader,
+                                                                ParameterResolver resolver)
+        {
+        return getFactory(sConfigURI, loader, resolver);
         }
 
     /**
@@ -171,6 +185,13 @@ public class ScopedCacheFactoryBuilder
      */
     public synchronized void releaseAll(ClassLoader loader)
         {
+        Map<String, ConfigurableCacheFactory> map = m_mapByLoader.get(ensureClassLoader(loader));
+        if (map != null)
+            {
+            List<ConfigurableCacheFactory> list = new ArrayList<>(map.values());
+            list.forEach(this::release);
+            list.clear();
+            }
         m_mapByLoader.remove(ensureClassLoader(loader));
         }
 
@@ -257,18 +278,22 @@ public class ScopedCacheFactoryBuilder
      *
      * @return a {@link ConfigurableCacheFactory} instance
      */
-    protected ConfigurableCacheFactory getFactory(final String sConfigURI, final ClassLoader loader)
+    protected ConfigurableCacheFactory getFactory(final String            sConfigURI,
+                                                  final ClassLoader       loader,
+                                                  final ParameterResolver resolver)
         {
         return System.getSecurityManager() == null
-                ? getFactoryInternal(sConfigURI, loader)
+                ? getFactoryInternal(sConfigURI, loader, resolver)
                 : AccessController.doPrivileged((PrivilegedAction<ConfigurableCacheFactory>)
-                    () -> getFactoryInternal(sConfigURI, loader));
+                    () -> getFactoryInternal(sConfigURI, loader, resolver));
         }
 
     /**
-     * Implementation of {@link #getFactory(String, ClassLoader)}.
+     * Implementation of {@link #getFactory(String, ClassLoader, ParameterResolver)}.
      */
-    private ConfigurableCacheFactory getFactoryInternal(String sConfigURI, ClassLoader loader)
+    private ConfigurableCacheFactory getFactoryInternal(String            sConfigURI,
+                                                        ClassLoader       loader,
+                                                        ParameterResolver resolver)
         {
         ClassLoader loaderSearch = loader = ensureClassLoader(loader);
 
@@ -297,7 +322,7 @@ public class ScopedCacheFactoryBuilder
 
                 if (ccf == null)
                     {
-                    ccf = buildFactory(sConfigURI, loader);
+                    ccf = buildFactory(sConfigURI, loader, resolver);
                     }
                 mapCCF.put(sConfigURI, ccf);
                 }
@@ -452,6 +477,23 @@ public class ScopedCacheFactoryBuilder
      */
     protected ConfigurableCacheFactory buildFactory(String sConfigURI, ClassLoader loader)
         {
+        return buildFactory(sConfigURI, loader, null);
+        }
+
+    /**
+     * Construct and configure a {@link ConfigurableCacheFactory} for the specified
+     * cache config URI and {@link ClassLoader}.
+     *
+     * @param sConfigURI     the URI to the cache configuration
+     * @param loader         the {@link ClassLoader} associated with the factory
+     * @param paramResolver  an optional {@link ParameterResolver} to use to resolve configuration parameters
+     *
+     * @return a ConfigurableCacheFactory for the specified XML configuration
+     */
+    protected ConfigurableCacheFactory buildFactory(String            sConfigURI,
+                                                    ClassLoader       loader,
+                                                    ParameterResolver paramResolver)
+        {
         ScopeResolver resolver     = getScopeResolver();
         String        sDescopedURI = resolver == null ? sConfigURI : resolver.resolveURI(sConfigURI);
         String        sResolvedURI = resolveURI(sDescopedURI);
@@ -472,7 +514,7 @@ public class ScopedCacheFactoryBuilder
             }
 
         return instantiateFactory(loader, xmlConfig,
-            getConfigurableCacheFactoryConfig(), null, sScope);
+            getConfigurableCacheFactoryConfig(), null, sScope, paramResolver);
         }
 
     /**
@@ -487,8 +529,8 @@ public class ScopedCacheFactoryBuilder
      *
      * @return the {@link ConfigurableCacheFactory} created
      */
-    protected ConfigurableCacheFactory instantiateFactory(ClassLoader loader, XmlElement xmlConfig,
-            XmlElement xmlFactory, String sPofConfigURI, String sScopeName)
+    protected ConfigurableCacheFactory instantiateFactory(ClassLoader loader, XmlElement xmlConfig, XmlElement xmlFactory,
+            String sPofConfigURI, String sScopeName, ParameterResolver resolver)
         {
         // temporarily allow user to select ECCF via a property
         String sClass = xmlFactory.getSafeElement("class-name").getString();
@@ -497,7 +539,7 @@ public class ScopedCacheFactoryBuilder
             if (sClass.equals(ExtensibleConfigurableCacheFactory.class.getName()))
                 {
                 Dependencies dependencies = ExtensibleConfigurableCacheFactory.DependenciesHelper.
-                    newInstance(xmlConfig, loader, sPofConfigURI, sScopeName);
+                    newInstance(xmlConfig, loader, sPofConfigURI, sScopeName, resolver);
 
                 ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(dependencies);
                 eccf.setConfigClassLoader(loader);

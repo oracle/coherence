@@ -9,11 +9,13 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.inject.Name;
 import com.oracle.coherence.inject.SessionName;
 import com.oracle.coherence.inject.View;
+
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.ContinuousQueryCache;
 
 import com.tangosol.util.Filter;
@@ -26,9 +28,11 @@ import java.lang.reflect.Member;
 import javax.enterprise.context.ApplicationScoped;
 
 import javax.enterprise.inject.Disposes;
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.Typed;
 
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.DefinitionException;
 import javax.enterprise.inject.spi.InjectionPoint;
 
@@ -50,18 +54,20 @@ class NamedCacheProducer
     /**
      * Construct a {@link NamedCacheProducer} instance.
      *
+     * @param beanManager        the CDI bean manager
      * @param filterProducer     the producer to use to obtain {@link
      *                           com.tangosol.util.Filter} instances
      * @param extractorProducer  the producer to use to obtain {@link
      *                           com.tangosol.util.ValueExtractor} instances
      */
     @Inject
-    // For some reason IntelliJ marks the parameter as an error but builds and tests pass
-    NamedCacheProducer(FilterProducer    filterProducer,
+    NamedCacheProducer(BeanManager       beanManager,
+                       FilterProducer    filterProducer,
                        ExtractorProducer extractorProducer)
         {
-        m_filterProducer    = filterProducer;
-        m_extractorProducer = extractorProducer;
+        f_beanManager       = beanManager;
+        f_filterProducer    = filterProducer;
+        f_extractorProducer = extractorProducer;
         }
 
     // ---- producer methods ------------------------------------------------
@@ -325,16 +331,18 @@ class NamedCacheProducer
             sName = member.getName();
             }
 
-        String sSessionName = sSession;
-        Session session = Coherence.findSession(sSessionName)
-                .orElseThrow(() -> new DefinitionException("No Session is configured with name " + sSessionName));
+        String  sSessionName = sSession;
+        Instance<Session> instance = f_beanManager.createInstance()
+                .select(Session.class, Name.Literal.of(sSessionName));
+        Session session      = instance
+                                            .get();
 
         C cache = (C) session.getCache(sName);
 
         if (fView)
             {
-            Filter         filter    = m_filterProducer.getFilter(injectionPoint);
-            ValueExtractor extractor = m_extractorProducer.getValueExtractor(injectionPoint);
+            Filter         filter    = f_filterProducer.getFilter(injectionPoint);
+            ValueExtractor extractor = f_extractorProducer.getValueExtractor(injectionPoint);
 
             return (C) new ContinuousQueryCache<>(cache, filter, fCacheValues, null, extractor);
             }
@@ -345,14 +353,19 @@ class NamedCacheProducer
         }
 
     // ---- data members ----------------------------------------------------
-    
+
+    /**
+     * The CDI bean manager.
+     */
+    private final BeanManager f_beanManager;
+
     /**
      * The producer of {@link com.tangosol.util.Filter} instances.
      */
-    private final FilterProducer m_filterProducer;
+    private final FilterProducer f_filterProducer;
 
     /**
      * The producer of {@link com.tangosol.util.ValueExtractor} instances.
      */
-    private final ExtractorProducer m_extractorProducer;
+    private final ExtractorProducer f_extractorProducer;
     }

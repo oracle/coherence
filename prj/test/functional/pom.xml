@@ -106,6 +106,7 @@
       <!-- the following modules are buildable by this profile -->
       <modules>
         <module>aggregator</module>
+        <module>bootstrap</module>
         <module>bundler</module>
         <module>cache</module>
         <module>config</module>
@@ -231,6 +232,7 @@
       <id>stage2</id>
       <modules>
         <module>aggregator</module>
+        <module>bootstrap</module>
         <module>bundler</module>
         <module>cache</module>
         <module>config</module>

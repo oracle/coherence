@@ -7,25 +7,28 @@
 package com.oracle.coherence.mp.metrics;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
+
 import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
-import java.util.HashMap;
-import java.util.Map;
-import javax.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import javax.enterprise.context.ApplicationScoped;
 
-import static org.hamcrest.Matchers.hasSize;
+import javax.inject.Inject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -40,7 +43,9 @@ class CdiMetricsRegistryAdapterIT
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
+                                                          .addPackages(CoherenceExtension.class)
                                                           .addExtension(new CoherenceServerExtension())
+                                                          .addPackages(CoherenceServerExtension.class)
                                                           .addBeanClass(TestAdapter.class));
 
     @Inject

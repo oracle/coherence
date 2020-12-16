@@ -6,6 +6,8 @@
  */
 package com.tangosol.net;
 
+import com.tangosol.config.expression.ParameterResolver;
+
 import com.tangosol.run.xml.XmlElement;
 
 /**
@@ -114,11 +116,11 @@ public class SingletonCacheFactoryBuilder
     /**
      * {@inheritDoc}
      */
-    protected ConfigurableCacheFactory getFactory(String sConfigURI, ClassLoader loader)
+    protected ConfigurableCacheFactory getFactory(String sConfigURI, ClassLoader loader, ParameterResolver resolver)
         {
         return URI_DEFAULT.equals(sConfigURI)
                ? getSingletonFactory()
-               : super.getFactory(sConfigURI, loader);
+               : super.getFactory(sConfigURI, loader, resolver);
         }
 
 

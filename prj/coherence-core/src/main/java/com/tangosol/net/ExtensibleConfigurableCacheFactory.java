@@ -1494,19 +1494,51 @@ public class ExtensibleConfigurableCacheFactory
         public static Dependencies newInstance(XmlElement xmlConfig, ClassLoader loader,
                 String sPofConfigUri, String sScopeName)
             {
+            return newInstance(xmlConfig, loader, sPofConfigUri, sScopeName, null);
+            }
+
+        /**
+         * Construct an {@link ExtensibleConfigurableCacheFactory}
+         * {@link Dependencies} instance based on the information defined by
+         * {@link XmlElement} that of which is compliant with the
+         * "coherence-cache-config.xsd".
+         *
+         * @param xmlConfig      the {@link XmlElement} defining the configuration
+         * @param loader         an optional {@link ClassLoader} that
+         *                       should be used to load configuration resources
+         * @param sPofConfigUri  an optional {@link URI} of the POF configuration file
+         * @param sScopeName     an optional scope name
+         * @param context        an optional ContainerContext reference
+         * @param resolver       an optional {@link ParameterResolver} to use to resolve parameters
+         *                       when creating the dependencies
+         */
+        public static Dependencies newInstance(XmlElement xmlConfig, ClassLoader loader,
+                String sPofConfigUri, String sScopeName, ParameterResolver resolver)
+            {
             loader = Base.ensureClassLoader(loader);
 
             // establish a default ParameterResolver based on the System properties
             // COH-9952 wrap the code in privileged block for upstack products
-            ScopedParameterResolver resolver = AccessController.
+            ScopedParameterResolver resolverScoped = AccessController.
                 doPrivileged(new PrivilegedAction<ScopedParameterResolver>()
                 {
                 public ScopedParameterResolver run()
                     {
-                    return new ScopedParameterResolver(
-                        new ChainedParameterResolver(
-                            new SystemPropertyParameterResolver(),
-                            new SystemEnvironmentParameterResolver()));
+                    ChainedParameterResolver resolverChain;
+                    if (resolver == null)
+                        {
+                        resolverChain = new ChainedParameterResolver(
+                                new SystemPropertyParameterResolver(),
+                                new SystemEnvironmentParameterResolver());
+                        }
+                    else
+                        {
+                        resolverChain = new ChainedParameterResolver(
+                                resolver,
+                                new SystemPropertyParameterResolver(),
+                                new SystemEnvironmentParameterResolver());
+                        }
+                    return new ScopedParameterResolver(new ChainedParameterResolver(resolverChain));
                     }
                 });
 
@@ -1527,7 +1559,7 @@ public class ExtensibleConfigurableCacheFactory
 
             // the default parameter resolver always contains the pof-config-uri
             // (this is used internally)
-            resolver.add(new Parameter("pof-config-uri", sPofConfigUri));
+            resolverScoped.add(new Parameter("pof-config-uri", sPofConfigUri));
 
             // create a reference to the xml document containing the cache
             // configuration to process
@@ -1539,7 +1571,7 @@ public class ExtensibleConfigurableCacheFactory
 
             // finish configuring the dependencies
             dependencies.setResourceRegistry(resourceRegistry);
-            dependencies.setDefaultParameterResolver(resolver);
+            dependencies.setDefaultParameterResolver(resolverScoped);
             dependencies.setExpressionParser(ParameterMacroExpressionParser.INSTANCE);
             dependencies.setClassLoader(loader);
 

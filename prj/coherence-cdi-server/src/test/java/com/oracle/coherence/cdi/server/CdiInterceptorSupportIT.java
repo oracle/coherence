@@ -8,11 +8,12 @@ package com.oracle.coherence.cdi.server;
 
 import com.oracle.coherence.event.EventObserverSupport;
 import com.oracle.coherence.cdi.CoherenceExtension;
+
 import com.oracle.coherence.inject.ConfigUri;
 import com.oracle.coherence.inject.Name;
 import com.oracle.coherence.inject.Scope;
 import com.oracle.coherence.inject.SessionInitializer;
-import com.oracle.coherence.cdi.SessionProducer;
+
 import com.oracle.coherence.event.MapName;
 import com.oracle.coherence.event.ScopeName;
 import com.oracle.coherence.event.ServiceName;
@@ -30,6 +31,7 @@ import com.oracle.coherence.cdi.server.data.Person;
 import com.oracle.coherence.cdi.server.data.PhoneNumber;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
+
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
@@ -49,6 +51,7 @@ import com.tangosol.util.InvocableMap;
 
 import java.time.LocalDate;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
@@ -87,7 +90,8 @@ class CdiInterceptorSupportIT
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
                                                           .addExtension(new CoherenceServerExtension())
-                                                          .addBeanClass(SessionProducer.class)
+                                                          .addPackages(CoherenceExtension.class)
+                                                          .addPackages(CoherenceServerExtension.class)
                                                           .addBeanClass(EventsSession.class)
                                                           .addBeanClass(TestObservers.class));
 
@@ -107,7 +111,7 @@ class CdiInterceptorSupportIT
     private TestObservers observers;
 
     @Test
-    void testEvents()
+    void testEvents() throws Exception
         {
         NamedCache<String, Person> people = session.getCache("people");
         people.put("homer", new Person("Homer", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
@@ -178,6 +182,7 @@ class CdiInterceptorSupportIT
 
         void record(Event<?> event)
             {
+            System.out.println(event);
             events.put(event.getType(), true);
             }
 

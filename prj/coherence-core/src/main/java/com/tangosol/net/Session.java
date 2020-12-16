@@ -14,6 +14,9 @@ import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.ResourceRegistry;
 
+import java.util.Objects;
+import java.util.Optional;
+
 /**
  * A thread-safe mechanism to request Coherence-based resources, like
  * {@link NamedCache}s, from a deployed module.
@@ -175,13 +178,16 @@ public interface Session extends AutoCloseable
      * @return  the requested Service or {@code null} if no service
      *           exists in this session with the specified name
      */
-    public Service getService(String sServiceName);
+    Service getService(String sServiceName);
 
     // ----- Option interface -----------------------------------------------
 
     /**
      * An immutable option for creating and configuring {@link Session}s.
+     *
+     * @deprecated since 20.12 {@link Option} has been replaced by {@link SessionConfiguration}
      */
+    @Deprecated
     interface Option
         {
         }
@@ -205,10 +211,108 @@ public interface Session extends AutoCloseable
      *              when a {@link SessionProvider} can't be auto-detected
      *
      * @see SessionProvider#createSession(Option...)
+     * @deprecated since 20.12 use {@link #create(SessionConfiguration)}
      */
+    @Deprecated
     static Session create(Option... options)
             throws IllegalArgumentException, IllegalStateException
         {
         return SessionProvider.get().createSession(options);
+        }
+
+    /**
+     * Obtain the default Session.
+     * <p>
+     * This method calls {@link #create(SessionConfiguration, Coherence.Mode)}
+     * with a mode of {@link Coherence.Mode#ClusterMember}.
+     *
+     * @return an {@link Optional} containing the {@link Session} or an empty
+     *         {@code Option} if the default session could not be created.
+     *
+     * @throws IllegalStateException if the default session cannot be created
+     */
+    static Session create()
+        {
+        return ensure(SessionConfiguration.defaultSession());
+        }
+
+    /**
+     * Obtain a {@link Session} based on the specified configuration
+     * or throw an {@link IllegalStateException} if a session could
+     * not be obtained.
+     * <p>
+     * This method calls {@link #ensure(SessionConfiguration, Coherence.Mode)}
+     * with a mode of {@link Coherence.Mode#ClusterMember}.
+     *
+     * @param configuration  the configuration for the {@link Session}
+     *
+     * @return an {@link Optional} containing the {@link Session} or an empty
+     *         {@code Option} if no session could be created from the specified
+     *         configuration
+     *
+     * @throws NullPointerException if the configuration is {@code null}
+     * @throws IllegalStateException if the default session cannot be created
+     */
+    static Session ensure(SessionConfiguration configuration)
+        {
+        return ensure(configuration, Coherence.Mode.ClusterMember);
+        }
+
+    /**
+     * Obtain a {@link Session} based on the specified configuration
+     * or throw an {@link IllegalStateException} if a session could
+     * not be obtained.
+     *
+     * @param configuration  the configuration for the {@link Session}
+     * @param mode           the mode that Coherence is running in
+     *
+     * @return an {@link Optional} containing the {@link Session} or an empty
+     *         {@code Option} if no session could be created from the specified
+     *         configuration
+     *
+     * @throws NullPointerException if the configuration or mode are {@code null}
+     * @throws IllegalStateException if the default session cannot be created
+     */
+    static Session ensure(SessionConfiguration configuration, Coherence.Mode mode)
+        {
+        return create(configuration, mode)
+                .orElseThrow(() -> new IllegalStateException("could not create a session"));
+        }
+
+    /**
+     * Possibly obtain a {@link Session} based on the specified configuration.
+     * <p>
+     * This method calls {@link #create(SessionConfiguration, Coherence.Mode)}
+     * with a mode of {@link Coherence.Mode#ClusterMember}.
+     *
+     * @param configuration  the configuration for the {@link Session}
+     *
+     * @return an {@link Optional} containing the {@link Session} or an empty
+     *         {@code Option} if no session could be created from the specified
+     *         configuration
+     *
+     * @throws NullPointerException if the configuration is {@code null}
+     */
+    static Optional<Session> create(SessionConfiguration configuration)
+        {
+        return create(configuration, Coherence.Mode.ClusterMember);
+        }
+
+    /**
+     * Possibly obtain a {@link Session} based on the specified configuration.
+     *
+     * @param configuration  the configuration for the {@link Session}
+     * @param mode           the mode that Coherence is running in
+     *
+     * @return an {@link Optional} containing the {@link Session} or an empty
+     *         {@code Option} if no session could be created from the specified
+     *         configuration
+     *
+     * @throws NullPointerException if the configuration or mode are {@code null}
+     */
+    static Optional<Session> create(SessionConfiguration configuration, Coherence.Mode mode)
+        {
+        return SessionProvider.get().createSession(Objects.requireNonNull(configuration),
+                                                   Objects.requireNonNull(mode));
         }
     }

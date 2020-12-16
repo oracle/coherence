@@ -30,8 +30,6 @@ import com.tangosol.util.ResourceRegistry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.tangosol.util.BuilderHelper.using;
-
 /**
  * A {@link Session} that uses a specific {@link ConfigurableCacheFactory}
  * and {@link ClassLoader}.
@@ -64,11 +62,11 @@ public class ConfigurableCacheFactorySession
      */
     public ConfigurableCacheFactorySession(ConfigurableCacheFactory ccf, ClassLoader loader, String sName)
         {
-        m_ccf         = ccf;
-        m_classLoader = loader == null ? Base.ensureClassLoader(null) : loader;
+        f_ccf = ccf;
+        f_classLoader = loader == null ? Base.ensureClassLoader(null) : loader;
         f_sName       = sName;
-        m_mapCaches   = new ConcurrentHashMap<>();
-        m_mapTopics   = new ConcurrentHashMap<>();
+        f_mapCaches = new ConcurrentHashMap<>();
+        f_mapTopics = new ConcurrentHashMap<>();
         m_fActive     = true;
 
         // if there is a session name add it as a resource to the CCF resource registry
@@ -84,7 +82,9 @@ public class ConfigurableCacheFactorySession
                 {
                 throw new IllegalStateException("Failed to register Session name " + f_sName +
                                                 " with ConfigurableCacheFactory, a different Session name " +
-                                                sNameExisting + " has already been registered");
+                                                sNameExisting + " has already been registered. This could be caused " +
+                                                "by multiple sessions configured with the same scope name and " +
+                                                "configuration URI");
                 }
             }
         }
@@ -103,7 +103,7 @@ public class ConfigurableCacheFactorySession
         {
         if (m_fActive)
             {
-            ResourceRegistry registry = m_ccf.getResourceRegistry();
+            ResourceRegistry registry = f_ccf.getResourceRegistry();
 
             // ensure we have a reference counter for the named cache
             registry.registerResource(
@@ -113,45 +113,41 @@ public class ConfigurableCacheFactorySession
 
             // grab the map of caches organized by the type assertion, creating if necessary
             ConcurrentHashMap<TypeAssertion, SessionNamedCache> mapCachesByTypeAssertion =
-                    m_mapCaches.computeIfAbsent(sName,
+                    f_mapCaches.computeIfAbsent(sName,
                                                 any -> new ConcurrentHashMap<>());
 
             // grab the type assertion and ClassLoader from the provided options
             Options<NamedCache.Option> optionSet     = Options.from(NamedCache.Option.class, options);
             TypeAssertion              typeAssertion = optionSet.get(TypeAssertion.class);
             ClassLoader                loader        = optionSet.get(WithClassLoader.class,
-                                                                     WithClassLoader.using(m_classLoader))
+                                                                     WithClassLoader.using(f_classLoader))
                                                                 .getClassLoader();
 
             // grab the session-based named cache for the type of assertion, creating one if necessary
-            SessionNamedCache<K, V> cacheSession = mapCachesByTypeAssertion.compute(
-                    typeAssertion,
-                    (key, value) -> {
+            return mapCachesByTypeAssertion.compute(typeAssertion, (key, value) ->
+                {
+                // only return a valid session-based named cache
+                if (value != null && !value.isDestroyed() && !value.isReleased())
+                    {
+                    return value;
+                    }
 
-                        // only return a valid session-based named cache
-                        if (value != null && !value.isDestroyed() && !value.isReleased())
-                            {
-                            return value;
-                            }
+                // request an underlying NamedCache from the CCF
+                NamedCache<K, V> cacheUnderlying = f_ccf.ensureTypedCache(
+                        sName,
+                        loader,
+                        typeAssertion);
 
-                        // request an underlying NamedCache from the CCF
-                        NamedCache<K, V> cacheUnderlying = m_ccf.ensureTypedCache(
-                                sName,
-                                loader,
-                                typeAssertion);
+                SessionNamedCache<K, V> cache = new SessionNamedCache<>(this,
+                        cacheUnderlying,
+                        typeAssertion);
 
-                        SessionNamedCache<K, V> cache = new SessionNamedCache<>(this,
-                                cacheUnderlying,
-                                typeAssertion);
+                // increment the reference count for the underlying NamedCache
+                registry.getResource(NamedCacheReferenceCounter.class,
+                        sName).incrementAndGet();
 
-                        // increment the reference count for the underlying NamedCache
-                        registry.getResource(NamedCacheReferenceCounter.class,
-                                sName).incrementAndGet();
-
-                        return cache;
-                    });
-
-            return cacheSession;
+                return cache;
+                });
             }
         else
             {
@@ -166,7 +162,7 @@ public class ConfigurableCacheFactorySession
         {
         assertActive();
 
-        ResourceRegistry registry = m_ccf.getResourceRegistry();
+        ResourceRegistry registry = f_ccf.getResourceRegistry();
 
         // ensure we have a reference counter for the named topic
         registry.registerResource(
@@ -176,25 +172,24 @@ public class ConfigurableCacheFactorySession
 
         // grab the map of topics organized by the type assertion, creating if necessary
         ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic> mapTopicsByTypeAssertion =
-                m_mapTopics.computeIfAbsent(sName, any -> new ConcurrentHashMap<>());
+                f_mapTopics.computeIfAbsent(sName, any -> new ConcurrentHashMap<>());
 
         // grab the type assertion and ClassLoader from the provided options
         Options<NamedTopic.Option> optionSet     = Options.from(NamedTopic.Option.class, options);
         ValueTypeAssertion<V>      typeAssertion = optionSet.get(ValueTypeAssertion.class);
         ClassLoader                loader        = optionSet.get(WithClassLoader.class,
-                                                                  WithClassLoader.using(m_classLoader))
+                                                                  WithClassLoader.using(f_classLoader))
                                                             .getClassLoader();
 
-        SessionNamedTopic<V>       topicSession  = mapTopicsByTypeAssertion.computeIfAbsent(
-            typeAssertion,
-            any -> {
+        return mapTopicsByTypeAssertion.computeIfAbsent(typeAssertion, any ->
+            {
             try
                 {
                 // increment the reference count for the underlying NamedTopic
                 registry.getResource(NamedTopicReferenceCounter.class, sName).incrementAndGet();
 
                 // request an underlying NamedTopic from the CCF
-                NamedTopic<V> topicUnderlying = m_ccf.ensureTopic(sName, loader, typeAssertion);
+                NamedTopic<V> topicUnderlying = f_ccf.ensureTopic(sName, loader, typeAssertion);
 
                 return new SessionNamedTopic<>(this, topicUnderlying, typeAssertion);
                 }
@@ -207,8 +202,6 @@ public class ConfigurableCacheFactorySession
                 throw e;
                 }
             });
-
-        return topicSession;
         }
 
     @Override
@@ -220,52 +213,52 @@ public class ConfigurableCacheFactorySession
             m_fActive = false;
 
             // close all of the named caches created by this session
-            m_mapCaches.values().stream()
+            f_mapCaches.values().stream()
                        .flatMap(
                                mapCachesByAssertion -> mapCachesByAssertion.values().stream())
                        .forEach(SessionNamedCache::close);
 
             // drop the references to caches
-            m_mapCaches.clear();
+            f_mapCaches.clear();
 
             // close all of the named topics created by this session
-            m_mapTopics.values().stream()
+            f_mapTopics.values().stream()
                        .flatMap(mapCachesByAssertion -> mapCachesByAssertion.values().stream())
                        .forEach(SessionNamedTopic::close);
 
             // drop the references to topic
-            m_mapTopics.clear();
+            f_mapTopics.clear();
             }
         }
 
     @Override
     public ResourceRegistry getResourceRegistry()
         {
-        return m_ccf.getResourceRegistry();
+        return f_ccf.getResourceRegistry();
         }
 
     @Override
     public InterceptorRegistry getInterceptorRegistry()
         {
-        return m_ccf.getInterceptorRegistry();
+        return f_ccf.getInterceptorRegistry();
         }
 
     @Override
     public boolean isCacheActive(String sCacheName, ClassLoader loader)
         {
-        return m_ccf.isCacheActive(sCacheName, loader);
+        return f_ccf.isCacheActive(sCacheName, loader);
         }
 
     @Override
     public boolean isMapActive(String sMapName, ClassLoader loader)
         {
-        return m_ccf.isCacheActive(sMapName, loader);
+        return f_ccf.isCacheActive(sMapName, loader);
         }
 
     @Override
     public boolean isTopicActive(String sTopicName, ClassLoader loader)
         {
-        return m_ccf.isTopicActive(sTopicName, loader);
+        return f_ccf.isTopicActive(sTopicName, loader);
         }
 
     @Override
@@ -277,7 +270,7 @@ public class ConfigurableCacheFactorySession
     @Override
     public String getScopeName()
         {
-        return m_ccf.getScopeName();
+        return f_ccf.getScopeName();
         }
 
     @Override
@@ -289,7 +282,7 @@ public class ConfigurableCacheFactorySession
     @Override
     public Service getService(String sServiceName)
         {
-        return m_ccf.ensureService(sServiceName);
+        return f_ccf.ensureService(sServiceName);
         }
 
     // ----- ConfigurableCacheFactory.Supplier methods ----------------------
@@ -301,7 +294,7 @@ public class ConfigurableCacheFactorySession
      */
     public ConfigurableCacheFactory getConfigurableCacheFactory()
         {
-        return m_ccf;
+        return f_ccf;
         }
 
     // ----- ConfigurableCacheFactorySession methods ------------------------
@@ -321,11 +314,11 @@ public class ConfigurableCacheFactorySession
         topic.onClosing();
 
         // decrement the reference count for the underlying NamedCache
-        ResourceRegistry registry = m_ccf.getResourceRegistry();
+        ResourceRegistry registry = f_ccf.getResourceRegistry();
 
         if (registry.getResource(NamedTopicReferenceCounter.class, topic.getName()).decrementAndGet() == 0)
             {
-            m_ccf.releaseTopic(topic.getInternalNamedTopic());
+            f_ccf.releaseTopic(topic.getInternalNamedTopic());
             }
 
         topic.onClosed();
@@ -338,21 +331,21 @@ public class ConfigurableCacheFactorySession
         topic.onDestroying();
 
         // reset the reference count for the underlying NamedCache
-        ResourceRegistry registry = m_ccf.getResourceRegistry();
+        ResourceRegistry registry = f_ccf.getResourceRegistry();
 
         registry.getResource(NamedTopicReferenceCounter.class, topic.getName()).reset();
 
-        m_ccf.destroyTopic(topic.getInternalNamedTopic());
+        f_ccf.destroyTopic(topic.getInternalNamedTopic());
 
         topic.onDestroyed();
         }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "SuspiciousMethodCalls"})
     <V> void dropNamedTopic(SessionNamedTopic<V> namedCache)
         {
         // drop the NamedCache from this session
         ConcurrentHashMap<TypeAssertion, SessionNamedCache> mapCachesByTypeAssertion =
-                m_mapCaches.get(namedCache.getName());
+                f_mapCaches.get(namedCache.getName());
 
         if (mapCachesByTypeAssertion != null)
             {
@@ -367,12 +360,12 @@ public class ConfigurableCacheFactorySession
         namedCache.onClosing();
 
         // decrement the reference count for the underlying NamedCache
-        ResourceRegistry registry = m_ccf.getResourceRegistry();
+        ResourceRegistry registry = f_ccf.getResourceRegistry();
 
         if (registry.getResource(NamedCacheReferenceCounter.class,
                                  namedCache.getCacheName()).decrementAndGet() == 0)
             {
-            m_ccf.releaseCache(namedCache.getInternalNamedCache());
+            f_ccf.releaseCache(namedCache.getInternalNamedCache());
             }
 
         namedCache.onClosed();
@@ -385,12 +378,12 @@ public class ConfigurableCacheFactorySession
         namedCache.onDestroying();
 
         // reset the reference count for the underlying NamedCache
-        ResourceRegistry registry = m_ccf.getResourceRegistry();
+        ResourceRegistry registry = f_ccf.getResourceRegistry();
 
         registry.getResource(NamedCacheReferenceCounter.class,
                                  namedCache.getCacheName()).reset();
 
-        m_ccf.destroyCache(namedCache.getInternalNamedCache());
+        f_ccf.destroyCache(namedCache.getInternalNamedCache());
 
         namedCache.onDestroyed();
         }
@@ -400,7 +393,7 @@ public class ConfigurableCacheFactorySession
         {
         // drop the NamedCache from this session
         ConcurrentHashMap<TypeAssertion, SessionNamedCache> mapCachesByTypeAssertion =
-                m_mapCaches.get(namedCache.getCacheName());
+                f_mapCaches.get(namedCache.getCacheName());
 
         if (mapCachesByTypeAssertion != null)
             {
@@ -427,12 +420,12 @@ public class ConfigurableCacheFactorySession
      * The {@link ConfigurableCacheFactory} on which the {@link Session}
      * is based.
      */
-    private ConfigurableCacheFactory m_ccf;
+    private final ConfigurableCacheFactory f_ccf;
 
     /**
      * The {@link ClassLoader} for the {@link Session}.
      */
-    private ClassLoader m_classLoader;
+    private final ClassLoader f_classLoader;
 
     /**
      * Is the {@link Session} active / available for use.
@@ -443,13 +436,13 @@ public class ConfigurableCacheFactorySession
      * The {@link SessionNamedCache}s created by this {@link Session}
      * (so we close them when the session closes).
      */
-    private ConcurrentHashMap<String, ConcurrentHashMap<TypeAssertion, SessionNamedCache>> m_mapCaches;
+    private final ConcurrentHashMap<String, ConcurrentHashMap<TypeAssertion, SessionNamedCache>> f_mapCaches;
 
     /**
      * The {@link NamedTopic}s created by this {@link Session}
      * (so we close them when the session closes).
      */
-    private ConcurrentHashMap<String, ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic>> m_mapTopics;
+    private final ConcurrentHashMap<String, ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic>> f_mapTopics;
 
     /**
      * Tracks use of individual  instances by all {@link Session}s
@@ -457,32 +450,32 @@ public class ConfigurableCacheFactorySession
      */
     protected static class ReferenceCounter
         {
-        private AtomicInteger count;
-
         public ReferenceCounter()
             {
-            count = new AtomicInteger(0);
+            f_count = new AtomicInteger(0);
             }
 
         public int get()
             {
-            return count.get();
+            return f_count.get();
             }
 
         public int incrementAndGet()
             {
-            return count.incrementAndGet();
+            return f_count.incrementAndGet();
             }
 
         public int decrementAndGet()
             {
-            return count.decrementAndGet();
+            return f_count.decrementAndGet();
             }
 
         public void reset()
             {
-            count.set(0);
+            f_count.set(0);
             }
+
+        private final AtomicInteger f_count;
         }
 
     /**

@@ -12,6 +12,8 @@ import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.ResourceRegistry;
 
+import java.util.Optional;
+
 /**
  * An implementation of a {@link Session} allowing applications to use
  * the new operator to create a {@link Session} via the default
@@ -28,11 +30,42 @@ public class CoherenceSession
     // ----- constructors ---------------------------------------------------
 
     /**
+     * Constructs a {@link CoherenceSession} using the default session configuration.
+     *
+     * @throws IllegalStateException if a session could not be created
+     * @see SessionConfiguration#defaultSession()
+     */
+    public CoherenceSession()
+        {
+        this(SessionConfiguration.defaultSession(), Coherence.Mode.ClusterMember);
+        }
+
+    /**
+     * Constructs a {@link CoherenceSession} based on the specified {@link SessionConfiguration}.
+     *
+     * @param configuration  the {@link SessionConfiguration}s for the {@link CoherenceSession}
+     * @param mode           the mode Coherence is running in
+     *
+     * @throws IllegalStateException if a session could not be created
+     */
+    public CoherenceSession(SessionConfiguration configuration, Coherence.Mode mode)
+        {
+        Optional<Session> optional = SessionProvider.get().createSession(configuration, mode);
+        m_session = optional.orElseThrow(() ->
+                new IllegalStateException("SessionProvider did not create a Session from the specified options"));
+        }
+
+    /**
      * Constructs a {@link CoherenceSession} based on the specified
      * {@link Option}s using the default {@link SessionProvider}.
      *
      * @param options  the {@link Option}s for the {@link CoherenceSession}
+     *
+     * @deprecated since 20.12 use {@link #CoherenceSession(SessionConfiguration, Coherence.Mode)}
+     *
+     * @throws IllegalStateException if a session could not be created
      */
+    @Deprecated
     public CoherenceSession(Option... options)
         {
         Session session = SessionProvider.get().createSession(options);

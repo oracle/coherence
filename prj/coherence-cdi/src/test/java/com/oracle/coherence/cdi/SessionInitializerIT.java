@@ -10,6 +10,7 @@ import com.oracle.coherence.inject.ConfigUri;
 import com.oracle.coherence.inject.Scope;
 import com.oracle.coherence.inject.SessionInitializer;
 import com.oracle.coherence.inject.SessionName;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
 
@@ -42,7 +43,10 @@ class SessionInitializerIT
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
+                                                          .addBeanClass(CoherenceProducer.class)
+                                                          .addBeanClass(TestServerCoherenceProducer.class)
                                                           .addBeanClass(NamedCacheProducer.class)
+                                                          .addBeanClass(SessionProducer.class)
                                                           .addBeanClass(FilterProducer.class)
                                                           .addBeanClass(ExtractorProducer.class)
                                                           .addBeanClass(EventsSession.class)
@@ -73,8 +77,8 @@ class SessionInitializerIT
     @Test
     void shouldUseInjectableConfig()
         {
-        assertThat(people.getService().getBackingMapManager().getCacheFactory().getScopeName(), is("events"));
-        assertThat(people.getService().getInfo().getServiceName(), is("events:People"));
+        assertThat(people.getService().getBackingMapManager().getCacheFactory().getScopeName(), is(Coherence.DEFAULT_SCOPE));
+        assertThat(people.getService().getInfo().getServiceName(), is("People"));
         }
 
     @Test

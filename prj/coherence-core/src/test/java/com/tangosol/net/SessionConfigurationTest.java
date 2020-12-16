@@ -6,14 +6,9 @@
  */
 package com.tangosol.net;
 
-import com.oracle.coherence.common.util.Options;
-
-import com.tangosol.net.options.WithClassLoader;
-import com.tangosol.net.options.WithConfiguration;
-import com.tangosol.net.options.WithName;
-import com.tangosol.net.options.WithScopeName;
-
 import org.junit.Test;
+
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -37,8 +32,6 @@ public class SessionConfigurationTest
         assertThat(session.getScopeName(), is(Coherence.DEFAULT_SCOPE));
         assertThat(session.getInterceptors(), is(emptyIterable()));
         assertThat(session.isEnabled(), is(true));
-        assertThat(session.getSessionProvider(), is(notNullValue()));
-        assertThat(session.getSessionProvider().isPresent(), is(false));
         assertThat(session.getPriority(), is(SessionConfiguration.DEFAULT_PRIORITY));
         }
 
@@ -50,11 +43,6 @@ public class SessionConfigurationTest
                 .build();
 
         assertThat(cfg.getName(), is(Coherence.DEFAULT_NAME));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, cfg.getOptions());
-        WithName                name    = options.get(WithName.class);
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is(Coherence.DEFAULT_NAME));
         }
 
     @Test
@@ -66,11 +54,6 @@ public class SessionConfigurationTest
                 .build();
 
         assertThat(cfg.getName(), is("Foo"));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, cfg.getOptions());
-        WithName                name    = options.get(WithName.class);
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is("Foo"));
         }
 
     @Test
@@ -81,27 +64,6 @@ public class SessionConfigurationTest
                 .build();
 
         assertThat(cfg.getScopeName(), is(Coherence.DEFAULT_SCOPE));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, cfg.getOptions());
-        WithScopeName           scope   = options.get(WithScopeName.class);
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is(Coherence.DEFAULT_SCOPE));
-        }
-
-    @Test
-    public void shouldBuildWithNameAsScope()
-        {
-        SessionConfiguration cfg = SessionConfiguration
-                .builder()
-                .named("Foo")
-                .build();
-
-        assertThat(cfg.getScopeName(), is("Foo"));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, cfg.getOptions());
-        WithScopeName           scope   = options.get(WithScopeName.class);
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is("Foo"));
         }
 
     @Test
@@ -115,16 +77,6 @@ public class SessionConfigurationTest
 
         assertThat(cfg.getName(), is("Foo"));
         assertThat(cfg.getScopeName(), is("Bar"));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, cfg.getOptions());
-        WithName                name    = options.get(WithName.class);
-        WithScopeName           scope   = options.get(WithScopeName.class);
-
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is("Foo"));
-
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is("Bar"));
         }
 
     @Test
@@ -134,11 +86,9 @@ public class SessionConfigurationTest
                 .builder()
                 .build();
 
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithClassLoader         withLoader = options.get(WithClassLoader.class);
-
-        assertThat(withLoader, is(notNullValue()));
-        assertThat(withLoader.getClassLoader(), is(sameInstance(WithClassLoader.autoDetect().getClassLoader())));
+        Optional<ClassLoader> optional = cfg.getClassLoader();
+        assertThat(optional, is(notNullValue()));
+        assertThat(optional.isPresent(), is(false));
         }
 
     @Test
@@ -150,11 +100,10 @@ public class SessionConfigurationTest
                 .withClassLoader(loader)
                 .build();
 
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithClassLoader         withLoader = options.get(WithClassLoader.class);
-
-        assertThat(withLoader, is(notNullValue()));
-        assertThat(withLoader.getClassLoader(), is(sameInstance(loader)));
+        Optional<ClassLoader> optional = cfg.getClassLoader();
+        assertThat(optional, is(notNullValue()));
+        assertThat(optional.isPresent(), is(true));
+        assertThat(optional.get(), is(sameInstance(loader)));
         }
 
     @Test
@@ -164,11 +113,9 @@ public class SessionConfigurationTest
                 .builder()
                 .build();
 
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithConfiguration       withConfig = options.get(WithConfiguration.class);
-
-        assertThat(withConfig, is(notNullValue()));
-        assertThat(withConfig.getLocation(), is(WithConfiguration.autoDetect().getLocation()));
+        Optional<String> option = cfg.getConfigUri();
+        assertThat(option, is(notNullValue()));
+        assertThat(option.isPresent(), is(false));
         }
 
     @Test
@@ -179,133 +126,9 @@ public class SessionConfigurationTest
                 .withConfigUri("foo.xml")
                 .build();
 
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithConfiguration       withConfig = options.get(WithConfiguration.class);
-
-        assertThat(withConfig, is(notNullValue()));
-        assertThat(withConfig.getLocation(), is("foo.xml"));
-        }
-
-    @Test
-    public void shouldCreateWithURI()
-        {
-        SessionConfiguration cfg = SessionConfiguration.create("foo.xml");
-
-        assertThat(cfg.getName(), is(Coherence.DEFAULT_NAME));
-        assertThat(cfg.getScopeName(), is(Coherence.DEFAULT_SCOPE));
-
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithName                name       = options.get(WithName.class);
-        WithScopeName           scope      = options.get(WithScopeName.class);
-        WithClassLoader         withLoader = options.get(WithClassLoader.class);
-        WithConfiguration       withConfig = options.get(WithConfiguration.class);
-
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is(Coherence.DEFAULT_NAME));
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is(Coherence.DEFAULT_SCOPE));
-        assertThat(withLoader, is(notNullValue()));
-        assertThat(withLoader.getClassLoader(), is(sameInstance(WithClassLoader.autoDetect().getClassLoader())));
-        assertThat(withConfig, is(notNullValue()));
-        assertThat(withConfig.getLocation(), is("foo.xml"));
-        }
-
-    @Test
-    public void shouldCreateWithNameURI()
-        {
-        SessionConfiguration cfg = SessionConfiguration.create("Foo", "foo.xml");
-
-        assertThat(cfg.getName(), is("Foo"));
-        assertThat(cfg.getScopeName(), is("Foo"));
-
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithName                name       = options.get(WithName.class);
-        WithScopeName           scope      = options.get(WithScopeName.class);
-        WithClassLoader         withLoader = options.get(WithClassLoader.class);
-        WithConfiguration       withConfig = options.get(WithConfiguration.class);
-
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is("Foo"));
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is("Foo"));
-        assertThat(withLoader, is(notNullValue()));
-        assertThat(withLoader.getClassLoader(), is(sameInstance(WithClassLoader.autoDetect().getClassLoader())));
-        assertThat(withConfig, is(notNullValue()));
-        assertThat(withConfig.getLocation(), is("foo.xml"));
-        }
-
-    @Test
-    public void shouldCreateWithURIAndClassLoader()
-        {
-        ClassLoader          loader = mock(ClassLoader.class);
-        SessionConfiguration cfg    = SessionConfiguration.create("foo.xml", loader);
-
-        assertThat(cfg.getName(), is(Coherence.DEFAULT_NAME));
-        assertThat(cfg.getScopeName(), is(Coherence.DEFAULT_SCOPE));
-
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithName                name       = options.get(WithName.class);
-        WithScopeName           scope      = options.get(WithScopeName.class);
-        WithClassLoader         withLoader = options.get(WithClassLoader.class);
-        WithConfiguration       withConfig = options.get(WithConfiguration.class);
-
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is(Coherence.DEFAULT_NAME));
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is(Coherence.DEFAULT_SCOPE));
-        assertThat(withLoader, is(notNullValue()));
-        assertThat(withLoader.getClassLoader(), is(sameInstance(loader)));
-        assertThat(withConfig, is(notNullValue()));
-        assertThat(withConfig.getLocation(), is("foo.xml"));
-        }
-
-    @Test
-    public void shouldCreateWithNameURIAndClassLoader()
-        {
-        ClassLoader          loader = mock(ClassLoader.class);
-        SessionConfiguration cfg    = SessionConfiguration.create("Foo", "foo.xml", loader);
-
-        assertThat(cfg.getName(), is("Foo"));
-        assertThat(cfg.getScopeName(), is("Foo"));
-
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithName                name       = options.get(WithName.class);
-        WithScopeName           scope      = options.get(WithScopeName.class);
-        WithClassLoader         withLoader = options.get(WithClassLoader.class);
-        WithConfiguration       withConfig = options.get(WithConfiguration.class);
-
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is("Foo"));
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is("Foo"));
-        assertThat(withLoader, is(notNullValue()));
-        assertThat(withLoader.getClassLoader(), is(sameInstance(loader)));
-        assertThat(withConfig, is(notNullValue()));
-        assertThat(withConfig.getLocation(), is("foo.xml"));
-        }
-
-    @Test
-    public void shouldCreateWithNameURIAndScope()
-        {
-        ClassLoader          loader = mock(ClassLoader.class);
-        SessionConfiguration cfg    = SessionConfiguration.create("Foo", "foo.xml", "Bar");
-
-        assertThat(cfg.getName(), is("Foo"));
-        assertThat(cfg.getScopeName(), is("Bar"));
-
-        Options<Session.Option> options    = Options.from(Session.Option.class, cfg.getOptions());
-        WithName                name       = options.get(WithName.class);
-        WithScopeName           scope      = options.get(WithScopeName.class);
-        WithClassLoader         withLoader = options.get(WithClassLoader.class);
-        WithConfiguration       withConfig = options.get(WithConfiguration.class);
-
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is("Foo"));
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is("Bar"));
-        assertThat(withLoader, is(notNullValue()));
-        assertThat(withLoader.getClassLoader(), is(sameInstance(WithClassLoader.autoDetect().getClassLoader())));
-        assertThat(withConfig, is(notNullValue()));
-        assertThat(withConfig.getLocation(), is("foo.xml"));
+        Optional<String> option = cfg.getConfigUri();
+        assertThat(option, is(notNullValue()));
+        assertThat(option.isPresent(), is(true));
+        assertThat(option.get(), is("foo.xml"));
         }
     }

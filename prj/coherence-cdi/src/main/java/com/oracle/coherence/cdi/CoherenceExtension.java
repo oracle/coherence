@@ -7,6 +7,7 @@
 package com.oracle.coherence.cdi;
 
 import com.oracle.coherence.event.AnnotatedMapListener;
+import com.oracle.coherence.event.EventObserverSupport;
 
 import com.oracle.coherence.inject.AnnotationInstance;
 import com.oracle.coherence.inject.ExtractorBinding;
@@ -15,31 +16,18 @@ import com.oracle.coherence.inject.FilterBinding;
 import com.oracle.coherence.inject.FilterFactory;
 import com.oracle.coherence.inject.MapEventTransformerBinding;
 import com.oracle.coherence.inject.MapEventTransformerFactory;
-import com.oracle.coherence.event.EventObserverSupport;
+import com.oracle.coherence.inject.Name;
 
 import com.tangosol.net.Coherence;
-import com.tangosol.net.CoherenceConfiguration;
-import com.tangosol.net.DefaultCacheServer;
-import com.tangosol.net.SessionConfiguration;
+
 import com.tangosol.net.SessionProvider;
 
 import com.tangosol.net.events.CoherenceLifecycleEvent;
-
 import com.tangosol.net.events.application.LifecycleEvent;
-
 import com.tangosol.net.events.internal.NamedEventInterceptor;
-
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.MapEvent;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import javax.annotation.Priority;
 
@@ -48,7 +36,6 @@ import javax.enterprise.context.Initialized;
 
 import javax.enterprise.event.Observes;
 
-import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 
@@ -60,6 +47,11 @@ import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.ProcessObserverMethod;
 import javax.enterprise.inject.spi.WithAnnotations;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A Coherence CDI {@link Extension} that is used on both cluster members and
@@ -225,8 +217,7 @@ public class CoherenceExtension
     // ---- lifecycle support -----------------------------------------------
 
     /**
-     * Start {@link DefaultCacheServer} as a daemon and wait
-     * for all services to start.
+     * Start {@link Coherence} instance and wait for all services to start.
      *
      * @param event the event fired once the CDI container is initialized
      */
@@ -234,36 +225,38 @@ public class CoherenceExtension
     synchronized void startServer(@Observes @Priority(1) @Initialized(ApplicationScoped.class)
                                   Object event, BeanManager beanManager)
         {
-        Instance<SessionConfiguration> configurations = beanManager.createInstance()
-                .select(SessionConfiguration.class, Any.Literal.INSTANCE);
+        m_coherence = ensureCoherence(beanManager);
+        }
 
-        Instance<SessionConfiguration.Provider> configurationProviders = beanManager.createInstance()
-                .select(SessionConfiguration.Provider.class, Any.Literal.INSTANCE);
+    /**
+     * Return the list of discovered event observers.
+     *
+     * @return the list of discovered event observers
+     */
+    List<EventObserverSupport.EventHandler<?, ?>> getInterceptors()
+        {
+        return m_listInterceptors;
+        }
 
-        Instance<InterceptorProvider> interceptorProviders = beanManager.createInstance()
-                .select(InterceptorProvider.class, Any.Literal.INSTANCE);
+    /**
+     * Ensure that a {@link Coherence} bean is resolvable and started.
+     *
+     * @param beanManager  the bean manager to use to resolve the {@link Coherence} bean
+     *
+     * @return  the {@link Coherence} bean
+     * @throws IllegalStateException if no {@link Coherence} bean is resolvable
+     */
+    public static Coherence ensureCoherence(BeanManager beanManager)
+        {
+        Instance<Coherence> instance = beanManager.createInstance()
+                .select(Coherence.class, Name.Literal.of(Coherence.DEFAULT_NAME));
 
-        List<NamedEventInterceptor<?>> listInterceptor = m_listInterceptors.stream()
-                .map(handler -> new NamedEventInterceptor<>(handler.getId(), handler))
-                .collect(Collectors.toList());
+        if (instance.isResolvable())
+            {
+            return instance.get();
+            }
 
-        interceptorProviders.stream()
-                .flatMap(provider -> StreamSupport.stream(provider.getInterceptors().spliterator(), false))
-                .forEach(listInterceptor::add);
-
-        // Create a configuration (include the default CCF as well as any discovered configurations)
-        CoherenceConfiguration config = CoherenceConfiguration.builder()
-                .named(Coherence.DEFAULT_NAME)
-                .withSession(SessionConfiguration.defaultSession())
-                .withSessions(configurations)
-                .withSessionProviders(configurationProviders)
-                .withEventInterceptors(listInterceptor)
-                .build();
-
-        // build and start the Coherence instance
-        m_coherence = Coherence.builder(config).build();
-        // wait for start-up to complete
-        m_coherence.start().join();
+        throw new IllegalStateException("Cannot resolve default Coherence instance");
         }
 
     /**
@@ -279,6 +272,7 @@ public class CoherenceExtension
             {
             m_coherence.close();
             }
+        Coherence.closeAll();
         }
 
     /**

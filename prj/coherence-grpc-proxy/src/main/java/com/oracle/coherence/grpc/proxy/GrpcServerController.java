@@ -17,6 +17,10 @@ import com.tangosol.application.LifecycleListener;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.net.Coherence;
+
+import com.tangosol.net.events.CoherenceLifecycleEvent;
+
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptors;
@@ -276,12 +280,36 @@ public class GrpcServerController
     // ----- inner class: Listener ------------------------------------------
 
     /**
-     * A {@link com.tangosol.net.DefaultCacheServer} lifecycle listener that
-     * will start the gRPC server.
+     * A listener that will start the gRPC server base on {@link Coherence} or
+     * {@link com.tangosol.net.DefaultCacheServer} lifecycle events.
      */
     public static class Listener
-            implements LifecycleListener
+            implements LifecycleListener, Coherence.LifecycleListener
         {
+        // ----- Coherence.LifecycleListener methods ------------------------
+
+        @Override
+        public void onEvent(CoherenceLifecycleEvent event)
+            {
+            switch (event.getType())
+                {
+                case STARTED:
+                    if (Config.getBoolean(PROP_ENABLED, true))
+                        {
+                        INSTANCE.start();
+                        }
+                    break;
+                case STOPPED:
+                    if (Coherence.getInstances().isEmpty())
+                        {
+                        INSTANCE.stop();
+                        }
+                    break;
+                }
+            }
+
+        // ----- DCS LifecycleListener methods ------------------------------
+
         @Override
         public void preStart(Context ctx)
             {

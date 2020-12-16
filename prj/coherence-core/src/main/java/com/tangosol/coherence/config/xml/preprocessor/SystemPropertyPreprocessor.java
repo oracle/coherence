@@ -9,15 +9,17 @@ package com.tangosol.coherence.config.xml.preprocessor;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.config.ConfigurationException;
+
+import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
 import com.tangosol.config.expression.ValueMacroExpression;
+
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.DocumentElementPreprocessor.ElementPreprocessor;
 
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlValue;
-import com.tangosol.run.xml.XmlHelper;
 
 /**
  * A {@link SystemPropertyPreprocessor} is an {@link ElementPreprocessor} that will
@@ -68,7 +70,7 @@ public class SystemPropertyPreprocessor
                 }
             }
 
-        fUpdated |= processValueMacro(element);
+        fUpdated |= processValueMacro(element, context.getDefaultParameterResolver());
 
         return fUpdated;
         }
@@ -82,10 +84,23 @@ public class SystemPropertyPreprocessor
      */
     static public boolean processValueMacro(XmlElement element)
         {
+        return processValueMacro(element, SystemPropertyParameterResolver.INSTANCE);
+        }
+
+    /**
+     * Process macros embedded in element's value
+     *
+     * @param element  the {@link XmlElement} to preprocess
+     * @param resolver the {@link ParameterResolver} to use to resolve macro values
+     *
+     * @return true iff the String value of element was macro expanded
+     */
+    static public boolean processValueMacro(XmlElement element, ParameterResolver resolver)
+        {
         if (ValueMacroExpression.containsMacro(element.getString()))
             {
             ValueMacroExpression macroExpr = new ValueMacroExpression(element.getString().trim());
-            String sValue = macroExpr.evaluate(SystemPropertyParameterResolver.INSTANCE);
+            String sValue = macroExpr.evaluate(resolver);
             element.setString(sValue);
             return true;
             }

@@ -8,6 +8,7 @@ package com.oracle.coherence.cdi;
 
 import com.oracle.coherence.inject.Name;
 import com.oracle.coherence.inject.SessionName;
+
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
@@ -16,8 +17,11 @@ import javax.enterprise.context.ApplicationScoped;
 
 import javax.enterprise.inject.Produces;
 
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.DefinitionException;
 import javax.enterprise.inject.spi.InjectionPoint;
+
+import javax.inject.Inject;
 
 /**
  * A CDI producer for {@link Session} instances.
@@ -28,6 +32,14 @@ import javax.enterprise.inject.spi.InjectionPoint;
 @ApplicationScoped
 public class SessionProducer
     {
+    // ----- constructors ---------------------------------------------------
+
+    @Inject
+    public SessionProducer(BeanManager context)
+        {
+        f_beanManager = context;
+        }
+
     // ---- producer methods ------------------------------------------------
 
     /**
@@ -41,7 +53,7 @@ public class SessionProducer
     @Produces
     public Session getDefaultSession(InjectionPoint injectionPoint)
         {
-        return Coherence.getInstance(Coherence.DEFAULT_NAME).getSession(CacheFactoryBuilder.URI_DEFAULT);
+        return getSession(CacheFactoryBuilder.URI_DEFAULT);
         }
 
     /**
@@ -114,7 +126,14 @@ public class SessionProducer
             sSessionName = sName;
             }
 
+        // ensure that the Coherence bean has been initialized
+        CoherenceExtension.ensureCoherence(f_beanManager);
+
         return Coherence.findSession(sSessionName)
                 .orElseThrow(() -> new DefinitionException("No Session is configured with name " + sSessionName));
         }
+
+    // ----- data members ---------------------------------------------------
+
+    private final BeanManager f_beanManager;
     }

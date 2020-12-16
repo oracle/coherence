@@ -9,14 +9,10 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.inject.ConfigUri;
 import com.oracle.coherence.inject.Scope;
 import com.oracle.coherence.inject.SessionInitializer;
-import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.net.Coherence;
-import com.tangosol.net.Session;
 
 import com.tangosol.net.options.WithConfiguration;
-import com.tangosol.net.options.WithName;
-import com.tangosol.net.options.WithScopeName;
 
 import org.junit.Test;
 
@@ -24,7 +20,6 @@ import javax.inject.Named;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -42,11 +37,6 @@ public class SessionInitializerTest
 
         TestSession testSession = new TestSession();
         assertThat(testSession.getName(), is(Coherence.DEFAULT_NAME));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, testSession.getOptions());
-        WithName                name    = options.get(WithName.class);
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is(Coherence.DEFAULT_NAME));
         }
 
     @Test
@@ -60,11 +50,6 @@ public class SessionInitializerTest
 
         TestSession testSession = new TestSession();
         assertThat(testSession.getName(), is("Foo"));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, testSession.getOptions());
-        WithName                name    = options.get(WithName.class);
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is("Foo"));
         }
 
     @Test
@@ -77,15 +62,10 @@ public class SessionInitializerTest
 
         TestSession testSession = new TestSession();
         assertThat(testSession.getScopeName(), is(Coherence.DEFAULT_SCOPE));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, testSession.getOptions());
-        WithScopeName           scope   = options.get(WithScopeName.class);
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is(Coherence.DEFAULT_SCOPE));
         }
 
     @Test
-    public void shouldUseNameAsScope()
+    public void shouldUseDefaultScopeIfNoneSet()
         {
         @Named("Foo")
         class TestSession
@@ -94,12 +74,7 @@ public class SessionInitializerTest
             }
 
         TestSession testSession = new TestSession();
-        assertThat(testSession.getScopeName(), is("Foo"));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, testSession.getOptions());
-        WithScopeName           scope   = options.get(WithScopeName.class);
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is("Foo"));
+        assertThat(testSession.getScopeName(), is(Coherence.DEFAULT_SCOPE));
         }
 
     @Test
@@ -113,11 +88,6 @@ public class SessionInitializerTest
 
         TestSession testSession = new TestSession();
         assertThat(testSession.getScopeName(), is("Foo"));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, testSession.getOptions());
-        WithScopeName           scope   = options.get(WithScopeName.class);
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is("Foo"));
         }
 
     @Test
@@ -133,16 +103,6 @@ public class SessionInitializerTest
         TestSession testSession = new TestSession();
         assertThat(testSession.getName(), is("Foo"));
         assertThat(testSession.getScopeName(), is("Bar"));
-
-        Options<Session.Option> options = Options.from(Session.Option.class, testSession.getOptions());
-
-        WithName                name    = options.get(WithName.class);
-        assertThat(name, is(notNullValue()));
-        assertThat(name.getName(), is("Foo"));
-
-        WithScopeName           scope   = options.get(WithScopeName.class);
-        assertThat(scope, is(notNullValue()));
-        assertThat(scope.getScopeName(), is("Bar"));
         }
 
     @Test
@@ -153,11 +113,11 @@ public class SessionInitializerTest
             {
             }
 
-        TestSession             testSession       = new TestSession();
-        Options<Session.Option> options           = Options.from(Session.Option.class, testSession.getOptions());
-        WithConfiguration       withConfiguration = options.get(WithConfiguration.class);
-        assertThat(withConfiguration, is(notNullValue()));
-        assertThat(withConfiguration.getLocation(), is(WithConfiguration.autoDetect().getLocation()));
+        TestSession testSession = new TestSession();
+
+        assertThat(testSession.getConfigUri(), is(notNullValue()));
+        assertThat(testSession.getConfigUri().isPresent(), is(true));
+        assertThat(testSession.getConfigUri().get(), is(WithConfiguration.autoDetect().getLocation()));
         }
 
     @Test
@@ -170,9 +130,8 @@ public class SessionInitializerTest
             }
 
         TestSession             testSession       = new TestSession();
-        Options<Session.Option> options           = Options.from(Session.Option.class, testSession.getOptions());
-        WithConfiguration       withConfiguration = options.get(WithConfiguration.class);
-        assertThat(withConfiguration, is(notNullValue()));
-        assertThat(withConfiguration.getLocation(), is("foo.xml"));
+        assertThat(testSession.getConfigUri(), is(notNullValue()));
+        assertThat(testSession.getConfigUri().isPresent(), is(true));
+        assertThat(testSession.getConfigUri().get(), is("foo.xml"));
         }
     }

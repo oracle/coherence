@@ -8,13 +8,12 @@ package com.oracle.coherence.mp.config;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
-import com.tangosol.net.DefaultCacheServer;
+
 import io.helidon.config.Config;
 import io.helidon.config.MapConfigSource;
 import io.helidon.config.spi.ConfigSource;
 import io.helidon.microprofile.server.Server;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Properties;

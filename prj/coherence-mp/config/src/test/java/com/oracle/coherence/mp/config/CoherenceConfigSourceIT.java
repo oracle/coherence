@@ -9,16 +9,10 @@ package com.oracle.coherence.mp.config;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
-import com.oracle.coherence.cdi.CdiMapListenerManager;
-import com.oracle.coherence.cdi.ExtractorProducer;
-import com.oracle.coherence.cdi.FilterProducer;
-import com.oracle.coherence.cdi.MapEventTransformerProducer;
 import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
 import org.eclipse.microprofile.config.Config;
+
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
@@ -31,10 +25,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 
+import javax.inject.Inject;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
@@ -53,14 +52,12 @@ class CoherenceConfigSourceIT
     {
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
-                                                          .addExtension(new CoherenceExtension())
-                                                          .addExtension(new CoherenceServerExtension())
-                                                          .addBeanClass(CdiMapListenerManager.class)
-                                                          .addBeanClass(FilterProducer.class)
-                                                          .addBeanClass(ExtractorProducer.class)
-                                                          .addBeanClass(MapEventTransformerProducer.class)
-                                                          .addBeanClass(TestObserver.class)
-                                                          .addBeanClass(CoherenceConfigSource.class));
+                                                        .addExtension(new CoherenceExtension())
+                                                        .addPackages(CoherenceExtension.class)
+                                                        .addExtension(new CoherenceServerExtension())
+                                                        .addPackages(CoherenceServerExtension.class)
+                                                        .addPackages(CoherenceConfigSource.class)
+                                                        .addBeanClass(TestObserver.class));
 
     @BeforeAll
     static void setup()

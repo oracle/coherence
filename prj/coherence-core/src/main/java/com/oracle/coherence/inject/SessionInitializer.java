@@ -8,14 +8,13 @@ package com.oracle.coherence.inject;
 
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
-import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
-import com.tangosol.net.options.WithConfiguration;
-import com.tangosol.net.options.WithName;
-import com.tangosol.net.options.WithScopeName;
 
 import javax.annotation.Priority;
+
 import javax.inject.Named;
+
+import java.util.Optional;
 
 /**
  * An interface that should be implemented by custom Coherence scoped session
@@ -47,15 +46,7 @@ public interface SessionInitializer
     default String getScopeName()
         {
         Scope scope = getClass().getAnnotation(Scope.class);
-        if (scope == null)
-            {
-            String sName = getName();
-            return Coherence.DEFAULT_NAME.equals(sName) ? Coherence.DEFAULT_SCOPE : sName;
-            }
-        else
-            {
-            return scope.value();
-            }
+        return scope == null ? Coherence.DEFAULT_SCOPE :  scope.value();
         }
 
     @Override
@@ -66,18 +57,9 @@ public interface SessionInitializer
         }
 
     @Override
-    default Session.Option[] getOptions()
+    default Optional<String> getConfigUri()
         {
-        String        sName      = getName();
-        String        sScopeName = getScopeName();
-        Class<?>      cls        = getClass();
-        ConfigUri     configUri  = cls.getAnnotation(ConfigUri.class);
-        String        sConfigUri = configUri == null ? CacheFactoryBuilder.URI_DEFAULT : configUri.value();
-
-        return new Session.Option[]
-            {
-            WithName.of(sName),
-            WithScopeName.of(sScopeName),
-            WithConfiguration.using(sConfigUri)};
-            }
+        ConfigUri configUri = getClass().getAnnotation(ConfigUri.class);
+        return configUri == null ? Optional.of(CacheFactoryBuilder.URI_DEFAULT) : Optional.of(configUri.value());
+        }
     }

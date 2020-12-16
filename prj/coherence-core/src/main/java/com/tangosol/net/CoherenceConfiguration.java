@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 /**
  * The immutable configuration for a {@link Coherence} instance.
@@ -39,12 +40,20 @@ public interface CoherenceConfiguration
 
     /**
      * Returns an immutable default {@link CoherenceConfiguration} instance.
+     * <p>
+     * This configuration will include the default system session, and any
+     * session configurations discovered by the {@link ServiceLoader}.
      *
      * @return  an immutable default {@link CoherenceConfiguration} instance
+     * @see SessionConfiguration#defaultSession()
+     * @see Builder#discoverSessions()
      */
     static CoherenceConfiguration create()
         {
-        return builder().build();
+        return builder()
+                .withSession(SessionConfiguration.defaultSession())
+                .discoverSessions()
+                .build();
         }
 
     // ----- CoherenceConfiguration API methods -----------------------------
@@ -100,6 +109,20 @@ public interface CoherenceConfiguration
         public Builder named(String sName)
             {
             m_sName = sName;
+            return this;
+            }
+
+        /**
+         * Add all of the {@link SessionConfiguration} instances and
+         * {@link SessionConfiguration.Provider} instances discovered
+         * using the {@link ServiceLoader}.
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder discoverSessions()
+            {
+            withSessions(ServiceLoader.load(SessionConfiguration.class));
+            withSessionProviders(ServiceLoader.load(SessionConfiguration.Provider.class));
             return this;
             }
 
@@ -323,14 +346,14 @@ public interface CoherenceConfiguration
             {
             if (Coherence.getInstance(m_sName) != null)
                 {
-                throw new IllegalArgumentException("A Coherence instance already exists with the name " + m_sName);
+                throw new IllegalStateException("A Coherence instance already exists with the name " + m_sName);
                 }
 
             Map<String, SessionConfiguration> mapConfig = new HashMap<>(f_mapConfig);
 
-            // if no dependencies configured set the default
             if (mapConfig.isEmpty())
                 {
+                // if no dependencies configured add the default session
                 SessionConfiguration cfgDefault = SessionConfiguration.defaultSession();
                 mapConfig.put(cfgDefault.getName(), cfgDefault);
                 }

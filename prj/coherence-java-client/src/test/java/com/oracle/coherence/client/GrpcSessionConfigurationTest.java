@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.number.OrderingComparison.lessThan;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.mockito.Mockito.mock;
 
 public class GrpcSessionConfigurationTest
@@ -23,6 +23,6 @@ public class GrpcSessionConfigurationTest
         Channel                  channel    = mock(Channel.class);
         GrpcSessionConfiguration grpcConfig = GrpcSessionConfiguration.builder(channel).build();
         SessionConfiguration     config     = SessionConfiguration.builder().build();
-        assertThat(config.getPriority(), is(lessThan(grpcConfig.getPriority())));
+        assertThat(config.getPriority(), is(greaterThan(grpcConfig.getPriority())));
         }
     }

@@ -86,6 +86,9 @@ class ValueExtractorProducerIT
 
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
+                                                          .addBeanClass(CoherenceProducer.class)
+                                                          .addBeanClass(TestServerCoherenceProducer.class)
+                                                          .addBeanClass(SessionProducer.class)
                                                           .addBeanClass(ExtractorProducer.class)
                                                           .addBeanClass(ExtractorProducer.UniversalExtractorSupplier.class)
                                                           .addBeanClass(ExtractorProducer.UniversalExtractorsSupplier.class)

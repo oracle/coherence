@@ -9,12 +9,11 @@ package com.oracle.coherence.cdi.server;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
-import com.oracle.coherence.inject.ConfigUri;
 
+import com.oracle.coherence.inject.ConfigUri;
 import com.oracle.coherence.inject.Name;
 import com.oracle.coherence.inject.Scope;
 import com.oracle.coherence.inject.SessionInitializer;
-import com.oracle.coherence.cdi.SessionProducer;
 import com.oracle.coherence.event.Activated;
 import com.oracle.coherence.event.Activating;
 import com.oracle.coherence.event.CacheName;
@@ -25,15 +24,17 @@ import com.oracle.coherence.event.ServiceName;
 
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.NamedCache;
-
 import com.tangosol.net.Session;
+
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventDispatcher.InterceptorRegistrationEvent;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.annotation.CacheLifecycleEvents;
 import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.LifecycleEvents;
+
 import com.tangosol.net.events.application.LifecycleEvent;
+
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEventDispatcher;
 import com.tangosol.net.events.partition.cache.EntryEvent;
@@ -48,6 +49,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+
 import javax.enterprise.event.Observes;
 
 import javax.inject.Inject;
@@ -67,6 +69,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static com.tangosol.net.events.partition.cache.CacheLifecycleEvent.Type.CREATED;
 import static com.tangosol.net.events.partition.cache.CacheLifecycleEvent.Type.DESTROYED;
 import static com.tangosol.net.events.partition.cache.EntryEvent.Type.INSERTING;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -86,7 +89,8 @@ class CdiNamespaceHandlerIT
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
                                                           .addExtension(new CoherenceServerExtension())
-                                                          .addBeanClass(SessionProducer.class)
+                                                          .addPackages(CoherenceExtension.class)
+                                                          .addPackages(CoherenceServerExtension.class)
                                                           .addBeanClass(CdiBeansSession.class)
                                                           .addBeanClass(CacheStore.class)
                                                           .addBeanClass(PartitionListener.class)
@@ -189,6 +193,7 @@ class CdiNamespaceHandlerIT
     private static class CdiObservers
         {
         // will be called for all events
+        @SuppressWarnings("rawtypes")
         private void onEvent(@Observes Event event)
             {
             System.out.println("onEvent: " + event);
@@ -244,7 +249,7 @@ class CdiNamespaceHandlerIT
             implements EventInterceptor<InterceptorRegistrationEvent<?>>
         {
         @Override
-        public synchronized void onEvent(InterceptorRegistrationEvent e)
+        public synchronized void onEvent(InterceptorRegistrationEvent<?> e)
             {
             if (e.getType() == InterceptorRegistrationEvent.Type.INSERTED)
                 {
@@ -294,7 +299,7 @@ class CdiNamespaceHandlerIT
     public static class StorageListener
             implements EventInterceptor<CacheLifecycleEvent>
         {
-        private Set<String> caches = new HashSet<>();
+        private final Set<String> caches = new HashSet<>();
 
         @Inject
         private javax.enterprise.event.Event<CacheLifecycleEvent> cacheLifecycleEvent;
@@ -396,7 +401,7 @@ class CdiNamespaceHandlerIT
     public static class CacheStore
             implements com.tangosol.net.cache.CacheStore<Long, String>
         {
-        private Map<Long, String> storeMap = new HashMap<>();
+        private final Map<Long, String> storeMap = new HashMap<>();
 
         public synchronized Map<Long, String> getStoreMap()
             {

@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Stack;
+
+import java.util.function.Consumer;
+
 import java.util.stream.Collectors;
 
 /**
@@ -112,6 +115,7 @@ public class Options<T>
      * @return the option of the specified type or
      *          the default if it's not defined
      */
+    @SuppressWarnings("unchecked")
     public <U extends T> U get(Class<U> clzOption, U optDefault)
         {
         if (clzOption == null)
@@ -130,6 +134,41 @@ public class Options<T>
                 {
                 return (U) option;
                 }
+            }
+        }
+
+    /**
+     * Obtains the option of a specified concrete type from the collection
+     * and if present passes it to the consumer.
+     *
+     * @param clzOption  the class of option
+     * @param consumer   the consumer of the option value
+     * @param <O>        the type of option
+     */
+    public <O extends T> void ifPresent(Class<O> clzOption, Consumer<O> consumer)
+        {
+        O option = get(clzOption);
+        if (option != null)
+            {
+            consumer.accept(option);
+            }
+        }
+
+    /**
+     * Obtains the option of a specified concrete type from the collection
+     * and if present passes it to the consumer otherwise passes the default
+     * value to the consumer.
+     *
+     * @param clzOption  the class of option
+     * @param consumer   the consumer of the option value
+     * @param <O>        the type of option
+     */
+    public <O extends T> void ifPresent(Class<O> clzOption, O defaultValue, Consumer<O> consumer)
+        {
+        O option = get(clzOption, defaultValue);
+        if (option != null)
+            {
+            consumer.accept(option);
             }
         }
 

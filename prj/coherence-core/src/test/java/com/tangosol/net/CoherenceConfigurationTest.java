@@ -127,7 +127,7 @@ public class CoherenceConfigurationTest
     @Test
     public void shouldCreateWithSession()
         {
-        SessionConfiguration   session = SessionConfiguration.create("Foo", "foo.xml");
+        SessionConfiguration   session = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
         CoherenceConfiguration cfg     = CoherenceConfiguration.builder()
                 .withSession(session)
                 .build();
@@ -145,8 +145,8 @@ public class CoherenceConfigurationTest
     @Test
     public void shouldNotAddDisabledSession()
         {
-        SessionConfiguration   session  = SessionConfiguration.create("Foo", "foo.xml");
-        SessionConfiguration   disabled = new SessionConfigurationStub(SessionConfiguration.create("Bar", "bar.xml"), false);
+        SessionConfiguration   session  = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
+        SessionConfiguration   disabled = new SessionConfigurationStub(SessionConfiguration.builder().named("Bar").withConfigUri("bar.xml").build(), false);
         CoherenceConfiguration cfg      = CoherenceConfiguration.builder()
                 .withSession(session)
                 .withSession(disabled)
@@ -165,8 +165,8 @@ public class CoherenceConfigurationTest
     @Test
     public void shouldCreateWithSessionsVararg()
         {
-        SessionConfiguration   session1 = SessionConfiguration.create("Foo", "foo.xml");
-        SessionConfiguration   session2 = SessionConfiguration.create("Bar", "foo.xml");
+        SessionConfiguration   session1 = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
+        SessionConfiguration   session2 = SessionConfiguration.builder().named("Bar").withConfigUri("foo.xml").build();
         CoherenceConfiguration cfg     = CoherenceConfiguration.builder()
                 .withSessions(session1, session2)
                 .build();
@@ -185,8 +185,8 @@ public class CoherenceConfigurationTest
     @Test
     public void shouldCreateWithSessionsIterable()
         {
-        SessionConfiguration   session1 = SessionConfiguration.create("Foo", "foo.xml");
-        SessionConfiguration   session2 = SessionConfiguration.create("Bar", "foo.xml");
+        SessionConfiguration   session1 = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
+        SessionConfiguration   session2 = SessionConfiguration.builder().named("Bar").withConfigUri("foo.xml").build();
         CoherenceConfiguration cfg     = CoherenceConfiguration.builder()
                 .withSessions(Arrays.asList(session1, session2))
                 .build();
@@ -205,7 +205,7 @@ public class CoherenceConfigurationTest
     @Test
     public void shouldCreateWithSessionProvider()
         {
-        SessionConfiguration          session  = SessionConfiguration.create("Foo", "foo.xml");
+        SessionConfiguration          session  = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
         SessionConfiguration.Provider provider = () -> session;
         CoherenceConfiguration        cfg      = CoherenceConfiguration.builder()
                 .withSessionProvider(provider)
@@ -224,8 +224,8 @@ public class CoherenceConfigurationTest
     @Test
     public void shouldCreateWithSessionProvidersVararg()
         {
-        SessionConfiguration          session1  = SessionConfiguration.create("Foo", "foo.xml");
-        SessionConfiguration          session2  = SessionConfiguration.create("Bar", "foo.xml");
+        SessionConfiguration          session1  = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
+        SessionConfiguration          session2  = SessionConfiguration.builder().named("Bar").withConfigUri("foo.xml").build();
         SessionConfiguration.Provider provider1 = () -> session1;
         SessionConfiguration.Provider provider2 = () -> session2;
         CoherenceConfiguration        cfg     = CoherenceConfiguration.builder()
@@ -246,8 +246,8 @@ public class CoherenceConfigurationTest
     @Test
     public void shouldCreateWithSessionProvidersIterable()
         {
-        SessionConfiguration          session1  = SessionConfiguration.create("Foo", "foo.xml");
-        SessionConfiguration          session2  = SessionConfiguration.create("Bar", "foo.xml");
+        SessionConfiguration           session1 = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
+        SessionConfiguration           session2 = SessionConfiguration.builder().named("Bar").withConfigUri("foo.xml").build();
         SessionConfiguration.Provider provider1 = () -> session1;
         SessionConfiguration.Provider provider2 = () -> session2;
         CoherenceConfiguration        cfg     = CoherenceConfiguration.builder()
@@ -284,8 +284,6 @@ public class CoherenceConfigurationTest
         assertThat(session.getScopeName(), is(Coherence.DEFAULT_SCOPE));
         assertThat(session.getInterceptors(), is(emptyIterable()));
         assertThat(session.isEnabled(), is(true));
-        assertThat(session.getSessionProvider(), is(notNullValue()));
-        assertThat(session.getSessionProvider().isPresent(), is(false));
         assertThat(session.getPriority(), is(SessionConfiguration.DEFAULT_PRIORITY));
         }
 
@@ -319,12 +317,6 @@ public class CoherenceConfigurationTest
         public String getScopeName()
             {
             return f_wrapped.getScopeName();
-            }
-
-        @Override
-        public Session.Option[] getOptions()
-            {
-            return f_wrapped.getOptions();
             }
 
         private final SessionConfiguration f_wrapped;

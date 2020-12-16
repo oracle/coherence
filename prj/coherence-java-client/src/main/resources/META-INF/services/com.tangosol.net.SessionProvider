@@ -6,3 +6,4 @@
 #
 
 com.oracle.coherence.client.GrpcSessions
+com.oracle.coherence.client.ClientSystemSessionProvider
