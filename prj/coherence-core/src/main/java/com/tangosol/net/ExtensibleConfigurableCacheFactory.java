@@ -1508,7 +1508,6 @@ public class ExtensibleConfigurableCacheFactory
          *                       should be used to load configuration resources
          * @param sPofConfigUri  an optional {@link URI} of the POF configuration file
          * @param sScopeName     an optional scope name
-         * @param context        an optional ContainerContext reference
          * @param resolver       an optional {@link ParameterResolver} to use to resolve parameters
          *                       when creating the dependencies
          */
