@@ -47,7 +47,7 @@ import javax.inject.Inject;
  */
 @ApplicationScoped
 @SuppressWarnings("unchecked")
-class NamedCacheProducer
+public class NamedCacheProducer
     {
     // ---- constructors ----------------------------------------------------
     

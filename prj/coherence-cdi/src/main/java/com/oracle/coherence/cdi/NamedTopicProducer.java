@@ -39,7 +39,7 @@ import javax.inject.Inject;
  * @since 20.06
  */
 @ApplicationScoped
-class NamedTopicProducer
+public class NamedTopicProducer
     {
     // ----- constructors ---------------------------------------------------
 

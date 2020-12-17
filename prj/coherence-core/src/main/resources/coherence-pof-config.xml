@@ -1519,6 +1519,8 @@ descriptor: pof-config.xsd.
       </serializer>
     </user-type>
 
+    <!-- external (coherence-atomics): java.util.concurrent.atomic (910 - 919) -->
+
     <!-- java.time (940 - 949) -->
 
     <user-type>
