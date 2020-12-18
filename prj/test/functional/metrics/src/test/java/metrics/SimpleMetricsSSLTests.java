@@ -89,7 +89,7 @@ public class SimpleMetricsSSLTests
     @AfterClass
     public static void shutdown()
         {
-        stopCacheServer("SimpleMetricsTests", true);
+        stopCacheServer("SimpleMetricsTests");
         }
 
     @Override

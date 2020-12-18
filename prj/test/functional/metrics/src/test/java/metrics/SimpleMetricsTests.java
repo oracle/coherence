@@ -87,7 +87,7 @@ public class SimpleMetricsTests
     @AfterClass
     public static void shutdown()
         {
-        stopCacheServer("SimpleMetricsTests", true);
+        stopCacheServer("SimpleMetricsTests");
         }
 
     // ----- test -----------------------------------------------------------
