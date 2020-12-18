@@ -16,9 +16,11 @@ import com.tangosol.net.PartitionedService;
 import com.tangosol.net.events.CoherenceLifecycleEvent;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.net.events.SessionLifecycleEvent;
 import com.tangosol.net.events.application.LifecycleEvent;
 import com.tangosol.net.events.internal.CoherenceEventDispatcher;
 import com.tangosol.net.events.internal.ConfigurableCacheFactoryDispatcher;
+import com.tangosol.net.events.internal.SessionEventDispatcher;
 import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
 import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransferEvent;
@@ -360,6 +362,59 @@ public class EventObserverSupport
             {
             return dispatcher instanceof CoherenceEventDispatcher
                     && (m_sName == null || ((CoherenceEventDispatcher) dispatcher).getName().equals(m_sName));
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private String m_sName;
+        }
+
+    // ---- inner class: SessionLifecycleEventHandler -----------------------
+
+    /**
+     * Handler for {@link SessionLifecycleEvent}s.
+     */
+    public static class SessionLifecycleEventHandler
+            extends EventHandler<SessionLifecycleEvent, SessionLifecycleEvent.Type>
+        {
+        public SessionLifecycleEventHandler(EventObserver<SessionLifecycleEvent> observer)
+            {
+            super(observer, SessionLifecycleEvent.Type.class);
+
+            for (Annotation a : observer.getObservedQualifiers())
+                {
+                if (a instanceof Starting)
+                    {
+                    addType(SessionLifecycleEvent.Type.STARTING);
+                    }
+                else if (a instanceof Started)
+                    {
+                    addType(SessionLifecycleEvent.Type.STARTED);
+                    }
+                else if (a instanceof Stopping)
+                    {
+                    addType(SessionLifecycleEvent.Type.STOPPING);
+                    }
+                else if (a instanceof Stopped)
+                    {
+                    addType(SessionLifecycleEvent.Type.STOPPED);
+                    }
+                else if (a instanceof Name)
+                    {
+                    m_sName = ((Name) a).value();
+                    }
+                else if (a instanceof SessionName)
+                    {
+                    m_sName = ((SessionName) a).value();
+                    }
+                }
+            }
+
+        @Override
+        protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher, String sScopeName)
+            {
+            return dispatcher instanceof SessionEventDispatcher
+                    && (m_sName == null || ((SessionEventDispatcher) dispatcher).getName().equals(m_sName));
             }
 
         // ----- data members -----------------------------------------------

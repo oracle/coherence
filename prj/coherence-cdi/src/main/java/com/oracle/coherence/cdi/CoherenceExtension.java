@@ -23,6 +23,7 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.SessionProvider;
 
 import com.tangosol.net.events.CoherenceLifecycleEvent;
+import com.tangosol.net.events.SessionLifecycleEvent;
 import com.tangosol.net.events.application.LifecycleEvent;
 import com.tangosol.net.events.internal.NamedEventInterceptor;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
@@ -76,6 +77,17 @@ public class CoherenceExtension
             @Observes ProcessObserverMethod<CoherenceLifecycleEvent, ?> event)
         {
         m_listInterceptors.add(new EventObserverSupport.CoherenceLifecycleEventHandler(new CdiEventObserver<>(event)));
+        }
+
+    /**
+     * Process observer methods for {@link SessionLifecycleEvent}s.
+     *
+     * @param event  the event to process
+     */
+    private void processSessionLifecycleEventObservers(
+            @Observes ProcessObserverMethod<SessionLifecycleEvent, ?> event)
+        {
+        m_listInterceptors.add(new EventObserverSupport.SessionLifecycleEventHandler(new CdiEventObserver<>(event)));
         }
 
     /**

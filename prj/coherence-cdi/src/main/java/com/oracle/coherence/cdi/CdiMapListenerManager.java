@@ -46,7 +46,7 @@ public class CdiMapListenerManager
     private void registerCacheListeners(@Observes @Created CacheLifecycleEvent event)
         {
         // We need to add the listeners async' as we're on the event dispatcher thread for the same cache
-        CompletableFuture.runAsync(() ->registerListeners(event.getCacheName(), event.getScopeName(),
+        CompletableFuture.runAsync(() -> registerListeners(event.getCacheName(), event.getScopeName(),
                 event.getSessionName(), event.getServiceName()));
 
         }
