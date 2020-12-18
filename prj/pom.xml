@@ -892,7 +892,7 @@
     netty.version ???
     grpc.version ???
     -->
-    <helidon.version>2.1.0</helidon.version>
+    <helidon.version>2.2.0</helidon.version>
     <helidon.sitegen.version>2.0.0-RC1</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
@@ -2392,6 +2392,18 @@
         <enabled>true</enabled>
       </releases>
       <snapshots/>
+    </repository>
+
+    <repository>
+      <id>ossrh-staging</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
     </repository>
   </repositories>
 
