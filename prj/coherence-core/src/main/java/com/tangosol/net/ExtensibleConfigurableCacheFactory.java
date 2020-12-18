@@ -211,7 +211,7 @@ public class ExtensibleConfigurableCacheFactory
             dispatcherReg.registerEventDispatcher(f_dispatcher);
             }
 
-        Logger.info("Created cache factory " + this.getClass().getName());
+        Logger.fine("Created cache factory " + this.getClass().getName());
         }
 
     // ----- ConfigurableCacheFactory interface -----------------------------

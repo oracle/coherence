@@ -44,7 +44,7 @@ public class CoherenceDefaultsConfigSource
         {
         Map<String, String> map = new HashMap<>();
         // service defaults
-        map.put(SERVICE_NAME_PREFIX, "${coherence.role}");
+        map.put(SERVICE_NAME, "${service.name}");
 
         // logging defaults
         map.put(LOG_DESTINATION, "jdk");
@@ -84,9 +84,9 @@ public class CoherenceDefaultsConfigSource
     // ---- constants -------------------------------------------------------
 
     /**
-     * Default service name prefix. Defaults recursively to ${code coherence.role}.
+     * Default service name. Defaults recursively to ${code service.name}.
      */
-    private static final String SERVICE_NAME_PREFIX = "coherence.service.prefix";
+    private static final String SERVICE_NAME = "coherence.service.name";
 
     /**
      * The name of the config property for logging destination.

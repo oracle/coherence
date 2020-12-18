@@ -18,9 +18,6 @@ import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
 
 import com.tangosol.internal.net.DefaultSessionProvider;
-import com.tangosol.net.events.EventInterceptor;
-import com.tangosol.net.events.InterceptorRegistry;
-import com.tangosol.util.RegistrationBehavior;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 
@@ -32,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.ServiceLoader;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -134,7 +130,7 @@ public class GrpcSessions
 
             if (session != null)
                 {
-                session.activate(null);
+                session.activate();
                 return context.complete(session);
                 }
             }

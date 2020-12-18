@@ -67,7 +67,7 @@ public class OpenTracingShimLoader
 
         if (listMissingDeps != null)
             {
-            Logger.warn("Tracing support will not be enabled.  The following dependencies appear " +
+            Logger.info("Tracing support will not be enabled.  The following dependencies appear " +
                         "to be missing: " + listMissingDeps.toString());
             return false;
             }

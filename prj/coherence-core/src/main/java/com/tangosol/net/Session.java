@@ -176,9 +176,8 @@ public interface Session extends AutoCloseable
      * Calling this method on an already active {@link Session}
      * is a no-op.
      *
-     * @param mode  the activation mode
      */
-    void activate(Coherence.Mode mode);
+    void activate();
 
     /**
      * Returns a service for the given name or {@code null}
@@ -251,7 +250,7 @@ public interface Session extends AutoCloseable
         }
 
     /**
-     * Obtain an activated {@link Session} based on the specified configuration
+     * Obtain a {@link Session} based on the specified configuration
      * or throw an {@link IllegalStateException} if a session could
      * not be obtained.
      * <p>
@@ -273,7 +272,7 @@ public interface Session extends AutoCloseable
         }
 
     /**
-     * Obtain an activated {@link Session} based on the specified configuration
+     * Obtain a {@link Session} based on the specified configuration
      * or throw an {@link IllegalStateException} if a session could
      * not be obtained.
      *
@@ -289,10 +288,8 @@ public interface Session extends AutoCloseable
      */
     static Session ensure(SessionConfiguration configuration, Coherence.Mode mode)
         {
-        Session session = create(configuration, mode)
+        return create(configuration, mode)
                 .orElseThrow(() -> new IllegalStateException("could not create a session"));
-        session.activate(mode);
-        return session;
         }
 
     /**

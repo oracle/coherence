@@ -7,10 +7,10 @@
 
 package com.tangosol.net;
 
-
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.DefaultSessionProvider;
+
 import com.tangosol.run.xml.XmlElement;
 
 /**

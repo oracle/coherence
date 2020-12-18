@@ -53,7 +53,7 @@ public class SessionProducer
     @Produces
     public Session getDefaultSession(InjectionPoint injectionPoint)
         {
-        return getSession(CacheFactoryBuilder.URI_DEFAULT);
+        return getSession(Coherence.DEFAULT_NAME);
         }
 
     /**

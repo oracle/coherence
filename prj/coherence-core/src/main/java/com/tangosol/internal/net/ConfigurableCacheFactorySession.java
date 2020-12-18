@@ -10,7 +10,6 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.util.Options;
 
-import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -105,12 +104,8 @@ public class ConfigurableCacheFactorySession
             ResourceRegistry        registry      = f_ccf.getResourceRegistry();
             EventDispatcherRegistry dispatcherReg = registry.getResource(EventDispatcherRegistry.class);
             dispatcherReg.registerEventDispatcher(f_eventDispatcher);
+            // register an interceptor so that this session will close if the CCF is disposed
             f_ccf.getInterceptorRegistry().registerEventInterceptor(new LifecycleInterceptor());
-            if (((ExtensibleConfigurableCacheFactory) f_ccf).isActive())
-                {
-                // we're effectively already active so dispatch lifecycle events.
-                activate(null);
-                }
             }
         }
 
@@ -126,7 +121,7 @@ public class ConfigurableCacheFactorySession
     @SuppressWarnings({"rawtypes", "unchecked"})
     public <K, V> NamedCache<K, V> getCache(String sName, NamedCache.Option... options)
         {
-        if (m_fActive)
+        if (!m_fClosed)
             {
             ResourceRegistry registry = f_ccf.getResourceRegistry();
 
@@ -227,19 +222,16 @@ public class ConfigurableCacheFactorySession
             });
         }
 
-    public synchronized void activate(Coherence.Mode mode)
+    @Override
+    public synchronized void activate()
         {
-        if (m_fActive)
+        if (m_fActivated)
             {
             return;
             }
 
         f_eventDispatcher.dispatchStarting();
-        if (mode == Coherence.Mode.ClusterMember)
-            {
-            f_ccf.activate();
-            }
-        m_fActive = true;
+        m_fActivated = true;
         f_eventDispatcher.dispatchStarted();
         }
 
@@ -247,11 +239,11 @@ public class ConfigurableCacheFactorySession
     public synchronized void close()
             throws Exception
         {
-        if (m_fActive)
+        if (!m_fClosed)
             {
             Logger.info("Closing Session " + getName());
 
-            m_fActive = false;
+            m_fClosed = true;
 
             f_eventDispatcher.dispatchStopping();
 
@@ -322,7 +314,7 @@ public class ConfigurableCacheFactorySession
     @Override
     public boolean isActive()
         {
-        return m_fActive;
+        return !m_fClosed;
         }
 
     @Override
@@ -511,25 +503,16 @@ public class ConfigurableCacheFactorySession
         @Override
         public void onEvent(LifecycleEvent event)
             {
-            switch (event.getType())
+            if (event.getType() == LifecycleEvent.Type.DISPOSING)
                 {
-                case ACTIVATING:
-                    f_eventDispatcher.dispatchStarting();
-                    m_fActive = true;
-                    break;
-                case ACTIVATED:
-                    f_eventDispatcher.dispatchStarted();
-                    break;
-                case DISPOSING:
-                    try
-                        {
-                        close();
-                        }
-                    catch (Exception e)
-                        {
-                        Logger.err(e);
-                        }
-                    break;
+                try
+                    {
+                    close();
+                    }
+                catch (Exception e)
+                    {
+                    Logger.err(e);
+                    }
                 }
             }
         }
@@ -561,9 +544,14 @@ public class ConfigurableCacheFactorySession
     private final ClassLoader f_classLoader;
 
     /**
-     * Is the {@link Session} active / available for use.
+     * The {@link Session} has been activated.
      */
-    private volatile boolean m_fActive;
+    private volatile boolean m_fActivated;
+
+    /**
+     * The {@link Session} has been closed.
+     */
+    private volatile boolean m_fClosed;
 
     /**
      * The {@link SessionNamedCache}s created by this {@link Session}

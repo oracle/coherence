@@ -116,7 +116,7 @@ public class GrpcRemoteSession
     // ----- public methods -------------------------------------------------
 
     @Override
-    public synchronized void activate(Coherence.Mode mode)
+    public synchronized void activate()
         {
         if (m_fActivated)
             {
