@@ -6,9 +6,13 @@
  */
 package com.tangosol.internal.net;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.util.Options;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Service;
@@ -17,7 +21,15 @@ import com.tangosol.net.ValueTypeAssertion;
 
 import com.tangosol.net.cache.TypeAssertion;
 
+import com.tangosol.net.events.EventDispatcher;
+import com.tangosol.net.events.EventDispatcherAwareInterceptor;
+import com.tangosol.net.events.EventDispatcherRegistry;
 import com.tangosol.net.events.InterceptorRegistry;
+
+import com.tangosol.net.events.application.LifecycleEvent;
+
+import com.tangosol.net.events.internal.ConfigurableCacheFactoryDispatcher;
+import com.tangosol.net.events.internal.SessionEventDispatcher;
 
 import com.tangosol.net.options.WithClassLoader;
 
@@ -62,12 +74,12 @@ public class ConfigurableCacheFactorySession
      */
     public ConfigurableCacheFactorySession(ConfigurableCacheFactory ccf, ClassLoader loader, String sName)
         {
-        f_ccf = ccf;
-        f_classLoader = loader == null ? Base.ensureClassLoader(null) : loader;
-        f_sName       = sName;
-        f_mapCaches = new ConcurrentHashMap<>();
-        f_mapTopics = new ConcurrentHashMap<>();
-        m_fActive     = true;
+        f_ccf             = ccf;
+        f_classLoader     = loader == null ? Base.ensureClassLoader(null) : loader;
+        f_sName           = sName;
+        f_mapCaches       = new ConcurrentHashMap<>();
+        f_mapTopics       = new ConcurrentHashMap<>();
+        f_eventDispatcher = new SessionEventDispatcher(this);
 
         // if there is a session name add it as a resource to the CCF resource registry
         if (f_sName != null)
@@ -85,6 +97,19 @@ public class ConfigurableCacheFactorySession
                                                 sNameExisting + " has already been registered. This could be caused " +
                                                 "by multiple sessions configured with the same scope name and " +
                                                 "configuration URI");
+                }
+            }
+
+        if (f_ccf instanceof ExtensibleConfigurableCacheFactory)
+            {
+            ResourceRegistry        registry      = f_ccf.getResourceRegistry();
+            EventDispatcherRegistry dispatcherReg = registry.getResource(EventDispatcherRegistry.class);
+            dispatcherReg.registerEventDispatcher(f_eventDispatcher);
+            f_ccf.getInterceptorRegistry().registerEventInterceptor(new LifecycleInterceptor());
+            if (((ExtensibleConfigurableCacheFactory) f_ccf).isActive())
+                {
+                // we're effectively already active so dispatch lifecycle events.
+                activate(null);
                 }
             }
         }
@@ -160,8 +185,6 @@ public class ConfigurableCacheFactorySession
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <V> NamedTopic<V> getTopic(String sName, NamedTopic.Option... options)
         {
-        assertActive();
-
         ResourceRegistry registry = f_ccf.getResourceRegistry();
 
         // ensure we have a reference counter for the named topic
@@ -204,13 +227,33 @@ public class ConfigurableCacheFactorySession
             });
         }
 
+    public synchronized void activate(Coherence.Mode mode)
+        {
+        if (m_fActive)
+            {
+            return;
+            }
+
+        f_eventDispatcher.dispatchStarting();
+        if (mode == Coherence.Mode.ClusterMember)
+            {
+            f_ccf.activate();
+            }
+        m_fActive = true;
+        f_eventDispatcher.dispatchStarted();
+        }
+
     @Override
     public synchronized void close()
             throws Exception
         {
         if (m_fActive)
             {
+            Logger.info("Closing Session " + getName());
+
             m_fActive = false;
+
+            f_eventDispatcher.dispatchStopping();
 
             // close all of the named caches created by this session
             f_mapCaches.values().stream()
@@ -228,6 +271,9 @@ public class ConfigurableCacheFactorySession
 
             // drop the references to topic
             f_mapTopics.clear();
+
+            f_eventDispatcher.dispatchStopped();
+            Logger.info("Closed Session " + getName());
             }
         }
 
@@ -298,14 +344,6 @@ public class ConfigurableCacheFactorySession
         }
 
     // ----- ConfigurableCacheFactorySession methods ------------------------
-
-    private void assertActive()
-        {
-        if (!m_fActive)
-            {
-            throw new IllegalStateException("Session is closed");
-            }
-        }
 
     <V> void onClose(SessionNamedTopic<V> topic)
         {
@@ -401,48 +439,7 @@ public class ConfigurableCacheFactorySession
             }
         }
 
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The key used to register the session name in the {@link ConfigurableCacheFactory}
-     * resource registry.
-     */
-    public static final String SESSION_NAME = "$SESSION$";
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The optional name of this {@link Session}
-     */
-    private final String f_sName;
-
-    /**
-     * The {@link ConfigurableCacheFactory} on which the {@link Session}
-     * is based.
-     */
-    private final ConfigurableCacheFactory f_ccf;
-
-    /**
-     * The {@link ClassLoader} for the {@link Session}.
-     */
-    private final ClassLoader f_classLoader;
-
-    /**
-     * Is the {@link Session} active / available for use.
-     */
-    private volatile boolean m_fActive;
-
-    /**
-     * The {@link SessionNamedCache}s created by this {@link Session}
-     * (so we close them when the session closes).
-     */
-    private final ConcurrentHashMap<String, ConcurrentHashMap<TypeAssertion, SessionNamedCache>> f_mapCaches;
-
-    /**
-     * The {@link NamedTopic}s created by this {@link Session}
-     * (so we close them when the session closes).
-     */
-    private final ConcurrentHashMap<String, ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic>> f_mapTopics;
+    // ----- inner classes --------------------------------------------------
 
     /**
      * Tracks use of individual  instances by all {@link Session}s
@@ -493,4 +490,95 @@ public class ConfigurableCacheFactorySession
     protected static class NamedTopicReferenceCounter
             extends ReferenceCounter
         {}
+
+    // ----- inner class: LifecycleInterceptor ------------------------------
+
+    /**
+     * An event interceptor that ties this session's lifecycle to the underlying CCF lifecycle.
+     */
+    private class LifecycleInterceptor
+            implements EventDispatcherAwareInterceptor<LifecycleEvent>
+        {
+        @Override
+        public void introduceEventDispatcher(String sIdentifier, EventDispatcher dispatcher)
+            {
+            if (dispatcher instanceof ConfigurableCacheFactoryDispatcher)
+                {
+                dispatcher.addEventInterceptor(getName(), this);
+                }
+            }
+
+        @Override
+        public void onEvent(LifecycleEvent event)
+            {
+            switch (event.getType())
+                {
+                case ACTIVATING:
+                    f_eventDispatcher.dispatchStarting();
+                    m_fActive = true;
+                    break;
+                case ACTIVATED:
+                    f_eventDispatcher.dispatchStarted();
+                    break;
+                case DISPOSING:
+                    try
+                        {
+                        close();
+                        }
+                    catch (Exception e)
+                        {
+                        Logger.err(e);
+                        }
+                    break;
+                }
+            }
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The key used to register the session name in the {@link ConfigurableCacheFactory}
+     * resource registry.
+     */
+    public static final String SESSION_NAME = "$SESSION$";
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The optional name of this {@link Session}
+     */
+    private final String f_sName;
+
+    /**
+     * The {@link ConfigurableCacheFactory} on which the {@link Session}
+     * is based.
+     */
+    private final ConfigurableCacheFactory f_ccf;
+
+    /**
+     * The {@link ClassLoader} for the {@link Session}.
+     */
+    private final ClassLoader f_classLoader;
+
+    /**
+     * Is the {@link Session} active / available for use.
+     */
+    private volatile boolean m_fActive;
+
+    /**
+     * The {@link SessionNamedCache}s created by this {@link Session}
+     * (so we close them when the session closes).
+     */
+    private final ConcurrentHashMap<String, ConcurrentHashMap<TypeAssertion, SessionNamedCache>> f_mapCaches;
+
+    /**
+     * The {@link NamedTopic}s created by this {@link Session}
+     * (so we close them when the session closes).
+     */
+    private final ConcurrentHashMap<String, ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic>> f_mapTopics;
+
+    /**
+     * The event dispatcher for lifecycle events.
+     */
+    private final SessionEventDispatcher f_eventDispatcher;
     }

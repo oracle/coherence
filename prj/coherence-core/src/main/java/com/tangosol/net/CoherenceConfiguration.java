@@ -113,8 +113,7 @@ public interface CoherenceConfiguration
             }
 
         /**
-         * Add all of the {@link SessionConfiguration} instances and
-         * {@link SessionConfiguration.Provider} instances discovered
+         * Add all of the {@link SessionConfiguration} instances discovered
          * using the {@link ServiceLoader}.
          *
          * @return  this {@link Builder}
@@ -122,7 +121,6 @@ public interface CoherenceConfiguration
         public Builder discoverSessions()
             {
             withSessions(ServiceLoader.load(SessionConfiguration.class));
-            withSessionProviders(ServiceLoader.load(SessionConfiguration.Provider.class));
             return this;
             }
 
@@ -207,87 +205,6 @@ public interface CoherenceConfiguration
             for (SessionConfiguration configuration : configs)
                 {
                 withSession(configuration);
-                }
-            return this;
-            }
-
-        /**
-         * Add the {@link SessionConfiguration} provider to the {@link Coherence}
-         * instance that will be used to create the corresponding
-         * {@link Session} instances on start-up.
-         * <p>
-         * The name of the {@link SessionConfiguration} returned by the
-         * {@link SessionConfiguration#getName()} method must be unique
-         * across all {@link Coherence} instances.
-         * <p>
-         * Adding a {@link SessionConfiguration} with the same name as
-         * a {@link SessionConfiguration} already added to this builder
-         * will overwrite the previously added configuration.
-         *
-         * @param provider  the {@link SessionConfiguration} provider to configure
-         *                  {@link Session} instances
-         *
-         * @return  this {@link Builder}
-         */
-        public Builder withSessionProvider(SessionConfiguration.Provider provider)
-            {
-            if (provider != null)
-                {
-                return withSession(provider.getConfiguration());
-                }
-            return this;
-            }
-
-        /**
-         * Add the {@link SessionConfiguration} providers to the {@link Coherence}
-         * instance that will be used to create the corresponding
-         * {@link Session} instances on start-up.
-         * <p>
-         * The name of the {@link SessionConfiguration} returned by the
-         * {@link SessionConfiguration#getName()} method must be unique
-         * across all {@link Coherence} instances.
-         * <p>
-         * Adding a {@link SessionConfiguration} with the same name as
-         * a {@link SessionConfiguration} already added to this builder
-         * will overwrite the previously added configuration.
-         *
-         * @param providers  the {@link SessionConfiguration} providers to configure
-         *                   {@link Session} instances
-         *
-         * @return  this {@link Builder}
-         */
-        public Builder withSessionProviders(SessionConfiguration.Provider... providers)
-            {
-            if (providers == null)
-                {
-                return this;
-                }
-            return withSessionProviders(Arrays.asList(providers));
-            }
-
-        /**
-         * Add the {@link SessionConfiguration} providers to the {@link Coherence}
-         * instance that will be used to create the corresponding
-         * {@link Session} instances on start-up.
-         * <p>
-         * The name of the {@link SessionConfiguration} returned by the
-         * {@link SessionConfiguration#getName()} method must be unique
-         * across all {@link Coherence} instances.
-         * <p>
-         * Adding a {@link SessionConfiguration} with the same name as
-         * a {@link SessionConfiguration} already added to this builder
-         * will overwrite the previously added configuration.
-         *
-         * @param providers  the {@link SessionConfiguration} providers to configure
-         *                   {@link Session} instances
-         *
-         * @return  this {@link Builder}
-         */
-        public Builder withSessionProviders(Iterable<? extends SessionConfiguration.Provider> providers)
-            {
-            for (SessionConfiguration.Provider provider : providers)
-                {
-                withSession(provider.getConfiguration());
                 }
             return this;
             }

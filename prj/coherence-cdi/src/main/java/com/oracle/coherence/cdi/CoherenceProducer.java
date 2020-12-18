@@ -79,9 +79,6 @@ public class CoherenceProducer
         Instance<SessionConfiguration> configurations = beanManager.createInstance()
                 .select(SessionConfiguration.class, Any.Literal.INSTANCE);
 
-        Instance<SessionConfiguration.Provider> configurationProviders = beanManager.createInstance()
-                .select(SessionConfiguration.Provider.class, Any.Literal.INSTANCE);
-
         Instance<CoherenceExtension.InterceptorProvider> interceptorProviders = beanManager.createInstance()
                 .select(CoherenceExtension.InterceptorProvider.class, Any.Literal.INSTANCE);
 
@@ -109,7 +106,6 @@ public class CoherenceProducer
             builder = CoherenceConfiguration.builder()
                         .withSession(SessionConfiguration.defaultSession())
                         .withSessions(configurations)
-                        .withSessionProviders(configurationProviders)
                         .withEventInterceptors(listInterceptor)
                         .discoverSessions();
             }

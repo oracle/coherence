@@ -8,13 +8,15 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.util.Options;
 
-import com.tangosol.net.internal.DefaultSessionProvider;
+import com.tangosol.internal.net.DefaultSessionProvider;
 
+import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.options.WithClassLoader;
 import com.tangosol.net.options.WithConfiguration;
 import com.tangosol.net.options.WithName;
 import com.tangosol.net.options.WithScopeName;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -45,7 +47,26 @@ public interface SessionProvider
      */
     default Optional<Session> createSession(SessionConfiguration configuration, Coherence.Mode mode)
         {
-        Context context = new DefaultContext(mode, DefaultSessionProvider.getBaseProvider());
+        return createSession(configuration, mode, Collections.emptyList());
+        }
+
+    /**
+     * Create a {@link Session} from the specified configuration.
+     *
+     * @param configuration  the configuration to use to create the session
+     * @param mode           the current {@link com.tangosol.net.Coherence.Mode}
+     * @param interceptors   optional {@link EventInterceptor interceptors} to add to
+     *                       the session in addition to any in the configuration
+     *
+     * @return an {@link Optional} containing a {@link Session} or an empty
+     *         {@link Optional} if this provider cannot supply a {@link Session}
+     *         from the specified configuration
+     */
+    default Optional<Session> createSession(SessionConfiguration                    configuration,
+                                            Coherence.Mode                          mode,
+                                            Iterable<? extends EventInterceptor<?>> interceptors)
+        {
+        Context context = new DefaultContext(mode, DefaultSessionProvider.getBaseProvider(), interceptors);
         Context result  = createSession(configuration, context);
         return result == null ? Optional.empty() : Optional.ofNullable(result.getSession());
         }
@@ -80,7 +101,7 @@ public interface SessionProvider
      *              when a {@link Session} can't be creating using the
      *              specified {@link Option}.
      *
-     * @deprecated  since 20.12 - use {@link #createSession(SessionConfiguration, Coherence.Mode)} )}
+     * @deprecated  since 20.12 - use {@link #createSession(SessionConfiguration, Coherence.Mode, Iterable)}
      */
     @Deprecated
     default Session createSession(Session.Option... options)
@@ -93,7 +114,7 @@ public interface SessionProvider
         opts.ifPresent(WithClassLoader.class, option -> builder.withClassLoader(option.getClassLoader()));
         opts.ifPresent(WithScopeName.class, option -> builder.withScopeName(option.getScopeName()));
 
-        return createSession(builder.build(), Coherence.Mode.ClusterMember)
+        return createSession(builder.build(), Coherence.Mode.ClusterMember, Collections.emptyList())
                 .orElseThrow(() -> new IllegalArgumentException("Cannot create a session from the specified options"));
         }
 
@@ -134,7 +155,7 @@ public interface SessionProvider
      * An immutable option for creating and configuring {@link SessionProvider}s.
      *
      * @deprecated since 20.12 use {@link SessionConfiguration} and
-     * {@link SessionProvider#createSession(SessionConfiguration, Coherence.Mode)} 
+     * {@link SessionProvider#createSession(SessionConfiguration, Coherence.Mode, Iterable)}
      */
     @Deprecated
     interface Option
@@ -260,8 +281,15 @@ public interface SessionProvider
         SessionProvider defaultProvider();
 
         /**
+         * Returns zero or more {@link EventInterceptor} instances to add to the session.
+         *
+         * @return zero or more {@link EventInterceptor} instances to add to the session
+         */
+        Iterable<? extends EventInterceptor<?>> getInterceptors();
+
+        /**
          * Returns the {@link Context} from calling the default {@link #defaultProvider()}
-         * {@link SessionProvider#createSession(SessionConfiguration, Coherence.Mode)}
+         * {@link SessionProvider#createSession(SessionConfiguration, Coherence.Mode, Iterable)}
          * method to create a session.
          *
          * @param configuration  the session configuration to use
@@ -287,10 +315,13 @@ public interface SessionProvider
          *
          * @throws NullPointerException if either parameter is {@code null}
          */
-        public DefaultContext(Coherence.Mode mode, SessionProvider provider)
+        public DefaultContext(Coherence.Mode                          mode,
+                              SessionProvider                         provider,
+                              Iterable<? extends EventInterceptor<?>> interceptors)
             {
             f_mode            = Objects.requireNonNull(mode);
-            f_sessionProvider = Objects.requireNonNull(provider) ;
+            f_sessionProvider = Objects.requireNonNull(provider);
+            f_interceptors    = interceptors;
             }
 
         @Override
@@ -338,6 +369,12 @@ public interface SessionProvider
             return f_sessionProvider;
             }
 
+        @Override
+        public Iterable<? extends EventInterceptor<?>> getInterceptors()
+            {
+            return f_interceptors;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -349,6 +386,11 @@ public interface SessionProvider
          * The default session provider.
          */
         private final SessionProvider f_sessionProvider;
+
+        /**
+         * The interceptors to add to the session.
+         */
+        private final Iterable<? extends EventInterceptor<?>> f_interceptors;
 
         /**
          * {@code true} if the context is complete.

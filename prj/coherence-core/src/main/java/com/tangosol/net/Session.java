@@ -8,12 +8,14 @@ package com.tangosol.net;
 
 import com.tangosol.net.cache.TypeAssertion;
 
+import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 
 import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.ResourceRegistry;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -169,6 +171,16 @@ public interface Session extends AutoCloseable
     boolean isActive();
 
     /**
+     * Activate this {@link Session}.
+     * <p>
+     * Calling this method on an already active {@link Session}
+     * is a no-op.
+     *
+     * @param mode  the activation mode
+     */
+    void activate(Coherence.Mode mode);
+
+    /**
      * Returns a service for the given name or {@code null}
      * if no service exists in this session with the specified
      * name.
@@ -223,8 +235,10 @@ public interface Session extends AutoCloseable
     /**
      * Obtain the default Session.
      * <p>
-     * This method calls {@link #create(SessionConfiguration, Coherence.Mode)}
-     * with a mode of {@link Coherence.Mode#ClusterMember}.
+     * This method calls {@link #ensure(SessionConfiguration, Coherence.Mode)}
+     * with a configuration of {@link SessionConfiguration#defaultSession()}
+     * and a mode of {@link Coherence.Mode#ClusterMember}.
+     * This will return an activated cluster member default {@link Session}.
      *
      * @return an {@link Optional} containing the {@link Session} or an empty
      *         {@code Option} if the default session could not be created.
@@ -237,7 +251,7 @@ public interface Session extends AutoCloseable
         }
 
     /**
-     * Obtain a {@link Session} based on the specified configuration
+     * Obtain an activated {@link Session} based on the specified configuration
      * or throw an {@link IllegalStateException} if a session could
      * not be obtained.
      * <p>
@@ -259,7 +273,7 @@ public interface Session extends AutoCloseable
         }
 
     /**
-     * Obtain a {@link Session} based on the specified configuration
+     * Obtain an activated {@link Session} based on the specified configuration
      * or throw an {@link IllegalStateException} if a session could
      * not be obtained.
      *
@@ -275,8 +289,10 @@ public interface Session extends AutoCloseable
      */
     static Session ensure(SessionConfiguration configuration, Coherence.Mode mode)
         {
-        return create(configuration, mode)
+        Session session = create(configuration, mode)
                 .orElseThrow(() -> new IllegalStateException("could not create a session"));
+        session.activate(mode);
+        return session;
         }
 
     /**
@@ -312,7 +328,28 @@ public interface Session extends AutoCloseable
      */
     static Optional<Session> create(SessionConfiguration configuration, Coherence.Mode mode)
         {
+        return create(configuration, mode, Collections.emptyList());
+        }
+
+    /**
+     * Possibly obtain a {@link Session} based on the specified configuration.
+     *
+     * @param configuration  the configuration for the {@link Session}
+     * @param mode           the mode that Coherence is running in
+     * @param interceptors   optional {@link EventInterceptor interceptors} to add to
+     *                       the session in addition to any in the configuration
+     *
+     * @return an {@link Optional} containing the {@link Session} or an empty
+     *         {@code Option} if no session could be created from the specified
+     *         configuration
+     *
+     * @throws NullPointerException if the configuration or mode are {@code null}
+     */
+    static Optional<Session> create(SessionConfiguration configuration,
+            Coherence.Mode mode, Iterable<? extends EventInterceptor<?>> interceptors)
+        {
         return SessionProvider.get().createSession(Objects.requireNonNull(configuration),
-                                                   Objects.requireNonNull(mode));
+                                                   Objects.requireNonNull(mode),
+                                                   interceptors);
         }
     }

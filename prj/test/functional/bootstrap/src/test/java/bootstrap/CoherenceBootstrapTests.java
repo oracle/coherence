@@ -49,7 +49,7 @@ class CoherenceBootstrapTests
     @Test
     void shouldHaveDefaultServerSession()
         {
-        Coherence coherence = Coherence.clusterMember(CoherenceConfiguration.builder().build());
+        Coherence coherence = Coherence.clusterMember();
 
         assertThat(coherence.getMode(), is(Coherence.Mode.ClusterMember));
 
@@ -70,7 +70,7 @@ class CoherenceBootstrapTests
     @Test
     void shouldHaveDefaultClientSession()
         {
-        Coherence coherence = Coherence.clientBuilder(CoherenceConfiguration.builder().build()).build();
+        Coherence coherence = Coherence.client();
 
         assertThat(coherence.getMode(), is(Coherence.Mode.Client));
 
@@ -91,7 +91,7 @@ class CoherenceBootstrapTests
     @Test
     void shouldHaveSystemSessionOnClusterMember()
         {
-        Coherence coherence = Coherence.clusterMember(CoherenceConfiguration.builder().build());
+        Coherence coherence = Coherence.clusterMember();
 
         assertThat(coherence.getMode(), is(Coherence.Mode.ClusterMember));
 
@@ -103,7 +103,7 @@ class CoherenceBootstrapTests
     @Test
     void shouldNotHaveSystemSessionOnClient()
         {
-        Coherence coherence = Coherence.client(CoherenceConfiguration.builder().build());
+        Coherence coherence = Coherence.client();
 
         assertThat(coherence.getMode(), is(Coherence.Mode.Client));
 

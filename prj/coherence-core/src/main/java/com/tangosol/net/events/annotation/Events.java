@@ -18,10 +18,12 @@ import java.lang.annotation.Target;
  * @author as  2020.04.02
  * @since 20.06
  *
+ * @see CoherenceLifecycleEvents
  * @see CacheLifecycleEvents
  * @see EntryEvents
  * @see EntryProcessorEvents
  * @see LifecycleEvents
+ * @see SessionLifecycleEvents
  * @see TransactionEvents
  * @see TransferEvents
  * @see UnsolicitedCommitEvents

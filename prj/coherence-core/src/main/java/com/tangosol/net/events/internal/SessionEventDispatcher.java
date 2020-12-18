@@ -6,11 +6,9 @@
  */
 package com.tangosol.net.events.internal;
 
-import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
-
-import com.tangosol.net.events.CoherenceDispatcher;
-import com.tangosol.net.events.CoherenceLifecycleEvent;
+import com.tangosol.net.events.SessionDispatcher;
+import com.tangosol.net.events.SessionLifecycleEvent;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,77 +16,77 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * An implementation of a {@link CoherenceDispatcher} used by
- * a {@link Coherence} instance to dispatch events.
+ * An implementation of a {@link SessionDispatcher} used by
+ * a {@link Session} instance to dispatch events.
  *
  * @author Jonathan Knight  2020.11.10
  * @since 20.12
  */
 @SuppressWarnings("rawtypes")
-public class CoherenceEventDispatcher
+public class SessionEventDispatcher
         extends AbstractEventDispatcher
-        implements CoherenceDispatcher
+        implements SessionDispatcher
 
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Creates a {@link CoherenceEventDispatcher} for a specific
-     * {@link Coherence} instance.
+     * Creates a {@link SessionEventDispatcher} for a specific
+     * {@link Session} instance.
      *
-     * @param coherence  the {@link Coherence} instance this dispatcher
+     * @param session  the {@link Session} instance this dispatcher
      *                   dispatches events for
      */
-    public CoherenceEventDispatcher(Coherence coherence)
+    public SessionEventDispatcher(Session session)
         {
         super(EVENT_TYPES);
-        f_coherence = coherence;
+        f_session = session;
         }
 
-    // ----- CoherenceDispatcher methods ------------------------------------
+    // ----- SessionDispatcher methods --------------------------------------
 
     @Override
     public String getName()
         {
-        return f_coherence.getName();
+        return f_session.getName();
         }
 
-    // ----- CoherenceEventDispatcher methods -------------------------------
+    // ----- SessionEventDispatcher methods -------------------------------
 
     public void dispatchStarting()
         {
-        dispatchEvent(CoherenceLifecycleEvent.Type.STARTING);
+        dispatchEvent(SessionLifecycleEvent.Type.STARTING);
         }
 
     public void dispatchStarted()
         {
-        dispatchEvent(CoherenceLifecycleEvent.Type.STARTED);
+        dispatchEvent(SessionLifecycleEvent.Type.STARTED);
         }
 
     public void dispatchStopping()
         {
-        dispatchEvent(CoherenceLifecycleEvent.Type.STOPPING);
+        dispatchEvent(SessionLifecycleEvent.Type.STOPPING);
         }
 
     public void dispatchStopped()
         {
-        dispatchEvent(CoherenceLifecycleEvent.Type.STOPPED);
+        dispatchEvent(SessionLifecycleEvent.Type.STOPPED);
         }
 
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Helper to perform the dispatch of a {@link CoherenceLifecycleEvent}
+     * Helper to perform the dispatch of a {@link SessionLifecycleEvent}
      * being given its type
      *
      * @param eventType  the enum representing the event type
      */
-    protected void dispatchEvent(CoherenceLifecycleEvent.Type eventType)
+    protected void dispatchEvent(SessionLifecycleEvent.Type eventType)
         {
         List<NamedEventInterceptor<?>> list = getInterceptorMap().get(eventType);
         if (list != null)
             {
-            new LifecycleEvent(this, eventType, f_coherence).dispatch(list);
+            new LifecycleEvent(this, eventType, f_session).dispatch(list);
             }
         }
 
@@ -110,7 +108,7 @@ public class CoherenceEventDispatcher
          * @param dispatcher  the dispatcher that raised this event
          * @param eventType   the event type
          */
-        public AbstractEvent(CoherenceEventDispatcher dispatcher, T eventType)
+        public AbstractEvent(SessionEventDispatcher dispatcher, T eventType)
             {
             super(dispatcher, eventType);
             }
@@ -119,24 +117,24 @@ public class CoherenceEventDispatcher
 
         public String getName()
             {
-            return ((CoherenceEventDispatcher) m_dispatcher).getName();
+            return ((SessionEventDispatcher) m_dispatcher).getName();
             }
 
         @Override
-        public CoherenceDispatcher getDispatcher()
+        public SessionDispatcher getDispatcher()
             {
-            return (CoherenceDispatcher) m_dispatcher;
+            return (SessionDispatcher) m_dispatcher;
             }
         }
 
     // ----- inner class: LifecycleEvent ------------------------------------
 
     /**
-     * A {@link CoherenceLifecycleEvent} implementation raised by this dispatcher.
+     * A {@link SessionLifecycleEvent} implementation raised by this dispatcher.
      */
     protected static class LifecycleEvent
-            extends AbstractEvent<CoherenceLifecycleEvent.Type>
-            implements CoherenceLifecycleEvent
+            extends AbstractEvent<SessionLifecycleEvent.Type>
+            implements SessionLifecycleEvent
         {
         // ----- constructors -----------------------------------------------
 
@@ -145,12 +143,12 @@ public class CoherenceEventDispatcher
          *
          * @param dispatcher  the dispatcher that raised this event
          * @param eventType   the event type
-         * @param coherence   the {@link Coherence} instance related to the event
+         * @param coherence   the {@link Session} instance related to the event
          */
-        protected LifecycleEvent(CoherenceEventDispatcher dispatcher, Type eventType, Coherence coherence)
+        protected LifecycleEvent(SessionEventDispatcher dispatcher, Type eventType, Session coherence)
             {
             super(dispatcher, eventType);
-            f_coherence = coherence;
+            f_session = coherence;
             }
 
         // ----- AbstractEvent methods --------------------------------------
@@ -165,21 +163,21 @@ public class CoherenceEventDispatcher
         protected String getDescription()
             {
             return super.getDescription() +
-                   ", Coherence=" + getName();
+                   ", Session=" + getName();
             }
 
         @Override
-        public Coherence getCoherence()
+        public Session getSession()
             {
-            return f_coherence;
+            return f_session;
             }
 
         // ----- data members -----------------------------------------------
 
         /**
-         * The {@link Coherence} instance that the event is associated with.
+         * The {@link Session} instance that the event is associated with.
          */
-        private final Coherence f_coherence;
+        private final Session f_session;
         }
 
     // ----- constants and data members -------------------------------------
@@ -192,12 +190,12 @@ public class CoherenceEventDispatcher
     /**
      * The {@link Session}.
      */
-    protected final Coherence f_coherence;
+    protected final Session f_session;
 
     // ----- static initializer ---------------------------------------------
 
     static
         {
-        EVENT_TYPES.addAll(Arrays.asList(CoherenceLifecycleEvent.Type.values()));
+        EVENT_TYPES.addAll(Arrays.asList(SessionLifecycleEvent.Type.values()));
         }
     }

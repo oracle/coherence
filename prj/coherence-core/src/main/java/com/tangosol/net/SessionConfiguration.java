@@ -163,22 +163,6 @@ public interface SessionConfiguration
                 .build();
         }
 
-    // ----- inner class: Provider ------------------------------------------
-
-    /**
-     * A provider of a {@link SessionConfiguration}.
-     */
-    @FunctionalInterface
-    interface Provider
-        {
-        /**
-         * Returns the {@link SessionConfiguration}.
-         *
-         * @return  the {@link SessionConfiguration}
-         */
-        SessionConfiguration getConfiguration();
-        }
-
     // ----- inner class: Builder -------------------------------------------
 
     /**

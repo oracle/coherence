@@ -7,6 +7,7 @@
 package com.oracle.coherence.client;
 
 import com.tangosol.internal.net.SystemSessionConfiguration;
+
 import com.tangosol.net.Coherence;
 import com.tangosol.net.SessionConfiguration;
 
@@ -37,7 +38,7 @@ public class ClientSystemSessionProvider
                 && Coherence.SYSTEM_SESSION.equals(configuration.getName()))
             {
             GrpcSessionConfiguration cfg = GrpcSessionConfiguration
-                    .builder(NamedChannelProvider.SYSTEM_CHANNEL_NAME, NamedChannelProvider.DEFAULT_CHANNEL_NAME)
+                    .builder(ChannelProvider.SYSTEM_CHANNEL_NAME, ChannelProvider.DEFAULT_CHANNEL_NAME)
                     .named(Coherence.SYSTEM_SESSION)
                     .withScopeName(Coherence.SYSTEM_SCOPE)
                     .build();
