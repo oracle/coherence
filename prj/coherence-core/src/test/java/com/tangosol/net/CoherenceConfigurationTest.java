@@ -202,69 +202,6 @@ public class CoherenceConfigurationTest
         assertThat(mapSession.get(session2.getName()), is(sameInstance(session2)));
         }
 
-    @Test
-    public void shouldCreateWithSessionProvider()
-        {
-        SessionConfiguration          session  = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
-        SessionConfiguration.Provider provider = () -> session;
-        CoherenceConfiguration        cfg      = CoherenceConfiguration.builder()
-                .withSessionProvider(provider)
-                .build();
-
-        assertThat(cfg, is(notNullValue()));
-        assertThat(cfg.getName(), is(Coherence.DEFAULT_NAME));
-        assertThat(cfg.getInterceptors(), is(emptyIterable()));
-
-        Map<String, SessionConfiguration> mapSession = cfg.getSessionConfigurations();
-        assertThat(mapSession, is(notNullValue()));
-        assertThat(mapSession.size(), is(1));
-        assertThat(mapSession.get(session.getName()), is(sameInstance(session)));
-        }
-
-    @Test
-    public void shouldCreateWithSessionProvidersVararg()
-        {
-        SessionConfiguration          session1  = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
-        SessionConfiguration          session2  = SessionConfiguration.builder().named("Bar").withConfigUri("foo.xml").build();
-        SessionConfiguration.Provider provider1 = () -> session1;
-        SessionConfiguration.Provider provider2 = () -> session2;
-        CoherenceConfiguration        cfg     = CoherenceConfiguration.builder()
-                .withSessionProviders(provider1, provider2)
-                .build();
-
-        assertThat(cfg, is(notNullValue()));
-        assertThat(cfg.getName(), is(Coherence.DEFAULT_NAME));
-        assertThat(cfg.getInterceptors(), is(emptyIterable()));
-
-        Map<String, SessionConfiguration> mapSession = cfg.getSessionConfigurations();
-        assertThat(mapSession, is(notNullValue()));
-        assertThat(mapSession.size(), is(2));
-        assertThat(mapSession.get(session1.getName()), is(sameInstance(session1)));
-        assertThat(mapSession.get(session2.getName()), is(sameInstance(session2)));
-        }
-
-    @Test
-    public void shouldCreateWithSessionProvidersIterable()
-        {
-        SessionConfiguration           session1 = SessionConfiguration.builder().named("Foo").withConfigUri("foo.xml").build();
-        SessionConfiguration           session2 = SessionConfiguration.builder().named("Bar").withConfigUri("foo.xml").build();
-        SessionConfiguration.Provider provider1 = () -> session1;
-        SessionConfiguration.Provider provider2 = () -> session2;
-        CoherenceConfiguration        cfg     = CoherenceConfiguration.builder()
-                .withSessionProviders(Arrays.asList(provider1, provider2))
-                .build();
-
-        assertThat(cfg, is(notNullValue()));
-        assertThat(cfg.getName(), is(Coherence.DEFAULT_NAME));
-        assertThat(cfg.getInterceptors(), is(emptyIterable()));
-
-        Map<String, SessionConfiguration> mapSession = cfg.getSessionConfigurations();
-        assertThat(mapSession, is(notNullValue()));
-        assertThat(mapSession.size(), is(2));
-        assertThat(mapSession.get(session1.getName()), is(sameInstance(session1)));
-        assertThat(mapSession.get(session2.getName()), is(sameInstance(session2)));
-        }
-
     // ----- helper methods -------------------------------------------------
 
     public void assertDefaultConfiguration(CoherenceConfiguration cfg)

@@ -8,22 +8,10 @@
 package com.tangosol.net;
 
 
-import com.oracle.coherence.common.base.Classes;
-
-import com.tangosol.coherence.config.Config;
-
-import com.tangosol.config.expression.ChainedParameterResolver;
 import com.tangosol.config.expression.ParameterResolver;
-import com.tangosol.config.expression.PropertiesParameterResolver;
 
-import com.tangosol.internal.net.ConfigurableCacheFactorySession;
-
-import com.tangosol.internal.net.ScopedUriScopeResolver;
-
+import com.tangosol.internal.net.DefaultSessionProvider;
 import com.tangosol.run.xml.XmlElement;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
 * CacheFactoryBuilder provides the means for building and managing configurable
@@ -140,28 +128,7 @@ public interface CacheFactoryBuilder
     @Override
     default Context createSession(SessionConfiguration configuration, Context context)
         {
-        String            sConfigLocation   = configuration.getConfigUri()
-                                                           .orElse(CacheFactoryBuilder.URI_DEFAULT);
-        String            scopeName         = configuration.getScopeName();
-        ClassLoader       loader            = configuration.getClassLoader().orElse(Classes.getContextClassLoader());
-        String            name              = configuration.getName();
-        String            sConfigUri        = ScopedUriScopeResolver.encodeScope(sConfigLocation, scopeName);
-        ParameterResolver resolverCfg       = configuration.getParameterResolver().orElse(null);
-
-        if (context.getMode() == Coherence.Mode.Client)
-            {
-            // If this is a client we override the coherence.client if it has not already been
-            // set to be "remote" so that we force any session using the default cache config
-            // file to be an extend client.
-            String sProp = Config.getProperty("coherence.client", "remote");
-            Map<String, String> map = Collections.singletonMap("coherence.client", sProp);
-            resolverCfg = new ChainedParameterResolver(resolverCfg, new PropertiesParameterResolver(map));
-            }
-
-        // this request assumes the class loader for the session can be used
-        // for loading both the configuration descriptor and the cache models
-        ConfigurableCacheFactory factory = getConfigurableCacheFactory(sConfigUri, loader, resolverCfg);
-        return context.complete(new ConfigurableCacheFactorySession(factory, loader, name));
+        return DefaultSessionProvider.INSTANCE.createSession(configuration, context);
         }
 
     // ----- constants ------------------------------------------------------

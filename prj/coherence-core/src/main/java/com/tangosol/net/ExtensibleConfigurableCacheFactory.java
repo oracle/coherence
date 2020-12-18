@@ -642,6 +642,16 @@ public class ExtensibleConfigurableCacheFactory
     // ----- ExtensibleConfigurableCacheFactory methods ---------------------
 
     /**
+     * Returns {@code true} if this {@link ExtensibleConfigurableCacheFactory} is activated.
+     *
+     * @return {@code true} if this {@link ExtensibleConfigurableCacheFactory} is activated
+     */
+    public boolean isActive()
+        {
+        return m_fActivated;
+        }
+
+    /**
      * Return the scope name for this ConfigurableCacheFactory.  If specified,
      * this name will be used as a prefix for the name of all services created
      * by this factory.

@@ -29,39 +29,9 @@ import java.util.Optional;
  * @author Jonathan Knight  2020.11.04
  * @since 20.12
  */
-public class GrpcSessionConfiguration
-        implements SessionConfiguration
+public interface GrpcSessionConfiguration
+        extends SessionConfiguration
     {
-    // ----- constructors ---------------------------------------------------
-
-    /**
-     * Private constructor, use the builder to create instances.
-     *
-     * @param sName      the name of the session
-     * @param sScope     the scope name of the session
-     * @param nPriority  the session creation priority
-     * @param channel    the {@link Channel} to use
-     * @param serializer the serializer to use to serialize message payloads
-     * @param sFormat    the name of the serializer format
-     * @param fTracing   {@code true} to enable distributed tracing
-     */
-    private GrpcSessionConfiguration(String     sName,
-                                     String     sScope,
-                                     int        nPriority,
-                                     Channel    channel,
-                                     Serializer serializer,
-                                     String     sFormat,
-                                     boolean    fTracing)
-        {
-        f_sName      = sName;
-        f_sScopeName = sScope;
-        f_nPriority  = nPriority;
-        f_channel    = channel;
-        f_serializer = serializer;
-        f_sFormat    = sFormat;
-        f_fTracing   = fTracing;
-        }
-
     // ----- factory methods ------------------------------------------------
 
     /**
@@ -78,7 +48,7 @@ public class GrpcSessionConfiguration
      *
      * @return  a {@link GrpcSessionConfiguration} builder
      */
-    public static Builder builder(Channel channel)
+    static Builder builder(Channel channel)
         {
         return new Builder(channel, null, null);
         }
@@ -105,7 +75,7 @@ public class GrpcSessionConfiguration
      *
      * @return  a {@link GrpcSessionConfiguration} builder
      */
-    public static Builder builder(String sChannelName)
+    static Builder builder(String sChannelName)
         {
         return new Builder(null, sChannelName, null);
         }
@@ -137,43 +107,56 @@ public class GrpcSessionConfiguration
      *
      * @return  a {@link GrpcSessionConfiguration} builder
      */
-    public static Builder builder(String channelName, String sFallbackName)
+    static Builder builder(String channelName, String sFallbackName)
         {
         return new Builder(null, channelName, sFallbackName);
         }
 
     // ----- GrpcSessionConfiguration methods -------------------------------
 
+    @Override
+    default String getScopeName()
+        {
+        return Coherence.DEFAULT_SCOPE;
+        }
+
     /**
      * Returns the gRPC {@link Channel} to use.
      *
      * @return  the gRPC {@link Channel} to use
      */
-    public Channel getChannel()
-        {
-        return f_channel;
-        }
+    Channel getChannel();
 
     /**
      * Returns the {@link Serializer} to use to serialize gRPC
      * message payloads.
+     * <p>
+     * If an empty {@link Optional} is returned the serializer will
+     * be the default Coherence serializer, either POF if it has
+     * been enabled with the {@code coherence.pof.enabled} system
+     * property, otherwise Java.
      *
      * @return the {@link Serializer} to use
      */
-    public Serializer getSerializer()
+    default Optional<Serializer> getSerializer()
         {
-        return f_serializer;
+        return Optional.empty();
         }
 
     /**
      * Returns the name of the serialization format to use to serialize gRPC
      * message payloads.
+     * <p>
+     * If an empty {@link Optional} is returned the serializer format will
+     * be taken from the default Coherence serializer, either "pof" if it has
+     * been enabled with the {@code coherence.pof.enabled} system
+     * property, otherwise "java".
      *
      * @return the name of the serialization format
      */
-    public String getFormat()
+    default Optional<String> getFormat()
         {
-        return f_sFormat;
+        return getSerializer().map(Serializer::getName);
         }
 
     /**
@@ -181,37 +164,9 @@ public class GrpcSessionConfiguration
      *
      * @return {@code true} if client gRPC tracing should be enabled
      */
-    public boolean enableTracing()
+    default boolean enableTracing()
         {
-        return f_fTracing;
-        }
-
-    // ----- SessionConfiguration methods -----------------------------------
-
-    @Override
-    public String getName()
-        {
-        return f_sName;
-        }
-
-    /**
-     * Return the scope name of the {@link Session}.
-     * <p>
-     * If not specifically set, the name will default to the
-     * {@link com.tangosol.net.Coherence#DEFAULT_SCOPE} value.
-     *
-     * @return the scope name of the {@link Session}
-     */
-    @Override
-    public String getScopeName()
-        {
-        return f_sScopeName;
-        }
-
-    @Override
-    public int getPriority()
-        {
-        return f_nPriority;
+        return false;
         }
 
     // ----- inner class: Builder -------------------------------------------
@@ -219,7 +174,7 @@ public class GrpcSessionConfiguration
     /**
      * A builder that builds {@link GrpcSessionConfiguration} instances.
      */
-    public static class Builder
+    class Builder
         {
         /**
          * Create a builder.
@@ -347,14 +302,14 @@ public class GrpcSessionConfiguration
                 {
                 if (f_sChannelName == null && f_sFallbackChannelName == null)
                     {
-                    Logger.warn("Session configuration for gRPC session " + sName
+                    Logger.config("Session configuration for gRPC session " + sName
                         + " has no channel or channel name set, falling back to the default configuration.");
-                    channel = createChannel(NamedChannelProvider.DEFAULT_CHANNEL_NAME, DEFAULT_HOST);
+                    channel = createChannel(ChannelProvider.DEFAULT_CHANNEL_NAME, DEFAULT_HOST);
                     }
                 else
                     {
                     channel = createChannel(f_sChannelName, null);
-                    Logger.warn("Session configuration for gRPC session " + sName
+                    Logger.config("Session configuration for gRPC session " + sName
                         + " cannot find configuration properties for name " + f_sChannelName 
                         + ", falling back to channel name " + f_sFallbackChannelName);
                     if (channel == null && f_sFallbackChannelName != null)
@@ -378,12 +333,12 @@ public class GrpcSessionConfiguration
                     ? Coherence.DEFAULT_SCOPE
                     : m_sScope;
 
-            return new GrpcSessionConfiguration(sName, sScope, m_nPriority, channel, m_serializer,
+            return new DefaultConfiguration(sName, sScope, m_nPriority, channel, m_serializer,
                                                 m_sFormat, m_fTracing);
             }
 
         /**
-         * Return a {@link Channel} either from a {@link NamedChannelProvider} or attempt
+         * Return a {@link Channel} either from a {@link ChannelProvider} or attempt
          * to create a {@link Channel} using System properties for the channel's target,
          * host or port values.
          *
@@ -404,7 +359,7 @@ public class GrpcSessionConfiguration
             String target = Config.getProperty(String.format(PROP_TARGET, sName));
             if (target == null || target.trim().isEmpty())
                 {
-                if (NamedChannelProvider.DEFAULT_CHANNEL_NAME.equals(sName) && sDefaultHost == null)
+                if (ChannelProvider.DEFAULT_CHANNEL_NAME.equals(sName) && sDefaultHost == null)
                     {
                     sDefaultHost = DEFAULT_HOST;
                     }
@@ -426,19 +381,19 @@ public class GrpcSessionConfiguration
             }
 
         /**
-         * Find the first {@link NamedChannelProvider} matching one of
+         * Find the first {@link ChannelProvider} matching one of
          * the specified names.
          *
          * @param asName  the names of the providers to find
          *
-         * @return the {@link NamedChannelProvider} instance or an empty
+         * @return the {@link ChannelProvider} instance or an empty
          *         {@link Optional} if no provider matches any of the names
          */
         private Optional<Channel> findChannel(String... asName)
             {
             for (String sName : asName)
                 {
-                return NamedChannelProvider.REGISTRY.findChannel(sName);
+                return ChannelProviders.INSTANCE.findChannel(sName);
                 }
             return Optional.empty();
             }
@@ -489,6 +444,149 @@ public class GrpcSessionConfiguration
         private boolean m_fTracing = TracingHelper.isEnabled();
         }
 
+    // ----- inner class: DefaultConfiguration ------------------------------
+
+    class DefaultConfiguration
+            implements GrpcSessionConfiguration
+        {
+        /**
+         * Private constructor, use the builder to create instances.
+         *
+         * @param sName      the name of the session
+         * @param sScope     the scope name of the session
+         * @param nPriority  the session creation priority
+         * @param channel    the {@link Channel} to use
+         * @param serializer the serializer to use to serialize message payloads
+         * @param sFormat    the name of the serializer format
+         * @param fTracing   {@code true} to enable distributed tracing
+         */
+        private DefaultConfiguration(String     sName,
+                                     String     sScope,
+                                     int        nPriority,
+                                     Channel    channel,
+                                     Serializer serializer,
+                                     String     sFormat,
+                                     boolean    fTracing)
+            {
+            f_sName      = sName;
+            f_sScopeName = sScope;
+            f_nPriority  = nPriority;
+            f_channel    = channel;
+            f_serializer = serializer;
+            f_sFormat    = sFormat;
+            f_fTracing   = fTracing;
+            }
+
+        // ----- GrpcSessionConfiguration methods -------------------------------
+
+        /**
+         * Returns the gRPC {@link Channel} to use.
+         *
+         * @return  the gRPC {@link Channel} to use
+         */
+        public Channel getChannel()
+            {
+            return f_channel;
+            }
+
+        /**
+         * Returns the {@link Serializer} to use to serialize gRPC
+         * message payloads.
+         *
+         * @return the {@link Serializer} to use
+         */
+        public Optional<Serializer> getSerializer()
+            {
+            return Optional.ofNullable(f_serializer);
+            }
+
+        /**
+         * Returns the name of the serialization format to use to serialize gRPC
+         * message payloads.
+         *
+         * @return the name of the serialization format
+         */
+        public Optional<String> getFormat()
+            {
+            return Optional.ofNullable(f_sFormat);
+            }
+
+        /**
+         * Returns {@code true} if client gRPC tracing should be enabled.
+         *
+         * @return {@code true} if client gRPC tracing should be enabled
+         */
+        public boolean enableTracing()
+            {
+            return f_fTracing;
+            }
+
+        // ----- SessionConfiguration methods -----------------------------------
+
+        @Override
+        public String getName()
+            {
+            return f_sName;
+            }
+
+        /**
+         * Return the scope name of the {@link Session}.
+         * <p>
+         * If not specifically set, the name will default to the
+         * {@link com.tangosol.net.Coherence#DEFAULT_SCOPE} value.
+         *
+         * @return the scope name of the {@link Session}
+         */
+        @Override
+        public String getScopeName()
+            {
+            return f_sScopeName;
+            }
+
+        @Override
+        public int getPriority()
+            {
+            return f_nPriority;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The name of the gRPC session.
+         */
+        private final String f_sName;
+
+        /**
+         * The scope name of the gRPC session.
+         */
+        private final String f_sScopeName;
+
+        /**
+         * The gRPC {@link Channel} to use.
+         */
+        private final Channel f_channel;
+
+        /**
+         * The session creation priority.
+         */
+        private final int f_nPriority;
+
+        /**
+         * The serializer for the session.
+         */
+        private final Serializer f_serializer;
+
+        /**
+         * The serializer format for the session.
+         */
+        private final String f_sFormat;
+
+        /**
+         * {@code true} to enable gRPC client tracing.
+         */
+        private final boolean f_fTracing;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -497,24 +595,24 @@ public class GrpcSessionConfiguration
      * sessions start after normal sessions as there is more likely to be a
      * dependency between gRPC and CCF sessions.
      */
-    public static final int DEFAULT_PRIORITY = SessionConfiguration.DEFAULT_PRIORITY - 1;
+    int DEFAULT_PRIORITY = SessionConfiguration.DEFAULT_PRIORITY - 1;
 
     /**
      * The the default host name to use for the default channel.
      */
-    public static final String DEFAULT_HOST = "localhost";
+    String DEFAULT_HOST = "localhost";
 
     /**
      * The system property to use to override the default host name to use
      * for the {@link Channel} if no channel is specified for the configuration.
      */
-    public static final String PROP_HOST = "coherence.grpc.channels.%s.host";
+    String PROP_HOST = "coherence.grpc.channels.%s.host";
 
     /**
      * The system property to use to override the default port to use for the
      * {@link Channel} if no channel is specified for the configuration.
      */
-    public static final String PROP_PORT = "coherence.grpc.channels.%s.port";
+    String PROP_PORT = "coherence.grpc.channels.%s.port";
 
     /**
      * The system property to use to override the default target to use for the
@@ -523,42 +621,5 @@ public class GrpcSessionConfiguration
      * If this property is specified the {@link ManagedChannelBuilder#forTarget(String)}
      * method will be used to create the channel builder.
      */
-    public static final String PROP_TARGET = "coherence.grpc.channels.%s.target";
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The name of the gRPC session.
-     */
-    private final String f_sName;
-
-    /**
-     * The scope name of the gRPC session.
-     */
-    private final String f_sScopeName;
-
-    /**
-     * The gRPC {@link Channel} to use.
-     */
-    private final Channel f_channel;
-
-    /**
-     * The session creation priority.
-     */
-    private final int f_nPriority;
-
-    /**
-     * The serializer for the session.
-     */
-    private final Serializer f_serializer;
-
-    /**
-     * The serializer format for the session.
-     */
-    private final String f_sFormat;
-
-    /**
-     * {@code true} to enable gRPC client tracing.
-     */
-    private final boolean f_fTracing;
+    String PROP_TARGET = "coherence.grpc.channels.%s.target";
     }

@@ -6,12 +6,15 @@
  */
 package com.tangosol.net;
 
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 
 import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.ResourceRegistry;
 
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -37,7 +40,7 @@ public class CoherenceSession
      */
     public CoherenceSession()
         {
-        this(SessionConfiguration.defaultSession(), Coherence.Mode.ClusterMember);
+        this(SessionConfiguration.defaultSession(), Coherence.Mode.ClusterMember, Collections.emptyList());
         }
 
     /**
@@ -45,14 +48,21 @@ public class CoherenceSession
      *
      * @param configuration  the {@link SessionConfiguration}s for the {@link CoherenceSession}
      * @param mode           the mode Coherence is running in
+     * @param interceptors   optional {@link EventInterceptor interceptors} to add to
+     *                       the session in addition to any in the configuration
      *
      * @throws IllegalStateException if a session could not be created
      */
-    public CoherenceSession(SessionConfiguration configuration, Coherence.Mode mode)
+    public CoherenceSession(SessionConfiguration configuration,
+                Coherence.Mode mode, Iterable<? extends EventInterceptor<?>> interceptors)
         {
-        Optional<Session> optional = SessionProvider.get().createSession(configuration, mode);
+        Optional<Session> optional = SessionProvider.get().createSession(configuration, mode, interceptors);
         m_session = optional.orElseThrow(() ->
                 new IllegalStateException("SessionProvider did not create a Session from the specified options"));
+        if (m_session instanceof ConfigurableCacheFactorySession)
+            {
+            ((ConfigurableCacheFactorySession) m_session).activate(null);
+            }
         }
 
     /**
@@ -61,7 +71,7 @@ public class CoherenceSession
      *
      * @param options  the {@link Option}s for the {@link CoherenceSession}
      *
-     * @deprecated since 20.12 use {@link #CoherenceSession(SessionConfiguration, Coherence.Mode)}
+     * @deprecated since 20.12 use {@link #CoherenceSession(SessionConfiguration, Coherence.Mode, Iterable)}
      *
      * @throws IllegalStateException if a session could not be created
      */
@@ -142,6 +152,12 @@ public class CoherenceSession
     public boolean isTopicActive(String sTopicName, ClassLoader loader)
         {
         return m_session.isTopicActive(sTopicName, loader);
+        }
+
+    @Override
+    public void activate(Coherence.Mode mode)
+        {
+        m_session.activate(mode);
         }
 
     @Override

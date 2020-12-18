@@ -11,7 +11,7 @@ import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 
-import com.tangosol.net.internal.DefaultSessionProvider;
+import com.tangosol.internal.net.DefaultSessionProvider;
 
 import com.tangosol.util.RegistrationBehavior;
 import org.junit.After;
@@ -196,11 +196,13 @@ public class CoherenceTest
         when(providerOne.createSession(any(SessionConfiguration.class), any(SessionProvider.Context.class))).thenReturn(new ContextStub(sessionOne));
         when(sessionOne.getConfigurableCacheFactory()).thenReturn(ccfOne);
         when(sessionOne.getInterceptorRegistry()).thenReturn(registryOne);
+        when(ccfOne.getInterceptorRegistry()).thenReturn(registryOne);
         when(ccfOne.getServiceMap()).thenReturn(Collections.emptyMap());
 
         when(providerTwo.createSession(any(SessionConfiguration.class), any(SessionProvider.Context.class))).thenReturn(new ContextStub(sessionTwo));
         when(sessionTwo.getConfigurableCacheFactory()).thenReturn(ccfTwo);
         when(sessionTwo.getInterceptorRegistry()).thenReturn(registryTwo);
+        when(ccfTwo.getInterceptorRegistry()).thenReturn(registryTwo);
         when(ccfTwo.getServiceMap()).thenReturn(Collections.emptyMap());
 
         Coherence.setSystemSession(Optional.of(sessionSys));
@@ -213,9 +215,6 @@ public class CoherenceTest
 
         verify(providerOne, times(1)).createSession(any(SessionConfiguration.class), any(SessionProvider.Context.class));
         verify(providerTwo, times(1)).createSession(any(SessionConfiguration.class), any(SessionProvider.Context.class));
-
-        verify(registryOne).registerEventInterceptor(interceptorOne, RegistrationBehavior.FAIL);
-        verify(registryTwo).registerEventInterceptor(interceptorTwo, RegistrationBehavior.FAIL);
 
         // should start in lowest priority order
         InOrder inOrder = inOrder(ccfOne, ccfTwo);
@@ -562,7 +561,7 @@ public class CoherenceTest
         {
         public ContextStub(Session session)
             {
-            super(Coherence.Mode.ClusterMember, DefaultSessionProvider.INSTANCE);
+            super(Coherence.Mode.ClusterMember, DefaultSessionProvider.INSTANCE, Collections.emptyList());
             complete(session);
             }
         }

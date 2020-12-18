@@ -10,6 +10,7 @@ import com.oracle.coherence.inject.ConfigUri;
 import com.oracle.coherence.inject.Scope;
 import com.oracle.coherence.inject.SessionInitializer;
 import com.oracle.coherence.client.GrpcSessionConfiguration;
+import com.tangosol.io.Serializer;
 import com.tangosol.net.SessionConfiguration;
 import io.grpc.Channel;
 import io.helidon.microprofile.grpc.client.GrpcChannel;
@@ -45,7 +46,7 @@ public class SessionConfigurations
 
     @ApplicationScoped
     public static class ClientTestSession
-            implements SessionConfiguration.Provider
+            implements GrpcSessionConfiguration
         {
         @Inject
         @GrpcChannel(name = "test")
@@ -55,13 +56,27 @@ public class SessionConfigurations
             }
 
         @Override
-        public SessionConfiguration getConfiguration()
+        public String getName()
             {
-            return GrpcSessionConfiguration.builder(f_channel)
-                    .named(CLIENT_TEST)
-                    .withScopeName(TEST_SCOPE)
-                    .withPriority(10)
-                    .build();
+            return CLIENT_TEST;
+            }
+
+        @Override
+        public String getScopeName()
+            {
+            return TEST_SCOPE;
+            }
+
+        @Override
+        public Channel getChannel()
+            {
+            return f_channel;
+            }
+
+        @Override
+        public int getPriority()
+            {
+            return 10;
             }
 
         private final Channel f_channel;
@@ -69,7 +84,7 @@ public class SessionConfigurations
 
     @ApplicationScoped
     public static class ClientSession
-            implements SessionConfiguration.Provider
+            implements GrpcSessionConfiguration
         {
         @Inject
         @GrpcChannel(name = "helidon")
@@ -79,14 +94,19 @@ public class SessionConfigurations
             }
 
         @Override
-        public SessionConfiguration getConfiguration()
+        public String getName()
             {
-            return GrpcSessionConfiguration.builder(f_channel)
-                    .named(CLIENT_DEFAULT)
-                    .withPriority(10)
-                    .build();
+            return CLIENT_DEFAULT;
+            }
+
+        @Override
+        public Channel getChannel()
+            {
+            return f_channel;
             }
 
         private final Channel f_channel;
         }
+
+
     }

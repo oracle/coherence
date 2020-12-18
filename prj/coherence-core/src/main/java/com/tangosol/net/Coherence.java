@@ -29,6 +29,7 @@ import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.SimpleResourceRegistry;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,6 +43,8 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * A {@link Coherence} instance encapsulates and controls one or more
@@ -389,7 +392,7 @@ public class Coherence
 
         if (Coherence.SYSTEM_SESSION.equals(sName))
             {
-            return Coherence.initisaliseSystemSession(Collections.emptyList(), f_mode);
+            return Coherence.initisalizeSystemSession(Collections.emptyList(), f_mode);
             }
 
         String sSessionName = sName == null ? Coherence.DEFAULT_NAME : sName;
@@ -658,7 +661,7 @@ public class Coherence
 
         // ensure the System Session before doing anything else
         // even though there might not actually be a System session
-        initisaliseSystemSession(globalInterceptors, f_mode);
+        initisalizeSystemSession(globalInterceptors, f_mode);
 
         Logger.info(() -> "Starting Coherence instance " + f_sName);
 
@@ -676,27 +679,22 @@ public class Coherence
                             Logger.info(() -> "Starting Coherence Session " + sName + " with scope '"
                                     + configuration.getScopeName() + "'");
 
-                            Optional<Session> optional = ensureSessionInternal(configuration, f_mode);
+
+                            Iterable<? extends EventInterceptor<?>> interceptors
+                                    = join(globalInterceptors, configuration.getInterceptors());
+
+                            Optional<Session> optional = ensureSessionInternal(configuration, f_mode, interceptors);
                             if (optional.isPresent())
                                 {
                                 Session session = optional.get();
                                 f_mapSession.put(sName, session);
-
-                                Iterable<EventInterceptor<?>> interceptors = configuration.getInterceptors();
-                                registerInterceptors(session, globalInterceptors);
-                                registerInterceptors(session, interceptors);
 
                                 if (session instanceof ConfigurableCacheFactorySession)
                                     {
                                     ConfigurableCacheFactorySession supplier = (ConfigurableCacheFactorySession) session;
                                     ConfigurableCacheFactory        ccf      = supplier.getConfigurableCacheFactory();
 
-                                    if (f_mode == Mode.Client)
-                                        {
-                                        // this Coherence instance a client so we do not wrap in a DCS, just activate it.
-                                        ccf.activate();
-                                        }
-                                    else
+                                    if (f_mode == Mode.ClusterMember)
                                         {
                                         // This is a server and the session is not a client session so wrap in a DCS
                                         // to manage the auto-start services.
@@ -722,17 +720,42 @@ public class Coherence
         Logger.info(() -> "Started Coherence instance " + f_sName);
         }
 
+    private static Iterable<? extends EventInterceptor<?>> join (Iterable<? extends EventInterceptor<?>> one,
+                                                                 Iterable<? extends EventInterceptor<?>> two)
+        {
+        if (one == null && two == null)
+            {
+            return Collections.emptyList();
+            }
+        if (one == null)
+            {
+            return two;
+            }
+        if (two == null)
+            {
+            return one;
+            }
+
+        Stream<? extends EventInterceptor<?>>  s1 = StreamSupport.stream(one.spliterator(), false);
+        Stream<? extends EventInterceptor<?>>  s2 = StreamSupport.stream(two.spliterator(), false);
+
+        return Stream.concat(s1, s2).collect(Collectors.toCollection(ArrayList::new));
+        }
+
     /**
      * Ensure the specified {@link Session} exists.
      *
      * @param configuration  the {@link SessionConfiguration configuration} for the {@link Session}
      * @param mode           the {@link Mode} the requesting {@link Coherence} instance is running in
+     * @param interceptors   optional {@link EventInterceptor interceptors} to add to
+     *                       the session in addition to any in the configuration
      *
      * @return the configured and started {@link Session}
      */
-    private static Optional<Session> ensureSessionInternal(SessionConfiguration configuration, Mode mode)
+    private static Optional<Session> ensureSessionInternal(SessionConfiguration configuration,
+            Mode mode, Iterable<? extends EventInterceptor<?>> interceptors)
         {
-        return SessionProvider.get().createSession(configuration, mode);
+        return SessionProvider.get().createSession(configuration, mode, interceptors);
         }
 
     /**
@@ -816,7 +839,7 @@ public class Coherence
      * @return the singleton system {@link Session}
      */
     @SuppressWarnings("OptionalAssignedToNull")
-    private static synchronized Session initisaliseSystemSession(Iterable<? extends EventInterceptor<?>> interceptors, Mode mode)
+    private static synchronized Session initisalizeSystemSession(Iterable<? extends EventInterceptor<?>> interceptors, Mode mode)
         {
         if (s_sessionSystem == null)
             {
@@ -824,18 +847,18 @@ public class Coherence
             Coherence.init();
 
             SessionConfiguration configuration = SystemSessionConfiguration.INSTANCE;
-            Optional<Session>    optional      = ensureSessionInternal(configuration, mode);
+            Iterable<? extends EventInterceptor<?>> allInterceptors
+                    = join(interceptors, configuration.getInterceptors());
 
+            Optional<Session> optional = ensureSessionInternal(configuration, mode, allInterceptors);
             if (optional.isPresent())
                 {
-                Session sessionSystem = optional.get();
-                registerInterceptors(sessionSystem, configuration.getInterceptors());
-                registerInterceptors(sessionSystem, interceptors);
-                if (sessionSystem instanceof ConfigurableCacheFactorySession)
+                Session session = optional.get();
+                if (session instanceof ConfigurableCacheFactorySession)
                     {
-                    ConfigurableCacheFactory ccfSystem = ((ConfigurableCacheFactorySession) sessionSystem)
+                    ConfigurableCacheFactory ccfSystem = ((ConfigurableCacheFactorySession) session)
                             .getConfigurableCacheFactory();
-                    s_serverSystem  = startCCF(SYSTEM_SCOPE, ccfSystem);
+                    s_serverSystem = startCCF(SYSTEM_SCOPE, ccfSystem);
                     }
                 }
             s_sessionSystem = optional;

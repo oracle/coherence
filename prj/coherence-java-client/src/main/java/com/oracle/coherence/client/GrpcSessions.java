@@ -8,13 +8,19 @@ package com.oracle.coherence.client;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
+import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 
+import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
 
-import com.tangosol.net.internal.DefaultSessionProvider;
+import com.tangosol.internal.net.DefaultSessionProvider;
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.util.RegistrationBehavior;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 
@@ -26,9 +32,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.ServiceLoader;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * A {@link SessionProvider} to provide {@link GrpcRemoteSession} instances.
@@ -52,7 +60,7 @@ public class GrpcSessions
     @Override
     public Context createSession(SessionConfiguration configuration, Context context)
         {
-        Context grpcContext = new DefaultContext(context.getMode(), DefaultProvider.INSTANCE);
+        Context grpcContext = new DefaultContext(context.getMode(), DefaultProvider.INSTANCE, context.getInterceptors());
         for (SessionProvider provider : ensureProviders())
             {
             Context result = provider.createSession(configuration, grpcContext);
@@ -106,34 +114,74 @@ public class GrpcSessions
         {
         if (configuration instanceof GrpcSessionConfiguration)
             {
-            GrpcSessionConfiguration  grpcConfiguration = (GrpcSessionConfiguration) configuration;
-            Channel                   channel           = Objects.requireNonNull(grpcConfiguration.getChannel());
-            String                    sName             = grpcConfiguration.getName();
-            String                    sScope            = grpcConfiguration.getScopeName();
-            Serializer                serializer        = grpcConfiguration.getSerializer();
-            String                    sFormat           = grpcConfiguration.getFormat();
-            GrpcRemoteSession.Builder builder           = GrpcRemoteSession.builder(channel)
-                                                                           .setName(sName)
-                                                                           .setScope(sScope)
-                                                                           .serializer(serializer, sFormat);
+            GrpcSessionConfiguration grpcConfig  = (GrpcSessionConfiguration) configuration;
+            Channel                  channel     = Objects.requireNonNull(grpcConfig.getChannel());
+            String                   sName       = grpcConfig.getName();
+            String                   sScope      = grpcConfig.getScopeName();
+            ClientInterceptor        interceptor = grpcConfig.enableTracing() ? createTracingInterceptor() : null;
+            String                   sFormat     = ensureSerializerFormat(grpcConfig.getFormat().orElse(null));
+            Serializer               serializer  = grpcConfig.getSerializer().orElseGet(() -> ensureSerializer(sFormat));
 
-            if (grpcConfiguration.enableTracing())
-                {
-                builder.tracing(createTracingInterceptor());
-                }
+            Supplier<GrpcRemoteSession> supplier = () ->
+                    new GrpcRemoteSession(channel, sName, sScope, serializer,
+                                          sFormat, interceptor, context.getInterceptors());
 
             GrpcRemoteSession session = f_sessions.get(sName)
                     .get(channel)
-                    .get(builder.getScope())
-                    .get(builder.ensureSerializerFormat())
-                    .get(builder.ensureSerializer(), builder);
+                    .get(sScope)
+                    .get(sFormat)
+                    .get(serializer, supplier);
 
             if (session != null)
                 {
+                session.activate(null);
                 return context.complete(session);
                 }
             }
         return context;
+        }
+
+    /**
+     * Ensure the serialization format is initialized and returned.
+     *
+     * @param sFormat the configured format
+     *
+     * @return the serialization format
+     */
+    private String ensureSerializerFormat(String sFormat)
+        {
+        if (sFormat != null && !sFormat.isEmpty())
+            {
+            return sFormat;
+            }
+
+        return Config.getBoolean("coherence.pof.enabled") ? "pof" : "java";
+        }
+
+    /**
+     * Ensure the {@link Serializer} is initialized and returned.
+     *
+     * @param sFormat  the configured format
+     *
+     * @return the {@link Serializer}
+     */
+    private Serializer ensureSerializer(String sFormat)
+        {
+        String sSerializerName = ensureSerializerFormat(sFormat);
+
+        if (sSerializerName.equals("pof"))
+            {
+            return DEFAULT_POF_SERIALIZER;
+            }
+        else if (sSerializerName.equals("java"))
+            {
+            return DEFAULT_JAVA_SERIALIZER;
+            }
+        else
+            {
+            throw new IllegalArgumentException("Unknown serializer format " + sSerializerName
+                    + " and no Serializer has been specified");
+            }
         }
 
     /**
@@ -250,7 +298,7 @@ public class GrpcSessions
 
     private static class SessionsBySerializer
         {
-        GrpcRemoteSession get(Serializer serializer, GrpcRemoteSession.Builder builder)
+        GrpcRemoteSession get(Serializer serializer, Supplier<GrpcRemoteSession> builder)
             {
             return f_map.compute(serializer, (key, current) ->
                         {
@@ -260,7 +308,7 @@ public class GrpcSessions
                             }
                         else
                             {
-                            return builder.build();
+                            return builder.get();
                             }
                         });
             }
@@ -311,6 +359,12 @@ public class GrpcSessions
          */
         static DefaultProvider INSTANCE = new DefaultProvider();
         }
+
+    // ----- constants ------------------------------------------------------
+
+    private static final Serializer DEFAULT_JAVA_SERIALIZER = new DefaultSerializer();
+
+    private static final Serializer DEFAULT_POF_SERIALIZER = new ConfigurablePofContext();
 
     // ----- data members ---------------------------------------------------
 

@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.net.internal;
+package com.tangosol.internal.net;
 
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
@@ -15,15 +15,15 @@ import com.tangosol.config.expression.ChainedParameterResolver;
 import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.expression.PropertiesParameterResolver;
 
-import com.tangosol.internal.net.ConfigurableCacheFactorySession;
-import com.tangosol.internal.net.ScopedUriScopeResolver;
-
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.util.RegistrationBehavior;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -167,7 +167,23 @@ public class DefaultSessionProvider
         // for loading both the configuration descriptor and the cache models
         CacheFactoryBuilder      cfb     = f_cacheFactoryBuilder.get();
         ConfigurableCacheFactory factory = cfb.getConfigurableCacheFactory(sConfigUri, loader, resolverCfg);
-        return context.complete(new ConfigurableCacheFactorySession(factory, loader, name));
+
+        Iterable<? extends EventInterceptor<?>> interceptors = context.getInterceptors();
+        if (interceptors != null)
+            {
+            InterceptorRegistry registry = factory.getInterceptorRegistry();
+            for (EventInterceptor<?> interceptor : interceptors)
+                {
+                registry.registerEventInterceptor(interceptor, RegistrationBehavior.FAIL);
+                }
+            }
+
+        ConfigurableCacheFactorySession session = new ConfigurableCacheFactorySession(factory, loader, name);
+        if (context.getMode() == Coherence.Mode.Client)
+            {
+            session.activate(context.getMode());
+            }
+        return context.complete(session);
         }
 
     // ----- inner class: RootProvider -----------------------------------
