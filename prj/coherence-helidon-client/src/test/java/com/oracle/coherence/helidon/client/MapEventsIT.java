@@ -26,7 +26,10 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
 
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.Session;
@@ -109,11 +112,14 @@ public class MapEventsIT
     @Test
     void testEvents()
         {
+        ConfigurableCacheFactory   ccf        = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(CacheFactoryBuilder.URI_DEFAULT, null);
+        NamedCache<String, Person> underlying = ccf.ensureCache("people", null);
+
         Session                    session = ensureSession(Coherence.DEFAULT_NAME);
         NamedCache<String, Person> cache   = session.getCache("people");
 
         // Wait for the listeners to be registered as it happens async
-        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cache), is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(underlying), is(greaterThanOrEqualTo(2)));
 
         cache.put("homer", new Person("Homer", "Simpson", 45, "male"));
         cache.put("marge", new Person("Marge", "Simpson", 43, "female"));

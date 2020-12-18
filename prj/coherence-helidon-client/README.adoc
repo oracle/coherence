@@ -146,17 +146,45 @@ coherence:
       serializer: pof
       channel: prod
 
+# Helidon gRPC configuration
 grpc:
   channels:
-    test:
+    - name: test
       host: test.storage.acme.com
       port: 1408
-    prod:
+    - name: prod
       host: storage.acme.com
       port: 1408
 ----
 
 In the example above, there are two Coherence sessions configured and two corresponding gRPC channels.
+
+==== Session Types
+
+By default, all sessions configured in Helidon configuration are gRPC client sessions.
+The type can be specifically set using the `type` property for the session configuration.
+There are two valid values for the `grpc` and `coherence`.
+
+* A `grpc` session type specified that the session is a gRPC client session.
+* A `coherence` type specifies that the session wraps a `ConfigurableCacheFactory` loaded from a Coherence
+configuration file.
+
+For example:
+[source,yaml]
+----
+coherence:
+  sessions:
+    products:                          # <1>
+      type: grpc
+      serializer: pof
+      channel: prod
+    extend:                            # <2>
+      type: coherence
+      configUri: coherence-config.xml
+----
+
+<1> The `products` session has a `type: grpc` property so it will be a gRPC client session.
+<2> The ``extend` session will wrap a `ConfigurableCacheFactory` using the `coherence-config.xml` config file.
 
 
 [#inject-coherence-objects]
