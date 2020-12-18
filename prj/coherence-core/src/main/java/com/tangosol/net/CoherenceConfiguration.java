@@ -146,9 +146,9 @@ public interface CoherenceConfiguration
             if (config != null && config.isEnabled())
                 {
                 String sName = config.getName();
-                if (sName == null || sName.trim().isEmpty())
+                if (sName == null)
                     {
-                    throw new IllegalArgumentException("A session configuration must provide a non-null non-blank name");
+                    throw new IllegalArgumentException("A session configuration must provide a non-null name");
                     }
                 f_mapConfig.put(sName, config);
                 }

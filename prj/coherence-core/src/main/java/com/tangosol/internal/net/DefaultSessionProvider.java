@@ -179,10 +179,7 @@ public class DefaultSessionProvider
             }
 
         ConfigurableCacheFactorySession session = new ConfigurableCacheFactorySession(factory, loader, name);
-        if (context.getMode() == Coherence.Mode.Client)
-            {
-            session.activate(context.getMode());
-            }
+        session.activate();
         return context.complete(session);
         }
 

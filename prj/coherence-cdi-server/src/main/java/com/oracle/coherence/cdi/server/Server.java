@@ -6,8 +6,7 @@
  */
 package com.oracle.coherence.cdi.server;
 
-import com.oracle.coherence.common.base.Blocking;
-
+import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 
 import javax.enterprise.inject.se.SeContainerInitializer;
@@ -48,31 +47,7 @@ public class Server
         SeContainerInitializer initializer = SeContainerInitializer.newInstance();
         initializer.initialize();
 
-        monitorServices(5000L);
-        }
-
-    /**
-     * Blocks in a loop for {@code cWaitMillis} until the Coherence monitor is
-     * stopped.
-     *
-     * @param cWaitMillis the number of milliseconds to block during each
-     *                    iteration
-     */
-    private void monitorServices(long cWaitMillis)
-        {
-        DefaultCacheServer dcs = DefaultCacheServer.getInstance();
-        do
-            {
-            try
-                {
-                Blocking.sleep(cWaitMillis);
-                }
-            catch (InterruptedException ignore)
-                {
-                }
-            }
-        while (!dcs.isMonitorStopped());
-
-        dcs.shutdownServer();
+        // wait until Coherence is shut down
+        Coherence.getInstance().whenClosed().join();
         }
     }

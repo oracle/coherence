@@ -6,7 +6,8 @@
  */
 package com.oracle.coherence.mp.metrics;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
 
@@ -77,7 +78,10 @@ public class MpMetricsRegistryAdapter
 
         Metadata metadata = Metadata.builder()
                 .withName(sName)
-                .withDescription(sDescription)
+                // BUG: commenting description out for now because of bug in Helidon
+                // BUG: which doesn't allow description to be different for metrics
+                // BUG: that have the same name
+                //.withDescription(sDescription)
                 .withType(MetricType.GAUGE)
                 .build();
 
@@ -169,8 +173,8 @@ public class MpMetricsRegistryAdapter
             }
         catch (Throwable e)
             {
-            CacheFactory.err(String.format("Metric '%s' tag '%s' = '%s' is invalid and will be ignored due to: %s",
-                                           sName, sKey, sValue, e.getMessage()));
+            Logger.err(String.format("Metric '%s' tag '%s' = '%s' is invalid and will be ignored due to: %s",
+                                     sName, sKey, sValue, e.getMessage()));
             return null;
             }
         }

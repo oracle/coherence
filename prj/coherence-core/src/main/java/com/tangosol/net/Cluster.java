@@ -12,6 +12,7 @@ import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.net.management.Registry;
 
+import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Controllable;
 import com.tangosol.util.ResourceRegistry;
 
@@ -43,7 +44,7 @@ public interface Cluster
     * @exception IllegalStateException thrown if the cluster service
     *            is not running or has stopped
     */
-    public Enumeration getServiceNames();
+    public Enumeration<String> getServiceNames();
 
     /**
     * Returns a ServiceInfo object for the specified service name.
@@ -151,7 +152,7 @@ public interface Cluster
     * @exception IllegalStateException thrown if the cluster service
     *            is not running or has stopped
     */
-    public Set getMemberSet();
+    public Set<Member> getMemberSet();
 
     /**
     * Returns a Member object representing the local (i.e. this JVM)
@@ -344,6 +345,47 @@ public interface Cluster
     */
     public void setDependencies(ClusterDependencies deps);
 
+    /**
+    * Return a description of the running services in this Cluster.
+    *
+    * @return string containing a description of the running services
+    */
+    default String getServiceBanner()
+        {
+        // Extract the Cluster object out of the Safe layer to
+        // de-clutter the logging
+        Cluster cluster;
+        try
+            {
+            cluster = (Cluster) ClassHelper.
+                    invoke(this, "getCluster", null);
+            }
+        catch (Exception e)
+            {
+            // If this fails for some reason, revert to SafeCluster
+            cluster = this;
+            }
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("\nServices\n  (\n  ");
+
+        if (cluster != null)
+            {
+            for (Enumeration<String> e = cluster.getServiceNames(); e.hasMoreElements();)
+                {
+                Service service = cluster.getService(e.nextElement());
+                if (service != null)
+                    {
+                    sb.append(service)
+                            .append("\n  ");
+                    }
+                }
+            }
+        sb.append(")\n");
+
+        return sb.toString();
+        }
 
     // ----- inner interface: MemberTimeoutAction -------------------------
 
@@ -365,7 +407,7 @@ public interface Cluster
         *
         * @return the set of Members that have exceeded their timeout
         */
-        public Set getTimedOutMemberSet();
+        public Set<Member> getTimedOutMemberSet();
 
         /**
         * Return the set of Members that have recently responded to this member.
@@ -376,7 +418,7 @@ public interface Cluster
         *
         * @return the set of Members that are known to be healthy
         */
-        public Set getResponsiveMemberSet();
+        public Set<Member> getResponsiveMemberSet();
 
         /**
         * Return the set of Members who are "announcing".  Announcing members
@@ -385,7 +427,7 @@ public interface Cluster
         *
         * @return the set of Members who are announcing
         */
-        public Set getAnnouncingMemberSet();
+        public Set<Member> getAnnouncingMemberSet();
 
         /**
         * Return the time at which the current outage "incident" was first

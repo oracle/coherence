@@ -6,7 +6,6 @@
  */
 package com.tangosol.net;
 
-import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 
@@ -59,10 +58,6 @@ public class CoherenceSession
         Optional<Session> optional = SessionProvider.get().createSession(configuration, mode, interceptors);
         m_session = optional.orElseThrow(() ->
                 new IllegalStateException("SessionProvider did not create a Session from the specified options"));
-        if (m_session instanceof ConfigurableCacheFactorySession)
-            {
-            ((ConfigurableCacheFactorySession) m_session).activate(null);
-            }
         }
 
     /**
@@ -155,9 +150,9 @@ public class CoherenceSession
         }
 
     @Override
-    public void activate(Coherence.Mode mode)
+    public void activate()
         {
-        m_session.activate(mode);
+        m_session.activate();
         }
 
     @Override

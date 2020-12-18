@@ -30,6 +30,7 @@ import java.io.File;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -497,7 +498,7 @@ public class DefaultCacheServer
         m_serviceMon.setConfigurableCacheFactory(m_factory);
         m_serviceMon.registerServices(mapServices);
 
-        reportStarted();
+        reportStarted(mapServices.keySet());
 
         for (LifecycleListener listener : listListener)
             {
@@ -540,10 +541,12 @@ public class DefaultCacheServer
 
     /**
      * Log the start message.
+     *
+     * @param colServices  the collection of started services
      */
-    protected void reportStarted()
+    protected void reportStarted(Collection<Service> colServices)
         {
-        Logger.info(getServiceBanner(CacheFactory.getCluster()) +
+        Logger.info(getServiceBanner(colServices) +
                 '\n' + "Started " + getClass().getSimpleName() + "...\n");
         }
 
@@ -666,41 +669,31 @@ public class DefaultCacheServer
         }
 
     /**
-    * Create a list of running services in the given Cluster.
+    * Return a service banner for a collection of services.
     *
-    * @param cluster Cluster for which to create a list of running services
+    * @param colService  the collection of services
     *
-    * @return string containing listing of running services
+    * @return a service banner for a collection of services
     */
-    protected String getServiceBanner(Cluster cluster)
+    protected String getServiceBanner(Collection<Service> colService)
         {
-        // Extract the Cluster object out of the Safe layer to
-        // de-clutter the logging
-        try
-            {
-            cluster = (Cluster) ClassHelper.
-                    invoke(cluster, "getCluster", null);
-            }
-        catch (Exception e)
-            {
-            // If this fails for some reason, revert to SafeCluster
-            }
-
         StringBuilder sb = new StringBuilder();
 
         sb.append("\nServices\n  (\n  ");
 
-        if (cluster != null)
+        for (Service service : colService)
             {
-            for (Enumeration e = cluster.getServiceNames(); e.hasMoreElements();)
+            try
                 {
-                Service service = cluster.getService((String) e.nextElement());
-                if (service != null)
-                    {
-                    sb.append(service)
-                            .append("\n  ");
-                    }
+                service = (Service) ClassHelper.
+                        invoke(this, "getService", null);
                 }
+            catch (Exception e)
+                {
+                // If this fails for some reason, revert to SafeService
+                }
+
+            sb.append(service).append("\n  ");
             }
         sb.append(")\n");
 

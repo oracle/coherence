@@ -8,7 +8,6 @@ package com.tangosol.internal.net;
 
 import com.oracle.coherence.common.base.Classes;
 
-import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -49,7 +48,7 @@ public class ConfigurableCacheFactorySessionTest
         when(ccf.ensureTypedCache(anyString(), any(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
 
         ConfigurableCacheFactorySession session  = new ConfigurableCacheFactorySession(ccf, loader);
-        session.activate(Coherence.Mode.Client);
+        session.activate();
         session.getCache("foo");
 
         verify(ccf).ensureTypedCache(eq("foo"), same(loader), any(TypeAssertion.class));
@@ -68,7 +67,7 @@ public class ConfigurableCacheFactorySessionTest
         when(ccf.ensureTypedCache(anyString(), any(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
 
         ConfigurableCacheFactorySession session       = new ConfigurableCacheFactorySession(ccf, loaderSession);
-        session.activate(Coherence.Mode.Client);
+        session.activate();
         session.getCache("foo", WithClassLoader.using(loaderOption));
 
         verify(ccf).ensureTypedCache(eq("foo"), same(loaderOption), any(TypeAssertion.class));
@@ -86,7 +85,7 @@ public class ConfigurableCacheFactorySessionTest
         when(ccf.ensureTypedCache(anyString(), any(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
 
         ConfigurableCacheFactorySession session = new ConfigurableCacheFactorySession(ccf, loaderSession);
-        session.activate(Coherence.Mode.Client);
+        session.activate();
         ClassLoader loaderCtx = Classes.getContextClassLoader();
         session.getCache("foo", WithClassLoader.autoDetect());
 

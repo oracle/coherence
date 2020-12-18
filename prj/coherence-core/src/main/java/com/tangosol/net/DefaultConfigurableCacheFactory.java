@@ -229,7 +229,7 @@ public class DefaultConfigurableCacheFactory
         setConfigClassLoader(loader);
         setConfig(xmlConfig);
 
-        Logger.info("Created cache factory " + this.getClass().getName());
+        Logger.fine("Created cache factory " + this.getClass().getName());
         }
 
 

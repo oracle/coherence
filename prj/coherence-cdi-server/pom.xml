@@ -38,12 +38,13 @@
       <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
 
-    <!-- test dependencies -->
     <dependency>
       <groupId>org.jboss.weld.se</groupId>
       <artifactId>weld-se-core</artifactId>
-      <scope>test</scope>
+      <scope>provided</scope>
     </dependency>
+
+    <!-- test dependencies -->
     <dependency>
       <groupId>org.jboss.weld</groupId>
       <artifactId>weld-junit5</artifactId>
