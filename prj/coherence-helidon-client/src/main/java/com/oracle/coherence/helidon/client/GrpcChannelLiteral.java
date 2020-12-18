@@ -25,10 +25,8 @@ class GrpcChannelLiteral
      * @param sName  the channel name
      *
      * @return {@link GrpcChannel} annotation literal
-     *
-     * @throws ClassNotFoundException if Helidon gRPC ius not on the classpath
      */
-    public static Annotation of(String sName) throws ClassNotFoundException
+    public static Annotation of(String sName)
         {
         Class<GrpcChannel> type = GrpcChannel.class;
         return new GrpcChannel()
