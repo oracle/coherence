@@ -9,6 +9,7 @@ package com.oracle.coherence.helidon.client;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.inject.PropertyExtractor;
 import com.oracle.coherence.inject.Scope;
 import com.oracle.coherence.inject.SessionName;
@@ -112,11 +113,9 @@ public class MapEventsIT
     @Test
     void testEvents()
         {
-        ConfigurableCacheFactory   ccf        = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(CacheFactoryBuilder.URI_DEFAULT, null);
-        NamedCache<String, Person> underlying = ccf.ensureCache("people", null);
-
-        Session                    session = ensureSession(Coherence.DEFAULT_NAME);
-        NamedCache<String, Person> cache   = session.getCache("people");
+        NamedCache<String, Person> underlying = getUnderlying("people");
+        Session                    session    = ensureSession(Coherence.DEFAULT_NAME);
+        NamedCache<String, Person> cache      = session.getCache("people");
 
         // Wait for the listeners to be registered as it happens async
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(underlying), is(greaterThanOrEqualTo(2)));
@@ -166,11 +165,15 @@ public class MapEventsIT
     @Test
     void testNamedSessionEvents()
         {
+        NamedCache<String, Person> underlying = getUnderlying("people");
         Session                    sessionOne = ensureSession(Coherence.DEFAULT_NAME);
         NamedCache<String, Person> cacheOne   = sessionOne.getCache("named-people");
         Session                    sessionTwo = ensureSession(SessionConfigurations.SERVER_TEST);
         NamedCache<String, Person> cacheTwo   = sessionTwo.getCache("named-people");
-        
+
+        // Wait for the listeners to be registered as it happens async
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(underlying), is(greaterThanOrEqualTo(2)));
+
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));
         cacheTwo.put("marge", new Person("Marge", "Simpson", 43, "female"));
@@ -184,11 +187,15 @@ public class MapEventsIT
     @Test
     void testScopedNamedEvents()
         {
+        NamedCache<String, Person> underlying = getUnderlying("people");
         String                     sCacheName = "named-scoped-people";
         Session                    sessionOne = ensureSession(Coherence.DEFAULT_NAME);
         NamedCache<String, Person> cacheOne   = sessionOne.getCache(sCacheName);
         Session                    sessionTwo = ensureSession(SessionConfigurations.SERVER_TEST);
         NamedCache<String, Person> cacheTwo   = sessionTwo.getCache(sCacheName);
+
+        // Wait for the listeners to be registered as it happens async
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(underlying), is(greaterThanOrEqualTo(2)));
 
         // we need to get the client side caches otherwise the listener will only get server side events
         // as the listeners are for "any" session the CDI extension cannot ensure the caches automatically
@@ -214,6 +221,14 @@ public class MapEventsIT
         {
         return Coherence.findSession(sName)
                         .orElseThrow(() -> new AssertionError("Could not find Session"));
+        }
+
+    private <K, V> NamedCache<K, V> getUnderlying(String sCacheName)
+        {
+        ClassLoader              loader = Classes.getContextClassLoader();
+        ConfigurableCacheFactory ccf    = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory(CacheFactoryBuilder.URI_DEFAULT, loader);
+        return ccf.ensureCache(sCacheName, loader);
         }
 
     // ---- helper classes --------------------------------------------------

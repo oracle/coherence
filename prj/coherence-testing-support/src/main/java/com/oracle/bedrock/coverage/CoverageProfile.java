@@ -14,13 +14,16 @@ import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.MetaClass;
 import com.oracle.bedrock.runtime.Platform;
 import com.oracle.bedrock.runtime.Profile;
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.runtime.java.JavaApplication;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.util.Base;
 import org.jacoco.agent.rt.RT;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -112,7 +115,7 @@ public class CoverageProfile
                 {
                 JavaApplication javaApplication = (JavaApplication) application;
 
-                CompletableFuture<Void> future = javaApplication.submit(new Dump());
+                CompletableFuture<Void> future = javaApplication.submit(new DumpCoverage());
 
                 // Wait for the Dump to complete
                 future.join();
@@ -187,6 +190,50 @@ public class CoverageProfile
 
         return new CoverageProfile(params, fEnabled);
         }
+
+    // ----- inner class DumpCoverage ---------------------------------------
+
+    /**
+     * A hardened version of Bedrock Jacoco {@link Dump}.
+     */
+    public static class DumpCoverage
+            implements RemoteCallable<Void>
+        {
+        @Override
+        public Void call() throws Exception
+            {
+            try
+                {
+                // attempt to locate the runtime agent (it may not be loaded)
+                Class<?> runtimeAgentClass = Class.forName("org.jacoco.agent.rt.RT");
+
+                // acquire the method to get the agent
+                Method getAgentMethod = runtimeAgentClass.getMethod("getAgent");
+
+                // acquire the agent
+                Object agent = getAgentMethod.invoke(null);
+
+                // acquire the method to dump the telemetry
+                Method dumpMethod = agent.getClass().getMethod("dump", boolean.class);
+
+                // request a dump (and reset) of telemetry
+                dumpMethod.invoke(agent, true);
+                }
+            catch (IllegalStateException e)
+                {
+                // most likely due to Jacoco not being on the classpath
+                Logger.err("Failed to dump code-coverage telemetry - " + e.getMessage());
+                }
+            catch (Exception e)
+                {
+                Logger.err("Failed to dump code-coverage telemetry", e);
+                }
+            return null;
+            }
+        }
+
+    // ----- data members ---------------------------------------------------
+
     /**
      * The parameters provided to the {@link CoverageProfile}.
      */
