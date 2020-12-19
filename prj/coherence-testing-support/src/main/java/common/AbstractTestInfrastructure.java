@@ -9,10 +9,10 @@ package common;
 
 
 import com.oracle.bedrock.OptionsByType;
+import com.oracle.bedrock.coverage.CoverageProfile;
 import com.oracle.bedrock.deferred.Deferred;
 import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
 import com.oracle.bedrock.deferred.TemporarilyUnavailableException;
-import com.oracle.bedrock.jacoco.Dump;
 import com.oracle.bedrock.runtime.java.options.JavaHome;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.Application;
@@ -945,7 +945,7 @@ public abstract class AbstractTestInfrastructure
                   // if we're running code coverage ensure the metrics are dumped
                   try
                       {
-                      CompletableFuture<Void> future = member.submit(new Dump());
+                      CompletableFuture<Void> future = member.submit(new CoverageProfile.DumpCoverage());
                       future.join();
                       }
                   catch (Throwable t)
