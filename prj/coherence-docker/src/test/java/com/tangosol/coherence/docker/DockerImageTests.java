@@ -678,7 +678,7 @@ public class DockerImageTests
     public static final int METRICS_PORT = Integer.getInteger("port.metrics", MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT);
     public static final int EXTEND_PORT = Integer.getInteger("port.extend",20000);
 
-    public static final String STARTED_MESSAGE = "Started DefaultCacheServer...";
+    public static final String STARTED_MESSAGE = "Started DefaultCacheServer";
 
     // ----- data members ---------------------------------------------------
 
