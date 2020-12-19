@@ -65,7 +65,10 @@ public class CoherenceConfigHelperTest
     public void shouldHaveEmptyCoherenceConfigurationIfNoCoherenceConfig()
         {
         ConfigSource     source      = ClasspathConfigSource.create("config-test-no-coherence.yaml");
-        Config           config      = Config.builder(source).build();
+        Config           config      = Config.builder(source)
+                                             .disableEnvironmentVariablesSource()
+                                             .disableSystemPropertiesSource()
+                                             .build();
         BeanManager      beanManager = mock(BeanManager.class);
         Instance<Object> instance    = mock(Instance.class);
         Instance<Config> instanceCfg = mock(Instance.class);
@@ -83,7 +86,10 @@ public class CoherenceConfigHelperTest
     public void shouldHaveCorrectCoherenceConfiguration()
         {
         ConfigSource     source      = ClasspathConfigSource.create("config-test-with-coherence.yaml");
-        Config           config      = Config.builder(source).build();
+        Config           config      = Config.builder(source)
+                                             .disableEnvironmentVariablesSource()
+                                             .disableSystemPropertiesSource()
+                                             .build();
         BeanManager      beanManager = mock(BeanManager.class);
         Instance<Object> instance    = mock(Instance.class);
         Instance<Config> instanceCfg = mock(Instance.class);
@@ -103,7 +109,10 @@ public class CoherenceConfigHelperTest
     public void shouldHaveNoSessionConfigurations()
         {
         ConfigSource     source      = ClasspathConfigSource.create("config-test-with-coherence.yaml");
-        Config           config      = Config.builder(source).build();
+        Config           config      = Config.builder(source)
+                                             .disableEnvironmentVariablesSource()
+                                             .disableSystemPropertiesSource()
+                                             .build();
         BeanManager      beanManager = mock(BeanManager.class);
         Instance<Object> instance    = mock(Instance.class);
         Instance<Config> instanceCfg = mock(Instance.class);
@@ -122,7 +131,10 @@ public class CoherenceConfigHelperTest
     public void shouldHaveOneSessionConfigurations()
         {
         ConfigSource     source      = ClasspathConfigSource.create("config-test-with-one-session.yaml");
-        Config           config      = Config.builder(source).build();
+        Config           config      = Config.builder(source)
+                                             .disableEnvironmentVariablesSource()
+                                             .disableSystemPropertiesSource()
+                                             .build();
         BeanManager      beanManager = mock(BeanManager.class);
         Instance<Object> instance    = mock(Instance.class);
         Instance<Config> instanceCfg = mock(Instance.class);
@@ -141,7 +153,10 @@ public class CoherenceConfigHelperTest
     public void shouldHaveMultipleSessionConfigurations()
         {
         ConfigSource     source      = ClasspathConfigSource.create("config-test-with-multiple-sessions.yaml");
-        Config           config      = Config.builder(source).build();
+        Config           config      = Config.builder(source)
+                                             .disableEnvironmentVariablesSource()
+                                             .disableSystemPropertiesSource()
+                                             .build();
         BeanManager      beanManager = mock(BeanManager.class);
         Instance<Object> instance    = mock(Instance.class);
         Instance<Config> instanceCfg = mock(Instance.class);
