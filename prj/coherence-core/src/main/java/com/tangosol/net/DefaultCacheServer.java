@@ -317,7 +317,7 @@ public class DefaultCacheServer
 
     /**
      * Start the cache server on a dedicated daemon thread, using specified
-     * {@link ConfigurableCacheFactory} and register specified event interceptors.
+     * {@link ConfigurableCacheFactory}.
      * This method is intended to be used within managed containers.
      *
      * @param ccf  the {@link ConfigurableCacheFactory} to use
@@ -546,8 +546,7 @@ public class DefaultCacheServer
      */
     protected void reportStarted(Collection<Service> colServices)
         {
-        Logger.info(getServiceBanner(colServices) +
-                '\n' + "Started " + getClass().getSimpleName() + "...\n");
+        Logger.info("Started " + getClass().getSimpleName() + getServiceBanner(colServices));
         }
 
     /**
@@ -686,7 +685,7 @@ public class DefaultCacheServer
             try
                 {
                 service = (Service) ClassHelper.
-                        invoke(this, "getService", null);
+                        invoke(service, "getService", null);
                 }
             catch (Exception e)
                 {
@@ -695,7 +694,7 @@ public class DefaultCacheServer
 
             sb.append(service).append("\n  ");
             }
-        sb.append(")\n");
+        sb.append(")");
 
         return sb.toString();
         }

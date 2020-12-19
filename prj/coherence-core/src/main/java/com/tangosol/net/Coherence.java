@@ -24,6 +24,7 @@ import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.internal.CoherenceEventDispatcher;
 import com.tangosol.net.events.internal.Registry;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.CopyOnWriteMap;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
@@ -519,7 +520,8 @@ public class Coherence
                     }
                 };
 
-            Thread t = new Thread(runnable, isDefaultInstance() ? "main" : f_sName);
+            Thread t = Base.makeThread(null , runnable,
+                                       isDefaultInstance() ? "Coherence" : "Coherence:" + f_sName);
             t.setDaemon(true);
             t.start();
             }
