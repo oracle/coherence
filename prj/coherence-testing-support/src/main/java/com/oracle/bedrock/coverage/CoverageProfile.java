@@ -23,6 +23,7 @@ import com.tangosol.util.Base;
 import org.jacoco.agent.rt.RT;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -219,10 +220,18 @@ public class CoverageProfile
                 // request a dump (and reset) of telemetry
                 dumpMethod.invoke(agent, true);
                 }
-            catch (IllegalStateException e)
+            catch (InvocationTargetException e)
                 {
-                // most likely due to Jacoco not being on the classpath
-                Logger.err("Failed to dump code-coverage telemetry - " + e.getMessage());
+                Throwable cause = e.getCause();
+                if (cause instanceof IllegalStateException)
+                    {
+                    // most likely due to Jacoco not being on the classpath
+                    Logger.err("Failed to dump code-coverage telemetry - " + e.getMessage());
+                    }
+                else
+                    {
+                    Logger.err("Failed to dump code-coverage telemetry", e);
+                    }
                 }
             catch (Exception e)
                 {

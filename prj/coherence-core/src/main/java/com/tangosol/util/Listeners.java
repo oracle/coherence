@@ -206,6 +206,16 @@ public class Listeners
         }
 
     /**
+    * Returns the number of listeners.
+    *
+    * @return the number of listeners
+    */
+    public int getListenerCount()
+        {
+        return m_aAsyncListeners.length + m_aSyncListeners.length;
+        }
+
+    /**
     * Check if a listener is in the list of listeners.
     *
     * @param listener the EventListener to search for
