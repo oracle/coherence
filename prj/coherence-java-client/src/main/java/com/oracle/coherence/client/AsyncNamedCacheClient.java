@@ -1942,6 +1942,16 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     /**
+     * Return the number of listeners registered with this map.
+     *
+     * @return the number of listeners registered with this map
+     */
+    public int getListenerCount()
+        {
+        return m_listenerSupport.getListenerCount();
+        }
+
+    /**
      * Obtain the default {@link Executor} to be used by the cache.
      *
      * @return  the default {@link Executor} to be used by the cache

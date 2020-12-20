@@ -399,6 +399,28 @@ public class MapListenerSupport
         }
 
     /**
+     * Return the number of listeners registered.
+     *
+     * @return the number of listeners registered
+     */
+    @SuppressWarnings("unchecked")
+    public int getListenerCount()
+        {
+        int cListener = 0;
+        if (m_mapListeners != null)
+            {
+            Map<?, Listeners> map = m_mapListeners;
+            cListener += map.values().stream().mapToInt(Listeners::getListenerCount).sum();
+            }
+        if (m_mapKeyListeners != null)
+            {
+            Map<?, Listeners> map = m_mapKeyListeners;
+            cListener += map.values().stream().mapToInt(Listeners::getListenerCount).sum();
+            }
+        return cListener;
+        }
+
+    /**
     * Checks whether or not this MapListenerSupport object contains
     * any listeners for a given filter.
     *
