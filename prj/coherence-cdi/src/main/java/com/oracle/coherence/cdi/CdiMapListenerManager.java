@@ -9,9 +9,6 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.event.AnnotatedMapListenerManager;
 import com.oracle.coherence.event.Created;
 
-import com.tangosol.net.Coherence;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.Session;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.MapListener;

@@ -88,6 +88,9 @@ import java.util.concurrent.ExecutionException;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -1378,6 +1381,7 @@ public class AsyncNamedCacheClient<K, V>
             {
             m_evtRequestObserver.onCompleted();
             }
+        f_cListener.set(0);
 
         if (!m_fDestroyed && !m_fReleased)
             {
@@ -1713,6 +1717,7 @@ public class AsyncNamedCacheClient<K, V>
             synchronized (this)
                 {
                 f_listCacheDeactivationListeners.add((NamedCacheDeactivationListener) listener);
+                f_cListener.incrementAndGet();
                 }
             return CompletableFuture.completedFuture(VOID);
             }
@@ -1948,7 +1953,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     public int getListenerCount()
         {
-        return m_listenerSupport.getListenerCount();
+        return f_cListener.get();
         }
 
     /**
@@ -2146,16 +2151,18 @@ public class AsyncNamedCacheClient<K, V>
                     future = f_mapFuture.remove(responseUid);
                     if (future != null)
                         {
-                        future.complete(null);
+                        future.complete(VOID);
                         }
+                    f_cListener.incrementAndGet();
                     break;
                 case UNSUBSCRIBED:
                     MapListenerUnsubscribedResponse unsubscribed = response.getUnsubscribed();
                     future = f_mapFuture.remove(unsubscribed.getUid());
                     if (future != null)
                         {
-                        future.complete(null);
+                        future.complete(VOID);
                         }
+                    f_cListener.decrementAndGet();
                     break;
                 case EVENT:
                     dispatch(response.getEvent());
@@ -2187,6 +2194,7 @@ public class AsyncNamedCacheClient<K, V>
                                 releaseInternal(true);
                                 }
                             }
+                        f_cListener.set(0);
                         }
                     break;
                 case TRUNCATED:
@@ -2657,4 +2665,9 @@ public class AsyncNamedCacheClient<K, V>
      * The event dispatcher for this cache.
      */
     protected final GrpcCacheLifecycleEventDispatcher f_dispatcher;
+
+    /**
+     * The count of successfully registered {@link MapListener map listeners}
+     */
+    private final AtomicInteger f_cListener = new AtomicInteger(0);
     }

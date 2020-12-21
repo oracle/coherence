@@ -30,9 +30,10 @@ import javax.enterprise.inject.spi.Extension;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -73,7 +74,7 @@ public class CoherenceClientExtension
             Map<String, Session>      sessions  = new HashMap<>();
 
             // Ensure caches required for CDI MapEvent observer methods
-            Set<AnnotatedMapListener<?, ?>> listeners = manager.getNonWildcardMapListeners();
+            Collection<AnnotatedMapListener<?, ?>> listeners = manager.getNonWildcardMapListeners();
             for (AnnotatedMapListener<?, ?> listener : listeners)
                 {
                 String               sSession = listener.getSessionName();

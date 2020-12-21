@@ -16,6 +16,10 @@ import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.MapListener;
 
+import com.tangosol.util.comparator.SafeComparator;
+
+import com.tangosol.util.function.Remote;
+
 import java.lang.annotation.Annotation;
 
 import java.util.EnumSet;
@@ -33,7 +37,7 @@ import java.util.stream.Collectors;
  * @since 20.06
  */
 public class AnnotatedMapListener<K, V>
-        implements MapListener<K, V>
+        implements MapListener<K, V>, Comparable<AnnotatedMapListener<?, ?>>
     {
     public AnnotatedMapListener(MapEventObserver<K, V> observer, Set<Annotation> annotations)
         {
@@ -123,6 +127,23 @@ public class AnnotatedMapListener<K, V>
     public void entryDeleted(MapEvent<K, V> event)
         {
         handle(Type.DELETED, event);
+        }
+
+    // ---- helpers ---------------------------------------------------------
+
+    @Override
+    public int compareTo(AnnotatedMapListener<?, ?> other)
+        {
+        int result = SafeComparator.compareSafe(Remote.Comparator.naturalOrder(), this.m_sSession, other.m_sSession);
+        if (result == 0)
+            {
+            result = SafeComparator.compareSafe(Remote.Comparator.naturalOrder(), this.m_sCacheName, other.m_sCacheName);
+            if (result == 0)
+                {
+                result = SafeComparator.compareSafe(Remote.Comparator.naturalOrder(), this.m_sServiceName, other.m_sServiceName);
+                }
+            }
+        return result;
         }
 
     // ---- helpers ---------------------------------------------------------
@@ -346,11 +367,12 @@ public class AnnotatedMapListener<K, V>
     @Override
     public String toString()
         {
-        return "CdiMapListener{" +
+        return "AnnotatedMapListener{" +
                 "cacheName='" + m_sCacheName + '\'' +
                 ", serviceName='" + m_sServiceName + '\'' +
                 ", scopeName='" + m_sScopeName + '\'' +
                 ", session='" + m_sSession + '\'' +
+                ", observer='" + m_observer + '\'' +
                 '}';
         }
 

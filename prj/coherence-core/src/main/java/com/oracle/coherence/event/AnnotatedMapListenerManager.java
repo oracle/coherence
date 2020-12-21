@@ -7,10 +7,9 @@
 package com.oracle.coherence.event;
 
 import com.oracle.coherence.common.base.Exceptions;
-import com.tangosol.net.CacheService;
+
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapEventTransformer;
@@ -18,13 +17,12 @@ import com.tangosol.util.MapListener;
 import com.tangosol.util.filter.MapEventFilter;
 import com.tangosol.util.filter.MapEventTransformerFilter;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -169,7 +167,7 @@ public class AnnotatedMapListenerManager
      * @return  all map listeners that should be registered against a
      *          specific cache or map in a specific session
      */
-    public Set<AnnotatedMapListener<?, ?>> getNonWildcardMapListeners()
+    public Collection<AnnotatedMapListener<?, ?>> getNonWildcardMapListeners()
         {
         return m_mapListeners.values()
                              .stream()
@@ -177,7 +175,8 @@ public class AnnotatedMapListenerManager
                              .flatMap(Set::stream)
                              .filter(listener -> listener.getSessionName() != null)
                              .filter(listener -> !listener.isWildCardCacheName())
-                             .collect(Collectors.toSet());
+                             .sorted()
+                             .collect(Collectors.toList());
         }
 
     /**

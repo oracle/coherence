@@ -65,6 +65,16 @@ public class CdiMapEventObserver<K, V>
         return f_method.getObservedQualifiers();
         }
 
+    // ----- object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        return "CdiMapEventObserver{" +
+                "method=" + f_method +
+                '}';
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
