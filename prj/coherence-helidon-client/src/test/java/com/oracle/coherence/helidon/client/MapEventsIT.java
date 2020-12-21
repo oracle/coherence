@@ -24,8 +24,6 @@ import com.oracle.coherence.event.ScopeName;
 import com.oracle.coherence.event.Synchronous;
 import com.oracle.coherence.event.Updated;
 
-import com.oracle.coherence.common.collections.ConcurrentHashMap;
-
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
 
 import com.tangosol.net.CacheFactory;
@@ -39,26 +37,27 @@ import com.tangosol.util.MapEvent;
 
 import io.helidon.microprofile.server.Server;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import util.EventsHelper;
 
 import javax.enterprise.context.ApplicationScoped;
+
 import javax.enterprise.event.Observes;
 
 import javax.enterprise.inject.spi.CDI;
+
 import javax.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -70,7 +69,6 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
  *
  * @author Jonathan Knight  2020.09.29
  */
-@Disabled("Skipped while investigating intermittent failure")
 public class MapEventsIT
     {
     // ----- test lifecycle -------------------------------------------------
@@ -117,26 +115,28 @@ public class MapEventsIT
     @Test
     void testEvents()
         {
-        NamedCache<String, Person> underlying = getUnderlying(CACHE_NAME_PEOPLE);
-        Session                    session    = ensureSession(Coherence.DEFAULT_NAME);
-        NamedCache<String, Person> cache      = session.getCache(CACHE_NAME_PEOPLE);
+        NamedCache<String, Person> underlying     = getUnderlying(CACHE_NAME_PEOPLE);
+        Session                    sessionDefault = ensureSession(SessionConfigurations.CLIENT_DEFAULT);
+        NamedCache<String, Person> cacheDefault   = sessionDefault.getCache(CACHE_NAME_PEOPLE);
 
         // Wait for the listeners to be registered as it happens async
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(underlying), is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheDefault.async()).getListenerCount(),
+                                        is(greaterThanOrEqualTo(4)));
 
-        cache.put("homer", new Person("Homer", "Simpson", 45, "male"));
-        cache.put("marge", new Person("Marge", "Simpson", 43, "female"));
-        cache.put("bart", new Person("Bart", "Simpson", 12, "male"));
-        cache.put("lisa", new Person("Lisa", "Simpson", 10, "female"));
-        cache.put("maggie", new Person("Maggie", "Simpson", 2, "female"));
+        underlying.put("homer", new Person("Homer", "Simpson", 45, "male"));
+        underlying.put("marge", new Person("Marge", "Simpson", 43, "female"));
+        underlying.put("bart", new Person("Bart", "Simpson", 12, "male"));
+        underlying.put("lisa", new Person("Lisa", "Simpson", 10, "female"));
+        underlying.put("maggie", new Person("Maggie", "Simpson", 2, "female"));
 
-        cache.invoke("homer", new Uppercase());
-        cache.invoke("bart", new Uppercase());
+        underlying.invoke("homer", new Uppercase());
+        underlying.invoke("bart", new Uppercase());
 
-        cache.remove("bart");
-        cache.remove("marge");
-        cache.remove("lisa");
-        cache.remove("maggie");
+        underlying.remove("bart");
+        underlying.remove("marge");
+        underlying.remove("lisa");
+        underlying.remove("maggie");
 
         TestListener listener = CDI.current().select(TestListener.class).get();
         Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_INSERTED), is(5));
@@ -178,11 +178,11 @@ public class MapEventsIT
 
         // Wait for the listeners to be registered as it happens async
         Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheOne.async()).getListenerCount(),
-                                        is(greaterThanOrEqualTo(1)));
+                                        is(greaterThanOrEqualTo(2)));
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheTwo),
                                         is(greaterThanOrEqualTo(1)));
         Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheThree.async()).getListenerCount(),
-                                  is(greaterThanOrEqualTo(1)));
+                                  is(greaterThanOrEqualTo(2)));
 
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));
@@ -204,7 +204,7 @@ public class MapEventsIT
 
         // Wait for the listeners to be registered as it happens async
         Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheOne.async()).getListenerCount(),
-                                        is(greaterThanOrEqualTo(1)));
+                                        is(greaterThanOrEqualTo(2)));
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheTwo),
                                         is(greaterThanOrEqualTo(1)));
 
@@ -269,40 +269,56 @@ public class MapEventsIT
     @ApplicationScoped
     public static class TestListener
         {
-        private void record(MapEvent<String, Person> event)
+        private int record(MapEvent<String, Person> event)
             {
-            System.out.println("Received event: " + event);
-            f_listEvents.compute(event.getId(), (k, v) -> v == null ? 1 : v + 1);
+            switch (event.getId())
+                {
+                case MapEvent.ENTRY_INSERTED:
+                    return m_cInsert.incrementAndGet();
+                case MapEvent.ENTRY_UPDATED:
+                    return m_cUpdate.incrementAndGet();
+                case MapEvent.ENTRY_DELETED:
+                    return m_cDelete.incrementAndGet();
+                default:
+                    throw new IllegalArgumentException("Bad event type: " + event);
+                }
             }
 
         @Synchronous
         private void onPersonInserted(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @Inserted @MapName(CACHE_NAME_PEOPLE) MapEvent<String, Person> event)
             {
-            record(event);
+            int n = record(event);
+            System.out.println("Received event: (CLIENT_DEFAULT, @Inserted CACHE_NAME_PEOPLE) (" + n + ") " + event);
             }
 
         @Synchronous
         private void onPersonUpdated(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @Updated @MapName(CACHE_NAME_PEOPLE) MapEvent<String, Person> event)
             {
-            record(event);
+            int n = record(event);
+            System.out.println("Received event: (CLIENT_DEFAULT, @Updated CACHE_NAME_PEOPLE) (" + n + ") " + event);
             }
 
         @Synchronous
         private void onPersonDeleted(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @Deleted @CacheName(CACHE_NAME_PEOPLE) MapEvent<String, Person> event)
             {
-            record(event);
+            int n = record(event);
+            System.out.println("Received event: (CLIENT_DEFAULT, @Deleted CACHE_NAME_PEOPLE) " + n + ") " + event);
             }
 
         @WhereFilter("firstName = 'Bart' and lastName = 'Simpson'")
         private void onBart(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @MapName(CACHE_NAME_PEOPLE) MapEvent<String, Person> event)
             {
             f_listFilteredEvents.add(event);
+            int n = f_listFilteredEvents.size();
+            System.out.println("Received event: (CLIENT_DEFAULT, Filtered CACHE_NAME_PEOPLE) (" + n + ") " + event);
             }
 
         @PropertyExtractor("firstName")
         private void onPersonInsertedTransformed(@Observes @SessionName(SessionConfigurations.CLIENT_DEFAULT) @Inserted @MapName(CACHE_NAME_PEOPLE) MapEvent<String, String> event)
             {
             f_listTransformedEvents.add(event);
+            int n = f_listFilteredEvents.size();
+            System.out.println("Received event: (CLIENT_DEFAULT, @Inserted CACHE_NAME_PEOPLE Transformed) (" + n + ") " + event);
             }
 
         public List<MapEvent<String, Person>> getFilteredEvents()
@@ -315,18 +331,32 @@ public class MapEventsIT
             return f_listTransformedEvents;
             }
 
+        Integer getEvents(int id)
+            {
+            switch (id)
+                {
+                case MapEvent.ENTRY_INSERTED:
+                    return m_cInsert.get();
+                case MapEvent.ENTRY_UPDATED:
+                    return m_cUpdate.get();
+                case MapEvent.ENTRY_DELETED:
+                    return m_cDelete.get();
+                default:
+                    throw new IllegalArgumentException("Bad event type: " + id);
+                }
+            }
+
         // ----- data members -----------------------------------------------
 
-        private final Map<Integer, Integer> f_listEvents = new ConcurrentHashMap<>();
+        private final AtomicInteger m_cInsert = new AtomicInteger(0);
+
+        private final AtomicInteger m_cUpdate = new AtomicInteger(0);
+
+        private final AtomicInteger m_cDelete = new AtomicInteger(0);
 
         private final List<MapEvent<String, Person>> f_listFilteredEvents = Collections.synchronizedList(new ArrayList<>());
 
         private final List<MapEvent<String, String>> f_listTransformedEvents = Collections.synchronizedList(new ArrayList<>());
-
-        Integer getEvents(int id)
-            {
-            return f_listEvents.get(id);
-            }
         }
 
     @ApplicationScoped
@@ -433,11 +463,11 @@ public class MapEventsIT
         }
 
     // ----- constants ------------------------------------------------------
-    
+
     public static final String CACHE_NAME_PEOPLE = "people";
     public static final String CACHE_NAME_NAMED_PEOPLE = "named-people";
     public static final String CACHE_NAME_SCOPED_PEOPLE = "named-scoped-people";
-    
+
     // ----- data members ---------------------------------------------------
 
     private static Server s_server;
