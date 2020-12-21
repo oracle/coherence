@@ -42,6 +42,7 @@ import io.helidon.microprofile.server.Server;
 import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import util.EventsHelper;
@@ -69,7 +70,7 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
  *
  * @author Jonathan Knight  2020.09.29
  */
-@Ignore("Skipped while investigating intermittent failure")
+@Disabled("Skipped while investigating intermittent failure")
 public class MapEventsIT
     {
     // ----- test lifecycle -------------------------------------------------
