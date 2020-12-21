@@ -347,7 +347,7 @@ public abstract class AbstractSimplePersistenceTests
             int cPart = service.getPartitionCount();
             int nPart = service.getKeyPartitioningStrategy().getKeyPartition(KEY);
 
-            stopCacheServer(sServer + "-1", true);
+            stopCacheServer(sServer + "-1");
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
 
             // assert that the persistence root still exists
@@ -531,8 +531,8 @@ public abstract class AbstractSimplePersistenceTests
             // validate that the added indices and triggers exist
             validateIndexTrigger(cache, new Object[]{ext1, ext2}, new Object[]{trigger1, trigger2});
 
-            stopCacheServer(sServer + "-1", true);
-            stopCacheServer(sServer + "-2", true);
+            stopCacheServer(sServer + "-1");
+            stopCacheServer(sServer + "-2");
 
             int cRestarts = 2;
             for (int i = 3, c = i + cRestarts * 2; i < c; i += 2)
@@ -652,8 +652,8 @@ public abstract class AbstractSimplePersistenceTests
 
             cacheTruncate.truncate();
 
-            stopCacheServer(sServer + "-1", true);
-            stopCacheServer(sServer + "-2", true);
+            stopCacheServer(sServer + "-1");
+            stopCacheServer(sServer + "-2");
 
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
 
@@ -780,8 +780,8 @@ public abstract class AbstractSimplePersistenceTests
             destroyContinuousReaders(aReaders);
 
             // intentionally lose all data
-            stopCacheServer(sServer + "-1", true);
-            stopCacheServer(sServer + "-2", true);
+            stopCacheServer(sServer + "-1");
+            stopCacheServer(sServer + "-2");
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(0));
 
             startCacheServer(sServer + "-3", getProjectName(), getCacheConfigPath(), props);
@@ -846,8 +846,8 @@ public abstract class AbstractSimplePersistenceTests
             validateIndexTrigger(cache, new Object[] {ext1, ext2}, new Object[] {trigger1});
 
             // test partial failure
-            stopCacheServer(sServer + "-3", true);
-            stopCacheServer(sServer + "-4", true);
+            stopCacheServer(sServer + "-3");
+            stopCacheServer(sServer + "-4");
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
             waitForBalanced(service);
 
