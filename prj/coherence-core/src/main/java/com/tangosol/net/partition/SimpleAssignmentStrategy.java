@@ -167,7 +167,7 @@ public class SimpleAssignmentStrategy
      */
     protected long getSuggestionCompletionDelay()
         {
-        return 300000L;
+        return m_lPlanCompletionDelay;
         }
 
 
@@ -193,9 +193,12 @@ public class SimpleAssignmentStrategy
                 }
             }
 
-        m_manager = manager;
+        m_manager                  = manager;
+        PartitionedService service = manager.getService();
+        m_lPlanCompletionDelay     = service.getPartitionCount() < 1 << 14 ? 60_000L : 300_000L;
+
         registerMBean();
-        manager.getService().addServiceListener(new ServiceStoppedListener());
+        service.addServiceListener(new ServiceStoppedListener());
         }
 
     /**
@@ -3862,4 +3865,10 @@ public class SimpleAssignmentStrategy
      */
     private boolean m_fTrivialDistribution =
             Config.getBoolean("coherence.distribution.2server", false);
+
+    /**
+     * The amount of time in ms to delay the analysis after a
+     * distribution suggestion has been made and before it is carried out.
+     */
+    protected long m_lPlanCompletionDelay;
     }
