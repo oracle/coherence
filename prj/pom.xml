@@ -1989,6 +1989,8 @@
         <module>coherence-mp</module>
         <module>coherence-grpc</module>
         <module>coherence-grpc-proxy</module>
+        <module>coherence-micrometer</module>
+        <module>coherence-helidon-client</module>
         <module>coherence-java-client</module>
         <module>coherence-bom</module>
         <module>plugins</module>
