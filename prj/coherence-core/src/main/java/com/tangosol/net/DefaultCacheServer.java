@@ -493,12 +493,24 @@ public class DefaultCacheServer
                 }
             }
 
+        Cluster cluster     = CacheFactory.getCluster();
+        boolean fWasRunning = cluster.isRunning();
+
         Map<Service, String> mapServices = startServicesInternal();
 
         m_serviceMon.setConfigurableCacheFactory(m_factory);
         m_serviceMon.registerServices(mapServices);
 
-        reportStarted(mapServices.keySet());
+        // if this DCS instance resulted in the Cluster starting make sure
+        // system services, in addition to autostart services, are reported
+        if (!fWasRunning && cluster.isRunning())
+            {
+            reportStarted();
+            }
+        else
+            {
+            reportStarted(mapServices.keySet());
+            }
 
         for (LifecycleListener listener : listListener)
             {
@@ -541,12 +553,22 @@ public class DefaultCacheServer
 
     /**
      * Log the start message.
+     */
+    protected void reportStarted()
+        {
+        Logger.info("Started " + getClass().getSimpleName() +
+                CacheFactory.getCluster().getServiceBanner());
+        }
+
+    /**
+     * Log the start message.
      *
      * @param colServices  the collection of started services
      */
     protected void reportStarted(Collection<Service> colServices)
         {
-        Logger.info("Started " + getClass().getSimpleName() + getServiceBanner(colServices));
+        Logger.info("Started " + getClass().getSimpleName() +
+                getServiceBanner(colServices));
         }
 
     /**
