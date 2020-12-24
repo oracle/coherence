@@ -43,6 +43,9 @@ import java.util.ServiceLoader;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -300,7 +303,7 @@ public class Coherence
      * Close all {@link Coherence} instance.
      */
     @SuppressWarnings("OptionalAssignedToNull")
-    public static synchronized void closeAll()
+    public static void closeAll()
         {
         Logger.info("Stopping all Coherence instances");
         s_mapInstance.values().forEach(Coherence::close);
@@ -487,7 +490,7 @@ public class Coherence
      * @return a {@link CompletableFuture} that will be completed when
      *         this {@link Coherence} instance has started
      */
-    public synchronized CompletableFuture<Void> start()
+    public CompletableFuture<Void> start()
         {
         assertNotClosed();
         if (m_fStarted)
@@ -495,40 +498,51 @@ public class Coherence
             return f_futureStarted;
             }
 
-        f_dispatcher.dispatchStarting();
-        m_fStarted = true;
-
-        try
+        synchronized (this)
             {
-            Runnable runnable = () ->
+            assertNotClosed();
+            if (m_fStarted)
                 {
-                try
+                return f_futureStarted;
+                }
+
+            f_dispatcher.dispatchStarting();
+            m_fStarted = true;
+
+            try
+                {
+                Runnable runnable = () ->
                     {
-                    if (f_mapServer.isEmpty())
+                    try
                         {
-                        startInternal();
+                        if (f_mapServer.isEmpty())
+                            {
+                            startInternal();
+                            }
+
+
+                        f_mapServer.values().forEach(holder -> holder.getServer().waitForServiceStart());
+                        f_futureStarted.complete(null);
+                        f_dispatcher.dispatchStarted();
                         }
+                    catch (Throwable thrown)
+                        {
+                        Logger.err(thrown);
+                        f_futureStarted.completeExceptionally(thrown);
+                        }
+                    };
 
-                    f_mapServer.values().forEach(holder -> holder.getServer().waitForServiceStart());
-                    f_futureStarted.complete(null);
-                    f_dispatcher.dispatchStarted();
-                    }
-                catch (Throwable thrown)
-                    {
-                    Logger.err(thrown);
-                    f_futureStarted.completeExceptionally(thrown);
-                    }
-                };
+                Thread t = Base.makeThread(null , runnable,
+                                           isDefaultInstance() ? "Coherence" : "Coherence:" + f_sName);
+                t.setDaemon(true);
+                t.start();
+                }
+            catch (Throwable thrown)
+                {
+                f_futureStarted.completeExceptionally(thrown);
+                }
+            }
 
-            Thread t = Base.makeThread(null , runnable,
-                                       isDefaultInstance() ? "Coherence" : "Coherence:" + f_sName);
-            t.setDaemon(true);
-            t.start();
-            }
-        catch (Throwable thrown)
-            {
-            f_futureStarted.completeExceptionally(thrown);
-            }
         return f_futureStarted;
         }
 
@@ -686,6 +700,11 @@ public class Coherence
                     .stream()
                     .sorted()
                     .forEach(configuration -> {
+                        if (m_fClosed)
+                            {
+                            // closed during start-up
+                            return;
+                            }
                         if (configuration.isEnabled())
                             {
                             String sName = configuration.getName();
