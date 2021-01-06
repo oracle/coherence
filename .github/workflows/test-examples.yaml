@@ -8,7 +8,7 @@ name: Build and Test Examples
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, v20.12 ]
 
 jobs:
   build:
