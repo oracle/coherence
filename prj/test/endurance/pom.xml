@@ -22,7 +22,8 @@
   <name>Coherence Endurance Tests</name>
 
   <properties>
-  <test.heap.max>2048</test.heap.max>
+    <test.heap.max>2048</test.heap.max>
+    <dependency-check.skip>true</dependency-check.skip>
   </properties>
 
   <dependencies>

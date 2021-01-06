@@ -816,6 +816,8 @@
 
     <skip.animal.sniffer.plugin>false</skip.animal.sniffer.plugin>
 
+    <dependency-check.skip>false</dependency-check.skip>
+
     <!-- tool versions -->
     <ant-tangosol.version>1.0</ant-tangosol.version>
     <java.version>1.8</java.version>
@@ -838,6 +840,7 @@
     <maven.bundle.plugin.version>4.2.1</maven.bundle.plugin.version>
     <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
     <maven.dependency.plugin.version>2.8</maven.dependency.plugin.version>
+    <maven.dependency-check.plugin.version>6.0.4</maven.dependency-check.plugin.version>
     <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
     <maven.directory.plugin.version>0.1</maven.directory.plugin.version>
     <maven.docker.plugin.version>0.15.7</maven.docker.plugin.version>
@@ -880,7 +883,7 @@
     <eclipse.mp.config.version>1.4</eclipse.mp.config.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.metrics.version>2.3.2</eclipse.mp.metrics.version>
-    <eclipse.jetty.version>9.3.11.v20160721</eclipse.jetty.version>
+    <eclipse.jetty.version>9.3.28.v20191105</eclipse.jetty.version>
     <felix.version>6.0.3</felix.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
     <graal.version>19.3.1</graal.version>
@@ -896,7 +899,7 @@
     <helidon.sitegen.version>2.0.0-RC1</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
-    <jackson.version>2.10.2</jackson.version>
+    <jackson.version>2.12.0</jackson.version>
     <jackson.databind.version>${jackson.version}</jackson.databind.version>
     <jacoco.version>0.8.5</jacoco.version>
     <jaeger.version>1.1.0</jaeger.version>
@@ -1656,6 +1659,32 @@
             </execution>
           </executions>
         </plugin>
+
+        <!-- OWASP dependency CVE checker -->
+        <plugin>
+          <groupId>org.owasp</groupId>
+          <artifactId>dependency-check-maven</artifactId>
+          <version>${maven.dependency-check.plugin.version}</version>
+          <configuration>
+            <skip>${dependency-check.skip}</skip>
+            <skipTestScope>true</skipTestScope>
+            <skipProvidedScope>true</skipProvidedScope>
+            <failBuildOnAnyVulnerability>false</failBuildOnAnyVulnerability>
+            <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+            <excludes>
+              <!-- Exclude stuff we do not deploy -->
+              <exclude>com.oracle.coherence:coherence-examples-rest</exclude>
+            </excludes>
+            <formats>
+              <format>HTML</format>
+              <format>CSV</format>
+            </formats>
+            <suppressionFiles>
+              <!--suppress UnresolvedMavenProperty -->
+              <suppressionFile>${top.parent.basedir}/etc/dependency-check-suppression.xml</suppressionFile>
+            </suppressionFiles>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -2380,6 +2409,25 @@
         <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
         <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
       </properties>
+    </profile>
+
+    <profile>
+      <id>dependency-check</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 

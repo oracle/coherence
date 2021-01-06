@@ -21,6 +21,7 @@
   <name>Coherence Testing Support</name>
 
   <properties>
+    <dependency-check.skip>true</dependency-check.skip>
     <skip.docs>true</skip.docs>
     <skip.sources>true</skip.sources>
   </properties>
