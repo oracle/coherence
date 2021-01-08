@@ -148,8 +148,9 @@ public class DefaultCacheServer
     */
     public void shutdownServer()
         {
-        stopMonitoring();
+        stopServiceMonitor();
         CacheFactory.shutdown();
+        notifyShutdown();
         }
 
     /**
@@ -351,12 +352,30 @@ public class DefaultCacheServer
     */
     protected boolean stopMonitoring()
         {
+        stopServiceMonitor();
+
+        return notifyShutdown();
+        }
+
+    /**
+     * Stop the ServiceMonitor.
+     */
+    protected void stopServiceMonitor()
+        {
         ServiceMonitor monitor = m_serviceMon;
         if (monitor != null)
             {
             monitor.stopMonitoring();
             }
+        }
 
+    /**
+     * Ensure the DCS instance has shutdown.
+     *
+     * return true if DCS instance was called to start on the associated services
+     */
+    protected boolean notifyShutdown()
+        {
         synchronized (m_lock)
             {
             boolean fWasStarted = m_fServicesStarted;
