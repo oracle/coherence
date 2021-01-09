@@ -944,7 +944,7 @@
     <junit.version>4.13.1</junit.version>
     <junit.jupiter.version>5.7.0</junit.jupiter.version>
     <junit.vintage.version>5.7.0</junit.vintage.version>
-    <mockito.version>3.3.3</mockito.version>
+    <mockito.version>3.6.28</mockito.version>
     <oracle.bedrock.version>5.0.20</oracle.bedrock.version>
 
     <!-- ================================================================== -->
