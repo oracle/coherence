@@ -18,12 +18,12 @@ This is a very simple module that allows you to publish Coherence metrics into M
 
 In order to use Coherence MP Metrics, you need to declare it as a dependency in your `pom.xml`:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
 <dependency>
-    <groupId>com.oracle.coherence.ce</groupId>
+    <groupId>{coherence-maven-group-id}</groupId>
     <artifactId>coherence-mp-metrics</artifactId>
-    <version>${coherence.version}</version>
+    <version>{version-coherence-maven}</version>
 </dependency>
 ----
 

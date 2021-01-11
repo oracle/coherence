@@ -51,7 +51,7 @@ A quick-start guide to using Coherence.
 
 [CARD]
 .Docs
-[icon=import_contacts,link=https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html,link-type=url]
+[icon=import_contacts,link=https://docs.oracle.com/en/middleware/standalone/coherence/{version-commercial-docs}/index.html,link-type=url]
 --
 Oracle Coherence commercial edition product documentation.
 --

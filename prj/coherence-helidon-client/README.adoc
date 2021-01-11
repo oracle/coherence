@@ -17,12 +17,12 @@ Coherence proxy server. This library has a dependency on https://helidon.io/#/[H
 
 In order to use Coherence gRPC Helidon client, you need to declare it as a dependency in your `pom.xml`
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
     <dependency>
-        <groupId>com.oracle.coherence.ce</groupId>
+        <groupId>{coherence-maven-group-id}</groupId>
         <artifactId>coherence-helidon-client</artifactId>
-        <version>${coherence.version}</version>
+        <version>{version-coherence-maven}</version>
     </dependency>
 ----
 

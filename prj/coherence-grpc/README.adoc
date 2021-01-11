@@ -21,12 +21,12 @@ in Java, there is little need for developers to depend on this library.
 
 In order to use Coherence gRPC, you need to declare it as a dependency in your `pom.xml`:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
 <dependency>
-  <groupId>com.oracle.coherence.ce</groupId>
+  <groupId>{coherence-maven-group-id}</groupId>
   <artifactId>coherence-grpc</artifactId>
-  <version>${coherence.version}</version>
+  <version>{version-coherence-maven}</version>
 </dependency>
 ----
 

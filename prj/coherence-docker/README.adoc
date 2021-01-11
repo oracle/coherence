@@ -63,12 +63,12 @@ The name of the image produced comes from properties in the `coherence-docker` m
 
 `${docker.registry}/coherence-ce:<version>`
 
-Where `<version>` is the version of the product from the `pom.xml` file.
+Where `<version>`, is the version of the product from the `pom.xml` file.
 The `${docker.registry}` property is the name of the registry that the image will be published to, by default
 this is `oraclecoherence`.
 
-So, if the version in the `pom.xml` is `{project-version}` the image produced will be
-`oraclecoherence/coherence-ce:{project-version}`
+So, if the version in the `pom.xml` is `{version-coherence-maven}` the image produced will be
+`oraclecoherence/coherence-ce:{version-coherence-maven}`
 
 To change the registry name the image can be built by specifying the `docker.registry` property, for example:
 [source,bash]
@@ -76,7 +76,7 @@ To change the registry name the image can be built by specifying the `docker.reg
 mvn clean install -P docker -pl coherence-docker -Ddocker.registry=foo
 ----
 
-The example above would build an image named `foo/coherence:{project-version}`
+The example above would build an image named `foo/coherence:{version-coherence-maven}`
 
 
 === Run the image
@@ -84,7 +84,7 @@ The example above would build an image named `foo/coherence:{project-version}`
 Run the image just like any other image. In Docker this command would be:
 [source,bash]
 ----
-docker run -d -P oraclecoherence/coherence-ce:{project-version}
+docker run -d -P oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 The `-P` parameter will ensure that the Extend, gRPC, management and metrics ports will all be exposed.
@@ -96,7 +96,7 @@ This may be changed by setting the `COH_MAIN_CLASS` environment variable to the 
 ----
 docker run -d -P \
     -e COH_MAIN_CLASS=com.tangosol.net.DefaultCacheServer \
-    oraclecoherence/coherence-ce:{project-version}
+    oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 ==== Run the Image in Kubernetes
@@ -119,7 +119,7 @@ prefixed with `coherence.` into a System property before it starts Coherence.
 docker run -d -P \
     -e coherence.cluster=testing \
     -e coherence.role=storage \
-    oraclecoherence/coherence-ce:{project-version}
+    oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 The example above sets two environment variables, `coherence.cluster=testing` and `coherence.role=storage`.
@@ -155,7 +155,7 @@ command:
 
 [source,bash]
 ----
-docker run -d -P -v /home/oracle/test-args:/args oraclecoherence/coherence-ce:{project-version}
+docker run -d -P -v /home/oracle/test-args:/args oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 This will cause Docker to mount the local `/home/oracle/test-args` directory to the `/args` directory in the container
@@ -181,7 +181,7 @@ container classpath.
 
 [source,bash]
 ----
-docker run -d -P -v /dev/my-app/lib:/coherence/ext/lib oraclecoherence/coherence-ce:{project-version}
+docker run -d -P -v /dev/my-app/lib:/coherence/ext/lib oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 The command above maps the local directory `/dev/my-app/lib` to the `/coherence/ext/lib` in the container so that any
@@ -192,7 +192,7 @@ application resources to be added to the container classpath.
 
 [source,bash]
 ----
-docker run -d -P -v /dev/my-app/classes:/coherence/ext/conf oraclecoherence/coherence-ce:{project-version}
+docker run -d -P -v /dev/my-app/classes:/coherence/ext/conf oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 The command above maps the local directory `/dev/my-app/classes` to the `/coherence/ext/conf` in the container so that
@@ -220,7 +220,7 @@ docker run -d -P \
     --hostname storage-1 \
     -e coherence.wka=storage-1 \
     -e coherence.cluster=testing \
-    oraclecoherence/coherence-ce:{project-version}
+    oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 The first container has been started with a container name of `storage-1`, and the host name also set to `storage-1`.
@@ -242,14 +242,14 @@ docker run -d -P \
     --link storage-1 \
     -e coherence.wka=storage-1 \
     -e coherence.cluster=testing \
-    oraclecoherence/coherence-ce:{project-version}
+    oraclecoherence/coherence-ce:{version-coherence-maven}
 
 docker run -d -P \
     --name storage-3 \
     --link storage-1 \
     -e coherence.wka=storage-1 \
     -e coherence.cluster=testing \
-    oraclecoherence/coherence-ce:{project-version}
+    oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 Two more containers, `storage-2` and `storage-3` will now be part of the cluster.
@@ -289,7 +289,7 @@ environment variable to `jaeger`:
 ----
 docker run -d -P --link jaeger \
     -e JAEGER_AGENT_HOST=jaeger \
-    oraclecoherence/coherence-ce:{project-version}
+    oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 Once the Coherence container is running perform some interactions with it using one of the exposed services, i.e Extend
@@ -302,7 +302,7 @@ starting the container, for example:
 docker run -d -P --link jaeger \
     -e JAEGER_AGENT_HOST=jaeger \
     -e JAEGER_SERVICE_NAME=coherence-test
-    oraclecoherence/coherence-ce:{project-version}
+    oraclecoherence/coherence-ce:{version-coherence-maven}
 ----
 
 Spans will now be sent to Jaeger with the service name `coherence-test`.

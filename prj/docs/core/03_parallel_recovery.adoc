@@ -12,11 +12,11 @@
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Parallel Recovery
 
-Coherence introduced a https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1[disk-based persistence feature] from version 12.2.1. This feature accommodates for the loss of an entire cluster, and/or simultaneous loss of a primary and backup ensuring data is recovered from disk and made available.
+Coherence introduced a https://docs.oracle.com/en/middleware/standalone/coherence/{version-commercial-docs}/administer/persisting-caches.html#GUID-3DC46E44-21E4-4DC4-9D12-231DE57FE7A1[disk-based persistence feature] from version 12.2.1. This feature accommodates for the loss of an entire cluster, and/or simultaneous loss of a primary and backup ensuring data is recovered from disk and made available.
 
 This process of making data available is parallel across the cluster with each storage member recovering a fair share of partitions. While this recovery is in parallel across different members/processes, each member uses a single thread to recover.
 
-As of 20.12, Coherence now recovers data in parallel within a member/process as well as in parallel across the cluster. This allows the cluster, and more importantly the associated data, to be made available as quickly as possible. Ultimately the goal is to have recovery be only limited by the throughput and latency of underlying device. Therefore this feature does assume increasing usage of the device (by accessing data in parallel) will provide some benefit and reduce the overall time to recover data.
+As of version 20.12, Coherence now recovers data in parallel within a member/process as well as in parallel across the cluster. This allows the cluster, and more importantly the associated data, to be made available as quickly as possible. Ultimately the goal is to have recovery be only limited by the throughput and latency of underlying device. Therefore this feature does assume increasing usage of the device (by accessing data in parallel) will provide some benefit and reduce the overall time to recover data.
 
 The number of threads Coherence uses can be tweaked by the following JVM argument:
 ----
