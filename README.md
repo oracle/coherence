@@ -65,7 +65,7 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>20.06</version>
+        <version>20.12</version>
     </dependency>
 </dependencies>
 ```
@@ -185,9 +185,9 @@ and data is once again retrieved to illustrate the permanence of the data.
 
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.06 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.12 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.06/coherence-20.06.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.12/coherence-20.12.jar
 
 $> java -jar $COH_JAR &
 
@@ -224,9 +224,9 @@ $> kill %1
 #### <a name="coh-console"></a>Coherence Console
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.06 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.12 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.06/coherence-20.06.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.12/coherence-20.12.jar
 
 $> java -jar $COH_JAR &
 
@@ -284,7 +284,7 @@ inserts and retrieves data from the Coherence server.
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>20.06</version>
+        <version>20.12</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
