@@ -18,12 +18,12 @@ metrics to be published via any of the Micrometer registries.
 In order to use Coherence Micrometer metrics, you need to declare the module as a dependency in your `pom.xml`
 and bind your Micrometer registry with the Coherence metrics adapter:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
     <dependency>
-        <groupId>com.oracle.coherence.ce</groupId>
+        <groupId>{coherence-maven-group-id}</groupId>
         <artifactId>coherence-micrometer</artifactId>
-        <version>${coherence.version}</version>
+        <version>{version-coherence-maven}</version>
     </dependency>
 ----
 

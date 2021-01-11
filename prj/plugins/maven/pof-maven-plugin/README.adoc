@@ -24,14 +24,14 @@ NOTE: A POF config file must still be created for each of the classes annotated 
 
 In order to use the POF Maven Plugin, you need to declare it as a plugin dependency in your `pom.xml`:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
   <build>
     <plugins>
       <plugin>
-        <groupId>com.oracle.coherence.ce</groupId>
+        <groupId>{coherence-maven-group-id}</groupId>
         <artifactId>pof-maven-plugin</artifactId>
-        <version>20.06</version>
+        <version>{version-coherence-maven}</version>
         <executions>
           <execution>
             <id>instrument</id>

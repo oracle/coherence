@@ -129,9 +129,9 @@ $ mvn clean install -P visualvm
 
 1. Install the Plugin
 +
-The plugin will be available in the location `target/coherence-jvisualvm-{VERSION}.nbm`
+The plugin will be available in the location `target/coherence-jvisualvm-{version-coherence-maven}.nbm`
 
-Follow the instructions https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/manage/using-jmx-manage-oracle-coherence.html[here]
+Follow the instructions https://docs.oracle.com/en/middleware/standalone/coherence/{version-commercial-docs}/manage/using-jmx-manage-oracle-coherence.html[here]
 to install the plugin.
 
 

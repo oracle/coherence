@@ -18,31 +18,31 @@ It allows you both to configure various Coherence parameters from the values spe
 
 In order to use Coherence MP Config, you need to declare it as a dependency in your `pom.xml`:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
     <dependency>
-        <groupId>com.oracle.coherence.ce</groupId>
+        <groupId>{coherence-maven-group-id}</groupId>
         <artifactId>coherence-mp-config</artifactId>
-        <version>${coherence.version}</version>
+        <version>{version-coherence-maven}</version>
     </dependency>
 ----
 
 You will also need an implementation of the Eclipse MP Config specification as a  dependency.
 For example, if you are using https://helidon.io/[Helidon], add the following to your `pom.xml`:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
     <dependency>
       <groupId>io.helidon.microprofile.config</groupId>
       <artifactId>helidon-microprofile-config</artifactId>
-      <version>${helidon.version}</version>
+      <version>{version-helidon}</version>
     </dependency>
 
     <!-- optional: add it if you want YAML config file support -->
     <dependency>
       <groupId>io.helidon.config</groupId>
       <artifactId>helidon-config-yaml</artifactId>
-      <version>${helidon.version}</version>
+      <version>{version-helidon}</version>
     </dependency>
 ----
 

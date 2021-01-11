@@ -20,14 +20,14 @@
 As Coherence is generally embedded into an application by using Coherence APIs,
 the natural place to consume this dependency is from Maven:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 .pom.xml
 ----
 <dependencies>
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>20.06</version>
+        <version>{version-coherence-maven}</version>
     </dependency>
 </dependencies>
 ----
@@ -55,12 +55,12 @@ started in the following console examples.
 
 To run a CohQL console:
 
-[source,shell]
+[source,shell,subs="attributes+"]
 ----
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.06 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion={version-coherence-maven} dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.06/coherence-20.06.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/{version-coherence-maven}/coherence-{version-coherence-maven}.jar
 
 $> java -jar $COH_JAR &
 
@@ -99,12 +99,12 @@ $> kill %1
 
 To run the Coherence console:
 
-[source,shell]
+[source,shell,subs="attributes+"]
 ----
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=20.06 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion={version-coherence-maven} dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/20.06/coherence-20.06.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/{version-coherence-maven}/coherence-{version-coherence-maven}.jar
 
 $> java -jar $COH_JAR &
 
@@ -159,14 +159,14 @@ The `HelloCoherence` application inserts and retrieves data from the Coherence s
 . Create a maven project either manually or by using an archetype such as maven-archetype-quickstart
 . Add a dependency to the pom file:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 .pom.xml
 ----
 <dependencies>
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>20.06</version>
+        <version>{version-coherence-maven}</version>
     </dependency>
 </dependencies>
 ----

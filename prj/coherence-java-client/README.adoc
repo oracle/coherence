@@ -17,12 +17,12 @@ The Coherence Java gRPC Client is a library that allows a Java application to co
 In order to use Coherence gRPC client, you need to declare it as a dependency in your `pom.xml`.
 There also needs to be a corresponding Coherence server running the gRPC proxy for the client to connect to.
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
     <dependency>
-        <groupId>com.oracle.coherence.ce</groupId>
+        <groupId>{coherence-maven-group-id}</groupId>
         <artifactId>coherence-java-client</artifactId>
-        <version>${coherence.version}</version>
+        <version>{version-coherence-maven}</version>
     </dependency>
 ----
 

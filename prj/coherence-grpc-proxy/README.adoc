@@ -18,19 +18,19 @@ The gRPC proxy uses standard gRPC Java libraries to provide Coherence APIs over 
 In order to use Coherence gRPC Server, you need to declare it as a dependency of your project;
 for example if using Maven:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
 <dependency>
-  <groupId>com.oracle.coherence.ce</groupId>
+  <groupId>{coherence-maven-group-id}</groupId>
   <artifactId>coherence-grpc-proxy</artifactId>
-  <version>${coherence.version}</version>
+  <version>{version-coherence-maven}</version>
 </dependency>
 ----
 
 or for Gradle:
-[source,groovy]
+[source,groovy,subs="attributes+"]
 ----
-implementation 'com.oracle.coherence:coherence-grpc-proxy:$coherenceVersion'
+implementation '{coherence-maven-group-id}:coherence-grpc-proxy:{version-coherence-maven}'
 ----
 
 === Start the Server
