@@ -18,7 +18,7 @@ lang="xml"
 >&lt;dependency&gt;
     &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
     &lt;artifactId&gt;coherence-mp-metrics&lt;/artifactId&gt;
-    &lt;version&gt;${coherence.version}&lt;/version&gt;
+    &lt;version&gt;20.12&lt;/version&gt;
 &lt;/dependency&gt;</markup>
 
 <p>That&#8217;s it&#8201;&#8212;&#8201;once the module above is in the class path, Coherence will discover <code>MpMetricRegistryAdapter</code> service it provides, and use it to publish all standard Coherence metrics to the vendor registry, and any user-defined application metrics to the application registry.</p>

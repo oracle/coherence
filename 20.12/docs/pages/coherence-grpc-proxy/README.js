@@ -18,7 +18,7 @@ lang="xml"
 >&lt;dependency&gt;
   &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
   &lt;artifactId&gt;coherence-grpc-proxy&lt;/artifactId&gt;
-  &lt;version&gt;${coherence.version}&lt;/version&gt;
+  &lt;version&gt;20.12&lt;/version&gt;
 &lt;/dependency&gt;</markup>
 
 <p>or for Gradle:</p>
@@ -26,7 +26,7 @@ lang="xml"
 <markup
 lang="groovy"
 
->implementation 'com.oracle.coherence:coherence-grpc-proxy:$coherenceVersion'</markup>
+>implementation 'com.oracle.coherence.ce:coherence-grpc-proxy:20.12'</markup>
 
 
 <h3 id="_start_the_server">Start the Server</h3>

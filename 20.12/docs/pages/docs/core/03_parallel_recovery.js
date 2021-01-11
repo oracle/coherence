@@ -6,7 +6,7 @@
 
 <p>This process of making data available is parallel across the cluster with each storage member recovering a fair share of partitions. While this recovery is in parallel across different members/processes, each member uses a single thread to recover.</p>
 
-<p>As of 20.12, Coherence now recovers data in parallel within a member/process as well as in parallel across the cluster. This allows the cluster, and more importantly the associated data, to be made available as quickly as possible. Ultimately the goal is to have recovery be only limited by the throughput and latency of underlying device. Therefore this feature does assume increasing usage of the device (by accessing data in parallel) will provide some benefit and reduce the overall time to recover data.</p>
+<p>As of version 20.12, Coherence now recovers data in parallel within a member/process as well as in parallel across the cluster. This allows the cluster, and more importantly the associated data, to be made available as quickly as possible. Ultimately the goal is to have recovery be only limited by the throughput and latency of underlying device. Therefore this feature does assume increasing usage of the device (by accessing data in parallel) will provide some benefit and reduce the overall time to recover data.</p>
 
 <p>The number of threads Coherence uses can be tweaked by the following JVM argument:</p>
 

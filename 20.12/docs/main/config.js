@@ -367,7 +367,7 @@ function createNav(){
         {
             title: 'Coherence CE Java API',
             action: 'library_books',
-            href: 'https://oracle.github.io/coherence/20.06/api/java/index.html',
+            href: 'https://oracle.github.io/coherence/20.12/api/java/index.html',
             target: '_blank'
         },
         {
