@@ -6,7 +6,14 @@
  */
 package tracing;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.internal.tracing.TracingHelper;
+
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Cluster;
 
 import com.tangosol.util.Base;
 
@@ -19,7 +26,9 @@ import java.util.Properties;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
+import static org.hamcrest.CoreMatchers.is;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Base test class for open tracing tests.
@@ -50,7 +59,7 @@ public class AbstractTracingTest
     @Test
     public void shouldBeDisabledByDefault()
         {
-        runTest(() -> assertFalse("Tracing should NOT be enabled.", TracingHelper.isEnabled()), null);
+        runTest(() -> assertThat("Tracing should NOT be enabled.", TracingHelper.isEnabled(), is(false)), null);
         }
 
     // ----- helper methods ---------------------------------------------
@@ -196,6 +205,57 @@ public class AbstractTracingTest
             {
             _stopCluster();
             }
+        }
+
+    /**
+     * Start a second member for the cluster to ensure cluster-wide configuration of tracing.
+     * {@code nId} values should be monotonically increasing from {@code 2}.
+     *
+     * @param nId    the node ID to start
+     * @param props  the properties to use when starting a new member
+     *
+     * @return the started {@link CoherenceClusterMember}
+     *
+     * @throws IllegalArgumentException if {@code nId} is {@code 1}
+     */
+    protected CoherenceClusterMember startMember(int nId, Properties props)
+        {
+        if (nId == 1)
+            {
+            throw new IllegalArgumentException();
+            }
+        Cluster cluster = CacheFactory.ensureCluster();
+
+        Properties propsMain = new Properties();
+        propsMain.put("tangosol.coherence.role", "node" + nId);
+        propsMain.putAll(props);
+
+        assertThat(cluster.isRunning(), is(true));
+        assertThat("cluster already exists", nId - 1, is(cluster.getMemberSet().size()));
+
+        CoherenceClusterMember clusterMember =
+                startCacheServer(m_testName.getMethodName() + "-member" + nId, "jaeger", null, propsMain);
+
+        waitForServer(clusterMember);
+
+        Eventually.assertDeferred(clusterMember::getClusterSize, is(nId));
+
+        return clusterMember;
+        }
+
+    /**
+     * Start a second member for the cluster to ensure cluster-wide configuration of tracing.
+     * {@code nId} values should be monotonically increasing from {@code 2}.
+     *
+     * @param nId  the node ID to start
+     *
+     * @return the started {@link CoherenceClusterMember}
+     *
+     * @throws IllegalArgumentException if {@code nId} is {@code 1}
+     */
+    protected CoherenceClusterMember startMember(int nId)
+        {
+        return startMember(nId, getDefaultProperties());
         }
 
     // ----- inner class: TestBody ------------------------------------------

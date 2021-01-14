@@ -16,12 +16,12 @@ import com.tangosol.internal.tracing.TracingHelper;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.Service;
 
 import com.tangosol.net.management.MBeanHelper;
+import com.tangosol.net.management.MBeanServerProxy;
 
 import java.util.Properties;
-
-import java.util.concurrent.TimeUnit;
 
 import javax.management.Attribute;
 import javax.management.MBeanException;
@@ -29,19 +29,13 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static com.oracle.bedrock.deferred.DeferredHelper.within;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Base test case for validation JMX configuration of Tracing operations.
@@ -65,6 +59,14 @@ public abstract class AbstractJmxConfigurationTests
         super._startCluster(propsLocal, sOverrideXml);
         }
 
+    @Override
+    protected Properties getDefaultProperties()
+        {
+        Properties propsDefault = super.getDefaultProperties();
+        propsDefault.setProperty("tangosol.coherence.management.refresh.timeout", "900ms");
+        return propsDefault;
+        }
+
     // ----- test methods ---------------------------------------------------
 
     @Override
@@ -77,10 +79,11 @@ public abstract class AbstractJmxConfigurationTests
     /**
      * Validate tracing can be dynamically enabled/disabled on a per-member basis.
      */
+    @Test
     public void testDynamicTracingConfigurationOnNode()
         {
         runTest(() ->
-            {
+                {
             CoherenceClusterMember member2 = startMember(2);
             MBeanServer            server  = MBeanHelper.findMBeanServer();
 
@@ -88,25 +91,25 @@ public abstract class AbstractJmxConfigurationTests
             checkTracingStatusOnMember(member2, false);
 
             // enable tracing
-            setTracingConfigurationForNode(server, member2, 1.0f);
+            setTracingConfigurationForMember(server, member2, 1.0f);
 
             checkTracingJMXAttribute(server, member2, 1.0f);
             checkTracingStatusOnMember(member2, true);
 
             // disable tracing
-            setTracingConfigurationForNode(server, member2, -1.0f);
+            setTracingConfigurationForMember(server, member2, -1.0f);
 
             checkTracingJMXAttribute(server, member2, -1.0f);
             checkTracingStatusOnMember(member2, false);
 
             // enable tracing
-            setTracingConfigurationForNode(server, member2, 1.0f);
+            setTracingConfigurationForMember(server, member2, 1.0f);
 
             checkTracingJMXAttribute(server, member2, 1.0f);
             checkTracingStatusOnMember(member2, true);
 
             // disable tracing
-            setTracingConfigurationForNode(server, member2, -1.0f);
+            setTracingConfigurationForMember(server, member2, -1.0f);
 
             checkTracingJMXAttribute(server, member2, -1.0f);
             checkTracingStatusOnMember(member2, false);
@@ -116,6 +119,7 @@ public abstract class AbstractJmxConfigurationTests
     /**
      * Validate tracing can be dynamically enabled/disabled for <em>all</em> members.
      */
+    @Test
     public void testDynamicTracingConfigurationClusterWide()
         {
         runTest(() ->
@@ -151,6 +155,7 @@ public abstract class AbstractJmxConfigurationTests
     /**
      * Validate tracing can be dynamically enabled/disabled for members within a specific role.
      */
+    @Test
     public void testDynamicTracingConfigurationClusterWideWithRoles()
         {
         runTest(() ->
@@ -187,6 +192,7 @@ public abstract class AbstractJmxConfigurationTests
      * Validate tracing ration value boundary handling.
      * @throws Exception if an error occurs during testing
      */
+    @Test
     public void testTracingRatioBounds() throws Exception
         {
         runTest(() ->
@@ -248,27 +254,21 @@ public abstract class AbstractJmxConfigurationTests
      */
     protected void checkTracingStatusOnMember(CoherenceClusterMember member, boolean fExpectedStatus)
         {
-        Eventually.assertThat(invoking(member).invoke(
+        Eventually.assertDeferred(() -> member.invoke(
                 (RemoteCallable<Boolean>) TracingHelper::isEnabled),
-                is(fExpectedStatus),
-                within(10, TimeUnit.SECONDS));
+                                  is(fExpectedStatus));
         }
 
     /**
      * Verify the tracing ratio configuration for the provided cluster member matches the expected value.
      *
-     * @param server         the {@link MBeanServer} to query
-     * @param member         the {@link CoherenceClusterMember} of interest
+     * @param server          the {@link MBeanServer} to query
+     * @param member          the {@link CoherenceClusterMember} of interest
      * @param fExpectedValue  the expected value
-     *
-     * @throws Exception if an unexpected error occurs
      */
     protected void checkTracingJMXAttribute(MBeanServer server, CoherenceClusterMember member, float fExpectedValue)
-            throws Exception
         {
-        Eventually.assertThat(invoking(this).getTracingConfigurationForMember(server, member.getLocalMemberId()),
-                              is(fExpectedValue),
-                              within(10, TimeUnit.SECONDS));
+        Eventually.assertDeferred(() -> getTracingConfigurationForMember(server, member), is(fExpectedValue));
         }
 
     /**
@@ -290,55 +290,27 @@ public abstract class AbstractJmxConfigurationTests
         }
 
     /**
-     * Start a second member for the cluster to ensure cluster-wide configuration of tracing.
-     * {@code nId} values should be monotonically increasing from {@code 2}.
-     *
-     * @param nId  the node ID to start.
-     *
-     * @return the started {@link CoherenceClusterMember}
-     *
-     * @throws IllegalArgumentException if {@code nId} is {@code 1}
-     */
-    protected CoherenceClusterMember startMember(int nId)
-        {
-        if (nId == 1)
-            {
-            throw new IllegalArgumentException();
-            }
-        Cluster cluster = CacheFactory.ensureCluster();
-
-        Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.role", "node" + nId);
-        propsMain.putAll(getDefaultProperties());
-
-        assertTrue(cluster.isRunning());
-        assertEquals("cluster already exists", nId - 1, cluster.getMemberSet().size());
-
-        CoherenceClusterMember clusterMember =
-                startCacheServer(m_testName.getMethodName() + "-member" + nId, "jaeger", null, propsMain);
-
-        Eventually.assertThat(invoking(clusterMember).getClusterSize(), is(nId));
-
-        return clusterMember;
-        }
-
-    /**
      * Return the current value for the {@value #TRACING_ATTRIBUTE} JMX attribute.
      * <p>
      * NOTE: This method is public due to Bedrock {@code invoking()} method requirements.
      *
-     * @param server    the {@link MBeanServer} to query
-     * @param memberId  member ID
+     * @param server  the {@link MBeanServer} to query
+     * @param member  the {@link CoherenceClusterMember} of interest
      *
      * @return the current configuration value or {@code null} if the attribute can't be retrieved.
-     *
-     * @throws Exception if an error occurs processing the test
      */
-    public Float getTracingConfigurationForMember(MBeanServer server, int memberId) throws Exception
+    public Float getTracingConfigurationForMember(MBeanServer server, CoherenceClusterMember member)
         {
-        ObjectName  oBeanName = new ObjectName("Coherence:type=Node,nodeId=" + memberId);
+        try
+            {
+            ObjectName oBeanName = getObjectNameForNodeMBean(member);
 
-        return (Float) server.getAttribute(oBeanName, TRACING_ATTRIBUTE);
+            return (Float) server.getAttribute(oBeanName, TRACING_ATTRIBUTE);
+            }
+        catch (Exception e)
+            {
+            return Float.NaN;
+            }
         }
 
     /**
@@ -351,14 +323,54 @@ public abstract class AbstractJmxConfigurationTests
      * @throws Exception if an error occurs processing the test
      */
     @SuppressWarnings("SameParameterValue")
-    protected void setTracingConfigurationForNode(MBeanServer server,
-                                                  CoherenceClusterMember member,
-                                                  float fSamplingRatio)
+    protected void setTracingConfigurationForMember(MBeanServer server,
+                                                    CoherenceClusterMember member,
+                                                    float fSamplingRatio)
             throws Exception
         {
-        ObjectName  oBeanName = new ObjectName("Coherence:type=Node,nodeId=" + member.getLocalMemberId());
+        ObjectName oBeanName = getObjectNameForNodeMBean(member);
 
         server.setAttribute(oBeanName, new Attribute(TRACING_ATTRIBUTE, fSamplingRatio));
+        }
+
+    @Override
+    protected CoherenceClusterMember startMember(int nId, Properties props)
+        {
+        CoherenceClusterMember member = super.startMember(nId, props);
+
+        Cluster cluster = CacheFactory.ensureCluster();
+        Service svcMgmt = cluster.ensureService("Management", "Invocation");
+
+        Eventually.assertDeferred(() -> svcMgmt.getInfo().getServiceMembers().size(), is(nId));
+
+        // verify we have the node mbean available
+        String           sNodeMBeanName   = getObjectNameForNodeMBean(member).toString();
+        MBeanServerProxy mBeanServerProxy = cluster.getManagement().getMBeanServerProxy();
+
+        Eventually.assertDeferred(() -> mBeanServerProxy.isMBeanRegistered(sNodeMBeanName), is(true));
+
+        return member;
+        }
+
+    /**
+     * Return the {@link ObjectName} for the the provided cluster member's node mbean.
+     *
+     * @param member  the cluster member for which to obtain an {@link ObjectName} instance
+     *
+     * @return the {@link ObjectName} for the the provided cluster member's node mbean
+     *
+     * @throws RuntimeException if the {@link ObjectName} can't be created
+     */
+    protected ObjectName getObjectNameForNodeMBean(CoherenceClusterMember member)
+        {
+        try
+            {
+            return new ObjectName("Coherence:type=Node,nodeId=" + member.getLocalMemberId());
+            }
+        catch (MalformedObjectNameException e)
+            {
+            throw ensureRuntimeException(e, "Unable to create ObjectName for Node MBean");
+            }
         }
 
     // ----- data members ---------------------------------------------------
