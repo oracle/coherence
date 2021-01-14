@@ -1057,8 +1057,8 @@ public class ManagementInfoResourceTests
             assertThat(mapEntry.get("joinTime"), notNullValue());
             assertThat(mapEntry.get("links"), notNullValue());
 
-            String sSelfUrl = getSelfLink(mapEntry);
-            response = m_client.target(sSelfUrl).request().get();
+            target = m_client.target(getSelfLink(mapEntry));
+            response = target.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             LinkedHashMap mapMemberResponse = new LinkedHashMap(readEntity(target, response));
 
@@ -1090,9 +1090,7 @@ public class ManagementInfoResourceTests
         assertThat(mapResponse.get("partitionCount"), is(257));
         assertThat(mapResponse.get("backupCount"), is(1));
 
-        String sSelfUrl = getSelfLink(mapResponse);
-
-        target = m_client.target(sSelfUrl);
+        target = m_client.target(getSelfLink(mapResponse));
         response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         LinkedHashMap mapPartitionResponse = new LinkedHashMap(readEntity(target, response));
@@ -1714,10 +1712,10 @@ public class ManagementInfoResourceTests
         for(LinkedHashMap mapEntry : listItems)
             {
             assertThat(mapEntry.get("name"), is("ExtendProxyService"));
-            String sProxyUrl = getLink(mapEntry, "proxy");
-            response = m_client.target(sProxyUrl).request().get();
+            target = m_client.target(getLink(mapEntry, "proxy"));
+            response = target.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            LinkedHashMap mapMemberResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+            LinkedHashMap mapMemberResponse = new LinkedHashMap(readEntity(target, response));
             assertThat(mapMemberResponse.get("protocol"), notNullValue());
             }
         }
