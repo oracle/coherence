@@ -29,6 +29,11 @@ import com.tangosol.util.Daemon;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.InvocableMap;
+
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.annotation.EntryEvents;
+import com.tangosol.net.events.annotation.Interceptor;
+import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.util.InvocableMap.Entry;
 import com.tangosol.util.InvocableMap.StreamingAggregator;
 import com.tangosol.util.ListMap;
@@ -69,6 +74,8 @@ import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.Serializable;
+
 import java.lang.reflect.Method;
 
 import java.util.ArrayList;
@@ -83,8 +90,9 @@ import java.util.Random;
 import java.util.Set;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static org.hamcrest.CoreMatchers.both;
-import static org.hamcrest.CoreMatchers.is;
+
+import static org.hamcrest.CoreMatchers.*;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1880,6 +1888,34 @@ public class ReadWriteBackingMapTests
           }
 
     /**
+     * Test the RWBM cache EntryEvent interceptor
+     */
+    @Test
+    public void testInterceptor()
+        {
+        NamedCache cache = getNamedCache("dist-rwbm-interceptor");
+
+        // test load from store
+        AbstractTestStore store    = getStore(cache);
+        ObservableMap     mapStore = store.getStorageMap();
+
+        cache.clear();
+        mapStore.clear();
+        CacheEventInterceptor.clearEvent();
+        mapStore.put(1, "One");
+
+        assertTrue(cache.get(1).equals("One"));
+        assertTrue(CacheEventInterceptor.getEventList().contains(EntryEvent.Type.INSERTING));
+        Eventually.assertThat(invoking(this).getEventList(), hasItems(EntryEvent.Type.INSERTED));
+
+        CacheEventInterceptor.clearEvent();
+        cache.put(1, "OneOne");
+        assertTrue(cache.get(1).equals("OneOne"));
+        assertTrue(CacheEventInterceptor.getEventList().contains(EntryEvent.Type.UPDATING));
+        Eventually.assertThat(invoking(this).getEventList(), hasItem(EntryEvent.Type.UPDATED));
+        }
+
+    /**
     * Verifies that a put followed by remove of the key
     * does not lose the remove when the store of the put
     * value is delayed (COH-6033).
@@ -2627,6 +2663,15 @@ public class ReadWriteBackingMapTests
         return thread.isAlive();
         }
 
+    /**
+     * Helper method for testInterceptor.
+     *
+     * @return the received event list
+     */
+    public List<EntryEvent.Type> getEventList()
+        {
+        return CacheEventInterceptor.getEventList();
+        }
 
     // ----- inner classes ---------------------------------------------------
 
@@ -2954,6 +2999,34 @@ public class ReadWriteBackingMapTests
             }
 
         static private volatile boolean m_fInserted;
+        }
+
+    /**
+     * Interceptor class to test if an entry event is received.
+=     */
+    @Interceptor(identifier = "CacheEventInterceptor")
+    @EntryEvents({EntryEvent.Type.INSERTING, EntryEvent.Type.INSERTED, EntryEvent.Type.UPDATING, EntryEvent.Type.UPDATED})
+    public static class CacheEventInterceptor
+            implements EventInterceptor<EntryEvent<?, ?>>, Serializable
+        {
+        static List<EntryEvent.Type> getEventList()
+            {
+            return m_listEventType;
+            }
+
+        static void clearEvent()
+            {
+            m_listEventType.clear();
+            }
+
+        @Override
+        public void onEvent(EntryEvent<?, ?> evt)
+            {
+            Base.log("Receive event: " + evt);
+            m_listEventType.add((EntryEvent.Type) evt.getType());
+            }
+
+        static private volatile List<EntryEvent.Type> m_listEventType = Collections.synchronizedList(new ArrayList<>());
         }
 
     // ----- EntryProcessors ------------------------------------------------

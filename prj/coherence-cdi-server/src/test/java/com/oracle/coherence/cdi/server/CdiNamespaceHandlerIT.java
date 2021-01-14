@@ -340,7 +340,8 @@ class CdiNamespaceHandlerIT
         @Override
         public synchronized void onEvent(EntryEvent<Long, String> e)
             {
-            e.getEntrySet().forEach(entry -> entry.setValue(entry.getValue().toUpperCase()));
+            e.getEntrySet().stream().filter(entry -> !entry.isValueLoaded()).
+                    forEach(entry -> entry.setValue(entry.getValue().toUpperCase()));
             }
         }
 
