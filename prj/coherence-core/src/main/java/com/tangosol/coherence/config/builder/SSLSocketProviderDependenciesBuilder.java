@@ -185,7 +185,7 @@ public class SSLSocketProviderDependenciesBuilder
      * @param bldr HostnameVerifierBuilder
      */
     @Injectable("hostname-verifier")
-    public void setHostnameVerifierBuilder(HostnameVerifierBuilder bldr)
+    public void setHostnameVerifierBuilder(ParameterizedBuilder<HostnameVerifier> bldr)
         {
         m_bldrHostnameVerifier = bldr;
         }
@@ -1275,7 +1275,7 @@ public class SSLSocketProviderDependenciesBuilder
     /**
      * Hostname verifier builder
      */
-    private HostnameVerifierBuilder m_bldrHostnameVerifier;
+    private ParameterizedBuilder<HostnameVerifier> m_bldrHostnameVerifier;
 
     /**
      * Provider buidler
