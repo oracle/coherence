@@ -748,7 +748,7 @@ public class ManagementInfoResourceTests
     public void testJfrWithAllNodes()
             throws Exception
         {
-        // This test requires Flight Recorder and only runs on ORacle JVMs
+        // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
         Response response = getBaseTarget().path(DIAGNOSTIC_CMD)
@@ -810,7 +810,7 @@ public class ManagementInfoResourceTests
     public void testJfrWithRole()
             throws Exception
         {
-        // This test requires Flight Recorder and only runs on ORacle JVMs
+        // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
         String  sFilePath = "target" + File.separator + "test-output"  + File.separator + "functional" + File.separator;
@@ -839,6 +839,9 @@ public class ManagementInfoResourceTests
     public void testMemberJfr()
             throws Exception
         {
+        // This test requires Flight Recorder and only runs on Oracle JVMs
+        CheckJDK.assumeOracleJDK();
+
         File     folder   = s_tempFolder.newFolder();
         String   sJfr1    = folder.getCanonicalPath() + File.separator + "foo1.jfr";
         String   sJfr2    = folder.getCanonicalPath() + File.separator + "foo2.jfr";
@@ -913,6 +916,9 @@ public class ManagementInfoResourceTests
     public void testJmxJfr()
             throws Exception
         {
+        // This test requires Flight Recorder and only runs on Oracle JVMs
+        CheckJDK.assumeOracleJDK();
+
         MBeanServerConnection mBeanServer;
         ObjectName            oName;
 
@@ -2862,18 +2868,33 @@ public class ManagementInfoResourceTests
         }
 
     protected LinkedHashMap readEntity(WebTarget target, Response response, Entity entity)
-            throws RuntimeException
+            throws ProcessingException
         {
-        RuntimeException re;
-
-        try
+        int i = 0;
+        while (true)
             {
-            return response.readEntity(LinkedHashMap.class);
-            }
-        catch (RuntimeException e)
-            {
-            CacheFactory.log(getClass().getName() + ".readEntity() got an exception: " + e
-                    + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_WARN);
+            try
+                {
+                LinkedHashMap mapReturned = response.readEntity(LinkedHashMap.class);
+                if (mapReturned == null)
+                    {
+                    CacheFactory.log(getClass().getName() + ".readEntity() returned null"
+                            + ", target: " + target + ", response: " + response,  CacheFactory.LOG_WARN);
+                    }
+                else
+                    {
+                    return mapReturned;
+                    }
+                }
+            catch (ProcessingException | IllegalStateException e)
+                {
+                CacheFactory.log(getClass().getName() + ".readEntity() got an exception: " + e
+                        + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_WARN);
+                if (i > 1)
+                    {
+                    throw e;
+                    }
+                }
 
             // try again
             if (entity == null)
@@ -2886,21 +2907,9 @@ public class ManagementInfoResourceTests
                 }
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-            try
-                {
-                return response.readEntity(LinkedHashMap.class);
-                }
-            catch (RuntimeException e2)
-                {
-                CacheFactory.log(getClass().getName() + ".readEntity() got exception again: " + e
-                        + ", cause: " + e.getCause().getLocalizedMessage(), CacheFactory.LOG_ERR);
-                }
-
-            re = e;
+            i++;
             }
-
-        throw re;
-        }
+        }        
 
     //--------------------- helper classes ----------------------------
 
