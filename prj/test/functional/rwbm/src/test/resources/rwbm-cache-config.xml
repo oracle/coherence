@@ -148,6 +148,10 @@
       <cache-name>dist-rwbm-expiry-on-store</cache-name>
       <scheme-name>distributed-rwbm-expiry-on-store</scheme-name>
     </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-interceptor</cache-name>
+      <scheme-name>distributed-rwbm-interceptor</scheme-name>
+    </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -566,5 +570,34 @@
         </read-write-backing-map-scheme>
       </backing-map-scheme>
     </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-interceptor</scheme-name>
+      <service-name>DistributedCacheInterceptor</service-name>
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+      <interceptors>
+        <interceptor>
+          <name>CacheEventInterceptor</name>
+          <instance>
+            <class-name>rwbm.ReadWriteBackingMapTests$CacheEventInterceptor</class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </distributed-scheme>
+
   </caching-schemes>
 </cache-config>
