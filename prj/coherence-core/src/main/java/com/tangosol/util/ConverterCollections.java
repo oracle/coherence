@@ -4,12 +4,13 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-
 package com.tangosol.util;
 
 import com.oracle.coherence.common.base.Holder;
 import com.oracle.coherence.common.base.NaturalHasher;
+
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
+import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.io.Serializer;
 
@@ -22,7 +23,11 @@ import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheMap;
 import com.tangosol.net.cache.ConfigurableCacheMap;
 
+import com.tangosol.util.InvocableMap.EntryAggregator;
+import com.tangosol.util.InvocableMap.EntryProcessor;
 import com.tangosol.util.MapListenerSupport.WrapperListener;
+
+import com.tangosol.util.function.Remote;
 
 import java.io.Serializable;
 
@@ -42,7 +47,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
-
+import java.util.function.BiFunction;
 
 /**
 * A collection of Collection implementation classes that use the Converter
@@ -70,7 +75,7 @@ public abstract class ConverterCollections
      */
     public static <F, T> Iterator<T> getIterator(Iterator<F> iter, Converter<F, T> conv)
         {
-        return new ConverterEnumerator<F, T>(iter, conv);
+        return new ConverterEnumerator<>(iter, conv);
         }
 
     /**
@@ -92,7 +97,7 @@ public abstract class ConverterCollections
     public static <F, T> ConverterCollection<F, T> getCollection(Collection<F> col, Converter<F, T> convUp,
             Converter<T, F> convDown)
         {
-        return new ConverterCollection<F, T>(col, convUp, convDown);
+        return new ConverterCollection<>(col, convUp, convDown);
         }
 
     /**
@@ -113,7 +118,7 @@ public abstract class ConverterCollections
     */
     public static <F, T> ConverterSet<F, T> getSet(Set<F> set, Converter<F, T> convUp, Converter<T, F> convDown)
         {
-        return new ConverterSet<F, T>(set, convUp, convDown);
+        return new ConverterSet<>(set, convUp, convDown);
         }
 
     /**
@@ -135,7 +140,7 @@ public abstract class ConverterCollections
     public static <F, T> ConverterSortedSet<F, T> getSortedSet(SortedSet<F> set, Converter<F, T> convUp,
             Converter<T, F> convDown)
         {
-        return new ConverterSortedSet<F, T>(set, convUp, convDown);
+        return new ConverterSortedSet<>(set, convUp, convDown);
         }
 
     /**
@@ -155,7 +160,7 @@ public abstract class ConverterCollections
      */
     public static <F, T> ConverterList<F, T> getList(List<F> list, Converter<F, T> convUp, Converter<T, F> convDown)
         {
-        return new ConverterList<F, T>(list, convUp, convDown);
+        return new ConverterList<>(list, convUp, convDown);
         }
 
     /**
@@ -176,7 +181,7 @@ public abstract class ConverterCollections
     public static <F, T> ConverterListIterator<F, T> getListIterator(ListIterator<F> iter, Converter<F, T> convUp,
             Converter<T, F> convDown)
         {
-        return new ConverterListIterator<F, T>(iter, convUp, convDown);
+        return new ConverterListIterator<>(iter, convUp, convDown);
         }
 
     /**
@@ -203,7 +208,7 @@ public abstract class ConverterCollections
     public static <FK, TK, FV, TV> ConverterMap<FK, TK, FV, TV> getMap(Map<FK, FV> map, Converter<FK, TK> convKeyUp,
             Converter<TK, FK> convKeyDown, Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
         {
-        return new ConverterMap<FK, TK, FV, TV>(map, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterMap<>(map, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
     /**
@@ -231,7 +236,7 @@ public abstract class ConverterCollections
             Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown, Converter<FV, TV> convValUp,
             Converter<TV, FV> convValDown)
         {
-        return new ConverterSortedMap<FK, TK, FV, TV>(map, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterSortedMap<>(map, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
 
@@ -263,7 +268,7 @@ public abstract class ConverterCollections
             Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown, Converter<FV, TV> convValUp,
             Converter<TV, FV> convValDown)
         {
-        return new ConverterEntrySet<FK, TK, FV, TV>(set, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterEntrySet<>(set, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
     /**
@@ -287,7 +292,7 @@ public abstract class ConverterCollections
             Converter<FK, TK> convKeyUp,
             Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
         {
-        return new ConverterEntry<FK, TK, FV, TV>(entry, convKeyUp, convValUp, convValDown);
+        return new ConverterEntry<>(entry, convKeyUp, convValUp, convValDown);
         }
 
     /**
@@ -304,7 +309,7 @@ public abstract class ConverterCollections
      */
     public static <F ,T> ConverterHolder<F, T> getConverterHolder(F value, Converter<F, T> convUp)
         {
-        return new ConverterHolder<F, T>(value, convUp);
+        return new ConverterHolder<>(value, convUp);
         }
 
     /**
@@ -341,9 +346,11 @@ public abstract class ConverterCollections
     * @return a ConcurrentMap that views the keys and values of the passed
     *         ConcurrentMap through the specified Converters
     */
-    public static ConverterConcurrentMap getConcurrentMap(ConcurrentMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+    public static <FK, TK, FV, TV> ConcurrentMap<TK, TV> getConcurrentMap(
+            ConcurrentMap<FK, FV> map, Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown,
+            Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
         {
-        return new ConverterConcurrentMap(map, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterConcurrentMap<>(map, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
     /**
@@ -362,9 +369,11 @@ public abstract class ConverterCollections
     * @return an InvocableMap that views the keys and values of the passed
     *         InvocableMap through the specified Converters
     */
-    public static ConverterInvocableMap getInvocableMap(InvocableMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+    public static <FK, TK, FV, TV> InvocableMap<TK, TV> getInvocableMap(
+            InvocableMap<FK, FV> map, Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown,
+            Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
         {
-        return new ConverterInvocableMap(map, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterInvocableMap<>(map, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
     /**
@@ -383,9 +392,11 @@ public abstract class ConverterCollections
     * @return an ObservableMap that views the keys and values of the passed
     *         ObservableMap through the specified Converters
     */
-    public static ConverterObservableMap getObservableMap(ObservableMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+    public static <FK, TK, FV, TV> ObservableMap<TK, TV> getObservableMap(ObservableMap<FK, FV> map,
+                Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown,
+                Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
         {
-        return new ConverterObservableMap(map, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterObservableMap<>(map, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
     /**
@@ -404,9 +415,11 @@ public abstract class ConverterCollections
     * @return a QueryMap that views the keys and values of the passed
     *         QueryMap through the specified Converters
     */
-    public static ConverterQueryMap getQueryMap(QueryMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+    public static <FK, TK, FV, TV> QueryMap<TK, TV> getQueryMap(QueryMap<FK, FV> map,
+            Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown,
+            Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
         {
-        return new ConverterQueryMap(map, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterQueryMap<>(map, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
     /**
@@ -425,13 +438,28 @@ public abstract class ConverterCollections
     * @return a CacheMap that views the keys and values of the passed
     *         CacheMap through the specified Converters
     */
-    public static ConverterCacheMap getCacheMap(CacheMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+    public static <FK, TK, FV, TV> CacheMap<TK, TV> getCacheMap(CacheMap<FK, FV> map,
+                Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown,
+                Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
         {
-        return new ConverterCacheMap(map, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterCacheMap<>(map, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
     /**
-    * Returns a Converter instance of NamedCache.
+    * Returns a Converter instance of NamedCache that converts between the raw/from
+    * types to the desired/to types.
+    * <p>
+    * <b>There is a strong disclaimer in the use of this implementation:</b>
+    * <p>
+    * This conversion is entirely performed locally and therefore when using
+    * methods such as {@link NamedCache#invoke(Object, EntryProcessor)
+    * invoke}, or {@link NamedCache#aggregate(EntryAggregator) aggregate}, or
+    * {@link NamedCache#entrySet(Filter) entrySet(Filter)}, the
+    * provided agent ({@link EntryProcessor EntryProcessor}, or {@link EntryAggregator
+    * EntryAggregator}, or {@link Filter}) do not go through the provided converters.
+    * Hence the given agent(s) must operate against the raw types.
+    * <p>
+    * Streams are not supported.
     *
     * @param cache        the underlying NamedCache
     * @param convKeyUp    the Converter to view the underlying NamedCache's
@@ -446,9 +474,13 @@ public abstract class ConverterCollections
     * @return a NamedCache that views the keys and values of the passed
     *         NamedCache through the specified Converters
     */
-    public static ConverterNamedCache getNamedCache(NamedCache cache, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+    public static <FK, FV, TK, TV> NamedCache<TK, TV> getNamedCache(NamedCache<FK, FV> cache,
+                                                                     Converter<FK, TK> convKeyUp,
+                                                                     Converter<TK, FK> convKeyDown,
+                                                                     Converter<FV, TV> convValUp,
+                                                                     Converter<TV, FV> convValDown)
         {
-        return new ConverterNamedCache(cache, convKeyUp, convKeyDown, convValUp, convValDown);
+        return new ConverterNamedCache<>(cache, convKeyUp, convKeyDown, convValUp, convValDown);
         }
 
     /**
@@ -2244,9 +2276,9 @@ public abstract class ConverterCollections
     * A Converter ConcurrentMap views an underlying ConcurrentMap through a
     * set of key and value Converters.
     */
-    public static class ConverterConcurrentMap
-            extends ConverterMap
-            implements ConcurrentMap, Serializable
+    public static class ConverterConcurrentMap<FK, TK, FV, TV>
+            extends ConverterMap<FK, TK, FV, TV>
+            implements ConcurrentMap<TK, TV>, Serializable
         {
         // ----- constructors -----------------------------------------------
 
@@ -2263,7 +2295,9 @@ public abstract class ConverterCollections
         * @param convValDown  the Converter to use to pass values down to the
         *                     underlying ConcurrentMap
         */
-        public ConverterConcurrentMap(ConcurrentMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+        public ConverterConcurrentMap(ConcurrentMap<FK, FV> map,
+                                      Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown,
+                                      Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
             {
             super(map, convKeyUp, convKeyDown, convValUp, convValDown);
             }
@@ -2274,25 +2308,28 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
+        @SuppressWarnings("unchecked")
         public boolean lock(Object oKey)
             {
-            return getConcurrentMap().lock(getConverterKeyDown().convert(oKey));
+            return getConcurrentMap().lock(getConverterKeyDown().convert((TK) oKey));
             }
 
         /**
         * {@inheritDoc}
         */
+        @SuppressWarnings("unchecked")
         public boolean lock(Object oKey, long cWait)
             {
-            return getConcurrentMap().lock(getConverterKeyDown().convert(oKey), cWait);
+            return getConcurrentMap().lock(getConverterKeyDown().convert((TK) oKey), cWait);
             }
 
         /**
         * {@inheritDoc}
         */
+        @SuppressWarnings("unchecked")
         public boolean unlock(Object oKey)
             {
-            return getConcurrentMap().unlock(getConverterKeyDown().convert(oKey));
+            return getConcurrentMap().unlock(getConverterKeyDown().convert((TK) oKey));
             }
 
 
@@ -2303,9 +2340,9 @@ public abstract class ConverterCollections
         *
         * @return the underlying ConcurrentMap
         */
-        public ConcurrentMap getConcurrentMap()
+        public ConcurrentMap<FK, FV> getConcurrentMap()
             {
-            return (ConcurrentMap) getMap();
+            return (ConcurrentMap<FK, FV>) getMap();
             }
         }
 
@@ -2316,9 +2353,10 @@ public abstract class ConverterCollections
     * A Converter InvocableMap views an underlying InvocableMap through a
     * set of key and value Converters.
     */
-    public static class ConverterInvocableMap
-            extends ConverterMap
-            implements InvocableMap, Serializable
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static class ConverterInvocableMap<FK, TK, FV, TV>
+            extends ConverterMap<FK, TK, FV, TV>
+            implements InvocableMap<TK, TV>, Serializable
         {
         // ----- constructors -----------------------------------------------
 
@@ -2335,7 +2373,9 @@ public abstract class ConverterCollections
         * @param convValDown  the Converter to use to pass values down to the
         *                     underlying InvocableMap
         */
-        public ConverterInvocableMap(InvocableMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+        public ConverterInvocableMap(InvocableMap<FK, FV> map,
+                                     Converter<FK, TK> convKeyUp, Converter<TK, FK> convKeyDown,
+                                     Converter<FV, TV> convValUp, Converter<TV, FV> convValDown)
             {
             super(map, convKeyUp, convKeyDown, convValUp, convValDown);
             }
@@ -2346,67 +2386,139 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Object aggregate(Collection collKeys, EntryAggregator agent)
+        public <R> R aggregate(Collection<? extends TK> collKeys, EntryAggregator<? super TK, ? super TV, R> agent)
             {
-            Converter  convKeyDown = getConverterKeyDown();
-            Converter  convKeyUp   = getConverterKeyUp();
-            Collection colKeysConv = collKeys instanceof Set ?
+            Converter<TK, FK> convKeyDown = getConverterKeyDown();
+            Converter<FK, TK> convKeyUp   = getConverterKeyUp();
+
+            Collection<? extends FK> colKeysConv = collKeys instanceof Set ?
                     instantiateSet((Set) collKeys, convKeyDown, convKeyUp) :
-                    instantiateCollection(collKeys, convKeyDown, convKeyUp);
+                    instantiateCollection((Collection) collKeys, convKeyDown, convKeyUp);
 
-            return getConverterValueUp().convert(getInvocableMap().aggregate(
-                    colKeysConv, agent));
+            // the EntryAggregator is not converted to work against FK & FV
+            // this is expected / required behavior for usages such as extend
+            // and more generically where there is no real type conversion but
+            // instead converts between the real type and binary; we could introduce
+            // a Binary specific version of ConverterNC that passes the function/aggregator
+            // without type conversion
+            return (R) convertSafe(
+                    getConverterValueUp(),
+                    getInvocableMap().aggregate(colKeysConv, (EntryAggregator) agent));
             }
 
         /**
         * {@inheritDoc}
         */
-        public Object aggregate(Filter filter, EntryAggregator agent)
+        public <R> R aggregate(Filter filter, EntryAggregator<? super TK, ? super TV, R> agent)
             {
-            return getConverterValueUp().convert(getInvocableMap().aggregate(
-                    filter, agent));
+            return (R) convertSafe(
+                    getConverterValueUp(),
+                    getInvocableMap().aggregate(filter, (EntryAggregator) agent));
             }
 
         /**
         * {@inheritDoc}
         */
-        public Object invoke(Object oKey, EntryProcessor agent)
+        public <R> R invoke(TK key, EntryProcessor<TK, TV, R> agent)
             {
-            return getConverterValueUp().convert(getInvocableMap().invoke(
-                    getConverterKeyDown().convert(oKey), agent));
+            Object oResult = getInvocableMap().invoke(
+                    getConverterKeyDown().convert(key), (EntryProcessor) agent);
+
+            return (R) convertSafe(getConverterValueUp(), oResult);
             }
 
         /**
         * {@inheritDoc}
         */
-        @SuppressWarnings("unchecked")
-        public Map invokeAll(Collection collKeys, EntryProcessor agent)
+        public <R> Map<TK, R> invokeAll(Collection<? extends TK> collKeys, EntryProcessor<TK, TV, R> agent)
             {
-            Converter  convKeyDown = getConverterKeyDown();
-            Converter  convKeyUp   = getConverterKeyUp();
-            Collection colKeysConv = collKeys instanceof Set ?
+            Converter<TK, FK> convKeyDown = getConverterKeyDown();
+            Converter<FK, TK> convKeyUp   = getConverterKeyUp();
+
+            Collection<? extends FK> colKeysConv = collKeys instanceof Set ?
                     instantiateSet((Set) collKeys, convKeyDown, convKeyUp) :
-                    instantiateCollection(collKeys, convKeyDown, convKeyUp);
+                    instantiateCollection((Collection) collKeys, convKeyDown, convKeyUp);
 
-            Map mapResult = getInvocableMap().invokeAll(colKeysConv, agent);
-            return mapResult == null
+            Map<FK, R> mapResult = getInvocableMap().invokeAll(colKeysConv, (EntryProcessor) agent);
+            return mapResult == null || mapResult.isEmpty()
                    ? Collections.emptyMap()
-                   : instantiateMap(mapResult, convKeyUp, convKeyDown, getConverterValueUp(), getConverterValueDown());
+                   : instantiateMap(mapResult, convKeyUp, convKeyDown,
+                        value -> (R) convertSafe(getConverterValueUp(), value),
+                        value -> (R) convertSafe(getConverterValueDown(), value));
             }
 
         /**
         * {@inheritDoc}
         */
-        @SuppressWarnings("unchecked")
-        public Map invokeAll(Filter filter, EntryProcessor agent)
+        public <R> Map<TK, R> invokeAll(Filter filter, EntryProcessor<TK, TV, R> agent)
             {
-            Map mapResult = getInvocableMap().invokeAll(filter, agent);
-            return mapResult == null
+            Map<FK, R> mapResult = getInvocableMap().invokeAll(filter, (EntryProcessor) agent);
+            return mapResult == null || mapResult.isEmpty()
                    ? Collections.emptyMap()
                    : instantiateMap(mapResult, getConverterKeyUp(), getConverterKeyDown(),
-                                    getConverterValueUp(), getConverterValueDown());
+                    value -> (R) convertSafe(getConverterValueUp(), value),
+                    value -> (R) convertSafe(getConverterValueDown(), value));
             }
 
+        @Override
+        public TV putIfAbsent(TK key, TV value)
+            {
+            // inline the default impl of InvocableMap.putIfAbsent to allow
+            // the value (EP payload) to go through the necessary conversion
+            // (the key is converted by the invoke implementation)
+            
+            EntryProcessor processor = CacheProcessors.putIfAbsent(getConverterValueDown().convert(value));
+            return (TV) invoke(key, processor);
+            }
+
+        @Override
+        public boolean remove(Object key, Object value)
+            {
+            EntryProcessor processor = CacheProcessors.remove(getConverterValueDown().convert((TV) value));
+            return (Boolean) invoke((TK) key, processor);
+            }
+
+        @Override
+        public boolean replace(TK key, TV oldValue, TV newValue)
+            {
+            EntryProcessor processor = CacheProcessors.replace(
+                    getConverterValueDown().convert(oldValue),
+                    getConverterValueDown().convert(newValue));
+
+            return (Boolean) invoke(key, processor);
+            }
+
+        @Override
+        public TV replace(TK key, TV value)
+            {
+            EntryProcessor processor = CacheProcessors.replace(
+                    getConverterValueDown().convert(value));
+
+            // the EP result already goes through the converter
+            return (TV) invoke(key, processor);
+            }
+
+        @Override
+        public TV merge(TK key, TV value, Remote.BiFunction<? super TV, ? super TV, ? extends TV> remappingFunction)
+            {
+            EntryProcessor processor = CacheProcessors.merge(
+                    getConverterValueDown().convert(value),
+                    (Remote.BiFunction) remappingFunction);
+
+            // the EP result already goes through the converter
+            return (TV) invoke(key, processor);
+            }
+
+        @Override
+        public TV merge(TK key, TV value, BiFunction<? super TV, ? super TV, ? extends TV> remappingFunction)
+            {
+            EntryProcessor processor = CacheProcessors.merge(
+                    getConverterValueDown().convert(value),
+                    (Remote.BiFunction) remappingFunction);
+
+            // the EP result already goes through the converter
+            return (TV) invoke(key, processor);
+            }
 
         // ----- accessors --------------------------------------------------
 
@@ -2415,9 +2527,31 @@ public abstract class ConverterCollections
         *
         * @return the underlying InvocableMap
         */
-        public InvocableMap getInvocableMap()
+        public InvocableMap<FK, FV> getInvocableMap()
             {
-            return (InvocableMap) getMap();
+            return (InvocableMap<FK, FV>) getMap();
+            }
+
+        // ----- helpers ----------------------------------------------------
+
+        /**
+         * Convert the provided value with the given converter. If there is an
+         * issue in type conversion return the given value.
+         *
+         * @param converter  the converter to use
+         * @param oValue     the value to convert
+         *
+         * @return a converted value or the original value
+         */
+        protected static Object convertSafe(Converter converter, Object oValue)
+            {
+            try
+                {
+                return oValue == null ? null : converter.convert(oValue);
+                }
+            catch (ClassCastException ignore) {}
+
+            return oValue;
             }
         }
 
@@ -2428,9 +2562,9 @@ public abstract class ConverterCollections
     * A Converter ObservableMap views an underlying ObservableMap through a
     * set of key and value Converters.
     */
-    public static class ConverterObservableMap
-            extends ConverterMap
-            implements ObservableMap, Serializable
+    public static class ConverterObservableMap<FK, TK, FV, TV>
+            extends ConverterMap<FK, TK, FV, TV>
+            implements ObservableMap<TK, TV>, Serializable
         {
         // ----- constructors -----------------------------------------------
 
@@ -2447,7 +2581,9 @@ public abstract class ConverterCollections
         * @param convValDown  the Converter to use to pass values down to the
         *                     underlying ObservableMap
         */
-        public ConverterObservableMap(ObservableMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+        public ConverterObservableMap(ObservableMap<FK, FV> map, Converter<FK, TK> convKeyUp,
+                                      Converter<TK, FK> convKeyDown, Converter<FV, TV> convValUp,
+                                      Converter<TV, FV> convValDown)
             {
             super(map, convKeyUp, convKeyDown, convValUp, convValDown);
             }
@@ -2458,7 +2594,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public void addMapListener(MapListener listener)
+        public void addMapListener(MapListener<? super TK, ? super TV> listener)
             {
             getObservableMap().addMapListener(getConverterListener(listener));
             }
@@ -2466,7 +2602,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public void removeMapListener(MapListener listener)
+        public void removeMapListener(MapListener<? super TK, ? super TV> listener)
             {
             getObservableMap().removeMapListener(getConverterListener(listener));
             }
@@ -2474,37 +2610,35 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public void addMapListener(MapListener listener, Object oKey, boolean fLite)
+        public void addMapListener(MapListener<? super TK, ? super TV> listener, TK key, boolean fLite)
             {
             getObservableMap().addMapListener(getConverterListener(listener),
-                    getConverterKeyDown().convert(oKey), fLite);
+                    getConverterKeyDown().convert(key), fLite);
             }
 
         /**
         * {@inheritDoc}
         */
-        public void removeMapListener(MapListener listener, Object oKey)
+        public void removeMapListener(MapListener<? super TK, ? super TV> listener, TK key)
             {
             getObservableMap().removeMapListener(getConverterListener(listener),
-                    getConverterKeyDown().convert(oKey));
+                    getConverterKeyDown().convert(key));
             }
 
         /**
         * {@inheritDoc}
         */
-        public void addMapListener(MapListener listener, Filter filter, boolean fLite)
+        public void addMapListener(MapListener<? super TK, ? super TV> listener, Filter filter, boolean fLite)
             {
-            getObservableMap().addMapListener(getConverterListener(listener),
-                    filter, fLite);
+            getObservableMap().addMapListener(getConverterListener(listener), filter, fLite);
             }
 
         /**
         * {@inheritDoc}
         */
-        public void removeMapListener(MapListener listener, Filter filter)
+        public void removeMapListener(MapListener<? super TK, ? super TV> listener, Filter filter)
             {
-            getObservableMap().removeMapListener(getConverterListener(listener),
-                    filter);
+            getObservableMap().removeMapListener(getConverterListener(listener), filter);
             }
 
 
@@ -2517,17 +2651,19 @@ public abstract class ConverterCollections
         *
         * @return  the converting listener
         */
-        protected MapListener getConverterListener(MapListener listener)
+        @SuppressWarnings("unchecked")
+        protected MapListener<? super FK, ? super FV> getConverterListener(MapListener<? super TK, ? super TV> listener)
             {
             // special case MapTriggerListener and NamedCacheDeactivationListener,
             // as they're not "real" listeners
             if (listener instanceof MapTriggerListener ||
                 listener instanceof NamedCacheDeactivationListener)
                 {
-                return listener;
+                return (MapListener<? super FK, ? super FV>) listener;
                 }
 
-            return getMapListener(this, listener, getConverterKeyUp(), getConverterValueUp());
+            return (MapListener<? super FK, ? super FV>)
+                    getMapListener(this, listener, getConverterKeyUp(), getConverterValueUp());
             }
 
 
@@ -2538,9 +2674,9 @@ public abstract class ConverterCollections
         *
         * @return the underlying ObservableMap
         */
-        public ObservableMap getObservableMap()
+        public ObservableMap<FK, FV> getObservableMap()
             {
-            return (ObservableMap) getMap();
+            return (ObservableMap<FK, FV>) getMap();
             }
         }
 
@@ -2551,9 +2687,9 @@ public abstract class ConverterCollections
     * A Converter QueryMap views an underlying QueryMap through a set of key
     * and value Converters.
     */
-    public static class ConverterQueryMap
-            extends ConverterMap
-            implements QueryMap, Serializable
+    public static class ConverterQueryMap<FK, TK, FV, TV>
+            extends ConverterMap<FK, TK, FV, TV>
+            implements QueryMap<TK, TV>, Serializable
         {
         // ----- constructors -----------------------------------------------
 
@@ -2570,7 +2706,9 @@ public abstract class ConverterCollections
         * @param convValDown  the Converter to use to pass values down to the
         *                     underlying QueryMap
         */
-        public ConverterQueryMap(QueryMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+        public ConverterQueryMap(QueryMap<FK, FV> map, Converter<FK, TK> convKeyUp,
+                                 Converter<TK, FK> convKeyDown, Converter<FV, TV> convValUp,
+                                 Converter<TV, FV> convValDown)
             {
             super(map, convKeyUp, convKeyDown, convValUp, convValDown);
             }
@@ -2581,7 +2719,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Set keySet(Filter filter)
+        public Set<TK> keySet(Filter filter)
             {
             return instantiateSet(getQueryMap().keySet(filter),
                     getConverterKeyUp(),
@@ -2591,7 +2729,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Set entrySet(Filter filter)
+        public Set<Map.Entry<TK, TV>> entrySet(Filter filter)
             {
             return instantiateEntrySet(getQueryMap().entrySet(filter),
                     getConverterKeyUp(),
@@ -2603,7 +2741,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Set entrySet(Filter filter, Comparator comparator)
+        public Set<Map.Entry<TK, TV>> entrySet(Filter filter, Comparator comparator)
             {
             return instantiateEntrySet(getQueryMap().entrySet(filter, comparator),
                     getConverterKeyUp(),
@@ -2615,7 +2753,8 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public void addIndex(ValueExtractor extractor, boolean fOrdered, Comparator comparator)
+        public <T, E> void addIndex(ValueExtractor<? super T, ? extends E> extractor,
+                                    boolean fOrdered, Comparator<? super E> comparator)
             {
             getQueryMap().addIndex(extractor, fOrdered, comparator);
             }
@@ -2623,7 +2762,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public void removeIndex(ValueExtractor extractor)
+        public <T, E> void removeIndex(ValueExtractor<? super T, ? extends E> extractor)
             {
             getQueryMap().removeIndex(extractor);
             }
@@ -2636,9 +2775,9 @@ public abstract class ConverterCollections
         *
         * @return the underlying QueryMap
         */
-        public QueryMap getQueryMap()
+        public QueryMap<FK, FV> getQueryMap()
             {
-            return (QueryMap) getMap();
+            return (QueryMap<FK, FV>) getMap();
             }
         }
 
@@ -2649,9 +2788,9 @@ public abstract class ConverterCollections
     * A Converter CacheMap views an underlying CacheMap through a set of key
     * and value Converters.
     */
-    public static class ConverterCacheMap
-            extends ConverterObservableMap
-            implements CacheMap, Serializable
+    public static class ConverterCacheMap<FK, TK, FV, TV>
+            extends ConverterObservableMap<FK, TK, FV, TV>
+            implements CacheMap<TK, TV>, Serializable
         {
         // ----- constructors -----------------------------------------------
 
@@ -2668,7 +2807,9 @@ public abstract class ConverterCollections
         * @param convValDown  the Converter to use to pass values down to the
         *                     underlying CacheMap
         */
-        public ConverterCacheMap(CacheMap map, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+        public ConverterCacheMap(CacheMap<FK, FV> map, Converter<FK, TK> convKeyUp,
+                                 Converter<TK, FK> convKeyDown, Converter<FV, TV> convValUp,
+                                 Converter<TV, FV> convValDown)
             {
             super(map, convKeyUp, convKeyDown, convValUp, convValDown);
             }
@@ -2679,7 +2820,8 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Map getAll(Collection colKeys)
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        public Map<TK, TV> getAll(Collection<? extends TK> colKeys)
             {
             Converter  convKeyDown = getConverterKeyDown();
             Converter  convKeyUp   = getConverterKeyUp();
@@ -2696,11 +2838,11 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Object put(Object oKey, Object oValue, long cMillis)
+        public TV put(TK key, TV value, long cMillis)
             {
             return getConverterValueUp().convert(getCacheMap().put(
-                    getConverterKeyDown().convert(oKey),
-                    getConverterValueDown().convert(oValue),
+                    getConverterKeyDown().convert(key),
+                    getConverterValueDown().convert(value),
                     cMillis));
             }
 
@@ -2712,9 +2854,9 @@ public abstract class ConverterCollections
         *
         * @return the underlying CacheMap
         */
-        public CacheMap getCacheMap()
+        public CacheMap<FK, FV> getCacheMap()
             {
-            return (CacheMap) getMap();
+            return (CacheMap<FK, FV>) getMap();
             }
         }
 
@@ -2725,9 +2867,9 @@ public abstract class ConverterCollections
     * A Converter NamedCache views an underlying NamedCache through a set of
     * key and value Converters.
     */
-    public static class ConverterNamedCache
-            extends ConverterCacheMap
-            implements NamedCache, Serializable
+    public static class ConverterNamedCache<FK, TK, FV, TV>
+            extends ConverterCacheMap<FK, TK, FV, TV>
+            implements NamedCache<TK, TV>, Serializable
         {
         // ----- constructors -----------------------------------------------
 
@@ -2744,7 +2886,9 @@ public abstract class ConverterCollections
         * @param convValDown  the Converter to use to pass values down to the
         *                     underlying NamedCache
         */
-        public ConverterNamedCache(NamedCache cache, Converter convKeyUp, Converter convKeyDown, Converter convValUp, Converter convValDown)
+        public ConverterNamedCache(NamedCache<FK, FV> cache, Converter<FK, TK> convKeyUp,
+                                   Converter<TK, FK> convKeyDown, Converter<FV, TV> convValUp,
+                                   Converter<TV, FV> convValDown)
             {
             super(cache, convKeyUp, convKeyDown, convValUp, convValDown);
 
@@ -2855,15 +2999,15 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Object invoke(Object oKey, EntryProcessor agent)
+        public <R> R invoke(TK key, EntryProcessor<TK, TV, R> agent)
             {
-            return m_mapInvocable.invoke(oKey, agent);
+            return m_mapInvocable.invoke(key, agent);
             }
 
         /**
         * {@inheritDoc}
         */
-        public Map invokeAll(Collection collKeys, EntryProcessor agent)
+        public <R> Map<TK, R> invokeAll(Collection<? extends TK> collKeys, EntryProcessor<TK, TV, R> agent)
             {
             return m_mapInvocable.invokeAll(collKeys, agent);
             }
@@ -2871,7 +3015,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Map invokeAll(Filter filter, EntryProcessor agent)
+        public <R> Map<TK, R> invokeAll(Filter filter, EntryProcessor<TK, TV, R> agent)
             {
             return m_mapInvocable.invokeAll(filter, agent);
             }
@@ -2879,7 +3023,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Object aggregate(Collection collKeys, EntryAggregator agent)
+        public <R> R aggregate(Collection<? extends TK> collKeys, EntryAggregator<? super TK, ? super TV, R> agent)
             {
             return m_mapInvocable.aggregate(collKeys, agent);
             }
@@ -2887,7 +3031,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Object aggregate(Filter filter, EntryAggregator agent)
+        public <R> R aggregate(Filter filter, EntryAggregator<? super TK, ? super TV, R> agent)
             {
             return m_mapInvocable.aggregate(filter, agent);
             }
@@ -2898,7 +3042,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Set keySet(Filter filter)
+        public Set<TK> keySet(Filter filter)
             {
             return m_mapQuery.keySet(filter);
             }
@@ -2906,7 +3050,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Set entrySet(Filter filter)
+        public Set<Map.Entry<TK, TV>> entrySet(Filter filter)
             {
             return m_mapQuery.entrySet(filter);
             }
@@ -2914,7 +3058,7 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public Set entrySet(Filter filter, Comparator comparator)
+        public Set<Map.Entry<TK, TV>> entrySet(Filter filter, Comparator comparator)
             {
             return m_mapQuery.entrySet(filter, comparator);
             }
@@ -2922,8 +3066,8 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public void addIndex(ValueExtractor extractor, boolean fOrdered,
-                Comparator comparator)
+        public <T, E> void addIndex(ValueExtractor<? super T, ? extends E> extractor,
+                                    boolean fOrdered, Comparator<? super E> comparator)
             {
             m_mapQuery.addIndex(extractor, fOrdered, comparator);
             }
@@ -2931,12 +3075,46 @@ public abstract class ConverterCollections
         /**
         * {@inheritDoc}
         */
-        public void removeIndex(ValueExtractor extractor)
+        public <T, E> void removeIndex(ValueExtractor<? super T, ? extends E> extractor)
             {
             m_mapQuery.removeIndex(extractor);
             }
 
+        @Override
+        public TV putIfAbsent(TK key, TV value)
+            {
+            return m_mapInvocable.putIfAbsent(key, value);
+            }
 
+        @Override
+        public boolean remove(Object key, Object value)
+            {
+            return m_mapInvocable.remove(key, value);
+            }
+        @Override
+        public boolean replace(TK key, TV oldValue, TV newValue)
+            {
+            return m_mapInvocable.replace(key, oldValue, newValue);
+            }
+
+        @Override
+        public TV replace(TK key, TV value)
+            {
+            return m_mapInvocable.replace(key, value);
+            }
+
+        @Override
+        public TV merge(TK key, TV value, Remote.BiFunction<? super TV, ? super TV, ? extends TV> remappingFunction)
+            {
+            return m_mapInvocable.merge(key, value, remappingFunction);
+            }
+
+        @Override
+        public TV merge(TK key, TV value, BiFunction<? super TV, ? super TV, ? extends TV> remappingFunction)
+            {
+            return m_mapInvocable.merge(key, value, remappingFunction);
+            }
+        
         // ----- accessors --------------------------------------------------
 
         /**
@@ -2944,9 +3122,9 @@ public abstract class ConverterCollections
         *
         * @return the underlying NamedCache
         */
-        public NamedCache getNamedCache()
+        public NamedCache<FK, FV> getNamedCache()
             {
-            return (NamedCache) getMap();
+            return (NamedCache<FK, FV>) getMap();
             }
 
 
@@ -2955,17 +3133,17 @@ public abstract class ConverterCollections
         /**
         * A Converter ConcurrentMap around the underlying NamedCache.
         */
-        protected ConverterConcurrentMap m_mapConcurrent;
+        protected ConcurrentMap<TK, TV> m_mapConcurrent;
 
         /**
         * A Converter InvocableMap around the underlying NamedCache.
         */
-        protected ConverterInvocableMap  m_mapInvocable;
+        protected InvocableMap<TK, TV>  m_mapInvocable;
 
         /**
         * A Converter QueryMap around the underlying NamedCache.
         */
-        protected ConverterQueryMap      m_mapQuery;
+        protected QueryMap<TK, TV>      m_mapQuery;
         }
 
 
