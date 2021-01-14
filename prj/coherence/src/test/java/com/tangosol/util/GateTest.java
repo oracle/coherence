@@ -107,7 +107,15 @@ public class GateTest
         fourThreadTest(makeGate(iGate), new GATE_OPS[]
                        {GATE_OPS.ENTER, GATE_OPS.BAR, GATE_OPS.ENTER, GATE_OPS.CLOSED},
                        new Boolean[]{true, true, false, false});
-        runTesCase(setupTests(), iGate);
+
+        TestCase[] aTestCases = setupTests();
+        runTesCase(aTestCases, iGate);
+
+        // clean up the threads
+        for (int i = 0; i < aTestCases.length; i++)
+            {
+            aTestCases[i].cleanup();
+            }
         }
 
     // ---- Helper methods ---------------------------------
@@ -323,6 +331,21 @@ public class GateTest
                     {
                     // wait for TestCase to end all threads, see #execute
                     Blocking.wait(this);
+                    }
+                }
+            }
+
+        /**
+         * Clean up threads used by TestCase.
+         */
+        public void cleanup()
+            {
+            for (int i = 0; i < m_aThread.length; i++)
+                {
+                Runner runner = m_aThread[i];
+                if (runner.isAlive())
+                    {
+                    runner.interrupt();
                     }
                 }
             }
