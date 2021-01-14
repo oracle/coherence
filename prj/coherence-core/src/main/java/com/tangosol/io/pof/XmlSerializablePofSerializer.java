@@ -125,7 +125,9 @@ public class XmlSerializablePofSerializer
 
         // read the object's properties
         String     sXml = in.readString(0);
-        XmlElement xml  = new SimpleParser().parseXml(sXml);
+
+        // Bug 32341371 - Do not validate the XML to prevent XXE (XML eXternal Entity) injection
+        XmlElement xml  = new SimpleParser(/* fValidate */ false).parseXml(sXml);
         xmlser.fromXml(xml);
         in.readRemainder();
 
