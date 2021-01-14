@@ -196,7 +196,8 @@ public class GUIDHelper
                 setPrevGUIDs.add(sGUIDNewest);
                 }
             }
-        else if (getVersion(sGUID) < getVersion(sGUIDNewest))
+        else if (getVersion(sGUID) < getVersion(sGUIDNewest) ||
+                 getMemberId(sGUID) != getMemberId(sGUIDNewest))
             {
             setPrevGUIDs.add(sGUID);
             }
