@@ -195,7 +195,7 @@ public abstract class AbstractSimplePersistenceTopicTests
                 publisher.send(VALUE).get();
                 }
 
-            stopCacheServer(sServer + "-1", true);
+            stopCacheServer(sServer + "-1");
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
 
             // restart the server and assert that all (and only) persisted
@@ -315,8 +315,8 @@ public abstract class AbstractSimplePersistenceTopicTests
             PersistenceTestHelper.logTopicMBeanStats(topic);
 
             // intentionally lose all data
-            stopCacheServer(sServer + "-1", true);
-            stopCacheServer(sServer + "-2", true);
+            stopCacheServer(sServer + "-1");
+            stopCacheServer(sServer + "-2");
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(0));
 
             CoherenceClusterMember server3 = startCacheServer(sServer + "-3", getProjectName(), getCacheConfigPath(), props);
@@ -359,7 +359,7 @@ public abstract class AbstractSimplePersistenceTopicTests
 
             // test partial failure
             int stoppedNodeId = server3.getLocalMemberId();
-            stopCacheServer(sServer + "-3", true);
+            stopCacheServer(sServer + "-3");
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
             waitForBalanced(service);
 
