@@ -160,6 +160,9 @@ public class PersistenceToolsHelper
 
             String sBeanName = getPersistenceMBean(sServiceName);
 
+            // COH-20778 wait a bit longer to avoid false positive of "Idle" check on window
+            Blocking.sleep(SLEEP_TIME);
+
             while (true)
                 {
                 Blocking.sleep(SLEEP_TIME);
