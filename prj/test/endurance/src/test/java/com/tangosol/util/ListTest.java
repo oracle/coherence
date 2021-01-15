@@ -1045,7 +1045,7 @@ public class ListTest
                     return null;
 
                 case 1:
-                    if (cSize > 0)
+                    if (cSize > 0 && m_i < cSize)
                         {
                         return list.remove(m_i);
                         }
