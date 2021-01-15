@@ -173,6 +173,7 @@
                     </paths>
                   </extraDirectories>
                   <container>
+                    <format>OCI</format>
                     <mainClass>com.tangosol.coherence.docker.Runner</mainClass>
 					<creationTime>USE_CURRENT_TIMESTAMP</creationTime>
                     <environment>
@@ -266,7 +267,7 @@
                  <goals>
                    <goal>exec</goal>
                  </goals>
-                 <phase>install</phase>
+                 <phase>package</phase>
                  <configuration>
                    <executable>docker</executable>
                    <arguments>
