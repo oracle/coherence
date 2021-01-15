@@ -344,12 +344,5 @@
         <module>xsd</module>
       </modules>
     </profile>
-
-    <profile>
-      <id>visualvm</id>
-      <modules>
-        <module>jvisualvm</module>
-      </modules>
-    </profile>
   </profiles>
 </project>
