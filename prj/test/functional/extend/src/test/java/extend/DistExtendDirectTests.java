@@ -243,25 +243,44 @@ public class DistExtendDirectTests
 
         double cpuAfter = getCPUAverage();
         double result   = cpuAfter - cpuBefore;
-        if (result > .12)
+        String message  = String.format("testPortScan CPU usages before and after the test: before=%f, after=%f, delta=%f, expected-delta=<.1", cpuBefore, cpuAfter, result);
+
+        System.out.println(message);
+        if (result > .1)
             {
-            String message = String.format("testPortScan failed due to high CPU usage after the test: before=%f, after=%f, delta=%f, expected-delta=<.1", cpuBefore, cpuAfter, result);
-            System.out.println(message);
-            System.out.println("Gathering thread dumps ...");
+            System.out.println("testPortScan detected higher CPU usage after the test, gathering thread dumps ...");
+            int cSuccess = 0;
             for (int i = 0; i < 5; i++)
                 {
-                String dump = m_cMember.invoke(new RemoteThreadDump());
+                String dump     = m_cMember.invoke(new RemoteThreadDump());
+                int    cTcpProc = dump.indexOf("Proxy:ExtendTcpProxyService:TcpAcceptor:TcpProcessor");
+                int    cPoll    = dump.indexOf("sun.nio.ch.KQueue.poll", cTcpProc);
+                int    cDiff    = cPoll - cTcpProc;
+                System.out.println("cDiff: " + cDiff);
                 Blocking.sleep(1000);
-                System.out.println(String.format("\n====== BEGIN DUMP %s =====\n", i));
-                System.out.println(dump);
-                System.out.println(String.format("\n====== END DUMP %s =====\n", i));
+
+                // cDiff should be less than 500; otherwise,
+                // the Proxy:ExtendTcpProxyService:TcpAcceptor:TcpProcessor
+                // thread is busy doing work.
+                if (cDiff < 500)
+                    {
+                    cSuccess++;
+                    }
+                else
+                    {
+                    System.out.println(String.format("\n====== BEGIN DUMP %s =====\n", i));
+                    System.out.println(dump);
+                    System.out.println(String.format("\n====== END DUMP %s =====\n", i));
+                    }
                 }
-            System.out.println("Thread dumps complete.");
-            fail(message);
+
+            if (cSuccess < 5)
+                {
+                System.out.println("Thread dumps complete.");
+                fail(message);
+                }
             }
         }
-
-
 
     @Test
     public void testCoh15021()
