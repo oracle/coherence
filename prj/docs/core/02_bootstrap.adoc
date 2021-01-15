@@ -4,15 +4,15 @@
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
-= Boot-Strapping Coherence
-:description: Boot-Strapping a Coherence application
+= Bootstrap API
+:description: Bootstrap a Coherence application
 :keywords: coherence, java, documentation
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
 // both they serve a purpose, and the docs will look wrong if it is removed.
-== Boot-Strapping Coherence
+== Bootstrap API
 
-Coherence has a simple boot-strap API that allows a Coherence application to be configured and started by
+Coherence has a simple bootstrap API that allows a Coherence application to be configured and started by
 building a `com.tangol.net.Coherence` instance and starting it.
 The `Coherence` instance provides access to one or more `com.tangosol.net.Session` instances.
 A `com.tangosol.net.Session` gives access to Coherence clustered resources, such as `NamedMap`, `NamedCache`,
@@ -20,7 +20,7 @@ A `com.tangosol.net.Session` gives access to Coherence clustered resources, such
 Sessions can be of different types, for example a session can be related to a `ConfigurableCacheFactory`,
 itself configured from a configuration file, or a session might be a client-side gRPC session.
 
-An example of some application boot-strap code might look like this:
+An example of some application bootstrap code might look like this:
 [source,java]
 ----
 import com.tangosol.net.Coherence;
@@ -82,7 +82,7 @@ A `SessionConfiguration` is created by using the `SessionConfiguration` builder 
 ==== The Default Session
 
 When running Coherence if no configuration is specified the default behaviour is to use the default configuration file
-to configure Coherence. This behaviour still applies to the boot-strap API. If a `Coherence` instance is started without
+to configure Coherence. This behaviour still applies to the bootstrap API. If a `Coherence` instance is started without
 specifying any session configurations then a single default `Session` will be created.
 This default `Session` will wrap a `ConfigurableCacheFactory` that has been created from the default configuration file.
 The default file name is `coherence-cache-config.xml` unless this has been overridden with the `coherence.cacheconfig`
@@ -196,7 +196,7 @@ of `Test`.
 
 [NOTE]
 ====
-When using the boot-strap API any scope name specifically configured in the `SessionConfiguration`
+When using the bootstrap API any scope name specifically configured in the `SessionConfiguration`
 (that is not the default scope name) will override the scope name in the XML file.
 
 For example, using the `scoped-configuration.xml` file above:
@@ -425,7 +425,7 @@ coherence.start();
 
 === Obtaining a Coherence Instance
 
-To avoid having to pass around the instance of `Coherence` that was used to boot-strap an application the
+To avoid having to pass around the instance of `Coherence` that was used to bootstrap an application the
 `Coherence` class has some static methods that make it simple to retrieve an instance.
 
 If only a single instance of `Coherence` is being used in an application (which will cover most use-cases) then
