@@ -283,20 +283,32 @@ public class BaseMapTest
         int     i, j;
         Integer IFrom, ITo;
 
-        i = rnd(nRange);
-        j = rnd(nRange);
+        i     = rnd(nRange);
+        j     = rnd(nRange);
         IFrom = Integer.valueOf(Math.min(i, j));
         ITo   = Integer.valueOf(Math.max(i, j));
-        assertIdenticalSortedMaps(mapControl.subMap(IFrom, ITo),
-                                  mapTest   .subMap(IFrom, ITo));
+        SortedMap subMapControl = mapControl.subMap(IFrom, ITo);
+        SortedMap subMapTest    = mapTest   .subMap(IFrom, ITo);
+        if (!subMapControl.isEmpty() && !subMapTest.isEmpty())
+            {
+            assertIdenticalSortedMaps(subMapControl, subMapTest);
+            }
 
-        ITo = Integer.valueOf(rnd(nRange));
-        assertIdenticalSortedMaps(mapControl.headMap(ITo),
-                                  mapTest   .headMap(ITo));
+        ITo           = Integer.valueOf(rnd(nRange));
+        subMapControl = mapControl.headMap(ITo);
+        subMapTest    = mapTest   .headMap(ITo);
+        if (!subMapControl.isEmpty() && !subMapTest.isEmpty())
+            {
+            assertIdenticalSortedMaps(subMapControl, subMapTest);
+            }
 
-        IFrom = Integer.valueOf(rnd(nRange));
-        assertIdenticalSortedMaps(mapControl.tailMap(IFrom),
-                                  mapTest   .tailMap(IFrom));
+        IFrom         = Integer.valueOf(rnd(nRange));
+        subMapControl = mapControl.tailMap(IFrom);
+        subMapTest    = mapTest   .tailMap(IFrom);
+        if (!subMapControl.isEmpty() && !subMapTest.isEmpty())
+            {
+            assertIdenticalSortedMaps(subMapControl, subMapTest);
+            }
 
         // test clean up
         mapControl.clear();
