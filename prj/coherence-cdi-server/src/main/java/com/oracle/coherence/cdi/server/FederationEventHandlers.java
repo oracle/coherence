@@ -26,10 +26,10 @@ import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.federation.FederatedChangeEvent;
 import com.tangosol.net.events.federation.FederatedConnectionEvent;
 import com.tangosol.net.events.federation.FederatedPartitionEvent;
-import com.tangosol.net.events.federation.FederatedServiceDispatcher;
 
 import java.lang.annotation.Annotation;
 
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -74,10 +74,13 @@ public class FederationEventHandlers
            m_participantName = participantName;
            }
 
+       @SuppressWarnings("rawtypes")
        @Override
        protected boolean isApplicable(EventDispatcher dispatcher, String sScopeName)
            {
-           return dispatcher instanceof FederatedServiceDispatcher && super.isApplicable(dispatcher, sScopeName);
+           Set<Enum> setSupported = dispatcher.getSupportedTypes();
+           boolean   fMatch       = m_setTypes.stream().anyMatch(setSupported::contains);
+           return fMatch && super.isApplicable(dispatcher, sScopeName);
            }
 
        @Override

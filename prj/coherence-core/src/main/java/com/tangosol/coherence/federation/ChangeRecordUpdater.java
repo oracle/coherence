@@ -7,15 +7,11 @@
 
 package com.tangosol.coherence.federation;
 
-import com.tangosol.coherence.federation.events.AbstractFederatedInterceptor;
 import com.tangosol.net.events.federation.FederatedChangeEvent;
 
 /**
  * ChangeRecordUpdater allows to update the given {@link ChangeRecord} while processing the
  * {@link FederatedChangeEvent}.
- *
- * Users can implement custom interceptors by extending {@link AbstractFederatedInterceptor}
- * and returning a ChangeRecordUpdater in {@link AbstractFederatedInterceptor#getChangeRecordUpdater}
  *
  * @author cl  2014.06.09
  */
