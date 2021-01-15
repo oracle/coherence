@@ -228,6 +228,16 @@
     </profile>
 
     <profile>
+      <id>visualvm</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <modules>
+        <module>jvisualvm</module>
+      </modules>
+    </profile>
+
+    <profile>
       <id>stage2</id>
       <modules>
         <module>aggregator</module>
