@@ -85,7 +85,7 @@ public class NettyRestTests
         if (m_client == null)
             {
             m_client = createClient().build();
-            m_client.property(ClientProperties.READ_TIMEOUT, 1000);
+            m_client.property(ClientProperties.READ_TIMEOUT, 2000);
             }
 
         return m_client;

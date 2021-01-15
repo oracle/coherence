@@ -14,6 +14,7 @@ import com.tangosol.net.NamedCache;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.WebTarget;
 
@@ -25,6 +26,7 @@ import org.glassfish.jersey.media.sse.InboundEvent;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.Matchers.is;
 
 
@@ -62,7 +64,7 @@ public abstract class AbstractServerSentEventsTests
                                    + inboundEvent.readData(SimpleMapEvent.class));
                 }
             };
-        Eventually.assertDeferred(() -> source.isOpen(), is(true));
+        Eventually.assertDeferred(() -> source.isOpen(), is(true), within(2, TimeUnit.MINUTES));
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.remove(2);
@@ -95,7 +97,7 @@ public abstract class AbstractServerSentEventsTests
                                    + inboundEvent.readData(SimpleMapEvent.class));
                 }
             };
-        Eventually.assertDeferred(() -> source.isOpen(), is(true));
+        Eventually.assertDeferred(() -> source.isOpen(), is(true), within(2, TimeUnit.MINUTES));
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
@@ -130,7 +132,7 @@ public abstract class AbstractServerSentEventsTests
                                    + inboundEvent.readData(SimpleMapEvent.class));
                 }
             };
-        Eventually.assertDeferred(() -> source.isOpen(), is(true));
+        Eventually.assertDeferred(() -> source.isOpen(), is(true), within(2, TimeUnit.MINUTES));
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
@@ -165,7 +167,7 @@ public abstract class AbstractServerSentEventsTests
                                    + inboundEvent.readData(SimpleMapEvent.class));
                 }
             };
-        Eventually.assertDeferred(() -> source.isOpen(), is(true));
+        Eventually.assertDeferred(() -> source.isOpen(), is(true), within(2, TimeUnit.MINUTES));
 
         NamedCache cache = getNamedCache("dist-test-named-query");
         cache.put(1, new Persona("Ivan Cikic", 33));
