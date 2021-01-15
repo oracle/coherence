@@ -2,7 +2,119 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 <!-- For information see https://jeremylong.github.io/DependencyCheck/general/suppression.html -->
 
-   <!-- Berkeley DB - we cannot upgrade to a late enough version to fix this -->
+   <!-- Berkeley DB - suppress the CVE's for the C version of BDB -->
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cpe>cpe:/a:oracle:berkeley_db</cpe>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cpe>cpe:/a:oracle:oracle_berkeley_db</cpe>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3604</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3605</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3606</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3608</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3609</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3610</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3611</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3612</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3613</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3614</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3615</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3616</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2017-3617</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: je-6.2.31.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.sleepycat/je@.*$</packageUrl>
+     <cve>CVE-2019-2708</cve>
+  </suppress>
   <suppress>
      <notes><![CDATA[
      file name: je-6.2.31.jar
