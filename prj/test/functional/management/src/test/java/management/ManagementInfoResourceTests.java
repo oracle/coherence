@@ -845,7 +845,15 @@ public class ManagementInfoResourceTests
         File     folder   = s_tempFolder.newFolder();
         String   sJfr1    = folder.getCanonicalPath() + File.separator + "foo1.jfr";
         String   sJfr2    = folder.getCanonicalPath() + File.separator + "foo2.jfr";
+        File     jfr1     = new File(sJfr1);
+        File     jfr2     = new File(sJfr2);
         Response response = getBaseTarget().request().get();
+
+        int i = 0;
+        while (!folder.exists() && i++ < 30)
+            {
+            sleep(1000);
+            }
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
@@ -901,8 +909,8 @@ public class ManagementInfoResourceTests
                     .post(null);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-            assertThat(new File(sJfr1).exists(), is(true));
-            assertThat(new File(sJfr2).exists(), is(true));
+            assertThat(jfr1.exists(), is(true));
+            assertThat(jfr2.exists(), is(true));
             }
         catch (UnsupportedEncodingException | InterruptedException e)
             {
@@ -910,6 +918,8 @@ public class ManagementInfoResourceTests
             CacheFactory.log("testMemberJfr() failed with exception: ");
             CacheFactory.log(e);
             }
+            jfr1.delete();
+            jfr2.delete();
         }
 
     @Test
