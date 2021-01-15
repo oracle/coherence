@@ -8,17 +8,17 @@
 
 == POF Maven Plugin
 
-The POF Maven Plugin provides automated instrumentation of classes with the `PortableType` annotation
+The POF Maven Plugin provides automated instrumentation of classes with the `@PortableType` annotation
 to generate consistent (and correct) implementations of Evolvable POF serialization methods.
 
 It is a far from a trivial exercise to manually write serialization methods that support serializing
-inheritance hierarchies that support the Evolvable concept. However, with static type analysis these methods
+inheritance hierarchies that support the `Evolvable` concept. However, with static type analysis these methods
 can be deterministically generated.
 
 This allows developers to focus on business logic rather than implementing boilerplate code for the
 above-mentioned methods.
 
-NOTE: A POF config file must still be created for each of the classes annotated by `PortableType`.
+NOTE: Please see xref:docs/core/04_portable_types.adoc[Portable Types] documentation for more information and detailed instructions on Portable Types creation and usage.
 
 == Usage
 
@@ -51,7 +51,7 @@ In order to use the POF Maven Plugin, you need to declare it as a plugin depende
   </build>
 ----
 
-An example `Person' class (below) when processed with the plugin is below
+An example `Person` class (below) when processed with the plugin is below
 results in the bytecode shown below.
 
 [source,java]

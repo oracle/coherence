@@ -20,7 +20,7 @@ Coherence has a number of core improvements documented in this section.
 .Bootstrap API
 [icon=fa-rocket,link=docs/core/02_bootstrap.adoc]
 --
-Boot-strapping a Coherence application.
+Bootstrap Coherence application.
 --
 
 [CARD]
@@ -28,6 +28,13 @@ Boot-strapping a Coherence application.
 [icon=library_books,link=docs/core/03_parallel_recovery.adoc]
 --
 Recover data from Coherence's Persistence mechanism in parallel.
+--
+
+[CARD]
+.Portable Types
+[icon=fa-sitemap,link=docs/core/04_portable_types.adoc]
+--
+Implement versioned data classes that can evolve over time.
 --
 
 ====

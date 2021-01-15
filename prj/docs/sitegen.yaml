@@ -42,8 +42,13 @@ backend:
         type: "image"
         value: "docs/images/logo.png"
       items:
-        - title: "Core documentation"
+        - title: "Documentation"
           items:
+            - title: "Official Documentation"
+              glyph:
+                type: "icon"
+                value: "import_contacts"
+              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
             - title: "About"
               pathprefix: "/about"
               glyph:
@@ -52,7 +57,7 @@ backend:
               items:
                 - includes:
                     - "docs/about/*.adoc"
-            - title: "Core"
+            - title: "Core Improvements"
               pathprefix: "/core"
               glyph:
                 type: "icon"
@@ -60,7 +65,7 @@ backend:
               items:
                 - includes:
                     - "docs/core/*.adoc"
-            - title: "CDI"
+            - title: "CDI Support"
               pathprefix: "/coherence-cdi-server"
               glyph:
                 type: "icon"
@@ -68,11 +73,11 @@ backend:
               items:
                 - includes:
                     - "coherence-cdi-server/README.adoc"
-            - title: "Microprofile"
+            - title: "MicroProfile Support"
               pathprefix: "/coherence-mp"
               glyph:
                 type: "icon"
-                value: "widgets"
+                value: "fa-cogs"
               items:
                 - includes:
                     - "coherence-mp/README.adoc"
@@ -104,7 +109,7 @@ backend:
               items:
                 - includes:
                     - "plugins/maven/pof-maven-plugin/README.adoc"
-            - title: "Coherence OCI Images"
+            - title: "Container Images"
               pathprefix: "/coherence-docker"
               glyph:
                 type: "icon"
@@ -112,13 +117,8 @@ backend:
               items:
                 - includes:
                     - "coherence-docker/README.adoc"
-        - title: "Documentation"
+        - title: "API Documentation"
           items:
-            - title: "Official Documentation"
-              glyph:
-                type: "icon"
-                value: "import_contacts"
-              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
             - title: "Coherence CE Java API"
               glyph:
                 type: "icon"
@@ -151,11 +151,11 @@ backend:
                 type: "icon"
                 value: "fa-slack"
               href: "https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE"
-            - title: "Coherence Community"
+            - title: "Web Site"
               glyph:
                 type: "icon"
-                value: "people"
-              href: "https://oracle.github.io/coherence/index.html"
+                value: "fa-globe"
+              href: "https://coherence.community/"
             - title: "GitHub"
               glyph:
                 type: "icon"
