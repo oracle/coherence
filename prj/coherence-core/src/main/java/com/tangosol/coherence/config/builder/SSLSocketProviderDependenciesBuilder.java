@@ -11,6 +11,7 @@ import com.oracle.coherence.common.net.SocketProvider;
 
 import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ParameterList;
+
 import com.tangosol.coherence.config.xml.processor.PasswordProviderBuilderProcessor;
 
 import com.tangosol.config.annotation.Injectable;
@@ -45,6 +46,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import java.util.concurrent.Executor;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
@@ -961,25 +965,69 @@ public class SSLSocketProviderDependenciesBuilder
     /**
      * The default {@link HostnameVerifier} to use if none is specified in the configuration.
      * <p>
-     * This {@link HostnameVerifier} verifies the CommonName attribute of the peer certificate's SubjectDN or
-     * the DNSNames of the peer certificate's SubjectAlternativeNames extension against the url hostname.
-     * The certificate attribute must (case insensitively) match the url hostname.
-     * <p>
-     * The SubjectDN CommonName attribute is verified first, and if successful, the SubjectAlternativeNames
-     * attributes are not verified.  If the peer certificate doesn't have a SubjectDN, or the SubjectDN doesn't have
-     * a CommonName attribute, then the SubjectAlternativeName attributes of type DNSNames are compared to the
-     * url hostname. The first successful comparison to a DNSName causes this method to return true without comparing
-     * any other DNSNames.
-     * <p>
-     * To verify successfully the url hostname must be case-insensitively equal to the certificate attribute being
-     * compared.
-     * <p>
-     * Alternatively, this method will return true if one of the following is true:
+     * Verify peer hostname against peer certificate of the SSL session, allowing
+     * wildcarded certificates.  Hostname verification has two phases:
      * <ul>
+     *   <li>verification with wildcarding
+     *   <li>if verification with wildcarding fails, then verification without wildcarding is performed.
+     * </ul>
+     * <p>
+     * Verification with Wildcarding
+     * <p>
+     * If the peer certificate of the SSL session's peer certificate SubjectDN CommonName
+     * attribute supports wildcarding, the CommonName attribute must meet the following:
+     * <ul>
+     *   <li>the CN must have at least two dot ('.') characters
+     *   <li>the CN must start with "*."
+     *   <li>the CN can have only one "*" character
+     * </ul>
+     * In addition, the non-wildcarded portion of the CommonName attribute must equal domain portion
+     * of the urlhostname parameter, in a case-sensitive String comparison. The domain portion of
+     * the urlhostname parameter string is the urlhostname substring left after the 'hostname'
+     * substring is removed.  The 'hostname' portion of the urlhostname is the substring
+     * up to and excluding the first '.' of the urlhostname parameter string. For example:
+     * <ul>
+     *   <li>
+     *   urlhostname:  mymachine.oracle.com
+     *   CommonName:   *.oracle.com
+     *      '.oracle.com' will compare successfully with '.oracle.com'
+     *  <li>
+     *  urlhostname:  mymachine.uk.oracle.com
+     *  CommonName:   *.oracle.com
+     *      '.uk.oracle.com' will not compare successfully with '.oracle.com'
+     * </ul>
+     * <p>
+     *  DNSNames obtained from the peer certificate's SubjectAlternativeNames extension may be wildcarded.
+     * <br><br>
+     * Verification without Wildcarding
+     * <br><br>
+     * If wildcarded hostname verification fails, this method performs non-wildcarded verification.
+     * This verifier verifies the CommonName attribute of the peer certificate's
+     * SubjectDN or the DNSNames of the peer certificate's SubjectAlternativeNames
+     * extension against the urlhostname.  The certificate attribute must
+     * (case insensitively) match the urlhostname.
+     * <br><br>
+     * The SubjectDN CommonName attribute is verified first, and if successful,
+     * the SubjectAlternativeNames attributes are not verified.  If the peer certificate
+     * doesn't have a SubjectDN, or the SubjectDN doesn't have a CommonName attribute,
+     * then the SubjectAlternativeName attributes of type DNSNames are compared to the
+     * urlhostname. The first successful comparison to a DNSName causes this method
+     * to return true without comparing any other DNSNames.
+     * <br><br>
+     * To verify successfully the url hostname must be case-insensitively equal to the
+     * certificate attribute being compared.
+     * <br><br>
+     * Alternatively, this method will return true if one of the following
+     * is true:
+     * <ul>
+     * <li>the SSL session's peer certificate is a WebLogic Demo certificate
      * <li>the SSL session's peer certificate's SubjectDN CommonName attribute is equal to
-     *     the local machine's hostname AND the local machine's hostname or ip address
-     *     matches the url hostname parameter.
-     * <li>the url hostname parameter can be verified to be a loopback address or the local hostname.
+     *    the local machine's hostname AND the local machine's hostname or ip address
+     *    matches the urlhostname parameter.
+     * <li>the urlhostname parameter can be verified to be a loopback address or the local hostname.
+     * <li>the SSL session's peer certificate is an Oracle Key Store Service (KSS)
+     *    Demo certificate for the current Weblogic Server domain and Weblogic Server is
+     *    enabled to use KSS Demo certificates.
      * </ul>
      */
     static class DefaultHostnameVerifier
@@ -990,21 +1038,40 @@ public class SSLSocketProviderDependenciesBuilder
             {
             boolean fMatched = false;
 
-            if (sUrlHostname != null && sUrlHostname.length() > 0 && sslSession != null)
+            if (sUrlHostname != null && sslSession != null)
                 {
-                // non-wildcard SAN DNS Names
-                Collection<String> colSubAltNames = SSLCertUtility.getDNSSubjAltNames(sslSession, false, true);
-                String             sCertHostname  = SSLCertUtility.getCommonName(sslSession);
-                if (colSubAltNames != null && colSubAltNames.size() > 0)
+                Collection<String> colWildcardDNSNames = SSLCertUtility.getDNSSubjAltNames(sslSession, true, false);
+                String             sCertHostname       = SSLCertUtility.getCommonName(sslSession);
+
+                if (colWildcardDNSNames != null && colWildcardDNSNames.size() > 0)
                     {
                     fMatched = VERIFY_CN_AFTER_SAN
-                            ? doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames) || doVerify(sUrlHostname, sCertHostname)
-                            : doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames);
+                            ? verifySANWildcardDNSNames(sUrlHostname, colWildcardDNSNames)
+                                || isLegalWildcarded(sUrlHostname, sCertHostname)
+                            : verifySANWildcardDNSNames(sUrlHostname, colWildcardDNSNames);
                     }
                 else
                     {
-                    // seek match against CN if there are no non-wildcard DNS Names
-                    fMatched = doVerify(sUrlHostname, sCertHostname);
+                    // seek match against wildcard CN if SAN is not found
+                    fMatched = isLegalWildcarded(sUrlHostname, sCertHostname);
+                    }
+
+                if (!fMatched)
+                    {
+                    // non-wildcard SAN DNS Names
+                    Collection<String> colSubAltNames = SSLCertUtility.getDNSSubjAltNames(sslSession, false, true);
+
+                    if (colSubAltNames != null && colSubAltNames.size() > 0)
+                        {
+                        fMatched = VERIFY_CN_AFTER_SAN
+                                ? doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames) || doVerify(sUrlHostname, sCertHostname)
+                                : doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames);
+                        }
+                    else
+                        {
+                        // seek match against CN if there are no non-wildcard DNS Names
+                        fMatched = doVerify(sUrlHostname, sCertHostname);
+                        }
                     }
                 }
 
@@ -1021,6 +1088,11 @@ public class SSLSocketProviderDependenciesBuilder
             if (sUrlHostname.equalsIgnoreCase(sCertHostname))
                 {
                 return true;
+                }
+
+            if (!ALLOW_LOCALHOST)
+                {
+                return false;
                 }
 
             try
@@ -1076,20 +1148,132 @@ public class SSLSocketProviderDependenciesBuilder
             }
 
         // match against non-wildcard DNS names
-        private boolean doDNSSubjAltNamesVerify(String urlhostname, Collection<String> dnsAltNames)
+        private boolean doDNSSubjAltNamesVerify(String sUrlhostname, Collection<String> colDnsAltNames)
             {
-            if (dnsAltNames != null && (!dnsAltNames.isEmpty()))
+            if (colDnsAltNames != null && (!colDnsAltNames.isEmpty()))
                 {
                 // peer cert has DNS subject alternative names, check them.
-                for (String dnsName : dnsAltNames)
+                for (String dnsName : colDnsAltNames)
                     {
-                    if (dnsName.equalsIgnoreCase(urlhostname))
+                    if (dnsName.equalsIgnoreCase(sUrlhostname))
                         {
                         return true;
                         }
                     }
                 }
             return false;
+            }
+
+        private static boolean isLegalWildcarded(String sURL, String sCommonName)
+            {
+            if (sCommonName != null)
+                {
+                // If the cn doesn't have an asterisk, wildcarding doesn't matter.
+                if (!sCommonName.contains("*"))
+                    {
+                    return false;
+                    }
+                else
+                    {
+                    /*
+                     * has an asterisk in cn, must pass wildcarding validation, these must be true:
+                     *  - cn has two dot characters
+                     *  - cn must start with "*."
+                     *  - cn must have one '*'
+                     *  - domains must match:
+                     *      take off cn's '*', leaving the cn domain
+                     *      url's domain must match the cn domain
+                     *      non-domain part of url cannot have a '.'; eliminates sub-domains.
+                     */
+
+                    if ((sCommonName.indexOf(".") != sCommonName.lastIndexOf(".")) &&   // has at least two dots.
+                            sCommonName.startsWith("*.") &&
+                            (sCommonName.indexOf("*") == sCommonName.lastIndexOf("*")) &&   // allowed one star
+                            domainMatchesDomain(sURL, sCommonName))
+                        {
+                        // passes wildcard validation
+                        return true;
+                        }
+                    }
+                }
+
+            return false;
+            }
+
+        private static boolean domainMatchesDomain(String sUrl, String sCommonName)
+            {
+            // strip leading "*" off the cn string to get the remaining domain
+            int nIndex = sCommonName.indexOf("*");
+            if (nIndex == -1)
+                {
+                // shouldn't happen, already checked this.
+                return false;
+                }
+
+            // strip off star and convert cn to lower case
+            String sStrippedCN = sCommonName.substring(nIndex + 1).toLowerCase();
+
+            // convert URL to lower case
+            String sUrlLower = sUrl.toLowerCase();
+
+            // check that url domain is the same as cn domain
+            if (!sUrlLower.endsWith(sStrippedCN))
+                {
+                return false;
+                }
+
+            // now check the non-domain part of the url
+
+            // check that the length we want to strip off the URL is > 0
+            if (sUrlLower.lastIndexOf(sStrippedCN) == -1)
+                {
+                // also shouldn't happen, just checked that above.
+                return false;
+                }
+
+            // get the beginning (non-domain) part of the url
+            String sUrlBeginning = sUrlLower.substring(0, sUrlLower.length() - sStrippedCN.length());
+            if (sUrlBeginning.length() <= 0)
+                {
+                return false;
+                }
+            if (sUrlBeginning.contains("."))
+                {
+                // beginning part is supposed to be the host, not a subdomain.  fails.
+                return false;
+                }
+
+            return true;
+            }
+
+        // Match against wildcard DNS names
+        private static boolean verifySANWildcardDNSNames(String sUrlHostname, Collection<String> colWildcardDNSNames)
+            {
+            boolean fMatched = false;
+
+            if (colWildcardDNSNames != null && (!colWildcardDNSNames.isEmpty()))
+                {
+                Matcher urlHostnameMatcher = URL_HOSTNAME_PATTERN.matcher(sUrlHostname);
+                boolean fURLHostnameValid = urlHostnameMatcher.matches();  // valid hostname ends with proper domain name
+                for (String sDnsName : colWildcardDNSNames)
+                    {
+                    Matcher wildCardDNSNameMatcher = WILDCARD_DNSNAME_PATTERN.matcher(sDnsName);
+                    if (wildCardDNSNameMatcher.matches())
+                        {
+                        String sDomainOfWildcardDNS = wildCardDNSNameMatcher.group(1);
+                        if (fURLHostnameValid)
+                            {
+                            String sDomainOfURL = urlHostnameMatcher.group(1);
+                            if (sDomainOfWildcardDNS != null && sDomainOfWildcardDNS.equalsIgnoreCase(sDomainOfURL))
+                                {
+                                fMatched = true;
+                                break;
+                                }
+                            }
+                        }
+                    }
+                }
+            return fMatched;
             }
         }
 
@@ -1243,11 +1427,6 @@ public class SSLSocketProviderDependenciesBuilder
     // ----- constants ------------------------------------------------------
 
     /**
-     * The value of the hostname-verifier action to allow all connections.
-     */
-    public static final String ACTION_ALLOW = "allow";
-
-    /**
      * The value of the hostname-verifier action to use the default verifier.
      */
     public static final String ACTION_DEFAULT = "default";
@@ -1256,9 +1435,22 @@ public class SSLSocketProviderDependenciesBuilder
     // Setting this system property to true allows CN to be checked if SAN is present but has no match
     private final static boolean VERIFY_CN_AFTER_SAN = Config.getBoolean("coherence.security.ssl.verifyCNAfterSAN", true);
 
+    /**
+     * Flag, when set to {@code true} allows certificate matching for localhost.
+     */
+    private final static boolean ALLOW_LOCALHOST = Config.getBoolean("coherence.security.ssl.allowLocalhost", false);
+
     private final static String LOCALHOST_HOSTNAME = "localhost";
 
     private final static String LOCALHOST_IPADDRESS = "127.0.0.1";
+
+    private static final String WILDCARD_DNSNAME_REGEX = "^\\*((\\.[^*.]+){2,})$";
+
+    private static final Pattern WILDCARD_DNSNAME_PATTERN = Pattern.compile(WILDCARD_DNSNAME_REGEX);
+
+    private static final String URL_HOSTNAME_REGEX = "^[^*.\\s]+((\\.[^*.]+){2,})$";
+
+    private static final Pattern URL_HOSTNAME_PATTERN = Pattern.compile(URL_HOSTNAME_REGEX);
 
     // ----- data members ---------------------------------------------------
 
