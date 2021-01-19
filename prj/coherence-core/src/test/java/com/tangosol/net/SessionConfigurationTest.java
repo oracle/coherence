@@ -30,6 +30,50 @@ public class SessionConfigurationTest
         assertThat(session, is(notNullValue()));
         assertThat(session.getName(), is(Coherence.DEFAULT_NAME));
         assertThat(session.getScopeName(), is(Coherence.DEFAULT_SCOPE));
+        assertThat(session.getConfigUri().isPresent(), is(true));
+        assertThat(session.getConfigUri().get(), is(CacheFactoryBuilder.URI_DEFAULT));
+        assertThat(session.getInterceptors(), is(emptyIterable()));
+        assertThat(session.isEnabled(), is(true));
+        assertThat(session.getPriority(), is(SessionConfiguration.DEFAULT_PRIORITY));
+        }
+
+    @Test
+    public void shouldCreateDefaultSessionConfigurationWithConfigUri()
+        {
+        SessionConfiguration session = SessionConfiguration.create("foo.xml");
+        assertThat(session, is(notNullValue()));
+        assertThat(session.getName(), is(Coherence.DEFAULT_NAME));
+        assertThat(session.getScopeName(), is(Coherence.DEFAULT_SCOPE));
+        assertThat(session.getConfigUri().isPresent(), is(true));
+        assertThat(session.getConfigUri().get(), is("foo.xml"));
+        assertThat(session.getInterceptors(), is(emptyIterable()));
+        assertThat(session.isEnabled(), is(true));
+        assertThat(session.getPriority(), is(SessionConfiguration.DEFAULT_PRIORITY));
+        }
+
+    @Test
+    public void shouldCreateSessionConfigurationWithNameAndConfigUri()
+        {
+        SessionConfiguration session = SessionConfiguration.create("Foo", "foo.xml");
+        assertThat(session, is(notNullValue()));
+        assertThat(session.getName(), is("Foo"));
+        assertThat(session.getScopeName(), is(Coherence.DEFAULT_SCOPE));
+        assertThat(session.getConfigUri().isPresent(), is(true));
+        assertThat(session.getConfigUri().get(), is("foo.xml"));
+        assertThat(session.getInterceptors(), is(emptyIterable()));
+        assertThat(session.isEnabled(), is(true));
+        assertThat(session.getPriority(), is(SessionConfiguration.DEFAULT_PRIORITY));
+        }
+
+    @Test
+    public void shouldCreateSessionConfigurationWithNameConfigUriAndScope()
+        {
+        SessionConfiguration session = SessionConfiguration.create("Foo", "foo.xml", "Bar");
+        assertThat(session, is(notNullValue()));
+        assertThat(session.getName(), is("Foo"));
+        assertThat(session.getScopeName(), is("Bar"));
+        assertThat(session.getConfigUri().isPresent(), is(true));
+        assertThat(session.getConfigUri().get(), is("foo.xml"));
         assertThat(session.getInterceptors(), is(emptyIterable()));
         assertThat(session.isEnabled(), is(true));
         assertThat(session.getPriority(), is(SessionConfiguration.DEFAULT_PRIORITY));

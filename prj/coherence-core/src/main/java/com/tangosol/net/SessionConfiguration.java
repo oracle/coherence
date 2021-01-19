@@ -158,8 +158,61 @@ public interface SessionConfiguration
      */
     static SessionConfiguration defaultSession()
         {
-        return builder().named(Coherence.DEFAULT_NAME)
-                .withConfigUri(CacheFactoryBuilder.URI_DEFAULT)
+        return create(Coherence.DEFAULT_NAME, CacheFactoryBuilder.URI_DEFAULT);
+        }
+
+    /**
+     * Create a {@link SessionConfiguration} for the default {@link Session}
+     * with the specified configuration file.
+     * <p>
+     * The default session will wrap a {@link ConfigurableCacheFactory} that is
+     * configured from the default cache configuration file.
+     * <p>
+     * The default session will have a name {@link Coherence#DEFAULT_NAME}
+     * and the default scope name {@link Coherence#DEFAULT_SCOPE}.
+     *
+     * @param sConfigURI  the location of the configuration file to use
+     *
+     * @return  a {@link SessionConfiguration} for the default {@link Session}
+     */
+    static SessionConfiguration create(String sConfigURI)
+        {
+        return create(Coherence.DEFAULT_NAME, sConfigURI);
+        }
+
+    /**
+     * Create a {@link SessionConfiguration} for a {@link Session} with a
+     * specific name and configuration file.
+     * <p>
+     * The session will have a scope name {@link Coherence#DEFAULT_SCOPE}.
+     *
+     * @param sName       the name of the session
+     * @param sConfigURI  the location of the configuration file to use
+     *
+     * @return  a {@link SessionConfiguration}
+     */
+    static SessionConfiguration create(String sName, String sConfigURI)
+        {
+        return builder().named(sName)
+                .withConfigUri(sConfigURI)
+                .build();
+        }
+
+    /**
+     * Create a {@link SessionConfiguration} for a {@link Session} with a
+     * specific name and configuration file.
+     *
+     * @param sName       the name of the session
+     * @param sConfigURI  the location of the configuration file to use
+     * @param sScopeName  the scope name to use for the session
+     *
+     * @return  a {@link SessionConfiguration}
+     */
+    static SessionConfiguration create(String sName, String sConfigURI, String sScopeName)
+        {
+        return builder().named(sName)
+                .withScopeName(sScopeName)
+                .withConfigUri(sConfigURI)
                 .build();
         }
 
