@@ -18,9 +18,7 @@
     <relativePath>./coherence-dependencies/pom.xml</relativePath>
   </parent>
 
-<!--  <groupId>com.oracle.coherence</groupId>-->
   <artifactId>main</artifactId>
-<!--  <version>${revision}</version>-->
   <packaging>pom</packaging>
 
   <name>Coherence Project</name>
