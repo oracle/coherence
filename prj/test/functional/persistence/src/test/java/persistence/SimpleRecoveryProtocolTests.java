@@ -148,23 +148,24 @@ public class SimpleRecoveryProtocolTests
     @Test
     public void testNoPersistentData()
         {
+        String sServiceName = "";
         try
             {
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testNoPersistentData");
 
-            NamedCache         cache          = getNamedCache("simple-recovery");
-            PartitionedService service        = (PartitionedService) cache.getCacheService();
-            String             sServiceName   = service.getInfo().getServiceName();
-            int          cParts               = service.getPartitionCount();
-            PartitionSet partsEmpty           = new PartitionSet(cParts);
-            PartitionSet partsAll             = new PartitionSet(cParts);
+            NamedCache         cache      = getNamedCache("simple-recovery");
+            PartitionedService service    = (PartitionedService) cache.getCacheService();
+            int                cParts     = service.getPartitionCount();
+            PartitionSet       partsEmpty = new PartitionSet(cParts);
+            PartitionSet       partsAll   = new PartitionSet(cParts);
             partsAll.fill();
 
             assertPartitionOwnership(service, new Object[][]
                     {{0, partsAll}});
 
+            sServiceName = service.getInfo().getServiceName();
             CoherenceClusterMember member = startCacheServer("testNoPersistentData-1", getProjectName(), getCacheConfigPath(), props);
             Eventually.assertThat(invoking(member).getClusterSize(), is(2));
             Eventually.assertThat(invoking(member).isServiceRunning(sServiceName), is(true));
@@ -197,11 +198,12 @@ public class SimpleRecoveryProtocolTests
             }
         finally
             {
+            Cluster cluster = CacheFactory.ensureCluster();
+            cluster.suspendService(sServiceName);
             stopCacheServer("testNoPersistentData-1");
             stopCacheServer("testNoPersistentData-2");
             stopCacheServer("testNoPersistentData-3");
             stopCacheServer("testNoPersistentData-4");
-            Cluster cluster = CacheFactory.ensureCluster();
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
             CacheFactory.shutdown();
             }
@@ -210,23 +212,24 @@ public class SimpleRecoveryProtocolTests
     @Test
     public void testAllOnMember3()
         {
+        String sServiceName = "";
         try
             {
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testAllOnMember3");
 
-            NamedCache         cache          = getNamedCache("simple-recovery");
-            PartitionedService service        = (PartitionedService) cache.getCacheService();
-            String             sServiceName   = service.getInfo().getServiceName();
-            int          cParts               = service.getPartitionCount();
-            PartitionSet partsEmpty           = new PartitionSet(cParts);
-            PartitionSet partsAll             = new PartitionSet(cParts);
+            NamedCache         cache      = getNamedCache("simple-recovery");
+            PartitionedService service    = (PartitionedService) cache.getCacheService();
+            int                cParts     = service.getPartitionCount();
+            PartitionSet       partsEmpty = new PartitionSet(cParts);
+            PartitionSet       partsAll   = new PartitionSet(cParts);
             partsAll.fill();
 
             assertPartitionOwnership(service, new Object[][]
                     {{0, partsAll}});
 
+            sServiceName = service.getInfo().getServiceName();
             CoherenceClusterMember member = startCacheServer("testAllOnMember3-1", getProjectName(), getCacheConfigPath(), props);
             Eventually.assertThat(invoking(member).getClusterSize(), is(2));
             Eventually.assertThat(invoking(member).isServiceRunning(sServiceName), is(true));
@@ -259,11 +262,12 @@ public class SimpleRecoveryProtocolTests
             }
         finally
             {
+            Cluster cluster = CacheFactory.ensureCluster();
+            cluster.suspendService(sServiceName);
             stopCacheServer("testAllOnMember3-1");
             stopCacheServer("testAllOnMember3-2");
             stopCacheServer("testAllOnMember3-3");
             stopCacheServer("testAllOnMember3-4");
-            Cluster cluster = CacheFactory.ensureCluster();
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
             CacheFactory.shutdown();
             }
@@ -272,20 +276,20 @@ public class SimpleRecoveryProtocolTests
     @Test
     public void testHalfOn3HalfOn4()
         {
+        String sServiceName = "";
         try
             {
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testHalfOn3HalfOn4");
 
-            NamedCache         cache          = getNamedCache("simple-recovery");
-            PartitionedService service        = (PartitionedService) cache.getCacheService();
-            String             sServiceName   = service.getInfo().getServiceName();
-            int          cParts               = service.getPartitionCount();
-            PartitionSet partsEmpty           = new PartitionSet(cParts);
-            PartitionSet parts0_20            = new PartitionSet(cParts);
-            PartitionSet parts21_42           = new PartitionSet(cParts);
-            PartitionSet partsAll             = new PartitionSet(cParts);
+            NamedCache         cache      = getNamedCache("simple-recovery");
+            PartitionedService service    = (PartitionedService) cache.getCacheService();
+            int                cParts     = service.getPartitionCount();
+            PartitionSet       partsEmpty = new PartitionSet(cParts);
+            PartitionSet       parts0_20  = new PartitionSet(cParts);
+            PartitionSet       parts21_42 = new PartitionSet(cParts);
+            PartitionSet       partsAll   = new PartitionSet(cParts);
             partsAll.fill();
 
             for (int i = 0; i <= 20; i++)
@@ -299,6 +303,8 @@ public class SimpleRecoveryProtocolTests
 
             assertPartitionOwnership(service, new Object[][]
                     {{0, partsAll}});
+
+            sServiceName = service.getInfo().getServiceName();
 
             CoherenceClusterMember member = startCacheServer("testHalfOn3HalfOn4-1", getProjectName(), getCacheConfigPath(), props);
             Eventually.assertThat(invoking(member).getClusterSize(), is(2));
@@ -334,11 +340,12 @@ public class SimpleRecoveryProtocolTests
             }
         finally
             {
+            Cluster cluster = CacheFactory.ensureCluster();
+            cluster.suspendService(sServiceName);
             stopCacheServer("testHalfOn3HalfOn4-1");
             stopCacheServer("testHalfOn3HalfOn4-2");
             stopCacheServer("testHalfOn3HalfOn4-3");
             stopCacheServer("testHalfOn3HalfOn4-4");
-            Cluster cluster = CacheFactory.ensureCluster();
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
             CacheFactory.shutdown();
             }
@@ -347,20 +354,20 @@ public class SimpleRecoveryProtocolTests
     @Test
     public void testHalfOn3HalfMissing()
         {
+        String sServiceName = "";
         try
             {
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testHalfOn3HalfMissing");
 
-            NamedCache         cache          = getNamedCache("simple-recovery");
-            PartitionedService service        = (PartitionedService) cache.getCacheService();
-            String             sServiceName   = service.getInfo().getServiceName();
-            int          cParts               = service.getPartitionCount();
-            PartitionSet partsEmpty           = new PartitionSet(cParts);
-            PartitionSet parts0_20            = new PartitionSet(cParts);
-            PartitionSet parts21_42           = new PartitionSet(cParts);
-            PartitionSet partsAll             = new PartitionSet(cParts);
+            NamedCache         cache      = getNamedCache("simple-recovery");
+            PartitionedService service    = (PartitionedService) cache.getCacheService();
+            int                cParts     = service.getPartitionCount();
+            PartitionSet       partsEmpty = new PartitionSet(cParts);
+            PartitionSet       parts0_20  = new PartitionSet(cParts);
+            PartitionSet       parts21_42 = new PartitionSet(cParts);
+            PartitionSet       partsAll   = new PartitionSet(cParts);
             partsAll.fill();
 
             for (int i = 0; i <= 20; i++)
@@ -374,6 +381,8 @@ public class SimpleRecoveryProtocolTests
 
             assertPartitionOwnership(service, new Object[][]
                     {{0, partsAll}});
+
+            sServiceName = service.getInfo().getServiceName();
 
             CoherenceClusterMember member = startCacheServer("testHalfOn3HalfMissing-1", getProjectName(), getCacheConfigPath(), props);
             Eventually.assertThat(invoking(member).getClusterSize(), is(2));
@@ -401,20 +410,19 @@ public class SimpleRecoveryProtocolTests
             Eventually.assertThat(invoking(member).isServiceRunning(sServiceName), is(true));
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(4));
 
-            // COH-21767  wait to make sure ownership protocol complete
-            Base.sleep(2000);
-
             reportOwnership(service);
             assertPartitionOwnership(service, new Object[][]
                     {{0, partsEmpty}, {1, partsEmpty}, {3, partsEmpty}});
             }
         finally
             {
+            Cluster cluster = CacheFactory.ensureCluster();
+            cluster.suspendService(sServiceName);
             stopCacheServer("testHalfOn3HalfMissing-1");
             stopCacheServer("testHalfOn3HalfMissing-2");
             stopCacheServer("testHalfOn3HalfMissing-3");
             stopCacheServer("testHalfOn3HalfMissing-4");
-            Cluster cluster = CacheFactory.ensureCluster();
+
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
             CacheFactory.shutdown();
             }
