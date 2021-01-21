@@ -8,8 +8,11 @@ engine:
     libraries:
       - "asciidoctor-diagram"
     attributes:
+      source-highlighter: "highlight.js"
+      highlightjs-theme: "idea"
       plantumlconfig: "_plantuml-config.txt"
       coherence-maven-group-id: "${coherence.group.id}"
+      javadoc-root: "https://coherence.community/${revision}/api/java/"
       version-coherence-maven: "${revision}"
       version-coherence: "${project.version.official}"
       version-commercial-docs: "14.1.1.0"
@@ -31,6 +34,8 @@ pages:
     - includes:
         - "**/*.adoc"
       excludes:
+        - "examples/guides/README.adoc"
+        - "examples/tutorials/README.adoc"
 backend:
     name: "vuetify"
     homePage: "docs/about/01_overview.adoc"
@@ -43,14 +48,16 @@ backend:
         value: "docs/images/logo.png"
       items:
         - title: "Documentation"
+          pathprefix: "/docs"
           items:
             - title: "Official Documentation"
+              pathprefix: "/docs"
               glyph:
                 type: "icon"
                 value: "import_contacts"
               href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
             - title: "About"
-              pathprefix: "/about"
+              pathprefix: "/docs/about"
               glyph:
                 type: "icon"
                 value: "assistant"
@@ -94,7 +101,7 @@ backend:
                     - "coherence-grpc-proxy/README.adoc"
                     - "coherence-java-client/README.adoc"
             - title: "Coherence Metrics"
-              pathprefix: "/coherence-metrics"
+              pathprefix: "/coherence-micrometer"
               glyph:
                 type: "icon"
                 value: "speed"
@@ -117,9 +124,35 @@ backend:
               items:
                 - includes:
                     - "coherence-docker/README.adoc"
+        - title: "Guides and Tutorials"
+          pathprefix: "/examples"
+          items:
+            - title: "Overview"
+              pathprefix: "/examples"
+              items:
+                - includes:
+                    - "examples/README.adoc"
+            - title: "Guides"
+              pathprefix: "/guides"
+              glyph:
+                type: "icon"
+                value: "explore"
+              items:
+                - includes:
+                    - "examples/guides/**/*.adoc"
+            - title: "Tutorials"
+              pathprefix: "/tutorials"
+              glyph:
+                type: "icon"
+                value: "fa-graduation-cap"
+              items:
+                - includes:
+                    - "examples/tutorials/**/*.adoc"
         - title: "API Documentation"
+          pathprefix: "/api-docs"
           items:
             - title: "Coherence CE Java API"
+              pathprefix: "/api-docs"
               glyph:
                 type: "icon"
                 value: "library_books"

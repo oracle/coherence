@@ -36,7 +36,7 @@ These capabilities, in addition to numerous other features, enable Coherence to 
 ====
 [CARD]
 .Coherence
-[icon=explore,link=docs/about/02_introduction.adoc]
+[icon=assistant,link=docs/about/02_introduction.adoc]
 --
 What is Oracle Coherence?
 --
@@ -46,6 +46,13 @@ What is Oracle Coherence?
 [icon=fa-rocket,link=docs/about/03_quickstart.adoc]
 --
 A quick-start guide to using Coherence.
+--
+
+[CARD]
+.Guides & Tutorials
+[icon=fa-graduation-cap,link=examples/README.adoc]
+--
+Guides, examples and tutorial about Coherence features and best practice.
 --
 
 [CARD]

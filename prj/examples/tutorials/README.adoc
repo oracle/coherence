@@ -1,0 +1,34 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Tutorials
+:description: Coherence Tutorials
+:keywords: coherence, java, documentation, tutorials
+
+// # tag::text[]
+== Tutorials
+
+These tutorials provide a deeper understanding of larger Coherence features and concepts that cannot be usually be
+explained with a few simple code snippets. They might, for example, require a running Coherence cluster to properly show
+a feature.
+Tutorials are typically built as a combination Maven and Gradle project including the corresponding wrappers for those tools
+making them simple to build as stand-alone projects without needing to build the whole Coherence source tree.
+
+[PILLARS]
+====
+[CARD]
+.Tutorial One
+[link=directory-name/README.adoc]
+--
+A Coherence tutorial...
+--
+
+====
+
+
+// DO NOT ADD CONTENT AFTER THIS LINE
+// # end::text[]
+

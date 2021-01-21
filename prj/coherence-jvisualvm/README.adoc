@@ -49,7 +49,7 @@ $ git clone https://github.com/oracle/visualvm.git
 Cloning into 'visualvm'...
 ----
 
-1. Checkout the `release202` branch
+2. Checkout the `release202` branch
 +
 [source,shell]
 ----
@@ -60,7 +60,7 @@ $ git checkout release202
 Switched to a new branch 'release202'
 ----
 
-1. Unzip the NetBeans Platform 11
+3. Unzip the NetBeans Platform 11
 +
 [source,shell]
 ----
@@ -69,14 +69,14 @@ $ cd visualvm
 $ unzip nb111_platform_08102019.zip
 ----
 
-1. Build the Plugins
+4. Build the Plugins
 +
 [source,shell]
 ----
 $ ant build-zip
 ----
 
-1. Unzip the artefacts
+5. Unzip the artefacts
 +
 [source,shell]
 ----
@@ -87,14 +87,14 @@ $ unzip visualvm.zip
 $ cd ..
 ----
 
-1. Generate the NBM's
+6. Generate the NBM's
 +
 [source,shell]
 ----
 $ ant nbms
 ----
 
-1. Install into the local repository
+7. Install into the local repository
 +
 [source,shell]
 ----
@@ -118,7 +118,7 @@ NOTE: Ensure you change to a completely new directory to close the Coherence CE 
 $ https://github.com/oracle/coherence.git
 ----
 
-1. Build the Plugin
+2. Build the Plugin
 +
 [source,shell]
 ----
@@ -127,7 +127,7 @@ $ cd coherence/prj/coherence-jvisualvm
 $ mvn clean install -P visualvm
 ----
 
-1. Install the Plugin
+3. Install the Plugin
 +
 The plugin will be available in the location `target/coherence-jvisualvm-{version-coherence-maven}.nbm`
 

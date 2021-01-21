@@ -42,7 +42,7 @@ When putting version numbers in `.adoc` files, we use attribute substitutions.
 Attributes are set in the `sitegen.yaml` file, for example
 
 [source,yaml]
-====
+----
 engine:
   asciidoctor:
     images-dir: "docs/images"
@@ -54,7 +54,7 @@ engine:
       version-coherence: "${revision}"
       version-commercial-docs: "14.1.1.0"
       version-helidon: "${helidon.version}"
-====
+----
 
 The format of an attribute is name followed by a colon, and the attribute value in quotes,
 so above the value of the `version-commercial-docs` attribute is `14.1.1.0`.

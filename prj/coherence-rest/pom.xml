@@ -341,10 +341,20 @@
         </executions>
       </plugin>
 
+      <!-- flatten plugin MUST come after the shade plugin -->
       <!-- flatten POM to remove build-specific content -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>flatten</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>flatten</goal>
+                </goals>
+            </execution>
+        </executions>
       </plugin>
 
       <plugin>

@@ -1,0 +1,38 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Guides
+:description: Coherence Guides
+:keywords: coherence, java, documentation
+
+// # tag::text[]
+== Guides
+
+These simple guides are designed to be a quick hands-on introduction to a specific feature of Coherence.
+In most cases they require nothing more than a Coherence jar and an IDE (or a text editor it you're really old-school).
+Guides are typically built as a combination Maven and Gradle project including the corresponding wrappers for those tools
+making them simple to build as stand-alone projects without needing to build the whole Coherence source tree.
+
+[PILLARS]
+====
+[CARD]
+.Put Get and Remove
+[link=examples/guides/100-put-get-remove/README.adoc]
+--
+A guide showing basic CRUD `put`, `get`, and `remove` operations on a `NamedMap`.
+--
+
+[CARD]
+.Queries
+[link=examples/guides/110-queries/README.adoc]
+--
+A guide to the basic querying APIs in `NamedMap` and `NamedCache`.
+--
+
+====
+
+// DO NOT ADD CONTENT AFTER THIS LINE
+// # end::text[]

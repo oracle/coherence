@@ -33,6 +33,45 @@
       </plugin>
 
       <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>3.0.0</version>
+      </plugin>
+
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+        <version>${maven.site.plugin.version}</version>
+          <inherited>false</inherited>
+          <configuration>
+              <skip>false</skip>
+              <siteDirectory>docs</siteDirectory>
+          </configuration>
+          <dependencies>
+              <dependency>
+                  <groupId>io.helidon.build-tools</groupId>
+                  <artifactId>sitegen-maven-plugin</artifactId>
+                  <version>${helidon.sitegen.version}</version>
+              </dependency>
+              <dependency>
+                  <groupId>org.asciidoctor</groupId>
+                  <artifactId>asciidoctorj-diagram</artifactId>
+                  <version>${asciidoctor.diagram.version}</version>
+              </dependency>
+            <dependency>
+                <groupId>org.apache.maven.doxia</groupId>
+                <artifactId>doxia-site-renderer</artifactId>
+                <version>1.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.doxia</groupId>
+                <artifactId>doxia-core</artifactId>
+                <version>1.6</version>
+            </dependency>
+          </dependencies>
+      </plugin>
+
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
