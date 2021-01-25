@@ -14,6 +14,9 @@ on:
     types:
     - completed
 
+env:
+  MAVEN_OPTS: "-Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3"
+
 jobs:
   build:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
