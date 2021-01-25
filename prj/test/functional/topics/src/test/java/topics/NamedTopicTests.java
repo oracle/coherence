@@ -6,6 +6,7 @@
  */
 package topics;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
@@ -36,6 +37,7 @@ import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.Base;
 
 import org.junit.Assume;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 import org.junit.Test;
@@ -81,6 +83,15 @@ public class NamedTopicTests
             // disable extend testing since not currently supported
             //, {"pof", true}, {"java", true}
             });
+        }
+
+    @BeforeClass
+    public static void setup() throws Exception
+        {
+        System.setProperty("coherence.topic.publisher.close.timeout", "2s");
+
+        String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
+        System.setProperty("coherence.localhost", sHost);
         }
 
     // ----- test methods ---------------------------------------------------
@@ -248,6 +259,7 @@ public class NamedTopicTests
         new CoherenceClusterOrchestration()
                 .withOptions(ClusterName.of("TopicTests"),
                     CacheConfig.of(CACHE_CONFIG_FILE),
+                        SystemProperty.of("coherence.localhost", "127.0.0.1"),
                         SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
                         SystemProperty.of("coherence.management", "all"),
                         SystemProperty.of("coherence.management.remote", "true"),

@@ -10,6 +10,8 @@ package topics;
 import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
+
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
@@ -27,6 +29,7 @@ import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Session;
 import com.tangosol.util.Base;
 
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 /**
@@ -42,6 +45,17 @@ public class DefaultConfigPofSerializerTopicTests
     public DefaultConfigPofSerializerTopicTests()
         {
         super("pof");
+        }
+
+    // ----- test lifecycle methods -----------------------------------------
+
+    @BeforeClass
+    public static void setup() throws Exception
+        {
+        System.setProperty("coherence.topic.publisher.close.timeout", "2s");
+
+        String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
+        System.setProperty("coherence.localhost", sHost);
         }
 
     // ----- helpers --------------------------------------------------------
@@ -89,6 +103,7 @@ public class DefaultConfigPofSerializerTopicTests
                 CacheConfig.of(CACHE_CONFIG_FILE),
                 Pof.enabled(),
                 Pof.config("pof-config.xml"),
+                SystemProperty.of("coherence.localhost", "127.0.0.1"),
                 SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
                 SystemProperty.of("coherence.management", "all"),
                 SystemProperty.of("coherence.management.remote", "true"),
