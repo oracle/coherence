@@ -6,6 +6,7 @@
  */
 package topics;
 
+import com.oracle.bedrock.deferred.DeferredHelper;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Timeout;
 
@@ -198,6 +199,8 @@ public class PersistenceTestHelper
         boolean fisIdle;
         String sBeanName = getMBeanName(sServiceName);
         
+
+        System.out.println("Operation=" + sOperation + ", service=" + sServiceName + ", snapshot=" + sSnapshot);
         Eventually.assertDeferred("Ensure PersistenceCoordinator MBean " + sBeanName,
             () -> m_mbsProxy.isMBeanRegistered(sBeanName), is(true),
             DeferredHelper.within(2, TimeUnit.MINUTES));
