@@ -331,39 +331,11 @@
 
       <!-- Helidon -->
       <dependency>
-        <groupId>io.helidon.config</groupId>
-        <artifactId>helidon-config-yaml</artifactId>
+        <groupId>io.helidon</groupId>
+        <artifactId>helidon-bom</artifactId>
         <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.microprofile.config</groupId>
-        <artifactId>helidon-microprofile-config</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.microprofile.bundles</groupId>
-        <artifactId>helidon-microprofile-core</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.microprofile.metrics</groupId>
-        <artifactId>helidon-microprofile-metrics</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.microprofile.grpc</groupId>
-        <artifactId>helidon-microprofile-grpc-server</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.microprofile.grpc</groupId>
-        <artifactId>helidon-microprofile-grpc-client</artifactId>
-        <version>${helidon.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.helidon.grpc</groupId>
-        <artifactId>helidon-grpc-core</artifactId>
-        <version>${helidon.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
       <!-- jackson -->
