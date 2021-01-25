@@ -503,17 +503,30 @@
       </activation>
       <build>
           <plugins>
-            <!-- license-maven-plugin using Git to validate copyright dates -->
             <plugin>
-              <groupId>com.mycila</groupId>
-              <artifactId>license-maven-plugin</artifactId>
-<!--              <dependencies>-->
-<!--                <dependency>-->
-<!--                  <groupId>com.mycila</groupId>-->
-<!--                  <artifactId>license-maven-plugin-git</artifactId>-->
-<!--                  <version>${maven.license.plugin.version}</version>-->
-<!--                </dependency>-->
-<!--              </dependencies>-->
+              <groupId>org.glassfish.copyright</groupId>
+              <artifactId>glassfish-copyright-maven-plugin</artifactId>
+              <version>2.4</version>
+              <configuration>
+                <excludeFile>${top.parent.basedir}/etc/copyright-exclude.txt</excludeFile>
+                <templateFile>${top.parent.basedir}/etc/header.txt</templateFile>
+<!--                <debug>true</debug>-->
+                <ignoreYear>true</ignoreYear>
+                <alternateTemplateFiles>
+                  <alternateTemplateFile>${top.parent.basedir}/etc/header-2.txt</alternateTemplateFile>
+                  <alternateTemplateFile>${top.parent.basedir}/etc/header-3.txt</alternateTemplateFile>
+                </alternateTemplateFiles>
+              </configuration>
+              <executions>
+                <execution>
+                  <id>check</id>
+                  <goals>
+                    <goal>copyright</goal>
+                    <goal>check</goal>
+                  </goals>
+                  <phase>verify</phase>
+                </execution>
+              </executions>
             </plugin>
           </plugins>
       </build>
