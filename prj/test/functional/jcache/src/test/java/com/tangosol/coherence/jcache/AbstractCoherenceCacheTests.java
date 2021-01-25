@@ -1302,8 +1302,7 @@ public abstract class AbstractCoherenceCacheTests
         CompletionListenerFuture future = new CompletionListenerFuture();
 
         iiCache.loadAll(keys, false, future);
-
-        future.get(FUTURE_WAIT_MILLIS, TimeUnit.MILLISECONDS);
+        future.get(30, TimeUnit.SECONDS);
         assertTrue(future.isDone());
 
         assertEquals(1, loader.getLoadCount());
@@ -1522,7 +1521,7 @@ public abstract class AbstractCoherenceCacheTests
         }
 
     // ----- constants ------------------------------------------------------
-    protected static final long                        FUTURE_WAIT_MILLIS = 100;
+
     static final CacheEntryEventFilter<String, String> ALL                = null;
     static final CacheEntryEventFilter<Long, String>   ALL_LS             = null;
 
