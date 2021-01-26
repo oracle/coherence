@@ -10,7 +10,8 @@
 -----
 <img src=https://oracle.github.io/coherence/assets/images/logo-red.png><img>
 
-![CI Build](https://github.com/oracle/coherence/workflows/CI%20Build/badge.svg)
+[![CI Build](https://github.com/oracle/coherence/workflows/CI%20Build/badge.svg?branch=master)](https://github.com/oracle/coherence/actions?query=workflow%3A%22CI+Build%22+branch%3Amaster)
+[![Maven Central](https://img.shields.io/maven-central/v/com.oracle.coherence.ce/coherence.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.oracle.coherence.ce%22)
 [![License](http://img.shields.io/badge/license-UPL%201.0-blue.svg)](https://oss.oracle.com/licenses/upl/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/oraclecoherence/coherence-ce)](https://hub.docker.com/r/oraclecoherence/coherence-ce)
 
