@@ -1075,6 +1075,10 @@ public class SSLSocketProviderDependenciesBuilder
                     }
                 }
 
+            if (!fMatched)
+                {
+                CacheFactory.err("DefaultHostnameVerifier rejecting hostname " + sUrlHostname);
+                }
             return fMatched;
             }
 
