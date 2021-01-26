@@ -210,6 +210,9 @@
                   <!-- META-INF/services order for opentracing should be newest to oldest -->
                   <include>${coherence.group.id}:opentracing-0.33</include>
                 </includes>
+                <excludes>
+                  <exclude>${coherence.group.id}:coherence-core:*:sources</exclude>
+                </excludes>
               </artifactSet>
               <filters>
                 <filter>
@@ -397,7 +400,9 @@
               <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <artifact>com.oracle.coherence.ce:coherence-core:jar:sources:${project.version}</artifact>
+              <includeGroupIds>com.oracle.coherence.ce</includeGroupIds>
+              <includeArtifactIds>coherence-core</includeArtifactIds>
+              <includeClassifiers>sources</includeClassifiers>
               <failOnMissingClassifierArtifact>false</failOnMissingClassifierArtifact>
               <outputDirectory>${project.build.directory}/sources</outputDirectory>
               <includes>**/*.java</includes>
