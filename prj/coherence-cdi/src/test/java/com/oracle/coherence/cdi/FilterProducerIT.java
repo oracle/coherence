@@ -18,10 +18,6 @@ import javax.enterprise.util.Nonbinding;
 
 import javax.inject.Inject;
 
-import com.oracle.coherence.inject.AlwaysFilter;
-import com.oracle.coherence.inject.FilterBinding;
-import com.oracle.coherence.inject.FilterFactory;
-import com.oracle.coherence.inject.WhereFilter;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;

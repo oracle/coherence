@@ -6,9 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.event.EventObserverSupport;
-
-import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.cdi.events.EventObserverSupport;
 
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;

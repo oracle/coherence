@@ -93,8 +93,7 @@ If that's not the case, you can use `@Name` qualifier to specify the name of the
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.tangosol.net.NamedMap;
+import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -106,8 +105,7 @@ This is also what you have to do if you are using constructor injection or sette
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.tangosol.net.NamedMap;
+import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -130,8 +128,7 @@ that will be used to supply the cache or map:
 
 [source,java]
 ----
-import com.oracle.coherence.inject.SessionName;
-import com.tangosol.net.NamedMap;
+import com.oracle.coherence.cdi.SessionName;
 import javax.inject.Inject;
 
 @Inject
@@ -148,8 +145,7 @@ respectively, in order to inject  asynchronous variant of those APIs:
 
 [source,java]
 ----
-import com.oracle.coherence.inject.SessionName;
-import com.tangosol.net.AsyncNamedMap;
+import com.oracle.coherence.cdi.SessionName;
 import javax.inject.Inject;
 
 @Inject
@@ -166,9 +162,7 @@ You can also inject *views*, by simply adding `View` qualifier to either `NamedM
 
 [source,java]
 ----
-import com.oracle.coherence.inject.View;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedMap;
+import com.oracle.coherence.cdi.View;
 import javax.inject.Inject;
 
 @Inject
@@ -187,10 +181,9 @@ If you want to limit the data in the view to a subset, you can implement a <<fil
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.View;
-import com.oracle.coherence.inject.WhereFilter;
-import com.tangosol.net.NamedMap;
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.View;
+import com.oracle.coherence.cdi.WhereFilter;
 import javax.inject.Inject;
 
 @Inject
@@ -216,10 +209,9 @@ In that case, you can implement a custom <<custom-extractor,ExtractorBinding>> (
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.View;
-import com.oracle.coherence.inject.PropertyExtractor;
-import com.tangosol.net.NamedMap;
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.View;
+import com.oracle.coherence.cdi.PropertyExtractor;
 import javax.inject.Inject;
 
 @Inject
@@ -252,7 +244,7 @@ If that's not the case, you  can use `@Name` qualifier to specify the name of th
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.cdi.Name;
 import com.tangosol.net.NamedTopic;
 import javax.inject.Inject;
 
@@ -265,7 +257,7 @@ This is also what you have to do if you are using constructor or setter injectio
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.cdi.Name;
 import com.tangosol.net.NamedTopic;
 import javax.inject.Inject;
 
@@ -289,7 +281,7 @@ that will be used to supply the topic:
 
 [source,java]
 ----
-import com.oracle.coherence.inject.SessionName;
+import com.oracle.coherence.cdi.SessionName;
 import com.tangosol.net.NamedTopic;
 import javax.inject.Inject;
 
@@ -309,9 +301,8 @@ This can be easily accomplished by replacing `NamedTopic<T>` in any of the examp
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.SessionName;
-import com.tangosol.net.topic.Publisher;
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.SessionName;
 import javax.inject.Inject;
 
 @Inject
@@ -330,9 +321,8 @@ or `Subscriber<T>`:
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.SessionName;
-import com.tangosol.net.topic.Subscriber;
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.SessionName;
 import javax.inject.Inject;
 
 @Inject
@@ -356,8 +346,7 @@ queue), you can easily accomplish that by adding `@SubscriberGroup` qualifier to
 
 [source,java]
 ----
-import com.oracle.coherence.inject.SubscriberGroup;
-import com.tangosol.net.topic.Subscriber;
+import com.oracle.coherence.cdi.SubscriberGroup;
 import javax.inject.Inject;
 
 @Inject
@@ -410,7 +399,7 @@ For example:
 
 [source,java]
 ----
-import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.cdi.SessionInitializer;
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
@@ -429,11 +418,12 @@ will be created and can then be injected into other beans.
 
 A simpler way to create a `SessionConfiguration` is to implement the `SessionIntializer` interface and annotate the class.
 For example:
+
 [source,java]
 ----
-import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Scope;
-import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.cdi.ConfigUri;
+import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.cdi.SessionInitializer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
@@ -466,8 +456,7 @@ specifying the `Session` name:
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.tangosol.net.Session;
+import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -501,8 +490,7 @@ can be easily accomplished using `@Name` qualifier:
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.tangosol.io.Serializer;
+import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -537,8 +525,7 @@ as the named serializers defined in the operational config:
 
 [source,java]
 ----
-import com.oracle.coherence.inject.Name;
-import com.tangosol.io.Serializer;
+import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -553,9 +540,8 @@ which uses a specific POF configuration file.
 
 [source,java]
 ----
-import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Name;
-import com.tangosol.io.Serializer;
+import com.oracle.coherence.cdi.ConfigUri;
+import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject

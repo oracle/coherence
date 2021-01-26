@@ -10,17 +10,6 @@ package com.oracle.coherence.cdi;
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
 
-import com.oracle.coherence.inject.AlwaysFilter;
-import com.oracle.coherence.inject.ChainedExtractor;
-import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.PropertyExtractor;
-import com.oracle.coherence.inject.Scope;
-import com.oracle.coherence.inject.SessionInitializer;
-import com.oracle.coherence.inject.SessionName;
-import com.oracle.coherence.inject.View;
-import com.oracle.coherence.inject.WhereFilter;
-
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheMap;

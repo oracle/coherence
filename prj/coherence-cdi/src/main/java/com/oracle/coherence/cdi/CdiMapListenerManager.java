@@ -6,8 +6,8 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.event.AnnotatedMapListenerManager;
-import com.oracle.coherence.event.Created;
+import com.oracle.coherence.cdi.events.AnnotatedMapListenerManager;
+import com.oracle.coherence.cdi.events.Created;
 
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 

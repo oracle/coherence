@@ -6,11 +6,6 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.Scope;
-import com.oracle.coherence.inject.SessionInitializer;
-import com.oracle.coherence.inject.SessionName;
 import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.cache.CacheMap;

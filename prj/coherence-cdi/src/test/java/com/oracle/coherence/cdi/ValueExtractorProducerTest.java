@@ -11,9 +11,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.oracle.coherence.inject.ChainedExtractor;
-import com.oracle.coherence.inject.PofExtractor;
-import com.oracle.coherence.inject.PropertyExtractor;
 import com.oracle.coherence.cdi.data.Person;
 import com.oracle.coherence.cdi.data.PhoneNumber;
 

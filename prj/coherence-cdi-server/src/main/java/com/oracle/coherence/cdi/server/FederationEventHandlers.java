@@ -6,20 +6,20 @@
  */
 package com.oracle.coherence.cdi.server;
 
-import com.oracle.coherence.event.EventObserverSupport;
+import com.oracle.coherence.cdi.events.EventObserverSupport;
 
-import com.oracle.coherence.event.Backlog;
-import com.oracle.coherence.event.Connecting;
-import com.oracle.coherence.event.Disconnected;
-import com.oracle.coherence.event.Error;
-import com.oracle.coherence.event.CommittingLocal;
-import com.oracle.coherence.event.ParticipantName;
-import com.oracle.coherence.event.CommittingRemote;
-import com.oracle.coherence.event.Replicating;
-import com.oracle.coherence.event.Synced;
-import com.oracle.coherence.event.Syncing;
+import com.oracle.coherence.cdi.events.Backlog;
+import com.oracle.coherence.cdi.events.Connecting;
+import com.oracle.coherence.cdi.events.Disconnected;
+import com.oracle.coherence.cdi.events.Error;
+import com.oracle.coherence.cdi.events.CommittingLocal;
+import com.oracle.coherence.cdi.events.ParticipantName;
+import com.oracle.coherence.cdi.events.CommittingRemote;
+import com.oracle.coherence.cdi.events.Replicating;
+import com.oracle.coherence.cdi.events.Synced;
+import com.oracle.coherence.cdi.events.Syncing;
 
-import com.oracle.coherence.event.EventObserverSupport.EventObserver;
+import com.oracle.coherence.cdi.events.EventObserverSupport.EventObserver;
 
 import com.tangosol.net.events.EventDispatcher;
 

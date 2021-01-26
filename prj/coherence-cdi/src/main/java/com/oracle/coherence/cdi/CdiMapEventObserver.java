@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.event.AnnotatedMapListener;
+import com.oracle.coherence.cdi.events.AnnotatedMapListener;
 import com.tangosol.util.MapEvent;
 
 import javax.enterprise.inject.spi.ObserverMethod;

@@ -8,12 +8,11 @@
 package com.oracle.coherence.helidon.client;
 
 import com.oracle.coherence.cdi.CdiMapListenerManager;
-import com.oracle.coherence.event.AnnotatedMapListener;
-import com.oracle.coherence.cdi.CoherenceExtension;
+import com.oracle.coherence.cdi.events.AnnotatedMapListener;
 
-import com.oracle.coherence.inject.SessionName;
+import com.oracle.coherence.cdi.SessionName;
 
-import com.oracle.coherence.event.MapName;
+import com.oracle.coherence.cdi.events.MapName;
 import com.oracle.coherence.common.base.Exceptions;
 
 import com.tangosol.net.Session;
@@ -32,7 +31,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import java.util.concurrent.CompletableFuture;

@@ -6,26 +6,26 @@
  */
 package com.oracle.coherence.cdi.server;
 
-import com.oracle.coherence.event.EventObserverSupport;
+import com.oracle.coherence.cdi.events.EventObserverSupport;
 import com.oracle.coherence.cdi.CoherenceExtension;
 
-import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.Scope;
-import com.oracle.coherence.inject.SessionInitializer;
+import com.oracle.coherence.cdi.ConfigUri;
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.cdi.SessionInitializer;
 
-import com.oracle.coherence.event.MapName;
-import com.oracle.coherence.event.ScopeName;
-import com.oracle.coherence.event.ServiceName;
-import com.oracle.coherence.event.CacheName;
-import com.oracle.coherence.event.Created;
-import com.oracle.coherence.event.Destroyed;
-import com.oracle.coherence.event.Executed;
-import com.oracle.coherence.event.Executing;
-import com.oracle.coherence.event.Inserted;
-import com.oracle.coherence.event.Processor;
-import com.oracle.coherence.event.Removed;
-import com.oracle.coherence.event.Updated;
+import com.oracle.coherence.cdi.events.MapName;
+import com.oracle.coherence.cdi.events.ScopeName;
+import com.oracle.coherence.cdi.events.ServiceName;
+import com.oracle.coherence.cdi.events.CacheName;
+import com.oracle.coherence.cdi.events.Created;
+import com.oracle.coherence.cdi.events.Destroyed;
+import com.oracle.coherence.cdi.events.Executed;
+import com.oracle.coherence.cdi.events.Executing;
+import com.oracle.coherence.cdi.events.Inserted;
+import com.oracle.coherence.cdi.events.Processor;
+import com.oracle.coherence.cdi.events.Removed;
+import com.oracle.coherence.cdi.events.Updated;
 
 import com.oracle.coherence.cdi.server.data.Person;
 import com.oracle.coherence.cdi.server.data.PhoneNumber;
@@ -52,12 +52,9 @@ import com.tangosol.util.InvocableMap;
 
 import java.time.LocalDate;
 
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
