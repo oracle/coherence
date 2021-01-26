@@ -1077,6 +1077,10 @@ public class SSLSocketProviderDependenciesBuilder
                     }
                 }
 
+            if (!fMatched)
+                {
+                Logger.err("DefaultHostnameVerifier rejecting hostname " + sUrlHostname);
+                }
             return fMatched;
             }
 
