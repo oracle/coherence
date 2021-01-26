@@ -243,21 +243,42 @@ public class DistExtendDirectTests
 
         double cpuAfter = getCPUAverage();
         double result   = cpuAfter - cpuBefore;
-        if (result > .12)
+
+        System.out.println(String.format("testPortScan CPU usages before and after the test: before=%f, after=%f, delta=%f, expected-delta=<.1", cpuBefore, cpuAfter, result));
+        if (result > .1)
             {
-            String message = String.format("testPortScan failed due to high CPU usage after the test: before=%f, after=%f, delta=%f, expected-delta=<.1", cpuBefore, cpuAfter, result);
-            System.out.println(message);
-            System.out.println("Gathering thread dumps ...");
+            System.out.println("testPortScan detected higher CPU usage after the test, gathering thread dumps to check whether thread is busy...");
+            int cSuccess = 0;
             for (int i = 0; i < 5; i++)
                 {
-                String dump = m_cMember.invoke(new RemoteThreadDump());
+                String dump     = m_cMember.invoke(new RemoteThreadDump());
+                int    cTcpProc = dump.indexOf("Proxy:ExtendTcpProxyService:TcpAcceptor:TcpProcessor");
+                int    cDaemon  = dump.indexOf("com.tangosol.coherence.component.util.Daemon.run", cTcpProc);
+                int    cDiff    = cDaemon - cTcpProc;
+
+                System.out.println("cDiff: " + cDiff);
                 Blocking.sleep(1000);
-                System.out.println(String.format("\n====== BEGIN DUMP %s =====\n", i));
-                System.out.println(dump);
-                System.out.println(String.format("\n====== END DUMP %s =====\n", i));
+
+                // cDiff should be less than 1500 characters; otherwise,
+                // the Proxy:ExtendTcpProxyService:TcpAcceptor:TcpProcessor
+                // thread is busy doing work.
+                if (cDiff < 1500)
+                    {
+                    cSuccess++;
+                    }
+                else
+                    {
+                    System.out.println(String.format("\n====== BEGIN DUMP %s =====\n", i));
+                    System.out.println(dump);
+                    System.out.println(String.format("\n====== END DUMP %s =====\n", i));
+                    }
                 }
-            System.out.println("Thread dumps complete.");
-            fail(message);
+
+            // fail the test if found busy thread
+            if (cSuccess < 5)
+                {
+                fail("Detected busy thread. See thread dump(s) for details.");
+                }
             }
         }
 
