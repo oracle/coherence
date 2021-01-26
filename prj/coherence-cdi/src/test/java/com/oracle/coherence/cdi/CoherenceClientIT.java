@@ -6,8 +6,6 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.inject.Scope;
-import com.oracle.coherence.inject.SessionInitializer;
 import com.tangosol.net.Coherence;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;

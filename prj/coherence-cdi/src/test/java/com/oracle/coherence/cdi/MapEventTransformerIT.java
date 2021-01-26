@@ -7,11 +7,6 @@
 
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.inject.ChainedExtractor;
-import com.oracle.coherence.inject.MapEventTransformerBinding;
-import com.oracle.coherence.inject.MapEventTransformerFactory;
-import com.oracle.coherence.inject.PofExtractor;
-import com.oracle.coherence.inject.PropertyExtractor;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.ValueExtractor;

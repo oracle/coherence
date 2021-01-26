@@ -6,7 +6,6 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.inject.Name;
 import com.tangosol.net.Coherence;
 
 import javax.annotation.Priority;

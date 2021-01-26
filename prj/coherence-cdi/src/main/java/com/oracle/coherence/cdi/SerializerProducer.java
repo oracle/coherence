@@ -6,8 +6,6 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Name;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.NamedSerializerFactory;

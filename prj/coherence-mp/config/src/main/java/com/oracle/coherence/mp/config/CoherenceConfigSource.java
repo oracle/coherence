@@ -7,9 +7,9 @@
 package com.oracle.coherence.mp.config;
 
 import com.oracle.coherence.common.base.Classes;
-import com.oracle.coherence.event.Activated;
-import com.oracle.coherence.event.MapName;
-import com.oracle.coherence.event.ScopeName;
+import com.oracle.coherence.cdi.events.Activated;
+import com.oracle.coherence.cdi.events.MapName;
+import com.oracle.coherence.cdi.events.ScopeName;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.net.CacheService;
@@ -19,9 +19,6 @@ import com.tangosol.net.NamedMap;
 
 import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
-import com.tangosol.net.events.EventInterceptor;
-import com.tangosol.net.events.annotation.CacheLifecycleEvents;
-import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.application.LifecycleEvent;
 
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;

@@ -6,10 +6,6 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.SessionName;
-
-import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 

@@ -8,7 +8,7 @@ package com.oracle.coherence.cdi.server;
 
 import com.oracle.coherence.cdi.CoherenceProducer;
 
-import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.cdi.Name;
 
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;

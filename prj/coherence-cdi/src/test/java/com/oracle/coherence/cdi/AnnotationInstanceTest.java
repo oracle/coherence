@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 
 import javax.enterprise.util.Nonbinding;
 
-import com.oracle.coherence.inject.AnnotationInstance;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

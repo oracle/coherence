@@ -6,11 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.event.AnnotatedMapListener;
-import com.oracle.coherence.inject.AnnotationInstance;
-import com.oracle.coherence.inject.ExtractorBinding;
-import com.oracle.coherence.inject.MapEventTransformerBinding;
-import com.oracle.coherence.inject.MapEventTransformerFactory;
+import com.oracle.coherence.cdi.events.AnnotatedMapListener;
 import com.tangosol.util.MapEventTransformer;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.transformer.ExtractorEventTransformer;

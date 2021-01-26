@@ -6,12 +6,7 @@
  */
 package com.oracle.coherence.cdi;
 
-import com.oracle.coherence.event.AnnotatedMapListener;
-import com.oracle.coherence.inject.AlwaysFilter;
-import com.oracle.coherence.inject.AnnotationInstance;
-import com.oracle.coherence.inject.FilterBinding;
-import com.oracle.coherence.inject.FilterFactory;
-import com.oracle.coherence.inject.WhereFilter;
+import com.oracle.coherence.cdi.events.AnnotatedMapListener;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.QueryHelper;

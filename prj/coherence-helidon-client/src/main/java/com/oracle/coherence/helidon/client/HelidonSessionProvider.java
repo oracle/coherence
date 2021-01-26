@@ -10,7 +10,7 @@ package com.oracle.coherence.helidon.client;
 import com.oracle.coherence.client.GrpcSessionConfiguration;
 import com.oracle.coherence.client.GrpcSessionProvider;
 
-import com.oracle.coherence.inject.Name;
+import com.oracle.coherence.cdi.Name;
 
 import com.tangosol.io.Serializer;
 

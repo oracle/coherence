@@ -10,17 +10,17 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
 
-import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.Scope;
-import com.oracle.coherence.inject.SessionInitializer;
-import com.oracle.coherence.event.Activated;
-import com.oracle.coherence.event.Activating;
-import com.oracle.coherence.event.CacheName;
-import com.oracle.coherence.event.Created;
-import com.oracle.coherence.event.Destroyed;
-import com.oracle.coherence.event.Disposing;
-import com.oracle.coherence.event.ServiceName;
+import com.oracle.coherence.cdi.ConfigUri;
+import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.cdi.SessionInitializer;
+import com.oracle.coherence.cdi.events.Activated;
+import com.oracle.coherence.cdi.events.Activating;
+import com.oracle.coherence.cdi.events.CacheName;
+import com.oracle.coherence.cdi.events.Created;
+import com.oracle.coherence.cdi.events.Destroyed;
+import com.oracle.coherence.cdi.events.Disposing;
+import com.oracle.coherence.cdi.events.ServiceName;
 
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.NamedCache;
