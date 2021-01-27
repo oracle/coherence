@@ -21,6 +21,7 @@
       <useTransitiveDependencies>false</useTransitiveDependencies>
       <useProjectArtifact>false</useProjectArtifact>
       <unpack>true</unpack>
+      <scope>test</scope>
     </dependencySet>
   </dependencySets>
 </assembly>
