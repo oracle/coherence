@@ -39,6 +39,8 @@
       <artifactId>coherence-core</artifactId>
       <version>${project.version}</version>
       <classifier>sources</classifier>
+      <!-- A slight hack - test scope so that this dependency does not appear in the flattened pom -->
+      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -390,6 +392,7 @@
               <includeGroupIds>com.oracle.coherence.ce</includeGroupIds>
               <includeArtifactIds>coherence-core</includeArtifactIds>
               <includeClassifiers>sources</includeClassifiers>
+              <includeScope>test</includeScope>
               <failOnMissingClassifierArtifact>false</failOnMissingClassifierArtifact>
               <outputDirectory>${project.build.directory}/sources</outputDirectory>
               <includes>**/*.java</includes>
