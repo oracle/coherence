@@ -1943,27 +1943,31 @@
       <build>
           <plugins>
             <plugin>
-              <groupId>org.glassfish.copyright</groupId>
-              <artifactId>glassfish-copyright-maven-plugin</artifactId>
-              <version>2.4</version>
-              <configuration>
-                <excludeFile>${top.parent.basedir}/etc/copyright-exclude.txt</excludeFile>
-                <templateFile>${top.parent.basedir}/etc/header.txt</templateFile>
-<!--                <debug>true</debug>-->
-                <ignoreYear>true</ignoreYear>
-                <alternateTemplateFiles>
-                  <alternateTemplateFile>${top.parent.basedir}/etc/header-2.txt</alternateTemplateFile>
-                  <alternateTemplateFile>${top.parent.basedir}/etc/header-3.txt</alternateTemplateFile>
-                </alternateTemplateFiles>
-              </configuration>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
               <executions>
                 <execution>
-                  <id>check</id>
+                  <id>copyright-check</id>
                   <goals>
-                    <goal>copyright</goal>
-                    <goal>check</goal>
+                    <goal>exec</goal>
                   </goals>
-                  <phase>verify</phase>
+                  <phase>validate</phase>
+                  <configuration>
+                    <executable>sh</executable>
+                    <arguments>
+                      <argument>${top.parent.basedir}/etc/copyright-check.sh</argument>
+                      <argument>-c</argument>
+                      <argument>-X</argument>
+                      <argument>@${top.parent.basedir}/etc/copyright-exclude.txt</argument>
+                      <argument>-C</argument>
+                      <argument>${top.parent.basedir}/etc/header.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-2.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-3.txt</argument>
+                      <argument>-y</argument>
+                    </arguments>
+                  </configuration>
                 </execution>
               </executions>
             </plugin>
