@@ -8,6 +8,8 @@ package com.tangosol.coherence.dslquery;
 
 import java.io.PrintWriter;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Implementations of this interface are able to execute CohQL statements,
  * for example a Select, Update, a backup command etc.
@@ -34,6 +36,22 @@ public interface Statement
      * @return a StatementResult containing the results of executing the statement
      */
     public StatementResult execute(ExecutionContext ctx);
+
+    /**
+     * Execute a CohQL query or command asynchronously and return the
+     * {@code CompletableFuture} with the relevant {@link StatementResult result}.
+     *
+     * @param ctx  the {@link ExecutionContext context} to use
+     *
+     * @return a StatementResult future containing the results of executing the statement
+     *
+     * @throws UnsupportedOperationException if this statement does not support
+     *         asynchronous execution
+     */
+    public default CompletableFuture<StatementResult> executeAsync(ExecutionContext ctx)
+        {
+        throw new UnsupportedOperationException();
+        }
 
     // ----- validation methods ---------------------------------------------
 

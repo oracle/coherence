@@ -9,21 +9,16 @@ package com.tangosol.coherence.dslquery.statement;
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.StatementResult;
-
 import com.tangosol.coherence.dslquery.internal.UpdateSetListMaker;
-
 import com.tangosol.coherence.dsltools.termtrees.AtomicTerm;
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Term;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
-
 import com.tangosol.config.expression.ParameterResolver;
-
 import com.tangosol.util.ClassHelper;
-
 import java.io.PrintWriter;
-
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
 
@@ -206,10 +201,21 @@ public class InsertStatementBuilder
         @Override
         public StatementResult execute(ExecutionContext ctx)
             {
-            Object oResult = ctx.getCacheFactory().ensureTypedCache(f_sCacheName, null, withoutTypeChecking())
+            Object oResult = ctx.getCacheFactory()
+                    .ensureTypedCache(f_sCacheName, null, withoutTypeChecking())
                     .put(f_oKey, f_oValue);
 
             return new DefaultStatementResult(oResult);
+            }
+
+        @Override
+        public CompletableFuture<StatementResult> executeAsync(ExecutionContext ctx)
+            {
+            return ctx.getCacheFactory()
+                    .ensureTypedCache(f_sCacheName, null, withoutTypeChecking())
+                    .async()
+                    .put(f_oKey, f_oValue)
+                    .thenApply(DefaultStatementResult::new);
             }
 
         @Override

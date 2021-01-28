@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
 
@@ -145,10 +146,22 @@ public class UpdateStatementBuilder
         @Override
         public StatementResult execute(ExecutionContext ctx)
             {
-            Map<?, ?> mapResult = ctx.getCacheFactory().ensureTypedCache(f_sCache, null, withoutTypeChecking())
+            Map<?, ?> mapResult = ctx.getCacheFactory()
+                    .ensureTypedCache(f_sCache, null, withoutTypeChecking())
                     .invokeAll(f_filter, f_processor);
 
             return new DefaultStatementResult(mapResult);
+            }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public CompletableFuture<StatementResult> executeAsync(ExecutionContext ctx)
+            {
+            return ctx.getCacheFactory()
+                    .ensureTypedCache(f_sCache, null, withoutTypeChecking())
+                    .async()
+                    .invokeAll(f_filter, f_processor)
+                    .thenApply(DefaultStatementResult::new);
             }
 
         @Override

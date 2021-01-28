@@ -27,6 +27,7 @@ import com.tangosol.util.InvocableMap;
 import java.io.PrintWriter;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
 
@@ -184,6 +185,99 @@ public class SelectStatementBuilder
                || (sAlias != null && termFields.termEqual(Terms.newTerm("fieldList", AtomicTerm.createString(sAlias))));
         }
 
+    // ----- inner class: AsyncSelectStatement ------------------------------
+
+    /**
+     * Async implementation of the CohQL "SELECT" command.
+     */
+    public static class AsyncSelectStatement
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Construct a AsyncSelectStatement that will query the specified cache.
+         *
+         * @param sCache      the cache to query
+         * @param filter      the {@link Filter} to use to query tha cache
+         * @param aggregator  the {@link InvocableMap.EntryAggregator} to run against the cache entries
+         * @param fReduction  a flag indicating whether this query is a sub-set of entry fields
+         */
+        AsyncSelectStatement(String sCache, Filter filter,
+                             InvocableMap.EntryAggregator aggregator, boolean fReduction)
+            {
+            f_sCache     = sCache;
+            f_filter     = filter;
+            f_aggregator = aggregator;
+            f_fReduction = fReduction;
+            }
+
+        // ----- Statement interface ----------------------------------------
+
+        public CompletableFuture<StatementResult> execute(ExecutionContext ctx)
+            {
+            NamedCache cache = ctx.getCacheFactory().ensureTypedCache(f_sCache, null, withoutTypeChecking());
+            CompletableFuture<StatementResult> future;
+
+            if (f_aggregator == null)
+                {
+                future = cache.async().entrySet(f_filter);
+                }
+            else
+                {
+                future = cache.async().aggregate(f_filter, f_aggregator);
+                }
+
+            return future.thenApply(oResult -> new DefaultStatementResult(oResult, !f_fReduction));
+            }
+
+        // ----- accessor methods -------------------------------------------
+
+        /**
+         * Return the {@link Filter} to use to execute this query.
+         *
+         * @return the {@link Filter} to use to execute this query
+         */
+        public Filter getFilter()
+            {
+            return f_filter;
+            }
+
+        /**
+         * Return the {@link InvocableMap.EntryAggregator} to use to
+         * execute this query.
+         *
+         * @return the InvocableMap.EntryAggregator to use to execute
+         *         this query
+         */
+        public InvocableMap.EntryAggregator getAggregator()
+            {
+            return f_aggregator;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The name of the cache to query.
+         */
+        protected final String f_sCache;
+
+        /**
+         * The {@link Filter} to use in the query.
+         */
+        protected final Filter f_filter;
+
+        /**
+         * The {@link InvocableMap.EntryAggregator} to use in the query.
+         */
+        protected final InvocableMap.EntryAggregator f_aggregator;
+
+        /**
+         * Flag to denote whether this query is an aggregation to select specific
+         * fields from the values of a cache; e.g. select x, y, z from foo.
+         */
+        protected final boolean f_fReduction;
+        }
+
     // ----- inner class: SelectStatement -----------------------------------
 
     /**
@@ -229,6 +323,24 @@ public class SelectStatementBuilder
                 }
 
             return new DefaultStatementResult(oResult, !f_fReduction);
+            }
+
+        @Override
+        public CompletableFuture<StatementResult> executeAsync(ExecutionContext ctx)
+            {
+            NamedCache cache = ctx.getCacheFactory().ensureTypedCache(f_sCache, null, withoutTypeChecking());
+            CompletableFuture<StatementResult> future;
+
+            if (f_aggregator == null)
+                {
+                future = cache.async().entrySet(f_filter);
+                }
+            else
+                {
+                future = cache.async().aggregate(f_filter, f_aggregator);
+                }
+
+            return future.thenApply(oResult -> new DefaultStatementResult(oResult, !f_fReduction));
             }
 
         @Override
