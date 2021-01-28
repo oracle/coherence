@@ -23,7 +23,7 @@ import java.util.ServiceLoader;
  * explicitly by calling {@link #addSchemaSource(SchemaSource)} method directly.
  * <p/>
  * For example, the Maven plugin used to add serialization code to classes
- * marked with {@link com.oracle.common.io.pof.schema.annotation.PortableType}
+ * marked with {@link com.tangosol.io.pof.schema.annotation.PortableType}
  * annotation defines schema as follows:
  * <pre>
  * Schema schema = new SchemaBuilder()
