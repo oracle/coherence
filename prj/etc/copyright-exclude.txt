@@ -1,9 +1,10 @@
-coherence-grpc-proxy/src/test/proto/route_guide.proto
-coherence-grpc-proxy/src/test/java/com/oracle/coherence/grpc/proxy/routeguide/
-coherence-http-netty/src/main/java/com/tangosol/coherence/http/netty/NettyInputStream.java
-coherence-javadoc/src/main/javadoc/resources/
-coherence-json/src/main/java/com/oracle/coherence/io/json/genson/
-coherence-json/src/test/java/com/oracle/coherence/io/json/genson/
+com/oracle/coherence/io/json/genson/
+logging/src/test/java/org/slf4j/
+src/main/java/com/tangosol/coherence/http/netty/NettyInputStream.java
+src/main/javadoc/resources/
+src/test/java/org/slf4j/
+src/test/proto/route_guide.proto
+src/test/java/com/oracle/coherence/grpc/proxy/routeguide/
 test/distribution/target/
 dependency-reduced-pom.xml
 etc/
