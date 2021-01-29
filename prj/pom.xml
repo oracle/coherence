@@ -150,6 +150,8 @@
 
     <dependency-check.skip>false</dependency-check.skip>
 
+    <copyright.svn>-p4</copyright.svn>
+
     <!-- tool versions -->
     <java.version>1.8</java.version>
     <java.version.eight>1.8</java.version.eight>
@@ -497,6 +499,19 @@
     </profile>
 
     <profile>
+      <id>git-copyright</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <file>
+          <exists>../.git/config</exists>
+        </file>
+      </activation>
+      <properties>
+        <copyright.svn>-g</copyright.svn>
+      </properties>
+    </profile>
+
+    <profile>
       <id>copyright</id>
       <activation>
         <activeByDefault>false</activeByDefault>
@@ -526,7 +541,7 @@
                       <argument>${top.parent.basedir}/etc/header-2.txt</argument>
                       <argument>-A</argument>
                       <argument>${top.parent.basedir}/etc/header-3.txt</argument>
-                      <argument>-y</argument>
+                      <argument>${copyright.svn}</argument>
                     </arguments>
                   </configuration>
                 </execution>
