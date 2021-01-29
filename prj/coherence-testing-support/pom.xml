@@ -122,28 +122,4 @@
       <artifactId>mockito-core</artifactId>
     </dependency>
   </dependencies>
-
-
-  <profiles>
-    <profile>
-      <id>copyright</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <build>
-          <plugins>
-            <plugin>
-              <groupId>com.mycila</groupId>
-              <artifactId>license-maven-plugin</artifactId>
-              <version>${maven.license.plugin.version}</version>
-              <configuration>
-                <excludes>
-                  <exclude>**/src/main/resources/data/dotnet/*.data</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
