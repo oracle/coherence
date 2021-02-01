@@ -202,17 +202,21 @@ public class MapEventsIT
         Session                    sessionTwo = ensureSession(SessionConfigurations.SERVER_TEST);
         NamedCache<String, Person> cacheTwo   = sessionTwo.getCache(CACHE_NAME_SCOPED_PEOPLE);
 
+        // we need to get the client side caches otherwise the listener will only get server side events
+        // as the listeners are for "any" session the CDI extension cannot ensure the caches automatically
+        SessionHolder holder = CDI.current().select(SessionHolder.class).get();
+        NamedCache<Object, Object> cacheClientOne = holder.getDefaultClientSession().getCache(CACHE_NAME_SCOPED_PEOPLE);
+        NamedCache<Object, Object> cacheClientTwo = holder.getTestClientSession().getCache(CACHE_NAME_SCOPED_PEOPLE);
+
         // Wait for the listeners to be registered as it happens async
         Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheOne.async()).getListenerCount(),
                                         is(greaterThanOrEqualTo(2)));
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheTwo),
                                         is(greaterThanOrEqualTo(1)));
-
-        // we need to get the client side caches otherwise the listener will only get server side events
-        // as the listeners are for "any" session the CDI extension cannot ensure the caches automatically
-        SessionHolder holder = CDI.current().select(SessionHolder.class).get();
-        holder.getDefaultClientSession().getCache(CACHE_NAME_SCOPED_PEOPLE);
-        holder.getTestClientSession().getCache(CACHE_NAME_SCOPED_PEOPLE);
+        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheClientOne.async()).getListenerCount(),
+                                        is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheClientTwo.async()).getListenerCount(),
+                                        is(greaterThanOrEqualTo(2)));
 
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));
