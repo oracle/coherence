@@ -498,6 +498,8 @@
       </modules>
     </profile>
 
+    <!-- This profile will detect the .git/config directory and flip the copyright.svn
+         property from p4 to git to do the copyright year check.  -->
     <profile>
       <id>git-copyright</id>
       <activation>
@@ -521,6 +523,8 @@
             <plugin>
               <groupId>org.codehaus.mojo</groupId>
               <artifactId>exec-maven-plugin</artifactId>
+              <!-- inherited = false - we do not want/need this copyright check to execute in sub-modules -->
+              <inherited>false</inherited>
               <executions>
                 <execution>
                   <id>copyright-check</id>
