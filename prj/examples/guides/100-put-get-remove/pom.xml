@@ -17,9 +17,9 @@
   <name>Coherence Guides - Put Get Remove</name>
 
   <properties>
-    <revision>14.1.2-0-0-SNAPSHOT</revision>
+    <revision>21.06</revision>
 
-    <coherence.group.id>com.oracle.coherence</coherence.group.id>
+    <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${revision}</coherence.version>
 
     <java.version>1.8</java.version>
