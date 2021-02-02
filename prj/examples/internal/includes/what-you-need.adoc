@@ -9,8 +9,9 @@
 :linkattrs:
 
 ifndef::java_version[:java_version: 1.8]
+ifndef::duration[:duration: 15]
 
-* About 15 minutes
+* About {duration} minutes
 * A favorite text editor or IDE
 * http://www.oracle.com/technetwork/java/javase/downloads/index.html[JDK {java_version}] or later
 * http://maven.apache.org/download.cgi[Maven 3.5+] or http://www.gradle.org/downloads[Gradle 4+]

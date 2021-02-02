@@ -21,13 +21,13 @@ versions and best practice and approaches recommended by the Coherence team for 
 ====
 [CARD]
 .Simple Guides
-[icon=explore,link=guides]
+[icon=explore,link=examples/guides/000-overview.adoc]
 --
 --
 
 [CARD]
 .Tutorials
-[icon=fa-graduation-cap,link=tutorials/README.adoc]
+[icon=fa-graduation-cap,link=examples/tutorials/000-overview.adoc]
 --
 --
 ====

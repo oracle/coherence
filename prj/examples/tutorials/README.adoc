@@ -20,10 +20,10 @@ making them simple to build as stand-alone projects without needing to build the
 [PILLARS]
 ====
 [CARD]
-.Tutorial One
-[link=directory-name/README.adoc]
+.GraphQL
+[link=examples/tutorials/500-graphql/README.adoc]
 --
-A Coherence tutorial...
+This tutorial shows you how to access Coherence Data using GraphQL.
 --
 
 ====

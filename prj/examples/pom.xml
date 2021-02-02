@@ -12,7 +12,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.oracle.coherence</groupId>
+    <groupId>com.oracle.coherence.ce</groupId>
     <artifactId>main</artifactId>
     <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
@@ -28,6 +28,8 @@
   <modules>
     <module>guides/100-put-get-remove</module>
     <module>guides/110-queries</module>
+    <module>tutorials/500-graphql/initial</module>
+    <module>tutorials/500-graphql/complete</module>
   </modules>
 
   <profiles>
