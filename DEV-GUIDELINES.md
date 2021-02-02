@@ -29,7 +29,10 @@ This page provides information on how to successfully contribute to the Coherenc
 
 The rules below must be adhered to with exceptions being specifically called out to the reviewer. Exceptions to the below rules are exactly that, therefore if an exception is to be presented it must have a compelling justification.
 
-Note: using tools such as [IntelliJ code formatter or JIndent](#tools) do significantly help in conforming, however we would strongly encourage embracing the conventions as you develop opposed to running the modifications through a formatter prior to committing (there is no `cohfmt` akin to `gofmt` ... currently).
+> Note: using tools such as [IntelliJ code formatter or JIndent](#tools) do significantly help in conforming, however we would strongly encourage embracing the conventions as you develop opposed to running the modifications through a formatter prior to committing (there is no `cohfmt` akin to `gofmt` ... currently).
+
+> Note: If you are writing guides or tutorials to be included in `prj/examples` directory then please use standard
+Java coding conventions as described [here](https://www.oracle.com/java/technologies/javase/codeconventions-contents.html).
 
 ## <a name="1"></a>1. Java File Layout and Structure
 
