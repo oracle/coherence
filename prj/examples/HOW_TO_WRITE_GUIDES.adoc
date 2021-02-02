@@ -319,11 +319,11 @@ they are submitted to P4.
 The Coherence version numbers in the `pom.xml` and `gradle.properties` files will need to be changed to
 the correct CE version.
 
-For example if the commercial version is `14.1.2-0-0-SNAPSHOT`, and the CE version is `21.06`:
+For example if the commercial version is `14.1.2-0-0-SNAPSHOT`, and the CE version is `21.06-SNAPSHOT`:
 
-* Change the `<revision>14.1.2-0-0-SNAPSHOT</revision>` property in the `pom.xml` file to `<revision>21.06</revision>`
+* Change the `<revision>14.1.2-0-0-SNAPSHOT</revision>` property in the `pom.xml` file to `<revision>21.06-SNAPSHOT</revision>`
 
-* Change the `coherenceVersion=14.1.2-0-0-SNAPSHOT` property in the `gradle.properties` file to `coherenceVersion=21.06`
+* Change the `coherenceVersion=14.1.2-0-0-SNAPSHOT` property in the `gradle.properties` file to `coherenceVersion=21.06-SNAPSHOT`
 
 === Change the Coherence GroupId
 
