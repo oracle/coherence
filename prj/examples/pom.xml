@@ -32,38 +32,4 @@
     <module>tutorials/500-graphql/complete</module>
   </modules>
 
-  <profiles>
-    <profile>
-      <id>examples-gradle</id>
-      <activation>
-        <file>
-          <exists>build.gradle</exists>
-        </file>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>gradle</id>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <phase>verify</phase>
-                <configuration>
-                  <executable>gradlew</executable>
-                  <arguments>
-                    <argument>clean</argument>
-                    <argument>build</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>

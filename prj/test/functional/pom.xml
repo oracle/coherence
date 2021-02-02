@@ -116,6 +116,7 @@
         <module>discovery</module>
         <module>dslquery</module>
         <module>events</module>
+        <module>examples</module>
         <module>extend</module>
         <module>extractor</module>
         <module>filter</module>
@@ -260,6 +261,7 @@
       <id>stage6</id>
       <modules>
         <module>partition</module>
+        <module>examples</module>
       </modules>
     </profile>
 

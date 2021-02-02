@@ -10,7 +10,7 @@ plugins {
 }
 
 group = 'com.oracle.coherence.guides'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 repositories {
@@ -19,10 +19,13 @@ repositories {
 }
 
 dependencies {
-	implementation "com.oracle.coherence:coherence:$coherenceVersion"
+	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+	implementation platform("${coherenceGroupId}:coherence-dependencies:${coherenceVersion}")
 
-	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+	implementation "${coherenceGroupId}:coherence"
+
+	testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 test {

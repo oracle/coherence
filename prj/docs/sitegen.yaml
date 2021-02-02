@@ -34,6 +34,7 @@ pages:
     - includes:
         - "**/*.adoc"
       excludes:
+        - "examples/HOW_TO_WRITE_GUIDES.adoc"
         - "examples/guides/README.adoc"
         - "examples/tutorials/README.adoc"
 backend:

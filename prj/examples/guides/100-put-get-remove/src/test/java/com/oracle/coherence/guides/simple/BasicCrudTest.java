@@ -30,67 +30,60 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author Jonathan Knight  2021.01.12
  */
-class BasicCrudTest
-    {
+class BasicCrudTest {
     // # tag::bootstrap[]
     @BeforeAll
-    static void boostrapCoherence()
-        {
+    static void boostrapCoherence() {
         Coherence coherence = Coherence.clusterMember();      // <1>
         CompletableFuture<Void> future = coherence.start();   // <2>
         future.join();                                        // <3>
-        }
+    }
     // # end::bootstrap[]
 
     // # tag::cleanup[]
     @AfterAll
-    static void shutdownCoherence()
-        {
+    static void shutdownCoherence() {
         Coherence coherence = Coherence.getInstance(); //<1>
         coherence.close();
-        }
+    }
     // # end::cleanup[]
 
     // # tag::put[]
     @Test
-    void shouldPutNewKeyAndValue()
-        {
+    void shouldPutNewKeyAndValue() {
         NamedMap<String, String> map = getMap("data");    // <1>
         String oldValue = map.put("key-1", "value-1");          // <2>
 
         assertNull(oldValue);                                   // <3>
-        }
+    }
     // # end::put[]
 
     // # tag::put-existing[]
     @Test
-    void shouldPutExistingKeyAndValue()
-        {
+    void shouldPutExistingKeyAndValue() {
         NamedMap<String, String> map = getMap("data");
         map.put("key-2", "value-1");
 
         String oldValue = map.put("key-2", "value-2");
         assertEquals("value-1", oldValue);
-        }
+    }
     // # end::put-existing[]
 
     // # tag::get[]
     @Test
-    void shouldGet()
-        {
+    void shouldGet() {
         NamedMap<String, String> map = getMap("data");    // <1>
         map.put("key-3", "value-1");                            // <2>
 
         String value = map.get("key-3");                        // <3>
 
         assertEquals("value-1", value);
-        }
+    }
     // # end::get[]
 
     // # tag::get-all[]
     @Test
-    void shouldGetAll()
-        {
+    void shouldGetAll() {
         NamedMap<String, String> map = getMap("data");    // <1>
 
         map.put("key-5", "value-5");                            // <2>
@@ -102,26 +95,24 @@ class BasicCrudTest
         assertEquals(2, results.size());                // <4>
         assertEquals("value-5", results.get("key-5"));  // <5>
         assertEquals("value-7", results.get("key-7"));  // <6>
-        }
+    }
     // # end::get-all[]
 
     // # tag::remove[]
     @Test
-    void shouldRemove()
-        {
+    void shouldRemove() {
         NamedMap<String, String> map = getMap("data");    // <1>
         map.put("key-9", "value-9");                            // <2>
 
         String oldValue = map.remove("key-9");             // <3>
 
         assertEquals("value-9", oldValue);             // <4>
-        }
+    }
     // # end::remove[]
 
     // # tag::remove-mapping[]
     @Test
-    void shouldRemoveMapping()
-        {
+    void shouldRemoveMapping() {
         NamedMap<String, String> map = getMap("data");    // <1>
         map.put("key-10", "value-10");                          // <2>
 
@@ -130,14 +121,13 @@ class BasicCrudTest
 
         removed = map.remove("key-10", "value-10");             // <4>
         assertTrue(removed);
-        }
+    }
     // # end::remove-mapping[]
 
 
     // # tag::put-expiry[]
     @Test
-    void shouldPutWithExpiry() throws Exception
-        {
+    void shouldPutWithExpiry() throws Exception {
         Coherence coherence = Coherence.getInstance();
         Session   session   = coherence.getSession();
 
@@ -152,16 +142,15 @@ class BasicCrudTest
 
         value = cache.get("key-1");                            // <5>
         assertNull(value);
-        }
+    }
     // # end::put-expiry[]
 
 
     // # tag::get-map[]
-    <K, V> NamedMap<K, V> getMap(String name)
-        {
+    <K, V> NamedMap<K, V> getMap(String name) {
         Coherence coherence = Coherence.getInstance();     // <1>
         Session   session   = coherence.getSession();      // <2>
         return session.getMap(name);                       // <3>
-        }
+    }
     // # end::get-map[]
     }
