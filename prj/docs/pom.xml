@@ -71,6 +71,16 @@
           </dependencies>
       </plugin>
 
+      <!-- skip sources for this module as there are none -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>${maven.source.plugin.version}</version>
+        <configuration>
+          <skipSource>true</skipSource>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
