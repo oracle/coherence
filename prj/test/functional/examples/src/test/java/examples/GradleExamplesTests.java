@@ -54,7 +54,7 @@ class GradleExamplesTests
         if (s_fIsWindows)
             {
             s_sExecutable = "cmd.exe";
-            s_args        = Arguments.of("/c", "gradlew.bat");
+            s_args        = Arguments.of("/C", "gradlew.bat");
             }
         else
             {
