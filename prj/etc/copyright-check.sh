@@ -11,11 +11,7 @@
 # ./etc/copyright-check.sh -c -X @etc/copyright-exclude.txt -C etc/header.txt -A etc/header-2.txt -A etc/header-3.txt -y
 #
 # ./etc/copyright-check.sh -c -X @etc/copyright-exclude.txt -C etc/header.txt -A etc/header-2.txt -A etc/header-3.txt -p4
+BASEDIR=$(dirname "$0")
+JAR=${BASEDIR}/../../tools/internal/copyright/glassfish-copyright-maven-plugin-2.4-SNAPSHOT.jar
 
-REPO=~/.m2/repository/org/glassfish/copyright/glassfish-copyright-maven-plugin
-
-#VERSION="ls ${REPO} | grep '^[1-9]' | tail -1"
-VERSION=2.4-SNAPSHOT
-
-java -cp "${REPO}/${VERSION}/glassfish-copyright-maven-plugin-${VERSION}.jar" \
-    org.glassfish.copyright.Copyright "$@"
+java -cp ${JAR} org.glassfish.copyright.Copyright "$@"
