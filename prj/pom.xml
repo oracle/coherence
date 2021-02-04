@@ -530,13 +530,15 @@
                 <execution>
                   <id>copyright-check</id>
                   <goals>
-                    <goal>exec</goal>
+                    <goal>java</goal>
                   </goals>
                   <phase>validate</phase>
                   <configuration>
-                    <executable>sh</executable>
+                    <mainClass>org.glassfish.copyright.Copyright</mainClass>
+                    <additionalClasspathElements>${top.parent.basedir}/../tools/internal/copyright/glassfish-copyright-maven-plugin-2.4-SNAPSHOT.jar</additionalClasspathElements>
+                    <addOutputToClasspath>false</addOutputToClasspath>
+                    <addResourcesToClasspath>false</addResourcesToClasspath>
                     <arguments>
-                      <argument>${top.parent.basedir}/etc/copyright-check.sh</argument>
                       <argument>-c</argument>
                       <argument>-X</argument>
                       <argument>@${top.parent.basedir}/etc/copyright-exclude.txt</argument>
