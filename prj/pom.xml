@@ -381,7 +381,6 @@
 
         <module>coherence-tracing</module>
         <module>coherence-docker</module>
-        <module>docs</module>
 
         <module>plugins</module>
 
@@ -655,7 +654,6 @@
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
         <module>coherence-helidon-client</module>
-        <module>docs</module>
       </modules>
     </profile>
 
@@ -787,6 +785,13 @@
       </activation>
       <modules>
         <module>examples</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>docs</id>
+      <modules>
+        <module>docs</module>
       </modules>
     </profile>
 

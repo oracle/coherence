@@ -19,7 +19,7 @@ To build the docs, run the following Maven command from the top-level `prj/` dir
 
 [source,shell]
 ----
-mvn clean install -DskipTests -pl docs
+mvn clean install -DskipTests -pl docs -P docs
 ----
 
 === View the Docs
@@ -28,7 +28,7 @@ To view the documentation to see what it looks like after building run the follo
 
 [source,shell]
 ----
-mvn exec:exec -pl docs
+mvn exec:exec -pl docs -P docs
 ----
 
 Docs can be viewd at http://localhost:8080
