@@ -67,6 +67,7 @@ class GradleExamplesTests
     @MethodSource("findProjects")
     void shouldBuildGradleProject(String sName, File dir) throws Exception
         {
+        Assume.assumeThat("Skipping this test on Windows", s_fIsWindows, is(true));
         Assume.assumeThat("Skipping test, cannot download Gradle", tryGradle(dir), is(true));
 
         File fileTestOutDir = new File(s_fileOutDir, sName);

@@ -44,4 +44,4 @@ jobs:
       env:
         MAVEN_USER: ${{ secrets.MavenUser }}
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
-      run: mvn -B deploy --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
+      run: mvn -B deploy --file prj/pom.xml -DskipTests -s .github/maven/settings.xml -P-examples

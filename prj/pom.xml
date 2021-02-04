@@ -382,7 +382,6 @@
         <module>coherence-tracing</module>
         <module>coherence-docker</module>
         <module>docs</module>
-        <module>examples</module>
 
         <module>plugins</module>
 
@@ -776,6 +775,17 @@
       <properties>
         <project.build.number>${env.P4_CHANGELIST}</project.build.number>
       </properties>
+    </profile>
+
+    <profile>
+      <id>examples</id>
+      <activation>
+        <!-- This is a work-around for the fact that activeByDefault does not do what you'd think it should -->
+        <file><exists>.</exists></file>
+      </activation>
+      <modules>
+        <module>examples</module>
+      </modules>
     </profile>
 
     <profile>
