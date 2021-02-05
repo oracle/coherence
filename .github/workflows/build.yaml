@@ -72,7 +72,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pcopyright -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -DskipTests clean install
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
