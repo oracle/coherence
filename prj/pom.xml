@@ -534,7 +534,7 @@
                   <phase>validate</phase>
                   <configuration>
                     <mainClass>org.glassfish.copyright.Copyright</mainClass>
-                    <additionalClasspathElements>${top.parent.basedir}/../tools/internal/copyright/glassfish-copyright-maven-plugin-2.4-SNAPSHOT.jar</additionalClasspathElements>
+                    <additionalClasspathElements>${top.parent.basedir}/../tools/copyright/glassfish-copyright-maven-plugin-2.4-SNAPSHOT.jar</additionalClasspathElements>
                     <addOutputToClasspath>false</addOutputToClasspath>
                     <addResourcesToClasspath>false</addResourcesToClasspath>
                     <arguments>

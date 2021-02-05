@@ -7,7 +7,7 @@
 #
 
 BASEDIR=$(dirname "$0")
-JAR=${DEV_ROOT}/tools/internal/copyright/glassfish-copyright-maven-plugin-2.4-SNAPSHOT.jar
+JAR=${DEV_ROOT}/tools/copyright/glassfish-copyright-maven-plugin-2.4-SNAPSHOT.jar
 EXCLUDE="@${BASEDIR}/copyright-exclude.txt"
 CMD="java -cp ${JAR} org.glassfish.copyright.Copyright -c -X ${EXCLUDE}  -C ${BASEDIR}/header.txt -A ${BASEDIR}/header-2.txt  -A ${BASEDIR}/header-3.txt -p4 $DEV_ROOT/${1}"
 
