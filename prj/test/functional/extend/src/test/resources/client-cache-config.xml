@@ -51,6 +51,11 @@
     </cache-mapping>
 
     <cache-mapping>
+      <cache-name>dist-extend-near-present-custom-*</cache-name>
+      <scheme-name>dist-extend-near-present-custom</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
       <cache-name>dist-extend-client-key</cache-name>
       <scheme-name>extend-client-key-direct</scheme-name>
     </cache-mapping>
@@ -171,6 +176,31 @@
         </remote-cache-scheme>
       </back-scheme>
       <invalidation-strategy>present</invalidation-strategy>
+    </near-scheme>
+
+    <near-scheme>
+          <scheme-name>dist-extend-near-present-custom</scheme-name>
+          <front-scheme>
+              <local-scheme>
+                  <high-units>1000</high-units>
+              </local-scheme>
+          </front-scheme>
+          <back-scheme>
+            <class-scheme>
+              <class-name>common.CustomBackMap</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>String</param-type>
+                  <param-value>dist-extend-direct</param-value>
+                </init-param>
+                <init-param>
+                  <param-type>String</param-type>
+                  <param-value>ExtendTcpCacheService</param-value>
+                </init-param>
+              </init-params>
+            </class-scheme>
+          </back-scheme>
+          <invalidation-strategy>present</invalidation-strategy>
     </near-scheme>
 
     <local-scheme>
