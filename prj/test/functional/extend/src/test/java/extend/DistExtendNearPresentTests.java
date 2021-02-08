@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,11 +8,13 @@
 package extend;
 
 
-import com.tangosol.util.MapListener;
-import com.tangosol.util.SynchronousListener;
+import com.tangosol.net.cache.NearCache;
+
 import common.TestMapListener;
 import common.TestNCDListener;
 import common.TestSynchronousMapListener;
+import common.CustomBackMap;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -187,5 +189,23 @@ public class DistExtendNearPresentTests
         evt = listen.waitForEvent();
         assertNotNull(evt);
         assertEquals(MapEvent.ENTRY_DELETED, evt.getId());
+        }
+
+    /**
+     * This test validates the fix for bug 32415967.
+     */
+    @Test
+    public void testNearCacheCustom()
+        {
+        NamedCache    cache     = getNamedCache("dist-extend-near-present-custom-cache");
+        CustomBackMap mapCustom = (CustomBackMap) ((NearCache) cache).getBackCache();
+
+        cache.clear();
+        assertTrue(cache.isEmpty());
+
+        cache.put("Key", "Value");
+
+        assertEquals("Value", cache.get("Key"));
+        assertEquals(0, mapCustom.f_atomicCounter.get());
         }
     }

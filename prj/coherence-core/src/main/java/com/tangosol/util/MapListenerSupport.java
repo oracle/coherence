@@ -1418,6 +1418,31 @@ public class MapListenerSupport
             {
             super(listener);
             }
+
+        /**
+        * {@inheritDoc}
+        */
+        @Override
+        protected void onMapEvent(MapEvent evt)
+            {
+            int nId = evt.getId();
+
+            switch (nId)
+                {
+                case MapEvent.ENTRY_INSERTED:
+                    getMapListener().entryInserted(evt);
+                    break;
+                case MapEvent.ENTRY_UPDATED:
+                    getMapListener().entryUpdated(evt);
+                    break;
+                case MapEvent.ENTRY_DELETED:
+                    getMapListener().entryDeleted(evt);
+                    break;
+                default:
+                    throw new RuntimeException(
+                            "Unknown map event id: " + nId);
+                }
+            }
         }
 
 
