@@ -1251,6 +1251,12 @@
               <test.maven.repository>${settings.localRepository}</test.maven.repository>
               <jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
               <jacoco.dest.folder>${project.build.directory}/jacoco</jacoco.dest.folder>
+              <http.proxyHost>${http.proxyHost}</http.proxyHost>
+              <http.proxyPort>${http.proxyPort}</http.proxyPort>
+              <http.nonProxyHosts>${http.nonProxyHosts}</http.nonProxyHosts>
+              <https.proxyHost>${http.proxyHost}</https.proxyHost>
+              <https.proxyPort>${http.proxyPort}</https.proxyPort>
+              <https.nonProxyHosts>${http.nonProxyHosts}</https.nonProxyHosts>
             </systemPropertyVariables>
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>

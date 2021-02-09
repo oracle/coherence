@@ -78,10 +78,10 @@ class GradleExamplesTests
         FileWriter         writer   = new FileWriter(new File(fileTestOutDir, "gradle.log"));
         ApplicationConsole console  = new FileWriterApplicationConsole(writer);
         Platform           platform = LocalPlatform.get();
-        String             sExec;
-        Arguments          args;
-        
-        try (Application application = platform.launch(s_sExecutable, s_args.with("clean", "build"),
+        Arguments          args     = s_args.with("clean", "build", "--no-build-cache").with(proxyArguments());
+
+        try (Application application = platform.launch(s_sExecutable,
+                                                       args,
                                                        WorkingDirectory.at(dir),
                                                        Console.of(console)))
             {
@@ -148,9 +148,10 @@ class GradleExamplesTests
     private static boolean tryGradle(File dir)
         {
         CapturingApplicationConsole console = new CapturingApplicationConsole();
-        try (Application app = LocalPlatform.get().launch(s_sExecutable, s_args.with("tasks"),
-                                                               WorkingDirectory.at(dir),
-                                                               Console.of(console)))
+        try (Application app = LocalPlatform.get().launch(s_sExecutable,
+                                                          s_args.with("tasks").with(proxyArguments()),
+                                                          WorkingDirectory.at(dir),
+                                                          Console.of(console)))
             {
             int nExitCode = app.waitFor();
             if (nExitCode != 0)
@@ -165,6 +166,49 @@ class GradleExamplesTests
                 }
             }
         return true;
+        }
+
+    private static Arguments proxyArguments()
+        {
+        Arguments          arguments          = Arguments.empty();
+        String             sHttpProxyHost     = System.getProperty("http.proxyHost");
+        String             sHttpProxyPort     = System.getProperty("http.proxyPort");
+        String             sHttpNoProxyHosts  = System.getProperty("http.nonProxyHosts");
+        String             sHttpsProxyHost    = System.getProperty("https.proxyHost");
+        String             sHttpsProxyPort    = System.getProperty("https.proxyPort");
+        String             sHttpsNoProxyHosts = System.getProperty("https.nonProxyHosts");
+
+        if (sHttpProxyHost != null)
+            {
+            arguments = arguments.with("-Dhttp.proxyHost=" + sHttpProxyHost);
+            }
+
+        if (sHttpProxyPort != null)
+            {
+            arguments = arguments.with("-Dhttp.proxyPort=" + sHttpProxyPort);
+            }
+
+        if (sHttpNoProxyHosts != null)
+            {
+            arguments = arguments.with("-Dhttp.nonProxyHosts=" + sHttpNoProxyHosts);
+            }
+
+        if (sHttpsProxyHost != null)
+            {
+            arguments = arguments.with("-Dhttps.proxyHost=" + sHttpsProxyHost);
+            }
+
+        if (sHttpsProxyPort != null)
+            {
+            arguments = arguments.with("-Dhttps.proxyPort=" + sHttpsProxyPort);
+            }
+
+        if (sHttpsNoProxyHosts != null)
+            {
+            arguments = arguments.with("-Dhttps.nonProxyHosts=" + sHttpsNoProxyHosts);
+            }
+
+        return arguments;
         }
 
     // ----- data members ---------------------------------------------------
