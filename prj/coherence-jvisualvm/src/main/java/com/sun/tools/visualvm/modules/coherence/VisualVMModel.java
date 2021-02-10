@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2020, 2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -202,19 +202,32 @@ public class VisualVMModel
             // as such we are relying on the order of types in the enum.
             for (DataType type : DataType.values())
                 {
-               if (fLogJMXQueryTimes)
+                // optimize the retrieval if this is not the first time and only query
+                // specific data types if the functionality is enabled
+                // this can improve performance especially over REST
+                if (m_fIsFirstRefresh || shouldRetrieveData(type))
                     {
-                    LOGGER.info("Starting querying statistics for " + type.toString());
+                    if (fLogJMXQueryTimes)
+                        {
+                        LOGGER.info("Starting querying statistics for " + type.toString());
+                        }
+
+                    long ldtCollectionStart = System.currentTimeMillis();
+                    mapCollectedData.put(type, getData(requestSender, type.getClassName()));
+                    long ldtCollectionTime  = System.currentTimeMillis() - ldtCollectionStart;
+
+                    if (fLogJMXQueryTimes)
+                        {
+                        LOGGER.info("Time to query statistics for " + type.toString() + " was " +
+                                    ldtCollectionTime + " ms");
+                        }
                     }
-
-                long ldtCollectionStart = System.currentTimeMillis();
-                mapCollectedData.put(type, getData(requestSender, type.getClassName()));
-                long ldtCollectionTime  = System.currentTimeMillis() - ldtCollectionStart;
-
-                if (fLogJMXQueryTimes)
+                else
                     {
-                    LOGGER.info("Time to query statistics for " + type.toString() + " was " +
-                                ldtCollectionTime + " ms");
+                    if (fLogJMXQueryTimes)
+                        {
+                        LOGGER.info("Skipping querying statistics for " + type.toString() + " as it is not configured");
+                        }
                     }
                 }
 
@@ -227,6 +240,78 @@ public class VisualVMModel
 
             ldtLastUpdate = System.currentTimeMillis();
             }
+        }
+
+    /**
+     * Returns true if the {@link DataType} should be refreshed. E.g. If after the
+     * first refresh, Federation is not enabled then don't refresh data on subsequent calls.
+     *
+     * @param type the {@link DataType} to check
+     *
+     * @return true if the {@link DataType} should be refreshed
+     */
+    private boolean shouldRetrieveData(DataType type)
+        {
+        Class<?> clazz = type.getClassName();
+
+        if (!isFederationCongfigured() &&
+             (
+             clazz.equals(DataType.FEDERATION_DESTINATION.getClassName()) ||
+             clazz.equals(DataType.FEDERATION_DESTINATION_DETAILS.getClassName()) ||
+             clazz.equals(DataType.FEDERATION_ORIGIN.getClassName()) ||
+             clazz.equals(DataType.FEDERATION_ORIGIN_DETAILS.getClassName())
+             ))
+            {
+            return false;
+            }
+
+        if (!isCoherenceExtendConfigured() && clazz.equals(DataType.PROXY.getClassName()))
+            {
+            return false;
+            }
+
+        if (!isPersistenceConfigured() &&
+            (
+            clazz.equals(DataType.PERSISTENCE.getClassName()) ||
+            clazz.equals(DataType.PERSISTENCE_NOTIFICATIONS.getClassName())
+            ))
+            {
+            return false;
+            }
+
+        if (!isCoherenceWebConfigured() && clazz.equals(DataType.HTTP_SESSION.getClassName()))
+            {
+            return false;
+            }
+
+        if (!isElasticDataConfigured() &&
+            (
+            clazz.equals(DataType.RAMJOURNAL.getClassName()) ||
+            clazz.equals(DataType.FLASHJOURNAL.getClassName())
+            ))
+            {
+            return false;
+            }
+
+        if (!isJCacheConfigured() &&
+            (
+            clazz.equals(DataType.JCACHE_CONFIG.getClassName()) ||
+            clazz.equals(DataType.JCACHE_STATS.getClassName())
+            ))
+            {
+            return false;
+            }
+
+        if (!isHttpProxyConfigured() &&
+            (
+            clazz.equals(DataType.HTTP_PROXY.getClassName()) ||
+            clazz.equals(DataType.HTTP_PROXY_DETAIL.getClassName())
+            ))
+            {
+            return false;
+            }
+
+        return true;
         }
 
     /**
@@ -664,6 +749,15 @@ public class VisualVMModel
         }
 
     /**
+     * Sets the value for is first refresh.
+     * @param fIsFirstRefresh the value for is first refresh
+     */
+    public void setIsFirstRefresh(boolean fIsFirstRefresh)
+        {
+        this.m_fIsFirstRefresh = fIsFirstRefresh;
+        }
+
+        /**
      * Returns the currently selected cache.
      *
      * @return the currently selected cache
@@ -1387,4 +1481,9 @@ public class VisualVMModel
      * Windows (tm) platform and we should use the "SystemCPULoad" instead.
      */
     private boolean m_fIsLoadAverageAvailable = true;
+
+    /**
+     * Indicates if this is the first refresh.
+     */
+    private boolean m_fIsFirstRefresh = true;
     }

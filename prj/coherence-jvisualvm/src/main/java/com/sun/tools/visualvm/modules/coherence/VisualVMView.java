@@ -137,6 +137,7 @@ public class VisualVMView
         // do an initial refresh of the data so we can see if we need to display
         // the proxy server tab
         model.refreshStatistics(requestSender);
+        model.setIsFirstRefresh(false);
 
         // we then construct the panels after the initial refresh so we can utilize
         // any information we have gathered in the startup
