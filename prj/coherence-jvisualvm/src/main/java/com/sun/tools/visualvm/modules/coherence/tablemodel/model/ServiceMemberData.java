@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2020, 2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -198,18 +198,24 @@ public class ServiceMemberData
                     {
                     Data data = new ServiceMemberData();
 
-                    data.setColumn(ServiceMemberData.NODE_ID,
-                            Integer.valueOf(nodeServiceMember.get("nodeId").asText()));
-                    data.setColumn(ServiceMemberData.TASK_BACKLOG,
-                            Integer.valueOf(nodeServiceMember.get("taskBacklog").asText()));
-                    data.setColumn(ServiceMemberData.THREAD_COUNT,
-                            Integer.valueOf(nodeServiceMember.get("threadCount").asText()));
-                    data.setColumn(ServiceMemberData.THREAD_IDLE_COUNT,
-                            Integer.valueOf(nodeServiceMember.get("threadIdleCount").asText()));
+                    data.setColumn(ServiceMemberData.NODE_ID, nodeServiceMember.get("nodeId").asInt());
+                    data.setColumn(ServiceMemberData.TASK_BACKLOG, nodeServiceMember.get("taskBacklog").asInt());
+                    data.setColumn(ServiceMemberData.THREAD_COUNT, nodeServiceMember.get("threadCount").asInt());
+                    data.setColumn(ServiceMemberData.THREAD_IDLE_COUNT, nodeServiceMember.get("threadIdleCount").asInt());
                     data.setColumn(ServiceMemberData.REQUEST_AVERAGE_DURATION,
                             Float.valueOf(nodeServiceMember.get("requestAverageDuration").asText()));
                     data.setColumn(ServiceMemberData.TASK_AVERAGE_DURATION,
                             Float.valueOf(nodeServiceMember.get("taskAverageDuration").asText()));
+
+                    // REST returns these as -1
+                    if ((Integer) data.getColumn(ServiceMemberData.THREAD_IDLE_COUNT) == -1)
+                        {
+                        data.setColumn(ServiceMemberData.THREAD_IDLE_COUNT, 0);
+                        }
+                    if ((Float) data.getColumn(ServiceMemberData.TASK_AVERAGE_DURATION) == -1.0f)
+                        {
+                        data.setColumn(ServiceMemberData.TASK_AVERAGE_DURATION, 0);
+                        }
 
                     if ((Integer) data.getColumn(ServiceMemberData.THREAD_COUNT) > 0)
                         {
