@@ -796,13 +796,6 @@
     </profile>
 
     <profile>
-      <id>visualvm</id>
-      <modules>
-        <module>coherence-jvisualvm</module>
-      </modules>
-    </profile>
-
-    <profile>
       <id>security-manager</id>
       <activation>
         <property>
@@ -889,10 +882,6 @@
                   <exclude>**/StreamTest.java</exclude>
                   <exclude>**/IntStreamTest.java</exclude>
                   <exclude>**/LongStreamTest.java</exclude>
-                  <!-- JVisualVM -->
-                  <exclude>**/RestAggregatedDataRetrieverTest.java</exclude>
-                  <exclude>**/Abstract*Test.java</exclude>
-                  <exclude>**/**PerformanceTest.java</exclude>
                 </excludes>
               </configuration>
             </plugin>

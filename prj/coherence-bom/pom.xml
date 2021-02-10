@@ -158,11 +158,6 @@
       </dependency>
       <dependency>
         <groupId>${coherence.group.id}</groupId>
-        <artifactId>coherence-jvisualvm</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-loadbalancer</artifactId>
         <version>${project.version}</version>
       </dependency>
