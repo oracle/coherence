@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
 
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
--->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -619,6 +620,8 @@
     <failsafe.coverage.argline/>
 
     <skip.animal.sniffer.plugin>false</skip.animal.sniffer.plugin>
+
+    <copyright.svn>-p4</copyright.svn>
 
     <!-- tool versions -->
     <ant-tangosol.version>1.0</ant-tangosol.version>
@@ -1580,6 +1583,21 @@
       </modules>
     </profile>
 
+    <!-- This profile will detect the .git/config directory and flip the copyright.svn
+         property from p4 to git to do the copyright year check.  -->
+    <profile>
+      <id>git-copyright</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <file>
+          <exists>../.git/config</exists>
+        </file>
+      </activation>
+      <properties>
+        <copyright.svn>-g</copyright.svn>
+      </properties>
+    </profile>
+
     <profile>
       <id>copyright</id>
       <activation>
@@ -1587,83 +1605,38 @@
       </activation>
       <build>
           <plugins>
-            <!-- license-maven-plugin -->
             <plugin>
-              <groupId>com.mycila</groupId>
-              <artifactId>license-maven-plugin</artifactId>
-              <version>${maven.license.plugin.version}</version>
-              <configuration>
-                <header>${top.parent.basedir}/etc/header.txt</header>
-                <headerDefinitions>
-                   <headerDefinition>${top.parent.basedir}/etc/header-definitions.xml</headerDefinition>
-                </headerDefinitions>
-                <mapping>
-                  <mjs>SLASHSTAR_STYLE</mjs>
-                  <jdk11>SCRIPT_STYLE</jdk11>
-                </mapping>
-                <aggregate>true</aggregate>
-                <properties>
-                  <com.perforce.p4java.server>${env.P4PORT}</com.perforce.p4java.server>
-                  <com.perforce.p4java.clientName>${env.P4CLIENT}</com.perforce.p4java.clientName>
-                  <com.perforce.p4java.userName>${env.P4USER}</com.perforce.p4java.userName>
-                  <com.perforce.p4java.password>${env.P4PASSWD}</com.perforce.p4java.password>
-                </properties>
-                <excludes>
-                  <exclude>**/*.iml</exclude>
-                  <exclude>.p4ignore</exclude>
-                  <exclude>etc/**</exclude>
-                  <exclude>**/package.html</exclude>
-                  <exclude>settings.xml</exclude>
-                  <exclude>**/test-security.policy</exclude>
-                  <exclude>**/*.gar</exclude>
-                  <exclude>**/*.pem</exclude>
-                  <exclude>**/*.p12</exclude>
-                  <exclude>**/*.csr</exclude>
-                  <exclude>**/*.jks</exclude>
-                  <exclude>**/*.mf</exclude>
-                  <exclude>**/*flattened-pom.xml</exclude>
-                  <exclude>**/keypass.txt</exclude>
-                  <exclude>**/storepass.txt</exclude>
-                  <exclude>**/trustpass.txt</exclude>
-                  <exclude>**/login.config</exclude>
-                  <exclude>**/login.configRsa</exclude>
-                  <exclude>**/tools/copyright.txt</exclude>
-                  <exclude>**/tools/copyright.*.txt</exclude>
-                  <exclude>**/META-INF/services/*.bnd</exclude>
-                  <exclude>**/coherence-docker/src/main/docker/Dockerfile*</exclude>
-                  <exclude>**/coherence-jvisualvm/license.txt</exclude>
-                  <exclude>**/coherence-testing-support/src/main/resources/data/java/**.data</exclude>
-                  <exclude>**/coherence-testing-support/src/main/resources/data/dotnet/**.data</exclude>
-                  <exclude>**/src/main/java/com/tangosol/coherence/http/netty/NettyInputStream.java</exclude>
-                  <exclude>**/test/distribution/jcache-compliance/src/test/resources/ExcludeList</exclude>
-                  <exclude>**/test/functional/filter/src/test/resources/**.ptn</exclude>
-                  <exclude>**/test/functional/ssl/src/test/resources/**.chain</exclude>
-                  <exclude>**/test/functional/reporter/src/test/resources/*.txt</exclude>
-                  <exclude>**/test/functional/logging/src/test/java/org/slf4j/helpers/**.java</exclude>
-                  <exclude>**/test/functional/logging/src/test/java/org/slf4j/helpers/**.java</exclude>
-                  <exclude>**/test/functional/logging/src/test/java/org/slf4j/impl/**.java</exclude>
-                </excludes>
-              </configuration>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <!-- inherited = false - we do not want/need this copyright check to execute in sub-modules -->
+              <inherited>false</inherited>
               <executions>
                 <execution>
+                  <id>copyright-check</id>
                   <goals>
-                    <goal>check</goal>
+                    <goal>java</goal>
                   </goals>
                   <phase>validate</phase>
+                  <configuration>
+                    <mainClass>org.glassfish.copyright.Copyright</mainClass>
+                    <additionalClasspathElements>${top.parent.basedir}/../tools/copyright/glassfish-copyright-maven-plugin-2.4-SNAPSHOT.jar</additionalClasspathElements>
+                    <addOutputToClasspath>false</addOutputToClasspath>
+                    <addResourcesToClasspath>false</addResourcesToClasspath>
+                    <arguments>
+                      <argument>-c</argument>
+                      <argument>-X</argument>
+                      <argument>@${top.parent.basedir}/etc/copyright-exclude.txt</argument>
+                      <argument>-C</argument>
+                      <argument>${top.parent.basedir}/etc/header.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-2.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-3.txt</argument>
+                      <argument>${copyright.svn}</argument>
+                    </arguments>
+                  </configuration>
                 </execution>
               </executions>
-              <dependencies>
-                <dependency>
-                  <groupId>com.oracle.bedrock</groupId>
-                  <artifactId>bedrock-runtime-maven</artifactId>
-                  <version>${oracle.bedrock.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.perforce</groupId>
-                    <artifactId>p4java</artifactId>
-                    <version>2019.1.1889202</version>
-                </dependency>
-              </dependencies>
             </plugin>
           </plugins>
       </build>
