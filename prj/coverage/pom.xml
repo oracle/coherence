@@ -155,11 +155,6 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-jvisualvm</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence-login</artifactId>
           <version>${project.version}</version>
         </dependency>
@@ -319,12 +314,6 @@
         <dependency>
           <groupId>${coherence.group.id}.tests</groupId>
           <artifactId>jmx</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>${coherence.group.id}.tests</groupId>
-          <artifactId>jvisualvm</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
