@@ -22,9 +22,6 @@
             <address-provider>ap3</address-provider>
           </remote-addresses>
         </tcp-initiator>
-        <use-filters>
-          <filter-name>gzip</filter-name>
-        </use-filters>
         <connect-timeout>5s</connect-timeout>
       </initiator-config>
     </remote-cache-scheme>
@@ -37,9 +34,6 @@
             <address-provider>ap3</address-provider>
           </remote-addresses>
         </tcp-initiator>
-        <use-filters>
-          <filter-name>gzip</filter-name>
-        </use-filters>
         <connect-timeout>5s</connect-timeout>
       </initiator-config>
     </remote-cache-scheme>
