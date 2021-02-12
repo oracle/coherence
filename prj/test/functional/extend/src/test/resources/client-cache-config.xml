@@ -255,9 +255,6 @@
           <heartbeat-interval>15s</heartbeat-interval>
           <heartbeat-timeout>15s</heartbeat-timeout>
         </outgoing-message-handler>
-        <use-filters>
-          <filter-name>gzip</filter-name>
-        </use-filters>
         <serializer>
           <instance>
             <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
@@ -295,9 +292,6 @@
           <heartbeat-interval>15s</heartbeat-interval>
           <heartbeat-timeout>15s</heartbeat-timeout>
         </outgoing-message-handler>
-        <use-filters>
-          <filter-name>gzip</filter-name>
-        </use-filters>
         <serializer>
           <instance>
             <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
@@ -326,9 +320,6 @@
           <heartbeat-interval>15s</heartbeat-interval>
           <heartbeat-timeout>15s</heartbeat-timeout>
         </outgoing-message-handler>
-        <use-filters>
-          <filter-name>gzip</filter-name>
-        </use-filters>
         <serializer>
           <instance>
             <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
@@ -353,9 +344,6 @@
             <address-provider>ap3</address-provider>
           </remote-addresses>
         </tcp-initiator>
-        <use-filters>
-          <filter-name>gzip</filter-name>
-        </use-filters>
         <serializer>
           <instance>
             <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
@@ -395,9 +383,6 @@
           <heartbeat-interval>15s</heartbeat-interval>
           <heartbeat-timeout>15s</heartbeat-timeout>
         </outgoing-message-handler>
-        <use-filters>
-          <filter-name>gzip</filter-name>
-        </use-filters>
         <serializer>
           <instance>
             <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>

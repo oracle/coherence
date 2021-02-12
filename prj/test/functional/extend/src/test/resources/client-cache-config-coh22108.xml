@@ -40,9 +40,6 @@
                 <outgoing-message-handler>
                     <request-timeout>5s</request-timeout>
                 </outgoing-message-handler>
-                <use-filters>
-                    <filter-name>gzip</filter-name>
-                </use-filters>
                 <serializer>
                     <instance>
                         <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
