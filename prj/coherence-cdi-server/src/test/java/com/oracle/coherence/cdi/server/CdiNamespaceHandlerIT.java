@@ -22,6 +22,8 @@ import com.oracle.coherence.cdi.events.Destroyed;
 import com.oracle.coherence.cdi.events.Disposing;
 import com.oracle.coherence.cdi.events.ServiceName;
 
+import com.oracle.coherence.common.base.Blocking;
+
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
@@ -40,6 +42,8 @@ import com.tangosol.net.events.partition.cache.CacheLifecycleEventDispatcher;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 
 import com.tangosol.net.partition.PartitionEvent;
+
+import com.tangosol.util.Base;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -169,6 +173,18 @@ class CdiNamespaceHandlerIT
         assertThat(serviceListener.hasCache("apples"), is(false));
         NamedCache<?, ?> apples = m_session.getCache("apples");
         Eventually.assertDeferred(() -> serviceListener.hasCache("apples"), is(true));
+
+        // COH-22954 - give a little time for all async initialization tasks to complete before
+        //             destroying the cache
+        try
+            {
+            Blocking.sleep(500);
+            }
+        catch (InterruptedException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+
         apples.destroy();
         Eventually.assertDeferred(() -> serviceListener.hasCache("apples"), is(false));
         }
