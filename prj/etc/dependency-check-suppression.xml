@@ -257,4 +257,20 @@
      <cve>CVE-2020-29582</cve>
   </suppress>
 
+  <!-- CVE references API not used by Coherence; referenced by GraphQL tutorial -->
+  <suppress>
+     <notes><![CDATA[
+     file name: jsonp-jaxrs-1.1.6.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.glassfish/jsonp\-jaxrs@.*$</packageUrl>
+     <cpe>cpe:/a:processing:processing</cpe>
+  </suppress> 
+  <suppress>
+     <notes><![CDATA[
+     file name: jsonp-jaxrs-1.1.6.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.glassfish/jsonp\-jaxrs@.*$</packageUrl>
+     <cve>CVE-2018-1000840</cve>
+  </suppress>
+ 
 </suppressions>
