@@ -1002,7 +1002,12 @@ public class HttpRequestSender
             }
 
         InputStream inputStream = connection.getInputStream();
-        LOGGER.fine((System.currentTimeMillis() - start) + "ms to open connection to " + urlBuilder.getUrl().toString() + " ");
+        if (REQUEST_DEBUG)
+            {
+            LOGGER.info((System.currentTimeMillis() - start) + "ms to open connection to "
+                        + urlBuilder.getUrl().toString() + " ");
+            }
+
         return inputStream;
         }
 
@@ -1385,7 +1390,13 @@ public class HttpRequestSender
      * Timeout for HTTP requests in ms.
      */
     private static final int REQUEST_TIMEOUT =
-            Integer.valueOf(System.getProperty("coherence.jvisualvm.rest.request.timeout","30000"));
+            Integer.parseInt(System.getProperty("coherence.jvisualvm.rest.request.timeout","30000"));
+
+    /**
+     * Debug for HTTP requests connection time.
+     */
+    private static final boolean REQUEST_DEBUG =
+            Boolean.parseBoolean(System.getProperty("coherence.jvisualvm.rest.request.debug","false"));
 
     // ----- data members ---------------------------------------------------
 
