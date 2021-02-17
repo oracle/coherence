@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.client;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.grpc.Requests;
 
 import com.oracle.coherence.grpc.proxy.ConfigurableCacheFactorySuppliers;
@@ -14,6 +15,7 @@ import com.oracle.coherence.grpc.proxy.GrpcServerController;
 
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 
@@ -166,10 +168,20 @@ public final class ServerHelper
         DefaultCacheServer.startServerDaemon(m_ccf)
                 .waitForServiceStart();
 
-        m_channel = ManagedChannelBuilder
-                .forAddress("localhost", GrpcServerController.INSTANCE.getPort())
-                .usePlaintext()
-                .build();
+        try
+            {
+            String sPort = String.valueOf(GrpcServerController.INSTANCE.getPort());
+            System.setProperty(String.format(GrpcSessionConfiguration.PROP_PORT, ChannelProvider.DEFAULT_CHANNEL_NAME), sPort);
+            GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(ChannelProvider.DEFAULT_CHANNEL_NAME)
+                    .build();
+
+            m_channel = (ManagedChannel) configuration.getChannel();
+            }
+        catch (Exception e)
+            {
+            e.printStackTrace();
+            throw Exceptions.ensureRuntimeException(e);
+            }
         }
 
     /**

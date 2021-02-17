@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.client;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.grpc.Requests;
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.config.ConfigurationException;
 import com.tangosol.internal.tracing.TracingHelper;
 
 import com.tangosol.io.Serializer;
@@ -18,9 +21,21 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 
+import com.tangosol.util.Resources;
 import io.grpc.Channel;
+import io.grpc.ChannelCredentials;
+import io.grpc.Grpc;
+import io.grpc.InsecureChannelCredentials;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.NettySslContextChannelCredentials;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
+import javax.net.ssl.SSLException;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
 
 /**
@@ -51,6 +66,29 @@ public interface GrpcSessionConfiguration
     static Builder builder(Channel channel)
         {
         return new Builder(channel, null, null);
+        }
+
+    /**
+     * Create a {@link GrpcSessionConfiguration} builder for the default gRPC session.
+     * <p>
+     * If {@code coherence.grpc.channels.default.target} is set this value will be used
+     * to create a channel using {@link ManagedChannelBuilder#forTarget(String)} creating
+     * a plain text channel.
+     * <p>
+     * If {@code coherence.grpc.channels.default.host} is set this value will be used
+     * to create a channel using {@link ManagedChannelBuilder#forAddress(String, int)} creating
+     * a plain text channel.
+     * The port will be taken from the {@code coherence.grpc.channels.default.port}
+     * property or default to {@code 1408}.
+     * <p>
+     * The {@link Builder#build()} method will throw an {@link IllegalStateException} if no
+     * channel properties exist for the channel name
+     *
+     * @return  a {@link GrpcSessionConfiguration} builder
+     */
+    static Builder builder()
+        {
+        return new Builder(null, ChannelProvider.DEFAULT_CHANNEL_NAME, null);
         }
 
     /**
@@ -355,29 +393,37 @@ public interface GrpcSessionConfiguration
                 return optional.get();
                 }
 
+            ChannelCredentials       credentials = createCredentials(sName);
+            String                   target      = getProperty(PROP_TARGET, sName);
             ManagedChannelBuilder<?> builder;
-            String target = Config.getProperty(String.format(PROP_TARGET, sName));
+
             if (target == null || target.trim().isEmpty())
                 {
                 if (ChannelProvider.DEFAULT_CHANNEL_NAME.equals(sName) && sDefaultHost == null)
                     {
                     sDefaultHost = DEFAULT_HOST;
                     }
-                String host = Config.getProperty(String.format(PROP_HOST, sName), sDefaultHost);
-                int    port = Config.getInteger(String.format(PROP_PORT, sName), 1408);
+                String sHost = getProperty(PROP_HOST, sName, sDefaultHost);
+                int    nPort = Config.getInteger(String.format(PROP_PORT, sName), 1408);
 
-                if (host == null)
+                if (sHost == null)
                     {
                     return null;
                     }
 
-                builder = ManagedChannelBuilder.forAddress(host, port);
+                builder = Grpc.newChannelBuilderForAddress(sHost, nPort, credentials);
+
+                String sAuthority = getProperty(PROP_TLS_AUTHORITY, sName);
+                if (sAuthority != null)
+                    {
+                    builder.overrideAuthority(sAuthority);
+                    }
                 }
             else
                 {
-                builder = ManagedChannelBuilder.forTarget(target);
+                builder = Grpc.newChannelBuilder(target, credentials);
                 }
-            return builder.usePlaintext().build();
+            return builder.build();
             }
 
         /**
@@ -396,6 +442,139 @@ public interface GrpcSessionConfiguration
                 return ChannelProviders.INSTANCE.findChannel(sName);
                 }
             return Optional.empty();
+            }
+
+        private String getProperty(String sProperty, String sChannelName)
+            {
+            return Config.getProperty(String.format(sProperty, sChannelName));
+            }
+
+        private String getProperty(String sProperty, String sChannelName, String sDefault)
+            {
+            return Config.getProperty(String.format(sProperty, sChannelName), sDefault);
+            }
+
+        /**
+         * Create the {@link ChannelCredentials} to use for the client channel.
+         * <p>
+         * If the property {@link #PROP_CREDENTIALS} is "plaintext" then a non-TLS credentials
+         * will be created.
+         * <p>
+         * If the property {@link #PROP_CREDENTIALS} is "insecure" then TLS credentials will
+         * be created using an insecure trust manager that will not verify the server certs.
+         * <p>
+         * If the property {@link #PROP_CREDENTIALS} is "tls" then TLS credentials will be created
+         * using a specified key (from the {@link #PROP_TLS_KEY}) and cert from (from the {@link #PROP_TLS_CERT}).
+         * Optionally a key password (from the {@link #PROP_TLS_KEYPASS}) and a CA (from the {@link #PROP_TLS_CA})
+         * may also be provided.
+         * <p>
+         * If the property {@link #PROP_CREDENTIALS} is not set, "plaintext" will be used.
+         *
+         * @param sChannelName  the name of the channel
+         *
+         * @return the {@link ChannelCredentials} to use for the client channel.
+         */
+        ChannelCredentials createCredentials(String sChannelName)
+            {
+            String             sType = getProperty(PROP_CREDENTIALS, sChannelName, CREDENTIALS_PLAINTEXT);
+            ChannelCredentials credentials;
+
+            if (CREDENTIALS_PLAINTEXT.equals(sType))
+                {
+                credentials = InsecureChannelCredentials.create();
+                }
+            else if (CREDENTIALS_INSECURE.equals(sType))
+                {
+                try
+                    {
+                    SslContext sslContext = GrpcSslContexts.forClient()
+                            .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                            .build();
+
+                    credentials = NettySslContextChannelCredentials.create(sslContext);
+                    }
+                catch (SSLException e)
+                    {
+                    throw Exceptions.ensureRuntimeException(e);
+                    }
+                }
+            else if (CREDENTIALS_TLS.equals(sType))
+                {
+                try
+                    {
+                    SslContextBuilder builder = SslContextBuilder.forClient();
+
+                    String sTlsCert = getProperty(PROP_TLS_CERT, sChannelName);
+                    String sTlsKey  = getProperty(PROP_TLS_KEY, sChannelName);
+                    String sTlsPass = getProperty(PROP_TLS_KEYPASS, sChannelName);
+                    String sTlsCA   = getProperty(PROP_TLS_CA, sChannelName);
+                    URL    urlCert  = null;
+                    URL    urlKey   = null;
+                    URL    urlCA    = null;
+
+                    if ((sTlsKey != null && sTlsCert == null) || (sTlsKey == null && sTlsCert != null))
+                        {
+                        String sReason = "Invalid gRPC configuration for channel \"" + sChannelName + "\", "
+                                + ((sTlsKey == null) ? "no key file specified" : "no cert file specified");
+                        throw new ConfigurationException(sReason,
+                                "When configuring gRPC TLS both the key and cert files must be configured"
+                                + " key=\"" + sTlsKey + "\" cert=\"" + sTlsCert + "\"");
+                        }
+                    else if (sTlsKey != null && sTlsCert != null)
+                        {
+                        urlCert = Resources.findFileOrResource(sTlsCert, null);
+                        if (urlCert == null)
+                            {
+                            throw new ConfigurationException("Cannot find configured TLS cert for channel \""
+                                                                     + sChannelName + "\": " + sTlsCert,
+                                                             "Ensure the TLS cert exists");
+                            }
+
+                        urlKey = Resources.findFileOrResource(sTlsKey, null);
+                        if (urlKey == null)
+                            {
+                            throw new ConfigurationException("Cannot find configured TLS key for channel \""
+                                                                     + sChannelName + "\": " + sTlsCert,
+                                                             "Ensure the TLS key exists");
+                            }
+
+                        builder.keyManager(urlCert.openStream(), urlKey.openStream(), sTlsPass);
+                        }
+
+                    if (sTlsCA != null)
+                        {
+                        urlCA = Resources.findFileOrResource(sTlsCA, null);
+                        if (urlCA == null)
+                            {
+                            throw new ConfigurationException("Cannot find configured TLS CA: for channel \""
+                                    + sChannelName + "\": " + sTlsCA,
+                                    "Ensure the TLS CA exists");
+                            }
+
+                        builder.trustManager(urlCA.openStream());
+                        }
+
+                    builder = GrpcSslContexts.configure(builder);
+
+                    Logger.info("Creating gRPC Channel \"" + sChannelName
+                                        + "\" using TLS credentials. key="
+                                        + urlKey + " cert=" + urlCert + " ca=" + urlCA);
+
+                    credentials = NettySslContextChannelCredentials.create(builder.build());
+                    }
+                catch (IOException e)
+                    {
+                    throw Exceptions.ensureRuntimeException(e);
+                    }
+                }
+            else
+                {
+                throw new ConfigurationException("Invalid credentials type for channel " + sChannelName,
+                        "Valid values are " + CREDENTIALS_INSECURE + " " + CREDENTIALS_TLS
+                        + " " + CREDENTIALS_PLAINTEXT);
+                }
+
+            return credentials;
             }
 
         /**
@@ -613,6 +792,51 @@ public interface GrpcSessionConfiguration
      * {@link Channel} if no channel is specified for the configuration.
      */
     String PROP_PORT = "coherence.grpc.channels.%s.port";
+
+    /**
+     * The system property that sets the location of the TLS key file.
+     */
+    String PROP_TLS_KEY = "coherence.grpc.channels.%s.tls.key";
+
+    /**
+     * The system property that sets the password for the TLS key file.
+     */
+    String PROP_TLS_KEYPASS = "coherence.grpc.channels.%s.tls.password";
+
+    /**
+     * The system property that sets the location of the TLS cert file.
+     */
+    String PROP_TLS_CERT = "coherence.grpc.channels.%s.tls.cert";
+
+    /**
+     * The system property that sets the location of the TLS CA file.
+     */
+    String PROP_TLS_CA = "coherence.grpc.channels.%s.tls.ca";
+
+    /**
+     * The system property that sets the value to use to CA file.
+     */
+    String PROP_TLS_AUTHORITY = "coherence.grpc.channels.%s.tls.authority";
+
+    /**
+     * The system property to use to set the type of credentials to use.
+     */
+    String PROP_CREDENTIALS = "coherence.grpc.channels.%s.credentials";
+
+    /**
+     * The credentials to use to connect insecurely to a TLS enabled server.
+     */
+    String CREDENTIALS_INSECURE = Requests.CREDENTIALS_INSECURE;
+
+    /**
+     * The credentials to use to connect to a TLS enabled server.
+     */
+    String CREDENTIALS_TLS = Requests.CREDENTIALS_TLS;
+
+    /**
+     * The credentials to use to connect to a non-TLS enabled server.
+     */
+    String CREDENTIALS_PLAINTEXT = "plaintext";
 
     /**
      * The system property to use to override the default target to use for the

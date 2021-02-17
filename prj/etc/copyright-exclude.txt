@@ -33,6 +33,7 @@ test-security.policy
 cache-config-UTF8-BOM.xml
 .chain
 .cmd
+.cnf
 .csr
 .data
 .exe
@@ -45,6 +46,7 @@ cache-config-UTF8-BOM.xml
 .jks
 .jpg
 .json
+.key
 .p12
 .pem
 .png

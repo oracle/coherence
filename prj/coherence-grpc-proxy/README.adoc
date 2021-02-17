@@ -35,45 +35,8 @@ implementation '{coherence-maven-group-id}:coherence-grpc-proxy:{version-coheren
 
 === Start the Server
 
-The gRPC server will start automatically when `com.tangosol.coherence.net.DefaultCacheServer` is started. Typically,
-`DefaultCacheServer` will be used as the application's main class, alternatively an instance of `DefaultCacheServer`
-can be started by calling its `main()` method directly from application initialisation code:
-
-[source,java]
-----
-import com.tangosol.net.DefaultCacheServer;
-
-public class MyApplication
-    {
-    public static void main(String[] args)
-        {
-        // do application initialisation...
-
-        // this is a blocking call...
-        DefaultCacheServer.main(args);
-        }
-    }
-----
-
-or using the non-blocking `startServerDaemon` method:
-
-[source,java]
-----
-import com.tangosol.net.DefaultCacheServer;
-
-public class MyApplication
-    {
-    public static void main(String[] args)
-        {
-        // do application initialisation...
-
-        DefaultCacheServer.startServerDaemon();
-
-        // do more application initialisation...
-        }
-    }
-----
-
+The gRPC server will start automatically when `com.tangosol.coherence.net.Coherence` (or `com.tangosol.coherence.net.DefaultCacheServer`) is started.
+Typically, `Coherence` will be used as the application's main class, alternatively an instance of `Coherence` can be started using the bootstrap API.
 
 When reviewing the log output, you should see the following two log messages:
 
@@ -99,6 +62,39 @@ for example `-Dcoherence.grpc.server.port=7001` will cause the server to bind to
 
 The name used by the in-process server can be changed using the `coherence.grpc.inprocess.name` system property,
 for example `-Dcoherence.grpc.inprocess.name=foo` will set the in-process server name to `foo`.
+
+=== Using TLS
+
+By default, the gRPC server runs in plaintext mode.
+The gRPC server can be configured to use TLS. The relevant key, cert and optional CA files must be provided, either on the classpath of file system.
+
+Assuming that the TLS key is in a file named `/certs/server.key`, and that the server TLS cert is in a file named `/certs/server.pem` then TLS can be configured with the following system properties.
+
+[source]
+----
+coherence.grpc.server.credentials=tls
+coherence.grpc.server.tls.key=/certs/server.key
+coherence.grpc.server.tls.cert=/certs/server.pem
+----
+
+An optional server key file password can be provided if required, for example if the key file password is `secret`:
+[source]
+----
+coherence.grpc.server.tls.password=secret
+----
+
+By default, the server does not require client certificates. The server can be configured to use mutual authentication to verify the client certificates.
+[source]
+----
+coherence.grpc.server.tls.client=REQUIRED
+----
+The valid values for the `coherence.grpc.server.tls.client` system property are `NONE`, `REQUIRED`, or `OPTIONAL`.
+
+If a CA file is required to verify the client certs it can be provided to the server, for example if the CA file is called `/certs/ca.pem`:
+[source]
+----
+coherence.grpc.server.tls.ca=/certs/ca.pem
+----
 
 === Advanced gRPC Proxy Server Configuration
 

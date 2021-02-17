@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1150,6 +1150,36 @@ public final class Requests
     public static final String PROP_PORT = "coherence.grpc.server.port";
 
     /**
+     * The system property that sets whether mutual TLS is enabled.
+     */
+    public static final String PROP_TLS_CLIENT_AUTH = "coherence.grpc.server.tls.client";
+
+    /**
+     * The system property that sets the location of the TLS key file.
+     */
+    public static final String PROP_TLS_KEY = "coherence.grpc.server.tls.key";
+
+    /**
+     * The system property that sets the password for the TLS key file.
+     */
+    public static final String PROP_TLS_KEYPASS = "coherence.grpc.server.tls.password";
+
+    /**
+     * The system property that sets the location of the TLS cert file.
+     */
+    public static final String PROP_TLS_CERT = "coherence.grpc.server.tls.cert";
+
+    /**
+     * The system property that sets the location of the TLS CA file.
+     */
+    public static final String PROP_TLS_CA = "coherence.grpc.server.tls.ca";
+
+    /**
+     * The system property that sets the credentials type.
+     */
+    public static final String PROP_CREDENTIALS = "coherence.grpc.server.credentials";
+
+    /**
      * The system property that sets the name of the in-process gRPC server.
      */
     public static final String PROP_IN_PROCESS_NAME = "coherence.grpc.inprocess.name";
@@ -1158,4 +1188,15 @@ public final class Requests
      * The default localhost client port.
      */
     public static final int DEFAULT_PORT = 1408;
+
+    /**
+     * The value used for the {@link #PROP_CREDENTIALS} system property to indicate an insecure server.
+     */
+    public static final String CREDENTIALS_INSECURE = "insecure";
+
+    /**
+     * The value used for the {@link #PROP_CREDENTIALS} system property to indicate the server should use TLS.
+     */
+    public static final String CREDENTIALS_TLS = "tls";
+
     }

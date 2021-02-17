@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -323,9 +323,9 @@ public class GrpcRemoteSession
         }
 
     /**
-     * Returns {@code true} if this session has been closed, otherwise returns {@link false}.
+     * Returns {@code true} if this session has been closed, otherwise returns {@code false}.
      *
-     * @return {@code true} if this session has been closed, otherwise {@link false}
+     * @return {@code true} if this session has been closed, otherwise {@code false}
      */
     public boolean isClosed()
         {

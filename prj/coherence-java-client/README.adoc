@@ -33,12 +33,95 @@ Coherence `Session`.
 
 === Obtain a Remote Session
 
-To obtain a `Session` that connects to a remote gRPC proxy the first requirement is a gRPC `Channel`.
-The client application must create the gRPC `Channel` with the required configuration corresponding to that
-required by the server (for example any security settings etc).
+Client gRPC sessions to can be configured using system properties. By default, if no properties are provided a gRPC session named `default` will be configured to connect to `localhost:1408`.
 
-The `Channel` can then be used to create a `Session` using the Coherence `Session` factory methods.
-The `Session` can ten be used to access remote resources.
+For example, the code below will create a gRPC `Session` named `default`:
+[source,java]
+----
+import com.oracle.coherence.client.GrpcSessionConfiguration;
+import com.tangosol.net.Session;
+import com.tangosol.net.SessionConfiguration;
+
+SessionConfiguration config = GrpcSessionConfiguration.builder().build();
+Session session = Session.create(config);
+
+NamedMap<String, String> map = session.getMap("foo");
+----
+
+=== Named gRPC Sessions
+
+Client sessions can be named, by providing a name to the configuration builder:
+For example, the code below will create a gRPC `Session` named `foo`:
+[source,java]
+----
+import com.oracle.coherence.client.GrpcSessionConfiguration;
+import com.tangosol.net.Session;
+import com.tangosol.net.SessionConfiguration;
+
+SessionConfiguration config = GrpcSessionConfiguration.builder("foo").build();
+Session session = Session.create(config);
+
+NamedMap<String, String> map = session.getMap("foo");
+----
+
+
+=== Session Configuration via Properties
+
+Client gRPC sessions can be configured using system properties.
+The system property names follow the format `coherence.grpc.channels.<name>.xyz`, where `<name>` is replaced with the session name.
+
+For example the property to set the the port to connect to is `coherence.grpc.channels.<name>.port`, so to configure the port for the default session to 9099, set the property `-Dcoherence.grpc.channels.default.port=9099`
+
+|===
+|Property |Description
+
+|`coherence.grpc.channels.<name>.host`
+|The host name to connect to
+
+|`coherence.grpc.channels.<name>.port`
+|The port to connect to
+
+|`coherence.grpc.channels.<name>.target`
+|As an alternative to setting the host and port, setting target creates a channel using the `ManagedChannelBuilder.forTarget(target);` method (see the gRPC Java documentation).
+|===
+(replace `<name>` with the session name being configured).
+
+=== Using TLS
+
+By default, the `Channel` used by the gRPC session will be configured as a plain text connection.
+TLS can be configured by setting the required properties.
+
+|===
+|Property |Description
+
+|`coherence.grpc.channels.<name>.credentials`
+|Set to one of `plaintext`, `insecure` or `tls`. The default is `plaintext` and will create an insecure plain text channel. Using `insecure` will enable TLS but not verify the server certificate (useful in testing). Using `tls` will enable TLS on the client.
+
+|`coherence.grpc.channels.<name>.tls.ca`
+|The location of a CA file if required to verify the server certs.
+|===
+(replace `<name>` with the session name being configured).
+
+If the server has been configured for mutual verification the client's key and certificate can also be provided:
+
+|===
+|Property |Description
+
+|`coherence.grpc.channels.<name>.tls.cert`
+|The location of a client certificate file.
+
+|`coherence.grpc.channels.<name>.tls.key`
+|The location of a client key file.
+
+|`coherence.grpc.channels.<name>.tls.password`
+|The optional password for the client key file.
+|===
+(replace `<name>` with the session name being configured).
+
+
+=== Create a Session with a Custom Channel
+
+If a fully custom channel configuration is required application code can configure the session with a `Channel`.
 
 [source,java]
 ----
@@ -46,18 +129,20 @@ Channel channel = ManagedChannelBuilder.forAddress("localhost", 1408)
                                        .usePlaintext()
                                        .build();
 
-Session session = Session.create(GrpcSessions.channel(channel));
+SessionConfiguration config = GrpcSessionConfiguration.builder(channel)
+        .named("foo")
+        .build();
+
+Session session = Session.create(config);
 
 NamedMap<String, String> map = session.getMap("foo");
 ----
 
 The example above creates a simple gRPC channel to connect to `localhost:1408`.
 A `Session` has been created with this channel by specifying the `GrpcSessions.channel(channel)` option.
-The `Session` can used as a normal Coherence `Sessions` to create, maps, caches and topics.
 
 Calls to `Session.create()` with the same parameters, in this case channel, will return the same `Session` instance.
-Most gRPC `Channel` implementations do not implement an `equals()` method so the same `Session` will only be returned
-for the exact same `Channel` instance.
+Most gRPC `Channel` implementations do not implement an `equals()` method, so the same `Session` will only be returned for the exact same `Channel` instance.
 
 ==== Close a Session
 
@@ -73,12 +158,14 @@ The serializer for a session can be set specifically when creating a `Session`.
 
 [source,java]
 ----
-Channel channel = ManagedChannelBuilder.forAddress("localhost", 1408)
-                                       .usePlaintext()
-                                       .build();
-
-Serializer ser = new JsonSerializer();
+Serializer serializer = new JsonSerializer();
 String format = "json";
+
+SessionConfiguration config = GrpcSessionConfiguration.builder()
+        .withSerializer(serializer, format)
+        .build();
+
+Session session = Session.create(config);
 
 Session session = Session.create(GrpcSessions.channel(channel),
                                  GrpcSessions.serializer(ser, format));
@@ -102,13 +189,11 @@ creating the session.
 
 [source,java]
 ----
-Channel channel = ManagedChannelBuilder.forAddress("localhost", 1408)
-                                       .usePlaintext()
-                                       .build();
+SessionConfiguration config = GrpcSessionConfiguration.builder()
+        .withScopeName("foo")
+        .build();
 
-Session session = Session.create(GrpcSessions.channel(channel),
-                                 GrpcSessions.scope("foo"));
+Session session = Session.create(config);
 ----
 
-In the example above the `GrpcSessions.scope("foo")` option is used to specify that the `Session` created should
-connect to resources on the server managed by the `ConfigurableCacheFactory` with the scope `foo`.
+In the example above the `GrpcSessions.scope("foo")` option is used to specify that the `Session` created should connect to resources on the server managed by the server side `Session` with the scope `foo`.
