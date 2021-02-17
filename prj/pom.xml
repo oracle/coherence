@@ -886,7 +886,7 @@
     <felix.version>6.0.3</felix.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
     <graal.version>19.3.1</graal.version>
-    <grpc.version>1.32.1</grpc.version>
+    <grpc.version>1.35.0</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -894,7 +894,7 @@
     netty.version ???
     grpc.version ???
     -->
-    <helidon.version>2.2.0</helidon.version>
+    <helidon.version>2.2.1</helidon.version>
     <helidon.sitegen.version>2.0.0-RC1</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
@@ -920,7 +920,7 @@
     <log4j2.version>2.13.3</log4j2.version>
     <micrometer.version>1.5.5</micrometer.version>
     <mvel.version>2.4.3.Final</mvel.version>
-    <netty.version>4.1.51.Final</netty.version>
+    <netty.version>4.1.58.Final</netty.version>
     <opentracing.grpc.version>0.2.1</opentracing.grpc.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
