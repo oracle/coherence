@@ -423,6 +423,12 @@ function createNav(){
             target: '_blank'
         },
         {
+            title: 'Blog',
+            action: 'fa-newspaper',
+            href: 'https://medium.com/oracle-coherence',
+            target: '_blank'
+        },
+        {
             title: 'GitHub',
             action: 'fa-github-square',
             href: 'https://github.com/oracle/coherence',
