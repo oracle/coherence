@@ -424,7 +424,7 @@ function createNav(){
         },
         {
             title: 'Blog',
-            action: 'fa-newspaper',
+            action: 'library_books',
             href: 'https://medium.com/oracle-coherence',
             target: '_blank'
         },
