@@ -786,7 +786,7 @@
       Note that this property has to be named 'revision' and that it has
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
-    <revision>20.12.1</revision>
+    <revision>20.12.2-SNAPSHOT</revision>
 
     <!-- version prefix used for cluster compatibility -->
     <project.version.prefix>14.1.1</project.version.prefix>
