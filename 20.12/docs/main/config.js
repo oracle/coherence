@@ -381,7 +381,7 @@ function createNav(){
         {
             title: 'Coherence CE Java API',
             action: 'library_books',
-            href: 'https://oracle.github.io/coherence/20.12.1/api/java/index.html',
+            href: 'https://oracle.github.io/coherence/20.12/api/java/index.html',
             target: '_blank'
         },
         {
@@ -420,6 +420,12 @@ function createNav(){
             title: 'Web Site',
             action: 'fa-globe',
             href: 'https://coherence.community/',
+            target: '_blank'
+        },
+        {
+            title: 'Blog',
+            action: 'library_books',
+            href: 'https://medium.com/oracle-coherence',
             target: '_blank'
         },
         {
