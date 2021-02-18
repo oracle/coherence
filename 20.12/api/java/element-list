@@ -1,4 +1,5 @@
 com.oracle.coherence.cdi
+com.oracle.coherence.cdi.events
 com.oracle.coherence.cdi.server
 com.oracle.coherence.common.base
 com.oracle.coherence.grpc
@@ -26,6 +27,7 @@ com.tangosol.coherence.dsltools.base
 com.tangosol.coherence.dsltools.precedence
 com.tangosol.coherence.dsltools.termlanguage
 com.tangosol.coherence.dsltools.termtrees
+com.tangosol.coherence.federation
 com.tangosol.coherence.jcache
 com.tangosol.coherence.jcache.common
 com.tangosol.coherence.jcache.localcache
