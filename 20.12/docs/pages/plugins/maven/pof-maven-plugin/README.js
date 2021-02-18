@@ -2,18 +2,18 @@
 
 <h2 id="_pof_maven_plugin">POF Maven Plugin</h2>
 <div class="section">
-<p>The POF Maven Plugin provides automated instrumentation of classes with the <code>PortableType</code> annotation
+<p>The POF Maven Plugin provides automated instrumentation of classes with the <code>@PortableType</code> annotation
 to generate consistent (and correct) implementations of Evolvable POF serialization methods.</p>
 
 <p>It is a far from a trivial exercise to manually write serialization methods that support serializing
-inheritance hierarchies that support the Evolvable concept. However, with static type analysis these methods
+inheritance hierarchies that support the <code>Evolvable</code> concept. However, with static type analysis these methods
 can be deterministically generated.</p>
 
 <p>This allows developers to focus on business logic rather than implementing boilerplate code for the
 above-mentioned methods.</p>
 
 <div class="admonition note">
-<p class="admonition-inline">A POF config file must still be created for each of the classes annotated by <code>PortableType</code>.</p>
+<p class="admonition-inline">Please see <router-link to="/docs/core/04_portable_types">Portable Types</router-link> documentation for more information and detailed instructions on Portable Types creation and usage.</p>
 </div>
 </div>
 
@@ -29,7 +29,7 @@ lang="xml"
       &lt;plugin&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;pof-maven-plugin&lt;/artifactId&gt;
-        &lt;version&gt;20.12&lt;/version&gt;
+        &lt;version&gt;20.12.1&lt;/version&gt;
         &lt;executions&gt;
           &lt;execution&gt;
             &lt;id&gt;instrument&lt;/id&gt;
@@ -48,7 +48,7 @@ lang="xml"
     &lt;/plugins&gt;
   &lt;/build&gt;</markup>
 
-<p>An example `Person' class (below) when processed with the plugin is below
+<p>An example <code>Person</code> class (below) when processed with the plugin is below
 results in the bytecode shown below.</p>
 
 <markup

@@ -18,7 +18,7 @@ lang="xml"
 >    &lt;dependency&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;coherence-mp-config&lt;/artifactId&gt;
-        &lt;version&gt;20.12&lt;/version&gt;
+        &lt;version&gt;20.12.1&lt;/version&gt;
     &lt;/dependency&gt;</markup>
 
 <p>You will also need an implementation of the Eclipse MP Config specification as a  dependency.
@@ -30,14 +30,14 @@ lang="xml"
 >    &lt;dependency&gt;
       &lt;groupId&gt;io.helidon.microprofile.config&lt;/groupId&gt;
       &lt;artifactId&gt;helidon-microprofile-config&lt;/artifactId&gt;
-      &lt;version&gt;2.2.0&lt;/version&gt;
+      &lt;version&gt;2.2.1&lt;/version&gt;
     &lt;/dependency&gt;
 
     &lt;!-- optional: add it if you want YAML config file support --&gt;
     &lt;dependency&gt;
       &lt;groupId&gt;io.helidon.config&lt;/groupId&gt;
       &lt;artifactId&gt;helidon-config-yaml&lt;/artifactId&gt;
-      &lt;version&gt;2.2.0&lt;/version&gt;
+      &lt;version&gt;2.2.1&lt;/version&gt;
     &lt;/dependency&gt;</markup>
 
 </div>

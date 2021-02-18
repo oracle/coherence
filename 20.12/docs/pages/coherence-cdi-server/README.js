@@ -26,7 +26,7 @@ lang="xml"
 >    &lt;dependency&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;coherence-cdi-server&lt;/artifactId&gt;
-        &lt;version&gt;20.12&lt;/version&gt;
+        &lt;version&gt;20.12.1&lt;/version&gt;
     &lt;/dependency&gt;</markup>
 
 <p>Once the necessary dependency is in place, you can start using CDI to inject Coherence objects into managed CDI beans,
@@ -172,8 +172,7 @@ If that&#8217;s not the case, you can use <code>@Name</code> qualifier to specif
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.tangosol.net.NamedMap;
+>import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -185,8 +184,7 @@ private NamedMap&lt;Long, Person&gt; m_people;</markup>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.tangosol.net.NamedMap;
+>import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -209,8 +207,7 @@ that will be used to supply the cache or map:</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.SessionName;
-import com.tangosol.net.NamedMap;
+>import com.oracle.coherence.cdi.SessionName;
 import javax.inject.Inject;
 
 @Inject
@@ -227,8 +224,7 @@ respectively, in order to inject  asynchronous variant of those APIs:</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.SessionName;
-import com.tangosol.net.AsyncNamedMap;
+>import com.oracle.coherence.cdi.SessionName;
 import javax.inject.Inject;
 
 @Inject
@@ -246,9 +242,7 @@ private AsyncNamedCache&lt;Long, Person&gt; Product;</markup>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.View;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedMap;
+>import com.oracle.coherence.cdi.View;
 import javax.inject.Inject;
 
 @Inject
@@ -267,10 +261,9 @@ If you want to limit the data in the view to a subset, you can implement a <rout
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.View;
-import com.oracle.coherence.inject.WhereFilter;
-import com.tangosol.net.NamedMap;
+>import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.View;
+import com.oracle.coherence.cdi.WhereFilter;
 import javax.inject.Inject;
 
 @Inject
@@ -296,10 +289,9 @@ a drop down on the client UI.</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.View;
-import com.oracle.coherence.inject.PropertyExtractor;
-import com.tangosol.net.NamedMap;
+>import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.View;
+import com.oracle.coherence.cdi.PropertyExtractor;
 import javax.inject.Inject;
 
 @Inject
@@ -334,7 +326,7 @@ If that&#8217;s not the case, you  can use <code>@Name</code> qualifier to speci
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
+>import com.oracle.coherence.cdi.Name;
 import com.tangosol.net.NamedTopic;
 import javax.inject.Inject;
 
@@ -347,7 +339,7 @@ private NamedTopic&lt;Order&gt; topic;</markup>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
+>import com.oracle.coherence.cdi.Name;
 import com.tangosol.net.NamedTopic;
 import javax.inject.Inject;
 
@@ -371,7 +363,7 @@ that will be used to supply the topic:</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.SessionName;
+>import com.oracle.coherence.cdi.SessionName;
 import com.tangosol.net.NamedTopic;
 import javax.inject.Inject;
 
@@ -391,9 +383,8 @@ convenient to inject <code>Publisher</code> or <code>Subscriber</code> for a giv
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.SessionName;
-import com.tangosol.net.topic.Publisher;
+>import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.SessionName;
 import javax.inject.Inject;
 
 @Inject
@@ -412,9 +403,8 @@ private Publisher&lt;PaymentRequest&gt; payments;</markup>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.oracle.coherence.inject.SessionName;
-import com.tangosol.net.topic.Subscriber;
+>import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.cdi.SessionName;
 import javax.inject.Inject;
 
 @Inject
@@ -438,8 +428,7 @@ queue), you can easily accomplish that by adding `@SubscriberGroup</code> qualif
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.SubscriberGroup;
-import com.tangosol.net.topic.Subscriber;
+>import com.oracle.coherence.cdi.SubscriberGroup;
 import javax.inject.Inject;
 
 @Inject
@@ -494,7 +483,7 @@ Other named sessions can be configured as CDI beans of type <code>SessionConfigu
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.SessionInitializer;
+>import com.oracle.coherence.cdi.SessionInitializer;
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
@@ -517,9 +506,9 @@ For example:</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Scope;
-import com.oracle.coherence.inject.SessionInitializer;
+>import com.oracle.coherence.cdi.ConfigUri;
+import com.oracle.coherence.cdi.Scope;
+import com.oracle.coherence.cdi.SessionInitializer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
@@ -553,8 +542,7 @@ specifying the <code>Session</code> name:</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.tangosol.net.Session;
+>import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -589,8 +577,7 @@ can be easily accomplished using <code>@Name</code> qualifier:</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.tangosol.io.Serializer;
+>import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -625,8 +612,7 @@ as the named serializers defined in the operational config:</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.Name;
-import com.tangosol.io.Serializer;
+>import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject
@@ -643,9 +629,8 @@ which uses a specific POF configuration file.</p>
 <markup
 lang="java"
 
->import com.oracle.coherence.inject.ConfigUri;
-import com.oracle.coherence.inject.Name;
-import com.tangosol.io.Serializer;
+>import com.oracle.coherence.cdi.ConfigUri;
+import com.oracle.coherence.cdi.Name;
 import javax.inject.Inject;
 
 @Inject

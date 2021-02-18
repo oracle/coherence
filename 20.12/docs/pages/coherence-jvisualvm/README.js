@@ -164,7 +164,7 @@ $ mvn clean install -P visualvm</markup>
 </li>
 <li>
 Install the Plugin
-<p>The plugin will be available in the location <code>target/coherence-jvisualvm-20.12.nbm</code></p>
+<p>The plugin will be available in the location <code>target/coherence-jvisualvm-20.12.1.nbm</code></p>
 
 </li>
 </ol>

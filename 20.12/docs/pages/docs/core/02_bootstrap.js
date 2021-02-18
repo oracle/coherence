@@ -1,8 +1,8 @@
 <doc-view>
 
-<h2 id="_boot_strapping_coherence">Boot-Strapping Coherence</h2>
+<h2 id="_bootstrap_api">Bootstrap API</h2>
 <div class="section">
-<p>Coherence has a simple boot-strap API that allows a Coherence application to be configured and started by
+<p>Coherence has a simple bootstrap API that allows a Coherence application to be configured and started by
 building a <code>com.tangol.net.Coherence</code> instance and starting it.
 The <code>Coherence</code> instance provides access to one or more <code>com.tangosol.net.Session</code> instances.
 A <code>com.tangosol.net.Session</code> gives access to Coherence clustered resources, such as <code>NamedMap</code>, <code>NamedCache</code>,
@@ -10,7 +10,7 @@ A <code>com.tangosol.net.Session</code> gives access to Coherence clustered reso
 Sessions can be of different types, for example a session can be related to a <code>ConfigurableCacheFactory</code>,
 itself configured from a configuration file, or a session might be a client-side gRPC session.</p>
 
-<p>An example of some application boot-strap code might look like this:</p>
+<p>An example of some application bootstrap code might look like this:</p>
 
 <markup
 lang="java"
@@ -77,7 +77,7 @@ to that run using <code>DefaultCahceServer</code>.</p>
 <h4 id="_the_default_session">The Default Session</h4>
 <div class="section">
 <p>When running Coherence if no configuration is specified the default behaviour is to use the default configuration file
-to configure Coherence. This behaviour still applies to the boot-strap API. If a <code>Coherence</code> instance is started without
+to configure Coherence. This behaviour still applies to the bootstrap API. If a <code>Coherence</code> instance is started without
 specifying any session configurations then a single default <code>Session</code> will be created.
 This default <code>Session</code> will wrap a <code>ConfigurableCacheFactory</code> that has been created from the default configuration file.
 The default file name is <code>coherence-cache-config.xml</code> unless this has been overridden with the <code>coherence.cacheconfig</code>
@@ -204,7 +204,7 @@ of <code>Test</code>.</p>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
-<p ><p>When using the boot-strap API any scope name specifically configured in the <code>SessionConfiguration</code>
+<p ><p>When using the bootstrap API any scope name specifically configured in the <code>SessionConfiguration</code>
 (that is not the default scope name) will override the scope name in the XML file.</p>
 
 <p>For example, using the <code>scoped-configuration.xml</code> file above:</p>
@@ -459,7 +459,7 @@ coherence.start();</markup>
 
 <h3 id="_obtaining_a_coherence_instance">Obtaining a Coherence Instance</h3>
 <div class="section">
-<p>To avoid having to pass around the instance of <code>Coherence</code> that was used to boot-strap an application the
+<p>To avoid having to pass around the instance of <code>Coherence</code> that was used to bootstrap an application the
 <code>Coherence</code> class has some static methods that make it simple to retrieve an instance.</p>
 
 <p>If only a single instance of <code>Coherence</code> is being used in an application (which will cover most use-cases) then

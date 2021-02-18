@@ -1,9 +1,9 @@
 function createConfig() {
     return {
         home: "docs/about/01_overview",
-        release: "20.12",
+        release: "20.12.1",
         releases: [
-            "20.12"
+            "20.12.1"
         ],
         pathColors: {
             "*": "blue-grey"
@@ -31,7 +31,7 @@ function createRoutes(){
                 h1: 'Overview',
                 title: 'Overview',
                 h1Prefix: null,
-                description: 'Oracle Coherence documentation',
+                description: 'Oracle Coherence CE Documentation',
                 keywords: 'coherence, java, documentation',
                 customLayout: null,
                 hasNav: true
@@ -80,10 +80,10 @@ function createRoutes(){
         {
             path: '/docs/core/02_bootstrap',
             meta: {
-                h1: 'Boot-Strapping Coherence',
-                title: 'Boot-Strapping Coherence',
+                h1: 'Bootstrap API',
+                title: 'Bootstrap API',
                 h1Prefix: null,
-                description: 'Boot-Strapping a Coherence application',
+                description: 'Bootstrap a Coherence application',
                 keywords: 'coherence, java, documentation',
                 customLayout: null,
                 hasNav: true
@@ -102,6 +102,19 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('docs-core-03_parallel_recovery', '/docs/core/03_parallel_recovery', {})
+        },
+        {
+            path: '/docs/core/04_portable_types',
+            meta: {
+                h1: 'Portable Types',
+                title: 'Portable Types',
+                h1Prefix: null,
+                description: 'Coherence Portable Types',
+                keywords: 'coherence, serialization, pof, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-04_portable_types', '/docs/core/04_portable_types', {})
         },
         {
             path: '/coherence-cdi-server/README',
@@ -283,7 +296,13 @@ function createRoutes(){
 
 function createNav(){
     return [
-        { header: 'Core documentation' },
+        { header: 'Documentation' },
+        {
+            title: 'Official Documentation',
+            action: 'import_contacts',
+            href: 'https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html',
+            target: '_blank'
+        },
         {
             title: 'About',
             action: 'assistant',
@@ -295,17 +314,18 @@ function createNav(){
             ]
         },
         {
-            title: 'Core',
+            title: 'Core Improvements',
             action: 'fa-cubes',
             group: '/core',
             items: [
                 { href: '/docs/core/01_overview', title: 'Overview' },
-                { href: '/docs/core/02_bootstrap', title: 'Boot-Strapping Coherence' },
-                { href: '/docs/core/03_parallel_recovery', title: 'Parallel Recovery' }
+                { href: '/docs/core/02_bootstrap', title: 'Bootstrap API' },
+                { href: '/docs/core/03_parallel_recovery', title: 'Parallel Recovery' },
+                { href: '/docs/core/04_portable_types', title: 'Portable Types' }
             ]
         },
         {
-            title: 'CDI',
+            title: 'CDI Support',
             action: 'extension',
             group: '/coherence-cdi-server',
             items: [
@@ -313,8 +333,8 @@ function createNav(){
             ]
         },
         {
-            title: 'Microprofile',
-            action: 'widgets',
+            title: 'MicroProfile Support',
+            action: 'fa-cogs',
             group: '/coherence-mp',
             items: [
                 { href: '/coherence-mp/README', title: 'Coherence MP' },
@@ -349,7 +369,7 @@ function createNav(){
             ]
         },
         {
-            title: 'Coherence OCI Images',
+            title: 'Container Images',
             action: 'fa-th',
             group: '/coherence-docker',
             items: [
@@ -357,17 +377,11 @@ function createNav(){
             ]
         },
         { divider: true },
-        { header: 'Documentation' },
-        {
-            title: 'Official Documentation',
-            action: 'import_contacts',
-            href: 'https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html',
-            target: '_blank'
-        },
+        { header: 'API Documentation' },
         {
             title: 'Coherence CE Java API',
             action: 'library_books',
-            href: 'https://oracle.github.io/coherence/20.12/api/java/index.html',
+            href: 'https://oracle.github.io/coherence/20.12.1/api/java/index.html',
             target: '_blank'
         },
         {
@@ -403,9 +417,9 @@ function createNav(){
             target: '_blank'
         },
         {
-            title: 'Coherence Community',
-            action: 'people',
-            href: 'https://oracle.github.io/coherence/index.html',
+            title: 'Web Site',
+            action: 'fa-globe',
+            href: 'https://coherence.community/',
             target: '_blank'
         },
         {

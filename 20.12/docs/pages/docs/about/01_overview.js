@@ -2,24 +2,23 @@
 
 <h2 id="_overview">Overview</h2>
 <div class="section">
-<p>Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably
-storing data. The product is used at scale, for both compute and raw storage, in a vast array of industries such as
-critical financial trading systems, high performance telecommunication products, and eCommerce applications.</p>
+<div class="admonition note">
+<p class="admonition-textlabel">Note</p>
+<p ><p>The documentation on this site covers new features and improvements that are currently only available in the open source <a id="" title="" target="_blank" href="https://github.com/oracle/coherence">Coherence Community Edition</a> (CE).</p>
 
-<p>Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death
-detection, application data evolvability, and the robust, battle-hardened core of the product that enables it to be
-seamlessly deployed and adapted within any ecosystem.</p>
+<p>For complete documentation covering all the features that are available both in the latest commercial editions (Enterprise and Grid Edition) and the Community Edition, please refer to the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html">Official Documentation</a>.</p>
+</p>
+</div>
+<p>Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably storing data.
+The product is used at scale, for both compute and raw storage, in a vast array of industries such as critical financial trading systems, high performance telecommunication products, and eCommerce applications.</p>
 
-<p>At a high level, Coherence provides an implementation of the familiar Map&lt;K,V&gt; interface but rather than storing
-the associated data in the local process, it is partitioned (or sharded) across a number of designated remote
-nodes. This partitioning enables applications to not only distribute (and therefore scale) their storage across multiple processes,
-machines, racks, and data centers, but also to perform grid-based processing to truly harness the CPU resources of the
-machines.</p>
+<p>Typically, these deployments do not tolerate any downtime and Coherence is chosen due its novel features in death detection, application data evolvability, and the robust, battle-hardened core of the product that enables it to be seamlessly deployed and adapted within any ecosystem.</p>
 
-<p>The Coherence interface 'NamedMap&lt;K,V&gt;' (an extension of 'Map&lt;K,V&gt;' provides methods to query, aggregate
-(map/reduce style), and compute (send functions to storage nodes for locally executed mutations) the data set.
-These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust,
-distributed applications.</p>
+<p>At a high level, Coherence provides an implementation of the familiar <code>Map&lt;K,V&gt;</code> interface but rather than storing the associated data in the local process, it is partitioned (or sharded) across a number of designated remote nodes.
+This partitioning enables applications to not only distribute (and therefore scale) their storage across multiple processes, machines, racks, and data centers, but also to perform grid-based processing to truly harness the CPU resources of the machines.</p>
+
+<p>The Coherence interface <code>NamedMap&lt;K,V&gt;</code> (an extension of <code>Map&lt;K,V&gt;</code> provides methods to query, aggregate (map/reduce style), and compute (send functions to storage nodes for locally executed mutations) the data set.
+These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust, distributed applications.</p>
 
 </div>
 
@@ -173,7 +172,7 @@ distributed applications.</p>
 </router-link>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">
-<v-icon class="xxx-large">widgets</v-icon>
+<v-icon class="xxx-large">fa-cogs</v-icon>
 </v-avatar>
 </v-layout>
 <div class="px-3">
@@ -209,6 +208,18 @@ distributed applications.</p>
 </v-card-text>
 </v-card>
 </v-flex>
+</v-layout>
+</v-container>
+</v-flex>
+</v-layout>
+</div>
+
+<h2 id="_tools">Tools</h2>
+<div class="section">
+<v-layout row wrap class="mb-5">
+<v-flex xs12>
+<v-container fluid grid-list-md class="pa-0">
+<v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
 <router-link to="/plugins/maven/pof-maven-plugin/README"><div class="card__link-hover"/>
@@ -222,7 +233,7 @@ distributed applications.</p>
 <v-divider class="indigo lighten-4"/>
 </div>
 <v-card-title primary class="headline layout justify-center">
-<span style="text-align:center">plugins</span>
+<span style="text-align:center">Plugins</span>
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
@@ -230,14 +241,6 @@ distributed applications.</p>
 </v-card-text>
 </v-card>
 </v-flex>
-</v-layout>
-</v-container>
-</v-flex>
-</v-layout>
-<v-layout row wrap class="mb-5">
-<v-flex xs12>
-<v-container fluid grid-list-md class="pa-0">
-<v-layout row wrap class="pillars">
 <v-flex xs12 sm4 lg3>
 <v-card>
 <router-link to="/coherence-docker/README"><div class="card__link-hover"/>
@@ -251,7 +254,7 @@ distributed applications.</p>
 <v-divider class="indigo lighten-4"/>
 </div>
 <v-card-title primary class="headline layout justify-center">
-<span style="text-align:center">Images</span>
+<span style="text-align:center">Container Images</span>
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
