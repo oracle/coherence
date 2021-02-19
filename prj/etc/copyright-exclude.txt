@@ -8,7 +8,11 @@ examples/tutorials/500-graphql/complete/src/main/resources/web/index.html
 examples/tutorials/500-graphql/initial/src/main/resources/web/index.html
 test/distribution/target/
 test/functional/logging/src/test/java/org/slf4j/
+tools/ant-contrib/
 tools/maven/
+tools/tde/
+tools/tlt-antutils/
+tools/wls/
 dependency-reduced-pom.xml
 etc/
 ExcludeList
