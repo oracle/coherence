@@ -129,7 +129,7 @@ include::initial/src/main/java/com/oracle/coherence/tutorials/graphql/api/Bootst
 
 Build and run using either of the following:
 
-.Commands to build and run for the rest of the tutorual
+.Commands to build and run for the rest of the tutorial
 [options="headers"]
 |=====
 |Build Tool | Build Command | Run Comments

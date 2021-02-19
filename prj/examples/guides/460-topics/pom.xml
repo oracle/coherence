@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.oracle.coherence.guides</groupId>
+    <artifactId>topics</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>Coherence Guides - Topics</name>
+
+    <properties>
+        <revision>21.06-SNAPSHOT</revision>
+
+        <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
+        <coherence.version>${revision}</coherence.version>
+
+        <java.version>11</java.version>
+        <java.version.release>11</java.version.release>
+
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
+        <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
+        <maven.gmaven.plugin.version>1.5</maven.gmaven.plugin.version>
+        <maven.shade.plugin.version>3.2.0</maven.shade.plugin.version>
+        <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
+
+        <oracle.bedrock.version>5.0.20</oracle.bedrock.version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <coherence.common.properties>-Dcoherence.cacheconfig=topics-cache-config.xml</coherence.common.properties>
+
+        <driver.target>start-approver</driver.target>
+        <client.userId>default</client.userId>
+    </properties>
+
+    <!-- tag::deps1[] -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${coherence.group.id}</groupId>
+                <artifactId>coherence-bom</artifactId>
+                <version>${coherence.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>${coherence.group.id}</groupId>
+                <artifactId>coherence-dependencies</artifactId>
+                <version>${coherence.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <!-- end::deps1[] -->
+
+    <!-- tag::deps2[] -->
+    <dependencies>
+        <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>coherence</artifactId>
+        </dependency>
+        <!-- end::deps2[] -->
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.bedrock.coherence</groupId>
+            <artifactId>coherence-12.2.1-testing-support</artifactId>
+            <version>${oracle.bedrock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+       <!-- tag::profile[] -->
+        <profile>
+            <id>server</id>
+            <activation>
+                <property>
+                    <name>server</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${maven.exec.plugin.version}</version>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${coherence.common.properties}</argument>
+                                <argument>-Dcoherence.log.level=3</argument>
+                                <argument>-Xmx512m</argument>
+                                <argument>-Xms512m</argument>
+                                <argument>-Dcoherence.log.level=3</argument>
+                                <argument>com.tangosol.net.DefaultCacheServer</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- end::profile[] -->
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven.failsafe.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+            </plugin>
+
+            <!-- Create a new property "actual.coherence.version" for the manifest
+         by replacing '-' with '.' -->
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <version>${maven.gmaven.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>add-dynamic-properties</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                properties = project.properties
+                                version = properties.getProperty("coherence.version")
+                                properties.setProperty("actual.coherence.version", version.replaceAll('-', '.'))
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven.shade.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.oracle.coherence.guides.topics.ChatApplication</mainClass>
+                                    <manifestEntries>
+                                        <Implementation-GroupId>com.oracle.coherence
+                                        </Implementation-GroupId>
+                                        <Implementation-Description>Demonstration
+                                        </Implementation-Description>
+                                        <Implementation-Vendor>Oracle</Implementation-Vendor>
+                                        <Implementation-Version>${actual.coherence.version}</Implementation-Version>
+                                        <Implementation-Build>demo</Implementation-Build>
+                                        <Specification-Vendor>Oracle</Specification-Vendor>
+                                        <Specification-Version>${actual.coherence.version}</Specification-Version>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -28,6 +28,7 @@
   <modules>
     <module>guides/100-put-get-remove</module>
     <module>guides/110-queries</module>
+    <module>guides/460-topics</module>
     <module>tutorials/500-graphql/initial</module>
     <module>tutorials/500-graphql/complete</module>
   </modules>
