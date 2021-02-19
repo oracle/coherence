@@ -82,6 +82,7 @@ test/functional/rest-jetty/
 test/functional/rest-simple/
 test/functional/toplink/
 test/functional/transaction/
+tools/maven/
 dependency-reduced-pom.xml
 etc/
 ExcludeList
