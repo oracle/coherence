@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -20,7 +20,7 @@ import javax.inject.Named;
  *
  * @since 20.06
  */
-@Named("SafeJson")
+@Named("safe-json")
 public class SafeJsonSerializer
         extends MultiplexingSerializer
     {
@@ -29,6 +29,15 @@ public class SafeJsonSerializer
     public SafeJsonSerializer()
         {
         super(new JsonSerializer(), new DefaultSerializer());
+        }
+
+    // ----- Serializer interface -------------------------------------------
+
+
+    @Override
+    public String getName()
+        {
+        return "safe-json";
         }
     }
 
