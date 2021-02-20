@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -38,6 +38,8 @@ import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexReader;
+
+import javax.inject.Named;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -217,6 +219,7 @@ import java.util.WeakHashMap;
 *
 * @since Coherence 3.2
 */
+@Named("pof")
 public class ConfigurablePofContext
         implements PofContext, ClassLoaderAware, XmlConfigurable
     {
@@ -408,6 +411,12 @@ public class ConfigurablePofContext
             ioex.initCause(e);
             throw ioex;
             }
+        }
+
+    @Override
+    public String getName()
+        {
+        return "pof";
         }
 
 

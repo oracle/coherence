@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -16,6 +16,8 @@ import com.tangosol.util.Base;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SimpleLongArray;
 
+import javax.inject.Named;
+
 import java.io.IOException;
 
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import java.util.Map;
  * @see PortableObjectSerializer
  * @since Coherence 3.2
  */
+@Named("simple-pof")
 public class SimplePofContext
         implements PofContext
     {
@@ -96,6 +99,11 @@ public class SimplePofContext
             }
         }
 
+    @Override
+    public String getName()
+        {
+        return "simple-pof";
+        }
 
     // ----- PofContext implementation --------------------------------------
 

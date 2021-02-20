@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,6 +18,8 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.SafeHashSet;
+
+import javax.inject.Named;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -47,6 +49,7 @@ import java.util.Set;
 * @author jh  2007.05.03
 * @since Coherence 3.3
 */
+@Named("safe-pof")
 public class SafeConfigurablePofContext
         extends ConfigurablePofContext
     {
@@ -105,6 +108,15 @@ public class SafeConfigurablePofContext
         super(xml);
         f_serializerJava = new JavaPofSerializer();
         }
+
+    // ----- Serializer interface -------------------------------------------
+
+    @Override
+    public String getName()
+        {
+        return "safe-pof";
+        }
+
 
     // ----- PofContext interface -------------------------------------------
 

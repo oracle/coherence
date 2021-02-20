@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1466,22 +1466,24 @@ public class DefaultClusterDependencies
     @Override
     public Map<String, SerializerFactory> getSerializerMap()
         {
+        Map<String, SerializerFactory> mapSerializer = m_mapSerializer;
         if (m_mapSerializer == null)
             {
-            m_mapSerializer = new LiteMap();
+            mapSerializer = m_mapSerializer = new LiteMap();
             }
-        if (m_mapSerializer.isEmpty())
+
+        if (mapSerializer.isEmpty())
             {
-            for (ParameterizedBuilderRegistry.Registration r : getBuilderRegistry())
+            for (ParameterizedBuilderRegistry.Registration reg : getBuilderRegistry())
                 {
-                if (r.getInstanceClass().isAssignableFrom(Serializer.class))
+                if (reg.getInstanceClass().isAssignableFrom(Serializer.class))
                     {
-                    m_mapSerializer.put(r.getName(), new SerializerFactory()
+                    mapSerializer.put(reg.getName(), new SerializerFactory()
                         {
                         @Override
                         public Serializer createSerializer(ClassLoader loader)
                             {
-                            Serializer serializer = (Serializer) r.getBuilder().realize(
+                            Serializer serializer = (Serializer) reg.getBuilder().realize(
                                     new NullParameterResolver(), loader, null);
                             if (serializer instanceof ClassLoaderAware)
                                 {
@@ -1489,13 +1491,20 @@ public class DefaultClusterDependencies
                                 }
                             return serializer;
                             }
+
+                        @Override
+                        public String getName()
+                            {
+                            return reg.getName();
+                            }
                         });
                     }
                 }
 
             discoverSerializers();
             }
-            return m_mapSerializer;
+
+        return mapSerializer;
         }
 
     /**
@@ -2110,52 +2119,43 @@ public class DefaultClusterDependencies
         {
         for (T service : loader)
             {
-            Class<?> clz = service.getClass();
-            Named named = clz.getAnnotation(Named.class);
-            if (named == null)
+            String            sName   = null;
+            SerializerFactory factory = null;
+
+            if (service instanceof SerializerFactory)
                 {
-                Logger.warn(String.format("Discovered serializer [%s] is not annotated with javax.inject.Named",
-                                          clz.getName()));
+                factory = (SerializerFactory) service;
+                sName   = factory.getName();
                 }
             else
                 {
-                String sName = named.value();
-                if (sName.isEmpty())
+                sName = ((Serializer) service).getName();
+
+                factory = clzLoader ->
                     {
-                    Logger.warn(String.format("Named annotation for discovered serializer [%s]"
-                                              + " returned the default value; ignoring", clz.getName()));
-
-                    }
-
-                SerializerFactory serializerFactory = service instanceof SerializerFactory
-                        ? (SerializerFactory) service
-                        : clzLoader ->
+                    try
+                        {
+                        Serializer serializer = (Serializer) service.getClass().getConstructor().newInstance();
+                        if (serializer instanceof ClassLoaderAware)
                             {
-                            try
-                                {
-                                Serializer serializer = (Serializer) clz.getConstructor().newInstance();
-                                if (serializer instanceof ClassLoaderAware)
-                                    {
-                                    ((ClassLoaderAware) serializer).setContextClassLoader(clzLoader);
-                                    }
-                                return serializer;
-                                }
-                            catch (Exception e)
-                                {
-                                throw Base.ensureRuntimeException(e,
-                                        String.format("Unable to create serializer type [%s]",
-                                                      clz.getName()));
-                                }
-                            };
+                            ((ClassLoaderAware) serializer).setContextClassLoader(clzLoader);
+                            }
+                        return serializer;
+                        }
+                    catch (Exception e)
+                        {
+                        throw Base.ensureRuntimeException(e,
+                                String.format("Unable to create serializer type [%s]",
+                                        service.getClass().getName()));
+                        }
+                    };
+                }
 
-                SerializerFactory factory = m_mapSerializer.putIfAbsent(sName, serializerFactory);
-
-                if (factory != null)
-                    {
-                    Logger.warn(String.format("serializer already defined for %s, type [%s]; ignoring this"
-                                              + " discovered implementation [%s]",
-                                              sName, service.getClass().getName(), clz.getName()));
-                    }
+            if (m_mapSerializer.putIfAbsent(sName, factory) != null)
+                {
+                Logger.warn(String.format("serializer factory already defined for %s, type [%s]; ignoring this"
+                                          + " discovered implementation",
+                                          sName, service.getClass().getName()));
                 }
             }
         }
