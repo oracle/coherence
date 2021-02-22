@@ -60,6 +60,12 @@
     </dependency>
 
     <dependency>
+      <groupId>javax.json</groupId>
+      <artifactId>javax.json-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
     </dependency>
@@ -192,7 +198,6 @@
                   <include>org.ow2.asm:asm-tree</include>
                   <include>org.ow2.asm:asm-util</include>
                   <include>com.sleepycat:je</include>
-                  <include>javax.json:javax.json-api</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
                   <include>${coherence.group.id}:coherence-core</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
@@ -232,16 +237,6 @@
                   <shadedPattern>com.tangosol.internal.sleepycat</shadedPattern>
                   <excludes>
                     <exclude>com/tangosol/io/bdb/**/*</exclude>
-                  </excludes>
-                </relocation>
-                <relocation>
-                  <pattern>javax.json</pattern>
-                  <shadedPattern>com.tangosol.internal.json</shadedPattern>
-                  <includes>
-                    <includes>javax.json.*</includes>
-                  </includes>
-                  <excludes>
-                    <exclude>javax.json.bind.*</exclude>
                   </excludes>
                 </relocation>
               </relocations>
