@@ -47,5 +47,6 @@ jobs:
         GIT_COMMIT: ${{github.event.workflow_run.head_commit.id}}
         HEAD_BRANCH: ${{github.event.workflow_run.head_branch}}
       run: |
-		git checkout "${GIT_COMMIT}"	    
-	    sh tools/bin/github-deploy-snapshot.sh
+        echo "Checking out branch ${HEAD_BRANCH} commit ${GIT_COMMIT}"
+        git checkout "${GIT_COMMIT}"
+        sh tools/bin/github-deploy-snapshot.sh
