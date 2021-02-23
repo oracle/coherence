@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+
+git checkout "${GIT_COMMIT}"
+REVISION_POM=prj/coherence-bom/pom.xml
+CURRENT_VERSION=$(grep -E "<revision>" ${REVISION_POM} | sed 's/.*<revision>\(.*\)<\/revision>/\1/')
+
+if [ "${CURRENT_VERSION}" = "" ]; then
+  echo "Could not find current version from ${REVISION_POM}"
+  exit 1
+fi
+
+echo "Building version ${CURRENT_VERSION}"
+mvn -B clean install -Dproject.official=true -Pdocs --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
+
+echo "Deploying version ${CURRENT_VERSION}"
+#mvn -B deploy --file prj/pom.xml -DskipTests -s .github/maven/settings.xml -P-examples
+
+echo "Deploying docs for version ${CURRENT_VERSION}"
+git stash save --keep-index --include-untracked || true
+git stash drop || true
+git checkout gh-pages
+git config pull.rebase true
+git config --local user.name "Github Action"
+git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+git pull
+
+rm -rf "${CURRENT_VERSION}" || true
+mkdir -p "${CURRENT_VERSION}"/api || true
+mv prj/coherence-javadoc/target/javadoc/apidocs "${CURRENT_VERSION}"/api/java
+mv prj/docs/target/docs "${CURRENT_VERSION}"/docs
+git add -A "${CURRENT_VERSION}"/*
+
+if [ "${HEAD_BRANCH}" = "master" ]; then
+  echo "Deploying docs for version ${CURRENT_VERSION} to latest-snapshot"
+  rm -rf latest-snapshot || true
+  cp -R "${CURRENT_VERSION}" latest-snapshot
+  git add -A latest-snapshot/*
+fi
+
+echo "Pushing docs for ${CURRENT_VERSION} to gh-pages"
+git commit -m "Update ${CURRENT_VERSION} docs"
+git push origin gh-pages
