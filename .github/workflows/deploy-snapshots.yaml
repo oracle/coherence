@@ -49,4 +49,4 @@ jobs:
       run: |
         echo "Checking out branch ${HEAD_BRANCH} commit ${GIT_COMMIT}"
         git checkout "${GIT_COMMIT}"
-        sh tools/bin/github-deploy-snapshot.sh
+        sh tools/bin/github-deploy-snapshots.sh
