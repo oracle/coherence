@@ -6,7 +6,6 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-git checkout "${GIT_COMMIT}"
 REVISION_POM=prj/coherence-bom/pom.xml
 CURRENT_VERSION=$(grep -E "<revision>" ${REVISION_POM} | sed 's/.*<revision>\(.*\)<\/revision>/\1/')
 

@@ -46,4 +46,6 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
         GIT_COMMIT: ${{github.event.workflow_run.head_commit.id}}
         HEAD_BRANCH: ${{github.event.workflow_run.head_branch}}
-      run: sh tools/bin/github-deploy-snapshot.sh
+      run: |
+		git checkout "${GIT_COMMIT}"	    
+	    sh tools/bin/github-deploy-snapshot.sh
