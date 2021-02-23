@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
+import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
 
 import com.tangosol.io.pof.reflect.PofNavigator;
@@ -15,6 +16,8 @@ import com.tangosol.io.pof.reflect.SimplePofPath;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.util.extractor.ChainedExtractor;
+import com.tangosol.util.extractor.ChainedFragmentExtractor;
+import com.tangosol.util.extractor.FragmentExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.PofExtractor;
@@ -341,5 +344,38 @@ public class Extractors
     public static <T, E> ValueExtractor<T, E> script(String sLanguage, String sScriptPath, Object... aoArgs)
         {
         return new ScriptValueExtractor<>(sLanguage, sScriptPath, aoArgs);
+        }
+
+    /**
+     * Return a {@code ValueExtractor} that extracts a {@link Fragment} from a
+     * target object.
+     *
+     * @param aExtractors  an array of extractors to pass to {@link FragmentExtractor}
+     * @param <T>          the type of object to extract from
+     *
+     * @return a {@code ValueExtractor} that extracts a {@link Fragment} from a
+     *         target object
+     */
+    @SafeVarargs
+    public static <T> ValueExtractor<T, Fragment<T>> fragment(ValueExtractor<? super T, ?>... aExtractors)
+        {
+        return new FragmentExtractor<>(aExtractors);
+        }
+
+    /**
+     * Return a {@code ValueExtractor} that extracts a {@link Fragment} from a
+     * property of the target object.
+     *
+     * @param from         an extractor for the nested property to extract the fragment from
+     * @param aExtractors  an array of extractors to pass to {@link FragmentExtractor}
+     * @param <T>          the type of the root object to extract from
+     *
+     * @return a {@code ValueExtractor} that extracts a {@link Fragment} from a
+     *         target object's property
+     */
+    @SafeVarargs
+    public static <T, E> ValueExtractor<T, Fragment<E>> fragment(ValueExtractor<? super T, E> from, ValueExtractor<? super E, ?>... aExtractors)
+        {
+        return new ChainedFragmentExtractor<>(from, aExtractors);
         }
     }

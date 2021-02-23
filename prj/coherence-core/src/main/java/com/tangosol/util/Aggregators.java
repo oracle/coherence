@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -28,6 +28,8 @@ import com.tangosol.util.aggregator.ReducerAggregator;
 import com.tangosol.util.aggregator.ScriptAggregator;
 import com.tangosol.util.aggregator.TopNAggregator;
 
+import com.tangosol.util.function.Remote;
+
 import java.math.BigDecimal;
 
 import java.util.Collection;
@@ -46,7 +48,7 @@ import java.util.Map;
  *
  * @author lh, hr  2018.06.12
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes", "Convert2MethodRef"})
 public class Aggregators
     {
     /**
@@ -109,6 +111,74 @@ public class Aggregators
     public static <K, V> InvocableMap.StreamingAggregator<K, V, ?, Double> average(String sMethod)
         {
         return new DoubleAverage(Extractors.extract(sMethod));
+        }
+
+    /**
+     * Return an aggregator that calculates a maximum of the <tt>double</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Double}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
+        max(Remote.ToDoubleFunction<? super T> extractor)
+        {
+        return new DoubleMax(ValueExtractor.of((T t) -> extractor.applyAsDouble(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a minimum of the <tt>double</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Double}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
+        min(Remote.ToDoubleFunction<? super T> extractor)
+        {
+        return new DoubleMin(ValueExtractor.of((T t) -> extractor.applyAsDouble(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a sum of the <tt>double</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Double}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
+        sum(Remote.ToDoubleFunction<? super T> extractor)
+        {
+        return new DoubleSum(ValueExtractor.of((T t) -> extractor.applyAsDouble(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates an average of the <tt>double</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Double}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
+        average(Remote.ToDoubleFunction<? super T> extractor)
+        {
+        return new DoubleAverage(ValueExtractor.of((T t) -> extractor.applyAsDouble(t)));
         }
 
     /**
@@ -214,6 +284,142 @@ public class Aggregators
         }
 
     /**
+     * Return an aggregator that calculates a maximum of the <tt>int</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is an {@link Integer}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
+        max(Remote.ToIntFunction<? super T> extractor)
+        {
+        return new LongMax(ValueExtractor.of((T t) -> (long) extractor.applyAsInt(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a minimum of the <tt>int</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is an {@link Integer}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
+        min(Remote.ToIntFunction<? super T> extractor)
+        {
+        return new LongMin(ValueExtractor.of((T t) -> (long) extractor.applyAsInt(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a sum of the <tt>int</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is an {@link Integer}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
+        sum(Remote.ToIntFunction<? super T> extractor)
+        {
+        return new LongSum(ValueExtractor.of((T t) -> (long) extractor.applyAsInt(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates an average of the <tt>int</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is an {@link Integer}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
+        average(Remote.ToIntFunction<? super T> extractor)
+        {
+        return new DoubleAverage(ValueExtractor.of((T t) -> (long) extractor.applyAsInt(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a maximum of the <tt>long</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Long}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
+        max(Remote.ToLongFunction<? super T> extractor)
+        {
+        return new LongMax(ValueExtractor.of((T t) -> extractor.applyAsLong(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a minimum of the <tt>long</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Long}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
+        min(Remote.ToLongFunction<? super T> extractor)
+        {
+        return new LongMin(ValueExtractor.of((T t) -> extractor.applyAsLong(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a sum of the <tt>long</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Long}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
+        sum(Remote.ToLongFunction<? super T> extractor)
+        {
+        return new LongSum(ValueExtractor.of((T t) -> extractor.applyAsLong(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates an average of the <tt>long</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Long}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
+        average(Remote.ToLongFunction<? super T> extractor)
+        {
+        return new DoubleAverage(ValueExtractor.of((T t) -> extractor.applyAsLong(t)));
+        }
+
+    /**
      * Return an aggregator that calculates a maximum of the numeric values extracted
      * from a set of entries in a Map. All the extracted Number objects will be treated
      * as Java <tt>long</tt> values.
@@ -313,6 +519,74 @@ public class Aggregators
     public static <K, V> InvocableMap.StreamingAggregator<K, V, ?, Long> longSum(String sMethod)
         {
         return new LongSum(Extractors.extract(sMethod));
+        }
+
+    /**
+     * Return an aggregator that calculates a maximum of the <tt>BigDecimal</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is an {@link BigDecimal}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>
+        max(Remote.ToBigDecimalFunction<? super T> extractor)
+        {
+        return new BigDecimalMax(ValueExtractor.of((T t) -> extractor.apply(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a minimum of the <tt>BigDecimal</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is an {@link BigDecimal}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>
+        min(Remote.ToBigDecimalFunction<? super T> extractor)
+        {
+        return new BigDecimalMin(ValueExtractor.of((T t) -> extractor.apply(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a sum of the <tt>BigDecimal</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is an {@link BigDecimal}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>
+        sum(Remote.ToBigDecimalFunction<? super T> extractor)
+        {
+        return new BigDecimalSum(ValueExtractor.of((T t) -> extractor.apply(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates an average of the <tt>BigDecimal</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is an {@link BigDecimal}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>
+        average(Remote.ToBigDecimalFunction<? super T> extractor)
+        {
+        return new BigDecimalAverage(ValueExtractor.of((T t) -> extractor.apply(t)));
         }
 
     /**
@@ -449,6 +723,40 @@ public class Aggregators
     public static <K, V> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>  bigDecimalSum(String sMethod)
         {
         return bigDecimalSum(Extractors.extract(sMethod));
+        }
+
+    /**
+     * Return an aggregator that calculates a maximum of the <tt>Comparable</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Comparable}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R>
+        max(Remote.ToComparableFunction<? super T, ? extends R> extractor)
+        {
+        return new ComparableMax(ValueExtractor.of((T t) -> extractor.apply(t)));
+        }
+
+    /**
+     * Return an aggregator that calculates a minimum of the <tt>Comparable</tt> values extracted
+     * from a set of entries in a Map.
+     *
+     * @param extractor  the extractor that provides a value in the form of
+     *                   any Java object that is a {@link Comparable}
+     *
+     * @param <K>  the type of the entry's key
+     * @param <V>  the type of the entry's value
+     * @param <T>  the type of the value to extract from
+     */
+    public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R>
+        min(Remote.ToComparableFunction<? super T, ? extends R> extractor)
+        {
+        return new ComparableMin(ValueExtractor.of((T t) -> extractor.apply(t)));
         }
 
     /**
@@ -797,7 +1105,7 @@ public class Aggregators
     public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R[]>
         topN(ValueExtractor<? super T, ? extends R> extractor, int cResults)
         {
-        return new TopNAggregator(extractor, null, cResults);
+        return new TopNAggregator<>(extractor, null, cResults);
         }
 
     /**
@@ -814,10 +1122,10 @@ public class Aggregators
      * @param <T>  the type of the value to extract from
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R[]>
+    public static <K, V, T, R> InvocableMap.StreamingAggregator<K, V, ?, R[]>
         topN(ValueExtractor<? super T, ? extends R> extractor, Comparator<? super R> comparator, int cResults)
         {
-        return  new TopNAggregator(extractor, comparator, cResults);
+        return  new TopNAggregator<>(extractor, comparator, cResults);
         }
 
     /**
@@ -855,7 +1163,7 @@ public class Aggregators
      * @param <T>  the type of the value to extract from
      * @param <R>  the type of the aggregation result
      */
-    public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R[]>
+    public static <K, V, T, R> InvocableMap.StreamingAggregator<K, V, ?, R[]>
         topN(String sMethod, Comparator<? super R> comparator, int cResults)
         {
         return new TopNAggregator(Extractors.extract(sMethod), comparator, cResults);

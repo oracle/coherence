@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.tangosol.internal.util.invoke.Remotable;
 
 import com.tangosol.util.ValueExtractor;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 
 import javax.json.bind.annotation.JsonbProperty;
@@ -143,6 +144,20 @@ public abstract class AbstractRemotableLambda<T>
             }
         sb.append('}');
         return sb.toString();
+        }
+
+    // ---- SerializationSupport interface ----------------------------------
+
+    /**
+     * {@inheritDoc}
+     *
+     * It ensures that this {@link Remotable} instance is replaced with the
+     * appropriate {@link RemoteConstructor} before it is serialized.
+     */
+    @Override
+    public Object writeReplace() throws ObjectStreamException
+        {
+        return getRemoteConstructor();
         }
 
     // ----- helpers --------------------------------------------------------

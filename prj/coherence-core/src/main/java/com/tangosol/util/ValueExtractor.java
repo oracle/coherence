@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.tangosol.util;
 
 
 import com.oracle.coherence.common.base.CanonicallyNamed;
+import com.oracle.coherence.common.base.Exceptions;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
@@ -17,6 +18,13 @@ import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
 
 import com.tangosol.util.function.Remote;
+
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+import java.lang.reflect.Method;
 
 import java.util.Objects;
 
@@ -229,6 +237,57 @@ public interface ValueExtractor<T, E>
     static <T, E> ValueExtractor<T, E> of(ValueExtractor<T, E> extractor)
         {
         return Lambdas.ensureRemotable(extractor);
+        }
+
+    /**
+     * Return a {@link ValueExtractor} for the specified {@link Method}.
+     * <p/>
+     * The {@code method} specified must have a non-void return type and no
+     * parameters.
+     *
+     * @param <T>     the type of the value to extract from
+     * @param <E>     the type of value that will be extracted
+     * @param method  the method to create a {@link ValueExtractor} for
+     *
+     * @return a {@link ValueExtractor} instance for the specified method
+     *
+     * @throws IllegalArgumentException if the {@code method} has one or more
+     *                                  arguments or {@code void} return type
+     * @since 21.06
+     */
+    @SuppressWarnings("unchecked")
+    static <T, E> ValueExtractor<T , E> forMethod(Method method)
+        {
+        if (method.getParameterCount() > 0)
+            {
+            throw new IllegalArgumentException("The specified method cannot have parameters");
+            }
+        if (method.getReturnType().equals(void.class))
+            {
+            throw new IllegalArgumentException("The specified method must have return value");
+            }
+
+        try
+            {
+            MethodHandles.Lookup l = MethodHandles.lookup();
+
+            MethodType extractorType = MethodType.methodType(ValueExtractor.class);
+            MethodType samMethod     = MethodType.methodType(Object.class, Object.class);
+            MethodType implMethod    = MethodType.methodType(method.getReturnType(), method.getDeclaringClass());
+
+            MethodHandle mh = l.unreflect(method);
+            int nFlags = LambdaMetafactory.FLAG_SERIALIZABLE;
+
+            return (ValueExtractor<T, E>)
+                    LambdaMetafactory
+                            .altMetafactory(l, "extract", extractorType, samMethod, mh, implMethod, nFlags)
+                            .getTarget()
+                            .invokeExact();
+            }
+        catch (Throwable t)
+            {
+            throw Exceptions.ensureRuntimeException(t);
+            }
         }
 
     // ---- default methods -------------------------------------------------

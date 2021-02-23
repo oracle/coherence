@@ -641,6 +641,16 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.util.extractor.ScriptValueExtractor</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>195</type-id>
+      <class-name>com.tangosol.util.extractor.FragmentExtractor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>196</type-id>
+      <class-name>com.tangosol.util.extractor.ChainedFragmentExtractor</class-name>
+    </user-type>
+
     <!-- com.tangosol.util.filter package (continued) (200-209) -->
 
     <user-type>
@@ -832,6 +842,11 @@ descriptor: pof-config.xsd.
     <user-type>
       <type-id>264</type-id>
       <class-name>com.tangosol.util.SimpleHolder</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>265</type-id>
+      <class-name>com.tangosol.util.Fragment</class-name>
     </user-type>
 
     <!-- com.tangosol.net.internal package (300-349) -->

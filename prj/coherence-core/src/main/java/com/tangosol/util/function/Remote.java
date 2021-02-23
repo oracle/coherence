@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.function;
 
-
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.comparator.InverseComparator;
 import com.tangosol.util.comparator.SafeComparator;
 
 import java.io.Serializable;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -21,9 +22,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import java.util.concurrent.Executors;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-
 
 /**
  * Helper interfaces and methods that enable capture of standard JDK
@@ -802,6 +800,38 @@ public class Remote
     public static LongToIntFunction longToIntFunction(LongToIntFunction function)
         {
         return function;
+        }
+
+    /**
+     * Represents a function that produces a Comparable-valued result.
+     * <p>
+     * <p>This is a <a href="package-summary.html">functional interface</a>
+     * whose functional method is {@link #apply(Object)}.
+     *
+     * @param <T> the type of the input to the function
+     *
+     * @see Function
+     */
+    @FunctionalInterface
+    public static interface ToComparableFunction<T, R extends Comparable<? super R>>
+            extends java.util.function.Function<T, R>, Serializable
+        {
+        }
+
+    /**
+     * Represents a function that produces a BigDecimal-valued result.
+     * <p>
+     * <p>This is a <a href="package-summary.html">functional interface</a>
+     * whose functional method is {@link #apply(Object)}.
+     *
+     * @param <T> the type of the input to the function
+     *
+     * @see Function
+     */
+    @FunctionalInterface
+    public static interface ToBigDecimalFunction<T>
+            extends java.util.function.Function<T, BigDecimal>, Serializable
+        {
         }
 
     /**
@@ -1627,6 +1657,23 @@ public class Remote
         {
         /**
          * Returns a {@link BinaryOperator} which returns the lesser of two
+         * elements according to the specified {@code Comparable} value.
+         *
+         * @param <T>         the type of the input arguments of the comparator
+         * @param comparable  a {@code Comparator} for comparing the two values
+         *
+         * @return a {@code BinaryOperator} which returns the greater of its
+         * operands, according to the supplied {@code Comparator}
+         *
+         * @throws NullPointerException if the argument is null
+         */
+        public static <T, E extends Comparable<? super E>> BinaryOperator<T> minBy(ValueExtractor<? super T, ? extends E> comparable)
+            {
+            return minBy(comparator(comparable));
+            }
+
+        /**
+         * Returns a {@link BinaryOperator} which returns the lesser of two
          * elements according to the specified {@code Comparator}.
          *
          * @param <T>        the type of the input arguments of the comparator
@@ -1659,6 +1706,23 @@ public class Remote
             {
             Objects.requireNonNull(comparator);
             return (a, b) -> comparator.compare(a, b) <= 0 ? a : b;
+            }
+
+        /**
+         * Returns a {@link BinaryOperator} which returns the greater of two
+         * elements according to the specified {@code Comparable} value.
+         *
+         * @param <T>        the type of the input arguments of the comparator
+         * @param comparable a {@code Comparator} for comparing the two values
+         *
+         * @return a {@code BinaryOperator} which returns the greater of its
+         * operands, according to the supplied {@code Comparator}
+         *
+         * @throws NullPointerException if the argument is null
+         */
+        public static <T, E extends Comparable<? super E>> BinaryOperator<T> maxBy(ValueExtractor<? super T, ? extends E> comparable)
+            {
+            return maxBy(comparator(comparable));
             }
 
         /**
@@ -2561,6 +2625,20 @@ public class Remote
     public static <T> Comparator<T> comparator(Comparator<T> comparator)
         {
         return comparator;
+        }
+
+    /**
+     * Create {@link Comparator} for the specified extractor that returns a
+     * {@link Comparable} value.
+     *
+     * @param extractor  a {@link ValueExtractor} that returns a {@code Comparable}
+     *                   value
+     *
+     * @return a Comparator instance
+     */
+    public static <T, E extends Comparable<? super E>> Comparator<T> comparator(ValueExtractor<? super T, ? extends E> extractor)
+        {
+        return Comparator.comparing(extractor);
         }
 
     // ---- Runnable and Callable -------------------------------------------

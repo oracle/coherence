@@ -7,12 +7,12 @@
 
 package com.tangosol.util;
 
-
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.Lambdas;
+import com.tangosol.internal.util.invoke.RemotableSupport;
 
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
@@ -122,7 +122,6 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.WeakHashMap;
-
 
 /**
 * Helpers for the Serializable, Externalizable and the ExternalizableLite
@@ -5490,7 +5489,7 @@ public abstract class ExternalizableHelper
             loader = ensureClassLoader(loader == null && in instanceof WrapperDataInputStream
                          ? ((WrapperDataInputStream) in).getClassLoader()
                          : loader);
-            return new ResolvingObjectInputStream(stream, loader);
+            return new ResolvingObjectInputStream(stream, RemotableSupport.get(loader));
 
             }
 

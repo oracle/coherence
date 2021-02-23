@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -168,6 +168,32 @@ public class Filters
     public static <T, E> Filter<T> isNotNull(ValueExtractor<T, E> extractor)
         {
         return new IsNotNullFilter<>(extractor);
+        }
+
+    /**
+     * Return a filter that evaluates to true if the extracted value is {@code true}.
+     *
+     * @param extractor  the Extractor to use
+     * @param <T>        the type of the object to extract value from
+     *
+     * @return a filter that evaluates to true for non-null values
+     */
+    public static <T> Filter<T> isTrue(ValueExtractor<T, Boolean> extractor)
+        {
+        return equal(extractor, true);
+        }
+
+    /**
+     * Return a filter that evaluates to true if the extracted value is {@code false}.
+     *
+     * @param extractor  the Extractor to use
+     * @param <T>        the type of the object to extract value from
+     *
+     * @return a filter that evaluates to true for non-null values
+     */
+    public static <T> Filter<T> isFalse(ValueExtractor<T, Boolean> extractor)
+        {
+        return equal(extractor, false);
         }
 
     /**

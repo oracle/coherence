@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -84,7 +84,7 @@ public class CacheProcessors
         return new Remove<>();
         }
 
-    public static <K, V> InvocableMap.EntryProcessor<K, V, Void> removeBlind()
+    public static <K, V> InvocableMap.EntryProcessor<K, V, Boolean> removeBlind()
         {
         return new RemoveBlind<>();
         }
@@ -663,12 +663,13 @@ public class CacheProcessors
      * @param <V> the type of the Map entry value
      */
     public static class RemoveBlind<K, V>
-            extends BaseProcessor<K, V, Void>
+            extends BaseProcessor<K, V, Boolean>
         {
-        public Void process(InvocableMap.Entry<K, V> entry)
+        public Boolean process(InvocableMap.Entry<K, V> entry)
             {
+            V value = entry.getValue();
             entry.remove(false);
-            return null;
+            return value != null;
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -123,6 +123,22 @@ public abstract class RemoteCollectors
      * new {@code SortedBag}.
      *
      * @param <T>         the type of the input elements
+     * @param comparable  a {@link ValueExtractor} that returns a {@code Comparable}
+     *                    value
+     *
+     * @return a {@code Collector} which collects all the input elements into a
+     * {@code List}, in encounter order
+     */
+    public static <T, E extends Comparable<? super E>> RemoteCollector<T, ?, Collection<T>> toSortedBag(ValueExtractor<? super T, ? extends E> comparable)
+        {
+        return toSortedBag(Remote.comparator(comparable));
+        }
+
+    /**
+     * Returns a {@code Collector} that accumulates the input elements into a
+     * new {@code SortedBag}.
+     *
+     * @param <T>         the type of the input elements
      * @param comparator  a comparator for type T
      *
      * @return a {@code Collector} which collects all the input elements into a
@@ -183,7 +199,7 @@ public abstract class RemoteCollectors
      * @param <T> the type of the input elements
      *
      * @return a {@code Collector} which collects all the input elements into a
-     * {@code Set}
+     * {@code SortedSet}
      */
     public static <T> RemoteCollector<T, ?, SortedSet<T>> toSortedSet()
         {
@@ -201,10 +217,32 @@ public abstract class RemoteCollectors
      * Collector.
      *
      * @param <T>         the type of the input elements
+     * @param comparable  a {@link ValueExtractor} that returns a {@code Comparable}
+     *                    value
+     *
+     * @return a {@code Collector} which collects all the input elements into a
+     * {@code SortedSet}
+     */
+    public static <T, E extends Comparable<? super E>> RemoteCollector<T, ?, SortedSet<T>> toSortedSet(ValueExtractor<? super T, ? extends E> comparable)
+        {
+        return toSortedSet(Remote.comparator(comparable));
+        }
+
+    /**
+     * Returns a {@code Collector} that accumulates the input elements into a
+     * new {@code SortedSet}. There are no guarantees on the type, mutability,
+     * serializability, or thread-safety of the {@code SortedSet} returned;
+     * if more control over the returned {@code SortedSet} is required, use
+     * {@link #toCollection(Remote.Supplier)}.
+     * <p>
+     * This is an {@link RemoteCollector.Characteristics#UNORDERED unordered}
+     * Collector.
+     *
+     * @param <T>         the type of the input elements
      * @param comparator  a comparator for type T
      *
      * @return a {@code Collector} which collects all the input elements into a
-     * {@code Set}
+     * {@code SortedSet}
      */
     public static <T> RemoteCollector<T, ?, SortedSet<T>> toSortedSet(Comparator<? super T> comparator)
         {
@@ -225,7 +263,7 @@ public abstract class RemoteCollectors
      * @param comparator  a comparator for type T
      *
      * @return a {@code Collector} which collects all the input elements into a
-     * {@code Set}
+     * {@code SortedSet}
      */
     public static <T> RemoteCollector<T, ?, SortedSet<T>> toSortedSet(Remote.Comparator<? super T> comparator)
         {
@@ -316,6 +354,26 @@ public abstract class RemoteCollectors
 
     /**
      * Returns a {@code Collector} that produces the minimal element according
+     * to a given {@code Comparable} attribute, described as an {@code Optional<T>}.
+     *
+     * @param <T>         the type of the input elements
+     * @param comparable  a {@link ValueExtractor} that returns a {@code Comparable}
+     *                    value
+     *
+     * @return a {@code Collector} that produces the minimal value
+     *
+     * @implSpec This produces a result equivalent to:
+     * <pre>{@code
+     *     reducing(Remote.BinaryOperator.minBy(comparator))
+     * }</pre>
+     */
+    public static <T, E extends Comparable<? super E>> RemoteCollector<T, ?, Optional<T>> minBy(ValueExtractor<? super T, ? extends E> comparable)
+        {
+        return reducing(Remote.BinaryOperator.minBy(comparable));
+        }
+
+    /**
+     * Returns a {@code Collector} that produces the minimal element according
      * to a given {@code Comparator}, described as an {@code Optional<T>}.
      *
      * @param <T>        the type of the input elements
@@ -331,6 +389,26 @@ public abstract class RemoteCollectors
     public static <T> RemoteCollector<T, ?, Optional<T>> minBy(Remote.Comparator<? super T> comparator)
         {
         return reducing(Remote.BinaryOperator.minBy(comparator));
+        }
+
+    /**
+     * Returns a {@code Collector} that produces the maximal element according
+     * to a given {@code Comparable} attribute, described as an {@code Optional<T>}.
+     *
+     * @param <T>         the type of the input elements
+     * @param comparable  a {@link ValueExtractor} that returns a {@code Comparable}
+     *                    value
+     *
+     * @return a {@code Collector} that produces the minimal value
+     *
+     * @implSpec This produces a result equivalent to:
+     * <pre>{@code
+     *     reducing(Remote.BinaryOperator.minBy(comparator))
+     * }</pre>
+     */
+    public static <T, E extends Comparable<? super E>> RemoteCollector<T, ?, Optional<T>> maxBy(ValueExtractor<? super T, ? extends E> comparable)
+        {
+        return reducing(Remote.BinaryOperator.maxBy(comparable));
         }
 
     /**

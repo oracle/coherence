@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
+
+import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.net.NamedCache;
 
@@ -287,10 +289,44 @@ public class Processors
         }
 
     /**
-     * Construct a remove processor that removes an InvocableMap
-     * entry if and only if the filter applied to the entry
-     * evaluates to true.  The result of the process invocation
-     * does not return any result.
+     * Construct a remove processor that unconditionally removes an InvocableMap
+     * entry. The invocation of the created processor does not return any result.
+     *
+     * @return a remove processor that unconditionally removes an InvocableMap entry
+     */
+    public static <K, V> InvocableMap.EntryProcessor<K, V, Boolean> remove()
+        {
+        return CacheProcessors.removeBlind();
+        }
+
+    /**
+     * Construct a remove processor that unconditionally removes an InvocableMap
+     * entry, and optionally returns the removed value.
+     *
+     * @param fReturn  the flag specifying whether to return the value that was removed
+     *
+     * @return a remove processor that unconditionally removes an InvocableMap entry
+     */
+    @SuppressWarnings("unchecked")
+    public static <K, V> InvocableMap.EntryProcessor<K, V, V> remove(boolean fReturn)
+        {
+        return fReturn
+               ? CacheProcessors.remove()
+               : (EntryProcessor<K, V, V>) remove();
+        }
+
+    /**
+     * Construct a remove processor that removes an InvocableMap entry if and
+     * only if the filter applied to the entry evaluates to true.
+     * The invocation of the created processor does not return any result.
+     * <p/>
+     * Note: If the goal is to remove entries from a map based on a certain
+     * criteria, it is significantly more efficient to pass the processor created
+     * by the {@link #remove()} method to {@link InvocableMap#invokeAll(Filter, EntryProcessor)}.
+     * That way filtering will be performed ahead of time, using any available
+     * indexes for optimization, so the number of entries the processor is
+     * executed against will be reduced. The processor returned by this method
+     * should only be used when that is not possible.
      *
      * @param filter  the filter to evaluate an entry
      *
@@ -308,6 +344,14 @@ public class Processors
      * This processor may optionally return the current value as a result of
      * the invocation if it has not been removed (the filter evaluated to
      * false).
+     * <p/>
+     * Note: If the goal is to remove entries from a map based on a certain
+     * criteria, it is significantly more efficient to pass the processor created
+     * by the {@link #remove()} method to {@link InvocableMap#invokeAll(Filter, EntryProcessor)}.
+     * That way filtering will be performed ahead of time, using any available
+     * indexes for optimization, so the number of entries the processor is
+     * executed against will be reduced. The processor returned by this method
+     * should only be used when that is not possible.
      *
      * @param filter   the filter to evaluate an entry
      * @param fReturn  specifies whether or not the processor should return
