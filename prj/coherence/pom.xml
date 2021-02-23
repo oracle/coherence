@@ -98,24 +98,27 @@
 
     <!-- optional dependencies -->
     <dependency>
+      <groupId>jakarta.json</groupId>
+      <artifactId>jakarta.json-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <optional>true</optional>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <optional>true</optional>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
       <optional>true</optional>
-      <scope>provided</scope>
     </dependency>
 
     <!-- test dependencies -->
@@ -203,7 +206,6 @@
                   <include>org.ow2.asm:asm-util</include>
                   <include>org.jboss:jandex</include>
                   <include>com.sleepycat:je</include>
-                  <include>javax.json:javax.json-api</include>
                   <include>com.sun.codemodel:codemodel</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
                   <include>${coherence.group.id}:coherence-core</include>
@@ -256,16 +258,6 @@
                 <relocation>
                   <pattern>com.sun.codemodel</pattern>
                   <shadedPattern>com.tangosol.internal.codemodel</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>javax.json</pattern>
-                  <shadedPattern>com.tangosol.internal.json</shadedPattern>
-                  <includes>
-                    <includes>javax.json.*</includes>
-                  </includes>
-                  <excludes>
-                    <exclude>javax.json.bind.*</exclude>
-                  </excludes>
                 </relocation>
               </relocations>
               <transformers>
