@@ -15,6 +15,7 @@ on:
     - completed
 
 env:
+  GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
   MAVEN_OPTS: "-Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3"
 
 jobs:
@@ -46,4 +47,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
         GIT_COMMIT: ${{github.event.workflow_run.head_commit.id}}
         HEAD_BRANCH: ${{github.event.workflow_run.head_branch}}
-      run: sh tools/bin/github-deploy-snapshot.sh
+      run: |
+        echo "Checking out branch ${HEAD_BRANCH} commit ${GIT_COMMIT}"
+        git checkout "${GIT_COMMIT}"
+        sh tools/bin/github-deploy-snapshots.sh
