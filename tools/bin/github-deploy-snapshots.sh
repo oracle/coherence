@@ -19,7 +19,7 @@ echo "Building version ${CURRENT_VERSION}"
 mvn -B clean install -Dproject.official=true -Pdocs --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
 
 echo "Deploying version ${CURRENT_VERSION}"
-#mvn -B deploy --file prj/pom.xml -DskipTests -s .github/maven/settings.xml -P-examples
+mvn -B deploy --file prj/pom.xml -DskipTests -s .github/maven/settings.xml -P-examples
 
 echo "Deploying docs for version ${CURRENT_VERSION}"
 git stash save --keep-index --include-untracked || true
