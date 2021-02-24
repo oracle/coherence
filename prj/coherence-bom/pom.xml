@@ -88,6 +88,13 @@
   </developers>
 
   <properties>
+    <!--
+      This allows us to use ${revision} instead of explicit version in all
+      the POMs, and to specify it as the command line property (-Drevision).
+
+      Note that this property has to be named 'revision' and that it has
+      special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
+      -->
     <revision>21.06-SNAPSHOT</revision>
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 

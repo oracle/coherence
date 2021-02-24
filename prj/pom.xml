@@ -97,7 +97,6 @@
   </distributionManagement>
 
   <modules>
-    <module>coherence-dependencies</module>
     <!--
       !!! MODULES MUST NEVER BE DEFINED HERE !!!
 
@@ -111,15 +110,6 @@
   </dependencyManagement>
 
   <properties>
-    <!--
-      This allows us to use ${revision} instead of explicit version in all
-      the POMs, and to specify it as the command line property (-Drevision).
-
-      Note that this property has to be named 'revision' and that it has
-      special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
-      -->
-    <revision>21.06-SNAPSHOT</revision>
-
     <!-- version prefix used for cluster compatibility -->
     <project.version.prefix>14.1.1</project.version.prefix>
 
@@ -371,6 +361,7 @@
       <!-- the following modules are buildable by this profile -->
       <modules>
         <!-- internal modules -->
+        <module>coherence-dependencies</module>
         <module>coherence-core</module>
         <module>coherence-discovery</module>
 
