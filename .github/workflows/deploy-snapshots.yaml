@@ -16,6 +16,8 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
+  GIT_USER: ${{ secrets.BOT_USERNAME }}
+  GIT_EMAIL: ${{ secrets.BOT_EMAIL }}
   MAVEN_OPTS: "-Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3"
 
 jobs:
@@ -50,4 +52,6 @@ jobs:
       run: |
         echo "Checking out branch ${HEAD_BRANCH} commit ${GIT_COMMIT}"
         git checkout "${GIT_COMMIT}"
+        git config --local user.name "${GIT_USER}"
+        git config --local user.email "${GIT_EMAIL}"
         sh tools/bin/github-deploy-snapshots.sh

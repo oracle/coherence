@@ -25,8 +25,6 @@ git stash save --keep-index --include-untracked || true
 git stash drop || true
 git checkout gh-pages
 git config pull.rebase true
-git config --local user.name "Github Action"
-git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
 git pull
 
 rm -rf "${CURRENT_VERSION}" || true
