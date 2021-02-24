@@ -40,7 +40,7 @@ public class FragmentExtractorTest
         aleks = new Person("aleks")
                 .name("Aleks")
                 .age(46)
-                .dateOfBirth(LocalDate.of(1974, 8, 24).toEpochDay())
+                .dateOfBirth(LocalDate.of(1974, 8, 24))
                 .gender(MALE)
                 .weight(259.2)
                 .salary(BigDecimal.valueOf(1000.00))

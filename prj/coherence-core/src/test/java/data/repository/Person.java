@@ -14,6 +14,7 @@ import data.pof.Address;
 import java.io.Serializable;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 
 /**
@@ -27,9 +28,11 @@ public class Person implements Serializable
 
     private int age;
 
-    private long dateOfBirth;
+    private LocalDate dateOfBirth;
 
     private Gender gender;
+
+    private long height;
 
     private double weight;
 
@@ -83,16 +86,16 @@ public class Person implements Serializable
         return this;
         }
 
-    public long getDateOfBirth()
+    public LocalDate getDateOfBirth()
         {
         return dateOfBirth;
         }
 
-    public void setDateOfBirth(long dateOfBirth)
+    public void setDateOfBirth(LocalDate dateOfBirth)
         {
         this.dateOfBirth = dateOfBirth;
         }
-    public Person dateOfBirth(long dateOfBirth)
+    public Person dateOfBirth(LocalDate dateOfBirth)
         {
         setDateOfBirth(dateOfBirth);
         return this;
@@ -110,6 +113,21 @@ public class Person implements Serializable
     public Person gender(Gender gender)
         {
         setGender(gender);
+        return this;
+        }
+
+    public long getHeight()
+        {
+        return height;
+        }
+
+    public void setHeight(long height)
+        {
+        this.height = height;
+        }
+    public Person height(long height)
+        {
+        setHeight(height);
         return this;
         }
 
@@ -175,11 +193,12 @@ public class Person implements Serializable
             }
         Person person = (Person) o;
         return age == person.age &&
-               dateOfBirth == person.dateOfBirth &&
+               height == person.height &&
                Double.compare(person.weight, weight) == 0 &&
                ssn.equals(person.ssn) &&
                name.equals(person.name) &&
                gender == person.gender &&
+               Objects.equals(dateOfBirth, person.dateOfBirth) &&
                Objects.equals(salary, person.salary) &&
                Objects.equals(address, person.address);
         }
@@ -197,6 +216,7 @@ public class Person implements Serializable
                ", age=" + age +
                ", dateOfBirth=" + dateOfBirth +
                ", gender=" + gender +
+               ", height=" + height +
                ", weight=" + weight +
                ", salary=" + salary +
                ", address=" + address +

@@ -307,12 +307,14 @@ public class Processors
      *
      * @return a remove processor that unconditionally removes an InvocableMap entry
      */
-    @SuppressWarnings("unchecked")
     public static <K, V> InvocableMap.EntryProcessor<K, V, V> remove(boolean fReturn)
         {
-        return fReturn
-               ? CacheProcessors.remove()
-               : (EntryProcessor<K, V, V>) remove();
+        return entry ->
+            {
+            V value = entry.getValue();
+            entry.remove(false);
+            return fReturn ? value : null;
+            };
         }
 
     /**

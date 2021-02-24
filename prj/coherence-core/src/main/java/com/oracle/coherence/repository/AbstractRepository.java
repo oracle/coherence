@@ -28,6 +28,8 @@ import com.tangosol.util.comparator.ExtractorComparator;
 
 import com.tangosol.util.extractor.DeserializationAccelerator;
 
+import com.tangosol.util.filter.MapEventFilter;
+
 import com.tangosol.util.function.Remote;
 
 import com.tangosol.util.stream.RemoteCollector;
@@ -45,6 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -106,6 +109,16 @@ public abstract class AbstractRepository<ID, T>
         }
 
     /**
+     * Return all entities in this repository.
+     *
+     * @return all entities in this repository
+     */
+    public Collection<? extends T> findAll()
+        {
+        return getMapInternal().values();
+        }
+
+    /**
      * Return all entities that satisfy the specified criteria.
      *
      * @param filter the criteria to evaluate
@@ -115,6 +128,49 @@ public abstract class AbstractRepository<ID, T>
     public Collection<? extends T> findAll(Filter<?> filter)
         {
         return getMapInternal().values(filter);
+        }
+
+    /**
+     * Return all entities in this repository, sorted using
+     * specified {@link Comparable} attribute.
+     *
+     * @param orderBy the {@link Comparable} attribute to sort the results by
+     *
+     * @return all entities in this repository, sorted using
+     *         specified {@link Comparable} attribute.
+     */
+    public <R extends Comparable<? super R>> Collection<? extends T> findAll(ValueExtractor<? super T, ? extends R> orderBy)
+        {
+        return findAll(Filters.always(), Remote.comparator(orderBy));
+        }
+
+    /**
+     * Return all entities that satisfy the specified criteria, sorted using
+     * specified {@link Comparable} attribute.
+     *
+     * @param filter  the criteria to evaluate
+     * @param orderBy the {@link Comparable} attribute to sort the results by
+     *
+     * @return all entities that satisfy specified criteria, sorted using
+     *         specified {@link Comparable} attribute.
+     */
+    public <R extends Comparable<? super R>> Collection<? extends T> findAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy)
+        {
+        return findAll(filter, Remote.comparator(orderBy));
+        }
+
+    /**
+     * Return all entities in this repository, sorted using
+     * specified {@link Comparator}.
+     *
+     * @param orderBy the comparator to sort the results with
+     *
+     * @return all entities in this repository, sorted using
+     *         specified {@link Comparator}.
+     */
+    public Collection<? extends T> findAll(Comparator<?> orderBy)
+        {
+        return getMapInternal().values(Filters.always(), orderBy);
         }
 
     /**
@@ -551,118 +607,6 @@ public abstract class AbstractRepository<ID, T>
                            EntityFactory<? super ID, ? extends T> factory)
         {
         return getMapInternal().invoke(id, updateBiFunctionProcessor(updater, value, factory));
-        }
-
-    /**
-     * Update multiple entities using specified updater and the new value.
-     *
-     * @param colIds  the entity identifiers
-     * @param updater the updater function to use
-     * @param value   the value to update each entity with, which will be passed
-     *                as an argument to the updater function
-     * @param <U>     the type of value to update
-     */
-    public <U> void updateAll(Collection<? extends ID> colIds,
-                              ValueUpdater<? super T, ? super U> updater,
-                              U value)
-        {
-        updateAll(colIds, updater, value, null);
-        }
-
-    /**
-     * Update multiple entities using specified updater and the new value, and
-     * optional {@link EntityFactory} that will be used to create entity
-     * instance if it doesn't already exist in the repository.
-     *
-     * @param colIds  the entity identifiers
-     * @param updater the updater function to use
-     * @param value   the value to update each entity with, which will be passed
-     *                as an argument to the updater function
-     * @param factory the entity factory to use to create new entity instance
-     * @param <U>     the type of value to update
-     */
-    public <U> void updateAll(Collection<? extends ID> colIds,
-                              ValueUpdater<? super T, ? super U> updater,
-                              U value,
-                              EntityFactory<? super ID, ? extends T> factory)
-        {
-        getMapInternal().invokeAll(colIds, updaterProcessor(updater, value, factory));
-        }
-
-    /**
-     * Update multiple entities using specified updater and the new value.
-     *
-     * @param colIds  the entity identifiers
-     * @param updater the updater function to use
-     * @param <R>     the type of return value of the updater function
-     *
-     * @return a map of updater function results, keyed by entity id
-     */
-    public <R> Map<ID, R> updateAll(Collection<? extends ID> colIds,
-                                    Remote.Function<? super T, ? extends R> updater)
-        {
-        return updateAll(colIds, updater, null);
-        }
-
-    /**
-     * Update multiple entities using specified updater and the new value, and
-     * optional {@link EntityFactory} that will be used to create entity
-     * instance if it doesn't already exist in the repository.
-     *
-     * @param colIds  the entity identifiers
-     * @param updater the updater function to use
-     * @param factory the entity factory to use to create new entity instance
-     * @param <R>     the type of return value of the updater function
-     *
-     * @return a map of updater function results, keyed by entity id
-     */
-    public <R> Map<ID, R> updateAll(Collection<? extends ID> colIds,
-                                    Remote.Function<? super T, ? extends R> updater,
-                                    EntityFactory<? super ID, ? extends T> factory)
-        {
-        return getMapInternal().invokeAll(colIds, updateFunctionProcessor(updater, factory));
-        }
-
-    /**
-     * Update multiple entities using specified updater and the new value.
-     *
-     * @param colIds  the entity identifiers
-     * @param updater the updater function to use
-     * @param value   the value to update each entity with, which will be passed
-     *                as an argument to the updater function
-     * @param <U>     the type of value to update
-     * @param <R>     the type of return value of the updater function
-     *
-     * @return a map of updater function results, keyed by entity id
-     */
-    public <U, R> Map<ID, R> updateAll(Collection<? extends ID> colIds,
-                                       Remote.BiFunction<? super T, ? super U, ? extends R> updater,
-                                       U value)
-        {
-        return updateAll(colIds, updater, value, null);
-        }
-
-    /**
-     * Update multiple entities using specified updater and the new value, and
-     * optional {@link EntityFactory} that will be used to create entity
-     * instance if it doesn't already exist in the repository.
-     *
-     * @param colIds  the entity identifiers
-     * @param updater the updater function to use
-     * @param value   the value to update each entity with, which will be passed
-     *                as an argument to the updater function
-     * @param factory the entity factory to use to create new entity instance
-     * @param <U>     the type of value to update
-     * @param <R>     the type of return value of the updater function
-     *
-     * @return a map of updater function results, keyed by entity id
-     */
-    public <U, R> Map<ID, R> updateAll(Collection<? extends ID> colIds,
-                                       Remote.BiFunction<? super T, ? super U, ? extends R> updater,
-                                       U value,
-                                       EntityFactory<? super ID, ? extends T> factory)
-        {
-        return getMapInternal().invokeAll(colIds, updateBiFunctionProcessor(updater, value, factory));
         }
 
     /**
@@ -1592,12 +1536,34 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be lists of entities
+     *         specified {@code extractor}, and the values will be sets of entities
      *         that match each extracted key
      */
-    public <K> Map<K, List<T>> groupBy(ValueExtractor<? super T, ? extends K> extractor)
+    public <K> Map<K, Set<T>> groupBy(ValueExtractor<? super T, ? extends K> extractor)
         {
-        return stream().collect(groupingBy(extractor));
+        return stream().collect(groupingBy(extractor, RemoteCollectors.toSet()));
+        }
+
+    /**
+     * Return the grouping of entities by the specified extractor, ordered by
+     * the specified attribute within each group.
+     *
+     * @param extractor  the extractor to get a grouping value from;
+     *                   typically a method reference on the entity class,
+     *                   such as {@code Person::getGender}
+     * @param orderBy    the {@link Comparator} to sort the results
+     *                   within each group by
+     * @param <K>        the type of extracted grouping keys
+     *
+     * @return the the grouping of entities by the specified extractor; the keys
+     *         in the returned map will be distinct values extracted by the
+     *         specified {@code extractor}, and the values will be sorted sets
+     *         of entities that match each extracted key
+     */
+    public <K> Map<K, SortedSet<T>> groupBy(ValueExtractor<? super T, ? extends K> extractor,
+                                            Comparator<? super T> orderBy)
+        {
+        return stream().collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy)));
         }
 
     /**
@@ -1611,12 +1577,35 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be lists of entities
+     *         specified {@code extractor}, and the values will be sets of entities
      *         that match each extracted key
      */
-    public <K> Map<K, List<T>> groupBy(Filter<?> filter, ValueExtractor<? super T, ? extends K> extractor)
+    public <K> Map<K, Set<T>> groupBy(Filter<?> filter, ValueExtractor<? super T, ? extends K> extractor)
         {
-        return stream(filter).collect(groupingBy(extractor));
+        return stream(filter).collect(groupingBy(extractor, RemoteCollectors.toSet()));
+        }
+
+    /**
+     * Return the grouping of entities by the specified extractor, ordered by
+     * the specified attribute within each group.
+     *
+     * @param extractor  the extractor to get a grouping value from;
+     *                   typically a method reference on the entity class,
+     *                   such as {@code Person::getGender}
+     * @param orderBy    the {@link Comparator} to sort the results
+     *                   within each group by
+     * @param <K>        the type of extracted grouping keys
+     *
+     * @return the the grouping of entities by the specified extractor; the keys
+     *         in the returned map will be distinct values extracted by the
+     *         specified {@code extractor}, and the values will be sorted sets
+     *         of entities that match each extracted key
+     */
+    public <K> Map<K, SortedSet<T>> groupBy(Filter<?> filter,
+                                            ValueExtractor<? super T, ? extends K> extractor,
+                                            Comparator<? super T> orderBy)
+        {
+        return stream(filter).collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy)));
         }
 
     /**
@@ -1830,7 +1819,7 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the top N entities with the highest values for the specified extractor
      */
-    public List<T> topBy(Remote.Comparator<? super T> comparator, int cResults)
+    public List<T> topBy(Comparator<? super T> comparator, int cResults)
         {
         T[] results = getMapInternal().aggregate(Aggregators.topN(ValueExtractor.identity(), comparator, cResults));
         return Arrays.asList(results);
@@ -1845,7 +1834,7 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the top N entities with the highest values for the specified extractor
      */
-    public List<T> topBy(Filter<?> filter, Remote.Comparator<? super T> comparator, int cResults)
+    public List<T> topBy(Filter<?> filter, Comparator<? super T> comparator, int cResults)
         {
         T[] results = getMapInternal().aggregate(filter, Aggregators.topN(ValueExtractor.identity(), comparator, cResults));
         return Arrays.asList(results);
@@ -2057,6 +2046,10 @@ public abstract class AbstractRepository<ID, T>
      */
     public void addListener(Filter<?> filter, Listener<? super T> listener)
         {
+        if (!(filter instanceof MapEventFilter))
+            {
+            filter = new MapEventFilter<>(MapEventFilter.E_ALL, filter);
+            }
         getMapInternal().addMapListener(instantiateMapListener(listener), filter, false);
         }
 
@@ -2069,6 +2062,10 @@ public abstract class AbstractRepository<ID, T>
      */
     public void removeListener(Filter<?> filter, Listener<? super T> listener)
         {
+        if (!(filter instanceof MapEventFilter))
+            {
+            filter = new MapEventFilter<>(MapEventFilter.E_ALL, filter);
+            }
         getMapInternal().removeMapListener(instantiateMapListener(listener), filter);
         }
 
@@ -2178,5 +2175,3 @@ public abstract class AbstractRepository<ID, T>
 
     private volatile boolean m_fInitialized;
     }
-
-
