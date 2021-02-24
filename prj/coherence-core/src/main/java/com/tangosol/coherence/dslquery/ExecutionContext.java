@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,13 +8,17 @@ package com.tangosol.coherence.dslquery;
 
 import com.oracle.coherence.common.util.Duration;
 
+
 import com.tangosol.coherence.dsltools.precedence.OPParser;
 import com.tangosol.coherence.dsltools.precedence.TokenTable;
+
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
+import com.tangosol.net.Session;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ResourceRegistry;
@@ -67,26 +71,94 @@ public class ExecutionContext
      *
      * @param ccf  the ConfigurableCacheFactory to be used by commands
      *             executed with this context
+     *
+     * @deprecated use {@link #setSession(Session)}
      */
+    @Deprecated
     public void setCacheFactory(ConfigurableCacheFactory ccf)
         {
         m_cacheFactory = ccf;
+        m_session      = new ConfigurableCacheFactorySession(ccf, null);
         }
 
     /**
      * Return the current {@link ConfigurableCacheFactory} to be used
      * by commands executed under this context.
      *
+     * If a {@link Session} has already been set before a {@link ConfigurableCacheFactory} has been specified,
+     * this method may return {@code null} when called.
+     *
      * @return the current ConfigurableCacheFactory
+     *
+     * @deprecated use {@link #getSession()}
      */
+    @Deprecated
     public ConfigurableCacheFactory getCacheFactory()
         {
-        if (m_cacheFactory == null)
+        ConfigurableCacheFactory cacheFactory = m_cacheFactory;
+        if (cacheFactory == null)
             {
-            m_cacheFactory = CacheFactory.getConfigurableCacheFactory();
+            Session session = m_session;
+            if (session == null)
+                {
+                cacheFactory = CacheFactory.getConfigurableCacheFactory();
+                m_session    = new ConfigurableCacheFactorySession(cacheFactory, Base.getContextClassLoader());
+                }
+            else if (session instanceof ConfigurableCacheFactorySession)
+                {
+                cacheFactory = ((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory();
+                }
+            else
+                {
+                throw new IllegalStateException("No CacheFactory available");
+                }
+
+            m_cacheFactory = cacheFactory;
             }
 
-        return m_cacheFactory;
+        return cacheFactory;
+        }
+
+    /**
+     * Return the current {@link Session} that will be used by commands executed under this context.
+     *
+     * @return the current {@link Session} that will be used by commands executed under this context
+     *
+     * @since 20.12.1
+     */
+    public Session getSession()
+        {
+        Session session = m_session;
+        if (session == null)
+            {
+            ConfigurableCacheFactory cacheFactory = m_cacheFactory;
+            if (cacheFactory == null)
+                {
+                throw new IllegalStateException("No CacheFactory available");
+                }
+
+            m_session = session = new ConfigurableCacheFactorySession(cacheFactory, Base.getContextClassLoader());
+
+            m_cacheFactory = cacheFactory;
+            }
+
+        return session;
+        }
+
+    /**
+     * Set the {@link Session} that will be used by commands executed under this context.
+     *
+     * @param session the {@link Session}
+     *
+     * @since 20.12.1
+     */
+    public void setSession(Session session)
+        {
+        m_session = session;
+        if (session instanceof ConfigurableCacheFactorySession)
+            {
+            m_cacheFactory = ((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory();
+            }
         }
 
     /**
@@ -391,6 +463,11 @@ public class ExecutionContext
      * The {@link ConfigurableCacheFactory} to use to access caches.
      */
     protected ConfigurableCacheFactory m_cacheFactory;
+
+    /**
+     * The {@link Session} to use for cache access.
+     */
+    protected Session m_session;
 
     /**
      * The {@link Cluster} to use to access services.

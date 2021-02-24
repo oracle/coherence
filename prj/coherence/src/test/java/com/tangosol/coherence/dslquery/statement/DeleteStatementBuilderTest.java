@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,35 +9,48 @@ package com.tangosol.coherence.dslquery.statement;
 import com.tangosol.coherence.config.ParameterList;
 import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.SimpleParameterList;
+
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExecutionContext;
+
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
+
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
-import com.tangosol.net.ConfigurableCacheFactory;
+
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.util.Filter;
+
 import com.tangosol.util.filter.AllFilter;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
+
 import com.tangosol.util.processor.ConditionalRemove;
+
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
+
 import org.mockito.InOrder;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+
 import static org.junit.Assert.assertThat;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
+
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -161,22 +174,22 @@ public class DeleteStatementBuilderTest
     public void shouldDelete()
             throws Exception
         {
-        ConfigurableCacheFactory cacheFactory = mock(ConfigurableCacheFactory.class);
-        NamedCache               cache        = mock(NamedCache.class);
-        Filter                   filter       = new EqualsFilter("getFoo", 19L);
-        ExecutionContext         context      = mock(ExecutionContext.class);
+        Session          session = mock(Session.class);
+        NamedCache       cache   = mock(NamedCache.class);
+        Filter           filter  = new EqualsFilter("getFoo", 19L);
+        ExecutionContext context = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
-        when(cacheFactory.ensureTypedCache(anyString(), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
+        when(session.getCache(anyString(), any(TypeAssertion.class))).thenReturn(cache);
 
         DeleteStatementBuilder.DeleteStatement statement
                 = new DeleteStatementBuilder.DeleteStatement("test", filter);
 
         statement.execute(context);
 
-        InOrder inOrder = inOrder(cacheFactory, cache);
+        InOrder inOrder = inOrder(session, cache);
 
-        inOrder.verify(cacheFactory).ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class));
+        inOrder.verify(session).getCache(eq("test"), any(TypeAssertion.class));
         inOrder.verify(cache).invokeAll(filter, new ConditionalRemove(AlwaysFilter.INSTANCE));
         }
 

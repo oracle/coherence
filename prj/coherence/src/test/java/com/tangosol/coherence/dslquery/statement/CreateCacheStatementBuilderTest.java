@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,19 +8,26 @@ package com.tangosol.coherence.dslquery.statement;
 
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.ExecutionContext;
+
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
-import com.tangosol.net.ConfigurableCacheFactory;
+
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
 
 import static org.hamcrest.CoreMatchers.is;
+
 import static org.junit.Assert.assertThat;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -87,17 +94,17 @@ public class CreateCacheStatementBuilderTest
     public void shouldCreateCache()
             throws Exception
         {
-        ConfigurableCacheFactory cacheFactory = mock(ConfigurableCacheFactory.class);
-        ExecutionContext         context      = mock(ExecutionContext.class);
+        Session          session = mock(Session.class);
+        ExecutionContext context = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
+        when(context.getSession()).thenReturn(session);
 
         CreateCacheStatementBuilder.CreateCacheStatement statement
                 = new CreateCacheStatementBuilder.CreateCacheStatement("test");
 
         statement.execute(context);
 
-        verify(cacheFactory).ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class));
+        verify(session).getCache(eq("test"), any(TypeAssertion.class));
         }
 
     /**

@@ -146,8 +146,7 @@ public class UpdateStatementBuilder
         @Override
         public StatementResult execute(ExecutionContext ctx)
             {
-            Map<?, ?> mapResult = ctx.getCacheFactory()
-                    .ensureTypedCache(f_sCache, null, withoutTypeChecking())
+            Map<?, ?> mapResult = ctx.getSession().getCache(f_sCache, withoutTypeChecking())
                     .invokeAll(f_filter, f_processor);
 
             return new DefaultStatementResult(mapResult);
@@ -157,8 +156,8 @@ public class UpdateStatementBuilder
         @Override
         public CompletableFuture<StatementResult> executeAsync(ExecutionContext ctx)
             {
-            return ctx.getCacheFactory()
-                    .ensureTypedCache(f_sCache, null, withoutTypeChecking())
+            return ctx.getSession()
+                    .getCache(f_sCache, withoutTypeChecking())
                     .async()
                     .invokeAll(f_filter, f_processor)
                     .thenApply(DefaultStatementResult::new);

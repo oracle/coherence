@@ -1,43 +1,59 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery;
 
+import com.tangosol.coherence.dsltools.precedence.OPParser;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
 import com.tangosol.net.cache.WrapperNamedCache;
+
 import com.tangosol.util.Filter;
 import com.tangosol.util.FilterBuildingException;
 import com.tangosol.util.QueryHelper;
+
 import data.persistence.Person;
+
+import java.awt.Point;
+
+import java.io.StringReader;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+
+import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,7 +69,7 @@ public class SimpleQueryHelperTest
         {
         m_executionContext = mock(ExecutionContext.class);
         m_cluster          = mock(Cluster.class);
-        m_cacheFactory     = mock(ConfigurableCacheFactory.class);
+        m_session          = mock(Session.class);
         m_cacheService     = mock(CacheService.class);
         m_map              = new HashMap();
         m_cacheTest1       = new WrapperNamedCache(m_map, "test", m_cacheService);
@@ -61,10 +77,16 @@ public class SimpleQueryHelperTest
         m_language         = new CoherenceQueryLanguage();
 
         when(m_executionContext.getCoherenceQueryLanguage()).thenReturn(m_language);
-        when(m_executionContext.getCacheFactory()).thenReturn(m_cacheFactory);
+        when(m_executionContext.getSession()).thenReturn(m_session);
         when(m_executionContext.getCluster()).thenReturn(m_cluster);
-        when(m_cacheFactory.ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(m_cacheTest1);
-        when(m_cacheFactory.ensureTypedCache(eq("test-2"), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(m_cacheTest2);
+        when(m_executionContext.instantiateParser(any())).thenAnswer(
+                (Answer<OPParser>) invocationOnMock -> new OPParser((StringReader) invocationOnMock.getArgument(0),
+                                                                    m_language.extendedSqlTokenTable(),
+                                                                    m_language.getOperators()));
+        when(m_session.getCache(eq("test"), any(TypeAssertion.class))).thenReturn(m_cacheTest1);
+        when(m_session.getCache(eq("test-2"), any(TypeAssertion.class))).thenReturn(m_cacheTest2);
+        when(m_session.isCacheActive(eq("test"), nullable(ClassLoader.class))).thenReturn(true);
+        when(m_session.isCacheActive(eq("test-2"), nullable(ClassLoader.class))).thenReturn(false);
         when(m_cacheService.getCacheNames()).thenReturn(Collections.enumeration(Collections.singleton("test")));
         when(m_cluster.getServiceNames()).thenReturn(Collections.enumeration(Collections.singleton("test-service")));
         when(m_cluster.getService("test-service")).thenReturn(m_cacheService);
@@ -555,11 +577,80 @@ public class SimpleQueryHelperTest
         assertEquals(1, ((Set) m_oResults).size());
         }
 
+    @Test
+    public void shouldCreateExpectedExecutionContext()
+        {
+        ExecutionContext underTest = QueryHelper.createExecutionContext(m_session);
+        assertThat(underTest.getSession(), is(m_session));
+        assertThat(underTest.getCoherenceQueryLanguage(), notNullValue());
+        assertThat(underTest.isExtendedLanguageEnabled(), is(true));
+        assertThat(underTest.isSanityChecking(), is(true));
+        assertThat(underTest.isSilent(), is(true));
+        }
+
+    @Test
+    public void shouldCreateSimpleStatements()
+        {
+        m_cacheTest1.put(1, 1);
+
+        ExecutionContext ctx = QueryHelper.createExecutionContext(m_session);
+        Statement s = QueryHelper.createStatement("select * from test where key() is 1", ctx);
+        assertThat(s, notNullValue());
+        m_oResults = s.execute(ctx);
+        assertThat(m_oResults, instanceOf(StatementResult.class));
+        StatementResult statementResult = (StatementResult) m_oResults;
+        assertThat(statementResult.getResult(), instanceOf(Collection.class));
+        assertThat(1, is(((Collection) statementResult.getResult()).size()));
+        }
+
+    @Test
+    public void shouldCreateStatementWithPositionalParameters()
+        {
+        ExecutionContext ctx = QueryHelper.createExecutionContext(m_session);
+        Statement        s   = QueryHelper.createStatement("select * from test where name == ?1",
+                                                           ctx, new Object[]{ "Person-3" });
+        assertThat(s, notNullValue());
+
+        m_oResults = s.execute(ctx);
+        assertThat(m_oResults, instanceOf(StatementResult.class));
+        StatementResult statementResult = (StatementResult) m_oResults;
+        assertThat(statementResult.getResult(), instanceOf(Collection.class));
+
+        Collection results = (Collection) statementResult.getResult();
+        assertThat(results.size(), is(1));
+
+        Optional optional = results.stream().findFirst();
+        assertThat(((Map.Entry) optional.get()).getValue(), is(new Person(3, "Person-3")));
+        }
+
+    @Test
+    public void shouldCreateStatementWithBindingParameters()
+        {
+        ExecutionContext ctx = QueryHelper.createExecutionContext(m_session);
+        ctx.setExtendedLanguage(false); // cannot use extended language with binding parameters
+
+        Statement s = QueryHelper.createStatement("select * from test where name == :p1",
+                                                  ctx,
+                                                  Collections.singletonMap("p1", "Person-3"));
+        assertThat(s, notNullValue());
+        m_oResults = s.execute(ctx);
+
+        assertThat(m_oResults, instanceOf(StatementResult.class));
+        StatementResult statementResult = (StatementResult) m_oResults;
+        assertThat(statementResult.getResult(), instanceOf(Collection.class));
+
+        Collection results = (Collection) statementResult.getResult();
+        assertThat(results.size(), is(1));
+
+        Optional optional = results.stream().findFirst();
+        assertThat(((Map.Entry) optional.get()).getValue(), is(new Person(3, "Person-3")));
+        }
+
 
     protected ExecutionContext         m_executionContext;
     protected CoherenceQueryLanguage   m_language;
     protected Cluster                  m_cluster;
-    protected ConfigurableCacheFactory m_cacheFactory;
+    protected Session                  m_session;
     protected CacheService             m_cacheService;
     protected Map                      m_map;
     protected NamedCache               m_cacheTest1;

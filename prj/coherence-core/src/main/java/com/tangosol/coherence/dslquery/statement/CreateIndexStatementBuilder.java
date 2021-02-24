@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -20,6 +20,7 @@ import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.PrintWriter;
+
 import java.util.List;
 
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
@@ -109,8 +110,7 @@ public class CreateIndexStatementBuilder
         @Override
         public StatementResult execute(ExecutionContext ctx)
             {
-            ctx.getCacheFactory().ensureTypedCache(f_sCache, null, withoutTypeChecking())
-                    .addIndex(f_extractor, true, null);
+            ctx.getSession().getCache(f_sCache, withoutTypeChecking()).addIndex(f_extractor, true, null);
 
             return StatementResult.NULL_RESULT;
             }

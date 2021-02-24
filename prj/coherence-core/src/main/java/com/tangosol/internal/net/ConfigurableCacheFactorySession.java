@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -147,7 +147,10 @@ public class ConfigurableCacheFactorySession
             return mapCachesByTypeAssertion.compute(typeAssertion, (key, value) ->
                 {
                 // only return a valid session-based named cache
-                if (value != null && !value.isDestroyed() && !value.isReleased())
+                if (value != null
+                    && !value.isDestroyed()
+                    && !value.isReleased()
+                    && value.getContextClassLoader() == loader) // compare loaders to prevent returning incorrect cache
                     {
                     return value;
                     }
@@ -160,6 +163,7 @@ public class ConfigurableCacheFactorySession
 
                 SessionNamedCache<K, V> cache = new SessionNamedCache<>(this,
                         cacheUnderlying,
+                        loader,
                         typeAssertion);
 
                 // increment the reference count for the underlying NamedCache

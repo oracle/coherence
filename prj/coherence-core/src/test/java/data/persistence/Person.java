@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,9 +7,9 @@
 
 package data.persistence;
 
-
 import java.io.Serializable;
 
+import java.util.Objects;
 
 public class Person
         implements Serializable
@@ -82,9 +82,31 @@ public class Person
         m_nAge = nAge;
         }
 
+    @Override
     public String toString()
         {
         return "Person(" + m_nId + ", " + m_sName + ")";
+        }
+
+    @Override
+    public boolean equals(Object o)
+        {
+        if (this == o)
+            {
+            return true;
+            }
+        if (o == null || getClass() != o.getClass())
+            {
+            return false;
+            }
+        Person person = (Person) o;
+        return m_nId == person.m_nId && Objects.equals(m_sName, person.m_sName);
+        }
+
+    @Override
+    public int hashCode()
+        {
+        return Objects.hash(m_nId, m_sName);
         }
 
     int    m_nId;

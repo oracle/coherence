@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,7 +10,9 @@ import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
@@ -18,7 +20,9 @@ import com.tangosol.util.Listeners;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.ValueExtractor;
+
 import com.tangosol.util.function.Remote;
+
 import com.tangosol.util.stream.RemoteStream;
 
 import java.util.Collection;
@@ -26,6 +30,7 @@ import java.util.Comparator;
 import java.util.EventListener;
 import java.util.Map;
 import java.util.Set;
+
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -49,21 +54,36 @@ public class SessionNamedCache<K, V>
     /**
      * Constructs a {@link SessionNamedCache}.
      *
-     * @param session         the {@link ConfigurableCacheFactorySession} that produced this {@link SessionNamedCache}
-     * @param cache           the {@link NamedCache} to which requests will be delegated
-     * @param typeAssertion   the {@link TypeAssertion} for the {@link NamedCache}
+     * @param session       the {@link ConfigurableCacheFactorySession} that produced this {@link SessionNamedCache}
+     * @param cache         the {@link NamedCache} to which requests will be delegated
+     * @param typeAssertion the {@link TypeAssertion} for the {@link NamedCache}
      */
     public SessionNamedCache(ConfigurableCacheFactorySession session,
                              NamedCache<K, V> cache,
                              TypeAssertion<K, V> typeAssertion)
         {
+        this(session, cache, null, typeAssertion);
+        }
+
+    /**
+     * Constructs a {@link SessionNamedCache}.
+     *
+     * @param session       the {@link ConfigurableCacheFactorySession} that produced this {@link SessionNamedCache}
+     * @param cache         the {@link NamedCache} to which requests will be delegated
+     * @param loader        the {@Link ClassLoader} associated with the cache
+     * @param typeAssertion the {@link TypeAssertion} for the {@link NamedCache}
+     */
+    public SessionNamedCache(ConfigurableCacheFactorySession session,
+                             NamedCache<K, V> cache,
+                             ClassLoader loader,
+                             TypeAssertion<K, V> typeAssertion)
+        {
         m_session       = session;
         m_cache         = cache;
+        f_loader        = loader;
         m_typeAssertion = typeAssertion;
         m_fActive       = cache.isActive();
-
         m_listeners     = new MapListenerSupport();
-
         }
 
     // ----- NamedCache interface -------------------------------------------
@@ -540,17 +560,39 @@ public class SessionNamedCache<K, V>
 
     // ----- SessionNamedCache methods --------------------------------------
 
+    /**
+     * Return the {@link NamedCache} this class wraps.
+     *
+     * @return the {@link NamedCache} this class wraps
+     */
     NamedCache<K, V> getInternalNamedCache()
         {
         return m_cache;
         }
 
+    /**
+     * Return the {@link TypeAssertion} associated with the wrapped cache.
+     *
+     * @return the {@link TypeAssertion} associated with the wrapped cache
+     */
     TypeAssertion<K, V> getTypeAssertion()
         {
         return m_typeAssertion;
         }
 
+    /**
+     * Return the {@link ClassLoader} used by the wrapped cache.
+     *
+     * @return the {@link ClassLoader} used by the wrapped cache
+     */
+    ClassLoader getContextClassLoader()
+        {
+        return f_loader;
+        }
 
+    /**
+     * Perform actions prior to this cache closing.
+     */
     void onClosing()
         {
         m_fActive = false;
@@ -558,10 +600,16 @@ public class SessionNamedCache<K, V>
         dropListeners();
         }
 
+    /**
+     * Perform actions after this cache has closed.
+     */
     void onClosed()
         {
         }
 
+    /**
+     * Perform actions prior to this cache being destroyed.
+     */
     void onDestroying()
         {
         m_fActive = false;
@@ -569,10 +617,16 @@ public class SessionNamedCache<K, V>
         dropListeners();
         }
 
+    /**
+     * Perform actions after this cache has been destroyed.
+     */
     void onDestroyed()
         {
         }
 
+    /**
+     * Drops all registered key and filter-based listeners.
+     */
     void dropListeners()
         {
         // remove the key-based listeners from the underlying cache
@@ -624,6 +678,11 @@ public class SessionNamedCache<K, V>
      * The underlying {@link NamedCache} on which requests will be delegated.
      */
     private NamedCache<K, V> m_cache;
+
+    /**
+     * The {@link ClassLoader} associated with this session's cache.
+     */
+    private final ClassLoader f_loader;
 
     /**
      * The {@link TypeAssertion} to be used for this {@link SessionNamedCache}.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,41 +7,55 @@
 package com.tangosol.coherence.dslquery.statement;
 
 import com.oracle.coherence.common.util.Duration;
+
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.StatementExecutor;
 import com.tangosol.coherence.dslquery.StatementResult;
+
 import com.tangosol.coherence.dsltools.precedence.OPParser;
+
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
-import com.tangosol.net.ConfigurableCacheFactory;
+
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.util.ValueExtractor;
+
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+
 import org.mockito.InOrder;
+
 import org.mockito.invocation.InvocationOnMock;
+
 import org.mockito.stubbing.Answer;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.Reader;
+
 import java.util.Comparator;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.ArgumentMatchers.same;
+
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -125,13 +139,13 @@ public class SourceStatementBuilderTest
         writer.close();
 
         ExecutionContext         context  = mock(ExecutionContext.class);
-        ConfigurableCacheFactory ccf      = mock(ConfigurableCacheFactory.class);
+        Session                  session  = mock(Session.class);
         NamedCache               cache    = mock(NamedCache.class);
         CoherenceQueryLanguage   language = new CoherenceQueryLanguage();
         StatementExecutor        executor = new StatementExecutor();
 
-        when(ccf.ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
-        when(context.getCacheFactory()).thenReturn(ccf);
+        when(session.getCache(eq("test"), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
         when(context.getCoherenceQueryLanguage()).thenReturn(language);
         when(context.getTimeout()).thenReturn(new Duration(Long.MAX_VALUE));
         when(context.getStatementExecutor()).thenReturn(executor);
@@ -202,14 +216,14 @@ public class SourceStatementBuilderTest
         writer.flush();
         writer.close();
 
-        ExecutionContext         context  = mock(ExecutionContext.class);
-        ConfigurableCacheFactory ccf      = mock(ConfigurableCacheFactory.class);
-        NamedCache               cache    = mock(NamedCache.class);
-        CoherenceQueryLanguage   language = new CoherenceQueryLanguage();
-        StatementExecutor        executor = new StatementExecutor();
+        ExecutionContext       context  = mock(ExecutionContext.class);
+        Session                session  = mock(Session.class);
+        NamedCache             cache    = mock(NamedCache.class);
+        CoherenceQueryLanguage language = new CoherenceQueryLanguage();
+        StatementExecutor      executor = new StatementExecutor();
 
-        when(ccf.ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
-        when(context.getCacheFactory()).thenReturn(ccf);
+        when(session.getCache(eq("test"), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
         when(context.getCoherenceQueryLanguage()).thenReturn(language);
         when(context.isStopOnError()).thenReturn(true);
         when(context.getTimeout()).thenReturn(new Duration(Long.MAX_VALUE));
@@ -256,14 +270,14 @@ public class SourceStatementBuilderTest
         writer.flush();
         writer.close();
 
-        ExecutionContext         context  = mock(ExecutionContext.class);
-        ConfigurableCacheFactory ccf      = mock(ConfigurableCacheFactory.class);
-        NamedCache               cache    = mock(NamedCache.class);
-        CoherenceQueryLanguage   language = new CoherenceQueryLanguage();
-        StatementExecutor        executor = new StatementExecutor();
+        ExecutionContext       context  = mock(ExecutionContext.class);
+        Session                session  = mock(Session.class);
+        NamedCache             cache    = mock(NamedCache.class);
+        CoherenceQueryLanguage language = new CoherenceQueryLanguage();
+        StatementExecutor      executor = new StatementExecutor();
 
-        when(ccf.ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
-        when(context.getCacheFactory()).thenReturn(ccf);
+        when(session.getCache(eq("test"), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
         when(context.getCoherenceQueryLanguage()).thenReturn(language);
         when(context.isStopOnError()).thenReturn(false);
         when(context.getTimeout()).thenReturn(new Duration(Long.MAX_VALUE));

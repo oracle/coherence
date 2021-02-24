@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,27 +10,39 @@ import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.StatementResult;
+
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
-import com.tangosol.net.ConfigurableCacheFactory;
+
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+
 import com.tangosol.util.aggregator.QueryRecorder;
+
 import com.tangosol.util.extractor.ReflectionExtractor;
+
 import com.tangosol.util.filter.EqualsFilter;
+
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
+
 import org.mockito.ArgumentCaptor;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
+
 import static org.junit.Assert.assertThat;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -166,13 +178,13 @@ public class QueryRecorderStatementBuilderTest
         {
         String                   cacheName      = "test";
         Filter                   filter         = mock(Filter.class);
-        ConfigurableCacheFactory cacheFactory   = mock(ConfigurableCacheFactory.class);
+        Session                  session        = mock(Session.class);
         NamedCache               cache          = mock(NamedCache.class);
         Object                   expectedResult = new Object();
         ExecutionContext         context        = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
-        when(cacheFactory.ensureTypedCache(eq(cacheName), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
+        when(session.getCache(eq(cacheName), any(TypeAssertion.class))).thenReturn(cache);
         when(cache.aggregate(any(Filter.class), any(InvocableMap.EntryAggregator.class))).thenReturn(expectedResult);
 
         QueryRecorderStatementBuilder.QueryRecorderStatement statement
@@ -196,15 +208,15 @@ public class QueryRecorderStatementBuilderTest
     public void shouldPerformTraceQuery()
             throws Exception
         {
-        String                   cacheName      = "test";
-        Filter                   filter         = mock(Filter.class);
-        ConfigurableCacheFactory cacheFactory   = mock(ConfigurableCacheFactory.class);
-        NamedCache               cache          = mock(NamedCache.class);
-        Object                   expectedResult = new Object();
-        ExecutionContext         context        = mock(ExecutionContext.class);
+        String           cacheName      = "test";
+        Filter           filter         = mock(Filter.class);
+        Session          session        = mock(Session.class);
+        NamedCache       cache          = mock(NamedCache.class);
+        Object           expectedResult = new Object();
+        ExecutionContext context        = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
-        when(cacheFactory.ensureTypedCache(eq(cacheName), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
+        when(session.getCache(eq(cacheName), any(TypeAssertion.class))).thenReturn(cache);
         when(cache.aggregate(any(Filter.class), any(InvocableMap.EntryAggregator.class))).thenReturn(expectedResult);
 
         QueryRecorderStatementBuilder.QueryRecorderStatement statement

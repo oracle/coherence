@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,19 +10,28 @@ import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.StatementResult;
+
 import com.tangosol.coherence.dslquery.internal.UpdateSetListMaker;
+
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
+
 import com.tangosol.config.expression.ParameterResolver;
-import com.tangosol.net.ConfigurableCacheFactory;
+
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.GreaterFilter;
+
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
@@ -31,13 +40,16 @@ import java.util.List;
 import java.util.Map;
 
 import static com.tangosol.coherence.dslquery.TermMockitoMatcher.termEquals;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
+
 import static org.junit.Assert.assertThat;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.ArgumentMatchers.same;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -180,16 +192,16 @@ public class UpdateStatementBuilderTest
             throws Exception
         {
         String                      cacheName      = "test";
-        ConfigurableCacheFactory    cacheFactory   = mock(ConfigurableCacheFactory.class);
+        Session                     session        = mock(Session.class);
         NamedCache                  cache          = mock(NamedCache.class);
         Filter                      filter         = mock(Filter.class);
         InvocableMap.EntryProcessor processor      = mock(InvocableMap.EntryProcessor.class);
         Map                         expectedResult = new HashMap();
         ExecutionContext            context        = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
+        when(context.getSession()).thenReturn(session);
 
-        when(cacheFactory.ensureTypedCache(eq(cacheName), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
+        when(session.getCache(eq(cacheName), any(TypeAssertion.class))).thenReturn(cache);
         when(cache.invokeAll(any(Filter.class), any(InvocableMap.EntryProcessor.class))).thenReturn(expectedResult);
 
         UpdateStatementBuilder.UpdateStatement statement

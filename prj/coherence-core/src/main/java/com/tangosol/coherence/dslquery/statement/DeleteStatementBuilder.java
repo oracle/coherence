@@ -101,8 +101,7 @@ public class DeleteStatementBuilder
         @Override
         public StatementResult execute(ExecutionContext ctx)
             {
-            Map map = ctx.getCacheFactory()
-                    .ensureTypedCache(f_sCache, null, withoutTypeChecking())
+            Map map = ctx.getSession().getCache(f_sCache, withoutTypeChecking())
                     .invokeAll(f_filter, new ConditionalRemove<>(AlwaysFilter.INSTANCE()));
 
             return new DefaultStatementResult(map.entrySet());
@@ -111,8 +110,8 @@ public class DeleteStatementBuilder
         @Override
         public CompletableFuture<StatementResult> executeAsync(ExecutionContext ctx)
             {
-            return ctx.getCacheFactory()
-                    .ensureTypedCache(f_sCache, null, withoutTypeChecking())
+            return ctx.getSession()
+                    .getCache(f_sCache, withoutTypeChecking())
                     .async()
                     .invokeAll(f_filter, new ConditionalRemove<>(AlwaysFilter.INSTANCE()))
                     .thenApply(map -> new DefaultStatementResult(map.entrySet()));

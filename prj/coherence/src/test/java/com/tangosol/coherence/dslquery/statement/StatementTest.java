@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,19 +7,18 @@
 package com.tangosol.coherence.dslquery.statement;
 
 import com.tangosol.coherence.dslquery.ExecutionContext;
-import com.tangosol.net.ConfigurableCacheFactory;
-import com.tangosol.net.DefaultConfigurableCacheFactory;
+
+import com.tangosol.net.Session;
 
 import org.junit.Test;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -33,11 +32,12 @@ public class StatementTest
     public void shouldNotBeValidCacheIfValidateFlagTrueAndNoCacheActive()
             throws Exception
         {
-        ExecutionContext ctx                    = mock(ExecutionContext.class);
-        ConfigurableCacheFactory  ccf           = mock(ConfigurableCacheFactory.class);
-        AbstractStatement query                 = new QueryStub();
-        when(ctx.getCacheFactory()).thenReturn(ccf);
-        when(ccf.isCacheActive("test",null)).thenReturn(false);
+        ExecutionContext  ctx     = mock(ExecutionContext.class);
+        Session           session = mock(Session.class);
+        AbstractStatement query   = new QueryStub();
+
+        when(ctx.getSession()).thenReturn(session);
+        when(session.isCacheActive("test", null)).thenReturn(false);
         try
             {
             query.assertCacheName("test", ctx);
@@ -54,11 +54,11 @@ public class StatementTest
     public void shouldBeValidCache()
             throws Exception
         {
-        ExecutionContext ctx                    = mock(ExecutionContext.class);
-        ConfigurableCacheFactory  ccf           = mock(ConfigurableCacheFactory.class);
-        AbstractStatement query                 = new QueryStub();
-        when(ctx.getCacheFactory()).thenReturn(ccf);
-        when(ccf.isCacheActive("test",null)).thenReturn(true);
+        ExecutionContext  ctx     = mock(ExecutionContext.class);
+        Session           session = mock(Session.class);
+        AbstractStatement query   = new QueryStub();
+        when(ctx.getSession()).thenReturn(session);
+        when(session.isCacheActive("test", null)).thenReturn(true);
         query.assertCacheName("test", ctx);
         }
 
@@ -67,14 +67,14 @@ public class StatementTest
             throws Exception
         {
         AbstractStatement query   = new QueryStub();
-        ConfigurableCacheFactory  ccf   = mock(ConfigurableCacheFactory.class);
-        ExecutionContext  context       = mock(ExecutionContext.class);
+        Session           session = mock(Session.class);
+        ExecutionContext  context = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(ccf);
+        when(context.getSession()).thenReturn(session);
 
         query.sanityCheck(context);
 
-        verifyNoMoreInteractions(ccf);
+        verifyNoMoreInteractions(session);
         }
 
     public static class QueryStub

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -47,7 +47,7 @@ public abstract class AbstractStatement
      */
     protected void assertCacheName(String sName, ExecutionContext ctx)
         {
-        if (!ctx.getCacheFactory().isCacheActive(sName, null)) 
+        if (!ctx.getSession().isCacheActive(sName, null))
             {
             throw new AssertionError(String.format("cache '%s' does not exist!", sName));
             }

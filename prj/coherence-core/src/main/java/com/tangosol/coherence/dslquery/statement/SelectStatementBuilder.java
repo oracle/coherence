@@ -27,6 +27,7 @@ import com.tangosol.util.InvocableMap;
 import java.io.PrintWriter;
 
 import java.util.List;
+
 import java.util.concurrent.CompletableFuture;
 
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
@@ -215,7 +216,7 @@ public class SelectStatementBuilder
 
         public CompletableFuture<StatementResult> execute(ExecutionContext ctx)
             {
-            NamedCache cache = ctx.getCacheFactory().ensureTypedCache(f_sCache, null, withoutTypeChecking());
+            NamedCache cache = ctx.getSession().getCache(f_sCache, withoutTypeChecking());
             CompletableFuture<StatementResult> future;
 
             if (f_aggregator == null)
@@ -310,7 +311,7 @@ public class SelectStatementBuilder
         @Override
         public StatementResult execute(ExecutionContext ctx)
             {
-            NamedCache cache = ctx.getCacheFactory().ensureTypedCache(f_sCache, null, withoutTypeChecking());
+            NamedCache cache = ctx.getSession().getCache(f_sCache, withoutTypeChecking());
             Object     oResult;
 
             if (f_aggregator == null)
@@ -328,7 +329,7 @@ public class SelectStatementBuilder
         @Override
         public CompletableFuture<StatementResult> executeAsync(ExecutionContext ctx)
             {
-            NamedCache cache = ctx.getCacheFactory().ensureTypedCache(f_sCache, null, withoutTypeChecking());
+            NamedCache cache = ctx.getSession().getCache(f_sCache, withoutTypeChecking());
             CompletableFuture<StatementResult> future;
 
             if (f_aggregator == null)

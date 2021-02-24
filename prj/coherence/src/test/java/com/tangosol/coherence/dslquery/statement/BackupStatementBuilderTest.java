@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,17 +8,24 @@ package com.tangosol.coherence.dslquery.statement;
 
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.ExecutionContext;
+
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
+
 import com.tangosol.internal.util.MapBackupHelper;
+
 import com.tangosol.net.CacheService;
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
 import com.tangosol.net.cache.WrapperNamedCache;
+
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
@@ -26,13 +33,16 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+
 import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.is;
+
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -139,16 +149,16 @@ public class BackupStatementBuilderTest
     public void shouldPerformBackupOfNonDistributedCache()
             throws Exception
         {
-        File                     backupFile   = temporaryFolder.newFile("backup1.dat");
-        String                   cacheName    = "test";
-        String                   fileName     = backupFile.getAbsolutePath();
-        ConfigurableCacheFactory cacheFactory = mock(ConfigurableCacheFactory.class);
-        CacheService             cacheService = mock(CacheService.class);
-        NamedCache               cache        = new WrapperNamedCache(new HashMap(), "test", cacheService);
-        ExecutionContext         context      = mock(ExecutionContext.class);
+        File             backupFile   = temporaryFolder.newFile("backup1.dat");
+        String           cacheName    = "test";
+        String           fileName     = backupFile.getAbsolutePath();
+        Session          session      = mock(Session.class);
+        CacheService     cacheService = mock(CacheService.class);
+        NamedCache       cache        = new WrapperNamedCache(new HashMap(), "test", cacheService);
+        ExecutionContext context      = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
-        when(cacheFactory.ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
+        when(session.getCache(eq("test"), any(TypeAssertion.class), any(NamedMap.Option.class))).thenReturn(cache);
 
         cache.put("Key-1", "value-1");
 
@@ -195,13 +205,13 @@ public class BackupStatementBuilderTest
         File                     backupFile   = temporaryFolder.newFile("backup2.dat");
         String                   cacheName    = "test";
         String                   fileName     = backupFile.getAbsolutePath();
-        ConfigurableCacheFactory cacheFactory = mock(ConfigurableCacheFactory.class);
+        Session                  session      = mock(Session.class);
         DistributedCacheService  cacheService = mock(DistributedCacheService.class);
         NamedCache               cache        = new WrapperNamedCache(new HashMap(), "test", cacheService);
         ExecutionContext         context      = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
-        when(cacheFactory.ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
+        when(session.getCache(eq("test"), any(TypeAssertion.class), any(NamedMap.Option.class))).thenReturn(cache);
         when(cacheService.getPartitionCount()).thenReturn(13);
 
         cache.put("Key-11", "value-11");

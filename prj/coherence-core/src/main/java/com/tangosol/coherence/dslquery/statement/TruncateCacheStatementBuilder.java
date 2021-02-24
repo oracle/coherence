@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,7 +9,9 @@ package com.tangosol.coherence.dslquery.statement;
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.StatementResult;
+
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
+
 import com.tangosol.config.expression.ParameterResolver;
 
 import java.io.PrintWriter;
@@ -81,7 +83,7 @@ public class TruncateCacheStatementBuilder
         @Override
         public StatementResult execute(ExecutionContext ctx)
             {
-            ctx.getCacheFactory().ensureTypedCache(f_sCacheName, null, withoutTypeChecking()).truncate();
+            ctx.getSession().getCache(f_sCacheName, withoutTypeChecking()).truncate();
 
             return StatementResult.NULL_RESULT;
             }

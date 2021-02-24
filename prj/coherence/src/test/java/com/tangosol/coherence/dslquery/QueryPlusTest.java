@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,12 +8,16 @@ package com.tangosol.coherence.dslquery;
 
 import com.oracle.coherence.common.util.Duration;
 
+
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.util.filter.AlwaysFilter;
 
 import org.junit.After;
@@ -34,7 +38,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.nullable;
 
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -62,11 +65,11 @@ public class QueryPlusTest
         {
         m_savedClassLoader = Thread.currentThread().getContextClassLoader();
 
-        m_ccf     = mock(ConfigurableCacheFactory.class);
         m_cluster = mock(Cluster.class);
         m_cache   = mock(NamedCache.class);
+        m_session = mock(Session.class);
 
-        when(m_ccf.ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(m_cache);
+        when(m_session.getCache(eq("test"), any(TypeAssertion.class))).thenReturn(m_cache);
 
         m_commandFile1 = temporaryFolder.newFile("commands1.txt");
 
@@ -112,12 +115,12 @@ public class QueryPlusTest
         ExecutionContext ctx       = queryPlus.getExecutionContext();
 
         ctx.setCluster(m_cluster);
-        ctx.setCacheFactory(m_ccf);
+        ctx.setSession(m_session);
         ctx.setSanityCheckingEnabled(false);
 
         queryPlus.run();
 
-        verify(m_ccf, atLeastOnce()).ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class));
+        verify(m_session, atLeastOnce()).getCache(eq("test"), any(TypeAssertion.class));
         verify(m_cache, never()).entrySet(isA(AlwaysFilter.class));
         }
 
@@ -141,12 +144,12 @@ public class QueryPlusTest
         ExecutionContext ctx       = queryPlus.getExecutionContext();
 
         ctx.setCluster(m_cluster);
-        ctx.setCacheFactory(m_ccf);
+        ctx.setSession(m_session);
         ctx.setSanityCheckingEnabled(false);
 
         queryPlus.run();
 
-        verify(m_ccf, atLeastOnce()).ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class));
+        verify(m_session, atLeastOnce()).getCache(eq("test"), any(TypeAssertion.class));
         verify(m_cache).entrySet(isA(AlwaysFilter.class));
         }
 
@@ -170,14 +173,14 @@ public class QueryPlusTest
         ExecutionContext ctx       = queryPlus.getExecutionContext();
 
         ctx.setCluster(m_cluster);
-        ctx.setCacheFactory(m_ccf);
+        ctx.setSession(m_session);
         ctx.setSanityCheckingEnabled(false);
         ctx.setSilentMode(false);
 
         queryPlus.run();
 
         assertThat(ctx.isSilent(), is(false));
-        verify(m_ccf, atLeastOnce()).ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class));
+        verify(m_session, atLeastOnce()).getCache(eq("test"), any(TypeAssertion.class));
         verify(m_cache, never()).entrySet(isA(AlwaysFilter.class));
         }
 
@@ -201,14 +204,14 @@ public class QueryPlusTest
         ExecutionContext ctx       = queryPlus.getExecutionContext();
 
         ctx.setCluster(m_cluster);
-        ctx.setCacheFactory(m_ccf);
+        ctx.setSession(m_session);
         ctx.setSanityCheckingEnabled(false);
         ctx.setSilentMode(false);
 
         queryPlus.run();
 
         assertThat(ctx.isSilent(), is(false));
-        verify(m_ccf, atLeastOnce()).ensureTypedCache(eq("test"), nullable(ClassLoader.class), any(TypeAssertion.class));
+        verify(m_session, atLeastOnce()).getCache(eq("test"), any(TypeAssertion.class));
         verify(m_cache).entrySet(isA(AlwaysFilter.class));
         }
 
@@ -299,7 +302,7 @@ public class QueryPlusTest
         ExecutionContext ctx       = queryPlus.getExecutionContext();
 
         ctx.setCluster(m_cluster);
-        ctx.setCacheFactory(m_ccf);
+        ctx.setSession(m_session);
 
         queryPlus.repl();
 
@@ -321,7 +324,7 @@ public class QueryPlusTest
         ExecutionContext ctx       = queryPlus.getExecutionContext();
 
         ctx.setCluster(m_cluster);
-        ctx.setCacheFactory(m_ccf);
+        ctx.setSession(m_session);
 
         queryPlus.repl();
 
@@ -331,7 +334,7 @@ public class QueryPlusTest
     // ----- data members ---------------------------------------------------
 
     protected ClassLoader              m_savedClassLoader;
-    protected ConfigurableCacheFactory m_ccf;
+    protected Session                  m_session;
     protected Cluster                  m_cluster;
     protected NamedCache               m_cache;
     protected File                     m_commandFile1;

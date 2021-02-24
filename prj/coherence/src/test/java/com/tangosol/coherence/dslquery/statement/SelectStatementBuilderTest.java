@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,22 +10,34 @@ import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExecutionContext;
 import com.tangosol.coherence.dslquery.StatementResult;
+
 import com.tangosol.coherence.dslquery.internal.SelectListMaker;
+
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
 import com.tangosol.coherence.dsltools.termtrees.Terms;
+
 import com.tangosol.config.expression.ParameterResolver;
-import com.tangosol.net.ConfigurableCacheFactory;
+
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+
 import com.tangosol.util.aggregator.DistinctValues;
+
 import com.tangosol.util.extractor.ReflectionExtractor;
+
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
+
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
+
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
@@ -35,15 +47,18 @@ import java.util.List;
 import java.util.Set;
 
 import static com.tangosol.coherence.dslquery.TermMatcher.matchingTerm;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
+
 import static org.junit.Assert.assertThat;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.ArgumentMatchers.same;
+
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -384,15 +399,15 @@ public class SelectStatementBuilderTest
     public void shouldPerformEntrySetQuery()
             throws Exception
         {
-        String                   cacheName      = "test";
-        Filter                   filter         = mock(Filter.class);
-        ConfigurableCacheFactory cacheFactory   = mock(ConfigurableCacheFactory.class);
-        NamedCache               cache          = mock(NamedCache.class);
-        Set                      expectedResult = new HashSet();
-        ExecutionContext         context        = mock(ExecutionContext.class);
+        String           cacheName      = "test";
+        Filter           filter         = mock(Filter.class);
+        Session          session        = mock(Session.class);
+        NamedCache       cache          = mock(NamedCache.class);
+        Set              expectedResult = new HashSet();
+        ExecutionContext context        = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
-        when(cacheFactory.ensureTypedCache(eq(cacheName), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
+        when(session.getCache(eq(cacheName), any(TypeAssertion.class))).thenReturn(cache);
         when(cache.entrySet(any(Filter.class))).thenReturn(expectedResult);
 
         SelectStatementBuilder.SelectStatement statement
@@ -411,13 +426,13 @@ public class SelectStatementBuilderTest
         String                       cacheName      = "test";
         Filter                       filter         = mock(Filter.class);
         InvocableMap.EntryAggregator aggregator     = mock(InvocableMap.EntryAggregator.class);
-        ConfigurableCacheFactory     cacheFactory   = mock(ConfigurableCacheFactory.class);
+        Session                      session        = mock(Session.class);
         NamedCache                   cache          = mock(NamedCache.class);
         Object                       expectedResult = new Object();
         ExecutionContext             context        = mock(ExecutionContext.class);
 
-        when(context.getCacheFactory()).thenReturn(cacheFactory);
-        when(cacheFactory.ensureTypedCache(eq(cacheName), nullable(ClassLoader.class), any(TypeAssertion.class))).thenReturn(cache);
+        when(context.getSession()).thenReturn(session);
+        when(session.getCache(eq(cacheName), any(TypeAssertion.class))).thenReturn(cache);
         when(cache.aggregate(any(Filter.class), any(InvocableMap.EntryAggregator.class))).thenReturn(expectedResult);
 
         SelectStatementBuilder.SelectStatement statement

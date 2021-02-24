@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -16,8 +16,10 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.util.MapBackupHelper;
 
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Session;
+
+import com.tangosol.net.options.WithClassLoader;
 
 import com.tangosol.util.NullImplementation;
 
@@ -111,8 +113,9 @@ public class BackupStatementBuilder
             {
             try (RandomAccessFile file = new RandomAccessFile(new File(f_sFile), "rw"))
                 {
-                ConfigurableCacheFactory ccf   = ctx.getCacheFactory();
-                NamedCache cache = ccf.ensureTypedCache(f_sCache, NullImplementation.getClassLoader(), withoutTypeChecking());
+                Session    session = ctx.getSession();
+                NamedCache cache   = session.getCache(f_sCache, withoutTypeChecking(),
+                                                      WithClassLoader.using(NullImplementation.getClassLoader()));
 
                 MapBackupHelper.writeMap(file, cache);
                 }
