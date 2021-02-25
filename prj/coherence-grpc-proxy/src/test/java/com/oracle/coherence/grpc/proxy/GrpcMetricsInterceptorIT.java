@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.google.protobuf.Message;
 import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.grpc.proxy.routeguide.Feature;
 import com.oracle.coherence.grpc.proxy.routeguide.RouteGuideClient;
 import com.oracle.coherence.grpc.proxy.routeguide.RouteGuideServer;
@@ -124,13 +125,9 @@ public class GrpcMetricsInterceptorIT
         // Unary method - Looking for a valid feature
         client.getFeature(409146138, -746188906);
 
-        long cReqAfter  = s_metrics.getSuccessfulRequestCount();
-        long cMsgAfter  = s_metrics.getMessagesReceivedCount();
-        long cRespAfter = s_metrics.getResponsesSentCount();
-
-        assertThat(cReqAfter, is(cReqBefore + 1));
-        assertThat(cMsgAfter, is(cMsgBefore + 1));
-        assertThat(cRespAfter, is(cRespBefore + 1));
+        Eventually.assertDeferred(() -> s_metrics.getSuccessfulRequestCount(), is(cReqBefore + 1));
+        Eventually.assertDeferred(() -> s_metrics.getMessagesReceivedCount(), is(cMsgBefore + 1));
+        Eventually.assertDeferred(() -> s_metrics.getResponsesSentCount(), is(cRespBefore + 1));
         }
 
     @Test
@@ -147,13 +144,9 @@ public class GrpcMetricsInterceptorIT
         // Server Streaming method - Looking for features between 40, -75 and 42, -73.
         client.listFeatures(400000000, -750000000, 420000000, -730000000);
 
-        long cReqAfter  = s_metrics.getSuccessfulRequestCount();
-        long cMsgAfter  = s_metrics.getMessagesReceivedCount();
-        long cRespAfter = s_metrics.getResponsesSentCount();
-
-        assertThat(cReqAfter, is(cReqBefore + 1));
-        assertThat(cMsgAfter, is(cMsgBefore + 1));
-        assertThat(cRespAfter, is(cRespBefore + counter.getCount()));
+        Eventually.assertDeferred(() -> s_metrics.getSuccessfulRequestCount(), is(cReqBefore + 1));
+        Eventually.assertDeferred(() -> s_metrics.getMessagesReceivedCount(), is(cMsgBefore + 1));
+        Eventually.assertDeferred(() -> s_metrics.getResponsesSentCount(), is(cRespBefore + counter.getCount()));
         }
 
     @Test
@@ -172,13 +165,9 @@ public class GrpcMetricsInterceptorIT
         client.setTestHelper(counter);
         client.recordRoute(features, cPoints);
 
-        long cReqAfter  = s_metrics.getSuccessfulRequestCount();
-        long cMsgAfter  = s_metrics.getMessagesReceivedCount();
-        long cRespAfter = s_metrics.getResponsesSentCount();
-
-        assertThat(cReqAfter, is(cReqBefore + 1));
-        assertThat(cMsgAfter, is(cMsgBefore + cPoints));
-        assertThat(cRespAfter, is(cRespBefore + counter.getCount()));
+        Eventually.assertDeferred(() -> s_metrics.getSuccessfulRequestCount(), is(cReqBefore + 1));
+        Eventually.assertDeferred(() -> s_metrics.getMessagesReceivedCount(), is(cMsgBefore + cPoints));
+        Eventually.assertDeferred(() -> s_metrics.getResponsesSentCount(), is(cRespBefore + counter.getCount()));
         }
 
     @Test
@@ -197,13 +186,9 @@ public class GrpcMetricsInterceptorIT
         CountDownLatch chatTwo = client.routeChat();
         assertThat(chatTwo.await(5, TimeUnit.MINUTES), is(true));
 
-        long cReqAfter  = s_metrics.getSuccessfulRequestCount();
-        long cMsgAfter  = s_metrics.getMessagesReceivedCount();
-        long cRespAfter = s_metrics.getResponsesSentCount();
-
-        assertThat(cReqAfter, is(cReqBefore + 2));
-        assertThat(cMsgAfter, is(cMsgBefore + 8));
-        assertThat(cRespAfter, is(cRespBefore + 4));
+        Eventually.assertDeferred(() -> s_metrics.getSuccessfulRequestCount(), is(cReqBefore + 2));
+        Eventually.assertDeferred(() -> s_metrics.getMessagesReceivedCount(), is(cMsgBefore + 8));
+        Eventually.assertDeferred(() -> s_metrics.getResponsesSentCount(), is(cRespBefore + 4));
         }
 
 

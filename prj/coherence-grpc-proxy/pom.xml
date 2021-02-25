@@ -124,6 +124,10 @@
       <groupId>com.oracle.bedrock</groupId>
       <artifactId>bedrock-runtime</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-testing-support</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
