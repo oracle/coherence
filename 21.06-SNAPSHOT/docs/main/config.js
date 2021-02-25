@@ -299,6 +299,19 @@ function createRoutes(){
             component: loadPage('examples-guides-110-queries-README', '/examples/guides/110-queries/README', {})
         },
         {
+            path: '/examples/guides/190-cache-stores/README',
+            meta: {
+                h1: 'Cache Stores',
+                title: 'Cache Stores',
+                h1Prefix: null,
+                description: 'Coherence Guides Basic NamedMap put, get and remove operations',
+                keywords: 'coherence, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-guides-190-cache-stores-README', '/examples/guides/190-cache-stores/README', {})
+        },
+        {
             path: '/examples/guides/460-topics/README',
             meta: {
                 h1: 'Topics',
@@ -520,6 +533,7 @@ function createNav(){
                                 { href: '/examples/guides/000-overview', title: 'Guides Overview' },
                                 { href: '/examples/guides/100-put-get-remove/README', title: 'Put Get and Remove Operations' },
                                 { href: '/examples/guides/110-queries/README', title: 'Querying' },
+                                { href: '/examples/guides/190-cache-stores/README', title: 'Cache Stores' },
                                 { href: '/examples/guides/460-topics/README', title: 'Topics' }
                             ]
                         },
