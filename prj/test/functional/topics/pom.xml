@@ -79,6 +79,13 @@
 
   <profiles>
     <profile>
+      <id>stage11</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+
+    <profile>
       <id>smoke</id>
       <properties>
         <excludedGroups>common.SlowTests</excludedGroups>

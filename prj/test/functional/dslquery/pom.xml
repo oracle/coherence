@@ -21,6 +21,15 @@
   <name>Coherence CohQL Tests</name>
   <packaging>jar</packaging>
 
+  <profiles>
+    <profile>
+      <id>stage3</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

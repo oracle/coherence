@@ -21,6 +21,15 @@
   <packaging>jar</packaging>
   <name>Coherence Examples Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage6</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

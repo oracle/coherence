@@ -20,6 +20,15 @@
   <artifactId>security</artifactId>
   <name>Coherence Security Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage9</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

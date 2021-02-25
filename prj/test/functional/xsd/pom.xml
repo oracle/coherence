@@ -20,6 +20,15 @@
   <artifactId>xsd</artifactId>
   <name>Coherence XSD Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage12</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

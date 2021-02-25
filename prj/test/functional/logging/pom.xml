@@ -20,6 +20,15 @@
   <artifactId>logging</artifactId>
   <name>Coherence Logging Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage5</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
 
     <dependency>

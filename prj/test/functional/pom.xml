@@ -212,7 +212,17 @@
         <!-- (none) -->
       </modules>
     </profile>
+
+    <!-- disable tests in stage1 -->
     <profile>
+      <id>stage1</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+
+    <!-- the following stages have tests enabled in their respective sub-modules -->
+    <!-- profile>
       <id>stage2</id>
       <modules>
         <module>aggregator</module>
@@ -222,29 +232,30 @@
         <module>config</module>
         <module>discovery</module>
        </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage3</id>
       <modules>
         <module>dslquery</module>
         <module>events</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage4</id>
       <modules>
         <module>extend</module>
         <module>extractor</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage5</id>
       <modules>
         <module>dependencies</module>
         <module>filter</module>
+        <module>graal</module>
         <module>guardian</module>
         <module>io</module>
         <module>jcache</module>
@@ -255,33 +266,33 @@
         <module>near</module>
         <module>net</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage6</id>
       <modules>
         <module>partition</module>
         <module>examples</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage7</id>
       <modules>
         <module>persistence</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage8</id>
       <modules>
         <module>processor</module>
         <module>quorum</module>
         <module>reporter</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage9</id>
       <modules>
         <module>http</module>
@@ -294,24 +305,25 @@
         <module>rwbm</module>
         <module>security</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage10</id>
       <modules>
+        <module>session</module>
         <module>ssl</module>
         <module>tcmp</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage11</id>
       <modules>
         <module>topics</module>
       </modules>
-    </profile>
+    </profile -->
 
-    <profile>
+    <!-- profile>
       <id>stage12</id>
       <modules>
         <module>tracing</module>
@@ -320,7 +332,7 @@
         <module>util</module>
         <module>xsd</module>
       </modules>
-    </profile>
+    </profile -->
 
     <profile>
       <id>visualvm</id>

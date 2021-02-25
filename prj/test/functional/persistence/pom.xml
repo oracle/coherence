@@ -20,6 +20,15 @@
   <artifactId>persistence</artifactId>
   <name>Coherence Persistence Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage7</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

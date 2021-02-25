@@ -21,6 +21,15 @@
   <name>Coherence Memcached Tests</name>
   <packaging>jar</packaging>
 
+  <profiles>
+    <profile>
+      <id>stage5</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
