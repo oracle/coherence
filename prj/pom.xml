@@ -2065,134 +2065,106 @@
     </profile>
 
     <!--
-       The profiles related to RQ jobs. Each profile runs as part of a stage in the RQ.
-       Each stage will contain a subset of tests, which will run.
+       The stage* profiles are designed to divide the tests into segments which take 1 hour
+       or less to run. These stages can be used to run the tests in parallel.
+
+       stage1 runs all of the tests outside of the test/* modules
+       For stage1, tests are disabled for this profile in the test/* pom files.
+
+       stage2 to stage13 run tests under the test/* modules. The segmentation of the tests are
+       defined in the test/* pom files. For stage2 to stage13, tests are disabled here and then are
+       enabled in the respective test/* pom files.
     -->
 
     <!--
-       stage1 runs all the junit test in individual modules. functional/distribution tests
-       etc are run in the next stages.
-       Important: Any new modules except functional/distribution/compatibility tests must be
-       mentioned in this profile.
-    -->
-    <profile>
-      <id>stage1</id>
-
-      <modules>
-        <module>coherence-core</module>
-        <module>coherence-discovery</module>
-        <module>coherence-testing-support</module>
-        <module>coherence</module>
-        <module>coherence-bom</module>
-        <module>coherence-jcache</module>
-        <module>coherence-loadbalancer</module>
-        <module>coherence-login</module>
-        <module>coherence-mock</module>
-        <module>coherence-http-netty</module>
-        <module>coherence-rest</module>
-        <module>coherence-management</module>
-        <module>coherence-metrics</module>
-        <module>coherence-micrometer</module>
-        <module>coherence-cdi</module>
-        <module>coherence-cdi-server</module>
-        <module>coherence-mp</module>
-        <module>coherence-grpc</module>
-        <module>coherence-grpc-proxy</module>
-        <module>coherence-java-client</module>
-        <module>coherence-helidon-client</module>
-      </modules>
-    </profile>
-
-    <!--
-       stage2 through stage12 are functional tests. The actual tests involved are defined
+       stage2 to stage12 run the functional tests. The actual tests involved are defined
        in test/functional/pom.xml.
     -->
-
     <profile>
       <id>stage2</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage3</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage4</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage5</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage6</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage7</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage8</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage9</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage10</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage11</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <profile>
       <id>stage12</id>
-      <modules>
-        <module>test/functional</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <!--
-       stage13 runs compatibility and distribution tests.
+       stage13 runs the test/distribution/* tests.
     -->
     <profile>
       <id>stage13</id>
-      <modules>
-        <module>test/distribution</module>
-      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
     </profile>
 
     <!--
@@ -2204,9 +2176,6 @@
         <project.official>true</project.official>
         <skipTests>true</skipTests>
       </properties>
-      <modules>
-        <module>coherence-javadoc</module>
-      </modules>
     </profile>
 
     <profile>

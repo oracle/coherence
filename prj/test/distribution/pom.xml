@@ -169,14 +169,20 @@
       </modules>
     </profile>
 
+    <!-- disable tests in stage1 -->
+    <profile>
+      <id>stage1</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+
+    <!-- run all tests in stage13 -->
     <profile>
       <id>stage13</id>
-
-      <!-- the following modules are buildable by this profile -->
-      <modules>
-        <module>jcache-compliance</module>
-        <module>osgi</module>
-      </modules>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
     </profile>
   </profiles>
 </project>

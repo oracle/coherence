@@ -20,6 +20,15 @@
   <artifactId>events</artifactId>
   <name>Coherence Events Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage3</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

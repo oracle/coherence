@@ -20,6 +20,15 @@
   <artifactId>jcache</artifactId>
   <name>Coherence JCache Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage5</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <properties>
       <!-- the name of the configuration class to use as the default -->
       <!-- aliases include; "local", "partitioned", "remote" and "passthrough" -->

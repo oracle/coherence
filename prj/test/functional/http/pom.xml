@@ -20,6 +20,15 @@
   <artifactId>http</artifactId>
   <name>Coherence HTTP Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage9</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

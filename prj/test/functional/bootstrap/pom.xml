@@ -21,6 +21,15 @@
   <artifactId>bootstrap</artifactId>
   <name>Coherence Bootstrap API Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage2</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

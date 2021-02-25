@@ -20,6 +20,15 @@
   <artifactId>reporter</artifactId>
   <name>Coherence Reporter Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage8</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
