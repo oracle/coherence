@@ -20,6 +20,15 @@
   <artifactId>config</artifactId>
   <name>Coherence Config Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage2</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

@@ -1,4 +1,5 @@
-# Copyright 2020 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2020, 2021, Oracle Corporation and/or its affiliates.
+#
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -64,26 +65,16 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2-
 
-      # First run a simple compile without tests
-    - name: Build
-      shell: bash
-      env:
-        MAVEN_USER: ${{ secrets.MavenUser }}
-        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
-      run: |
-        export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -DskipTests clean install
-
-      # If the build job runs successfully then run the verify stages in parallel
+      # Run the Verify stages in parallel
     - name: Verify
       shell: bash
       env:
         MAVEN_USER: ${{ secrets.MavenUser }}
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
-        echo "Running verify ${{ matrix.stage }}"
+        echo "Building and running tests in ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -P ${{ matrix.stage }} -Doptional -Dcoherence.SkipLargeMemoryTests=true clean verify
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs

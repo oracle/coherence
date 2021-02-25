@@ -20,6 +20,15 @@
   <artifactId>filter</artifactId>
   <name>Coherence Filter Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage5</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

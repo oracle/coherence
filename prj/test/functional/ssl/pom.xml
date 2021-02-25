@@ -20,6 +20,15 @@
   <artifactId>ssl</artifactId>
   <name>Coherence SSL Tests</name>
 
+  <profiles>
+    <profile>
+      <id>stage10</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

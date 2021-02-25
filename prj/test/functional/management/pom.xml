@@ -97,6 +97,13 @@
 
   <profiles>
     <profile>
+      <id>stage9</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+
+    <profile>
       <id>code-coverage</id>
       <activation>
         <property>
