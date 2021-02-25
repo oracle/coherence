@@ -5,7 +5,7 @@
     http://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Cache Stores
-:description: Coherence Guides Basic NamedMap put, get and remove operations
+:description: Use and configure Cache Stores within Coherence
 :keywords: coherence, java, documentation
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
