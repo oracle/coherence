@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<!-- File contents copied from http://docs.jboss.org/hibernate/orm/4.2/manual/en-US/html/ch01.html
+     and adapted for functional testing of coherence-hibernate-second-cache-store -->
+
+<!-- tag::config[] -->
+<hibernate-configuration>
+  <session-factory>
+    <!-- Database connection settings -->
+    <property name="connection.driver_class">org.hsqldb.jdbcDriver</property>
+    <property name="connection.url">jdbc:hsqldb:mem:test</property>
+    <property name="connection.username">sa</property>
+    <property name="connection.password"></property>
+
+    <!-- JDBC connection pool (use the built-in) -->
+    <property name="connection.pool_size">1</property>
+
+    <!-- SQL dialect -->
+    <property name="dialect">org.hibernate.dialect.HSQLDialect</property>
+
+    <!-- Enable Hibernate's automatic session context management -->
+    <property name="current_session_context_class">thread</property>
+
+    <!-- Echo all executed SQL to stdout -->
+    <property name="show_sql">true</property>
+
+    <!-- Drop and re-create the database schema on startup -->
+    <property name="hbm2ddl.auto">update</property>
+
+    <mapping resource="Person.hbm.xml"/>  <!--1-->
+  </session-factory>
+</hibernate-configuration>
+<!-- end::config[] -->

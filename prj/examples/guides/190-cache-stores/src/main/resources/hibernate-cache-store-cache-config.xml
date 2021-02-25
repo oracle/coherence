@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <!-- tag::config[] -->
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>Person</cache-name>  <!--1-->
+      <scheme-name>distributed-hibernate</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>distributed-hibernate</scheme-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme></local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>com.oracle.coherence.hibernate.cachestore.HibernateCacheStore</class-name>  <!--2-->
+              <init-params>
+                <init-param>
+                  <param-type>java.lang.String</param-type>
+                  <param-value>com.oracle.coherence.guides.cachestores.{cache-name}</param-value> <!--3-->
+                </init-param>
+              </init-params>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+  <!-- end::config[] -->
+</cache-config>

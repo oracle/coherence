@@ -32,6 +32,20 @@ A guide showing basic CRUD `put`, `get`, and `remove` operations on a `NamedMap`
 A guide to the basic querying APIs in `NamedMap` and `NamedCache`.
 --
 
+[CARD]
+.Topics
+[link=examples/guides/460-topics/README.adoc]
+--
+A guide to using Caching Data Stores
+--
+
+[CARD]
+.Cache Stores
+[link=examples/guides/190-cache-stores/README.adoc]
+--
+This guide walks you through how to use and configure Cache Stores
+--
+
 ====
 
 // DO NOT ADD CONTENT AFTER THIS LINE

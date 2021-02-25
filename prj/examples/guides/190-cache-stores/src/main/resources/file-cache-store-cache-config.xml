@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+        xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+    <!-- tag::config[] -->
+    <caching-scheme-mapping>
+      <cache-mapping>
+        <cache-name>*</cache-name>
+        <scheme-name>file-cache-store</scheme-name>
+      </cache-mapping>
+    </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>file-cache-store</scheme-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>com.oracle.coherence.guides.cachestores.FileCacheStore</class-name>   <!--1-->
+              <init-params>
+                <init-param>
+                  <param-type>java.lang.String</param-type> <!--2-->
+                  <param-value system-property="test.base.dir">/tmp/</param-value>
+                </init-param>
+              </init-params>
+            </class-scheme>
+          </cachestore-scheme>
+          <!-- tag::write-delay[] -->
+          <write-delay>0s</write-delay>
+          <!-- end::write-delay[] -->
+          <write-batch-factor>0</write-batch-factor>
+          <write-requeue-threshold>0</write-requeue-threshold>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+  </caching-schemes>
+  <!-- end::config[] -->
+</cache-config>
