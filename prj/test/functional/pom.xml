@@ -251,6 +251,7 @@
       <modules>
         <module>dependencies</module>
         <module>filter</module>
+        <module>graal</module>
         <module>guardian</module>
         <module>io</module>
         <module>jcache</module>
