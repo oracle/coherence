@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.lambda.AbstractRemotableLambda;
 import com.tangosol.internal.util.invoke.lambda.LambdaIdentity;
+import com.tangosol.internal.util.invoke.lambda.MethodReferenceExtractor;
 import com.tangosol.internal.util.invoke.lambda.RemotableLambdaGenerator;
 import com.tangosol.internal.util.invoke.lambda.MethodReferenceIdentity;
 import com.tangosol.internal.util.invoke.lambda.AnonymousLambdaIdentity;
@@ -25,6 +26,11 @@ import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
 
 import java.lang.reflect.Method;
+
+import java.util.Set;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Helpers for lambda remoting.
@@ -53,7 +59,7 @@ public abstract class Lambdas
      *
      * @return true if the class represents a raw lambda
      */
-    public static boolean isLambdaClass(Class clz)
+    public static boolean isLambdaClass(Class<?> clz)
         {
         return clz != null && clz.getName().contains("$$Lambda$");
         }
@@ -72,7 +78,7 @@ public abstract class Lambdas
      */
     public static SerializedLambda getSerializedLambda(Object oLambda)
         {
-        if (oLambda == null || !isLambda(oLambda) || !(oLambda instanceof Serializable))
+        if (!isLambda(oLambda) || !(oLambda instanceof Serializable))
             {
             throw new IllegalArgumentException(
                 "Specified object is not an instance of a serializable lambda");
@@ -206,9 +212,25 @@ public abstract class Lambdas
      *         function itself if the specified function is not a lambda or dynamic
      *         lambdas are not enabled
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T extends Serializable> T ensureRemotable(T function)
         {
-        if (!isDynamicLambdas() || function instanceof AbstractRemotableLambda || !isLambda(function))
+        if (function instanceof MethodReferenceExtractor ||
+            function instanceof AbstractRemotableLambda ||
+            !isLambda(function))
+            {
+            return function;
+            }
+
+        SerializedLambda serializedLambda = getSerializedLambda(function);
+        if (isMethodReference(serializedLambda) &&
+            serializedLambda.getImplMethodKind() == MethodHandleInfo.REF_invokeVirtual &&
+            EXTRACTOR_INTERFACES.contains(serializedLambda.getFunctionalInterfaceClass()))
+            {
+            return (T) new MethodReferenceExtractor(serializedLambda);
+            }
+
+        if (isStaticLambdas())
             {
             return function;
             }
@@ -248,13 +270,20 @@ public abstract class Lambdas
      *
      * @since 12.2.1.4
      */
-    public static <T extends Remotable> String getValueExtractorCanonicalName(Object oLambda)
+    public static String getValueExtractorCanonicalName(Object oLambda)
         {
         if (oLambda instanceof AbstractRemotableLambda)
             {
-            AbstractRemotableLambda lambda = (AbstractRemotableLambda) oLambda;
-            return CanonicalNames.computeValueExtractorCanonicalName(((MethodReferenceIdentity) lambda.getId())
-                        .getImplMethod() + CanonicalNames.VALUE_EXTRACTOR_METHOD_SUFFIX, null);
+            return ((AbstractRemotableLambda<?>) oLambda).getCanonicalName();
+            }
+        else
+            {
+            SerializedLambda lambda = Lambdas.getSerializedLambda(oLambda);
+            if (Lambdas.isMethodReference(lambda))
+                {
+                MethodReferenceIdentity id = new MethodReferenceIdentity(lambda, null);
+                return CanonicalNames.computeValueExtractorCanonicalName(id.getImplMethod() + CanonicalNames.VALUE_EXTRACTOR_METHOD_SUFFIX, null);
+                }
             }
 
         return null;
@@ -328,6 +357,8 @@ public abstract class Lambdas
      */
     protected static final SerializationMode LAMBDAS_SERIALIZATION_MODE;
 
+    private static final Set<String> EXTRACTOR_INTERFACES;
+
     static
         {
         String            sPropValue = null;
@@ -356,5 +387,13 @@ public abstract class Lambdas
                     ". Reverting to default mode of " + f_mode.name() + ".");
             }
         LAMBDAS_SERIALIZATION_MODE = mode;
+
+        EXTRACTOR_INTERFACES = Stream.of(
+                    "com/tangosol/util/ValueExtractor",
+                    "com/tangosol/util/function/Remote$Function",
+                    "com/tangosol/util/function/Remote$ToIntFunction",
+                    "com/tangosol/util/function/Remote$ToLongFunction",
+                    "com/tangosol/util/function/Remote$ToDoubleFunction"
+            ).collect(Collectors.toSet());
         }
     }

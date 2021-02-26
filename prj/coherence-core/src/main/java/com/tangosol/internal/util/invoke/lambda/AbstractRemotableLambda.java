@@ -63,13 +63,11 @@ public abstract class AbstractRemotableLambda<T>
         {
         String sCName = m_sNameCanon;
 
-        if (sCName == null)
+        if (sCName == null && isValueExtractor())
             {
-            sCName = m_sNameCanon = isValueExtractor()
-                     ? CanonicalNames.computeValueExtractorCanonicalName(
-                             ((MethodReferenceIdentity) getId()).getImplMethod() +
-                                     CanonicalNames.VALUE_EXTRACTOR_METHOD_SUFFIX)
-                     : null;
+            MethodReferenceIdentity id = (MethodReferenceIdentity) getId();
+            sCName = m_sNameCanon = CanonicalNames.computeValueExtractorCanonicalName(
+                             id.getImplMethod() + CanonicalNames.VALUE_EXTRACTOR_METHOD_SUFFIX);
             }
         return sCName;
         }
@@ -181,7 +179,7 @@ public abstract class AbstractRemotableLambda<T>
     protected RemoteConstructor<T> m_remoteConstructor;
 
     /**
-     * Cache of the canonical name for this instance if it is a {@link #isValueExtractor()};
+     * Cache of the canonical name for this instance if it is a {@link #isMethodReference()};
      * otherwise, it is null.
      * Used to compare equivalence in {#equals(Object)}.
      *

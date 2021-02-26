@@ -65,7 +65,7 @@ public class Fragment<T>
      */
     public <E> E get(ValueExtractor<? super T, ? extends E> extractor)
         {
-        return get(Lambdas.ensureRemotable(extractor).getCanonicalName());
+        return get(ValueExtractor.of(extractor).getCanonicalName());
         }
 
     /**
@@ -93,7 +93,7 @@ public class Fragment<T>
      */
     public <E> Fragment<E> getFragment(ValueExtractor<? super T, ? extends E> extractor)
         {
-        return getFragment(Lambdas.ensureRemotable(extractor).getCanonicalName());
+        return getFragment(ValueExtractor.of(extractor).getCanonicalName());
         }
 
     /**

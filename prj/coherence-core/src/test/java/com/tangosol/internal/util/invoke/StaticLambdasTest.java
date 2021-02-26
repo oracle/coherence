@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -39,8 +39,8 @@ public class StaticLambdasTest
     @Test
     public void testPofStaticLambda()
         {
-        ValueExtractor<data.pof.Person, String> lambdaName = ValueExtractor.of(data.pof.Person::getName);
-        Object o = Lambdas.ensureRemotable(lambdaName);
+        ValueExtractor<data.pof.Person, String> lambdaName = data.pof.Person::getName;
+        Object o = ValueExtractor.of(lambdaName);
         assertEquals(o, lambdaName);
 
         o = Lambdas.ensureSerializable(lambdaName);
@@ -50,9 +50,9 @@ public class StaticLambdasTest
     @Test
     public void testJavaStaticLambda()
         {
-        ValueExtractor<data.Person, String> lambdaName = ValueExtractor.of(data.Person::getFirstName);
-        Object o = Lambdas.ensureRemotable(lambdaName);
-        assertEquals(lambdaName, o);
+        ValueExtractor<data.Person, String> lambdaName = data.Person::getFirstName;
+        Object o = ValueExtractor.of(lambdaName);
+        assertEquals(o, lambdaName);
 
         o = Lambdas.ensureSerializable(lambdaName);
         assertTrue(o instanceof StaticLambdaInfo);

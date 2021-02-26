@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -967,6 +967,11 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>386</type-id>
+      <class-name>com.tangosol.internal.util.invoke.lambda.MethodReferenceExtractor</class-name>
+    </user-type>
+
     <!-- com.tangosol.internal.federation package (400-429) -->
 
 
@@ -1534,7 +1539,23 @@ descriptor: pof-config.xsd.
       </serializer>
     </user-type>
 
-    <!-- external (coherence-atomics): java.util.concurrent.atomic (910 - 919) -->
+    <!-- java.util.collections (920 - 929) -->
+
+    <user-type>
+      <type-id>920</type-id>
+      <class-name>java.util.TreeSet</class-name>
+      <serializer>
+        <class-name>com.tangosol.internal.io.pof.JavaCollectionsSupport$SortedSetSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>921</type-id>
+      <class-name>java.util.TreeMap</class-name>
+      <serializer>
+        <class-name>com.tangosol.internal.io.pof.JavaCollectionsSupport$SortedMapSerializer</class-name>
+      </serializer>
+    </user-type>
 
     <!-- java.time (940 - 949) -->
 
@@ -1618,7 +1639,7 @@ descriptor: pof-config.xsd.
       </serializer>
     </user-type>
 
-    <!-- javax packages (950 - 989) -->
+    <!-- javax packages (950 - 959) -->
 
     <user-type>
       <type-id>950</type-id>
@@ -1627,6 +1648,8 @@ descriptor: pof-config.xsd.
         <class-name>com.tangosol.io.pof.SubjectPofSerializer</class-name>
       </serializer>
     </user-type>
+
+    <!-- external (coherence-atomics): java.util.concurrent.atomic (960 - 969) -->
 
   </user-type-list>
 
