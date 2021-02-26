@@ -9,6 +9,11 @@ package com.oracle.coherence.helidon.client;
 import com.oracle.coherence.cdi.CoherenceExtension;
 import com.oracle.coherence.client.ChannelProviders;
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Coherence;
+import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.DefaultCacheServer;
+import com.tangosol.net.NamedCache;
 import io.grpc.Channel;
 import io.helidon.microprofile.grpc.client.GrpcClientCdiExtension;
 import io.helidon.microprofile.server.Server;
@@ -53,6 +58,7 @@ public class HelidonChannelProviderIT
     @AfterAll
     static void cleanupBaseTest()
         {
+        CacheFactory.getCluster().shutdown();
         if (s_server != null)
             {
             s_server.stop();
