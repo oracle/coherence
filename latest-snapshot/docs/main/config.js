@@ -304,7 +304,7 @@ function createRoutes(){
                 h1: 'Cache Stores',
                 title: 'Cache Stores',
                 h1Prefix: null,
-                description: 'Coherence Guides Basic NamedMap put, get and remove operations',
+                description: 'Use and configure Cache Stores within Coherence',
                 keywords: 'coherence, java, documentation',
                 customLayout: null,
                 hasNav: true
