@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import java.util.stream.Stream;
-
 
 /**
  * Low-level utility methods for creating and manipulating streams.
@@ -102,14 +101,7 @@ public abstract class StreamSupport
                 final NamedCache<K,V> cache,
                 final Set<InvocableMap.Entry<K,V>> setEntries)
             {
-            return new WrapperCollections.AbstractWrapperSet<Entry<K,V>>(setEntries)
-                {
-                @Override
-                public Stream<InvocableMap.Entry<K,V>> stream()
-                    {
-                    return cache.stream();
-                    }
-                };
+            return setEntries;
             }
 
         /**
@@ -118,15 +110,7 @@ public abstract class StreamSupport
         public static <K, V> Set<K> keys(
                 final NamedCache<K,V> cache, final Set<K> setKeys)
             {
-            return new WrapperCollections.AbstractWrapperSet<K>(setKeys)
-                {
-                @Override
-                public Stream<K> stream()
-                    {
-                    return cache.stream()
-                        .map(Remote.function(InvocableMap.Entry::getKey));
-                    }
-                };
+            return setKeys;
             }
 
         /**
@@ -135,15 +119,7 @@ public abstract class StreamSupport
         public static <K, V> Collection<V> values(
                 final NamedCache<K,V> cache, final Collection<V> colValues)
             {
-            return new WrapperCollections.AbstractWrapperCollection<V>(colValues)
-                {
-                @Override
-                public Stream<V> stream()
-                    {
-                    return cache.stream()
-                        .map(Remote.function(InvocableMap.Entry::getValue));
-                    }
-                };
+            return colValues;
             }
         }
     }

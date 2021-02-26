@@ -28,6 +28,7 @@ import com.tangosol.util.comparator.ExtractorComparator;
 
 import com.tangosol.util.extractor.DeserializationAccelerator;
 
+import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.MapEventFilter;
 
 import com.tangosol.util.function.Remote;
@@ -161,29 +162,29 @@ public abstract class AbstractRepository<ID, T>
 
     /**
      * Return all entities in this repository, sorted using
-     * specified {@link Comparator}.
+     * specified {@link Remote.Comparator}.
      *
      * @param orderBy the comparator to sort the results with
      *
      * @return all entities in this repository, sorted using
-     *         specified {@link Comparator}.
+     *         specified {@link Remote.Comparator}.
      */
-    public Collection<? extends T> findAll(Comparator<?> orderBy)
+    public Collection<? extends T> findAll(Remote.Comparator<?> orderBy)
         {
         return getMapInternal().values(Filters.always(), orderBy);
         }
 
     /**
      * Return all entities that satisfy the specified criteria, sorted using
-     * specified {@link Comparator}.
+     * specified {@link Remote.Comparator}.
      *
      * @param filter  the criteria to evaluate
      * @param orderBy the comparator to sort the results with
      *
      * @return all entities that satisfy specified criteria, sorted using
-     * specified {@link Comparator}.
+     * specified {@link Remote.Comparator}.
      */
-    public Collection<? extends T> findAll(Filter<?> filter, Comparator<?> orderBy)
+    public Collection<? extends T> findAll(Filter<?> filter, Remote.Comparator<?> orderBy)
         {
         return getMapInternal().values(filter, orderBy);
         }
@@ -1503,27 +1504,26 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the set of distinct values for the specified extractor
      */
-    @SuppressWarnings("unchecked")
-    public <R> Set<R> distinct(ValueExtractor<? super T, ? extends R> extractor)
+    public <R> Collection<? extends R> distinct(ValueExtractor<? super T, ? extends R> extractor)
         {
-        return (Set<R>) getMapInternal().aggregate(Aggregators.distinctValues(extractor));
+        return getMapInternal().aggregate(Aggregators.distinctValues(extractor));
         }
 
     /**
      * Return the set of distinct values for the specified extractor.
      *
+     * @param <R>        the type of extracted values
+     *
      * @param filter     the entity selection criteria
      * @param extractor  the extractor to get a value from;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getName}
-     * @param <R>        the type of extracted values
      *
      * @return the set of distinct values for the specified extractor
      */
-    @SuppressWarnings("unchecked")
-    public <R> Set<R> distinct(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor)
+    public <R> Collection<? extends R> distinct(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor)
         {
-        return (Set<R>) getMapInternal().aggregate(filter, Aggregators.distinctValues(extractor));
+        return getMapInternal().aggregate(filter, Aggregators.distinctValues(extractor));
         }
 
     /**
@@ -1551,7 +1551,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the extractor to get a grouping value from;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getGender}
-     * @param orderBy    the {@link Comparator} to sort the results
+     * @param orderBy    the {@link Remote.Comparator} to sort the results
      *                   within each group by
      * @param <K>        the type of extracted grouping keys
      *
@@ -1561,7 +1561,7 @@ public abstract class AbstractRepository<ID, T>
      *         of entities that match each extracted key
      */
     public <K> Map<K, SortedSet<T>> groupBy(ValueExtractor<? super T, ? extends K> extractor,
-                                            Comparator<? super T> orderBy)
+                                            Remote.Comparator<? super T> orderBy)
         {
         return stream().collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy)));
         }
@@ -1592,7 +1592,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the extractor to get a grouping value from;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getGender}
-     * @param orderBy    the {@link Comparator} to sort the results
+     * @param orderBy    the {@link Remote.Comparator} to sort the results
      *                   within each group by
      * @param <K>        the type of extracted grouping keys
      *
@@ -1603,7 +1603,7 @@ public abstract class AbstractRepository<ID, T>
      */
     public <K> Map<K, SortedSet<T>> groupBy(Filter<?> filter,
                                             ValueExtractor<? super T, ? extends K> extractor,
-                                            Comparator<? super T> orderBy)
+                                            Remote.Comparator<? super T> orderBy)
         {
         return stream(filter).collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy)));
         }
@@ -1757,7 +1757,7 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the top N highest values for the specified extractor
      */
-    public <R> List<R> top(ValueExtractor<? super T, ? extends R> extractor, Comparator<? super R> comparator, int cResults)
+    public <R> List<R> top(ValueExtractor<? super T, ? extends R> extractor, Remote.Comparator<? super R> comparator, int cResults)
         {
         R[] results = getMapInternal().aggregate(Aggregators.topN(extractor, comparator, cResults));
         return Arrays.asList(results);
@@ -1774,7 +1774,7 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the top N highest values for the specified extractor
      */
-    public <R> List<R> top(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor, Comparator<? super R> comparator, int cResults)
+    public <R> List<R> top(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor, Remote.Comparator<? super R> comparator, int cResults)
         {
         R[] results = getMapInternal().aggregate(filter, Aggregators.topN(extractor, comparator, cResults));
         return Arrays.asList(results);
@@ -1819,7 +1819,7 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the top N entities with the highest values for the specified extractor
      */
-    public List<T> topBy(Comparator<? super T> comparator, int cResults)
+    public List<T> topBy(Remote.Comparator<? super T> comparator, int cResults)
         {
         T[] results = getMapInternal().aggregate(Aggregators.topN(ValueExtractor.identity(), comparator, cResults));
         return Arrays.asList(results);
@@ -1834,7 +1834,7 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the top N entities with the highest values for the specified extractor
      */
-    public List<T> topBy(Filter<?> filter, Comparator<? super T> comparator, int cResults)
+    public List<T> topBy(Filter<?> filter, Remote.Comparator<? super T> comparator, int cResults)
         {
         T[] results = getMapInternal().aggregate(filter, Aggregators.topN(ValueExtractor.identity(), comparator, cResults));
         return Arrays.asList(results);
@@ -1891,7 +1891,8 @@ public abstract class AbstractRepository<ID, T>
                              Logger.info(String.format("Creating index %s::%s (ordered=%b, comparator=%s)",
                                                        entityType.getSimpleName(), m.getName(), fOrdered, comparator));
 
-                             getMap().addIndex(ValueExtractor.forMethod(m), fOrdered, comparator);
+                             //getMap().addIndex(ValueExtractor.forMethod(m), fOrdered, comparator);
+                             getMap().addIndex(new ReflectionExtractor<>(m.getName()), fOrdered, comparator);
                              }
                          catch (Exception e)
                              {

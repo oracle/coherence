@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,10 @@ package com.tangosol.util.stream;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
+import com.tangosol.internal.util.stream.StreamSupport;
+
+import com.tangosol.util.Filters;
+import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.comparator.ExtractorComparator;
@@ -53,6 +57,53 @@ import java.util.stream.Stream;
 public interface RemoteStream<T>
         extends Stream<T>, BaseRemoteStream<T, Stream<T>>
     {
+    /**
+     * Create a {@link RemoteStream} of specified map's entries.
+     *
+     * @param map  the map to create a remote stream for
+     * @param <K>  the type of map keys
+     * @param <V>  the type of map values
+     *
+     * @return a {@link RemoteStream} of specified map's entries
+     */
+    public static <K, V> RemoteStream<InvocableMap.Entry<K, V>> entrySet(InvocableMap<K, V> map)
+        {
+        return StreamSupport
+                .entryStream(map, true, null, Filters.always());
+        }
+
+    /**
+     * Create a {@link RemoteStream} of specified map's keys.
+     *
+     * @param map  the map to create a remote stream for
+     * @param <K>  the type of map keys
+     * @param <V>  the type of map values
+     *
+     * @return a {@link RemoteStream} of specified map's keys
+     */
+    public static <K, V> RemoteStream<K> keySet(InvocableMap<K, V> map)
+        {
+        return StreamSupport
+                .entryStream(map, true, null, Filters.always())
+                .map(InvocableMap.Entry::getKey);
+        }
+
+    /**
+     * Create a {@link RemoteStream} of specified map's values.
+     *
+     * @param map  the map to create a remote stream for
+     * @param <K>  the type of map keys
+     * @param <V>  the type of map values
+     *
+     * @return a {@link RemoteStream} of specified map's values
+     */
+    public static <K, V> RemoteStream<V> values(InvocableMap<K, V> map)
+        {
+        return StreamSupport
+                .entryStream(map, true, null, Filters.always())
+                .map(InvocableMap.Entry::getValue);
+        }
+
     /**
      * Returns an equivalent stream that is sequential.  May return itself,
      * either because the stream was already sequential, or because the

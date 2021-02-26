@@ -8,9 +8,13 @@ package data.repository;
 
 import com.oracle.coherence.repository.Indexed;
 
-import com.tangosol.util.comparator.InverseComparator;
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import data.pof.Address;
+
+import java.io.IOException;
 import java.io.Serializable;
 
 import java.math.BigDecimal;
@@ -18,26 +22,21 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 /**
+ * A class representing a Person entity.
+
  * @author Aleks Seovic  2021.02.12
  */
-public class Person implements Serializable
+public class Person implements Serializable, PortableObject
     {
     private String ssn;
-
     private String name;
-
     private int age;
-
     private LocalDate dateOfBirth;
-
     private Gender gender;
-
     private long height;
 
     private double weight;
-
     private BigDecimal salary;
-
     private Address address;
 
     public Person()
@@ -70,7 +69,7 @@ public class Person implements Serializable
         return this;
         }
 
-    @Indexed(ordered = true, comparator = InverseComparator.class)
+    @Indexed(ordered = true)
     public int getAge()
         {
         return age;
@@ -222,6 +221,32 @@ public class Person implements Serializable
                ", address=" + address +
                ", adult=" + isAdult() +
                '}';
+        }
+
+    public void readExternal(PofReader in) throws IOException
+        {
+        ssn         = in.readString(0);
+        name        = in.readString(1);
+        age         = in.readInt(2);
+        dateOfBirth = in.readLocalDate(3);
+        gender      = in.readObject(4);
+        height      = in.readLong(5);
+        weight      = in.readDouble(6);
+        salary      = in.readBigDecimal(7);
+        address     = in.readObject(8);
+        }
+
+    public void writeExternal(PofWriter out) throws IOException
+        {
+        out.writeString(0, ssn);
+        out.writeString(1, name);
+        out.writeInt(   2, age);
+        out.writeDate(  3, dateOfBirth);
+        out.writeObject(4, gender);
+        out.writeLong(  5, height);
+        out.writeDouble(6, weight);
+        out.writeBigDecimal(7, salary);
+        out.writeObject(8, address);
         }
     }
 

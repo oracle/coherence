@@ -23,17 +23,17 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import java.util.SortedSet;
 import java.util.TreeMap;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,11 +45,10 @@ import static com.tangosol.util.Filters.*;
 
 import static data.repository.Gender.FEMALE;
 import static data.repository.Gender.MALE;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-
 import static org.hamcrest.MatcherAssert.assertThat;
-
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.isOneOf;
@@ -602,11 +601,12 @@ public abstract class AbstractRepositoryTest
 
     @Test
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public void testGroupByCollectorFiltered()
+    public void testGroupByCollectorFiltered() throws Throwable
         {
         Map<Boolean, Optional<Person>> map = people().groupBy(less(Person::getWeight, 200.0),
-                                                              Person::isAdult,
-                                                              RemoteCollectors.maxBy(Person::getAge));
+                               Person::isAdult,
+                               RemoteCollectors.maxBy(Person::getAge));
+
         assertThat(map.size(), is(2));
         assertThat(map.get(true).get(), is(getMap().get("marija")));
         assertThat(map.get(false).get(), is(getMap().get("ana")));
@@ -634,14 +634,14 @@ public abstract class AbstractRepositoryTest
     public void testTop()
         {
         assertThat(people().top(Person::getAge, 2), contains(46, 43));
-        assertThat(people().top(Person::getAge, Comparator.reverseOrder(), 2), contains(8, 13));
+        assertThat(people().top(Person::getAge, Remote.Comparator.reverseOrder(), 2), contains(8, 13));
         }
 
     @Test
     public void testTopFilter()
         {
         assertThat(people().top(isFalse(Person::isAdult), Person::getAge, 2), contains(16, 13));
-        assertThat(people().top(isTrue(Person::isAdult), Person::getAge, Comparator.reverseOrder(), 2), contains(43, 46));
+        assertThat(people().top(isTrue(Person::isAdult), Person::getAge, Remote.Comparator.reverseOrder(), 2), contains(43, 46));
         }
 
     @Test
@@ -649,7 +649,7 @@ public abstract class AbstractRepositoryTest
         {
         assertThat(people().topBy(Person::getAge, 2),
                    contains(getMap().get("aleks"), getMap().get("marija")));
-        assertThat(people().topBy(Comparator.comparingInt(Person::getAge).reversed(), 2),
+        assertThat(people().topBy(Remote.Comparator.comparingInt(Person::getAge).reversed(), 2),
                    contains(getMap().get("kiki"), getMap().get("nole")));
         }
 
@@ -658,7 +658,7 @@ public abstract class AbstractRepositoryTest
         {
         assertThat(people().topBy(isFalse(Person::isAdult), Person::getAge, 2),
                    contains(getMap().get("ana"), getMap().get("nole")));
-        assertThat(people().topBy(isTrue(Person::isAdult), Comparator.comparingInt(Person::getAge).reversed(), 2),
+        assertThat(people().topBy(isTrue(Person::isAdult), Remote.Comparator.comparingInt(Person::getAge).reversed(), 2),
                    contains(getMap().get("marija"), getMap().get("aleks")));
         }
 
@@ -704,7 +704,7 @@ public abstract class AbstractRepositoryTest
         if (!insert.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive insert event");
-            };
+            }
 
         people().updateAll(isTrue(Person::isAdult), p ->
             {
@@ -715,14 +715,14 @@ public abstract class AbstractRepositoryTest
         if (!update.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive update event");
-            };
+            }
 
         people().removeById("aleks");
 
         if (!remove.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive remove event");
-            };
+            }
 
         people().removeListener("aleks", listener);
         people().update("aleks", Person::setName, "Aleks", Person::new);
@@ -775,7 +775,7 @@ public abstract class AbstractRepositoryTest
         if (!insert.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive insert events");
-            };
+            }
 
         people().updateAll(always(), p ->
             {
@@ -786,7 +786,7 @@ public abstract class AbstractRepositoryTest
         if (!update.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive update events");
-            };
+            }
 
         people().removeById("aleks");
         people().removeById("ana");
@@ -794,7 +794,7 @@ public abstract class AbstractRepositoryTest
         if (!remove.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive remove event");
-            };
+            }
 
         people().removeListener(isTrue(Person::isAdult), listener);
         people().update("aleks", Person::setName, "Aleks", Person::new);
@@ -847,7 +847,7 @@ public abstract class AbstractRepositoryTest
         if (!insert.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive insert events");
-            };
+            }
 
         people().updateAll(always(), p ->
             {
@@ -858,14 +858,14 @@ public abstract class AbstractRepositoryTest
         if (!update.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive update events");
-            };
+            }
 
         people().removeAll(always());
 
         if (!remove.await(1, TimeUnit.SECONDS))
             {
             Assert.fail("Didn't receive remove event");
-            };
+            }
 
         people().removeListener(listener);
         people().update("aleks", Person::setName, "Aleks", Person::new);

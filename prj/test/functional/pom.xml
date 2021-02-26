@@ -140,6 +140,7 @@
         <module>processor</module>
         <module>quorum</module>
         <module>reporter</module>
+        <module>repository</module>
         <module>rest</module>
         <module>rest-netty</module>
         <module>rwbm</module>
