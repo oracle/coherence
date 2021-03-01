@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -16,7 +16,7 @@ import com.tangosol.coherence.dslquery.statement.CreateIndexStatementBuilder;
 import com.tangosol.coherence.dslquery.statement.DeleteStatementBuilder;
 import com.tangosol.coherence.dslquery.statement.DropCacheStatementBuilder;
 import com.tangosol.coherence.dslquery.statement.TruncateCacheStatementBuilder;
-import com.tangosol.coherence.dslquery.statement.DropIndexStatementBuilder;;
+import com.tangosol.coherence.dslquery.statement.DropIndexStatementBuilder;
 import com.tangosol.coherence.dslquery.statement.InsertStatementBuilder;
 import com.tangosol.coherence.dslquery.statement.QueryRecorderStatementBuilder;
 import com.tangosol.coherence.dslquery.statement.RestoreStatementBuilder;
@@ -114,11 +114,22 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.tangosol.coherence.dsltools.precedence.OPToken.*;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.BINARY_OPERATOR_NODE;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.BINDING_NODE;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.CALL_NODE;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.DEREF_NODE;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.IDENTIFIER_NODE;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.LIST_NODE;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.LITERAL_NODE;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.PRECEDENCE_EXPONENT;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.PRECEDENCE_PARENTHESES;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.PRECEDENCE_UNARY;
+import static com.tangosol.coherence.dsltools.precedence.OPToken.UNARY_OPERATOR_NODE;
 
 /**
  * CoherenceQueryLanguage is a simple language for building
@@ -345,7 +356,7 @@ public class CoherenceQueryLanguage
      */
     public ParameterizedBuilder getFunction(String sName)
         {
-        return m_mapFunctions.get(sName);
+        return m_mapFunctions.get(getFunctionKey(sName));
         }
 
     /**
@@ -363,7 +374,7 @@ public class CoherenceQueryLanguage
              throw new IllegalArgumentException(
                      "Both name and function must be supplied to add a function");
              }
-         m_mapFunctions.put(sName, bldrFunction);
+         m_mapFunctions.put(getFunctionKey(sName), bldrFunction);
         }
 
     /**
@@ -378,7 +389,7 @@ public class CoherenceQueryLanguage
      */
     public ParameterizedBuilder<?> removeFunction(String sName)
         {
-        return m_mapFunctions.remove(sName);
+        return m_mapFunctions.remove(getFunctionKey(sName));
         }
 
     /**
@@ -645,6 +656,21 @@ public class CoherenceQueryLanguage
         return m_bldrExtractor;
         }
 
+    /**
+     * Returns a key value based on case-insensitivity of the token table.
+     *
+     * @param sFunctionName the function name to create a key for
+     *
+     * @return a key value based on case-insensitivity of the token table
+     *
+     * @since 21.06
+     */
+    protected String getFunctionKey(String sFunctionName)
+        {
+        Objects.requireNonNull(sFunctionName);
+
+        return getSqlTokenTable(false).isIgnoringCase() ? sFunctionName.toLowerCase() : sFunctionName;
+        }
 
     // ----- data members ---------------------------------------------------
 
