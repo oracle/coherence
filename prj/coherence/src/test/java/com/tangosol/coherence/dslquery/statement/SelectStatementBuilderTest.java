@@ -371,6 +371,24 @@ public class SelectStatementBuilderTest
         }
 
     @Test
+    public void shouldThrowExceptionLessThanTwoArgsPassedToConcat()
+        {
+        expectedEx.expect(CohQLException.class);
+        expectedEx.expectMessage("CONCAT requires at least two arguments");
+
+        ExecutionContext       context  = mock(ExecutionContext.class);
+        CoherenceQueryLanguage language = new CoherenceQueryLanguage();
+
+        when(context.getCoherenceQueryLanguage()).thenReturn(language);
+
+        NodeTerm term = (NodeTerm)
+                Terms.create("sqlSelectNode(isDistinct(\"false\"), fieldList(identifier(book_)), from(\"book\"), alias(\"book_\"),"
+                             + " subQueries(), whereClause(binaryOperatorNode(\"like\", derefNode(identifier(book_), "
+                             + "identifier(title)), callNode(CONCAT(literal(\"%\"))))), groupBy())");
+        SelectStatementBuilder.INSTANCE.realize(context, term, null, null);
+        }
+
+    @Test
     public void shouldAssertCacheExistsInSanityCheck()
             throws Exception
         {

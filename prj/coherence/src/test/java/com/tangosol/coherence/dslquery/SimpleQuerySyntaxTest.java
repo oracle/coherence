@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,12 +8,15 @@
 package com.tangosol.coherence.dslquery;
 
 import com.tangosol.coherence.dsltools.precedence.OPParser;
+
 import org.junit.Test;
 
 import java.io.StringReader;
 
 import static com.tangosol.coherence.dslquery.TermMatcher.matchingTerm;
+
 import static org.hamcrest.CoreMatchers.is;
+
 import static org.junit.Assert.assertThat;
 
 /**
@@ -175,6 +178,15 @@ public class SimpleQuerySyntaxTest
         {
         test("Delete From foo Where key() = 'david'",
              "sqlDeleteNode(from('foo'), alias(), whereClause(binaryOperatorNode('==', callNode(key()), literal('david'))))");
+        }
+
+    @Test
+    public void testConcatSyntax()
+        {
+        test("SELECT book_ FROM book AS book_ WHERE (book_.title LIKE CONCAT(:p1, '%'))",
+             "sqlSelectNode(isDistinct(\"false\"), fieldList(identifier(book_)), from(\"book\"), alias(\"book_\"),"
+             + " subQueries(), whereClause(binaryOperatorNode(\"like\", derefNode(identifier(book_), "
+             + "identifier(title)), callNode(CONCAT(bindingNode(\":\", identifier(p1)), literal(\"%\"))))), groupBy())");
         }
 
     @Test

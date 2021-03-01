@@ -327,20 +327,21 @@ public class CoherenceQueryLanguage
         {
         Map<String, ParameterizedBuilder<?>> map = new ConcurrentHashMap<>();
 
-        map.put("max", FunctionBuilders.DOUBLE_MAX_FUNCTION_BUILDER);
-        map.put("min", FunctionBuilders.DOUBLE_MIN_FUNCTION_BUILDER);
-        map.put("sum", FunctionBuilders.DOUBLE_SUM_FUNCTION_BUILDER);
-        map.put("avg", FunctionBuilders.DOUBLE_AVERAGE_FUNCTION_BUILDER);
-        map.put("bd_max", FunctionBuilders.BIG_DECIMAL_MAX_FUNCTION_BUILDER);
-        map.put("bd_min", FunctionBuilders.BIG_DECIMAL_MIN_FUNCTION_BUILDER);
-        map.put("bd_sum", FunctionBuilders.BIG_DECIMAL_SUM_FUNCTION_BUILDER);
-        map.put("bd_avg", FunctionBuilders.BIG_DECIMAL_AVERAGE_FUNCTION_BUILDER);
+        map.put("max",      FunctionBuilders.DOUBLE_MAX_FUNCTION_BUILDER);
+        map.put("min",      FunctionBuilders.DOUBLE_MIN_FUNCTION_BUILDER);
+        map.put("sum",      FunctionBuilders.DOUBLE_SUM_FUNCTION_BUILDER);
+        map.put("avg",      FunctionBuilders.DOUBLE_AVERAGE_FUNCTION_BUILDER);
+        map.put("bd_max",   FunctionBuilders.BIG_DECIMAL_MAX_FUNCTION_BUILDER);
+        map.put("bd_min",   FunctionBuilders.BIG_DECIMAL_MIN_FUNCTION_BUILDER);
+        map.put("bd_sum",   FunctionBuilders.BIG_DECIMAL_SUM_FUNCTION_BUILDER);
+        map.put("bd_avg",   FunctionBuilders.BIG_DECIMAL_AVERAGE_FUNCTION_BUILDER);
         map.put("long_max", FunctionBuilders.LONG_MAX_FUNCTION_BUILDER);
         map.put("long_min", FunctionBuilders.LONG_MIN_FUNCTION_BUILDER);
         map.put("long_sum", FunctionBuilders.LONG_SUM_FUNCTION_BUILDER);
-        map.put("count", FunctionBuilders.COUNT_FUNCTION_BUILDER);
-        map.put("value", FunctionBuilders.VALUE_FUNCTION_BUILDER);
-        map.put("key", FunctionBuilders.KEY_FUNCTION_BUILDER);
+        map.put("count",    FunctionBuilders.COUNT_FUNCTION_BUILDER);
+        map.put("value",    FunctionBuilders.VALUE_FUNCTION_BUILDER);
+        map.put("key",      FunctionBuilders.KEY_FUNCTION_BUILDER);
+        map.put("concat",   FunctionBuilders.CONCAT_FUNCTION_BUILDER);
 
         return map;
         }

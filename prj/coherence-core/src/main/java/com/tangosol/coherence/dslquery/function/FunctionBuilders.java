@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package com.tangosol.coherence.dslquery.function;
 import com.tangosol.coherence.config.ParameterList;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
+
+import com.tangosol.coherence.dslquery.CohQLException;
 
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
@@ -100,6 +102,28 @@ public final class FunctionBuilders
                 return new BigDecimalSum(getFirstParameter(resolver, listParameters, ValueExtractor.class));
                 }
             };
+
+    /**
+     * This builder will result in a concatenation of all function arguments to a single string result.
+     * This builder is called as a result of the CohQL concat() function.
+     *
+     * @since 21.06
+     */
+    public static ParameterizedBuilder<String> CONCAT_FUNCTION_BUILDER = (resolver, loader, listParameters) ->
+        {
+        StringBuilder sb = new StringBuilder();
+
+        if (listParameters.size() < 2)
+            {
+            throw new CohQLException("CONCAT requires at least two arguments");
+            }
+
+        for (Parameter listParameter : listParameters)
+            {
+            sb.append(listParameter.evaluate(resolver).get().toString());
+            }
+        return sb.toString();
+        };
 
     /**
      * This builder will realize instances of the {@link Count} aggregator.
