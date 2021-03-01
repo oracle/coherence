@@ -22,6 +22,7 @@ import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * @author Jonathan Knight  2020.12.18
  */
+@Disabled
 public class HelidonChannelProviderIT
     {
     // ----- test lifecycle -------------------------------------------------
