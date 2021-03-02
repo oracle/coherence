@@ -1,9 +1,9 @@
 function createConfig() {
     return {
         home: "docs/about/01_overview",
-        release: "20.12.2",
+        release: "20.12.2-SNAPSHOT",
         releases: [
-            "20.12.2"
+            "20.12.2-SNAPSHOT"
         ],
         pathColors: {
             "*": "blue-grey"
@@ -381,7 +381,7 @@ function createNav(){
         {
             title: 'Coherence CE Java API',
             action: 'library_books',
-            href: 'https://oracle.github.io/coherence/20.12/api/java/index.html',
+            href: 'https://oracle.github.io/coherence/20.12.2-SNAPSHOT/api/java/index.html',
             target: '_blank'
         },
         {
