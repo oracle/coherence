@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -353,7 +353,7 @@ public class GUIDHelper
         return ConverterCollections.getMap(mapMemberGUID,
                 NullImplementation.getConverter(),
                 NullImplementation.getConverter(),
-                listGUIDs -> listGUIDs.toArray(new String[listGUIDs.size()]), // List<String> -> String[]
+                listGUIDs -> listGUIDs == null ? null : listGUIDs.toArray(new String[listGUIDs.size()]), // List<String> -> String[]
                 NullImplementation.getConverter());
         }
 
