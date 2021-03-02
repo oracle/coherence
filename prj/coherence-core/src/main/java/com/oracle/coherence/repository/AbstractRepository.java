@@ -50,6 +50,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -126,7 +129,7 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return all entities that satisfy the specified criteria
      */
-    public Collection<? extends T> findAll(Filter<?> filter)
+    public Collection<T> findAll(Filter<?> filter)
         {
         return getMapInternal().values(filter);
         }
@@ -140,7 +143,7 @@ public abstract class AbstractRepository<ID, T>
      * @return all entities in this repository, sorted using
      *         specified {@link Comparable} attribute.
      */
-    public <R extends Comparable<? super R>> Collection<? extends T> findAll(ValueExtractor<? super T, ? extends R> orderBy)
+    public <R extends Comparable<? super R>> Collection<T> findAll(ValueExtractor<? super T, ? extends R> orderBy)
         {
         return findAll(Filters.always(), Remote.comparator(orderBy));
         }
@@ -155,7 +158,7 @@ public abstract class AbstractRepository<ID, T>
      * @return all entities that satisfy specified criteria, sorted using
      *         specified {@link Comparable} attribute.
      */
-    public <R extends Comparable<? super R>> Collection<? extends T> findAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy)
+    public <R extends Comparable<? super R>> Collection<T> findAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy)
         {
         return findAll(filter, Remote.comparator(orderBy));
         }
@@ -169,7 +172,7 @@ public abstract class AbstractRepository<ID, T>
      * @return all entities in this repository, sorted using
      *         specified {@link Remote.Comparator}.
      */
-    public Collection<? extends T> findAll(Remote.Comparator<?> orderBy)
+    public Collection<T> findAll(Remote.Comparator<?> orderBy)
         {
         return getMapInternal().values(Filters.always(), orderBy);
         }
@@ -184,7 +187,7 @@ public abstract class AbstractRepository<ID, T>
      * @return all entities that satisfy specified criteria, sorted using
      * specified {@link Remote.Comparator}.
      */
-    public Collection<? extends T> findAll(Filter<?> filter, Remote.Comparator<?> orderBy)
+    public Collection<T> findAll(Filter<?> filter, Remote.Comparator<?> orderBy)
         {
         return getMapInternal().values(filter, orderBy);
         }
@@ -193,10 +196,13 @@ public abstract class AbstractRepository<ID, T>
      * Store the specified entity.
      *
      * @param entity the entity to store
+     *
+     * @return the saved entity
      */
-    public void save(T entity)
+    public T save(T entity)
         {
         getMapInternal().putAll(Collections.singletonMap(getId(entity), entity));
+        return entity;
         }
 
     /**
@@ -204,8 +210,8 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param entities the entities to store
      */
-    @SafeVarargs
-    public final void saveAll(T... entities)
+    @SuppressWarnings("unchecked")
+    public void saveAll(T... entities)
         {
         saveAll(Stream.of(entities));
         }
@@ -289,8 +295,8 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the extracted {@link Fragment}
      */
-    @SafeVarargs
-    public final Fragment<T> get(ID id, ValueExtractor<? super T, ?>... extractors)
+    @SuppressWarnings("unchecked")
+    public Fragment<T> get(ID id, ValueExtractor<? super T, ?>... extractors)
         {
         return getMapInternal().invoke(id, Processors.extract(Extractors.fragment(extractors)));
         }
@@ -351,8 +357,8 @@ public abstract class AbstractRepository<ID, T>
      * @return the map of extracted {@link Fragment}s, keyed by entity id
      * @see #get(Object, ValueExtractor[])
      */
-    @SafeVarargs
-    public final Map<ID, Fragment<T>> getAll(ValueExtractor<? super T, ?>... extractors)
+    @SuppressWarnings("unchecked")
+    public Map<ID, Fragment<T>> getAll(ValueExtractor<? super T, ?>... extractors)
         {
         return getAll(Filters.always(), extractors);
         }
@@ -368,8 +374,8 @@ public abstract class AbstractRepository<ID, T>
      * @return the map of extracted {@link Fragment}s, keyed by entity id
      * @see #get(Object, ValueExtractor[])
      */
-    @SafeVarargs
-    public final Map<ID, Fragment<T>> getAll(Collection<? extends ID> colIds, ValueExtractor<? super T, ?>... extractors)
+    @SuppressWarnings("unchecked")
+    public Map<ID, Fragment<T>> getAll(Collection<? extends ID> colIds, ValueExtractor<? super T, ?>... extractors)
         {
         return getMapInternal().invokeAll(colIds, Processors.extract(Extractors.fragment(extractors)));
         }
@@ -385,8 +391,8 @@ public abstract class AbstractRepository<ID, T>
      * @return the map of extracted {@link Fragment}s, keyed by entity id
      * @see #get(Object, ValueExtractor[])
      */
-    @SafeVarargs
-    public final Map<ID, Fragment<T>> getAll(Filter<?> filter, ValueExtractor<? super T, ?>... extractors)
+    @SuppressWarnings("unchecked")
+    public Map<ID, Fragment<T>> getAll(Filter<?> filter, ValueExtractor<? super T, ?>... extractors)
         {
         return getMapInternal().invokeAll(filter, Processors.extract(Extractors.fragment(extractors)));
         }
@@ -754,8 +760,8 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return {@code true} if this repository changed as a result of the call
      */
-    @SafeVarargs
-    public final boolean removeAll(T... entities)
+    @SuppressWarnings("unchecked")
+    public boolean removeAll(T... entities)
         {
         return removeAll(Arrays.asList(entities));
         }
@@ -2070,6 +2076,16 @@ public abstract class AbstractRepository<ID, T>
         getMapInternal().removeMapListener(instantiateMapListener(listener), filter);
         }
 
+    /**
+     * Create new {@link Listener.Builder} instance.
+     *
+     * @return a new {@link Listener.Builder} instance
+     */
+    public Listener.Builder<T> listener()
+        {
+        return Listener.builder();
+        }
+
     // ---- inner interface: Listener ---------------------------------------
 
     /**
@@ -2086,7 +2102,8 @@ public abstract class AbstractRepository<ID, T>
          *
          * @param entity inserted entity
          */
-        void onInserted(T entity);
+        default void onInserted(T entity)
+            {}
 
         /**
          * An event callback that will be called when an entity is updated.
@@ -2094,7 +2111,8 @@ public abstract class AbstractRepository<ID, T>
          * @param oldEntity previous entity
          * @param newEntity new entity
          */
-        void onUpdated(T oldEntity, T newEntity);
+        default void onUpdated(T oldEntity, T newEntity)
+            {}
 
         /**
          * An event callback that will be called when an entity is removed from
@@ -2102,9 +2120,243 @@ public abstract class AbstractRepository<ID, T>
          *
          * @param entity removed entity
          */
-        void onRemoved(T entity);
+        default void onRemoved(T entity)
+            {}
+
+        /**
+         * Create new {@link Listener.Builder} instance.
+         *
+         * @return a new {@link Listener.Builder} instance
+         */
+        static <T> Builder<T> builder()
+            {
+            return new Builder<>();
+            }
+
+        /**
+         * A builder for a simple, lambda-based {@link Listener}.
+         * 
+         * @param <T>  the entity type
+         */
+        class Builder<T>
+            {
+            /**
+             * Build {@link Listener} instance.
+             * 
+             * @return the {@link Listener} instance
+             */
+            public Listener<T> build()
+                {
+                return new DefaultListener<>(m_onInsert, m_onUpdate, m_onRemove);
+                }
+            
+            // ---- event handler registration methods ------------------------------
+        
+            /**
+             * Add the event handler for INSERT events.
+             * <p/>
+             * The specified {@code eventHandler} will receive the inserted
+             * entity as an argument when fired.
+             *
+             * @param eventHandler  the event handler to add
+             *
+             * @return  this {@link Builder}
+             */
+            public Builder<T> onInsert(Consumer<T> eventHandler)
+                {
+                m_onInsert = addHandler(m_onInsert, eventHandler);
+                return this;
+                }
+        
+            /**
+             * Add the event handler for UPDATE events.
+             * <p/>
+             * The specified {@code eventHandler} will receive the new value
+             * of the updated entity as an argument when fired.
+             *
+             * @param eventHandler  the event handler to execute
+             *
+             * @return  this Listener
+             */
+            public Builder<T> onUpdate(Consumer<T> eventHandler)
+                {
+                m_onUpdate = addHandler(m_onUpdate, (tOld, tNew) -> eventHandler.accept(tNew));
+                return this;
+                }
+        
+            /**
+             * Add the event handler for UPDATE events.
+             * <p/>
+             * The specified {@code eventHandler} will receive both the old and
+             * the new value of the updated entity as arguments when fired.
+             *
+             * @param eventHandler  the event handler to execute
+             *
+             * @return  this Listener
+             */
+            public Builder<T> onUpdate(BiConsumer<T, T> eventHandler)
+                {
+                m_onUpdate = addHandler(m_onUpdate, eventHandler);
+                return this;
+                }
+
+            /**
+             * Add the event handler for REMOVE events.
+             * <p/>
+             * The specified {@code eventHandler} will receive the removed
+             * entity as an argument when fired.
+             *
+             * @param eventHandler  the event handler to execute
+             *
+             * @return  this Listener
+             */
+            public Builder<T> onRemove(Consumer<T> eventHandler)
+                {
+                m_onRemove = addHandler(m_onRemove, eventHandler);
+                return this;
+                }
+        
+            /**
+             * Add the event handler for all events.
+             * <p/>
+             * The specified {@code eventHandler} will receive the new value of
+             * the inserted or updated entity, and the old value of the removed
+             * entity as an argument when fired.
+             *
+             * @param eventHandler  the event handler to execute
+             *
+             * @return  this MapListener
+             */
+            public Builder<T> onEvent(Consumer<T> eventHandler)
+                {
+                onInsert(eventHandler);
+                onUpdate(eventHandler);
+                onRemove(eventHandler);
+                return this;
+                }
+
+            // ---- helper methods --------------------------------------------------
+        
+            /**
+             * Add a handler to a handler chain.
+             *
+             * @param handlerChain  the existing handler chain (could be null)
+             * @param handler       the handler to add
+             *
+             * @return new handler chain
+             */
+            private Consumer<T> addHandler(Consumer<T> handlerChain, Consumer<T> handler)
+                {
+                return handlerChain == null
+                       ? handler
+                       : handlerChain.andThen(handler);
+                }
+            
+            /**
+             * Add a handler to a handler chain.
+             *
+             * @param handlerChain  the existing handler chain (could be null)
+             * @param handler       the handler to add
+             *
+             * @return new handler chain
+             */
+            private BiConsumer<T, T> addHandler(BiConsumer<T, T> handlerChain, BiConsumer<T, T> handler)
+                {
+                return handlerChain == null
+                       ? handler
+                       : handlerChain.andThen(handler);
+                }
+
+            // ---- data members ------------------------------------------------
+        
+            /**
+             * The event handler to execute on INSERT event.
+             */
+            private Consumer<T> m_onInsert;
+        
+            /**
+             * The event handler to execute on UPDATE event.
+             */
+            private BiConsumer<T, T> m_onUpdate;
+        
+            /**
+             * The event handler to execute on REMOVE event.
+             */
+            private Consumer<T> m_onRemove;
+            }
         }
 
+    // ---- inner class: DefaultListener ------------------------------------
+
+    /**
+     * Simple {@link Listener} implementation that delegates each event to
+     * the consumer functions it was constructed with.
+     *
+     * @param <T> the entity type
+     */
+    static class DefaultListener<T>
+            implements Listener<T>
+        {
+        // ---- constructor -------------------------------------------------
+
+        /**
+         * Construct {@link DefaultListener} instance.
+         *
+         * @param onInsert  the consumer function to delegate INSERT events to
+         * @param onUpdate  the consumer function to delegate UPDATE events to
+         * @param onRemove  the consumer function to delegate REMOVE events to
+         */
+        DefaultListener(Consumer<T> onInsert, BiConsumer<T, T> onUpdate, Consumer<T> onRemove)
+            {
+            m_onInsert = onInsert;
+            m_onUpdate = onUpdate;
+            m_onRemove = onRemove;
+            }
+
+        // ---- Listener interface ------------------------------------------
+    
+        public void onInserted(T entity)
+            {
+            if (m_onInsert != null)
+                {
+                m_onInsert.accept(entity);
+                }
+            }
+
+        public void onUpdated(T entityOld, T entityNew)
+            {
+            if (m_onUpdate != null)
+                {
+                m_onUpdate.accept(entityOld, entityNew);
+                }
+            }
+
+        public void onRemoved(T entity)
+            {
+            if (m_onRemove != null)
+                {
+                m_onRemove.accept(entity);
+                }
+            }
+        
+        // ---- data members ------------------------------------------------
+    
+        /**
+         * The event handler to execute on INSERT event.
+         */
+        private final Consumer<T> m_onInsert;
+    
+        /**
+         * The event handler to execute on UPDATE event.
+         */
+        private final BiConsumer<T, T> m_onUpdate;
+    
+        /**
+         * The event handler to execute on REMOVE event.
+         */
+        private final Consumer<T> m_onRemove;
+        }
+    
     // ---- inner class: MapListenerAdapter ---------------------------------
 
     /**

@@ -674,31 +674,29 @@ public abstract class AbstractRepositoryTest
         CountDownLatch update = new CountDownLatch(1);
         CountDownLatch remove = new CountDownLatch(1);
 
-        AbstractRepository.Listener<Person> listener = new AbstractRepository.Listener<Person>()
-            {
-            public void onInserted(Person entity)
-                {
-                insert.countDown();
-                cInsert.incrementAndGet();
-                assertThat(entity.getName(), is("Aleks"));
-                }
-
-            public void onUpdated(Person oldEntity, Person newEntity)
-                {
-                update.countDown();
-                cUpdate.incrementAndGet();
-                assertThat(newEntity.getName(), is("ALEKS"));
-                }
-
-            public void onRemoved(Person entity)
-                {
-                remove.countDown();
-                cRemove.incrementAndGet();
-                assertThat(entity.getName(), is("ALEKS"));
-                }
-            };
+        PeopleRepository.Listener<Person> listener = people().listener()
+                .onInsert(person ->
+                          {
+                          insert.countDown();
+                          cInsert.incrementAndGet();
+                          assertThat(person.getName(), is("Aleks"));
+                          })
+                .onUpdate(person ->
+                          {
+                          update.countDown();
+                          cUpdate.incrementAndGet();
+                          assertThat(person.getName(), is("ALEKS"));
+                          })
+                .onRemove(person ->
+                          {
+                          remove.countDown();
+                          cRemove.incrementAndGet();
+                          assertThat(person.getName(), is("ALEKS"));
+                          })
+                .build();
 
         people().addListener("aleks", listener);
+
         populateRepository();
 
         if (!insert.await(1, TimeUnit.SECONDS))
@@ -745,29 +743,30 @@ public abstract class AbstractRepositoryTest
         CountDownLatch update = new CountDownLatch(2);
         CountDownLatch remove = new CountDownLatch(1);
 
-        AbstractRepository.Listener<Person> listener = new AbstractRepository.Listener<Person>()
-            {
-            public void onInserted(Person entity)
-                {
-                insert.countDown();
-                cInsert.incrementAndGet();
-                assertThat(entity.getName(), isOneOf("Aleks", "Marija"));
-                }
-
-            public void onUpdated(Person oldEntity, Person newEntity)
-                {
-                update.countDown();
-                cUpdate.incrementAndGet();
-                assertThat(newEntity.getName(), isOneOf("ALEKS", "MARIJA"));
-                }
-
-            public void onRemoved(Person entity)
-                {
-                remove.countDown();
-                cRemove.incrementAndGet();
-                assertThat(entity.getName(), isOneOf("ALEKS", "MARIJA"));
-                }
-            };
+        PeopleRepository.Listener<Person> listener = people().listener()
+                .onInsert(person ->
+                          {
+                          insert.countDown();
+                          cInsert.incrementAndGet();
+                          assertThat(person.getName(), isOneOf("Aleks", "Marija"));
+                          })
+                .onUpdate((personOld, personNew) ->
+                          {
+                          update.countDown();
+                          cUpdate.incrementAndGet();
+                          if (!(this instanceof DefaultRepositoryTest))
+                              {
+                              assertThat(personOld.getName(), isOneOf("Aleks", "Marija"));
+                              }
+                          assertThat(personNew.getName(), isOneOf("ALEKS", "MARIJA"));
+                          })
+                .onRemove(person ->
+                          {
+                          remove.countDown();
+                          cRemove.incrementAndGet();
+                          assertThat(person.getName(), isOneOf("ALEKS", "MARIJA"));
+                          })
+                .build();
 
         people().addListener(isTrue(Person::isAdult), listener);
         populateRepository();
@@ -817,29 +816,30 @@ public abstract class AbstractRepositoryTest
         CountDownLatch update = new CountDownLatch(5);
         CountDownLatch remove = new CountDownLatch(5);
 
-        AbstractRepository.Listener<Person> listener = new AbstractRepository.Listener<Person>()
-            {
-            public void onInserted(Person entity)
-                {
-                insert.countDown();
-                cInsert.incrementAndGet();
-                assertThat(entity.getName(), isOneOf("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
-                }
-
-            public void onUpdated(Person oldEntity, Person newEntity)
-                {
-                update.countDown();
-                cUpdate.incrementAndGet();
-                assertThat(newEntity.getName(), isOneOf("ALEKS", "MARIJA", "ANA MARIA", "NOVAK", "KRISTINA"));
-                }
-
-            public void onRemoved(Person entity)
-                {
-                remove.countDown();
-                cRemove.incrementAndGet();
-                assertThat(entity.getName(), isOneOf("ALEKS", "MARIJA", "ANA MARIA", "NOVAK", "KRISTINA"));
-                }
-            };
+        PeopleRepository.Listener<Person> listener = people().listener()
+                .onInsert(person ->
+                          {
+                          insert.countDown();
+                          cInsert.incrementAndGet();
+                          assertThat(person.getName(), isOneOf("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
+                          })
+                .onUpdate((personOld, personNew) ->
+                          {
+                          update.countDown();
+                          cUpdate.incrementAndGet();
+                          if (!(this instanceof DefaultRepositoryTest))
+                              {
+                              assertThat(personOld.getName(), isOneOf("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
+                              }
+                          assertThat(personNew.getName(), isOneOf("ALEKS", "MARIJA", "ANA MARIA", "NOVAK", "KRISTINA"));
+                          })
+                .onRemove(person ->
+                          {
+                          remove.countDown();
+                          cRemove.incrementAndGet();
+                          assertThat(person.getName(), isOneOf("ALEKS", "MARIJA", "ANA MARIA", "NOVAK", "KRISTINA"));
+                          })
+                .build();
 
         people().addListener(listener);
         populateRepository();
