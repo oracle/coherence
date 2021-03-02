@@ -55,7 +55,8 @@
                     <exclude>**/com/tangosol/internal/util/**/*.*</exclude>
 
                     <!-- exclude packages using lambdas -->
-                    <exclude>**/com/oracle/coherence/repository/AbstractRepository/*.*</exclude>
+                    <exclude>**/com/tangosol/util/stream/*.*</exclude>
+                    <exclude>**/com/oracle/coherence/repository/*.*</exclude>
                     <exclude>**/com/tangosol/util/function/Remote/*.*</exclude>
 
                     <!-- exclude deprecated features -->
