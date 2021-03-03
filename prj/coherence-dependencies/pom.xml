@@ -1177,43 +1177,6 @@
           <version>${maven.exec.plugin.version}</version>
         </plugin>
 
-        <!-- maven-flatten-plugin removes unnecessary information prior to publishing a pom-->
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>flatten-maven-plugin</artifactId>
-          <version>${maven.flatten.plugin.version}</version>
-
-          <executions>
-            <execution>
-              <id>flatten.clean</id>
-              <phase>clean</phase>
-              <goals>
-                <goal>clean</goal>
-              </goals>
-            </execution>
-
-            <execution>
-              <id>flatten</id>
-              <phase>package</phase>
-              <goals>
-                <goal>flatten</goal>
-              </goals>
-              <configuration>
-                <pomElements>
-                  <name/>
-                  <description/>
-                  <url/>
-                  <inceptionYear/>
-                  <organization/>
-                  <scm/>
-                  <developers/>
-                </pomElements>
-                <updatePomFile>true</updatePomFile>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-
         <!-- maven-failsafe-plugin runs integration tests -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1509,9 +1472,10 @@
             <url/>
             <inceptionYear/>
             <organization/>
+            <scm/>
+            <developers/>
           </pomElements>
           <updatePomFile>true</updatePomFile>
-          <flattenMode>resolveCiFriendliesOnly</flattenMode>
         </configuration>
         <executions>
           <execution>
@@ -1523,7 +1487,7 @@
           </execution>
           <execution>
             <id>flatten</id>
-            <phase>process-resources</phase>
+            <phase>package</phase>
             <goals>
               <goal>flatten</goal>
             </goals>
@@ -1595,7 +1559,7 @@
               <serverId>ossrh</serverId>
               <nexusUrl>https://oss.sonatype.org/</nexusUrl>
               <autoReleaseAfterClose>true</autoReleaseAfterClose>
-              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+              <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
               <skipLocalStaging>true</skipLocalStaging>
             </configuration>
           </plugin>

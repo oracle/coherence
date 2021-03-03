@@ -217,6 +217,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
         <version>${maven.flatten.plugin.version}</version>
+        <inherited>false</inherited>
         <executions>
           <execution>
             <id>flatten.clean</id>
@@ -228,7 +229,7 @@
 
           <execution>
             <id>flatten</id>
-            <phase>process-resources</phase>
+            <phase>package</phase>
             <goals>
               <goal>flatten</goal>
             </goals>
