@@ -635,6 +635,26 @@ public class HttpRequestSender
         }
 
     /**
+     * Get the cache data for all services. Note this method uses the
+     * enhancement 32530689 which also returns the service name. This
+     * enhancement will not work with WebLogic MT.
+     *
+     * @return the storage manager data for all the cache members of the cache
+     *
+     * @throws Exception in case of errors
+     */
+    public JsonNode getListOfCaches()
+            throws Exception
+        {
+        URLBuilder urlBuilder = getBasePath().addPathSegment("caches")
+                .addQueryParameter("links", "")
+                .addQueryParameter("fields", "nodeId,name,unitFactor,size,unitsBytes,units,memoryUnits,"
+                                   + "averageMissMillis,service");
+
+        return getResponseJson(sendGetRequest(urlBuilder));
+        }
+
+    /**
      * Get the storage data for the given service
      *
      * @param sServiceName      the service to which the cache belongs to

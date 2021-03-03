@@ -1016,6 +1016,27 @@ public class VisualVMModel
         return ldtLastUpdate;
         }
 
+    /**
+     * Indicates if REST cache optimization is available.
+     *
+     * @return if REST cache optimization is available of null if it has not be
+     * determined
+     */
+    public Boolean isRestCacheOptimizationAvailable()
+        {
+        return m_fIRestCacheOptimizationAvailable;
+        }
+
+    /**
+     * Sets if REST cache optimization is available.
+     *
+     * @param fValue if REST cache optimization is available
+     */
+    public void setRestCacheOptimizationAvailable(boolean fValue)
+        {
+        m_fIRestCacheOptimizationAvailable = fValue;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -1486,4 +1507,10 @@ public class VisualVMModel
      * Indicates if this is the first refresh.
      */
     private boolean m_fIsFirstRefresh = true;
+
+    /**
+     * Indicates if we can take advantage of REST optimizations from Enh 32530689.
+     * If this value is null it means we have not yet determined if the cluster supports this.
+     */
+    private Boolean m_fIRestCacheOptimizationAvailable = null;
     }

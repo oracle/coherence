@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2020, 2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -244,69 +244,100 @@ public class CacheData
     public SortedMap<Object, Data> getAggregatedDataFromHttpQuerying(VisualVMModel model, HttpRequestSender requestSender)
             throws Exception
         {
-        // minimize the number of round-trips by querying each of the services and getting the cache details
-        // this will be one per service
         List<Map.Entry<Object, Data>> serviceData = model.getData(VisualVMModel.DataType.SERVICE);
+        JsonNode listOfOptimizedCaches = null;
+        final SortedMap<Object, Data> mapData = new TreeMap<>();
+
+        if (model.isRestCacheOptimizationAvailable() == null)
+            {
+            // determine if the cluster supports the optimization in ENH 32530689 as we cannot rely on a cluster version
+            if (serviceData != null && serviceData.size() > 0)
+                {
+                listOfOptimizedCaches    = requestSender.getListOfCaches();
+                JsonNode itemsNodeCaches = listOfOptimizedCaches.get("items");
+                
+                boolean fFoundService = false;
+
+                if (itemsNodeCaches != null && itemsNodeCaches.isArray())
+                    {
+                    for (int i = 0; i < itemsNodeCaches.size(); i++)
+                        {
+                        JsonNode cacheDetails = itemsNodeCaches.get(i);
+                        if (cacheDetails.get("service") != null)
+                            {
+                            fFoundService = true;
+                            break;
+                            }
+                        }
+                    }
+
+                model.setRestCacheOptimizationAvailable(fFoundService);
+                }
+            }
+
+        // use the optimization
+        if (model.isRestCacheOptimizationAvailable() != null && model.isRestCacheOptimizationAvailable())
+            {
+            // we can use the optimization, but check if the listOfOptimizedCaches is populated
+            // otherwise populate it
+            if (listOfOptimizedCaches == null)
+                {
+                listOfOptimizedCaches = requestSender.getListOfCaches();
+                }
+
+            JsonNode itemsNodeCaches = listOfOptimizedCaches.get("items");
+
+            if (itemsNodeCaches != null && itemsNodeCaches.isArray())
+                {
+                for (int i = 0; i < itemsNodeCaches.size(); i++)
+                    {
+                    JsonNode cacheDetails = itemsNodeCaches.get(i);
+                    String   sServiceName = cacheDetails.get("service").asText();
+                    String   sCacheName   = cacheDetails.get("name").asText();
+
+                    Data data = getData(model, sServiceName, cacheDetails);
+
+                    if (data == null)
+                        {
+                        // Connecting to version without Bug 32134281 fix so force less efficient way
+                        return null;
+                        }
+                    
+                    Pair<String, String> key = new Pair<>(sServiceName, sCacheName);
+                    mapData.put(key, data);
+                    }
+                }
+            // return the collected data as we can use optimization
+            return mapData;
+            }
+
+        // use the un-optimized path
         if (serviceData != null && serviceData.size() > 0)
             {
-            final SortedMap<Object, Data> mapData = new TreeMap<>();
-            
             for (Map.Entry<Object, Data> service : serviceData)
                 {
-                String   sService            = (String) service.getKey();
-                String[] asServiceDetails    = getDomainAndService(sService);
-                String   sDomainPartition    = asServiceDetails[0];
-                String   sServiceName        = asServiceDetails[1];
+                String   sService         = (String) service.getKey();
+                String[] asServiceDetails = getDomainAndService(sService);
+                String   sDomainPartition = asServiceDetails[0];
+                String   sServiceName     = asServiceDetails[1];
                 
                 JsonNode listOfServiceCaches = requestSender.getListOfServiceCaches(sServiceName, sDomainPartition);
                 JsonNode itemsNode           = listOfServiceCaches.get("items");
-                boolean  fisDistributed      = model.getDistributedCaches().contains(sServiceName);
 
                 if (itemsNode != null && itemsNode.isArray())
                     {
-                    for (int i = 0; i < ((ArrayNode) itemsNode).size(); i++)
+                    for (int i = 0; i < itemsNode.size(); i++)
                         {
-                        Data     data         = new CacheData();
                         JsonNode cacheDetails = itemsNode.get(i);
-                        String   sCacheName   = cacheDetails.get("name").asText();
+                        Data data = getData(model, sServiceName, cacheDetails);
 
+                        String sCacheName = cacheDetails.get("name").asText();
                         Pair<String, String> key = new Pair<>(sServiceName, sCacheName);
 
-                        JsonNode nodeSize = cacheDetails.get("size");
-                        if (nodeSize == null)
+                        if (data == null)
                             {
                             // Connecting to version without Bug 32134281 fix so force less efficient way
                             return null;
-                            }
-                        int nCacheSize = nodeSize.asInt();
-
-                        String sUnitCalculator = getChildValue("true", "memoryUnits", cacheDetails) != null
-                                ? "BINARY" : "FIXED";
-                        int nMembers = Integer.parseInt(getChildValue("count", "averageMissMillis", cacheDetails));
-                        
-                        data.setColumn(CACHE_NAME, key);
-
-                        // if is replicated so the actual size has been aggregated so we must divide by the member count
-                        data.setColumn(SIZE, fisDistributed ? nCacheSize : nCacheSize / nMembers);
-
-                        data.setColumn(UNIT_CALCULATOR, sUnitCalculator);
-                        long cMemoryUsageBytes = Long.parseLong(getFirstMemberOfArray(cacheDetails, "unitFactor"))
-                                            * cacheDetails.get("units").asLong();
-                        data.setColumn(MEMORY_USAGE_BYTES, cMemoryUsageBytes);
-                        data.setColumn(MEMORY_USAGE_MB, (int) (cMemoryUsageBytes / 1024 / 1024));
-
-                        if (data.getColumn(CacheData.UNIT_CALCULATOR).equals("FIXED"))
-                            {
-                            data.setColumn(CacheData.AVG_OBJECT_SIZE, 0);
-                            data.setColumn(CacheData.MEMORY_USAGE_BYTES, 0);
-                            data.setColumn(CacheData.MEMORY_USAGE_MB, 0);
-                            }
-                        else
-                            {
-                            if (nCacheSize != 0)
-                                {
-                                data.setColumn(CacheData.AVG_OBJECT_SIZE, (int) (cMemoryUsageBytes / nCacheSize));
-                                }
                             }
 
                         mapData.put(key, data);
@@ -317,6 +348,64 @@ public class CacheData
             }
 
         return null;
+        }
+
+    /**
+     * Collect data for the cache.
+     * @param model   {@link VisualVMModel}
+     * @param sServiceName service name
+     * @param cacheDetails {@link JsonNode} with the details
+     * @return a new {@link Data}
+     */
+    private Data getData(VisualVMModel model, String sServiceName, JsonNode cacheDetails)
+        {
+        Data data = new CacheData();
+        boolean fisDistributed = model.getDistributedCaches().contains(sServiceName);
+
+        String sCacheName = cacheDetails.get("name").asText();
+
+        Pair<String, String> key = new Pair<>(sServiceName, sCacheName);
+
+        JsonNode nodeSize = cacheDetails.get("size");
+        if (nodeSize == null)
+            {
+            // Connecting to version without Bug 32134281 fix so force less efficient way
+            return null;
+            }
+        
+        int nCacheSize = nodeSize.asInt();
+
+        String sUnitCalculator = getChildValue("true", "memoryUnits", cacheDetails) != null
+                                 ? "BINARY" : "FIXED";
+        int nMembers = Integer.parseInt(getChildValue("count", "averageMissMillis", cacheDetails));
+
+        data.setColumn(CACHE_NAME, key);
+
+        // if is replicated so the actual size has been aggregated so we must divide by the member count
+        data.setColumn(SIZE, fisDistributed
+                             ? nCacheSize
+                             : nCacheSize / nMembers);
+
+        data.setColumn(UNIT_CALCULATOR, sUnitCalculator);
+        long cMemoryUsageBytes = Long.parseLong(getFirstMemberOfArray(cacheDetails, "unitFactor"))
+                                 * cacheDetails.get("units").asLong();
+        data.setColumn(MEMORY_USAGE_BYTES, cMemoryUsageBytes);
+        data.setColumn(MEMORY_USAGE_MB, (int) (cMemoryUsageBytes / 1024 / 1024));
+
+        if (data.getColumn(CacheData.UNIT_CALCULATOR).equals("FIXED"))
+            {
+            data.setColumn(CacheData.AVG_OBJECT_SIZE, 0);
+            data.setColumn(CacheData.MEMORY_USAGE_BYTES, 0);
+            data.setColumn(CacheData.MEMORY_USAGE_MB, 0);
+            }
+        else
+            {
+            if (nCacheSize != 0)
+                {
+                data.setColumn(CacheData.AVG_OBJECT_SIZE, (int) (cMemoryUsageBytes / nCacheSize));
+                }
+            }
+        return data;
         }
 
     /**
