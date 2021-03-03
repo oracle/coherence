@@ -841,6 +841,8 @@
                   <exclude>**/StreamTest.java</exclude>
                   <exclude>**/IntStreamTest.java</exclude>
                   <exclude>**/LongStreamTest.java</exclude>
+                  <!-- Repository tests -->
+                  <exclude>**/DefaultRepositoryTest.java</exclude>
                 </excludes>
               </configuration>
             </plugin>
