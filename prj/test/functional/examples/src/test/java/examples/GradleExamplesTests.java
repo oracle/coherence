@@ -6,6 +6,7 @@
  */
 package examples;
 
+import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.LocalPlatform;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -85,7 +87,7 @@ class GradleExamplesTests
                                                        WorkingDirectory.at(dir),
                                                        Console.of(console)))
             {
-            int nExitCode = application.waitFor();
+            int nExitCode = application.waitFor(Timeout.after(5, TimeUnit.MINUTES));
             assertThat("Failed Gradle build " + dir, nExitCode, is(0));
             }
         finally
@@ -100,16 +102,19 @@ class GradleExamplesTests
         File fileResults = new File(fileBuild, "test-results");
         File fileCopy    = new File(fileTestOutDir, "test-results");
 
-        fileCopy.mkdirs();
+        if (fileResults.exists())
+            {
+            fileCopy.mkdirs();
 
-        try
-            {
-            FileHelper.copyDir(fileResults, fileCopy);
-            }
-        catch (IOException e)
-            {
-            System.err.println("Error copying test results from " + fileResults);
-            e.printStackTrace();
+            try
+                {
+                FileHelper.copyDir(fileResults, fileCopy);
+                }
+            catch (IOException e)
+                {
+                System.err.println("Error copying test results from " + fileResults);
+                e.printStackTrace();
+                }
             }
         }
 
