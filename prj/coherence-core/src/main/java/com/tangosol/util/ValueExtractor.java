@@ -6,9 +6,7 @@
  */
 package com.tangosol.util;
 
-
 import com.oracle.coherence.common.base.CanonicallyNamed;
-import com.oracle.coherence.common.base.Exceptions;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
@@ -16,18 +14,13 @@ import com.tangosol.util.extractor.AbstractExtractor;
 import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
+import com.tangosol.util.extractor.ReflectionExtractor;
 
 import com.tangosol.util.function.Remote;
-
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 
 import java.lang.reflect.Method;
 
 import java.util.Objects;
-
 
 /**
 * ValueExtractor is used to both extract values (for example, for sorting
@@ -256,7 +249,7 @@ public interface ValueExtractor<T, E>
      * @since 21.06
      */
     @SuppressWarnings("unchecked")
-    static <T, E> ValueExtractor<T , E> forMethod(Method method)
+    static <T, E> ValueExtractor<T, E> forMethod(Method method)
         {
         if (method.getParameterCount() > 0)
             {
@@ -267,27 +260,7 @@ public interface ValueExtractor<T, E>
             throw new IllegalArgumentException("The specified method must have return value");
             }
 
-        try
-            {
-            MethodHandles.Lookup l = MethodHandles.lookup();
-
-            MethodType extractorType = MethodType.methodType(ValueExtractor.class);
-            MethodType samMethod     = MethodType.methodType(Object.class, Object.class);
-            MethodType implMethod    = MethodType.methodType(method.getReturnType(), method.getDeclaringClass());
-
-            MethodHandle mh = l.unreflect(method);
-            int nFlags = LambdaMetafactory.FLAG_SERIALIZABLE;
-
-            return (ValueExtractor<T, E>)
-                    LambdaMetafactory
-                            .altMetafactory(l, "extract", extractorType, samMethod, mh, implMethod, nFlags)
-                            .getTarget()
-                            .invokeExact();
-            }
-        catch (Throwable t)
-            {
-            throw Exceptions.ensureRuntimeException(t);
-            }
+        return new ReflectionExtractor<>(method.getName());
         }
 
     // ---- default methods -------------------------------------------------

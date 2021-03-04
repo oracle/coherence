@@ -28,7 +28,6 @@ import com.tangosol.util.comparator.ExtractorComparator;
 
 import com.tangosol.util.extractor.DeserializationAccelerator;
 
-import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.MapEventFilter;
 
 import com.tangosol.util.function.Remote;
@@ -1857,12 +1856,25 @@ public abstract class AbstractRepository<ID, T>
      */
     private NamedMap<ID, T> getMapInternal()
         {
+        ensureInitialized();
+        return getMap();
+        }
+
+    /**
+     * Ensures that this repository is initialized by creating necessary indices
+     * on the backing map.
+     * <p/>
+     * Base framework classes that extend this class should call this method
+     * after the backing map has been initialized, but before any other calls
+     * are made.
+     */
+    protected void ensureInitialized()
+        {
         if (!m_fInitialized)
             {
             createIndices();
             m_fInitialized = true;
             }
-        return getMap();
         }
 
     /**
@@ -1894,11 +1906,10 @@ public abstract class AbstractRepository<ID, T>
                                                                 ? null
                                                                 : (Comparator<?>) ClassHelper.newInstance(idx.comparator(), null);
 
-                             Logger.info(String.format("Creating index %s::%s (ordered=%b, comparator=%s)",
+                             Logger.info(() -> String.format("Creating index %s::%s (ordered=%b, comparator=%s)",
                                                        entityType.getSimpleName(), m.getName(), fOrdered, comparator));
 
-                             //getMap().addIndex(ValueExtractor.forMethod(m), fOrdered, comparator);
-                             getMap().addIndex(new ReflectionExtractor<>(m.getName()), fOrdered, comparator);
+                             getMap().addIndex(ValueExtractor.forMethod(m), fOrdered, comparator);
                              }
                          catch (Exception e)
                              {

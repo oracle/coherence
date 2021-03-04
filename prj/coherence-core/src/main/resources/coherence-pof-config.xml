@@ -967,11 +967,6 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo</class-name>
     </user-type>
 
-    <user-type>
-      <type-id>386</type-id>
-      <class-name>com.tangosol.internal.util.invoke.lambda.MethodReferenceExtractor</class-name>
-    </user-type>
-
     <!-- com.tangosol.internal.federation package (400-429) -->
 
 

@@ -14,11 +14,12 @@ import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.lambda.AbstractRemotableLambda;
 import com.tangosol.internal.util.invoke.lambda.LambdaIdentity;
-import com.tangosol.internal.util.invoke.lambda.MethodReferenceExtractor;
 import com.tangosol.internal.util.invoke.lambda.RemotableLambdaGenerator;
 import com.tangosol.internal.util.invoke.lambda.MethodReferenceIdentity;
 import com.tangosol.internal.util.invoke.lambda.AnonymousLambdaIdentity;
 import com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo;
+
+import com.tangosol.util.extractor.ReflectionExtractor;
 
 import java.io.Serializable;
 
@@ -215,7 +216,7 @@ public abstract class Lambdas
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T extends Serializable> T ensureRemotable(T function)
         {
-        if (function instanceof MethodReferenceExtractor ||
+        if (function instanceof ReflectionExtractor ||
             function instanceof AbstractRemotableLambda ||
             !isLambda(function))
             {
@@ -227,7 +228,7 @@ public abstract class Lambdas
             serializedLambda.getImplMethodKind() == MethodHandleInfo.REF_invokeVirtual &&
             EXTRACTOR_INTERFACES.contains(serializedLambda.getFunctionalInterfaceClass()))
             {
-            return (T) new MethodReferenceExtractor(serializedLambda);
+            return (T) new ReflectionExtractor<T, Object>(serializedLambda.getImplMethodName());
             }
 
         if (isStaticLambdas())
