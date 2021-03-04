@@ -415,6 +415,7 @@
                   <sourceFileIncludes>
                     <include>com/oracle/coherence/common/base/*.java</include>
                     <include>com/oracle/coherence/cdi/**/*.java</include>
+                    <include>com/oracle/coherence/repository/**/*.java</include>
 
                     <include>com/oracle/coherence/mp/**/*.java</include>
 
@@ -597,6 +598,10 @@
                     <group>
                       <title>gRPC</title>
                       <packages>com.oracle.coherence.grpc*</packages>
+                    </group>
+                    <group>
+                      <title>Repository API</title>
+                      <packages>com.oracle.coherence.repository*</packages>
                     </group>
                   </groups>
                 </configuration>
