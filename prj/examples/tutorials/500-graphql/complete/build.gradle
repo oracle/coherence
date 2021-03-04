@@ -23,7 +23,6 @@ repositories {
 
 dependencies {
 	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
-	implementation platform("${coherenceGroupId}:coherence-dependencies:${coherenceVersion}")
 	implementation platform("io.helidon:helidon-bom:${helidonVersion}")
 
 	implementation ("io.helidon.microprofile.cdi:helidon-microprofile-cdi")
@@ -34,12 +33,10 @@ dependencies {
 	implementation "${coherenceGroupId}:coherence"
 	implementation "${coherenceGroupId}:coherence-cdi-server"
 
-	testImplementation "org.junit.jupiter:junit-jupiter-api"
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
 	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5"
-	testImplementation "org.slf4j:slf4j-jdk14:1.7.30"
-	testImplementation "org.glassfish.jersey.core:jersey-client:${jerseyVersion}"
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 
 // define a custom task to copy all dependencies in the runtime classpath

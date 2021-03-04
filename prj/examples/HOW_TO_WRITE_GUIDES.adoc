@@ -177,10 +177,7 @@ add them to the Maven `pom.xml` and Gradle files.
 
 ==== Update the POM File
 
-Add dependencies to the example's `pom.xml` just like any other dependency in Coherence.
-The example `pom.xml` imports the `coherence-dependencies` module so that it uses the same versions
-of third-party dependencies that Coherence does. When adding dependencies to the `pom.xml` file,
-there is no need to include a version.
+Add dependencies to the example's `pom.xml` just like any other dependency in Coherence. When adding dependencies to the `pom.xml` file, you should also define a version variable for that dependency in the `properties` section.
 
 For example to add a test dependency on Mockito just add the following to the `pom.xml`:
 [source,xml]
@@ -188,6 +185,7 @@ For example to add a test dependency on Mockito just add the following to the `p
 <dependency>
     <groupId>org.mockito</groupId>
     <artifactId>mockito-core</artifactId>
+    <version>${mockito.version}</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -195,15 +193,15 @@ For example to add a test dependency on Mockito just add the following to the `p
 ==== Update the Gradle Files
 
 To add a dependency to the gradle project update the dependencies section of the `build.gradle` file.
-The Gradle project also has an import dependency on the `coherence-bom` and `coherence-dependencies` modules,
-so as with Maven, there is no need to include versions when specifying dependencies.
+The Gradle project also has an import dependency on the `coherence-bom` so there is no need to include versions when specifying dependencies on Coherence modules.
+Version properties for other dependencies should be defined in the `gradle.properties` file, and if BOM for the dependency is available (as is the case with Helidon, for example) you should include dependency on BOM so you don't have to specify version for each individual dependency.
 
-Make sure you use the correct scope for the depeendency:
+Make sure you use the correct scope for the dependency:
 
 * Compile/Runtime Scope - For example to add a dependency on `helidon-microprofile-config`
 [source,groovy]
 ----
-implementation "io.helidon.microprofile.config:helidon-microprofile-config"
+implementation "io.helidon.microprofile.config:helidon-microprofile-config:${helidonVersion}"
 ----
 
 * Test Scope - For example to add a test scoped dependency on Mockito:

@@ -13,7 +13,7 @@ apply plugin : "java"
 
 
 group = 'com.oracle.coherence.tutorials'
-version = '1.0.0-SNAPSHOT'
+version = '${coherenceVersion}'
 sourceCompatibility = '11'
 
 repositories {
@@ -23,16 +23,15 @@ repositories {
 
 dependencies {
 	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
-	implementation platform("${coherenceGroupId}:coherence-dependencies:${coherenceVersion}")
   	implementation platform("io.helidon:helidon-bom:${helidonVersion}")
 
 	implementation ("io.helidon.microprofile.cdi:helidon-microprofile-cdi")
 	implementation "${coherenceGroupId}:coherence"
 	implementation "${coherenceGroupId}:coherence-cdi-server"
 
-	testImplementation "org.junit.jupiter:junit-jupiter-api"
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
    	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5"
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 
 // define a custom task to copy all dependencies in the runtime classpath

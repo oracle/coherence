@@ -164,12 +164,14 @@ public class AbstractDerbyCacheStoreTest
         DatabaseMetaData metaData  = dbConn.getMetaData();
         ResultSet        resultSet = metaData.getTables(null, null, "CUSTOMER", null);
 
-        // check if table exists
-        if (!resultSet.next()) {
-            String sql = "CREATE TABLE CUSTOMER (id int primary key, name varchar(128), address varchar(265), creditLimit int)";
-            statement.execute(sql);
-            closeQuiet(statement);
+        // check if table exists and drop it
+        if (resultSet.next()) {
+            statement.execute("DROP TABLE CUSTOMER");
         }
+
+        String sql = "CREATE TABLE CUSTOMER (id int primary key, name varchar(128), address varchar(265), creditLimit int)";
+        statement.execute(sql);
+        closeQuiet(statement);
     }
 
     /**

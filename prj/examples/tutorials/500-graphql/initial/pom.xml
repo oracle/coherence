@@ -13,15 +13,15 @@
 
   <groupId>com.oracle.coherence.guides</groupId>
   <artifactId>graphql-initial</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>${revision}</version>
   <name>Coherence Tutorial - GraphQL Initial</name>
 
   <properties>
     <revision>21.06-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
-    <coherence.version>${revision}</coherence.version>
-    <helidon.version>2.2.0</helidon.version>
+    <coherence.version>${project.version}</coherence.version>
+    <helidon.version>2.2.1</helidon.version>
 
     <java.version>11</java.version>
     <java.version.release>11</java.version.release>
@@ -33,6 +33,8 @@
     <maven.jandex.plugin.version>1.0.8</maven.jandex.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
+    <junit.jupiter.version>5.7.0</junit.jupiter.version>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
@@ -43,13 +45,6 @@
       <dependency>
         <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-bom</artifactId>
-        <version>${coherence.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>${coherence.group.id}</groupId>
-        <artifactId>coherence-dependencies</artifactId>
         <version>${coherence.version}</version>
         <type>pom</type>
         <scope>import</scope>
@@ -80,16 +75,19 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

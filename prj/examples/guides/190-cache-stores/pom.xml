@@ -13,16 +13,16 @@
 
   <groupId>com.oracle.coherence.guides</groupId>
   <artifactId>cache-stores</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>${revision}</version>
   <name>Coherence Guides - Cache Stores</name>
 
   <properties>
     <revision>21.06-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
-    <coherence.version>${revision}</coherence.version>
-    <coherence.hibernate.cache.store.version>2.0.0</coherence.hibernate.cache.store.version>
+    <coherence.version>${project.version}</coherence.version>
 
+    <coherence.hibernate.cache.store.version>2.0.0</coherence.hibernate.cache.store.version>
     <derby.version>10.14.2.0</derby.version>
     <hsqldb.version>2.2.9</hsqldb.version>
     <hibernate.version>5.4.27.Final</hibernate.version>
@@ -36,6 +36,8 @@
     <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
+    <junit.jupiter.version>5.7.0</junit.jupiter.version>
+    <hamcrest.version>2.2</hamcrest.version>
     <oracle.bedrock.version>5.0.20</oracle.bedrock.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -47,13 +49,6 @@
       <dependency>
         <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-bom</artifactId>
-        <version>${coherence.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>${coherence.group.id}</groupId>
-        <artifactId>coherence-dependencies</artifactId>
         <version>${coherence.version}</version>
         <type>pom</type>
         <scope>import</scope>
@@ -70,16 +65,17 @@
     <!-- test dependencies -->
 
     <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-      <version>${derby.version}</version>
+      <groupId>com.oracle.coherence.hibernate</groupId>
+      <artifactId>coherence-hibernate-cache-store</artifactId>
+      <version>${coherence.hibernate.cache.store.version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>com.oracle.coherence.hibernate</groupId>
-      <artifactId>coherence-hibernate-cache-store</artifactId>
-      <version>${coherence.hibernate.cache.store.version}</version>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>${derby.version}</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -103,7 +99,6 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- derby jdbc driver -->
     <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derbyclient</artifactId>
@@ -114,24 +109,28 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest</artifactId>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>${hamcrest.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
