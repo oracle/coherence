@@ -187,13 +187,6 @@ lang="xml"
       &lt;scope&gt;import&lt;/scope&gt;
     &lt;/dependency&gt;
     &lt;dependency&gt;
-      &lt;groupId&gt;${coherence.group.id}&lt;/groupId&gt;
-      &lt;artifactId&gt;coherence-dependencies&lt;/artifactId&gt;
-      &lt;version&gt;${coherence.version}&lt;/version&gt;
-      &lt;type&gt;pom&lt;/type&gt;
-      &lt;scope&gt;import&lt;/scope&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
       &lt;groupId&gt;io.helidon&lt;/groupId&gt;
       &lt;artifactId&gt;helidon-bom&lt;/artifactId&gt;
       &lt;version&gt;${helidon.version}&lt;/version&gt;

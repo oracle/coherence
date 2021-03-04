@@ -162,22 +162,15 @@ POMs as shown below:</p>
 lang="xml"
 
 >&lt;dependencyManagement&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;${coherence.group.id}&lt;/groupId&gt;
-            &lt;artifactId&gt;coherence-bom&lt;/artifactId&gt;
-            &lt;version&gt;${coherence.version}&lt;/version&gt;
-            &lt;type&gt;pom&lt;/type&gt;
-            &lt;scope&gt;import&lt;/scope&gt;
-        &lt;/dependency&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;${coherence.group.id}&lt;/groupId&gt;
-            &lt;artifactId&gt;coherence-dependencies&lt;/artifactId&gt;
-            &lt;version&gt;${coherence.version}&lt;/version&gt;
-            &lt;type&gt;pom&lt;/type&gt;
-            &lt;scope&gt;import&lt;/scope&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;${coherence.group.id}&lt;/groupId&gt;
+      &lt;artifactId&gt;coherence-bom&lt;/artifactId&gt;
+      &lt;version&gt;${coherence.version}&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
 &lt;/dependencyManagement&gt;</markup>
 
 <p>The <code>coherence</code> library is also included:</p>
@@ -185,11 +178,10 @@ lang="xml"
 <markup
 lang="xml"
 
->&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;${coherence.group.id}&lt;/groupId&gt;
-        &lt;artifactId&gt;coherence&lt;/artifactId&gt;
-    &lt;/dependency&gt;</markup>
+>&lt;dependency&gt;
+  &lt;groupId&gt;${coherence.group.id}&lt;/groupId&gt;
+  &lt;artifactId&gt;coherence&lt;/artifactId&gt;
+&lt;/dependency&gt;</markup>
 
 <p>We also define a <code>server</code> profile to run one or more DefaultCacheServer processes.</p>
 
@@ -197,34 +189,34 @@ lang="xml"
 lang="xml"
 
 >&lt;profile&gt;
-    &lt;id&gt;server&lt;/id&gt;
-    &lt;activation&gt;
-        &lt;property&gt;
-            &lt;name&gt;server&lt;/name&gt;
-        &lt;/property&gt;
-    &lt;/activation&gt;
-    &lt;build&gt;
-        &lt;plugins&gt;
-            &lt;plugin&gt;
-                &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
-                &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
-                &lt;version&gt;${maven.exec.plugin.version}&lt;/version&gt;
-                &lt;configuration&gt;
-                    &lt;executable&gt;java&lt;/executable&gt;
-                    &lt;arguments&gt;
-                        &lt;argument&gt;-classpath&lt;/argument&gt;
-                        &lt;classpath/&gt;
-                        &lt;argument&gt;${coherence.common.properties}&lt;/argument&gt;
-                        &lt;argument&gt;-Dcoherence.log.level=3&lt;/argument&gt;
-                        &lt;argument&gt;-Xmx512m&lt;/argument&gt;
-                        &lt;argument&gt;-Xms512m&lt;/argument&gt;
-                        &lt;argument&gt;-Dcoherence.log.level=3&lt;/argument&gt;
-                        &lt;argument&gt;com.tangosol.net.DefaultCacheServer&lt;/argument&gt;
-                    &lt;/arguments&gt;
-                &lt;/configuration&gt;
-            &lt;/plugin&gt;
-        &lt;/plugins&gt;
-    &lt;/build&gt;
+  &lt;id&gt;server&lt;/id&gt;
+  &lt;activation&gt;
+    &lt;property&gt;
+      &lt;name&gt;server&lt;/name&gt;
+    &lt;/property&gt;
+  &lt;/activation&gt;
+  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+        &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;${maven.exec.plugin.version}&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;executable&gt;java&lt;/executable&gt;
+          &lt;arguments&gt;
+            &lt;argument&gt;-classpath&lt;/argument&gt;
+            &lt;classpath/&gt;
+            &lt;argument&gt;${coherence.common.properties}&lt;/argument&gt;
+            &lt;argument&gt;-Dcoherence.log.level=3&lt;/argument&gt;
+            &lt;argument&gt;-Xmx512m&lt;/argument&gt;
+            &lt;argument&gt;-Xms512m&lt;/argument&gt;
+            &lt;argument&gt;-Dcoherence.log.level=3&lt;/argument&gt;
+            &lt;argument&gt;com.tangosol.net.DefaultCacheServer&lt;/argument&gt;
+          &lt;/arguments&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
 &lt;/profile&gt;</markup>
 
 </div>
