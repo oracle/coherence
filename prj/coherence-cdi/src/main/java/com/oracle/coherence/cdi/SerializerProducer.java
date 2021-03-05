@@ -7,12 +7,14 @@
 package com.oracle.coherence.cdi;
 
 import com.tangosol.coherence.config.Config;
+
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.OperationalContext;
 
@@ -35,7 +37,6 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 
 import javax.inject.Inject;
-
 
 /**
  * A CDI producer of {@link Serializer} instances.
@@ -217,7 +218,7 @@ public class SerializerProducer
             }
         else if ("pof".equalsIgnoreCase(sName))
             {
-            String sURI = sConfigUri == null ? f_sDefaultPofConfig : sConfigUri;
+            String sURI = sConfigUri == null || sConfigUri.isEmpty() ? f_sDefaultPofConfig : sConfigUri;
             return f_mapPofSerializer.computeIfAbsent(sURI, this::ensurePofSerializer);
             }
 
