@@ -6,6 +6,7 @@ com.oracle.coherence.grpc
 com.oracle.coherence.grpc.proxy
 com.oracle.coherence.mp.config
 com.oracle.coherence.mp.metrics
+com.oracle.coherence.repository
 com.tangosol.coherence.config
 com.tangosol.coherence.config.builder
 com.tangosol.coherence.config.builder.storemanager
