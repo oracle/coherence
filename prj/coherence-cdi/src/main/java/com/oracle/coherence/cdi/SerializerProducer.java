@@ -218,7 +218,9 @@ public class SerializerProducer
             }
         else if ("pof".equalsIgnoreCase(sName))
             {
-            String sURI = sConfigUri == null || sConfigUri.isEmpty() ? f_sDefaultPofConfig : sConfigUri;
+            String sURI = sConfigUri == null || sConfigUri.isEmpty()
+                          ? ConfigurablePofContext.DEFAULT_RESOURCE
+                          : sConfigUri;
             return f_mapPofSerializer.computeIfAbsent(sURI, this::ensurePofSerializer);
             }
 
@@ -334,9 +336,4 @@ public class SerializerProducer
      * A map of POF serializers keyed by configuration URI.
      */
     private final Map<String, ConfigurablePofContext> f_mapPofSerializer = new ConcurrentHashMap<>();
-
-    /**
-     * The default POF configuration URI.
-     */
-    private final String f_sDefaultPofConfig = Config.getProperty("coherence.pof.config", "pof-config.xml");
     }
