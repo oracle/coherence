@@ -35,6 +35,6 @@ class NamedCacheClientInsecureIT
             .setProperty(Requests.PROP_CREDENTIALS, "tls")
             .setProperty(Requests.PROP_TLS_CERT, "ssl/server1.pem")
             .setProperty(Requests.PROP_TLS_KEY, "ssl/server1.key")
-            .setProperty("coherence.grpc.channels.default.credentials", GrpcSessionConfiguration.CREDENTIALS_INSECURE)
+            .setProperty("coherence.grpc.channels.default.credentials", Requests.CREDENTIALS_INSECURE)
             ;
     }

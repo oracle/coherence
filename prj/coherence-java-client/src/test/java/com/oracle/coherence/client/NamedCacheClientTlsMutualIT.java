@@ -38,7 +38,7 @@ class NamedCacheClientTlsMutualIT
             .setProperty(Requests.PROP_TLS_KEY, "ssl/server1.key")
             .setProperty(Requests.PROP_TLS_CA, "ssl/ca.pem")
             .setProperty(Requests.PROP_TLS_CLIENT_AUTH, ClientAuth.REQUIRE.name())
-            .setProperty("coherence.grpc.channels.default.credentials", GrpcSessionConfiguration.CREDENTIALS_TLS)
+            .setProperty("coherence.grpc.channels.default.credentials", Requests.CREDENTIALS_TLS)
             .setProperty("coherence.grpc.channels.default.tls.key", "ssl/client.key")
             .setProperty("coherence.grpc.channels.default.tls.cert", "ssl/client.pem")
             .setProperty("coherence.grpc.channels.default.tls.ca", "ssl/ca.pem")

@@ -1140,11 +1140,6 @@ public final class Requests
     public static final String DEFAULT_CHANNEL_NAME = "default";
 
     /**
-     * The default remote session name.
-     */
-    public static final String DEFAULT_SESSION_NAME = "default";
-
-    /**
      * The system property that sets the localhost client port.
      */
     public static final String PROP_PORT = "coherence.grpc.server.port";
@@ -1163,6 +1158,11 @@ public final class Requests
      * The system property that sets the password for the TLS key file.
      */
     public static final String PROP_TLS_KEYPASS = "coherence.grpc.server.tls.password";
+
+    /**
+     * The system property that sets the URI of a file to read to obtain the password for the TLS key file.
+     */
+    public static final String PROP_TLS_KEYPASS_URI = "coherence.grpc.server.tls.password.uri";
 
     /**
      * The system property that sets the location of the TLS cert file.
@@ -1199,4 +1199,8 @@ public final class Requests
      */
     public static final String CREDENTIALS_TLS = "tls";
 
+    /**
+     * The credentials to use to connect to a non-TLS enabled server.
+     */
+    public static final String CREDENTIALS_PLAINTEXT = "plaintext";
     }

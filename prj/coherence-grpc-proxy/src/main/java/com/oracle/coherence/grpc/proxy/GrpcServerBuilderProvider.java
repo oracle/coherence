@@ -8,6 +8,7 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.grpc.CredentialsHelper;
 import com.oracle.coherence.grpc.Requests;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.config.ConfigurationException;
@@ -25,7 +26,13 @@ import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContextBuilder;
 
 import javax.annotation.Priority;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -103,97 +110,7 @@ public interface GrpcServerBuilderProvider
         @Override
         public ServerBuilder<?> getServerBuilder(int nPort)
             {
-            String            sCredentials = Config.getProperty(Requests.PROP_CREDENTIALS, Requests.CREDENTIALS_INSECURE);
-            ServerCredentials credentials;
-
-            if (Requests.CREDENTIALS_INSECURE.equalsIgnoreCase(sCredentials))
-                {
-                Logger.info("Creating gRPC server using insecure credentials");
-                credentials = InsecureServerCredentials.create();
-                }
-            else if (Requests.CREDENTIALS_TLS.equalsIgnoreCase(sCredentials))
-                {
-                try
-                    {
-                    String sTlsCert    = Config.getProperty(Requests.PROP_TLS_CERT);
-                    String sTlsKey     = Config.getProperty(Requests.PROP_TLS_KEY);
-                    String sTlsPass    = Config.getProperty(Requests.PROP_TLS_KEYPASS);
-                    String sTlsCA      = Config.getProperty(Requests.PROP_TLS_CA);
-                    String sClientAuth = Config.getProperty(Requests.PROP_TLS_CLIENT_AUTH, ClientAuth.NONE.name()).toUpperCase();
-
-                    if (sTlsKey == null || sTlsCert == null)
-                        {
-                        String sReason = "Invalid gRPC configuration, "
-                                + ((sTlsKey == null) ? "no key file specified" : "no cert file specfied");
-                        throw new ConfigurationException(sReason,
-                                "When configuring gRPC TLS both the key and cert files must be configured"
-                                + " key=\"" + sTlsKey + "\" cert=\"" + sTlsCert + "\"");
-                        }
-
-                    URL urlCert = Resources.findFileOrResource(sTlsCert, null);
-                    if (urlCert == null)
-                        {
-                        throw new ConfigurationException("Cannot find configured TLS cert: " + sTlsCert,
-                                                         "Ensure the TLS cert exists");
-                        }
-
-                    URL urlKey = Resources.findFileOrResource(sTlsKey, null);
-                    if (urlKey == null)
-                        {
-                        throw new ConfigurationException("Cannot find configured TLS key: " + sTlsCert,
-                                                         "Ensure the TLS key exists");
-                        }
-
-                    if (sTlsCA == null || ClientAuth.NONE.name().equals(sClientAuth))
-                        {
-                        credentials = TlsServerCredentials.newBuilder()
-                                 .keyManager(urlCert.openStream(), urlKey.openStream(), sTlsPass)
-                                 .build();
-                        }
-                    else
-                        {
-                        URL urlCA = Resources.findFileOrResource(sTlsCA, null);
-                        if (urlCA == null)
-                            {
-                            throw new ConfigurationException("Cannot find configured TLS CA: " + sTlsCA,
-                                                             "Ensure the TLS CA exists");
-                            }
-
-                        ClientAuth clientAuth;
-                        try
-                            {
-                            clientAuth = ClientAuth.valueOf(sClientAuth);
-                            }
-                        catch (IllegalArgumentException e)
-                            {
-                            throw new ConfigurationException("Cannot find configured TLS client auth value: "
-                                    + sClientAuth, "Valid values are one of " + Arrays.toString(ClientAuth.values()));
-                            }
-
-                        SslContextBuilder builder = SslContextBuilder
-                                .forServer(urlCert.openStream(), urlKey.openStream(), sTlsPass)
-                                .trustManager(urlCA.openStream())
-                                .clientAuth(clientAuth);
-
-                        Logger.info("Creating gRPC server using TLS credentials. key="
-                                + urlKey + " cert=" + urlCert + " ca=" + urlCA + " clientAuth=" + sClientAuth);
-
-                        credentials = NettySslContextServerCredentials
-                                .create(GrpcSslContexts.configure(builder).build());
-                        }
-                    }
-                catch (IOException e)
-                    {
-                    throw Exceptions.ensureRuntimeException(e);
-                    }
-                }
-            else
-                {
-                throw new ConfigurationException("Invalid gRPC credentials type \"" + sCredentials + "\"",
-                                                 "Valid values are \"" + Requests.CREDENTIALS_INSECURE + "\" or \""
-                                                + Requests.CREDENTIALS_TLS + "\"");
-                }
-
+            ServerCredentials credentials = CredentialsHelper.createServerCredentials();
             return Grpc.newServerBuilderForPort(nPort, credentials);
             }
 
@@ -201,6 +118,39 @@ public interface GrpcServerBuilderProvider
         public InProcessServerBuilder getInProcessServerBuilder(String sName)
             {
             return InProcessServerBuilder.forName(sName);
+            }
+
+        /**
+         * Resolve any password required for the TLS keys.
+         *
+         * @return  the password required for the TLS keys
+         *
+         * @throws IOException if the password cannot be resolved
+         */
+        private String resolvePassword() throws IOException
+            {
+            String sTlsPass = Config.getProperty(Requests.PROP_TLS_KEYPASS);
+            if (sTlsPass != null)
+                {
+                return sTlsPass;
+                }
+
+            String sURI = Config.getProperty(Requests.PROP_TLS_KEYPASS_URI);
+            if (sURI != null)
+                {
+                final URL url = Resources.findFileOrResource(sURI, null);
+                if (url == null)
+                    {
+                    throw new FileNotFoundException("Cannot locate password file: " + sURI);
+                    }
+                try (InputStream in = url.openStream())
+                    {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                    return reader.readLine();
+                    }
+                }
+
+            return null;
             }
         };
     }
