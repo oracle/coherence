@@ -84,7 +84,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the identifier of the specified entity instance.
      *
-     * @param entity the entity to get the identifier from
+     * @param entity  the entity to get the identifier from
      *
      * @return the identifier of the specified entity instance
      */
@@ -102,7 +102,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return an entity with a given identifier.
      *
-     * @param id the entity's identifier
+     * @param id  the entity's identifier
      *
      * @return an entity with a given identifier
      */
@@ -124,7 +124,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return all entities that satisfy the specified criteria.
      *
-     * @param filter the criteria to evaluate
+     * @param filter  the criteria to evaluate
      *
      * @return all entities that satisfy the specified criteria
      */
@@ -137,7 +137,8 @@ public abstract class AbstractRepository<ID, T>
      * Return all entities in this repository, sorted using
      * specified {@link Comparable} attribute.
      *
-     * @param orderBy the {@link Comparable} attribute to sort the results by
+     * @param orderBy  the {@link Comparable} attribute to sort the results by
+     * @param <R>      the type of the extracted values
      *
      * @return all entities in this repository, sorted using
      *         specified {@link Comparable} attribute.
@@ -151,8 +152,9 @@ public abstract class AbstractRepository<ID, T>
      * Return all entities that satisfy the specified criteria, sorted using
      * specified {@link Comparable} attribute.
      *
-     * @param filter  the criteria to evaluate
-     * @param orderBy the {@link Comparable} attribute to sort the results by
+     * @param filter   the criteria to evaluate
+     * @param orderBy  the {@link Comparable} attribute to sort the results by
+     * @param <R>      the type of the extracted values
      *
      * @return all entities that satisfy specified criteria, sorted using
      *         specified {@link Comparable} attribute.
@@ -166,7 +168,7 @@ public abstract class AbstractRepository<ID, T>
      * Return all entities in this repository, sorted using
      * specified {@link Remote.Comparator}.
      *
-     * @param orderBy the comparator to sort the results with
+     * @param orderBy  the comparator to sort the results with
      *
      * @return all entities in this repository, sorted using
      *         specified {@link Remote.Comparator}.
@@ -180,8 +182,8 @@ public abstract class AbstractRepository<ID, T>
      * Return all entities that satisfy the specified criteria, sorted using
      * specified {@link Remote.Comparator}.
      *
-     * @param filter  the criteria to evaluate
-     * @param orderBy the comparator to sort the results with
+     * @param filter   the criteria to evaluate
+     * @param orderBy  the comparator to sort the results with
      *
      * @return all entities that satisfy specified criteria, sorted using
      * specified {@link Remote.Comparator}.
@@ -194,7 +196,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Store the specified entity.
      *
-     * @param entity the entity to store
+     * @param entity  the entity to store
      *
      * @return the saved entity
      */
@@ -207,7 +209,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Store all specified entities as a batch.
      *
-     * @param entities the entities to store
+     * @param entities  the entities to store
      */
     @SuppressWarnings("unchecked")
     public void saveAll(T... entities)
@@ -218,7 +220,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Store all specified entities as a batch.
      *
-     * @param colEntities the entities to store
+     * @param colEntities  the entities to store
      */
     public void saveAll(Collection<? extends T> colEntities)
         {
@@ -228,7 +230,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Store all specified entities as a batch.
      *
-     * @param strEntities the entities to store
+     * @param strEntities  the entities to store
      */
     public void saveAll(Stream<? extends T> strEntities)
         {
@@ -248,9 +250,9 @@ public abstract class AbstractRepository<ID, T>
      * and only the extracted value will be sent over the network to the client,
      * which can significantly reduce the amount of data transferred.
      *
-     * @param id        the entity's identifier
-     * @param extractor the {@link ValueExtractor} to extract value with
-     * @param <R>       the type of the extracted value
+     * @param id         the entity's identifier
+     * @param extractor  the {@link ValueExtractor} to extract value with
+     * @param <R>        the type of the extracted value
      *
      * @return the extracted value
      */
@@ -289,8 +291,8 @@ public abstract class AbstractRepository<ID, T>
      * and only the extracted fragment will be sent over the network to the client,
      * which can significantly reduce the amount of data transferred.
      *
-     * @param id         the entity's identifier
-     * @param extractors the {@link ValueExtractor}s to extract values with
+     * @param id          the entity's identifier
+     * @param extractors  the {@link ValueExtractor}s to extract values with
      *
      * @return the extracted {@link Fragment}
      */
@@ -303,8 +305,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return a map of values extracted from all entities in the repository.
      *
-     * @param extractor the {@link ValueExtractor} to extract values with
-     * @param <R>       the type of the extracted values
+     * @param extractor  the {@link ValueExtractor} to extract values with
+     * @param <R>        the type of the extracted values
      *
      * @return the map of extracted values, keyed by entity id
      * @see #get(Object, ValueExtractor)
@@ -318,9 +320,9 @@ public abstract class AbstractRepository<ID, T>
      * Return a map of values extracted from a set of entities with the given
      * identifiers.
      *
-     * @param colIds    the entity identifiers
-     * @param extractor the {@link ValueExtractor} to extract values with
-     * @param <R>       the type of the extracted values
+     * @param colIds     the entity identifiers
+     * @param extractor  the {@link ValueExtractor} to extract values with
+     * @param <R>        the type of the extracted values
      *
      * @return the map of extracted values, keyed by entity id
      * @see #get(Object, ValueExtractor)
@@ -334,9 +336,9 @@ public abstract class AbstractRepository<ID, T>
      * Return a map of values extracted from a set of entities based on the
      * specified criteria.
      *
-     * @param filter    the criteria to use to select entities for extraction
-     * @param extractor the {@link ValueExtractor} to extract values with
-     * @param <R>       the type of the extracted values
+     * @param filter     the criteria to use to select entities for extraction
+     * @param extractor  the {@link ValueExtractor} to extract values with
+     * @param <R>        the type of the extracted values
      *
      * @return the map of extracted values, keyed by entity id
      * @see #get(Object, ValueExtractor)
@@ -350,8 +352,8 @@ public abstract class AbstractRepository<ID, T>
      * Return a map of a {@link Fragment}s extracted from all entities in the
      * repository.
      *
-     * @param extractors the {@link ValueExtractor}s to extract the list of
-     *                   values with
+     * @param extractors  the {@link ValueExtractor}s to extract the list of
+     *                    values with
      *
      * @return the map of extracted {@link Fragment}s, keyed by entity id
      * @see #get(Object, ValueExtractor[])
@@ -366,9 +368,9 @@ public abstract class AbstractRepository<ID, T>
      * Return a map of {@link Fragment}s extracted from a set of entities with the
      * given identifiers.
      *
-     * @param colIds     the entity identifiers
-     * @param extractors the {@link ValueExtractor}s to extract the list of
-     *                   values with
+     * @param colIds      the entity identifiers
+     * @param extractors  the {@link ValueExtractor}s to extract the list of
+     *                    values with
      *
      * @return the map of extracted {@link Fragment}s, keyed by entity id
      * @see #get(Object, ValueExtractor[])
@@ -383,9 +385,9 @@ public abstract class AbstractRepository<ID, T>
      * Return a map of {@link Fragment}s extracted from a set of entities based on
      * the specified criteria.
      *
-     * @param filter     the criteria to use to select entities for extraction
-     * @param extractors the {@link ValueExtractor}s to extract the list of
-     *                   values with
+     * @param filter      the criteria to use to select entities for extraction
+     * @param extractors  the {@link ValueExtractor}s to extract the list of
+     *                    values with
      *
      * @return the map of extracted {@link Fragment}s, keyed by entity id
      * @see #get(Object, ValueExtractor[])
@@ -409,11 +411,11 @@ public abstract class AbstractRepository<ID, T>
      * the updater will have exclusive access to an entity during the
      * execution.
      *
-     * @param id      the entity's identifier
-     * @param updater the updater function to use
-     * @param value   the value to update entity with, which will be passed as
-     *                an argument to the updater function
-     * @param <U>     the type of value to update
+     * @param id       the entity's identifier
+     * @param updater  the updater function to use
+     * @param value    the value to update entity with, which will be passed as
+     *                 an argument to the updater function
+     * @param <U>      the type of value to update
      */
     public <U> void update(ID id,
                            ValueUpdater<? super T, ? super U> updater,
@@ -442,12 +444,12 @@ public abstract class AbstractRepository<ID, T>
      * the updater will have exclusive access to an entity during the
      * execution.
      *
-     * @param id      the entity's identifier
-     * @param updater the updater function to use
-     * @param value   the value to update entity with, which will be passed as
-     *                an argument to the updater function
-     * @param <U>     the type of value to update
-     * @param factory the entity factory to use to create new entity instance
+     * @param id       the entity's identifier
+     * @param updater  the updater function to use
+     * @param value    the value to update entity with, which will be passed as
+     *                 an argument to the updater function
+     * @param <U>      the type of value to update
+     * @param factory  the entity factory to use to create new entity instance
      */
     public <U> void update(ID id,
                            ValueUpdater<? super T, ? super U> updater,
@@ -479,9 +481,9 @@ public abstract class AbstractRepository<ID, T>
      * the updater will have exclusive access to an entity during the
      * execution.
      *
-     * @param id      the entity's identifier
-     * @param updater the updater function to use
-     * @param <R>     the type of return value of the updater function
+     * @param id       the entity's identifier
+     * @param updater  the updater function to use
+     * @param <R>      the type of return value of the updater function
      *
      * @return the result of updater function evaluation
      */
@@ -520,10 +522,10 @@ public abstract class AbstractRepository<ID, T>
      * the updater will have exclusive access to an entity during the
      * execution.
      *
-     * @param id      the entity's identifier
-     * @param updater the updater function to use
-     * @param factory the entity factory to use to create new entity instance
-     * @param <R>     the type of return value of the updater function
+     * @param id       the entity's identifier
+     * @param updater  the updater function to use
+     * @param factory  the entity factory to use to create new entity instance
+     * @param <R>      the type of return value of the updater function
      *
      * @return the result of updater function evaluation
      */
@@ -554,12 +556,12 @@ public abstract class AbstractRepository<ID, T>
      * the updater will have exclusive access to an entity during the
      * execution.
      *
-     * @param id      the entity's identifier
-     * @param updater the updater function to use
-     * @param value   the value to update entity with, which will be passed as
-     *                an argument to the updater function
-     * @param <U>     the type of value to update
-     * @param <R>     the type of return value of the updater function
+     * @param id       the entity's identifier
+     * @param updater  the updater function to use
+     * @param value    the value to update entity with, which will be passed as
+     *                 an argument to the updater function
+     * @param <U>      the type of value to update
+     * @param <R>      the type of return value of the updater function
      *
      * @return the result of updater function evaluation
      */
@@ -597,13 +599,13 @@ public abstract class AbstractRepository<ID, T>
      * the updater will have exclusive access to an entity during the
      * execution.
      *
-     * @param id      the entity's identifier
-     * @param updater the updater function to use
-     * @param value   the value to update entity with, which will be passed as
-     *                an argument to the updater function
-     * @param factory the entity factory to use to create new entity instance
-     * @param <U>     the type of value to update
-     * @param <R>     the type of return value of the updater function
+     * @param id       the entity's identifier
+     * @param updater  the updater function to use
+     * @param value    the value to update entity with, which will be passed as
+     *                 an argument to the updater function
+     * @param factory  the entity factory to use to create new entity instance
+     * @param <U>      the type of value to update
+     * @param <R>      the type of return value of the updater function
      *
      * @return the result of updater function evaluation
      */
@@ -618,11 +620,11 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Update multiple entities using specified updater and the new value.
      *
-     * @param filter  the criteria to use to select entities to update
-     * @param updater the updater function to use
-     * @param value   the value to update each entity with, which will be passed
-     *                as an argument to the updater function
-     * @param <U>     the type of value to update
+     * @param filter   the criteria to use to select entities to update
+     * @param updater  the updater function to use
+     * @param value    the value to update each entity with, which will be passed
+     *                 as an argument to the updater function
+     * @param <U>      the type of value to update
      */
     public <U> void updateAll(Filter<?> filter,
                               ValueUpdater<? super T, ? super U> updater,
@@ -634,9 +636,9 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Update multiple entities using specified updater function.
      *
-     * @param filter  the criteria to use to select entities to update
-     * @param updater the updater function to use
-     * @param <R>     the type of return value of the updater function
+     * @param filter   the criteria to use to select entities to update
+     * @param updater  the updater function to use
+     * @param <R>      the type of return value of the updater function
      *
      * @return a map of updater function results, keyed by entity id
      */
@@ -649,12 +651,12 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Update multiple entities using specified updater and the new value.
      *
-     * @param filter  the criteria to use to select entities to update
-     * @param updater the updater function to use
-     * @param value   the value to update each entity with, which will be passed
-     *                as an argument to the updater function
-     * @param <U>     the type of value to update
-     * @param <R>     the type of return value of the updater function
+     * @param filter   the criteria to use to select entities to update
+     * @param updater  the updater function to use
+     * @param value    the value to update each entity with, which will be passed
+     *                 as an argument to the updater function
+     * @param <U>      the type of value to update
+     * @param <R>      the type of return value of the updater function
      *
      * @return a map of updater function results, keyed by entity id
      */
@@ -668,7 +670,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove entity with a specified identifier.
      *
-     * @param id the identifier of an entity to remove, if present
+     * @param id  the identifier of an entity to remove, if present
      *
      * @return {@code true} if this repository contained the specified entity
      */
@@ -680,8 +682,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove entity with a specified identifier.
      *
-     * @param id      the identifier of an entity to remove
-     * @param fReturn the flag specifying whether to return removed entity
+     * @param id       the identifier of an entity to remove
+     * @param fReturn  the flag specifying whether to return removed entity
      *
      * @return removed entity, iff {@code fReturn == true}; {@code null}
      * otherwise
@@ -694,7 +696,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove specified entity.
      *
-     * @param entity the entity to remove
+     * @param entity  the entity to remove
      *
      * @return {@code true} if this repository contained the specified entity
      */
@@ -706,8 +708,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove specified entity.
      *
-     * @param entity  the entity to remove
-     * @param fReturn the flag specifying whether to return removed entity
+     * @param entity   the entity to remove
+     * @param fReturn  the flag specifying whether to return removed entity
      *
      * @return removed entity, iff {@code fReturn == true}; {@code null}
      * otherwise
@@ -720,7 +722,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove entities with the specified identifiers.
      *
-     * @param colIds the identifiers of the entities to remove
+     * @param colIds  the identifiers of the entities to remove
      *
      * @return {@code true} if this repository changed as a result of the call
      */
@@ -741,8 +743,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove entities with the specified identifiers.
      *
-     * @param colIds  the identifiers of the entities to remove
-     * @param fReturn the flag specifying whether to return removed entity
+     * @param colIds   the identifiers of the entities to remove
+     * @param fReturn  the flag specifying whether to return removed entity
      *
      * @return the map of removed entity identifiers as keys, and the removed
      * entities as values iff {@code fReturn == true}; {@code null} otherwise
@@ -755,7 +757,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove specified entities.
      *
-     * @param entities the entities to remove
+     * @param entities  the entities to remove
      *
      * @return {@code true} if this repository changed as a result of the call
      */
@@ -768,7 +770,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove specified entities.
      *
-     * @param colEntities the entities to remove
+     * @param colEntities  the entities to remove
      *
      * @return {@code true} if this repository changed as a result of the call
      */
@@ -780,8 +782,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove specified entities.
      *
-     * @param colEntities the entities to remove
-     * @param fReturn     the flag specifying whether to return removed entity
+     * @param colEntities  the entities to remove
+     * @param fReturn      the flag specifying whether to return removed entity
      *
      * @return the map of removed entity identifiers as keys, and the removed
      * entities as values iff {@code fReturn == true}; {@code null} otherwise
@@ -794,7 +796,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove specified entities.
      *
-     * @param strEntities the entities to remove
+     * @param strEntities  the entities to remove
      *
      * @return {@code true} if this repository changed as a result of the call
      */
@@ -806,8 +808,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove specified entities.
      *
-     * @param strEntities the entities to remove
-     * @param fReturn     the flag specifying whether to return removed entity
+     * @param strEntities  the entities to remove
+     * @param fReturn      the flag specifying whether to return removed entity
      *
      * @return the map of removed entity identifiers as keys, and the removed
      * entities as values iff {@code fReturn == true}; {@code null} otherwise
@@ -820,8 +822,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove all entities based on the specified criteria.
      *
-     * @param filter the criteria that should be used to select entities to
-     *               remove
+     * @param filter  the criteria that should be used to select entities to
+     *                remove
      *
      * @return {@code true} if this repository changed as a result of the call
      */
@@ -842,9 +844,9 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Remove all entities based on the specified criteria.
      *
-     * @param filter  the criteria that should be used to select entities to
-     *                remove
-     * @param fReturn the flag specifying whether to return removed entity
+     * @param filter   the criteria that should be used to select entities to
+     *                 remove
+     * @param fReturn  the flag specifying whether to return removed entity
      *
      * @return the map of removed entity identifiers as keys, and the removed
      * entities as values iff {@code fReturn == true}; {@code null} otherwise
@@ -1041,6 +1043,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the function to determine the maximum value for;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getName}
+     * @param <R>        the type of the extracted value
      *
      * @return the maximum value of the specified function
      */
@@ -1056,6 +1059,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the function to determine the maximum value for;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getName}
+     * @param <R>        the type of the extracted value
      *
      * @return the maximum value of the specified function
      */
@@ -1070,6 +1074,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the function to determine the maximum value for;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
+     * @param <R>        the type of the extracted value
      *
      * @return the entity with the maximum value of the specified function
      */
@@ -1085,6 +1090,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the function to determine the maximum value for;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
+     * @param <R>        the type of the extracted value
      *
      * @return the entity with the maximum value of the specified function
      */
@@ -1215,6 +1221,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the function to determine the minimum value for;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getName}
+     * @param <R>        the type of the extracted value
      *
      * @return the minimum value of the specified function
      */
@@ -1230,6 +1237,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the function to determine the minimum value for;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getName}
+     * @param <R>        the type of the extracted value
      *
      * @return the minimum value of the specified function
      */
@@ -1244,6 +1252,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the function to determine the minimum value for;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
+     * @param <R>        the type of the extracted value
      *
      * @return the entity with the minimum value of the specified function
      */
@@ -1259,6 +1268,7 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the function to determine the minimum value for;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
+     * @param <R>        the type of the extracted value
      *
      * @return the entity with the minimum value of the specified function
      */
@@ -1517,12 +1527,11 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the set of distinct values for the specified extractor.
      *
-     * @param <R>        the type of extracted values
-     *
      * @param filter     the entity selection criteria
      * @param extractor  the extractor to get a value from;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getName}
+     * @param <R>        the type of extracted values
      *
      * @return the set of distinct values for the specified extractor
      */
@@ -1594,6 +1603,7 @@ public abstract class AbstractRepository<ID, T>
      * Return the grouping of entities by the specified extractor, ordered by
      * the specified attribute within each group.
      *
+     * @param filter     the entity selection criteria
      * @param extractor  the extractor to get a grouping value from;
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getGender}
@@ -1666,15 +1676,15 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the grouping of entities by the specified extractor.
      *
-     * @param extractor  the extractor to get a grouping value from;
-     *                   typically a method reference on the entity class,
-     *                   such as {@code Person::getGender}
-     * @param mapFactory the supplier to use to create result {@code Map}
-     * @param collector  the {@link RemoteCollector} to apply to grouped entities
-     * @param <K>        the type of extracted grouping keys
-     * @param <A>        the type of collector's accumulator
-     * @param <R>        the type of collector's result
-     * @param <M>        the type of result {@code Map}
+     * @param extractor   the extractor to get a grouping value from;
+     *                    typically a method reference on the entity class,
+     *                    such as {@code Person::getGender}
+     * @param mapFactory  the supplier to use to create result {@code Map}
+     * @param collector   the {@link RemoteCollector} to apply to grouped entities
+     * @param <K>         the type of extracted grouping keys
+     * @param <A>         the type of collector's accumulator
+     * @param <R>         the type of collector's result
+     * @param <M>         the type of result {@code Map}
      *
      * @return the the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
@@ -1693,16 +1703,16 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the grouping of entities by the specified extractor.
      *
-     * @param filter     the entity selection criteria
-     * @param extractor  the extractor to get a grouping value from;
-     *                   typically a method reference on the entity class,
-     *                   such as {@code Person::getGender}
-     * @param mapFactory the supplier to use to create result {@code Map}
-     * @param collector  the {@link RemoteCollector} to apply to grouped entities
-     * @param <K>        the type of extracted grouping keys
-     * @param <A>        the type of collector's accumulator
-     * @param <R>        the type of collector's result
-     * @param <M>        the type of result {@code Map}
+     * @param filter      the entity selection criteria
+     * @param extractor   the extractor to get a grouping value from;
+     *                    typically a method reference on the entity class,
+     *                    such as {@code Person::getGender}
+     * @param mapFactory  the supplier to use to create result {@code Map}
+     * @param collector   the {@link RemoteCollector} to apply to grouped entities
+     * @param <K>         the type of extracted grouping keys
+     * @param <A>         the type of collector's accumulator
+     * @param <R>         the type of collector's result
+     * @param <M>         the type of result {@code Map}
      *
      * @return the the grouping of entities by the specified extractor; the keys
      *         in the returned map will be distinct values extracted by the
@@ -1755,10 +1765,10 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the top N highest values for the specified extractor.
      *
-     * @param extractor  the extractor to get the values to compare with
-     * @param comparator the comparator to use when comparing extracted values
-     * @param cResults   the number of highest values to return
-     * @param <R>        the type of returned values
+     * @param extractor   the extractor to get the values to compare with
+     * @param comparator  the comparator to use when comparing extracted values
+     * @param cResults    the number of highest values to return
+     * @param <R>         the type of returned values
      *
      * @return the top N highest values for the specified extractor
      */
@@ -1771,11 +1781,11 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the top N highest values for the specified extractor.
      *
-     * @param filter     the entity selection criteria
-     * @param extractor  the extractor to get the values to compare with
-     * @param comparator the comparator to use when comparing extracted values
-     * @param cResults   the number of highest values to return
-     * @param <R>        the type of returned values
+     * @param filter      the entity selection criteria
+     * @param extractor   the extractor to get the values to compare with
+     * @param comparator  the comparator to use when comparing extracted values
+     * @param cResults    the number of highest values to return
+     * @param <R>         the type of returned values
      *
      * @return the top N highest values for the specified extractor
      */
@@ -1819,8 +1829,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the top N entities with the highest values for the specified extractor.
      *
-     * @param comparator the comparator to use when comparing extracted values
-     * @param cResults   the number of highest values to return
+     * @param comparator  the comparator to use when comparing extracted values
+     * @param cResults    the number of highest values to return
      *
      * @return the top N entities with the highest values for the specified extractor
      */
@@ -1833,9 +1843,9 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the top N entities with the highest values for the specified extractor.
      *
-     * @param filter     the entity selection criteria
-     * @param comparator the comparator to use when comparing extracted values
-     * @param cResults   the number of highest values to return
+     * @param filter      the entity selection criteria
+     * @param comparator  the comparator to use when comparing extracted values
+     * @param cResults    the number of highest values to return
      *
      * @return the top N entities with the highest values for the specified extractor
      */
@@ -1922,80 +1932,80 @@ public abstract class AbstractRepository<ID, T>
      * An entry processor factory that is used by {@code update} methods that
      * accept {@link ValueUpdater} as an argument.
      *
-     * @param updater the updater function to use
-     * @param value   the value to update each entity with, which will be passed
-     *                as an argument to the updater function
-     * @param factory the entity factory to use to create new entity instance
-     * @param <U>     the type of value to update
+     * @param updater  the updater function to use
+     * @param value    the value to update each entity with, which will be passed
+     *                 as an argument to the updater function
+     * @param factory  the entity factory to use to create new entity instance
+     * @param <U>      the type of value to update
      *
      * @return an entry processor that should be used to perform the update
      */
     private <U> InvocableMap.EntryProcessor<ID, T, Void> updaterProcessor(ValueUpdater<? super T, ? super U> updater, U value, EntityFactory<? super ID, ? extends T> factory)
         {
         return entry ->
-        {
-        T entity = entry.getValue();
-        if (entity == null && factory != null)
             {
-            entity = factory.create(entry.getKey());
-            }
-        updater.update(entity, value);
-        entry.setValue(entity);
-        return null;
-        };
+            T entity = entry.getValue();
+            if (entity == null && factory != null)
+                {
+                entity = factory.create(entry.getKey());
+                }
+            updater.update(entity, value);
+            entry.setValue(entity);
+            return null;
+            };
         }
 
     /**
      * An entry processor factory that is used by {@code update} methods that
      * accept {@link Remote.Function} as an argument.
      *
-     * @param updater the updater function to use
-     * @param factory the entity factory to use to create new entity instance
-     * @param <R>     the type of return value of the updater function
+     * @param updater  the updater function to use
+     * @param factory  the entity factory to use to create new entity instance
+     * @param <R>      the type of return value of the updater function
      *
      * @return an entry processor that should be used to perform the update
      */
     private <R> InvocableMap.EntryProcessor<ID, T, R> updateFunctionProcessor(Remote.Function<? super T, ? extends R> updater, EntityFactory<? super ID, ? extends T> factory)
         {
         return entry ->
-        {
-        T entity = entry.getValue();
-        if (entity == null && factory != null)
             {
-            entity = factory.create(entry.getKey());
-            }
-        R result = updater.apply(entity);
-        entry.setValue(entity);
-        return result;
-        };
+            T entity = entry.getValue();
+            if (entity == null && factory != null)
+                {
+                entity = factory.create(entry.getKey());
+                }
+            R result = updater.apply(entity);
+            entry.setValue(entity);
+            return result;
+            };
         }
 
     /**
      * An entry processor factory that is used by {@code update} methods that
      * accept {@link Remote.BiFunction} as an argument.
      *
-     * @param updater the updater function to use
-     * @param value   the value to update each entity with, which will be passed
-     *                as an argument to the updater function
-     * @param factory the entity factory to use to create new entity instance
-     * @param <U>     the type of value to update
-     * @param <R>     the type of return value of the updater function
+     * @param updater  the updater function to use
+     * @param value    the value to update each entity with, which will be passed
+     *                 as an argument to the updater function
+     * @param factory  the entity factory to use to create new entity instance
+     * @param <U>      the type of value to update
+     * @param <R>      the type of return value of the updater function
      *
      * @return an entry processor that should be used to perform the update
      */
     private <U, R> InvocableMap.EntryProcessor<ID, T, R> updateBiFunctionProcessor(Remote.BiFunction<? super T, ? super U, ? extends R> updater, U value, EntityFactory<? super ID, ? extends T> factory)
         {
         return entry ->
-        {
-        T entity = entry.getValue();
-        if (entity == null && factory != null)
             {
-            entity = factory.create(entry.getKey());
-            }
-        R result = updater.apply(entity, value);
-        entry.setValue(entity);
-        return result;
-        };
+            T entity = entry.getValue();
+            if (entity == null && factory != null)
+                {
+                entity = factory.create(entry.getKey());
+                }
+            R result = updater.apply(entity, value);
+            entry.setValue(entity);
+            return result;
+            };
         }
 
     // ---- listener support ------------------------------------------------
@@ -2016,7 +2026,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Register a listener that will observe all repository events.
      *
-     * @param listener the event listener to register
+     * @param listener  the event listener to register
      */
     public void addListener(Listener<? super T> listener)
         {
@@ -2026,7 +2036,7 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Unregister a listener that observes all repository events.
      *
-     * @param listener the event listener to unregister
+     * @param listener  the event listener to unregister
      */
     public void removeListener(Listener<? super T> listener)
         {
@@ -2036,8 +2046,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Register a listener that will observe all events for a specific entity.
      *
-     * @param id       the identifier of the entity to observe
-     * @param listener the event listener to register
+     * @param id        the identifier of the entity to observe
+     * @param listener  the event listener to register
      */
     public void addListener(ID id, Listener<? super T> listener)
         {
@@ -2047,8 +2057,8 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Unregister a listener that observes all events for a specific entity.
      *
-     * @param id       the identifier of the entity to observe
-     * @param listener the event listener to unregister
+     * @param id        the identifier of the entity to observe
+     * @param listener  the event listener to unregister
      */
     public void removeListener(ID id, Listener<? super T> listener)
         {
@@ -2059,8 +2069,8 @@ public abstract class AbstractRepository<ID, T>
      * Register a listener that will observe all events for entities that
      * satisfy the specified criteria.
      *
-     * @param filter   the criteria to use to select entities to observe
-     * @param listener the event listener to register
+     * @param filter    the criteria to use to select entities to observe
+     * @param listener  the event listener to register
      */
     public void addListener(Filter<?> filter, Listener<? super T> listener)
         {
@@ -2075,8 +2085,8 @@ public abstract class AbstractRepository<ID, T>
      * Unregister a listener that observes all events for entities that satisfy
      * the specified criteria.
      *
-     * @param filter   the criteria to use to select entities to observe
-     * @param listener the event listener to unregister
+     * @param filter    the criteria to use to select entities to observe
+     * @param listener  the event listener to unregister
      */
     public void removeListener(Filter<?> filter, Listener<? super T> listener)
         {
@@ -2103,7 +2113,7 @@ public abstract class AbstractRepository<ID, T>
      * An interface that should be implemented by the clients interested in
      * repository events.
      *
-     * @param <T> the entity type
+     * @param <T>  the entity type
      */
     public interface Listener<T>
         {
@@ -2111,31 +2121,36 @@ public abstract class AbstractRepository<ID, T>
          * An event callback that will be called when a new entity is inserted
          * into the repository.
          *
-         * @param entity inserted entity
+         * @param entity  inserted entity
          */
         default void onInserted(T entity)
-            {}
+            {
+            }
 
         /**
          * An event callback that will be called when an entity is updated.
          *
-         * @param oldEntity previous entity
-         * @param newEntity new entity
+         * @param oldEntity  previous entity
+         * @param newEntity  new entity
          */
         default void onUpdated(T oldEntity, T newEntity)
-            {}
+            {
+            }
 
         /**
          * An event callback that will be called when an entity is removed from
          * the repository.
          *
-         * @param entity removed entity
+         * @param entity  removed entity
          */
         default void onRemoved(T entity)
-            {}
+            {
+            }
 
         /**
          * Create new {@link Listener.Builder} instance.
+         *
+         * @param <T>  the entity type
          *
          * @return a new {@link Listener.Builder} instance
          */
@@ -2146,23 +2161,23 @@ public abstract class AbstractRepository<ID, T>
 
         /**
          * A builder for a simple, lambda-based {@link Listener}.
-         * 
+         *
          * @param <T>  the entity type
          */
         class Builder<T>
             {
             /**
              * Build {@link Listener} instance.
-             * 
+             *
              * @return the {@link Listener} instance
              */
             public Listener<T> build()
                 {
                 return new DefaultListener<>(m_onInsert, m_onUpdate, m_onRemove);
                 }
-            
-            // ---- event handler registration methods ------------------------------
-        
+
+            // ---- event handler registration methods ----------------------
+
             /**
              * Add the event handler for INSERT events.
              * <p/>
@@ -2171,14 +2186,14 @@ public abstract class AbstractRepository<ID, T>
              *
              * @param eventHandler  the event handler to add
              *
-             * @return  this {@link Builder}
+             * @return this {@link Builder}
              */
             public Builder<T> onInsert(Consumer<T> eventHandler)
                 {
                 m_onInsert = addHandler(m_onInsert, eventHandler);
                 return this;
                 }
-        
+
             /**
              * Add the event handler for UPDATE events.
              * <p/>
@@ -2187,14 +2202,14 @@ public abstract class AbstractRepository<ID, T>
              *
              * @param eventHandler  the event handler to execute
              *
-             * @return  this Listener
+             * @return this Listener
              */
             public Builder<T> onUpdate(Consumer<T> eventHandler)
                 {
                 m_onUpdate = addHandler(m_onUpdate, (tOld, tNew) -> eventHandler.accept(tNew));
                 return this;
                 }
-        
+
             /**
              * Add the event handler for UPDATE events.
              * <p/>
@@ -2203,7 +2218,7 @@ public abstract class AbstractRepository<ID, T>
              *
              * @param eventHandler  the event handler to execute
              *
-             * @return  this Listener
+             * @return this Listener
              */
             public Builder<T> onUpdate(BiConsumer<T, T> eventHandler)
                 {
@@ -2219,14 +2234,14 @@ public abstract class AbstractRepository<ID, T>
              *
              * @param eventHandler  the event handler to execute
              *
-             * @return  this Listener
+             * @return this Listener
              */
             public Builder<T> onRemove(Consumer<T> eventHandler)
                 {
                 m_onRemove = addHandler(m_onRemove, eventHandler);
                 return this;
                 }
-        
+
             /**
              * Add the event handler for all events.
              * <p/>
@@ -2236,7 +2251,7 @@ public abstract class AbstractRepository<ID, T>
              *
              * @param eventHandler  the event handler to execute
              *
-             * @return  this MapListener
+             * @return this MapListener
              */
             public Builder<T> onEvent(Consumer<T> eventHandler)
                 {
@@ -2246,8 +2261,8 @@ public abstract class AbstractRepository<ID, T>
                 return this;
                 }
 
-            // ---- helper methods --------------------------------------------------
-        
+            // ---- helper methods ------------------------------------------
+
             /**
              * Add a handler to a handler chain.
              *
@@ -2262,7 +2277,7 @@ public abstract class AbstractRepository<ID, T>
                        ? handler
                        : handlerChain.andThen(handler);
                 }
-            
+
             /**
              * Add a handler to a handler chain.
              *
@@ -2279,17 +2294,17 @@ public abstract class AbstractRepository<ID, T>
                 }
 
             // ---- data members ------------------------------------------------
-        
+
             /**
              * The event handler to execute on INSERT event.
              */
             private Consumer<T> m_onInsert;
-        
+
             /**
              * The event handler to execute on UPDATE event.
              */
             private BiConsumer<T, T> m_onUpdate;
-        
+
             /**
              * The event handler to execute on REMOVE event.
              */
@@ -2325,7 +2340,8 @@ public abstract class AbstractRepository<ID, T>
             }
 
         // ---- Listener interface ------------------------------------------
-    
+
+        @Override
         public void onInserted(T entity)
             {
             if (m_onInsert != null)
@@ -2334,6 +2350,7 @@ public abstract class AbstractRepository<ID, T>
                 }
             }
 
+        @Override
         public void onUpdated(T entityOld, T entityNew)
             {
             if (m_onUpdate != null)
@@ -2342,6 +2359,7 @@ public abstract class AbstractRepository<ID, T>
                 }
             }
 
+        @Override
         public void onRemoved(T entity)
             {
             if (m_onRemove != null)
@@ -2349,30 +2367,33 @@ public abstract class AbstractRepository<ID, T>
                 m_onRemove.accept(entity);
                 }
             }
-        
+
         // ---- data members ------------------------------------------------
-    
+
         /**
          * The event handler to execute on INSERT event.
          */
         private final Consumer<T> m_onInsert;
-    
+
         /**
          * The event handler to execute on UPDATE event.
          */
         private final BiConsumer<T, T> m_onUpdate;
-    
+
         /**
          * The event handler to execute on REMOVE event.
          */
         private final Consumer<T> m_onRemove;
         }
-    
+
     // ---- inner class: MapListenerAdapter ---------------------------------
 
     /**
      * Adapter from {@link Listener} to {@link MapListener} that can be
      * registered with the backing {@link NamedMap}.
+     *
+     * @param <ID>  the type of entity's identifier
+     * @param <T>   the type of entity
      */
     protected static class MapListenerAdapter<ID, T>
             implements MapListener<ID, T>
@@ -2380,7 +2401,7 @@ public abstract class AbstractRepository<ID, T>
         /**
          * Construct MapListenerAdapter instance.
          *
-         * @param listener the listener to adapt
+         * @param listener  the listener to adapt
          */
         MapListenerAdapter(Listener<? super T> listener)
             {
@@ -2389,16 +2410,19 @@ public abstract class AbstractRepository<ID, T>
 
         // ---- MapListener interface ---------------------------------------
 
+        @Override
         public void entryInserted(MapEvent<ID, T> mapEvent)
             {
             m_listener.onInserted(mapEvent.getNewValue());
             }
 
+        @Override
         public void entryUpdated(MapEvent<ID, T> mapEvent)
             {
             m_listener.onUpdated(mapEvent.getOldValue(), mapEvent.getNewValue());
             }
 
+        @Override
         public void entryDeleted(MapEvent<ID, T> mapEvent)
             {
             m_listener.onRemoved(mapEvent.getOldValue());
@@ -2437,5 +2461,8 @@ public abstract class AbstractRepository<ID, T>
 
     // ---- data members ----------------------------------------------------
 
+    /**
+     * Flag indicating initialization status.
+     */
     private volatile boolean m_fInitialized;
     }
