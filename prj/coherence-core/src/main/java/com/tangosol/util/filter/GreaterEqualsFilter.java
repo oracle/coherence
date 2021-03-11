@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -142,8 +142,7 @@ public class GreaterEqualsFilter<T, E extends Comparable<? super E>>
                 Set setGE = new HashSet();
                 for (Iterator iterGE = mapGE.values().iterator(); iterGE.hasNext();)
                     {
-                    Set set = (Set) iterGE.next();
-                    setGE.addAll(set);
+                    setGE.addAll(ensureSafeSet((Set) iterGE.next()));
                     }
                 setKeys.retainAll(setGE);
                 }
@@ -151,8 +150,7 @@ public class GreaterEqualsFilter<T, E extends Comparable<? super E>>
                 {
                 for (Iterator iterLT = mapLT.values().iterator(); iterLT.hasNext();)
                     {
-                    Set set = (Set) iterLT.next();
-                    setKeys.removeAll(set);
+                    setKeys.removeAll(ensureSafeSet((Set) iterLT.next()));
                     }
                 }
             // Note: the NULL set doesn't get in
@@ -171,7 +169,7 @@ public class GreaterEqualsFilter<T, E extends Comparable<? super E>>
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest != null && oTest.compareTo(oValue) >= 0)
                         {
-                        setGE.addAll((Set) entry.getValue());
+                        setGE.addAll(ensureSafeSet((Set) entry.getValue()));
                         }
                     }
                 setKeys.retainAll(setGE);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -140,14 +140,10 @@ public class LessFilter<T, E extends Comparable<? super E>>
                 {
                 for (Iterator iterGE = mapGE.values().iterator(); iterGE.hasNext();)
                     {
-                    Set set = (Set) iterGE.next();
-                    setKeys.removeAll(set);
+                    setKeys.removeAll(ensureSafeSet((Set) iterGE.next()));
                     }
 
-                if (setNULL != null)
-                    {
-                    setKeys.removeAll(setNULL);
-                    }
+                setKeys.removeAll(ensureSafeSet(setNULL));
                 }
             else
                 {
@@ -157,7 +153,7 @@ public class LessFilter<T, E extends Comparable<? super E>>
                     Set set = (Set) iterLT.next();
                     if (set != setNULL)
                         {
-                        setLT.addAll(set);
+                        setLT.addAll(ensureSafeSet(set));
                         }
                     }
                 setKeys.retainAll(setLT);
@@ -177,7 +173,7 @@ public class LessFilter<T, E extends Comparable<? super E>>
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest != null && oTest.compareTo(oValue) < 0)
                         {
-                        setLT.addAll((Set) entry.getValue());
+                        setLT.addAll(ensureSafeSet((Set) entry.getValue()));
                         }
                     }
                 setKeys.retainAll(setLT);
@@ -191,7 +187,7 @@ public class LessFilter<T, E extends Comparable<? super E>>
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest == null || oTest.compareTo(oValue) >= 0)
                         {
-                        setKeys.removeAll((Set) entry.getValue());
+                        setKeys.removeAll(ensureSafeSet((Set) entry.getValue()));
                         }
                     }
                 }
