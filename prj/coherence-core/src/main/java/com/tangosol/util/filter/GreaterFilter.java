@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -144,7 +144,7 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
                     Set set = (Set) iterGE.next();
                     if (set != setEQ)
                         {
-                        setGT.addAll(set);
+                        setGT.addAll(ensureSafeSet(set));
                         }
                     }
                 setKeys.retainAll(setGT);
@@ -153,8 +153,7 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
                 {
                 for (Iterator iterLT = mapLT.values().iterator(); iterLT.hasNext();)
                     {
-                    Set set = (Set) iterLT.next();
-                    setKeys.removeAll(set);
+                    setKeys.removeAll(ensureSafeSet((Set) iterLT.next()));
                     }
                 if (setEQ != null)
                     {
@@ -177,7 +176,7 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest != null && oTest.compareTo(oValue) > 0)
                         {
-                        setGT.addAll((Set) entry.getValue());
+                        setGT.addAll(ensureSafeSet((Set) entry.getValue()));
                         }
                     }
                 setKeys.retainAll(setGT);
@@ -191,7 +190,7 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest == null || oTest.compareTo(oValue) <= 0)
                         {
-                        setKeys.removeAll((Set) entry.getValue());
+                        setKeys.removeAll(ensureSafeSet((Set) entry.getValue()));
                         }
                     }
                 }

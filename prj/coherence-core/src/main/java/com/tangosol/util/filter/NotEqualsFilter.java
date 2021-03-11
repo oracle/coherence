@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -107,10 +107,9 @@ public class NotEqualsFilter<T, E>
                      iter.hasNext();)
                     {
                     Map.Entry entry = (Map.Entry) iter.next();
-                    if (!(entry.getKey().equals(oValue)))
+                    if (!entry.getKey().equals(oValue))
                         {
-                        Set set = (Set) entry.getValue();
-                        setNE.addAll(set);
+                        setNE.addAll(ensureSafeSet((Set) entry.getValue()));
                         }
                     }
                 setKeys.retainAll(setNE);
@@ -118,10 +117,8 @@ public class NotEqualsFilter<T, E>
             else
                 {
                 Set setEquals = (Set) mapContents.get(oValue);
-                if (setEquals != null && !setEquals.isEmpty())
-                    {
-                    setKeys.removeAll(setEquals);
-                    }
+
+                setKeys.removeAll(ensureSafeSet(setEquals));
                 }
             return null;
             }
