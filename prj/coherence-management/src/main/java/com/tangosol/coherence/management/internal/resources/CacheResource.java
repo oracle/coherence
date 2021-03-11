@@ -1,26 +1,36 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.management.internal.resources;
 
+import com.tangosol.coherence.management.internal.Converter;
 import com.tangosol.coherence.management.internal.EntityMBeanResponse;
+
+import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
 import com.tangosol.util.Filter;
+import com.tangosol.util.filter.AlwaysFilter;
 
 import java.net.URI;
 
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-
 import javax.ws.rs.QueryParam;
 
 import javax.ws.rs.WebApplicationException;
@@ -66,16 +76,16 @@ public class CacheResource extends AbstractManagementResource
                         @QueryParam(ROLE_NAME) String sRoleName,
                         @QueryParam(COLLECTOR) String sCollector)
         {
-        // when a user queries for a cache, only name is returned, apart from the aggregated data
-        Filter<String>  filterAttributes = getAttributesFilter(NAME, getExcludeList(null));
+        // collect attributes from the ObjectNames
+        Set<String> setObjectNames = getMBeanAccessor().queryKeys(getQuery(sCacheName).build());
 
-        EntityMBeanResponse responseEntity = getResponseEntityForMbean(getQuery(sCacheName),
-                getParentUri(), getCurrentUri(), filterAttributes, getLinksFilter(), MEMBERS);
-
-        if (responseEntity == null)
+        if (setObjectNames == null || setObjectNames.isEmpty())
             {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
             }
+
+        EntityMBeanResponse responseEntity = createResponse(getParentUri(), getCurrentUri(), getLinksFilter());
+        addObjectNamesToResponse(setObjectNames, responseEntity);
 
         Map<String, Object> mapResponse = responseEntity.toJson();
 
@@ -107,36 +117,38 @@ public class CacheResource extends AbstractManagementResource
     @Override
     protected EntityMBeanResponse getQueryResult(Map mapQuery, Map<String, String> mapArguments, URI uriParent)
         {
-        String sCacheName   = mapArguments.get(NAME);
+        String sCacheName = mapArguments.get(NAME);
 
-        // While querying for the list of caches, only the cache name is returned
-        URI            uriSelf          = getSubUri(uriParent, sCacheName);
-        Filter<String> filterAttributes = getAttributesFilter(NAME, getExcludeList(null));
-        Filter<String> filterLinks      = getLinksFilter(mapQuery);
-        QueryBuilder   bldrQuery        = getQuery(sCacheName);
+        // collect attributes from the ObjectNames
+        URI            uriSelf     = getSubUri(uriParent, sCacheName);
+        Filter<String> filterLinks = getLinksFilter(mapQuery);
+        QueryBuilder   bldrQuery   = getQuery(sCacheName);
 
-        EntityMBeanResponse responseEntity =
-                getResponseEntityForMbean(bldrQuery, uriParent, uriSelf, filterAttributes, filterLinks, MEMBERS);
-
-        if (responseEntity != null)
+        Set<String> setObjectNames = getMBeanAccessor().queryKeys(bldrQuery.build());
+        if (setObjectNames == null || setObjectNames.isEmpty())
             {
-            Map<String, Object> mapEntity = responseEntity.getEntity();
+            return null;
+            }
 
-            QueryBuilder bldrQueryStorage = createQueryBuilder()
-                    .withBaseQuery(format(STORAGE_MANAGERS_QUERY, sCacheName))
-                    .withService(getService());
+        EntityMBeanResponse responseEntity = createResponse(uriParent, uriSelf, filterLinks);
+        addObjectNamesToResponse(setObjectNames, responseEntity);
 
-            addAggregatedMetricsToResponseMap("*", null, bldrQuery, mapEntity);
-            addAggregatedMetricsToResponseMap("*", null, bldrQueryStorage, mapEntity);
+        Map<String, Object> mapEntity = responseEntity.getEntity();
 
-            Object oChildren = mapQuery == null ? null : mapQuery.get(CHILDREN);
-            if (oChildren != null && oChildren instanceof Map)
-                {
-                Map mapChildrenQuery = (Map) oChildren;
+        QueryBuilder bldrQueryStorage = createQueryBuilder()
+                .withBaseQuery(format(STORAGE_MANAGERS_QUERY, sCacheName))
+                .withService(getService());
 
-                addChildResourceQueryResult(new CacheMembersResource(this), MEMBERS, mapEntity, mapChildrenQuery,
-                        mapArguments, uriSelf);
-                }
+        addAggregatedMetricsToResponseMap("*", null, bldrQuery, mapEntity);
+        addAggregatedMetricsToResponseMap("*", null, bldrQueryStorage, mapEntity);
+
+        Object oChildren = mapQuery == null ? null : mapQuery.get(CHILDREN);
+        if (oChildren != null && oChildren instanceof Map)
+            {
+            Map mapChildrenQuery = (Map) oChildren;
+
+            addChildResourceQueryResult(new CacheMembersResource(this), MEMBERS, mapEntity, mapChildrenQuery,
+                    mapArguments, uriSelf);
             }
 
         return responseEntity;
@@ -156,5 +168,63 @@ public class CacheResource extends AbstractManagementResource
         return createQueryBuilder()
                 .withBaseQuery(CACHE_QUERY + sCacheName)
                 .withService(getService());
+        }
+
+    /**
+     * Add attributes from the ObjectNames to the given EntityMBeanResponse.
+     *
+     * @param setObjectNames  the set of ObjectNames from which to add to the response
+     * @param responseEntity  the EntityMBeanResponse to add attributes to
+     */
+    protected void addObjectNamesToResponse(Set<String> setObjectNames, EntityMBeanResponse responseEntity)
+        {
+        Filter<String>      filterAttributes = getAttributesFilter();
+        Map<String, Object> mapAttributes    = new LinkedHashMap<>();
+
+        // return name, service, and node_id if no field is specified
+        if (filterAttributes instanceof AlwaysFilter)
+            {
+            filterAttributes = getAttributesFilter(String.join(",", NAME, SERVICE, NODE_ID), null);
+            }
+
+        for (String sName : setObjectNames)
+            {
+            try
+                {
+                ObjectName objectName = new ObjectName(sName);
+                for (String sKey : objectName.getKeyPropertyList().keySet())
+                    {
+                    if (filterAttributes.evaluate(sKey))
+                        {
+                        Object oValue   = Converter.convert(objectName.getKeyProperty(sKey));
+                        Object oCurrent = mapAttributes.get(sKey);
+
+                        if (oCurrent == null)
+                            {
+                            mapAttributes.put(sKey, oValue);
+                            }
+                        else if (oCurrent instanceof Set)
+                            {
+                            ((Set) oCurrent).add(oValue);
+                            }
+                        else if (!Objects.equals(oCurrent, oValue))
+                            {
+                            Set values = new HashSet<>();
+                            values.add(oCurrent);
+                            values.add(oValue);
+                            mapAttributes.put(sKey, values);
+                            }
+                        }
+                    }
+                }
+            catch (MalformedObjectNameException e)
+                {
+                CacheFactory.log("Exception occurred while creating an ObjectName " +
+                        sName + "\n" + CacheFactory.getStackTrace(e));
+                }
+            }
+
+        responseEntity.setEntity(mapAttributes);
+        responseEntity.addResourceLink(MEMBERS, getSubUri(getCurrentUri(), MEMBERS));
         }
     }
