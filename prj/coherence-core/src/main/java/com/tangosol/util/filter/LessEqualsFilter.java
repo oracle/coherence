@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -144,7 +144,7 @@ public class LessEqualsFilter<T, E extends Comparable<? super E>>
                     Set set = (Set) iterGE.next();
                     if (set != setEQ)
                         {
-                        setKeys.removeAll(set);
+                        setKeys.removeAll(ensureSafeSet(set));
                         }
                     }
 
@@ -161,14 +161,12 @@ public class LessEqualsFilter<T, E extends Comparable<? super E>>
                     Set set = (Set) iterLT.next();
                     if (set != setNULL)
                         {
-                        setLE.addAll(set);
+                        setLE.addAll(ensureSafeSet(set));
                         }
                     }
 
-                if (setEQ != null)
-                    {
-                    setLE.addAll(setEQ);
-                    }
+                setLE.addAll(ensureSafeSet(setEQ));
+
                 setKeys.retainAll(setLE);
                 }
             }

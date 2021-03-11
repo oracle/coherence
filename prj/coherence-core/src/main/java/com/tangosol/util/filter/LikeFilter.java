@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -253,9 +253,9 @@ public class LikeFilter<T, E>
                     Map.Entry entry  = (Map.Entry) iter.next();
                     String    sValue = (String) entry.getKey();
 
-                    if (sValue.startsWith(sPrefix))
+                    if (sValue != null && sValue.startsWith(sPrefix))
                         {
-                        setMatch.addAll((Set) entry.getValue());
+                        setMatch.addAll(ensureSafeSet((Set) entry.getValue()));
                         }
                     else
                         {
@@ -280,7 +280,7 @@ public class LikeFilter<T, E>
             String sValue = oValue == null ? null : String.valueOf(oValue);
             if (isMatch(sValue))
                 {
-                setMatch.addAll((Set) entry.getValue());
+                setMatch.addAll(ensureSafeSet((Set) entry.getValue()));
                 }
             }
         setKeys.retainAll(setMatch);

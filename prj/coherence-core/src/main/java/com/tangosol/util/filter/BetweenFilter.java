@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -236,7 +236,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
             return this;
             }
 
-        Map mapInverse = mapIndex.getIndexContents();
+        Map<Object, Set> mapInverse = mapIndex.getIndexContents();
 
         if (mapInverse instanceof SortedMap)
             {
@@ -246,11 +246,11 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
         Set setToRetain = new HashSet();
 
-        for (Object value : mapInverse.keySet())
+        for (Map.Entry<Object, Set> entry : mapInverse.entrySet())
             {
-            if (evaluateExtracted(value))
+            if (evaluateExtracted(entry.getKey()))
                 {
-                setToRetain.addAll((Collection) mapInverse.get(value));
+                setToRetain.addAll(ExtractorFilter.ensureSafeSet(entry.getValue()));
                 }
             }
 
@@ -377,25 +377,22 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
      * @param setKeys      the set of keys of the entries being filtered
      * @param mapInverted  the index to apply
      */
-    protected void applySortedIndex(Set setKeys, SortedMap<Object, Collection> mapInverted)
+    protected void applySortedIndex(Set setKeys, SortedMap<Object, Set> mapInverted)
         {
-        Comparable                    oLowerBound        = getLowerBound();
-        Comparable                    oUpperBound        = getUpperBound();
-        boolean                       fIncludeLowerBound = isLowerBoundInclusive();
-        boolean                       fIncludeUpperBound = isUpperBoundInclusive();
-        SortedMap<Object, Collection> mapRange           = mapInverted.subMap(oLowerBound, oUpperBound);
-        Collection                    colKeysToRetain    = new HashSet();
-        boolean                       fInsideRange       = fIncludeLowerBound;
+        Comparable             oLowerBound        = getLowerBound();
+        Comparable             oUpperBound        = getUpperBound();
+        boolean                fIncludeLowerBound = isLowerBoundInclusive();
+        boolean                fIncludeUpperBound = isUpperBoundInclusive();
+        SortedMap<Object, Set> mapRange           = mapInverted.subMap(oLowerBound, oUpperBound);
+        Collection             colKeysToRetain    = new HashSet();
+        boolean                fInsideRange       = fIncludeLowerBound;
 
-        for (Map.Entry<?, Collection> entry : mapRange.entrySet())
+        for (Map.Entry<?, Set> entry : mapRange.entrySet())
             {
-            Object     oIndexValue   = entry.getKey();
-            Collection colIndexKeys = entry.getValue();
-
-            if (fInsideRange || evaluateExtracted(oIndexValue))
+            if (fInsideRange || evaluateExtracted(entry.getKey()))
                 {
                 fInsideRange = true;
-                colKeysToRetain.addAll(colIndexKeys);
+                colKeysToRetain.addAll(ExtractorFilter.ensureSafeSet(entry.getValue()));
                 }
             }
 

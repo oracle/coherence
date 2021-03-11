@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -27,6 +27,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -178,11 +179,9 @@ public abstract class ExtractorFilter<T, E>
 
         for (Map.Entry<E, ? extends Set<?>> entry : mapValues.entrySet())
             {
-            E value = entry.getKey();
-
-            if (evaluateExtracted(value))
+            if (evaluateExtracted(entry.getKey()))
                 {
-                setMatch.addAll(entry.getValue());
+                setMatch.addAll(ensureSafeSet(entry.getValue()));
                 }
             }
         setKeys.retainAll(setMatch);
@@ -242,6 +241,19 @@ public abstract class ExtractorFilter<T, E>
         out.writeObject(0, m_extractor);
         }
 
+    // ------ helper method -------------------------------------------------
+
+    /**
+     * Return a non-null Set.
+     *
+     * @param set the set to ensure
+     *
+     * @return the safe set
+     */
+    protected static Set ensureSafeSet(Set set)
+        {
+        return set == null ? Collections.emptySet() : set;
+        }
 
     // ----- constants ------------------------------------------------------
 
