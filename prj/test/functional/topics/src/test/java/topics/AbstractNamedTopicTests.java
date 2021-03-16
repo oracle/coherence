@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package topics;
 
 
+import com.oracle.bedrock.deferred.DeferredHelper;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Test;
@@ -270,17 +272,50 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldCreateAndDestroyTopic() throws Exception
         {
-        Session            session = getSession();
-        String             sName   = m_sSerializer + "-test";
-        NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+        Session                  session = getSession();
+        String                   sName   = m_sSerializer + "-test";
+        final NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
 
-        populate(topic.createPublisher(), 20);
+        try (Publisher<String> publisher = topic.createPublisher())
+            {
+            populate(publisher, 20);
+            }
+        assertTrue("assert topic is active", topic.isActive());
+        assertFalse("assert topic is not destroyed", topic.isDestroyed());
 
         topic.destroy();
+        Eventually.assertDeferred("Assert topic " + sName + " is not active",
+                                  () -> topic.isActive(), Matchers.is(false),
+                                  DeferredHelper.within(30, TimeUnit.SECONDS));
+        Eventually.assertDeferred("Assert topic " + sName + " is destroyed",
+                                  () -> topic.isDestroyed(), Matchers.is(true),
+                                  DeferredHelper.within(30, TimeUnit.SECONDS));
+        assertTrue(topic.isReleased());
 
-        topic = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
 
-        populate(topic.createPublisher(), 20);
+        NamedTopic<String> topic2 = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+
+        populate(topic2.createPublisher(), 20);
+        }
+
+    @Test
+    public void shouldCreateAndReleaseTopic() throws Exception
+        {
+        Session                  session = getSession();
+        String                   sName   = m_sSerializer + "-test";
+        final NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+
+        try (Publisher<String> publisher = topic.createPublisher())
+            {
+            populate(publisher, 20);
+            }
+        assertTrue("assert topic is active", topic.isActive());
+        assertFalse("assert topic is not released", topic.isReleased());
+        topic.release();
+        Eventually.assertDeferred("Assert topic " + sName + " is released",
+                                  () -> topic.isReleased(), Matchers.is(true),
+                                  DeferredHelper.within(15, TimeUnit.SECONDS));
+        assertFalse(topic.isActive());
         }
 
     @Test

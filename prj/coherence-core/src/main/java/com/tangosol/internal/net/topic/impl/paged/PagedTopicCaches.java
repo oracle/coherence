@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -133,6 +133,28 @@ public class PagedTopicCaches
     public boolean isActive()
         {
         return Pages.isActive();
+        }
+
+    /**
+     * Return whether or not the caches are destroyed,
+     * specifically the page cache for the topic.
+     *
+     * @return true if the caches are destroyed; false otherwise
+     */
+    public boolean isDestroyed()
+        {
+        return Pages.isDestroyed();
+        }
+
+    /**
+     * Return whether or not the caches are released,
+     * specifically the page cache for the topic.
+     *
+     * @return true if the caches are released; false otherwise
+     */
+    public boolean isReleased()
+        {
+        return Pages.isReleased();
         }
 
     // ----- Closeable methods ----------------------------------------------
