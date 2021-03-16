@@ -653,6 +653,22 @@ public class HttpRequestSender
 
         return getResponseJson(sendGetRequest(urlBuilder));
         }
+    
+    /**
+     * Return the node storage in a single REST call.
+     *
+     * @return the node storage data
+     * @throws Exception in case of errors
+     */
+    public JsonNode getNodeStorage()
+            throws Exception
+        {
+        URLBuilder urlBuilder = getBasePath().addPathSegment("services")
+                .addPathSegment("members")
+                .addQueryParameter("links", "")
+                .addQueryParameter("fields", "nodeId,ownedPartitionsPrimary");
+        return getResponseJson(sendGetRequest(urlBuilder));
+        }
 
     /**
      * Get the storage data for the given service
