@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -592,6 +592,13 @@ public class MetricsSupportTests
             listExpectedMetrics.add("Coherence.OS.SystemLoadAverage");
             }
 
+        if (s_bTestJdk15)
+            {
+            listExpectedMetrics.add("Coherence.OS.TotalMemorySize");
+            listExpectedMetrics.add("Coherence.OS.FreeMemorySize");
+            listExpectedMetrics.add("Coherence.OS.CpuLoad");
+            }
+
         assertMetricsWithoutAfterGC(adapter.getMetrics(),
                                     mapTags,
                                     listExpectedMetrics.toArray(new String[0]));
@@ -934,6 +941,10 @@ public class MetricsSupportTests
 
     private static final String TEST_WRITE_BEHIND_CACHE = "write-behind-1234";
 
+    /**
+     * True iff JVM is for JDK 15 or greater.
+     */
+    private static final Boolean s_bTestJdk15 = Integer.valueOf(System.getProperty("java.version").split("\\.")[0]) > 14 ? true : false;
 
     // ----- data members ---------------------------------------------------
 
