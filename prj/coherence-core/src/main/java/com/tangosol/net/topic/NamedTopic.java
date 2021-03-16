@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -110,4 +110,32 @@ public interface NamedTopic<V>
      * @return the set of named subscriber groups.
      */
     Set<String> getSubscriberGroups();
+
+    /**
+     * Specifies whether or not this NamedTopic has been destroyed.
+     *
+     * Implementations must override this method to provide the necessary information.
+     *
+     * @return true if the NamedTopic has been destroyed; false otherwise
+     */
+    public default boolean isDestroyed()
+        {
+        // to avoid cumbersome caller exception handling;
+        // default is a no-op.
+        return false;
+        }
+
+    /**
+     * Specifies whether or not this NamedTopic has been released.
+     *
+     * Implementations must override this method to provide the necessary information.
+     *
+     * @return true if the NamedTopic has been released; false otherwise
+     */
+    public default boolean isReleased()
+        {
+        // to avoid cumbersome caller exception handling;
+        // default is a no-op.
+        return false;
+        }
     }
