@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * A test class to exercise the {@link DerbyCacheStore}
+ * A test class to exercise the {@link HSQLDbCacheStore}
  *
  * @author Tim Middleton  2021.02.23
  */

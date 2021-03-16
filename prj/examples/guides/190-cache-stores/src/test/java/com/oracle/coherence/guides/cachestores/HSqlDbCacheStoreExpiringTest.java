@@ -21,12 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 /**
- * A test class to exercise the {@link DerbyCacheStore} but using an expiring cache.
+ * A test class to exercise the {@link HSQLDbCacheStore} but using an expiring cache.
  *
  * @author Tim Middleton  2021.02.17
  */
-public class DerbyCacheStoreExpiringTest
-        extends AbstractDerbyCacheStoreTest {
+public class HSqlDbCacheStoreExpiringTest
+        extends AbstractHSqlDbCacheStoreTest {
 
     // #tag::initial[]
     @BeforeAll
@@ -36,7 +36,7 @@ public class DerbyCacheStoreExpiringTest
     }
 
     @Test
-    public void testDerbyCacheStore() throws SQLException {
+    public void testHSQLDbCacheStore() throws SQLException {
         try {
             NamedMap<Integer, Customer> namedMap = getSession()
                     .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class)); // <2>

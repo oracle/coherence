@@ -14,12 +14,12 @@
   <caching-scheme-mapping>
     <cache-mapping>  <!--1-->
       <cache-name>Customer</cache-name>
-      <scheme-name>derby-cache-store</scheme-name>
+      <scheme-name>hsqlb-cache-store</scheme-name>
     </cache-mapping>
     <!-- tag::refresh[] -->
     <cache-mapping> <!--2-->
       <cache-name>CustomerExpiring</cache-name>
-      <scheme-name>derby-cache-store</scheme-name>
+      <scheme-name>hsqlb-cache-store</scheme-name>
       <init-params>
         <init-param>
           <param-name>back-expiry</param-name>   <!--3-->
@@ -35,7 +35,7 @@
     <!-- tag::writeBehind[] -->
     <cache-mapping> <!--2-->
       <cache-name>CustomerWriteBehind</cache-name>
-      <scheme-name>derby-cache-store</scheme-name>
+      <scheme-name>hsqlb-cache-store</scheme-name>
       <init-params>
         <init-param>
           <param-name>write-delay</param-name>
@@ -48,7 +48,7 @@
 
   <caching-schemes>
     <distributed-scheme>
-      <scheme-name>derby-cache-store</scheme-name>
+      <scheme-name>hsqlb-cache-store</scheme-name>
       <backing-map-scheme>
         <read-write-backing-map-scheme>
           <internal-cache-scheme>
@@ -62,7 +62,7 @@
           <cachestore-scheme>
             <class-scheme>
               <class-name>    <!--5-->
-                com.oracle.coherence.guides.cachestores.DerbyCacheStore
+                com.oracle.coherence.guides.cachestores.HSQLDbCacheStore
               </class-name>
               <init-params>
                 <init-param>

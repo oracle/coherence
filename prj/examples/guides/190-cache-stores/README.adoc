@@ -35,9 +35,9 @@ for detailed information on Cache Stores.
 ** <<simple-cache-store, Simple CacheStore>>
 ** <<enable-write-behind, Enable Write Behind>>
 * <<file-cache-store, File Cache Store Example>>
-* <<derby-cache-store, Derby Cache Store Example>>
-* <<expiring-derby-cache-store, Refresh Ahead Expiring Derby Cache Store Example>>
-* <<write-behind-derby-cache-store, Write Behind Derby Cache Store Example>>
+* <<hsqldb-cache-store, HSQLDb Cache Store Example>>
+* <<expiring-hsqldb-cache-store, Refresh Ahead Expiring HSQLDb Cache Store Example>>
+* <<write-behind-hsqldb-cache-store, Write Behind HSQLDb Cache Store Example>>
 * <<pluggable, Pluggable Cache Stores>>
 
 [#what-you-will-build]
@@ -366,59 +366,59 @@ Expected :null
 Actual   :One
 ----
 
-[#derby-cache-store]
-=== Derby Cache Store Example
+[#hsqldb-cache-store]
+=== HSQLDb Cache Store Example
 
-In this next example, we will manually create a database backed cache store using a Derby database in embedded mode.
+In this next example, we will manually create a database backed cache store using a HSQLDb database in embedded mode.
 This will show how a cache store could interact with a back-end database.
 
-NOTE: In this example we are using an embedded Derby database just as an example and normally the back-end database would
+NOTE: In this example we are using an embedded HSQLDb database just as an example and normally the back-end database would
 be on a physically separate machine and not in-memory.
 
-In this example we are storing a simple `Customer` class in our cache and cache-store. Continue below to review the `DerbyCacheStore` class.
+In this example we are storing a simple `Customer` class in our cache and cache-store. Continue below to review the `HSQLDbCacheStore` class.
 
-*Review the DerbyCacheStore*
+*Review the HSQLDbCacheStore*
 
 1. Specify the class that implements the `CacheStore` interface
 +
 [source,java,indent=0]
 ----
-include::src/main/java/com/oracle/coherence/guides/cachestores/DerbyCacheStore.java[tag=class]
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=class]
 ----
 
 2. Construct the CacheStore passing the cache name to the constructor
 +
 [source,java,indent=0]
 ----
-include::src/main/java/com/oracle/coherence/guides/cachestores/DerbyCacheStore.java[tag=constructor]
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=constructor]
 ----
 
 3. Implement the `load` method by selecting the customer from the database based upon the primary key of `id`
 +
 [source,java,indent=0]
 ----
-include::src/main/java/com/oracle/coherence/guides/cachestores/DerbyCacheStore.java[tag=load]
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=load]
 ----
 
 4. Implement the `store` method by calling `storeInternal` and then issuing a commit.
 +
 [source,java,indent=0]
 ----
-include::src/main/java/com/oracle/coherence/guides/cachestores/DerbyCacheStore.java[tag=store]
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=store]
 ----
 
 5. Internal implementation of `store` to be re-used by `store` and `storeAll` to insert or update the record in the database
 +
 [source,java,indent=0]
 ----
-include::src/main/java/com/oracle/coherence/guides/cachestores/DerbyCacheStore.java[tag=storeInternal]
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=storeInternal]
 ----
 
 6. Implement the storeAll method
 +
 [source,java,indent=0]
 ----
-include::src/main/java/com/oracle/coherence/guides/cachestores/DerbyCacheStore.java[tag=storeAll]
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=storeAll]
 ----
 +
 NOTE: The `storeAll` method will use a single transaction to insert/update all values. This method will be used internally for write-behind only.
@@ -427,19 +427,19 @@ NOTE: The `storeAll` method will use a single transaction to insert/update all v
 +
 [source,java,indent=0]
 ----
-include::src/main/java/com/oracle/coherence/guides/cachestores/DerbyCacheStore.java[tag=erase]
+include::src/main/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStore.java[tag=erase]
 ----
 
 *Review the Cache Configuration*
 
-Review the Cache Configuration `derby-cache-store-cache-config.xml`
+Review the Cache Configuration `hsqldb-cache-store-cache-config.xml`
 
 [source,xml,indent=0]
 ----
-include::src/main/resources/derby-cache-store-cache-config.xml[tag=config]
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=config]
 ----
-<1> Cache mapping for Customer cache to the `derby-cache-loader` scheme
-<2> Cache mapping for CustomerExpiring cache to the `derby-cache-loader` scheme (see next section)
+<1> Cache mapping for Customer cache to the `hsqldb-cache-loader` scheme
+<2> Cache mapping for CustomerExpiring cache to the `hsqldb-cache-loader` scheme (see next section)
 <3> Set the expiry to 20 seconds for the expiring cache
 <4> Override the refresh-ahead factor for the expiring cache
 <5> Specify the class that implements the `CacheStore` interface
@@ -447,20 +447,20 @@ include::src/main/resources/derby-cache-store-cache-config.xml[tag=config]
 
 *Run the Unit Test*
 
-Next we will run the `DerbyCacheStoreTest.java` unit test below and observe the behaviour.
+Next we will run the `HSQLDbCacheStoreTest.java` unit test below and observe the behaviour.
 
 1. Start and confirm NamedMap and database contents.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=initial]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=initial]
 ----
 
 2. Issue an initial get on the NamedMap and validate the object is read from the cache store.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=load1]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load1]
 ----
 +
 NOTE: You will see a message similar to the following indicating the time to retrieve a NamedMap entry that is not in the cache.
@@ -470,7 +470,7 @@ NOTE: You will see a message similar to the following indicating the time to ret
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=load2]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load2]
 ----
 +
 NOTE: You will see a message similar to the following indicating the time to retrieve a NamedMap entry is significantly quicker.
@@ -480,32 +480,32 @@ NOTE: You will see a message similar to the following indicating the time to ret
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=remove]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=remove]
 ----
 
 5. Issue a get for another customer and then update the customer details.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=update]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=update]
 ----
 
 6. Add a new customer and ensure it is created in the database. Then remove the same customer.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=addRemove]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=addRemove]
 ----
 
 7. Clear the NamedMap and show how to preload the data from the cache store.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=loadData]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=loadData]
 ----
 
-[#expiring-derby-cache-store]
-=== Refresh Ahead Derby Cache Store Example
+[#expiring-hsqldb-cache-store]
+=== Refresh Ahead HSQLDb Cache Store Example
 
 In this next example, we use the `CustomerExpiring` cache which will expire data after 20 seconds and also has a
 refresh-ahead-factor of 0.5 meaning that if the cache is accessed after 10 seconds then an asynchronous refresh-ahead
@@ -513,44 +513,44 @@ will be performed to speed up the next access to the data.
 
 *Review the Cache Configuration*
 
-The `derby-cache-store-cache-config.xml` below shows the `CustomerExpiring` cache passing in parameters to the `caching-scheme` to override
+The `hsqldb-cache-store-cache-config.xml` below shows the `CustomerExpiring` cache passing in parameters to the `caching-scheme` to override
 expiry and refresh ahead values.
 
 [source,xml,indent=0]
 ----
-include::src/main/resources/derby-cache-store-cache-config.xml[tag=refresh]
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=refresh]
 ----
 
 The `local-scheme` uses the `back-expiry` parameter passed in:
 
 [source,xml,indent=0]
 ----
-include::src/main/resources/derby-cache-store-cache-config.xml[tag=local]
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=local]
 ----
 
 The `read-write-backing-map-scheme` uses the `refresh-ahead-factor` parameter passed in:
 
 [source,xml,indent=0]
 ----
-include::src/main/resources/derby-cache-store-cache-config.xml[tag=refresh2]
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=refresh2]
 ----
 
 *Run the Unit Test*
 
-Next we will run the `DerbyCacheStoreExpiringTest.java` unit test below and observe the behaviour.
+Next we will run the `HSQLDbCacheStoreExpiringTest.java` unit test below and observe the behaviour.
 
 1. Start and confirm NamedMap and database contents.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreExpiringTest.java[tag=initial]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=initial]
 ----
 
 2. Issue a get for customer 1 and log the time to load
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreExpiringTest.java[tag=readThrough1]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough1]
 ----
 +
 NOTE: Notice the initial read through time similar to the following in the log: `(thread=main, member=1): Time for read-through 19.129 ms`
@@ -559,7 +559,7 @@ NOTE: Notice the initial read through time similar to the following in the log: 
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreExpiringTest.java[tag=readThrough2]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough2]
 ----
 +
 NOTE: The get within the 10 seconds (20s * 0.5), will cause an asynchronous refresh-ahead.
@@ -568,61 +568,61 @@ NOTE: The get within the 10 seconds (20s * 0.5), will cause an asynchronous refr
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreExpiringTest.java[tag=readThrough3]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough3]
 ----
 +
 NOTE: Notice the time to retrieve the entry is significantly reduced: `(thread=main, member=1): Time for after refresh-ahead 1.116 ms`
 
-[#write-behind-derby-cache-store]
-=== Write Behind Derby Cache Store Example
+[#write-behind-hsqldb-cache-store]
+=== Write Behind HSQLDb Cache Store Example
 
-In this final Derby cache store example, we use the `CustomerWriteBehind` cache which has a write delay of 10 seconds.
+In this final HSQLDb cache store example, we use the `CustomerWriteBehind` cache which has a write delay of 10 seconds.
 
 *Review the Cache Configuration*
 
-The `derby-cache-store-cache-config.xml` below shows the `CustomerWriteBehind` cache passing in parameters to the `caching-scheme` to override
+The `hsqldb-cache-store-cache-config.xml` below shows the `CustomerWriteBehind` cache passing in parameters to the `caching-scheme` to override
 `write-delay` value.
 
 [source,xml,indent=0]
 ----
-include::src/main/resources/derby-cache-store-cache-config.xml[tag=writeBehind]
+include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=writeBehind]
 ----
 
 *Run the Unit Test*
 
-Next we will run the `DerbyCacheStoreExpiringTest` unit test below and observe the behaviour.
+Next we will run the `HSqlDbCacheStoreExpiringTest` unit test below and observe the behaviour.
 
 1. Start and confirm NamedMap and database contents. In this example we are not preloading the database.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreWriteBehindTest.java[tag=initial]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=initial]
 ----
 
 2. Insert 10 customers using an efficient `putAll` operation and confirm the data is not yet in the cache.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreWriteBehindTest.java[tag=insert]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=insert]
 ----
 
 3. Wait till after the write-delay has passed and confirm that the customers are in the database.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreWriteBehindTest.java[tag=wait]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=wait]
 ----
 +
 NOTE: You will notice that you should see messages indicating 100 entries have been written. You may also see multiple writes as the data will be added in different partitions.
 load.
 [source,bash,indent=0]
 ----
-<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.DerbyCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 3 entries
-<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.DerbyCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 97 entries
 OR
-<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.DerbyCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+<Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 10 entries
 ----
 

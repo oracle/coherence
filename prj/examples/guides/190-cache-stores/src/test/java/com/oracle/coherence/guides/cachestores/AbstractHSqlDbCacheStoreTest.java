@@ -16,15 +16,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static com.oracle.coherence.guides.cachestores.DerbyCacheStore.DB_URL;
+import static com.oracle.coherence.guides.cachestores.HSQLDbCacheStore.DB_URL;
 
 
 /**
- * A abstract test class with common functionality {@link DerbyCacheStore}.
+ * A abstract test class with common functionality {@link HSQLDbCacheStore}.
  *
  * @author Tim Middleton  2021.02.17
  */
-public class AbstractDerbyCacheStoreTest
+public class AbstractHSqlDbCacheStoreTest
         extends AbstractCacheStoreTest {
 
     /**
@@ -60,7 +60,7 @@ public class AbstractDerbyCacheStoreTest
         dbConn = DriverManager.getConnection(DB_URL);
         createTable();
 
-        startupCoherence("derby-cache-store-cache-config.xml"); // <1>
+        startupCoherence("hsqldb-cache-store-cache-config.xml"); // <1>
     }
 
     /**

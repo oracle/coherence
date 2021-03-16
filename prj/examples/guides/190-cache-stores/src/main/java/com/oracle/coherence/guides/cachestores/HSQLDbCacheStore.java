@@ -21,14 +21,14 @@ import java.util.Map;
 
 
 /**
- * An implementation of a {@link CacheStore} which stores values into an embedded Derby database.
+ * An implementation of a {@link CacheStore} which stores values into an embedded HSQLDb database.
  * Note: This is not be a normal use case as a database would be a separate process, but we are just using embedded option for
  * convenience.
  *
  * @author Tim Middleton 2020.02.19
  */
 // #tag::class[]
-public class DerbyCacheStore
+public class HSQLDbCacheStore
         extends Base
         implements CacheStore<Integer, Customer> {
 // #end::class[]
@@ -43,9 +43,9 @@ public class DerbyCacheStore
     private Connection dbConn;
 
     /**
-     * Connection URL for in-memory embedded Derby Database.
+     * Connection URL for in-memory embedded HSQLDb Database.
      */
-    public static final String DB_URL = "jdbc:derby:memory:example;create=true";
+    public static final String DB_URL = "jdbc:hsqldb:mem:test";
 
     // #tag::constructor[]
     /**
@@ -55,10 +55,10 @@ public class DerbyCacheStore
      *
      * @throws SQLException if any SQL errors
      */
-    public DerbyCacheStore(String cacheName) throws SQLException {
+    public HSQLDbCacheStore(String cacheName) throws SQLException {
         this.tableName = cacheName;
         dbConn = DriverManager.getConnection(DB_URL);
-        Logger.info("DerbyCacheStore constructed with cache Name " + cacheName);
+        Logger.info("HSQLDbCacheStore constructed with cache Name " + cacheName);
     }
     // #end::constructor[]
 

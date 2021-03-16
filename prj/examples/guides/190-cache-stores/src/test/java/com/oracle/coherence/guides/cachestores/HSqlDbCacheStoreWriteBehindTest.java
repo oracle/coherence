@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 /**
- * A test class to exercise the {@link DerbyCacheStore} but using a write behind cache.
+ * A test class to exercise the {@link HSQLDbCacheStore} but using a write behind cache.
  *
  * @author Tim Middleton  2021.02.17
  */
-public class DerbyCacheStoreWriteBehindTest
-        extends AbstractDerbyCacheStoreTest {
+public class HSqlDbCacheStoreWriteBehindTest
+        extends AbstractHSqlDbCacheStoreTest {
     
     // #tag::initial[]
     @BeforeAll
@@ -38,10 +38,10 @@ public class DerbyCacheStoreWriteBehindTest
     }
 
     @Test
-    public void testDerbyCacheStore() throws SQLException {
+    public void testHsqlDbCacheStore() throws SQLException {
         try {
             NamedMap<Integer, Customer> namedMap = getSession()
-                    .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class)); // <2>
+                    .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class));
 
             // cache should be empty
             assertEquals(0, namedMap.size());

@@ -22,8 +22,6 @@ dependencies {
 	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
 
 	implementation "${coherenceGroupId}:coherence"
-	implementation "org.apache.derby:derby:${derbyVersion}"
-	implementation "org.apache.derby:derbyclient:${derbyVersion}"
 
     testImplementation "com.oracle.coherence.hibernate:coherence-hibernate-cache-store:${hibernateCacheStoreVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
