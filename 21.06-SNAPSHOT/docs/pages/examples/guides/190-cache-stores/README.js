@@ -53,15 +53,15 @@ for detailed information on Cache Stores.</p>
 
 </li>
 <li>
-<p><router-link to="#derby-cache-store" @click.native="this.scrollFix('#derby-cache-store')">Derby Cache Store Example</router-link></p>
+<p><router-link to="#hsqldb-cache-store" @click.native="this.scrollFix('#hsqldb-cache-store')">HSQLDb Cache Store Example</router-link></p>
 
 </li>
 <li>
-<p><router-link to="#expiring-derby-cache-store" @click.native="this.scrollFix('#expiring-derby-cache-store')">Refresh Ahead Expiring Derby Cache Store Example</router-link></p>
+<p><router-link to="#expiring-hsqldb-cache-store" @click.native="this.scrollFix('#expiring-hsqldb-cache-store')">Refresh Ahead Expiring HSQLDb Cache Store Example</router-link></p>
 
 </li>
 <li>
-<p><router-link to="#write-behind-derby-cache-store" @click.native="this.scrollFix('#write-behind-derby-cache-store')">Write Behind Derby Cache Store Example</router-link></p>
+<p><router-link to="#write-behind-hsqldb-cache-store" @click.native="this.scrollFix('#write-behind-hsqldb-cache-store')">Write Behind HSQLDb Cache Store Example</router-link></p>
 
 </li>
 <li>
@@ -812,18 +812,18 @@ Actual   :One</markup>
 </ol>
 </div>
 
-<h3 id="derby-cache-store">Derby Cache Store Example</h3>
+<h3 id="hsqldb-cache-store">HSQLDb Cache Store Example</h3>
 <div class="section">
-<p>In this next example, we will manually create a database backed cache store using a Derby database in embedded mode.
+<p>In this next example, we will manually create a database backed cache store using a HSQLDb database in embedded mode.
 This will show how a cache store could interact with a back-end database.</p>
 
 <div class="admonition note">
-<p class="admonition-inline">In this example we are using an embedded Derby database just as an example and normally the back-end database would
+<p class="admonition-inline">In this example we are using an embedded HSQLDb database just as an example and normally the back-end database would
 be on a physically separate machine and not in-memory.</p>
 </div>
-<p>In this example we are storing a simple <code>Customer</code> class in our cache and cache-store. Continue below to review the <code>DerbyCacheStore</code> class.</p>
+<p>In this example we are storing a simple <code>Customer</code> class in our cache and cache-store. Continue below to review the <code>HSQLDbCacheStore</code> class.</p>
 
-<p><strong>Review the DerbyCacheStore</strong></p>
+<p><strong>Review the HSQLDbCacheStore</strong></p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -831,7 +831,7 @@ Specify the class that implements the <code>CacheStore</code> interface
 <markup
 lang="java"
 
->public class DerbyCacheStore
+>public class HSQLDbCacheStore
         extends Base
         implements CacheStore&lt;Integer, Customer&gt; {</markup>
 
@@ -848,10 +848,10 @@ lang="java"
  *
  * @throws SQLException if any SQL errors
  */
-public DerbyCacheStore(String cacheName) throws SQLException {
+public HSQLDbCacheStore(String cacheName) throws SQLException {
     this.tableName = cacheName;
     dbConn = DriverManager.getConnection(DB_URL);
-    Logger.info("DerbyCacheStore constructed with cache Name " + cacheName);
+    Logger.info("HSQLDbCacheStore constructed with cache Name " + cacheName);
 }</markup>
 
 </li>
@@ -993,7 +993,7 @@ public void erase(Integer key) {  <span class="conum" data-value="7" />
 </ol>
 <p><strong>Review the Cache Configuration</strong></p>
 
-<p>Review the Cache Configuration <code>derby-cache-store-cache-config.xml</code></p>
+<p>Review the Cache Configuration <code>hsqldb-cache-store-cache-config.xml</code></p>
 
 <markup
 lang="xml"
@@ -1001,11 +1001,11 @@ lang="xml"
 >&lt;caching-scheme-mapping&gt;
   &lt;cache-mapping&gt;  <span class="conum" data-value="1" />
     &lt;cache-name&gt;Customer&lt;/cache-name&gt;
-    &lt;scheme-name&gt;derby-cache-store&lt;/scheme-name&gt;
+    &lt;scheme-name&gt;hsqlb-cache-store&lt;/scheme-name&gt;
   &lt;/cache-mapping&gt;
   &lt;cache-mapping&gt; <span class="conum" data-value="2" />
     &lt;cache-name&gt;CustomerExpiring&lt;/cache-name&gt;
-    &lt;scheme-name&gt;derby-cache-store&lt;/scheme-name&gt;
+    &lt;scheme-name&gt;hsqlb-cache-store&lt;/scheme-name&gt;
     &lt;init-params&gt;
       &lt;init-param&gt;
         &lt;param-name&gt;back-expiry&lt;/param-name&gt;   <span class="conum" data-value="3" />
@@ -1019,7 +1019,7 @@ lang="xml"
   &lt;/cache-mapping&gt;
   &lt;cache-mapping&gt; <span class="conum" data-value="2" />
     &lt;cache-name&gt;CustomerWriteBehind&lt;/cache-name&gt;
-    &lt;scheme-name&gt;derby-cache-store&lt;/scheme-name&gt;
+    &lt;scheme-name&gt;hsqlb-cache-store&lt;/scheme-name&gt;
     &lt;init-params&gt;
       &lt;init-param&gt;
         &lt;param-name&gt;write-delay&lt;/param-name&gt;
@@ -1031,7 +1031,7 @@ lang="xml"
 
 &lt;caching-schemes&gt;
   &lt;distributed-scheme&gt;
-    &lt;scheme-name&gt;derby-cache-store&lt;/scheme-name&gt;
+    &lt;scheme-name&gt;hsqlb-cache-store&lt;/scheme-name&gt;
     &lt;backing-map-scheme&gt;
       &lt;read-write-backing-map-scheme&gt;
         &lt;internal-cache-scheme&gt;
@@ -1043,7 +1043,7 @@ lang="xml"
         &lt;cachestore-scheme&gt;
           &lt;class-scheme&gt;
             &lt;class-name&gt;    <span class="conum" data-value="5" />
-              com.oracle.coherence.guides.cachestores.DerbyCacheStore
+              com.oracle.coherence.guides.cachestores.HSQLDbCacheStore
             &lt;/class-name&gt;
             &lt;init-params&gt;
               &lt;init-param&gt;
@@ -1065,8 +1065,8 @@ lang="xml"
 &lt;/caching-schemes&gt;</markup>
 
 <ul class="colist">
-<li data-value="1">Cache mapping for Customer cache to the <code>derby-cache-loader</code> scheme</li>
-<li data-value="2">Cache mapping for CustomerExpiring cache to the <code>derby-cache-loader</code> scheme (see next section)</li>
+<li data-value="1">Cache mapping for Customer cache to the <code>hsqldb-cache-loader</code> scheme</li>
+<li data-value="2">Cache mapping for CustomerExpiring cache to the <code>hsqldb-cache-loader</code> scheme (see next section)</li>
 <li data-value="3">Set the expiry to 20 seconds for the expiring cache</li>
 <li data-value="4">Override the refresh-ahead factor for the expiring cache</li>
 <li data-value="5">Specify the class that implements the <code>CacheStore</code> interface</li>
@@ -1074,7 +1074,7 @@ lang="xml"
 </ul>
 <p><strong>Run the Unit Test</strong></p>
 
-<p>Next we will run the <code>DerbyCacheStoreTest.java</code> unit test below and observe the behaviour.</p>
+<p>Next we will run the <code>HSQLDbCacheStoreTest.java</code> unit test below and observe the behaviour.</p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -1082,7 +1082,7 @@ Start and confirm NamedMap and database contents.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=initial]</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=initial]</markup>
 
 </li>
 <li>
@@ -1090,7 +1090,7 @@ Issue an initial get on the NamedMap and validate the object is read from the ca
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=load1]</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load1]</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will see a message similar to the following indicating the time to retrieve a NamedMap entry that is not in the cache.
@@ -1102,7 +1102,7 @@ Issue a second get, the entry will be retrieved directly from memory and not the
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=load2]</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load2]</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will see a message similar to the following indicating the time to retrieve a NamedMap entry is significantly quicker.
@@ -1114,7 +1114,7 @@ Remove and entry from the NamedMap and the value should be removed from the unde
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=remove]</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=remove]</markup>
 
 </li>
 <li>
@@ -1122,7 +1122,7 @@ Issue a get for another customer and then update the customer details.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=update]</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=update]</markup>
 
 </li>
 <li>
@@ -1130,7 +1130,7 @@ Add a new customer and ensure it is created in the database. Then remove the sam
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=addRemove]</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=addRemove]</markup>
 
 </li>
 <li>
@@ -1138,13 +1138,13 @@ Clear the NamedMap and show how to preload the data from the cache store.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/DerbyCacheStoreTest.java[tag=loadData]</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=loadData]</markup>
 
 </li>
 </ol>
 </div>
 
-<h3 id="expiring-derby-cache-store">Refresh Ahead Derby Cache Store Example</h3>
+<h3 id="expiring-hsqldb-cache-store">Refresh Ahead HSQLDb Cache Store Example</h3>
 <div class="section">
 <p>In this next example, we use the <code>CustomerExpiring</code> cache which will expire data after 20 seconds and also has a
 refresh-ahead-factor of 0.5 meaning that if the cache is accessed after 10 seconds then an asynchronous refresh-ahead
@@ -1152,7 +1152,7 @@ will be performed to speed up the next access to the data.</p>
 
 <p><strong>Review the Cache Configuration</strong></p>
 
-<p>The <code>derby-cache-store-cache-config.xml</code> below shows the <code>CustomerExpiring</code> cache passing in parameters to the <code>caching-scheme</code> to override
+<p>The <code>hsqldb-cache-store-cache-config.xml</code> below shows the <code>CustomerExpiring</code> cache passing in parameters to the <code>caching-scheme</code> to override
 expiry and refresh ahead values.</p>
 
 <markup
@@ -1160,7 +1160,7 @@ lang="xml"
 
 >&lt;cache-mapping&gt; <span class="conum" data-value="2" />
   &lt;cache-name&gt;CustomerExpiring&lt;/cache-name&gt;
-  &lt;scheme-name&gt;derby-cache-store&lt;/scheme-name&gt;
+  &lt;scheme-name&gt;hsqlb-cache-store&lt;/scheme-name&gt;
   &lt;init-params&gt;
     &lt;init-param&gt;
       &lt;param-name&gt;back-expiry&lt;/param-name&gt;   <span class="conum" data-value="3" />
@@ -1192,7 +1192,7 @@ lang="xml"
 
 <p><strong>Run the Unit Test</strong></p>
 
-<p>Next we will run the <code>DerbyCacheStoreExpiringTest.java</code> unit test below and observe the behaviour.</p>
+<p>Next we will run the <code>HSQLDbCacheStoreExpiringTest.java</code> unit test below and observe the behaviour.</p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -1200,23 +1200,7 @@ Start and confirm NamedMap and database contents.
 <markup
 lang="java"
 
->@BeforeAll
-public static void startup() throws SQLException {
-    _startup("CustomerExpiring");
-    reloadCustomersDB();
-}
-
-@Test
-public void testDerbyCacheStore() throws SQLException {
-    try {
-        NamedMap&lt;Integer, Customer&gt; namedMap = getSession()
-                .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class)); <span class="conum" data-value="2" />
-
-        // cache should be empty
-        assertEquals(0, namedMap.size());
-
-        // Customer table should contain the correct number of customers
-        assertEquals(MAX_CUSTOMERS, getCustomerDBCount());</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=initial]</markup>
 
 </li>
 <li>
@@ -1224,14 +1208,7 @@ Issue a get for customer 1 and log the time to load
 <markup
 lang="java"
 
->// expiry delay is setup to 20s for the cache and refresh ahead is 0.5 which
-// means that after 10s if the entry is read the old value is returned but after which a
-// refresh is done which means that subsequents reads will be fast as the new value is already present
-long start = System.nanoTime();
-Customer customer = namedMap.get(1);
-long duration = System.nanoTime() - start;
-Logger.info(getDurationMessage(duration, "read-through"));
-assertEquals(1, customer.getId());</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough1]</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">Notice the initial read through time similar to the following in the log: <code>(thread=main, member=1): Time for read-through 19.129 ms</code></p>
@@ -1242,12 +1219,7 @@ Update the credit limit to 10000 in the database for customer 1 and ensure that 
 <markup
 lang="java"
 
->// update the database
-updateCustomerCreditLimitInDB(1, 10000);
-
-// sleep for 11 seconds get the cache entry, we should still get the original value
-Base.sleep(11000L);
-assertEquals(5000, namedMap.get(1).getCreditLimit());</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough2]</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">The get within the 10 seconds (20s * 0.5), will cause an asynchronous refresh-ahead.</p>
@@ -1258,13 +1230,7 @@ Wait for 10 seconds and then retrieve the customer object which has been updated
 <markup
 lang="java"
 
->// wait for another 10 seconds and the refresh-ahead should have completed
-Base.sleep(10000L);
-
-start = System.nanoTime();
-customer = namedMap.get(1);
-duration = System.nanoTime() - start;
-Logger.info(getDurationMessage(duration, "after refresh-ahead"));</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough3]</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">Notice the time to retrieve the entry is significantly reduced: <code>(thread=main, member=1): Time for after refresh-ahead 1.116 ms</code></p>
@@ -1273,13 +1239,13 @@ Logger.info(getDurationMessage(duration, "after refresh-ahead"));</markup>
 </ol>
 </div>
 
-<h3 id="write-behind-derby-cache-store">Write Behind Derby Cache Store Example</h3>
+<h3 id="write-behind-hsqldb-cache-store">Write Behind HSQLDb Cache Store Example</h3>
 <div class="section">
-<p>In this final Derby cache store example, we use the <code>CustomerWriteBehind</code> cache which has a write delay of 10 seconds.</p>
+<p>In this final HSQLDb cache store example, we use the <code>CustomerWriteBehind</code> cache which has a write delay of 10 seconds.</p>
 
 <p><strong>Review the Cache Configuration</strong></p>
 
-<p>The <code>derby-cache-store-cache-config.xml</code> below shows the <code>CustomerWriteBehind</code> cache passing in parameters to the <code>caching-scheme</code> to override
+<p>The <code>hsqldb-cache-store-cache-config.xml</code> below shows the <code>CustomerWriteBehind</code> cache passing in parameters to the <code>caching-scheme</code> to override
 <code>write-delay</code> value.</p>
 
 <markup
@@ -1287,7 +1253,7 @@ lang="xml"
 
 >&lt;cache-mapping&gt; <span class="conum" data-value="2" />
   &lt;cache-name&gt;CustomerWriteBehind&lt;/cache-name&gt;
-  &lt;scheme-name&gt;derby-cache-store&lt;/scheme-name&gt;
+  &lt;scheme-name&gt;hsqlb-cache-store&lt;/scheme-name&gt;
   &lt;init-params&gt;
     &lt;init-param&gt;
       &lt;param-name&gt;write-delay&lt;/param-name&gt;
@@ -1298,7 +1264,7 @@ lang="xml"
 
 <p><strong>Run the Unit Test</strong></p>
 
-<p>Next we will run the <code>DerbyCacheStoreExpiringTest</code> unit test below and observe the behaviour.</p>
+<p>Next we will run the <code>HSqlDbCacheStoreExpiringTest</code> unit test below and observe the behaviour.</p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -1306,22 +1272,7 @@ Start and confirm NamedMap and database contents. In this example we are not pre
 <markup
 lang="java"
 
->@BeforeAll
-public static void startup() throws SQLException {
-    _startup("CustomerWriteBehind");
-}
-
-@Test
-public void testDerbyCacheStore() throws SQLException {
-    try {
-        NamedMap&lt;Integer, Customer&gt; namedMap = getSession()
-                .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class)); <span class="conum" data-value="2" />
-
-        // cache should be empty
-        assertEquals(0, namedMap.size());
-
-        // Customer table should contain no customers
-        assertEquals(0, getCustomerDBCount());</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=initial]</markup>
 
 </li>
 <li>
@@ -1329,15 +1280,7 @@ Insert 10 customers using an efficient <code>putAll</code> operation and confirm
 <markup
 lang="java"
 
->// add 10 customers
-Map&lt;Integer, Customer&gt; map = new HashMap&lt;&gt;();
-for (int i = 1; i &lt;= 100; i++) {
-    map.put(i, new Customer(i, "Name " + i, "Address " + i, i *  1000));
-}
-namedMap.putAll(map);
-
-// initial check of the database should return 0 as we have write-delay set
-assertEquals(0, getCustomerDBCount());</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=insert]</markup>
 
 </li>
 <li>
@@ -1345,11 +1288,7 @@ Wait till after the write-delay has passed and confirm that the customers are in
 <markup
 lang="java"
 
->// sleep for 15 seconds and the database should be populated as write-delay has elapsed
-Base.sleep(15000L);
-
-// Issuing Eventually assertThat in case of heavily loaded machine
-Eventually.assertThat(invoking(this).getCustomerDBCount(), is(100));</markup>
+>Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=wait]</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will notice that you should see messages indicating 100 entries have been written. You may also see multiple writes as the data will be added in different partitions.
@@ -1358,12 +1297,12 @@ load.</p>
 </li>
 </ol>
 <div class="listing">
-<pre>&lt;Info&gt; (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.DerbyCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+<pre>&lt;Info&gt; (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 3 entries
-&lt;Info&gt; (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.DerbyCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+&lt;Info&gt; (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 97 entries
 OR
-&lt;Info&gt; (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.DerbyCacheStore):DistributedCache:CustomerWriteBehind, member=1):
+&lt;Info&gt; (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 10 entries</pre>
 </div>
 
