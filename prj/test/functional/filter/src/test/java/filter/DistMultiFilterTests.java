@@ -62,27 +62,16 @@ public class DistMultiFilterTests
     @BeforeClass
     public static void startup()
         {
-        CoherenceCacheServer clusterMember1 = (CoherenceCacheServer) startCacheServer("DistMultiFilterTests-1", "filter", null, PROPS_SEONE);
-        CoherenceCacheServer clusterMember = (CoherenceCacheServer) startCacheServer("DistMultiFilterTests-2", "filter", null, PROPS_SEONE);
+        s_server1 = (CoherenceCacheServer) startCacheServer("DistMultiFilterTests-1", "filter", null, PROPS_SEONE);
+        s_server2 = (CoherenceCacheServer) startCacheServer("DistMultiFilterTests-2", "filter", null, PROPS_SEONE);
 
-        Eventually.assertThat(invoking(m_helper).getClusterSize(clusterMember1), is(3));
-        Eventually.assertThat(invoking(m_helper).getClusterSize(clusterMember), is(3));
+        NamedCache              cache        = CacheFactory.getCache("dist-test2");
+        DistributedCacheService service      = (DistributedCacheService) cache.getCacheService();
+        String                  sServiceName = service.getInfo().getServiceName();
 
-        NamedCache                        cache        = CacheFactory.getCache("dist-test2");
-        DistributedCacheService           service      = (DistributedCacheService) cache.getCacheService();
-        String                            sServiceName = service.getInfo().getServiceName();
-        PartitionedCacheServiceIsBalanced isBalanced   = new PartitionedCacheServiceIsBalanced(sServiceName);
+        s_serviceIsBalanced  = new PartitionedCacheServiceIsBalanced(sServiceName);
 
-        try
-            {
-            Eventually.assertThat(invoking(m_helper).submitBool(clusterMember, isBalanced), is(true));
-            Eventually.assertThat(invoking(m_helper).submitBool(clusterMember1, isBalanced), is(true));
-            }
-        catch (Exception e)
-            {
-            e.printStackTrace();
-            fail(e.getMessage());
-            }
+        waitForBalancedPartitions();
         }
 
     /**
@@ -134,6 +123,10 @@ public class DistMultiFilterTests
                                       "filter", null, PROPS_SEONE);
         Eventually.assertThat(invoking(m_helper).getClusterSize(clusterMember3), is(4));
         stopCacheServer("DistMultiFilterTests-3");
+
+        // post-condition.  ensure partitioned service is rebalanced after clusterMember3 started/left.
+        // Fixes failure running AbstractFilterTests#test. Details at COH-23048.
+        waitForBalancedPartitions();
         }
 
     // ----- inner class: CustomFilter --------------------------------
@@ -181,4 +174,42 @@ public class DistMultiFilterTests
         {
         return 2;
         }
+
+    // ----- helpers -----------------------------------------------------------
+
+    /**
+     * Preconditions for filter tests.
+     *
+     * Ensure 2 servers and one client are member of cluster.
+     * Ensure the 2 storage enabled servers have balanced partitions for s_serviceIsBalanced.
+     *
+     * Unreliable limit filter results causing intermittent failure when see
+     * log message "Repeating QueryRequest due to the re-distribution of PartitionSet{X..N)"
+     */
+    private static void waitForBalancedPartitions()
+        {
+        long ldtStart = System.currentTimeMillis();
+
+        Eventually.assertThat(invoking(m_helper).getClusterSize(s_server1), is(3));
+        Eventually.assertThat(invoking(m_helper).getClusterSize(s_server2), is(3));
+        try
+            {
+            Eventually.assertThat(invoking(m_helper).submitBool(s_server1, s_serviceIsBalanced), is(true));
+            Eventually.assertThat(invoking(m_helper).submitBool(s_server2, s_serviceIsBalanced), is(true));
+            }
+        catch (Exception e)
+            {
+            e.printStackTrace();
+            fail(e.getMessage());
+            }
+        System.out.println("Waited " + (System.currentTimeMillis() - ldtStart) + " ms for partition rebalancing");
+        }
+
+    // ----- data members ------------------------------------------------------
+
+    private static CoherenceCacheServer               s_server1;
+
+    private static CoherenceCacheServer               s_server2;
+
+    private static PartitionedCacheServiceIsBalanced  s_serviceIsBalanced;
     }
