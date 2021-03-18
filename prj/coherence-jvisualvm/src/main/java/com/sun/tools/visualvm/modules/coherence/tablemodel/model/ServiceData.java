@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2020, 2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -284,6 +284,11 @@ public class ServiceData
                     {
                     // is another type such as proxy/http
                     data.setColumn(ServiceData.STORAGE_MEMBERS, 0);
+                    data.setColumn(ServiceData.PARTITIONS_ENDANGERED, 0);
+                    data.setColumn(ServiceData.PARTITIONS_VULNERABLE, 0);
+                    data.setColumn(ServiceData.PARTITIONS_UNBALANCED, 0);
+                    data.setColumn(ServiceData.PARTITIONS_PENDING, 0);
+                    data.setColumn(ServiceData.PARTITION_COUNT, 0);
                     }
 
                  // check if the service is federation
