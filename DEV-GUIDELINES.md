@@ -137,51 +137,52 @@ public class Foo
 
 5. Never import any unnecessary classes ("no unused imports").
 
-Example import section from the "Base" class in the "com.tangosol.util" package:
+Example import section from the "ConverterCollections" class in the "com.tangosol.util" package:
 
 ```java
-import com.oracle.coherence.common.base.Assertions;
-import com.oracle.coherence.common.base.Blocking;
-import com.oracle.coherence.common.base.Classes;
-import com.oracle.coherence.common.base.Exceptions;
-import com.oracle.coherence.common.base.Formatting;
-import com.oracle.coherence.common.base.Hasher;
-import com.oracle.coherence.common.base.HashHelper;
-import com.oracle.coherence.common.base.Objects;
-import com.oracle.coherence.common.base.Randoms;
-import com.oracle.coherence.common.base.Reads;
-import com.oracle.coherence.common.base.StackTrace;
-import com.oracle.coherence.common.base.TimeHelper;
+import com.oracle.coherence.common.base.Holder;
+import com.oracle.coherence.common.base.NaturalHasher;
 
-import com.oracle.coherence.common.util.CommonMonitor;
+import com.tangosol.internal.net.NamedCacheDeactivationListener;
+import com.tangosol.internal.util.processor.CacheProcessors;
 
-import com.tangosol.coherence.config.Config;
+import com.tangosol.io.Serializer;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.net.BackingMapContext;
+import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.CacheService;
+import com.tangosol.net.NamedCache;
 
-import java.io.CharArrayWriter;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Reader;
+import com.tangosol.net.cache.CacheEvent;
+import com.tangosol.net.cache.CacheMap;
+import com.tangosol.net.cache.ConfigurableCacheMap;
 
-import java.math.BigDecimal;
+import com.tangosol.util.InvocableMap.EntryAggregator;
+import com.tangosol.util.InvocableMap.EntryProcessor;
+import com.tangosol.util.MapListenerSupport.WrapperListener;
 
-import java.net.URL;
+import com.tangosol.util.function.Remote;
 
-import java.rmi.RemoteException;
+import java.io.Serializable;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import java.lang.reflect.Array;
 
+import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
-import java.util.TimeZone;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+
+import java.util.function.BiFunction;
 ```
 
 ## <a name="4"></a>4. Indentation and Spacing
@@ -408,14 +409,14 @@ Commonly used Intent Abbreviations (for Coherence)
 
 Example: Sensible variable names
 ```java
-PartitionSet partsOwned  = ...;
-BinaryEntry  binEntry = ...;
-Binary       binKey   = ...;
-byte[]       abKey    = ...;
-int          cParts   = ...;
-int          ofStart  = ...;
-int          cMillis  = ...;
-int          nMask    = ...;
+PartitionSet partsOwned = ...;
+BinaryEntry  binEntry   = ...;
+Binary       binKey     = ...;
+byte[]       abKey      = ...;
+int          cParts     = ...;
+int          ofStart    = ...;
+int          cMillis    = ...;
+int          nMask      = ...;
 ```
 
 Example: Unacceptable variable names
@@ -684,6 +685,7 @@ Example: Unacceptable single line comment
 General guidelines for single line/in-line comments:
 
 14.a. Unlike JavaDoc comments, single line comments are not full sentences (no periods at the end of the comment); they are short phrases intended to guide the reader of the source
+
 14.b. Avoid documenting the obvious
 
 Example: Acceptable in-line comment
