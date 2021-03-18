@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,22 +7,31 @@
 
 package extend;
 
-
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.tangosol.net.NamedCache;
+
+import com.tangosol.net.cache.CacheStatistics;
+import com.tangosol.net.cache.LocalCache;
+import com.tangosol.net.cache.NearCache;
+
+import com.tangosol.util.MapEvent;
+
 import common.TestMapListener;
+
+import data.Person;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.tangosol.net.NamedCache;
-
-import com.tangosol.util.MapEvent;
-
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
 
+import static org.hamcrest.CoreMatchers.nullValue;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
 * A collection of functional tests for Coherence*Extend that use the
@@ -99,5 +108,26 @@ public class DistExtendNearAllTests
         Eventually.assertThat(invoking(cache).get("key"), nullValue());
 
         assertTrue(cache.isActive());
+        }
+
+    /**
+     * Test for COH-23095
+     */
+    @Test
+    public void testCoh23095()
+        {
+        NearCache<Integer, Person> cache = (NearCache) getNamedCache();
+
+        CacheStatistics cacheStats     = ((LocalCache) cache.getFrontMap()).getCacheStatistics();
+        long            cInitialMisses = cacheStats.getCacheMisses();
+
+        cache.computeIfAbsent(2,
+            person -> new Person("4321", "frist", "lats", 2000, null, new String[0]));
+        assertEquals(cacheStats.getCacheMisses(), cInitialMisses + 1);
+
+        cache.getOrDefault(3,
+            new Person("5678", "a", "b", 1980, null, new String[0]));
+        // 2 misses in getOrDefault(), frontMap is checked twice
+        assertEquals(cacheStats.getCacheMisses(), cInitialMisses + 3);
         }
     }

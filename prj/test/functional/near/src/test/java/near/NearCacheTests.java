@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,12 +7,8 @@
 
 package near;
 
-import com.tangosol.net.events.EventInterceptor;
-import com.tangosol.net.events.annotation.EntryEvents;
-import com.tangosol.net.events.annotation.Interceptor;
-import com.tangosol.net.events.partition.cache.EntryEvent;
-
 import com.oracle.bedrock.options.Timeout;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.net.AbstractInvocable;
@@ -20,8 +16,14 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.cache.CacheStatistics;
 import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.NearCache;
+
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.annotation.EntryEvents;
+import com.tangosol.net.events.annotation.Interceptor;
+import com.tangosol.net.events.partition.cache.EntryEvent;
 
 import com.tangosol.net.management.MBeanHelper;
 
@@ -29,6 +31,11 @@ import com.tangosol.util.BinaryEntry;
 
 import com.tangosol.util.processor.NumberIncrementor;
 import com.tangosol.util.processor.PropertyManipulator;
+
+import common.AbstractFunctionalTest;
+import common.TestCoh15021;
+
+import data.Person;
 
 import java.io.Serializable;
 
@@ -38,9 +45,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
-import common.AbstractFunctionalTest;
-import common.TestCoh15021;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -52,9 +56,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 
+import static org.hamcrest.Matchers.is;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
 * NearCache tests
@@ -474,6 +484,27 @@ public class NearCacheTests
             {
             cache.destroy();
             }
+        }
+
+    /**
+     * Test for COH-23095
+     */
+    @Test
+    public void testCoh23095()
+        {
+        NearCache<Integer, Person> cache = (NearCache) getNamedCache("near-coh-23095");
+
+        CacheStatistics cacheStats     = ((LocalCache) cache.getFrontMap()).getCacheStatistics();
+        long            cInitialMisses = cacheStats.getCacheMisses();
+
+        cache.computeIfAbsent(2,
+            person -> new Person("4321", "frist", "lats", 2000, null, new String[0]));
+        assertEquals(cacheStats.getCacheMisses(), cInitialMisses + 1);
+
+        cache.getOrDefault(3,
+            new Person("5678", "a", "b", 1980, null, new String[0]));
+        // 2 misses in getOrDefault(), frontMap is checked twice
+        assertEquals(cacheStats.getCacheMisses(), cInitialMisses + 3);
         }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,14 +7,7 @@
 
 package com.tangosol.net.cache;
 
-import com.tangosol.net.management.MBeanHelper;
-
 import com.tangosol.io.ClassLoaderAware;
-
-import com.tangosol.util.Base;
-import com.tangosol.util.Filter;
-import com.tangosol.util.MapListener;
-import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.MemberEvent;
@@ -23,10 +16,21 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.Service;
 
+import com.tangosol.net.management.MBeanHelper;
+
+import com.tangosol.util.Base;
+import com.tangosol.util.Filter;
+import com.tangosol.util.MapListener;
+import com.tangosol.util.ValueExtractor;
+
+import com.tangosol.util.function.Remote;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
+
+import java.util.function.Function;
 
 /**
 * A "near cache" is a CachingMap whose front map is a size-limited and/or
@@ -465,6 +469,29 @@ public class NearCache<K, V>
     /**
     * {@inheritDoc}
     * <p>
+    * The operation executes against the back cache if the value is not in the front.
+    */
+    public V computeIfAbsent(K key, Remote.Function<? super K, ? extends V> mappingFunction)
+        {
+        V value = getFrontMap().get(key);
+        return value == null ? getBackMap().computeIfAbsent(key, mappingFunction) : value;
+        }
+
+    /**
+    * {@inheritDoc}
+    * <p>
+    * The operation executes against the back cache if the value is not in the front.
+    */
+    @Override
+    public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction)
+        {
+        V value = getFrontMap().get(key);
+        return value == null ? getBackMap().computeIfAbsent(key, mappingFunction) : value;
+        }
+
+    /**
+    * {@inheritDoc}
+    * <p>
     * The operation always executes against the back cache.
     */
     public <R> R invoke(K key, EntryProcessor<K, V, R> processor)
@@ -512,6 +539,17 @@ public class NearCache<K, V>
         return getBackCache().aggregate(filter, aggregator);
         }
 
+    /**
+    * {@inheritDoc}
+    */
+    @Override
+    @SuppressWarnings("unchecked")
+    public V getOrDefault(Object oKey, V defaultValue)
+        {
+        V value = (V) get(oKey);
+
+        return value == null ? defaultValue : value;
+        }
 
     // ----- internal helpers -----------------------------------------------
 
