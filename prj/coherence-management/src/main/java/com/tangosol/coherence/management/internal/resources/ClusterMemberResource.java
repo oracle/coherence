@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -252,13 +252,12 @@ public class ClusterMemberResource
         {
         String       sBaseQuery  = ":type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand";
         QueryBuilder bldrQuery   = createQueryBuilder().withBaseQuery(sBaseQuery).withMember(sMemberKey);
-        Object[]     aoArguments = new Object[]{sOptions.split(",")};
+        Object[]     aoArguments = sOptions == null ? new Object[0] : new Object[]{sOptions.split(",")};
+        String[]     signature   = sOptions == null ? new String[0] : new String[]{String[].class.getName()};
 
-        executeMBeanOperation(bldrQuery,
-                "vmUnlockCommercialFeatures", null, null);
         // execute the JFR operation and return the result message from the operation
         return response(getResponseFromMBeanOperation(bldrQuery,
-                "status", sCmd, aoArguments, new String[]{String[].class.getName()}));
+                "status", sCmd, aoArguments, signature));
         }
 
     // -------------------------- AbstractManagementResource methods------------------------------------------

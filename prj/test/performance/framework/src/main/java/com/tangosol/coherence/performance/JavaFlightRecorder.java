@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -71,12 +71,6 @@ public class JavaFlightRecorder
 
         boolean fFailure = false;
 
-        if (operationInfoUnlock == null)
-            {
-            fFailure = true;
-            Base.err("Unable to find unlocking command");
-            }
-
         if (operationInfoJFRCheck == null)
             {
             fFailure = true;
@@ -105,7 +99,10 @@ public class JavaFlightRecorder
             {
             HashMap<String, MBeanOperationInfo> map = new HashMap<>();
 
-            map.put("unlock", operationInfoUnlock);
+            if (operationInfoUnlock != null)
+                {
+                map.put("unlock", operationInfoUnlock);
+                }
             map.put("check", operationInfoJFRCheck);
             map.put("start", operationInfoJFRStart);
             map.put("stop", operationInfoJFRStop);
@@ -113,7 +110,14 @@ public class JavaFlightRecorder
 
             s_mapCommands = map;
 
-            return invokeUnlock() != FAILURE;
+            if (operationInfoUnlock != null)
+                {
+                return invokeUnlock() != FAILURE;
+                }
+            else
+                {
+                return true;
+                }
             }
 
         return false;

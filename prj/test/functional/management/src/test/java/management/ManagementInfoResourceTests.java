@@ -915,6 +915,17 @@ public class ManagementInfoResourceTests
         assertThat(listMemberIds.size(), greaterThan(0));
 
         int nMemberId = listMemberIds.get(0);
+        if (!s_bTestJdk11)
+            {
+            // below JDK 11
+            response = getBaseTarget().path("members").path(nMemberId + "")
+                    .path(DIAGNOSTIC_CMD)
+                    .path("vmUnlockCommercialFeatures")
+                    .request(MediaType.APPLICATION_JSON_TYPE)
+                    .post(null);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            }
+
         try
             {
             String sFileName = "target"+ File.separator +"testMemberJfr-myRecording.jfr";
@@ -989,7 +1000,10 @@ public class ManagementInfoResourceTests
 
             oName = new ObjectName(sName);
             mBeanServer = m_aMembers[0].get(JmxFeature.class).getDeferredJMXConnector().get().getMBeanServerConnection();
-            mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
+            if (!s_bTestJdk11)
+                {
+                mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
+                }
             }
         catch (Exception InstanceNotFoundException)
             {
@@ -999,7 +1013,10 @@ public class ManagementInfoResourceTests
 
                 mBeanServer = m_aMembers[1].get(JmxFeature.class).getDeferredJMXConnector().get().getMBeanServerConnection();
                 oName = new ObjectName(sName);
-                mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
+                if (!s_bTestJdk11)
+                    {
+                    mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
+                    }
                 }
             catch (Exception e1)
                 {
