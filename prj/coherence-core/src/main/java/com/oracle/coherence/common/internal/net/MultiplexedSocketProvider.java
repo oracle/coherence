@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -22,6 +22,7 @@ import com.oracle.coherence.common.util.Duration;
 
 import java.net.ProtocolFamily;
 import java.net.SocketOption;
+import java.net.SocketTimeoutException;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
@@ -874,7 +875,15 @@ public class MultiplexedSocketProvider
                     ServerSocketChannel chanServer = getChannel();
                     if (chanServer.isBlocking())
                         {
-                        return chanServer.accept().socket();
+                        SocketChannel channel = chanServer.accept();
+                        long          cMillis = chanServer.socket().getSoTimeout();
+
+                        if (channel == null && cMillis > 0)
+                            {
+                            throw new SocketTimeoutException("SocketTimeout after configured SO_TIMEOUT " + cMillis + "ms");
+                            }
+
+                        return channel.socket();
                         }
                     throw new IllegalBlockingModeException();
                     }
