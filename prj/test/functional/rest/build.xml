@@ -1,21 +1,26 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
 -->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-<!-- ANT build script for Coherence REST test project.                       -->
+<!-- ANT build script for Coherence REST test project.                     -->
 <!--                                                                       -->
 <!-- Usage:                                                                -->
 <!--     prompt> ant help                                                  -->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-<project name="rest" default="help" basedir="../../../tests/rest">
+<project name="rest" default="help" basedir=".">
 
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
   <!-- Project properties                                                  -->
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <property environment="env"/>
+
+  <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="keytool" >
+    <os family="windows" />
+  </condition>
 
   <property name="functional.resources"     value="rest/**/*.xml"/>
   <property name="functional.source"        value="rest/**/*.java"/>
@@ -23,12 +28,6 @@
   <property name="functional.tests.exclude" value="rest/**/Abstract*Tests.class,
                                                    rest/GlassFishTests.class,
                                                    rest/WebLogicTests.class"/>
-
-  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-  <!-- Project imports                                                     -->
-  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-  <import file="../../../tests/test-import.xml"/>
 
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
   <!-- Project paths                                                       -->
@@ -93,32 +92,30 @@
   <target name="create.keystores"
           description="Generate the various keystore files used by the SSL tests.">
     <delete>
-      <fileset dir="../../../tests/rest" includes="*.jks"/>
-      <fileset dir="../../../tests/rest" includes="*.pem"/>
+      <fileset dir="src/test/resources" includes="*.jks"/>
+      <fileset dir="src/test/resources" includes="*.pem"/>
     </delete>
 
-    <!-- Create the client keystore and certificate -->
-    <exec executable="keytool">
-      <arg line="-genkey -keyalg RSA -keysize 1024 -sigalg MD5withRSA -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keypass private -keystore client.jks -storepass password"/>
+    <!-- Create the client, server keystores -->
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keypass private -keystore src/test/resources/client.jks -storepass password"/>
     </exec>
-    <exec executable="keytool">
-      <arg line="-exportcert -alias client -file client.pem -keystore client.jks -storepass password"/>
+    <exec executable="${keytool}">
+      <arg line="-exportcert -alias client -file src/test/resources/client.pem -keystore src/test/resources/client.jks -storepass password"/>
     </exec>
-
-    <!-- Create the server keystore and certificate -->
-    <exec executable="keytool">
-      <arg line="-genkey -keyalg RSA -keysize 1024 -sigalg MD5withRSA -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore server.jks -storepass password"/>
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore src/test/resources/server.jks -storepass password"/>
     </exec>
-    <exec executable="keytool">
-      <arg line="-exportcert -alias server -file server.pem -keystore server.jks -storepass password"/>
+    <exec executable="${keytool}">
+      <arg line="-exportcert -alias server -file src/test/resources/server.pem -keystore src/test/resources/server.jks -storepass password"/>
     </exec>
 
     <!-- Create the trust keystore -->
-    <exec executable="keytool">
-      <arg line="-importcert -noprompt -alias clientCert -file client.pem -keystore trust-server.jks -storepass password"/>
+    <exec executable="${keytool}">
+      <arg line="-importcert -noprompt -alias clientcert -file src/test/resources/client.pem -keystore src/test/resources/trust-server.jks -storepass password"/>
     </exec>
-    <exec executable="keytool">
-      <arg line="-importcert -noprompt -alias serverCert -file server.pem -keystore trust-client.jks -storepass password"/>
+    <exec executable="${keytool}">
+      <arg line="-importcert -noprompt -alias servercert -file src/test/resources/server.pem -keystore src/test/resources/trust-client.jks -storepass password"/>
     </exec>
   </target>
 </project>

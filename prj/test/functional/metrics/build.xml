@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- ANT build script for the metrics test project.                        -->
+<!--                                                                       -->
+<!-- Usage:                                                                -->
+<!--     prompt> ant help                                                  -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<project name="metrics" default="help" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Utility targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <property environment="env"/>
+
+  <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="keytool" >
+    <os family="windows" />
+  </condition>
+
+  <target name="create.keystores"
+          description="Generate the various keystore files used by the SSL tests.">
+    <delete>
+      <fileset dir="src/test/resources" includes="*.jks"/>
+      <fileset dir="src/test/resources" includes="*.pem"/>
+    </delete>
+
+    <!-- Create the client, server keystores -->
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keypass private -keystore src/test/resources/client.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-exportcert -alias client -file src/test/resources/client.pem -keystore src/test/resources/client.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore src/test/resources/server.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-exportcert -alias server -file src/test/resources/server.pem -keystore src/test/resources/server.jks -storepass password"/>
+    </exec>
+
+    <!-- Create the trust keystore -->
+    <exec executable="${keytool}">
+      <arg line="-importcert -noprompt -alias clientcert -file src/test/resources/client.pem -keystore src/test/resources/trust-server.jks -storepass password"/>
+    </exec>
+    <exec executable="${keytool}">
+      <arg line="-importcert -noprompt -alias servercert -file src/test/resources/server.pem -keystore src/test/resources/trust-client.jks -storepass password"/>
+    </exec>
+
+  </target>
+</project>

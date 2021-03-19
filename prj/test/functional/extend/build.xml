@@ -6,21 +6,21 @@
   http://oss.oracle.com/licenses/upl.
 -->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-<!-- ANT build script for the tcmp-ssl test project.                       -->
+<!-- ANT build script for the extend test project.                         -->
 <!--                                                                       -->
 <!-- Usage:                                                                -->
 <!--     prompt> ant help                                                  -->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-<project name="tcmp-ssl" default="help" basedir=".">
-
-  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-  <!-- Utility targets                                                     -->
-  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<project name="extend" default="help" basedir=".">
   <property environment="env"/>
 
   <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="keytool" >
     <os family="windows" />
   </condition>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- Utility targets                                                     -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
   <target name="create.keystores"
           description="Generate the various keystore files used by the SSL tests.">
@@ -28,9 +28,9 @@
       <fileset dir="src/test/resources" includes="*.jks"/>
     </delete>
 
-    <!-- Create the server keystore -->
+    <!-- Create the testcert keystore -->
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass password -keystore src/test/resources/keystore.jks -storepass password"/>
+      <arg line="-genkey -keyalg RSA -alias testcert -validity 3650 -dname 'CN=TestCert, O=Oracle, OU=Coherence, C=US' -storetype jks -keystore src/test/resources/testcert.jks -keypass password -storepass password"/>
     </exec>
   </target>
 </project>
