@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -89,7 +89,9 @@ public class PsrRemoteEnvironment<E extends PsrRemoteEnvironment>
         List<ClassPath> paths = StreamSupport.stream(ClassPath.ofSystem().spliterator(), false)
                 .filter((p) -> !(p.contains("prj/coherence") && p.endsWith("target/classes/")))
                 .filter((p) -> !(p.contains("prj/fmw") && p.endsWith("target/classes/")))
-                .filter((p) -> !p.contains("coherence-core-components"))
+                .filter((p) -> !p.contains("coherence-core"))
+                .filter((p) -> !p.contains("coherence-discovery"))
+                .filter((p) -> !p.contains("coherence-transaction"))
                 .map(ClassPath::new)
                 .collect(Collectors.toList());
 
