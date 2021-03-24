@@ -925,3 +925,10 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-examples/examples-j
 grant codeBase "file:${test.maven.repository}/-" {
   permission java.security.AllPermission; // third-party libraries: bdb, toplink, etc.
 };
+
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/extend/target/-" {
+  permission java.lang.management.ManagementPermission "control";
+  permission java.lang.management.ManagementPermission "monitor";
+  permission java.util.PropertyPermission "com.oracle.common.util.Threads.dumpLocks", "read";
+};
+
