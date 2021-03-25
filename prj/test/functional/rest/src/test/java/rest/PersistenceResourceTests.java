@@ -144,10 +144,12 @@ public class PersistenceResourceTests
         testArchivePresent();
         testArchiveStores();
         testDeleteSnapshot();
+        testSnapshotNotPresent();
         testRetrieveSnapshot();
         testSnapshotPresent();
         testRecoverSnapshot();
         testDeleteArchive();
+        testArchiveNotPresent();
         testForceRecovery();
         testSnapshotAllServices();
         }
@@ -174,6 +176,8 @@ public class PersistenceResourceTests
 
     private void testRetrieveSnapshot()
         {
+        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
                 .path("archives").path("test-snapshot").path("retrieve").request().post(null);
 
@@ -203,13 +207,15 @@ public class PersistenceResourceTests
         Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
 
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
-                .path("archives").request().get();
+                .path("archives").path("test-snapshot").request().delete();
 
         JsonMap mapResponse = new JsonMap(response.readEntity(JsonMap.class));
 
         List<String> listObjSnapshots = (List<String>) mapResponse.get("snapshots");
 
         assertThat(listObjSnapshots, not(hasItem("test-snapshot")));
+
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
     private void testSnapshot()
@@ -242,7 +248,6 @@ public class PersistenceResourceTests
         Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
-
     private void testArchiveStores()
         {
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
@@ -256,6 +261,7 @@ public class PersistenceResourceTests
 
         assertThat(objSnapshots, notNullValue());
         }
+
     private void testArchivePresent()
         {
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
@@ -278,6 +284,30 @@ public class PersistenceResourceTests
         List<String> listObjSnapshots = (List<String>) mapResponse.get("snapshots");
 
         assertThat(listObjSnapshots, hasItem("test-snapshot"));
+        }
+
+    private void testSnapshotNotPresent()
+        {
+        Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
+                .path("snapshots").request().get();
+
+        JsonMap  mapResponse = new JsonMap(response.readEntity(JsonMap.class));
+
+        List<String> listObjArchives = (List<String>) mapResponse.get("snapshots");
+
+        assertThat(listObjArchives, not(hasItem("test-snapshot")));
+        }
+
+    private void testArchiveNotPresent()
+        {
+        Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
+                .path("archives").request().get();
+
+        JsonMap  mapResponse = new JsonMap(response.readEntity(JsonMap.class));
+
+        List<String> listObjArchives = (List<String>) mapResponse.get("archives");
+
+        assertThat(listObjArchives, not(hasItem("test-snapshot")));
         }
 
     public boolean isPersistenceManagerIdle(Client client)
