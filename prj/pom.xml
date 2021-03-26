@@ -594,7 +594,7 @@
       Note that this property has to be named 'revision' and that it has
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
-    <revision>14.1.1-0-4</revision>
+    <revision>14.1.1-0-5-SNAPSHOT</revision>
 
     <!-- The groupId of the Coherence product -->
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
