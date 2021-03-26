@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -83,7 +83,7 @@ public class PrometheusFormatterTest
         new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
-        String expected = "# TYPE vendor:coherence_cluster_size gauge \n"
+        String expected = "# TYPE vendor:coherence_cluster_size gauge\n"
                           + "# HELP vendor:coherence_cluster_size Cluster size\n"
                           + "vendor:coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
 
@@ -113,7 +113,7 @@ public class PrometheusFormatterTest
         new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
-        String expected = "# TYPE vendor:coherence_cluster_size gauge \n"
+        String expected = "# TYPE vendor:coherence_cluster_size gauge\n"
                           + "# HELP vendor:coherence_cluster_size Cluster size\n"
                           + "vendor:coherence_cluster_size 3\n";
 
@@ -129,7 +129,7 @@ public class PrometheusFormatterTest
         new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
-        String expected = "# TYPE vendor:coherence_cluster_size gauge \n"
+        String expected = "# TYPE vendor:coherence_cluster_size gauge\n"
                           + "vendor:coherence_cluster_size 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
