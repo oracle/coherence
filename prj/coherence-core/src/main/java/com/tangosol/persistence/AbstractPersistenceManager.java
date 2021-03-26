@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.persistence;
 import com.oracle.coherence.common.base.Collector;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.coherence.persistence.AsyncPersistenceException;
 import com.oracle.coherence.persistence.ConcurrentAccessException;
@@ -31,6 +32,7 @@ import com.tangosol.net.cache.KeyAssociation;
 
 import com.tangosol.persistence.AbstractPersistenceManager.AbstractPersistentStore;
 
+import com.tangosol.net.GuardSupport;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.NullImplementation;
@@ -185,6 +187,29 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         AbstractPersistentStore store = f_mapStores.remove(sId);
         if (store != null)
             {
+            if (!store.f_setDeletedIds.isEmpty())
+                {
+                synchronized (store.f_setDeletedIds)
+                    {
+                    long cMillis = 10_000L;
+                    GuardSupport.heartbeat(cMillis);
+
+                    // wait for deleteExtent tasks to finish before release
+                    try (Timeout t = Timeout.after(cMillis))
+                        {
+                        while (!store.f_setDeletedIds.isEmpty())
+                            {
+                            Blocking.wait(store.f_setDeletedIds, 100L);
+                            }
+                        }
+                    catch (InterruptedException e)
+                        {
+                        Thread.interrupted();
+                        Logger.finest("Store close interrupted while waiting for delete extent tasks to finish: " +
+                                store.getId());
+                        }
+                    }
+                }
             store.release();
             }
         }
@@ -982,20 +1007,27 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 ensureReady();
 
                 // flush any pending deleteExtent tasks
-                while (f_setDeletedIds.contains(lExtentId))
+                if (f_setDeletedIds.contains(lExtentId))
                     {
                     synchronized (f_setDeletedIds)
                         {
-                        try
+                        long cMillis = 10_000L;
+                        GuardSupport.heartbeat(cMillis);
+
+                        // wait for deleteExtent tasks to finish
+                        try (Timeout t = Timeout.after(cMillis))
                             {
-                            f_setDeletedIds.wait(100L);
+                            while (f_setDeletedIds.contains(lExtentId))
+                                {
+                                Blocking.wait(f_setDeletedIds, 100L);
+                                }
                             }
                         catch (InterruptedException e)
                             {
+                            Thread.interrupted();
                             // regardless of the interrupt attempt to create
                             // the extent; the creation will throw if the extent
                             // deletion remains pending
-                            break;
                             }
                         }
                     }
