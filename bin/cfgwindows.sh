@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #
-#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 #
-#  Licensed under the Universal Permissive License v 1.0 as shown at
-#  http://oss.oracle.com/licenses/upl.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
 #
 
 #
@@ -24,6 +24,11 @@
 _JAVA_HOME_CMD="get_java_home"
 
 function get_java_home
+  {
+  echo Not Supported
+  }
+
+function get_openssl_home
   {
   echo Not Supported
   }
@@ -49,6 +54,17 @@ if [ -f $SCRIPTS_DIR/../tools/internal/bin/cfgwindows.sh ]; then
 fi
 
 source $SCRIPTS_DIR/cfgcommon.sh
+
+# configure OpenSSL for building test certificates
+if [ -z $OPENSSL_HOME ]; then
+  OPENSSL_HOME=`eval get_openssl_home`
+  echo OPENSSL_HOME evaluated to $OPENSSL_HOME
+fi
+
+export PATH=${OPENSSL_HOME}:${PATH}
+export OPENSSL_CONF=${OPENSSL_HOME}/openssl.cnf
+echo openssl: `which openssl`
+openssl version
 
 unset SCRIPT_PATH
 unset SCRIPTS_DIR
