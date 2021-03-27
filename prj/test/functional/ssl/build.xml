@@ -19,50 +19,16 @@
 
   <property environment="env"/>
 
-  <condition property="openssl" value="${env.DEV_ROOT}/tools/OpenSSL-Win64/bin/openssl.exe" else="openssl">
-    <os family="windows" />
-  </condition>
-
   <condition property="keytool" value="${env.JAVA_HOME}/bin/keytool.exe" else="keytool" >
     <os family="windows" />
   </condition>
-
-  <condition property="noSSLDir">
-    <and>
-      <not>
-        <available file="C:/Program Files/Common Files/SSL" />
-      </not>
-      <os family="windows" />
-    </and>
-  </condition>
-
-  <condition property="noSSLFile">
-    <and>
-      <not>
-        <available file="C:/Program Files/Common Files/SSL/openssl.cnf" />
-      </not>
-      <os family="windows" />
-    </and>
-  </condition>
-
 
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
   <!-- Utility targets                                                     -->
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-  <target name="createSSLDir" if="noSSLDir">
-    <mkdir dir="C:/Program Files/Common Files/SSL"/>
-  </target>
-
-  <target name="copySSLFile" if="noSSLFile">
-    <copy todir="C:/Program Files/Common Files/SSL">
-      <fileset file="${env.DEV_ROOT}/tools/OpenSSL-Win64/openssl.cnf">
-      </fileset>
-    </copy>
-  </target>
-
   <target name="create.keystores"
-          description="Generate the various keystore files used by the SSL tests." depends="createSSLDir, copySSLFile">
+          description="Generate the various keystore files used by the SSL tests.">
       <delete dir="ca" failonerror="false"/>
     <delete>
       <fileset dir="src/test/resources/" includes="client.*"/>
@@ -77,100 +43,100 @@
     <mkdir dir="ca"/>
 
     <!-- Create the CA key and cert -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="genrsa -passout pass:1111 -des3 -out ca/cakey.pem 4096"/>
     </exec>
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="req -passin pass:1111 -new -x509 -days 3650 -key ca/cakey.pem -out ca/cacert.pem -subj '/C=US/ST=MA/L=Burlington/O=Oracle/CN=CA'"/>
     </exec>
 
     <!-- Create the client key -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="genrsa -passout pass:1111 -des3 -out src/test/resources/client.key 4096"/>
     </exec>
 
     <!-- Create the server key -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="genrsa -passout pass:1111 -des3 -out src/test/resources/server.key 4096"/>
     </exec>
 
     <!-- Create the guest key -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="genrsa -passout pass:1111 -des3 -out src/test/resources/guest.key 4096"/>
     </exec>
 
     <!-- Create the client signing request -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="req -passin pass:1111 -new -key src/test/resources/client.key -out src/test/resources/client.csr -subj '/C=US/ST=MA/L=Burlington/O=Oracle/CN=client'"/>
     </exec>
 
     <!-- Create the server signing request -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="req -passin pass:1111 -new -key src/test/resources/server.key -out src/test/resources/server.csr -subj '/C=US/ST=MA/L=Burlington/O=Oracle/CN=server'"/>
     </exec>
 
     <!-- Create the guest signing request -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="req -passin pass:1111 -new -key src/test/resources/guest.key -out src/test/resources/guest.csr -subj '/C=US/ST=MA/L=Burlington/O=Oracle/CN=guest'"/>
     </exec>
 
     <!-- Create Self-signed client certificate -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="x509 -req -passin pass:1111 -days 3650 -in src/test/resources/client.csr -CA ca/cacert.pem -CAkey ca/cakey.pem -set_serial 01 -out src/test/resources/client.chain"/>
     </exec>
 
     <!-- Create Self-signed server certificate -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="x509 -req -passin pass:1111 -days 3650 -in src/test/resources/server.csr -CA ca/cacert.pem -CAkey ca/cakey.pem -set_serial 01 -out src/test/resources/server.chain"/>
     </exec>
 
     <!-- Create Self-signed guest certificate -->
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="x509 -req -passin pass:1111 -days 3650 -in src/test/resources/guest.csr -CA ca/cacert.pem -CAkey ca/cakey.pem -set_serial 01 -out src/test/resources/guest.chain"/>
     </exec>
 
     <!-- Remove passphrase from client key --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="rsa -passin pass:1111 -in src/test/resources/client.key -out src/test/resources/client.key"/>
     </exec>
 
     <!-- Remove passphrase from server key --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="rsa -passin pass:1111 -in src/test/resources/server.key -out src/test/resources/server.key"/>
     </exec>
 
     <!-- Remove passphrase from guest key --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="rsa -passin pass:1111 -in src/test/resources/guest.key -out src/test/resources/guest.key"/>
     </exec>
 
     <!-- Create client.pem from client key --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="pkcs8 -topk8 -nocrypt -in src/test/resources/client.key -out src/test/resources/client.pem"/>
     </exec>
 
     <!-- Create server.pem from client key --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="pkcs8 -topk8 -nocrypt -in src/test/resources/server.key -out src/test/resources/server.pem"/>
     </exec>
 
     <!-- Create guest.pem from client key --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="pkcs8 -topk8 -nocrypt -in src/test/resources/guest.key -out src/test/resources/guest.pem"/>
     </exec>
 
     <!-- Create client.p12 from client.pem --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="pkcs12 -export -passout pass:private -inkey src/test/resources/client.pem -name client -in src/test/resources/client.chain -out src/test/resources/client.p12"/>
     </exec>
 
     <!-- Create server.p12 from server.pem --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="pkcs12 -export -passout pass:private -inkey src/test/resources/server.pem -name server -in src/test/resources/server.chain -out src/test/resources/server.p12"/>
     </exec>
 
     <!-- Create guest.p12 from guest.pem --> 
-    <exec executable="${openssl}">
+    <exec executable="openssl">
       <arg line="pkcs12 -export -passout pass:private -inkey src/test/resources/guest.pem -name guest -in src/test/resources/guest.chain -out src/test/resources/guest.p12"/>
     </exec>
 
