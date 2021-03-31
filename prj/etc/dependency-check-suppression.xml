@@ -122,7 +122,7 @@
    -->
    <suppress>
       <notes><![CDATA[
-      file name: opentracing-grpc-0.2.1.jar
+      file name: opentracing-grpc-0.2.3.jar
       ]]></notes>
       <packageUrl regex="true">^pkg:maven/io\.opentracing\.contrib/opentracing\-grpc@.*$</packageUrl>
       <cpe>cpe:/a:grpc:grpc</cpe>
@@ -134,15 +134,6 @@
      file name: guava-25.1-android.jar
      ]]></notes>
      <sha1>bdaab946ca5ad20253502d873ba0c3313d141036</sha1>
-     <cve>CVE-2020-8908</cve>
-  </suppress>
-
-  <!-- guava transitive dependency of grpc -->
-  <suppress>
-     <notes><![CDATA[
-     file name: guava-25.1-android.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
      <cve>CVE-2020-8908</cve>
   </suppress>
 
@@ -225,15 +216,29 @@
      <cve>CVE-2018-1000840</cve>
   </suppress>
 
-  <!-- Netty - transitive dependency from Helidon and gRPC.
-  To remove this both grpc-java and Helidon need to be at least Netty 4.1.59.Final -->
+  <!-- Netty - transitive dependency from Helidon via the GraphQL Tutorial.
+  To remove this both grpc-java and Helidon need to be at least Netty 4.1.60.Final -->
   <suppress>
-      <notes><![CDATA[
-      Netty - transitive dependency from Helidon and gRPC.
-        To remove this both grpc-java and Helidon need to be at least Netty 4.1.59.Final
-      ]]></notes>
-      <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*$</packageUrl>
-      <cve>CVE-2021-21290</cve>
+     <notes><![CDATA[
+     Netty - transitive dependency from Helidon.
+     To remove this Helidon needs to be at least Netty 4.1.60.Final
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*$</packageUrl>
+     <cpe>cpe:/a:netty:netty</cpe>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: netty-buffer-4.1.58.Final.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*$</packageUrl>
+     <cve>CVE-2021-21290</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: netty-buffer-4.1.58.Final.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*$</packageUrl>
+     <cve>CVE-2021-21295</cve>
   </suppress>
 
   <!-- Log4J - version 1.2.17 is the last 1.2.x version from 2012.
