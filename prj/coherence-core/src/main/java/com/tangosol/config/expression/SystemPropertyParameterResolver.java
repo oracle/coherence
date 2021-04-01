@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@ import com.tangosol.coherence.config.Config;
  * A {@link SystemPropertyParameterResolver} is a {@link ParameterResolver} that is
  * based on property methods on {@link System}.
  * <p>
- * Replaces {@link PropertiesParameterResolver( java.util.Properties )} since it required
+ * Replaces {@link com.tangosol.config.expression.PropertiesParameterResolver(java.util.Map)} since it required
  * read and write access for all Properties for simple property access.
  * {@link SystemPropertyParameterResolver#resolve(String)} only requires read access for property specified.
  *

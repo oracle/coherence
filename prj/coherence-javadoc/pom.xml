@@ -485,7 +485,7 @@
 
                     <include>com/tangosol/config/*.java</include>
                     <include>com/tangosol/config/annotation/*.java</include>
-                    <include>com/tangosol/config/expression*.java</include>
+                    <include>com/tangosol/config/expression/*.java</include>
                     <include>com/tangosol/config/xml/*.java</include>
 
                     <include>com/tangosol/io/*.java</include>
