@@ -117,6 +117,19 @@ function createRoutes(){
             component: loadPage('docs-core-04_portable_types', '/docs/core/04_portable_types', {})
         },
         {
+            path: '/docs/core/05_repository',
+            meta: {
+                h1: 'Repository API',
+                title: 'Repository API',
+                h1Prefix: null,
+                description: 'Coherence Repository API',
+                keywords: 'coherence, DDD, repository, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-05_repository', '/docs/core/05_repository', {})
+        },
+        {
             path: '/coherence-cdi-server/README',
             meta: {
                 h1: 'Coherence CDI',
@@ -456,7 +469,8 @@ function createNav(){
                                 { href: '/docs/core/01_overview', title: 'Overview' },
                                 { href: '/docs/core/02_bootstrap', title: 'Bootstrap API' },
                                 { href: '/docs/core/03_parallel_recovery', title: 'Parallel Recovery' },
-                                { href: '/docs/core/04_portable_types', title: 'Portable Types' }
+                                { href: '/docs/core/04_portable_types', title: 'Portable Types' },
+                                { href: '/docs/core/05_repository', title: 'Repository API' }
                             ]
                         },
                         {
@@ -591,6 +605,12 @@ function createNav(){
             title: 'Slack',
             action: 'fa-slack',
             href: 'https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE',
+            target: '_blank'
+        },
+        {
+            title: 'Blog',
+            action: 'library_books',
+            href: 'https://medium.com/oracle-coherence',
             target: '_blank'
         },
         {

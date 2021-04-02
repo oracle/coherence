@@ -50,6 +50,7 @@ com.tangosol.coherence.rest.util.processor
 com.tangosol.coherence.rest.util.updater
 com.tangosol.config
 com.tangosol.config.annotation
+com.tangosol.config.expression
 com.tangosol.config.xml
 com.tangosol.io
 com.tangosol.io.bdb
