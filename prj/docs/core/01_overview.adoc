@@ -37,5 +37,12 @@ Recover data from Coherence's Persistence mechanism in parallel.
 Implement versioned data classes that can evolve over time.
 --
 
+[CARD]
+.Repository API
+[icon=fa-sitemap,link=docs/core/05_repository.adoc]
+--
+Higher level, DDD-friendly data access API.
+--
+
 ====
 

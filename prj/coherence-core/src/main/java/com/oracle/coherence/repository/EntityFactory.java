@@ -17,6 +17,7 @@ import java.io.Serializable;
  * @author Aleks Seovic  2021.02.01
  * @since 21.06
  */
+// tag::doc[]
 @FunctionalInterface
 public interface EntityFactory<ID, T>
         extends Serializable
@@ -30,3 +31,4 @@ public interface EntityFactory<ID, T>
      */
     T create(ID id);
     }
+// end::doc[]

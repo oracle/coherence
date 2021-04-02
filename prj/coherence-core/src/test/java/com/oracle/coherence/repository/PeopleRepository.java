@@ -17,6 +17,7 @@ import data.repository.Person;
  * @author Aleks Seovic  2021.02.12
  */
 @Accelerated
+// tag::doc[]
 public class PeopleRepository
         extends AbstractRepository<String, Person>
     {
@@ -27,18 +28,19 @@ public class PeopleRepository
         this.people = people;
         }
 
-    protected NamedMap<String, Person> getMap()
+    protected NamedMap<String, Person> getMap()            // <1>
         {
         return people;
         }
 
-    protected String getId(Person entity)
+    protected String getId(Person person)                  // <2>
         {
-        return entity.getSsn();
+        return person.getSsn();
         }
 
-    protected Class<? extends Person> getEntityType()
+    protected Class<? extends Person> getEntityType()      // <3>
         {
         return Person.class;
         }
     }
+// end::doc[]

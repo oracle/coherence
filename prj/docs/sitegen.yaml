@@ -185,6 +185,11 @@ backend:
                 type: "icon"
                 value: "fa-slack"
               href: "https://join.slack.com/t/oraclecoherence/shared_invite/enQtNzcxNTQwMTAzNjE4LTJkZWI5ZDkzNGEzOTllZDgwZDU3NGM2YjY5YWYwMzM3ODdkNTU2NmNmNDFhOWIxMDZlNjg2MzE3NmMxZWMxMWE"
+            - title: "Blog"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://medium.com/oracle-coherence"
             - title: "Web Site"
               glyph:
                 type: "icon"

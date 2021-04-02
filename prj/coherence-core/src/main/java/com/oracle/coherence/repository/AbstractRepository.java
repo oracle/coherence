@@ -74,6 +74,7 @@ public abstract class AbstractRepository<ID, T>
     {
     // ---- abstract methods ------------------------------------------------
 
+    // # tag::abstract[]
     /**
      * Return the {@link NamedMap} that is used as the underlying entity store.
      *
@@ -96,6 +97,7 @@ public abstract class AbstractRepository<ID, T>
      * @return the type of entities in this repository
      */
     protected abstract Class<? extends T> getEntityType();
+    // # end::abstract[]
 
     // ---- CRUD support ----------------------------------------------------
 
@@ -116,7 +118,7 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return all entities in this repository
      */
-    public Collection<? extends T> findAll()
+    public Collection<T> findAll()
         {
         return getMapInternal().values();
         }

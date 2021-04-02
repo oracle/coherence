@@ -1,0 +1,537 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Repository API
+:description: Coherence Repository API
+:keywords: coherence, DDD, repository, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// they both serve a purpose, and the docs will look wrong if it is removed.
+== Repository API
+
+Coherence Repository API provides a higher-level, DDD-friendly way to access data managed in Coherence. It is implemented on top of the existing `NamedMap` API, but it provides a number of features that make it easier to use for many typical use cases where Coherence is used as a Key-Value data store.
+
+=== Features and Benefits
+
+In addition to the basic CRUD functionality, the Repository API provides many features that simplify common data management tasks:
+
+* Powerful projection features
+* Flexible in-place entity updates
+* First-class data aggregation support
+* Stream API support
+* Event listener support
+* Declarative acceleration and index creation
+* CDI Support
+
+=== Implementing a Repository
+
+Coherence provides an abstract base class `com.oracle.coherence.repository.AbstractRepository`, which your custom repository implementation needs to extend and provide implementation of the three abstract methods:
+
+[source,java]
+----
+include::../../coherence-core/src/main/java/com/oracle/coherence/repository/AbstractRepository.java[tag=abstract]
+----
+
+For example, a repository implementation that can be used to store `Person` entities, with `String` identifiers, can be as simple as:
+
+[source,java]
+----
+include::../../coherence-core/src/test/java/com/oracle/coherence/repository/PeopleRepository.java[tag=doc]
+----
+<1> The `getMap` method returns the `NamedMap` that should be used as a backing data store for the repository, which is in this case provided via constructor argument, but could just as easily be injected via CDI
+<2> The `getId` method returns an identifier for a given entity
+<3> The `getEntityType` method returns the class of the entities stored in the repository
+
+That is it in a nutshell: a trivial repository implementation above will allow you to access all the Repository API features described in the remaining sections, which are provided by the `AbstractRepository` class you extended.
+
+However, you are free (and encouraged) to add additional business methods to the repository class above that will make it easier to use within your application. The most common example of such methods would be various "finder" methods that your application needs. For example, if your application needs to frequently query the repository to find people based on their name, you may want to add a method for that purpose:
+
+[source,java]
+----
+    public Collection<Person> findByName(String name)
+        {
+        Filter<Person> filter = Filters.like(Person::getFirstName, name)
+                                    .or(Filters.like(Person::getLastName, name));
+        return findAll(filter);
+        }
+----
+
+You can then invoke `findByName` method directly within the application to find all the people whose first or last name starts with a letter `A`, for example:
+
+[source,java]
+----
+for (Person p : people.findByName("A%"))
+    {
+    // processing
+    }
+----
+
+=== Basic CRUD Operations
+
+We've already seen one read operation, `findAll`, in the example above, but let's start from the beginning and look into how we can add, remove, update and query our repository.
+
+To add new entities to the repository, or replace the existing ones, you can use either the `save` or the `saveAll` method.
+
+The former takes a single entity as an argument and stores it in the backing `NamedMap`:
+
+[source,java]
+----
+people.save(new Person("555-11-2222", "Aleks", 46));
+----
+
+The latter allows you to store a batch of entities at once by passing either an array, a collection or a stream of entities as an argument.
+
+Once you have some entities stored in a repository, you can query the repository using `findById` and `findAll` methods.
+
+[source,java]
+----
+Person person = people.findById("555-11-2222");                                            // <1>
+assert person.getName().equals("Aleks");
+assert person.getAge() == 46;
+
+Collection<Person> allPeople = people.findAll();                                           // <2>
+Collection<Person> allAdults = people.findAll(Filters.greaterOrEqual(Person::getAge, 18)); // <3>
+
+----
+<1> find a single `Person` by identifier
+<2> find all the people in the repository
+<3> find all the people in the repository that are 18 or older
+
+When using `findAll`, you can also specify an optional sort order for the results, by specifying a `Comparable` property via a method reference:
+
+[source,java]
+----
+Collection<Person> peopleOrderedByAge = people.findAll(Person::getAge)     // <1>
+----
+<1> the result will contain all people from the repository, sorted by age from the youngest to the oldest
+
+For more complex use cases, you can specify a `Comparator` to use instead. For example, if we wanted to always sort the results of the `findByName` method defined above first by last name and then by first name, we could re-implement it as:
+
+[source,java]
+----
+    public Collection<Person> findByName(String name)
+        {
+        Filter<Person> filter = Filters.like(Person::getFirstName, name)
+                                    .or(Filters.like(Person::getLastName, name));
+        return findAll(filter,
+                       Remote.comparator(Person::getLastName)
+                             .thenComparing(Person::getFirstName));     // <1>
+        }
+----
+<1> the results will be sorted by last name, and then by first name; note that we are using Coherence `Remote.comparator` instead of standard Java `Comparator` in order to ensure that the specified comparator is serializable and can be sent to remote cluster members.
+
+Finally, to remove entities from a repository you can use one of several `remove` methods:
+
+[source,java]
+----
+boolean fRemoved = people.remove(person);              // <1>
+boolean fRemoved = people.removeById("111-22-3333");   // <2>
+----
+<1> removes specified entity from the repository
+<2> removes entity with the specified identifier from the repository
+
+In both examples above the result will be a boolean indicating whether the entity was actually removed from the backing `NamedMap`, and it may be `false` if the entity wasn't present in the repository.
+
+If you are interested in the removed value itself, you can use the overloads of the methods above that allow you to express that:
+
+[source,java]
+----
+Person removed = people.remove(person, true);              // <1>
+Person removed = people.removeById("111-22-3333", true);   // <2>
+----
+<1> removes specified entity from the repository and returns it as the result
+<2> removes entity with the specified identifier from the repository and returns it as the result
+
+Note that this will result in additional network traffic, so unless you really need the removed entity it is probably best not to ask for it.
+
+The examples above are useful when you want to remove a single entity from the repository. In cases when you want to remove multiple entities as part of a single network call, you should use one of `removeAll` methods instead, which allow you to remove a set of entities by specifying either their identifiers explicitly, or the criteria for removal via the `Filter`.
+
+[source,java]
+----
+boolean fChanged = people.removeAll(Filters.equal(Person::getGender, Gender.MALE)); // <1>
+boolean fChanged = people.removeAllById(Set.of("111-22-3333", "222-33-4444"));      // <2>
+----
+<1> removes all men from the repository and returns `true` if any entity has been removed
+<2> removes entities with the specified identifiers from the repository and returns `true` if any entity has been removed
+
+Just like with single-entity removal operations, you can also use overloads that allow you to return the removed entities as the result:
+
+[source,java]
+----
+Map<String, Person> mapRemoved =
+        people.removeAll(Filters.equal(Person::getGender, Gender.MALE), true);  // <1>
+Map<String, Person> mapRemoved =
+        people.removeAllById(Set.of("111-22-3333", "222-33-4444"), true);       // <2>
+----
+<1> removes all men from the repository and returns the map of removed entities, keyed by identifier
+<2> removes entities with the specified identifiers from the repository and returns the map of removed entities, keyed by identifier
+
+=== Projection
+
+While querying repository for a collection of entities that satisfy some criteria is certainly a common and useful operation, sometimes you don't need all the information contained within the entity. For example, if you only need a person's name, querying for and then discarding all the information contained within the `Person` instances is unnecessary and wasteful.
+
+It is the equivalent of executing
+[source,sql]
+----
+SELECT * FROM PEOPLE
+----
+against a relational database, when a simple
+[source,sql]
+----
+SELECT name FROM PEOPLE
+----
+would suffice.
+
+Coherence Repository API allows you to limit the amount of data collected by performing server-side projection of the entity attributes you are interested in. For example, if you only need a person's name, you can get just the name:
+
+[source,java]
+----
+String name  = people.get("111-22-3333", Person::getName);                 // <1>
+Map<String, String> mapNames =
+        people.getAll(Filters.less(Person::getAge, 18), Person::getName);  // <2>
+----
+<1> return the name of the person with a specified identifier
+<2> return the map of names of all the people younger than 18, keyed by person's identifier
+
+Obviously, returning either the whole entity or a single attribute from an entity are two ends of the spectrum, and more often than not you need something in between. For example, you may need the person's name and age. For situations like that, Coherence allows you to use _fragments_:
+
+[source,java]
+----
+Fragment<Person> fragment = people.get("111-22-3333", Person::getName, Person::getAge);  // <1>
+String name = fragment.get(Person::getName);  // <2>
+int    age  = fragment.get(Person::getAge);   // <3>
+----
+<1> return a fragment containing the name and age of the person with a specified identifier
+<2> retrieve the person's name from a fragment
+<3> retrieve the person's age from a fragment
+
+You can, of course, perform the same projection across multiple entities using one of `getAll` methods:
+
+[source,java]
+----
+Map<String, Fragment<Person>> fragments = people.getAll(
+        Filters.less(Person::getAge, 18),
+        Person::getName, Person::getAge);  // <1>
+----
+<1> return a map of fragments containing the name and age of all the people younger than 18, keyed by person's identifier
+
+Unlike the relational database, which contains a set of columns for each row in the table, Coherence stores each entity as a full object graph, which means that the attributes can be other object graphs and can be nested to any level. This means that we also may need to be able to project attributes of the nested objects. For example, our `Person` class may have a nested `Address` object as an attribute, which in turn has `street`, `city`, and `country` attributes. If we want to retrieve the name and the country of a person in a repository, we can do it like this:
+
+[source,java]
+----
+Fragment<Person> person = people.get(
+        "111-22-3333",
+        Person::getName,
+        Extractors.fragment(Person::getAddress, Address::getCountry));  // <1>
+String            name    = person.get(Person::getName);                // <2>
+Fragment<Address> address = person.getFragment(Person::getAddress);     // <3>
+String            country = address.get(Address::getCountry);           // <4>
+----
+<1> return a fragment containing the name and the `Address` fragment of the person with a specified identifier
+<2> retrieve the person's name from the `Person` fragment
+<3> retrieve the `Address` fragment from the `Person` fragment
+<4> retrieve the person's country from the `Address` fragment
+
+=== In-place Updates
+
+By far the most common approach for updating data in modern applications is the read-modify-write pattern. For example, the typical code to update an attribute of a `Person` may look similar to the following:
+
+[source,java]
+----
+Person person = people.findById("111-22-3333");
+person.setAge(55);
+people.save(person);
+----
+
+This is true regardless of whether the underlying data store provides a better, more efficient way of updating data. For example, RDBMS provide stored procedures for that purpose, but very few developers use them because they are not as convenient to use, and do not fit well into popular application frameworks, such as JPA, Spring Data or Micronaut Data. They also fragment the code base to some extent, splitting the business logic across the application and the data store, and require that some application code is written in SQL.
+
+However, the approach above is suboptimal, for a number of reasons:
+
+1. It at least doubles the number of network calls the application makes to the data store, increasing the overall latency of the operation.
+2. It moves (potentially a lot) more data over the network than absolutely necessary.
+3. It may require expensive construction of a complex entity in order to perform a very simple update operation of a single attribute (this is particularly true with JPA and RDBMS back ends).
+4. It puts additional, unnecessary load on the data store, which is typically the hardest component of the application to scale.
+5. It introduces concurrency issues (ie. what should happen if the entity in the data store changes between the initial read and subsequent write), which typically requires that both the read and the write happen within the same transaction.
+
+A much better, more efficient way to perform the updates is to send the update _function_ to the data store, and execute it locally, within the data store itself (which is pretty much what stored procedures are for).
+
+Coherence has always had support for these types of updates via _entry processors_, but the Repository API makes it even simpler to do so. For example, the code above can be rewritten as:
+
+[source,java]
+----
+people.update("111-22-3333", Person::setAge, 55);
+----
+
+We are basically telling Coherence to update `Person` instance with a given identifier by calling `setAge` method on it with a number 55 as an argument. This is not only significantly more efficient, but I'm sure you'll agree, shorter and easier to write, and to read.
+
+Note that we don't know, or care, where in the cluster a `Person` instance with a given identifier is -- all we care about is that Coherence guarantees that it will invoke the `setAge` method on the entity with a specified ID, on a _primary owner_, and automatically create a backup of the modified entity for fault tolerance.
+
+It is also worth pointing out that the approach above provides the same benefits stored procedures do in RDBMS, but without the downsides: you are still writing all your code in Java, and keeping it in the same place. As a matter of fact, this approach allows you to implement rich domain models for your data, and execute business logic on your entities remotely, which works exceptionally well with DDD applications.
+
+Calling a setter on an entity remotely is only the tip of the iceberg, and far from sufficient for all data mutation needs. For example, conventional JavaBean setter returns `void`, but you often want to know what the entity value is after the update. The solution to that problem is simple: Coherence will return the result of the specified method invocation, so all you need to do is change the `setAge` method to implement fluent API:
+
+[source,java]
+----
+public Person setAge(int age)
+    {
+    this.age = age;
+    return this;
+    }
+----
+
+You will now get the modified `Person` instance as the result of the `update` call:
+
+[source,java]
+----
+Person person = people.update("111-22-3333", Person::setAge, 55);
+assert person.getAge() == 55;
+----
+
+Sometimes you need to perform more complex updates, or update multiple attributes at the same time. While you could certainly accomplish both of those by making multiple `update` calls, that is inefficient because each `update` will result in a separate network call. You are better off using the `update` overload that allows you to specify the function to execute in that situation:
+
+[source,java]
+----
+Person person = people.update("111-22-3333", p ->
+    {
+    p.setAge(55);
+    p.setGender(Gender.MALE);
+    return p;
+    });
+
+assert person.getAge() == 55;
+assert person.getGender() == Gender.MALE;
+----
+
+This way you have full control of the update logic that will be executed, and the return value.
+
+You may sometimes want to update an entity that does not exist in the repository yet, in which case you want to create a new instance. For example, you may want to create a shopping cart entity for a customer when they add the first item to the cart. While you could implement the code to check whether the `Cart` for a given customer exists, and create new one if it doesn't, this again results in network calls that can be avoided if you simply create the `Cart` instance as part of `Cart::addItem` call. The Repository API allows you to accomplish that via optional `EntityFactory` argument:
+
+[source,java]
+----
+carts.update(customerId,                  // <1>
+             Cart::addItem,               // <2>
+             item,                        // <3>
+             Cart::new);                  // <4>
+----
+<1> the cart/customer identifier
+<2> the method to invoke on a target `Cart` instance
+<3> the `CartItem` to add to the cart
+<4> the `EntityFactory` to use to create a new `Cart` instance if the cart with the specified identifier doesn't exist
+
+The `EntityFactory` interface is quite simple:
+
+[source,java]
+----
+include::../../coherence-core/src/main/java/com/oracle/coherence/repository/EntityFactory.java[tag=doc]
+----
+
+Basically, it has a single `create` method that accepts entity identifier and returns a new instance of the entity with a given identifier. In the example above, that implies that our `Cart` class has a constructor similar to this:
+
+[source,java]
+----
+public Cart(Long cartId)
+    {
+    this.cartId = cartId;
+    }
+----
+
+Just like with projections and other operations, in addition to `update` methods that can be used to modify a single entity, there are also a number of `updateAll` methods that can be used to modify multiple entities in a single call. An example where this may be useful is when you want to apply the same exact function to multiple entities, as is the case when performing stock split:
+
+[source,java]
+----
+positions.updateAll(
+        Filters.equal(Position::getSymbol, "AAPL"),     // <1>
+        Position::split, 5);                            // <2>
+----
+<1> the `Filter` used to determine the set of positions to update
+<2> the function to apply to each position; in this case `split(5)` will be called on each `Position` entity with `AAPL` symbol
+
+Just like with single-entity updates, the result of each function invocation will be returned to the client, this time in the form of a `Map` containing the identifiers of the processed entities as keys, and the result of the function applied to that entity as the value.
+
+=== Stream API and Data Aggregation
+
+We've already covered how you can query the repository to retrieve a subset of entities using a `findAll` method and a `Filter`, but sometimes you don't need the entities themselves, but a result of some computation applied to a subset of entities in the repository. For example, you may need to calculate average salary of all the employees in a department, or the total value of all equity positions in a portfolio.
+
+While you could certainly query the repository for the entities that need to be processed and perform processing itself on the client, this is very inefficient way to accomplish the task, as you may end up moving significant amount of data over the network, just to discard it after the client-side processing.
+
+As you've probably noticed by now, Coherence provides a number of feature that allow you to perform various types of distributed processing efficiently, and this situation is no exception. Just like the in-place updates leverage Coherence Entry Processor API to perform data mutation on cluster members that store the data, Repository API support for data aggregation leverages Coherence Remote Stream API and the Aggregation API to perform read-only distributed computations efficiently. This once again allows you to move processing to the data, instead of the other way around, and to perform computation in parallel across as many CPU cores as your cluster has, instead of a handful of (or in many cases only one) cores on the client.
+
+The first option is to use the Stream API, which you are probably already familiar with because it's a standard Java API introduced in Java 8. For example, you could calculate the average salary of all employees like this:
+
+[source,java]
+----
+double avgSalary = employees.stream()
+         .collect(RemoteCollectors.averagingDouble(Employee::getSalary));
+----
+
+If you wanted to calculate average salary only for the employees in a specific department instead, you could filter the employees to process:
+
+[source,java]
+----
+double avgSalary = employees.stream()
+         .filter(e -> e.getDepartmentId == departmentId)
+         .collect(RemoteCollectors.averagingDouble(Employee::getSalary));
+----
+
+However, while it works, the code above is not ideal, as it will end up processing, and potentially deserializing all the employees in the repository in order to determine whether they belong to a specified department.
+
+A better way to accomplish the same task is to use Coherence-specific `stream` method overload which allows you to specify the `Filter` to create a stream based on:
+
+[source,java]
+----
+double avgSalary = employees.stream(Filters.equal(Employee::getDepartmentId, departmentId))
+         .collect(RemoteCollectors.averagingDouble(Employee::getSalary));
+----
+
+The difference is subtle, but important: unlike previous example, this allows Coherence to perform query _before_ creating the stream, and leverage any indexes you may have in the process. This can significantly reduce the overhead when dealing with large data sets.
+
+However, there is also an easier way to accomplish the same thing:
+
+[source,java]
+----
+double avgSalary = employees.average(Employee::getSalary);
+----
+
+or, for a specific department:
+
+[source,java]
+----
+double avgSalary = employees.average(
+        Filters.equal(Employee::getDepartmentId, departmentId),
+        Employee::getSalary);
+----
+
+These are the examples of using repository aggregation methods directly, which turn common tasks such as finding `min`, `max`, `average` and `sum` of any entity attribute as simple as it can be.
+
+There are also more advanced aggregations, such as `groupBy` and `top`:
+
+[source,java]
+----
+Map<Gender, Set<Person>> peopleByGender = people.groupBy(Person::getGender);
+
+Map<Long, Double> avgSalaryByDept =
+    employees.groupBy(Employee::getDepartmentId, averagingDouble(Employee::getSalary));
+
+List<Double> top5salaries = employees.top(Employee::getSalary, 5);
+----
+
+as well as the simpler ones, such as `count` and `distinct`.
+
+Finally, in many cases you may care not only about `min`, `max` or `top` values of a certain attribute, but also about which entities those values belong to. For those situations, you can use `minBy`, `maxBy` and `topBy` methods, which returns the entities containing minimum, maximum and top values of an attribute, respectively:
+
+[source,java]
+----
+Optional<Person> oldestPerson   = people.maxBy(Person::getAge);
+Optional<Person> youngestPerson = people.minBy(Person::getAge);
+
+List<Employee> highestPaidEmployees = employees.topBy(Employee::getSalary, 5);
+----
+
+==== Declarative Acceleration and Index Creation
+
+I mentioned earlier that Coherence can use indexes to optimize queries and aggregations. The indexes allow you to avoid deserializing entities stored across the cluster, which is a potentially expensive operation when you have large data set, with complex entity classes. The indexes themselves can also be sorted, which is helpful when executing range-based queries, such as `less`, `greater` or `between`.
+
+The standard way to create indexes is by calling `NamedMap.addIndex` method, which is certainly still an option. However, Repository API introduces a simpler, declarative way of index creation.
+
+To define an index, simply annotate the accessor for the entity attribute(s) that you'd like to create an index for with `@Indexed` annotation:
+
+[source,java]
+----
+public class Person
+    {
+    @Indexed                                                  // <1>
+    public String getName()
+        {
+        return name;
+        }
+
+    @Indexed(ordered = true)                                  // <2>
+    public int getAge()
+        {
+        return age;
+        }
+    }
+----
+<1> defines an unordered index on `Person::getName`, which is suitable for filters such as `equal`, `like`, and `regex`
+<2> defines an ordered index on `Person::getAge`, which is better suited for filters such as `less`, `greater` and `between`
+
+When the repository is created, it will introspect the entity class for `@Indexed` annotation and automatically create an index for each attribute that has one. The created index will then be used whenever that attribute is referenced within the query expression.
+
+In some cases you may want to keep deserialized entity instances around instead of discarding them. This can be useful when you are making frequent queries, aggregations, and using Stream API, or even in-place updates or projection, as the cost of maintaining individual indexes on all the attributes you need may end up being greater than to simply keep deserialized entity instances around.
+
+For situations like that Coherence provides a special index type you can use, `DeserializationAccelerator`, but if you are using Repository API you once again have an easier way of configuring it -- simply annotate either the entity class, or the repository class itself with the `@Accelerated` annotation:
+
+[source,java]
+----
+@Accelerated
+public class Person
+    {
+    }
+----
+
+Obviously, you will require additional storage capacity in your cluster in order to be able to store both the serialized and deserialized copy of all the entities, but in some situations the performance benefits can significantly outweigh the cost. In other words, acceleration is a classic example of a time vs. space tradeoff, and it is entirely up to you to decide when it makes sense to use it.
+
+=== Event Listeners
+
+Coherence not only allows you to store, modify, query and aggregate your data entities efficiently, but you can also register to receive event notifications whenever any entity in the repository changes.
+
+To do that, you can create and register a listener that will be notified whenever an entity is inserted, updated or removed:
+
+[source,java]
+----
+include::../../coherence-core/src/test/java/com/oracle/coherence/repository/AbstractRepositoryTest.java[tag=listener]
+----
+
+[source,java]
+----
+people.addListener(new PeopleListener());                                        // <1>
+people.addListener("111-22-3333", new PeopleListener());                         // <2>
+people.addListener(Filters.greater(Person::getAge, 17), new PeopleListener());   // <3>
+----
+<1> registers a listener that will be notified whenever any entity in the repository is inserted, updated or removed
+<2> registers a listener that will be notified when an entity with the specified identifier is inserted, updated or removed
+<3> registers a listener that will be notified when any `Person` older than 17 is inserted, updated or removed
+
+As you can see from the example above, there are several ways to register only for the events you are interested in, in order to reduce the number of events received, and the amount of data sent over the network.
+
+Note that all of the listener methods above have a default no-op implementation, so you only need to implement the ones you actually want to handle.
+
+However, having to implement a separate class each time you want to register a listener is a bit cumbersome, so Repository API also provides a default listener implementation, and a fluent builder for it that make the task a bit easier:
+
+[source,java]
+----
+people.addListener(
+        people.listener()
+              .onInsert(personNew -> { /* handle INSERT event */ })
+              .onUpdate((personOld, personNew) -> { /* handle UPDATE event with old value */ })
+              .onUpdate(personNew -> { /* handle UPDATE event without old value */ })
+              .onRemove(personOld -> { /* handle REMOVE event */ })
+              .build()
+);
+----
+
+Note that when using Listener Builder API you have the option of omitting the old entity value from the `onUpdate` event handler arguments list. You can also specify multiple handlers for the same event type, in which case they will be composed and invoked in the specified order.
+
+There is also an option of providing a single event handler that will receive all the events, regardless of the event type:
+
+[source,java]
+----
+people.addListener(
+        people.listener()
+              .onEvent(person -> { /* handle all events */ })
+              .build()
+);
+----
+
+Just like when implementing listener class explicitly, you can still pass entity identifier or a `Filter` as the first argument to `addListener` method in order to limit the scope of the events received.
+
+=== Summary
+
+The Coherence Repository API was introduced to make the implementation of data access layer within the applications easier, regardless of which framework you use to implement applications that use Coherence as a data store. It works equally well for plain Java applications and applications that use CDI, where you can simply create your own repository implementations, as described at the beginning of this document.
+
+It is also the foundation for our https://micronaut-projects.github.io/micronaut-coherence/latest/guide/#repository[Micronaut Data] and Spring Data repository implementations, so all the functionality described here is available when using those frameworks as well. The only difference is how you define your own repositories, which is framework-specific and documented separately.
+
+We hope you'll find this new feature useful, and that it will make implementation of your Coherence-backed data access layers even easier.

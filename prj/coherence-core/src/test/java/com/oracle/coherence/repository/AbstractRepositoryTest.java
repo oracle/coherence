@@ -876,7 +876,6 @@ public abstract class AbstractRepositoryTest
         assertThat(cRemove.get(), is(5));
         }
 
-
     // ---- helpers ---------------------------------------------------------
 
     @SafeVarargs
@@ -884,4 +883,29 @@ public abstract class AbstractRepositoryTest
         {
         return Stream.of(values).collect(Collectors.toSet());
         }
+
+    /**
+     * Not used directly, but references from the documentation
+     * so we want to make sure it compiles.
+     */
+    // tag::listener[]
+    public static class PeopleListener
+            implements PeopleRepository.Listener<Person>
+        {
+        public void onInserted(Person personNew)
+            {
+            // handle INSERT event
+            }
+
+        public void onUpdated(Person personOld, Person personNew)
+            {
+            // handle UPDATE event
+            }
+
+        public void onRemoved(Person personOld)
+            {
+            // handle REMOVE event
+            }
+        }
+    // end::listener[]
     }
