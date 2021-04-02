@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -123,11 +123,20 @@ public class CacheEvent<K, V>
 
     // ----- MapEvent methods -----------------------------------------------
 
+
+    @Override
+    public CacheEvent<K, V> with(int nPartition, long lVersion)
+        {
+        return (CacheEvent) super.with(nPartition, lVersion);
+        }
+
     @Override
     protected boolean shouldDispatch(MapListener listener)
         {
         return super.shouldDispatch(listener) &&
-                (!isPriming() || MapListenerSupport.isPrimingListener(listener));
+                (!isPriming() || 
+                 MapListenerSupport.isPrimingListener(listener) ||
+                 listener.isVersionAware());
         }
 
 

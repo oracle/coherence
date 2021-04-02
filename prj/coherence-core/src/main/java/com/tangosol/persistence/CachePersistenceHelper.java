@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -23,6 +23,7 @@ import com.tangosol.internal.net.service.ServiceDependencies;
 import com.tangosol.internal.net.service.grid.PartitionedServiceDependencies;
 import com.tangosol.internal.net.service.grid.PersistenceDependencies;
 
+import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.MultiBufferReadBuffer;
@@ -43,22 +44,32 @@ import com.tangosol.net.internal.QuorumInfo;
 import com.tangosol.net.management.Registry;
 
 import com.tangosol.net.partition.PartitionSet;
+import com.tangosol.net.partition.VersionAwareMapListener;
 
 import com.tangosol.persistence.bdb.BerkeleyDBManager;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
+import com.tangosol.util.Converter;
+import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Filter;
 import com.tangosol.util.LongArray;
+import com.tangosol.util.MapEvent;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.SparseArray;
+
+import com.sleepycat.bind.tuple.TupleInput;
+import com.sleepycat.bind.tuple.TupleOutput;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import static com.tangosol.util.ExternalizableHelper.toBinary;
 
@@ -66,7 +77,10 @@ import static com.tangosol.util.ExternalizableHelper.toBinary;
  * Static helper methods used in the persistence of a partitioned cache.
  *
  * @author rhl 2012.08.15
+ *
+ * @deprecated this helper is intended for internal use only
  */
+@Deprecated
 public class CachePersistenceHelper
     {
 
@@ -1377,6 +1391,122 @@ public class CachePersistenceHelper
              + Registry.KEY_RESPONSIBILITY + PersistenceManagerMBean.PERSISTENCE_COORDINATOR;
         }
 
+    /**
+     * Create a {@link PersistentStore.Visitor} that can read a PersistentStore
+     * and populate the provided {@code mapEvents} with events that are larger
+     * than the provided version (inclusive) and within the given set of keys.
+     *
+     * @param lExtentId    the extent id to interrogate
+     * @param setKeys      a set of keys the MapEvent should be raised within
+     * @param lVersion     the version that all events should be larger than (inclusive)
+     * @param mapEvents    a Map to store the MapEvents
+     * @param convKeyDown  a converter that can convert a version to a binary
+     * @param convKeyUp    a converter that can convert a binary to a version
+     * @param convDown     a converter that can convert an MapEvent to a binary
+     * @param convUp       a converter that can convert an MapEvent to a binary
+     *
+     * @return a Visitor that can read a PersistentStore and populate
+     *         the provided map of events
+     */
+    public static PersistentStore.Visitor<ReadBuffer> instantiateEventsVisitor(
+                long lExtentId,
+                Set setKeys,
+                long lVersion,
+                Map<Long, MapEvent> mapEvents,
+                Converter<Long, ReadBuffer> convKeyDown,
+                Converter<ReadBuffer, Long> convKeyUp,
+                Converter<Object, ReadBuffer> convDown,
+                Converter<ReadBuffer, Object> convUp)
+        {
+        return new PersistentStore.Visitor<ReadBuffer>()
+            {
+            @Override
+            public boolean visit(long lExtentId, ReadBuffer bufVersion, ReadBuffer bufEvent)
+                {
+                long     lEventVersion = (Long) convKeyUp.convert(bufVersion.toBinary());
+                MapEvent event         = (MapEvent) convUp.convert(bufEvent.toBinary());
+
+                if (lEventVersion >= lVersion && setKeys.contains(event.getKey()))
+                    {
+                    mapEvents.put(lEventVersion, event);
+                    }
+                return true;
+                }
+
+            @Override
+            public boolean visitExtent(long lExtentIdCurrent)
+                {
+                return lExtentIdCurrent == lExtentId;
+                }
+
+            @Override
+            public ReadBuffer visitFromKey()
+                {
+                return convKeyDown.convert(lVersion);
+                }
+            };
+        }
+
+    /**
+     * Create a {@link PersistentStore.Visitor} that can read a PersistentStore
+     * and populate the provided {@code mapEvents} with events that are larger
+     * than the provided version (inclusive) and match the given {@link Filter}.
+     *
+     * @param lExtentId    the extent id to interrogate
+     * @param filter       a Filter to test the MapEvents against
+     * @param lVersion     the version that all events should be larger than (inclusive)
+     * @param mapEvents    a Map to store the MapEvents
+     * @param convKeyDown  a converter that can convert a version to a binary
+     * @param convKeyUp    a converter that can convert a binary to a version
+     * @param convDown     a converter that can convert an MapEvent to a binary
+     * @param convUp       a converter that can convert an MapEvent to a binary
+     *
+     * @return a Visitor that can read a PersistentStore and populate
+     *         the provided map of events
+     */
+    public static PersistentStore.Visitor<ReadBuffer> instantiateEventsVisitor(
+                long lExtentId,
+                Filter filter,
+                long lVersion,
+                Map<Long, MapEvent> mapEvents,
+                Converter<Long, ReadBuffer> convKeyDown,
+                Converter<ReadBuffer, Long> convKeyUp,
+                Converter<Object, ReadBuffer> convDown,
+                Converter<ReadBuffer, Object> convUp)
+        {
+        return new PersistentStore.Visitor<ReadBuffer>()
+            {
+            @Override
+            public boolean visit(long lExtentId, ReadBuffer bufVersion, ReadBuffer bufEvent)
+                {
+                long     lEventVersion = (Long) convKeyUp.convert(bufVersion.toBinary());
+                MapEvent event         = (MapEvent) convUp.convert(bufEvent.toBinary());
+
+                MapEvent evtConv = ConverterCollections.getMapEvent(NullImplementation.getObservableMap(),
+                        event, convUp, convUp);
+
+                if (lEventVersion >= lVersion && (filter == null || filter.evaluate(evtConv)))
+                    {
+                    mapEvents.put(lEventVersion, event);
+                    }
+                return true;
+                }
+
+            @Override
+            public boolean visitExtent(long lExtentIdCurrent)
+                {
+                return lExtentIdCurrent == lExtentId;
+                }
+
+            @Override
+            public ReadBuffer visitFromKey()
+                {
+                return convKeyDown.convert(lVersion);
+                }
+            };
+        }
+
+
     // ----- inner interface: Visitor -------------------------------------
 
     /**
@@ -1446,6 +1576,31 @@ public class CachePersistenceHelper
     // ----- constants ----------------------------------------------------
 
     /**
+     * A converter that converts from a Long to a ReadBuffer.
+     *
+     * Note: this intentionally uses BDB's serialized form of a long and *not*
+     *       Coherence's form of a long.
+     */
+    public static final Converter<Long, ReadBuffer> LONG_CONVERTER_DOWN = LValue ->
+            new ByteArrayReadBuffer(new TupleOutput(new byte[Long.SIZE]).writeLong(LValue.longValue()).getBufferBytes());
+
+    /**
+     * A converter that converts from a ReadBuffer to a Long.
+     *
+     * Note: this intentionally converts from a BDBs serialized form of a long
+     *       and *not* Coherence's serialized form of a long.
+     */
+    public static final Converter<ReadBuffer, Long> LONG_CONVERTER_UP = buff ->
+            new TupleInput(buff.toByteArray()).readLong();
+
+    /**
+     * A constant that suggests to a PersistentStore implementation to load
+     * the last entry. This is expected to be used as a return from {@link
+     * PersistentStore.Visitor#visitFromKey()}.
+     */
+    public static final ReadBuffer LAST_ENTRY = LONG_CONVERTER_DOWN.convert(VersionAwareMapListener.PRIMING);
+
+    /**
      * Default persistence directory system property.
      */
     public static final String DEFAULT_BASE_DIR_PROPERTY = "coherence.distributed.persistence.base.dir";
@@ -1494,6 +1649,11 @@ public class CachePersistenceHelper
      * Default active directory name.
      */
     public static final String DEFAULT_ACTIVE_DIR = "active";
+
+    /**
+     * Default events directory name.
+     */
+    public static final String DEFAULT_EVENTS_DIR = "events";
 
     /**
      * Default snapshot directory name.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -49,7 +49,7 @@ public class MapEvent<K, V>
      */
     public MapEvent()
         {
-        // We cannot pass a null source to the super class constructor
+        // we cannot pass a null source to the super class constructor
         // but the source is transient and will not have been serialized
         // so we pass a dummy source to the constructor and then set it
         // to null
@@ -71,8 +71,8 @@ public class MapEvent<K, V>
         {
         super(map);
 
-        m_nId       = nId;
-        m_key = key;
+        m_nId      = nId;
+        m_key      = key;
         m_valueOld = valueOld;
         m_valueNew = valueNew;
         }
@@ -197,6 +197,30 @@ public class MapEvent<K, V>
         }
 
     /**
+     * Return the partition this MapEvent represents or -1 if the event source
+     * is not partition aware.
+     *
+     * @return the partition this MapEvent represents or -1 if the event source
+     *         is not partition aware
+     */
+    public int getPartition()
+        {
+        return m_nPartition;
+        }
+
+    /**
+     * Return the version that represents the change that caused this MapEvent.
+     * The meaning of this version, and therefore causality of versions, is
+     * defined by the event source.
+     *
+     * @return the version that represents the change that caused this MapEvent
+     */
+    public long getVersion()
+        {
+        return m_nVersion;
+        }
+
+    /**
      * Determine whether this event is an insert event.
      *
      * @return  {@code true} if this event is an insert event
@@ -226,24 +250,57 @@ public class MapEvent<K, V>
         return m_nId == ENTRY_DELETED;
         }
 
+    /**
+     * Return a MapEvent that is enriched with the provided partition and
+     * version.
+     *
+     * @param nPartition  the partition this MapEvent
+     * @param lVersion    the version that caused this change
+     *
+     * @return a MapEvent that is enriched with the provided partition and
+     *         version
+     */
+    public MapEvent<K, V> with(int nPartition, long lVersion)
+        {
+        // TODO: the reason this is not simply a couple of setters is that this
+        //       MapEvent really should be immutable thus this method should return
+        //       a new instance of this class enriched with the partition & version
+        m_nPartition = nPartition;
+        m_nVersion   = lVersion;
+
+        return this;
+        }
+
     // ----- PortableObject methods -----------------------------------------
 
     @Override
     public void readExternal(PofReader in) throws IOException
         {
+        int nVersion = in.getVersionId();
+
         m_nId      = in.readInt(0);
         m_key      = in.readObject(1);
         m_valueOld = in.readObject(2);
         m_valueNew = in.readObject(3);
+
+        if (nVersion > 0)
+            {
+            m_nPartition = in.readInt(4);
+            m_nVersion   = in.readLong(5);
+            }
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
+        out.setVersionId(1);
+
         out.writeInt(0, m_nId);
         out.writeObject(1, m_key);
         out.writeObject(2, m_valueOld);
         out.writeObject(3, m_valueNew);
+        out.writeInt(4, m_nPartition);
+        out.writeLong(5, m_nVersion);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -397,20 +454,25 @@ public class MapEvent<K, V>
     */
     protected String getDescription()
         {
+        String sSuffix = ", partition=" + getPartition() +
+                            ", version=" + getVersion();
+
         switch (getId())
             {
             case ENTRY_INSERTED:
-                return " inserted: key=" + getKey()
-                     + ", value=" + getNewValue();
+                return " inserted: key=" + getKey() +
+                     sSuffix;
 
             case ENTRY_UPDATED:
-                return " updated: key=" + getKey()
-                     + ", old value=" + getOldValue()
-                     + ", new value=" + getNewValue();
+                return " updated: key=" + getKey() +
+                      ", old value=" + getOldValue() +
+                      ", new value=" + getNewValue() +
+                      sSuffix;
 
             case ENTRY_DELETED:
-                return " deleted: key=" + getKey()
-                     + ", value=" + getOldValue();
+                return " deleted: key=" + getKey() +
+                      ", value=" + getOldValue() +
+                      sSuffix;
 
             default:
                 throw new IllegalStateException();
@@ -486,4 +548,16 @@ public class MapEvent<K, V>
     */
     @JsonbProperty(value = "newValue", nillable = true)
     protected V m_valueNew;
+
+    /**
+    * The partition this MapEvent was emitted from.
+    */
+    @JsonbProperty("partition")
+    protected int m_nPartition;
+
+    /**
+    * The partition version of this MapEvent.
+    */
+    @JsonbProperty("version")
+    protected long m_nVersion;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -244,5 +244,32 @@ public interface PersistentStore<R>
          * @return false to terminate the iteration
          */
         public boolean visit(long lExtentId, R key, R value);
+
+        /**
+         * Apply the visitor to the specified extent.
+         *
+         * @param lExtentId  the extent identifier
+         *
+         * @return false to terminate the iteration
+         */
+        public default boolean visitExtent(long lExtentId)
+            {
+            return true;
+            }
+
+        /**
+         * Return a key this Visitor should start visiting from, or null to start
+         * from either the start of the store or anywhere in the store.
+         * <p>
+         * PersistentStore implementations are open to not supporting the start
+         * key.
+         *
+         * @return the key to start visiting from or null to start visiting from
+         *         the start of the store
+         */
+        public default R visitFromKey()
+            {
+            return null;
+            }
         }
     }

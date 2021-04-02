@@ -18,6 +18,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.tangosol.io.FileHelper;
+import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
@@ -765,7 +767,7 @@ public class SimpleRecoveryProtocolTests
          * {@inheritDoc}
          */
         @Override
-        public void read(String sId, InputStream in)
+        public void read(String sId, ReadBuffer.BufferInput in)
                 throws IOException
             {
             }
@@ -774,7 +776,7 @@ public class SimpleRecoveryProtocolTests
          * {@inheritDoc}
          */
         @Override
-        public void write(String sId, OutputStream out)
+        public void write(String sId, WriteBuffer.BufferOutput out)
                 throws IOException
             {
             }

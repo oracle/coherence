@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -17,6 +17,17 @@ package com.oracle.coherence.persistence;
  */
 public interface PersistenceEnvironment<R>
     {
+    /**
+     * Open and return a singleton PersistenceManager to store MapEvents.
+     *
+     * @return the singleton store of MapEvents or null if durable events
+     *         is not enabled
+     */
+    public default PersistenceManager<R> openEvents()
+        {
+        return null;
+        }
+
     /**
      * Open and return the singleton active PersistenceManager.
      *

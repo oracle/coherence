@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -22,6 +22,14 @@ public interface PersistenceEnvironmentInfo
      * @return the active directory
      */
     public File getPersistenceActiveDirectory();
+
+    /**
+     * Return the directory under which cached data is actively persisted
+     * by the environment.
+     *
+     * @return the active directory
+     */
+    public File getPersistenceEventsDirectory();
 
     /**
      * Return the directory under which copies of cached data are persisted

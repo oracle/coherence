@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -33,7 +33,7 @@ public class PartitionRecoverInfo
     public PartitionRecoverInfo(Object recoverRequest, Map mapConfig, List listRequests,
                                 PersistenceManager mgrRecover, PartitionSet partsRecovered)
         {
-        this(recoverRequest, mapConfig, listRequests, mgrRecover, partsRecovered, null);
+        this(recoverRequest, mapConfig, listRequests, mgrRecover, partsRecovered, null, null);
         }
 
     /**
@@ -48,14 +48,15 @@ public class PartitionRecoverInfo
      */
     public PartitionRecoverInfo(Object recoverRequest, Map mapConfig, List listRequests,
             PersistenceManager mgrRecover, PartitionSet partsRecovered,
-            PartitionSet partsFail)
+            PartitionSet partsFail, PartitionSet partsFailEvents)
         {
-        f_recoverRequest = recoverRequest;
-        f_mapConfig      = mapConfig;
-        f_listRequests   = listRequests;
-        f_manager        = mgrRecover;
-        f_partsRecovered = partsRecovered;
-        f_partsFail      = partsFail;
+        f_recoverRequest  = recoverRequest;
+        f_mapConfig       = mapConfig;
+        f_listRequests    = listRequests;
+        f_manager         = mgrRecover;
+        f_partsRecovered  = partsRecovered;
+        f_partsFail       = partsFail;
+        f_partsFailEvents = partsFailEvents;
         }
 
     // ----- accessors ------------------------------------------------------
@@ -118,6 +119,14 @@ public class PartitionRecoverInfo
         return f_partsFail;
         }
 
+    /**
+     * Return the failed {@link PartitionSet}.
+     */
+    public PartitionSet getFailedEventPartitions()
+        {
+        return f_partsFailEvents;
+        }
+
     // ----- data fields ----------------------------------------------------
 
     /**
@@ -149,4 +158,9 @@ public class PartitionRecoverInfo
      * The failed PartitionSet.
      */
     private final PartitionSet f_partsFail;
+
+    /**
+     * The failed PartitionSet.
+     */
+    private final PartitionSet f_partsFailEvents;
     }

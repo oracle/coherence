@@ -10,6 +10,11 @@ package com.tangosol.util;
 
 import com.tangosol.net.cache.CacheEvent;
 
+import com.tangosol.net.partition.DefaultVersionedPartitions;
+import com.tangosol.net.partition.VersionAwareMapListener;
+import com.tangosol.net.partition.VersionedPartitions;
+import com.tangosol.net.partition.VersionedPartitions.VersionedIterator;
+
 import com.tangosol.util.filter.InKeySetFilter;
 
 import java.util.ArrayList;
@@ -91,7 +96,8 @@ public class MapListenerSupport
     */
     public synchronized boolean addListenerWithCheck(MapListener listener, Filter filter, boolean fLite)
         {
-        boolean fCovered = !isEmpty(filter) && (fLite || containsStandardListeners(filter));
+        boolean fCovered = !isEmpty(filter) && !isVersionAware(listener) &&
+                (fLite || containsStandardListeners(filter));
 
         addListener(listener, filter, fLite);
 
@@ -163,7 +169,8 @@ public class MapListenerSupport
     */
     public synchronized boolean addListenerWithCheck(MapListener listener, Object oKey, boolean fLite)
         {
-        boolean fCovered = !isEmpty(oKey) && (fLite || containsStandardListeners(oKey));
+        boolean fCovered = !isEmpty(oKey) && !isVersionAware(listener) &&
+                (fLite || containsStandardListeners(oKey));
 
         addListener(listener, oKey, fLite);
 
@@ -762,6 +769,40 @@ public class MapListenerSupport
         }
 
     /**
+     * Return the minimum {@link VersionedPartitions versions} for the provided
+     * {@link Filter}.
+     *
+     * @param filter  the filter the listeners were registered with
+     *
+     * @return the minimum {@link VersionedPartitions versions} for the provided
+     *         {@link Filter}
+     */
+    public VersionedPartitions getMinVersions(Filter filter)
+        {
+        Listeners listeners = getListeners(filter);
+
+        return min(getMinVersions(listeners.getAsynchronousListeners()),
+                   getMinVersions(listeners.getSynchronousListeners()));
+        }
+
+    /**
+     * Return the minimum {@link VersionedPartitions versions} for the provided
+     * key.
+     *
+     * @param oKey  the key the listeners were registered with
+     *
+     * @return the minimum {@link VersionedPartitions versions} for the provided
+     *         key
+     */
+    public VersionedPartitions getMinVersions(Object oKey)
+        {
+        Listeners listeners = getListeners(oKey);
+
+        return min(getMinVersions(listeners.getAsynchronousListeners()),
+                   getMinVersions(listeners.getSynchronousListeners()));
+        }
+
+    /**
     * Convert the specified map event into another MapEvent that ensures the
     * lazy event data conversion using the specified converters.
     *
@@ -830,6 +871,25 @@ public class MapListenerSupport
         }
 
     /**
+     * Return the inner MapListener skipping any wrapper listeners.
+     *
+     * @param listener  the listener to check against
+     *
+     * @param <K> key type for the map
+     * @param <V> value type for the map
+     *
+     * @return the inner MapListener skipping any wrapper listeners
+     */
+    public static <K, V> MapListener<K, V> unwrap(MapListener<K, V> listener)
+        {
+        while (listener instanceof WrapperListener)
+            {
+            listener = ((WrapperListener<K, V>) listener).getMapListener();
+            }
+        return listener;
+        }
+
+    /**
     * Check if the given listener is a PrimingListener or if it wraps one.
     *
     * @param listener  Map listener to check
@@ -856,7 +916,20 @@ public class MapListenerSupport
             }
         }
 
+
     // ----- internal helpers -----------------------------------------------
+
+    /**
+     * Return true if the provided listener is version aware.
+     *
+     * @param listener  the listener to check
+     *
+     * @return true if the provided listener is version aware
+     */
+    protected boolean isVersionAware(MapListener listener)
+        {
+        return listener.isVersionAware();
+        }
 
     /**
     * Evaluate whether or not the specified event should be delivered to the
@@ -993,6 +1066,90 @@ public class MapListenerSupport
                 mapStandardListeners.remove(anyKey);
                 }
             }
+        }
+
+    /**
+     * Return the minimum versions received for all partitions for the provided
+     * listeners.
+     *
+     * @param aListeners  the listeners to interrogate
+     *
+     * @return the minimum versions received for all partitions for the provided
+     *         listeners
+     */
+    protected static VersionedPartitions getMinVersions(EventListener[] aListeners)
+        {
+        VersionedPartitions versionsMin = null;
+
+        for (int i = 0, c = aListeners.length; i < c; ++i)
+            {
+            MapListener listener = (MapListener) aListeners[i];
+            if (listener.isVersionAware())
+                {
+                versionsMin = min(versionsMin, ((VersionAwareMapListener) listener).getVersions());
+                }
+            }
+
+        return versionsMin;
+        }
+
+    /**
+     * Return the minimum versions for the provided two partition versioned
+     * data structures.
+     *
+     * @param versionsLHS  the first partition versioned object
+     * @param versionsRHS  the second partition versioned object
+     *
+     * @return the minimum versions for the provided two partition versioned
+     *         data structures
+     */
+    protected static VersionedPartitions min(VersionedPartitions versionsLHS, VersionedPartitions versionsRHS)
+        {
+        if (versionsLHS == null || versionsRHS == null || versionsLHS.equals(versionsRHS))
+            {
+            return versionsLHS == null ? versionsRHS : versionsLHS;
+            }
+
+        // generally it is expected that all MapListeners registered to the same
+        // Filter / Key will receive and process all the same events thus should
+        // have the same version for all partitions; this deriving the min version
+        // is purely a safety measure
+
+        DefaultVersionedPartitions versions = new DefaultVersionedPartitions();
+
+        for (VersionedIterator iter = versionsLHS.iterator(); iter.hasNext(); )
+            {
+            long lVersion = iter.nextVersion();
+            int  iPart    = iter.getPartition();
+            versions.setPartitionVersion(iPart, Math.min(lVersion, versionsRHS.getVersion(iter.getPartition())));
+            }
+
+        return versions;
+        }
+
+    /**
+     * Return a minimum version for the provided listeners.
+     *
+     * @param aListeners  the listeners to interrogate
+     *                    
+     * @return a minimum version for the provided listeners
+     */
+    protected static long getMinVersion(EventListener[] aListeners)
+        {
+        long lMinVersion = 0L;
+
+        for (int i = 0, c = aListeners.length; i < c; ++i)
+            {
+            MapListener listener = (MapListener) aListeners[i];
+            if (listener instanceof VersionAwareMapListener)
+                {
+                lMinVersion = lMinVersion == 0L
+                        ? ((VersionAwareMapListener) listener).getCurrentVersion()
+                        : Math.min(lMinVersion, ((VersionAwareMapListener) listener).getCurrentVersion());
+                }
+            }
+
+        return lMinVersion;
         }
 
 
@@ -1179,6 +1336,8 @@ public class MapListenerSupport
                             : TransformationState.TRANSFORMABLE,
                     event instanceof CacheEvent && ((CacheEvent) event).isPriming());
 
+            with(event.getPartition(), event.getVersion());
+
             azzert(aFilter != null);
             f_aFilter = aFilter;
             f_event   = event;
@@ -1292,6 +1451,11 @@ public class MapListenerSupport
     public interface SynchronousListener<K, V>
             extends com.tangosol.util.SynchronousListener<K, V>, MapListener<K, V>
         {
+        @Override
+        default int characteristics()
+            {
+            return SYNCHRONOUS;
+            }
         }
 
     /**
@@ -1331,6 +1495,12 @@ public class MapListenerSupport
             evt.dispatch(f_listener);
             }
 
+        @Override
+        public int characteristics()
+            {
+            return f_listener.characteristics();
+            }
+
         /**
          * Return the underlying MapListener.
          *
@@ -1344,10 +1514,10 @@ public class MapListenerSupport
         // ----- Object methods -----------------------------------------
 
         /**
-        * Determine a hash value for the WrapperSynchronousListener object
+        * Determine a hash value for the WrapperListener object
         * according to the general {@link Object#hashCode()} contract.
         *
-        * @return an integer hash value for this WrapperSynchronousListener
+        * @return an integer hash value for this WrapperListener
         */
         public int hashCode()
             {
@@ -1355,20 +1525,17 @@ public class MapListenerSupport
             }
 
         /**
-        * Compare the WrapperSynchronousListener with another object to
+        * Compare the WrapperListener with another object to
         * determine equality.
         *
-        * @return true iff this WrapperSynchronousListener and the passed
+        * @return true iff this WrapperListener and the passed
         *          object are equivalent listeners
         */
         public boolean equals(Object o)
             {
-            if (o != null && o.getClass() == getClass())
-                {
-                WrapperListener that = (WrapperListener) o;
-                return this.f_listener.equals(that.f_listener);
-                }
-            return false;
+            return o != null &&
+                    getClass() == o.getClass() &&
+                    Base.equals(f_listener, ((WrapperListener) o).f_listener);
             }
 
         /**
@@ -1384,7 +1551,7 @@ public class MapListenerSupport
         /**
         * Wrapped MapListener.
         */
-        final private MapListener<K, V> f_listener;
+        protected final MapListener<K, V> f_listener;
         }
 
     /**

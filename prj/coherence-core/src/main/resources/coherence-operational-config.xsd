@@ -1018,6 +1018,20 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="events-directory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The active-directory element contains the path to a directory
+                under which cached data is actively persisted by a persistent
+                environment.
+
+                Default value is ${user.home}/coherence/active
+
+                Used in: persistence-environment
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="snapshot-directory" type="coherence-string-type">
         <xsd:annotation>
             <xsd:documentation>
@@ -1071,6 +1085,7 @@
                 <xsd:element ref="instance" minOccurs="0" maxOccurs="1" />
                 <xsd:element ref="persistence-mode" minOccurs="0" />
                 <xsd:element ref="active-directory" minOccurs="0" />
+                <xsd:element ref="events-directory" minOccurs="0" />
                 <xsd:element ref="snapshot-directory" minOccurs="0" />
                 <xsd:element ref="trash-directory" minOccurs="0" />
             </xsd:sequence>

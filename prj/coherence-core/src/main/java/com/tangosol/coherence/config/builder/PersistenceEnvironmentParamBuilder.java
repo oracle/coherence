@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.service.grid.PersistenceDependencies;
+
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 
@@ -64,6 +65,8 @@ public class PersistenceEnvironmentParamBuilder
         m_sSnapshot = sHome + File.separatorChar + CachePersistenceHelper.DEFAULT_SNAPSHOT_DIR;
         m_sTrash    = sHome + File.separatorChar + CachePersistenceHelper.DEFAULT_TRASH_DIR;
         m_sMode     = "active";
+
+        // events directory must be explicitly specified for now
         }
 
     // ----- ParameterizedBuilder methods -----------------------------------
@@ -85,7 +88,8 @@ public class PersistenceEnvironmentParamBuilder
                     ? new BerkeleyDBEnvironment(
                             info.getPersistenceActiveDirectory(),
                             info.getPersistenceSnapshotDirectory(),
-                            info.getPersistenceTrashDirectory())
+                            info.getPersistenceTrashDirectory(),
+                            info.getPersistenceEventsDirectory())
                     : m_bldr.realize(createResolver(sClusterName, sServiceName), loader, listParameters);
             }
         catch (Exception e)
@@ -130,8 +134,11 @@ public class PersistenceEnvironmentParamBuilder
         File fileActive   = isActive() ? new File(new File(new File(m_sActive), sCluster), sService) : null;
         File fileSnapshot = new File(new File(new File(m_sSnapshot), sCluster), sService);
         File fileTrash    = new File(new File(new File(m_sTrash), sCluster), sService);
+        
+        File fileEvents = m_sEvents == null || m_sEvents.isEmpty() || !isActive()
+                ? null : new File(new File(new File(m_sEvents), sCluster), sService);
 
-        return new PersistenceEnvironmentInfo(fileActive, fileSnapshot, fileTrash, m_sMode);
+        return new PersistenceEnvironmentInfo(fileActive, fileSnapshot, fileTrash, m_sMode, fileEvents);
         }
 
     public String getPersistenceMode()
@@ -164,6 +171,20 @@ public class PersistenceEnvironmentParamBuilder
         if (sPathname != null && sPathname.length() > 0)
             {
             m_sActive = sPathname;
+            }
+        }
+
+    /**
+     * Set the persistence active directory.
+     *
+     * @param sPathname  either relative or absolute pathname
+     */
+    @Injectable("events-directory")
+    public void setEventsDirectory(String sPathname)
+        {
+        if (sPathname != null && sPathname.length() > 0)
+            {
+            m_sEvents = sPathname;
             }
         }
 
@@ -215,6 +236,7 @@ public class PersistenceEnvironmentParamBuilder
         StringBuilder sb = new StringBuilder()
           .append("\n        Mode: ").append(m_sMode)
           .append("\n        Active Location: ").append(m_sActive)
+          .append("\n        Events Location: ").append(m_sEvents)
           .append("\n        Snapshot Location:").append(m_sSnapshot)
           .append("\n        Trash Location:").append(m_sTrash);
 
@@ -261,6 +283,7 @@ public class PersistenceEnvironmentParamBuilder
         resolver.add(new Parameter("service-name", String.class, sServiceName));
         resolver.add(new Parameter("persistence-mode", String.class, info.getPersistenceMode()));
         resolver.add(new Parameter("active-directory", File.class, info.getPersistenceActiveDirectory()));
+        resolver.add(new Parameter("events-directory", File.class, info.getPersistenceEventsDirectory()));
         resolver.add(new Parameter("snapshot-directory", File.class, info.getPersistenceSnapshotDirectory()));
         resolver.add(new Parameter("trash-directory", File.class, info.getPersistenceTrashDirectory()));
 
@@ -368,12 +391,13 @@ public class PersistenceEnvironmentParamBuilder
          * @param sMode        persistence mode (active or on-demand)
          */
         public PersistenceEnvironmentInfo(File dirActive, File dirSnapshot, File dirTrash,
-                                          String sMode)
+                                          String sMode, File dirEvents)
             {
             f_dirActive   = dirActive;
             f_dirSnapshot = dirSnapshot;
             f_dirTrash    = dirTrash;
             f_sMode       = sMode;
+            f_dirEvents   = dirEvents;
             }
 
         // ------ PersistenceEnvironmentInfo interface ------------------------
@@ -382,6 +406,12 @@ public class PersistenceEnvironmentParamBuilder
         public File getPersistenceActiveDirectory()
             {
             return f_dirActive;
+            }
+
+        @Override
+        public File getPersistenceEventsDirectory()
+            {
+            return f_dirEvents;
             }
 
         @Override
@@ -444,6 +474,11 @@ public class PersistenceEnvironmentParamBuilder
         private final File f_dirActive;
 
         /**
+         * Path to the active directory.
+         */
+        private final File f_dirEvents;
+
+        /**
          * Path to the snapshot directory.
          */
         private final File f_dirSnapshot;
@@ -470,6 +505,11 @@ public class PersistenceEnvironmentParamBuilder
      * The active directory used by persistence.
      */
     protected String m_sActive;
+
+    /**
+     * The active directory used by persistence.
+     */
+    protected String m_sEvents;
 
     /**
      * The snapshot directory used by persistence.

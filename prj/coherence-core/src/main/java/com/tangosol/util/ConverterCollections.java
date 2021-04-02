@@ -4172,6 +4172,17 @@ public abstract class ConverterCollections
             return entry;
             }
 
+        @Override
+        public int getPartition()
+            {
+            return m_event.getPartition();
+            }
+
+        @Override
+        public long getVersion()
+            {
+            return m_event.getVersion();
+            }
 
         // ----- accessors --------------------------------------------------
 

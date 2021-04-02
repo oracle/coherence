@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -30,8 +30,12 @@ public class BerkeleyDBEnvironment
 
     /**
      * Create a new BerkeleyDBEnvironment that manages a singleton
-     * BerkeleyDBManager with the specified data directory and that creates,
-     * opens, and deletes snapshots under the specified snapshot directory.
+     * BerkeleyDBManager with the specified directories:
+     * <ol>
+     *     <li>data - active persistence</li>
+     *     <li>snapshot - location for snapshots</li>
+     *     <li>trash - optional location trashed stores</li>
+     * </ol>
      *
      * @param fileActive    the data directory of the singleton active
      *                      manager or null if an active manager shouldn't
@@ -48,7 +52,37 @@ public class BerkeleyDBEnvironment
     public BerkeleyDBEnvironment(File fileActive, File fileSnapshot, File fileTrash)
             throws IOException
         {
-        super(fileActive, fileSnapshot, fileTrash);
+        this(fileActive, fileSnapshot, fileTrash, null);
+        }
+
+    /**
+     * Create a new BerkeleyDBEnvironment that manages a singleton
+     * BerkeleyDBManager with the specified directories:
+     * <ol>
+     *     <li>data - active persistence</li>
+     *     <li>snapshot - location for snapshots</li>
+     *     <li>trash - optional location trashed stores</li>
+     *     <li>events - optional location for event storage</li>
+     * </ol>
+     *
+     * @param fileActive    the data directory of the singleton active
+     *                      manager or null if an active manager shouldn't
+     *                      be maintained by this environment
+     * @param fileSnapshot  the snapshot directory
+     * @param fileTrash     an optional trash directory used for "safe"
+     *                      deletes
+     * @param fileEvents    an optional events directory used for to store
+     *                      map events
+     *
+     * @throws IOException if the data directory could not be created
+     *
+     * @throws IllegalArgumentException if the data, snapshot, and trash
+     *         directories are not unique
+     */
+    public BerkeleyDBEnvironment(File fileActive, File fileSnapshot, File fileTrash, File fileEvents)
+            throws IOException
+        {
+        super(fileActive, fileSnapshot, fileTrash, fileEvents);
         }
 
     // ----- AbstractPersistenceEnvironment methods -------------------------
@@ -62,6 +96,23 @@ public class BerkeleyDBEnvironment
         try
             {
             return new BerkeleyDBManager(getPersistenceActiveDirectory(),
+                    getPersistenceTrashDirectory(), null);
+            }
+        catch (IOException e)
+            {
+            throw ensurePersistenceException(e);
+            }
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected AbstractPersistenceManager openEventsInternal()
+        {
+        try
+            {
+            return new BerkeleyDBManager(getPersistenceEventsDirectory(),
                     getPersistenceTrashDirectory(), null);
             }
         catch (IOException e)

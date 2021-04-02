@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,13 @@ package com.oracle.coherence.persistence;
 
 import com.oracle.coherence.common.base.Collector;
 
+import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.WrapperBufferInput;
+import com.tangosol.io.WrapperBufferOutput;
+import com.tangosol.io.WriteBuffer;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -145,6 +152,23 @@ public interface PersistenceManager<R>
     public String[] list();
 
     /**
+     * Return the identifiers of the PersistentStores known to this manager.
+     *
+     * @return a list of the known store identifiers
+     */
+    public default boolean contains(String sGUID)
+        {
+        for (String sGUIDCurrent : list())
+            {
+            if (sGUIDCurrent.equals(sGUID))
+                {
+                return true;
+                }
+            }
+        return false;
+        }
+
+    /**
      * Return the identifiers of PersistentStores that are currently open.
      *
      * @return a list of the open store identifiers
@@ -165,7 +189,33 @@ public interface PersistenceManager<R>
      *
      * @throws IllegalArgumentException if the specified identifier is invalid
      */
-    public void read(String sId, InputStream in) throws IOException;
+    public default void read(String sId, InputStream in)
+            throws IOException
+        {
+        ReadBuffer.BufferInput bufIn = in instanceof ReadBuffer.BufferInput
+                ? (ReadBuffer.BufferInput) in
+                : new WrapperBufferInput(in instanceof DataInputStream
+                        ? (DataInputStream) in : new DataInputStream(in));
+
+        read(sId, bufIn);
+        }
+
+    /**
+     * Read the PersistenceStore associated with the specified identifier
+     * from the given input stream, making it available to this manager.
+     *
+     * @param sId  a unique identifier of the store to read
+     * @param in   the stream to read from
+     *
+     * @throws IOException if an error occurred while reading from the stream
+     *
+     * @throws PersistenceException if an error occurred while writing to the
+     *         specified store
+     *
+     * @throws IllegalArgumentException if the specified identifier is invalid
+     */
+    public void read(String sId, ReadBuffer.BufferInput in)
+            throws IOException;
 
     /**
      * Write the PersistentStore associated with the specified identifier to
@@ -181,7 +231,32 @@ public interface PersistenceManager<R>
      *
      * @throws IllegalArgumentException if the specified identifier is invalid
      */
-    public void write(String sId, OutputStream out) throws IOException;
+    public default void write(String sId, OutputStream out)
+            throws IOException
+        {
+        WriteBuffer.BufferOutput bufOut = out instanceof WriteBuffer.BufferOutput
+                ? (WriteBuffer.BufferOutput) out
+                : new WrapperBufferOutput(out instanceof DataOutputStream
+                        ? (DataOutputStream) out : new DataOutputStream(out));
+
+        write(sId, bufOut);
+        }
+
+    /**
+     * Write the PersistentStore associated with the specified identifier to
+     * the given output buffer.
+     *
+     * @param sId  a unique identifier of the store to write
+     * @param out  the output buffer to write to
+     *
+     * @throws IOException if an error occurred while writing to the stream
+     *
+     * @throws PersistenceException if an error occurred while reading from
+     *         the specified store
+     *
+     * @throws IllegalArgumentException if the specified identifier is invalid
+     */
+    public void write(String sId, WriteBuffer.BufferOutput out) throws IOException;
 
     /**
      * Release all resources held by this manager. Note that the behavior

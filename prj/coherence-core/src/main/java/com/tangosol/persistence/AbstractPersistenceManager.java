@@ -27,6 +27,9 @@ import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.ReadBuffer.BufferInput;
+import com.tangosol.io.WrapperBufferOutput;
+import com.tangosol.io.WriteBuffer.BufferOutput;
 
 import com.tangosol.net.cache.KeyAssociation;
 
@@ -90,10 +93,10 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
     public AbstractPersistenceManager(File fileData, File fileTrash, String sName)
             throws IOException
         {
-        f_dirActive = FileHelper.ensureDir(fileData);
-        f_dirTrash  = fileTrash;
-        f_dirLock   = new File(f_dirActive, CachePersistenceHelper.DEFAULT_LOCK_DIR);
-        f_sName     = sName == null ? fileData.toString() : sName;
+        f_dirData  = FileHelper.ensureDir(fileData);
+        f_dirTrash = fileTrash;
+        f_dirLock  = new File(f_dirData, CachePersistenceHelper.DEFAULT_LOCK_DIR);
+        f_sName    = sName == null ? fileData.toString() : sName;
         }
 
     // ----- PersistenceManager interface -----------------------------------
@@ -246,7 +249,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         // holding instance-specific files. We can ensure that a given
         // directory has a correct format by checking for a properly
         // configured metadata.
-        String[] asNames = f_dirActive.list((dir, name) ->
+        String[] asNames = f_dirData.list((dir, name) ->
             {
             File fileEnv = new File(dir, name);
             if (fileEnv.isDirectory() &&
@@ -286,6 +289,13 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         return asNames == null ? NO_STRINGS : asNames;
         }
 
+    @Override
+    public boolean contains(String sGUID)
+        {
+        // TODO: optimizie this impl to not require a full directory listing
+        return PersistenceManager.super.contains(sGUID);
+        }
+
     /**
      * {@inheritDoc}
      */
@@ -304,13 +314,10 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
      * {@inheritDoc}
      */
     @Override
-    public void read(String sId, InputStream in)
+    public void read(String sId, BufferInput in)
             throws IOException
         {
         ensureActive();
-
-        final DataInputStream inData = in instanceof DataInputStream
-                ? (DataInputStream) in : new DataInputStream(in);
 
         // the store being materialized into must be new/empty
         AbstractPersistentStore store;
@@ -329,13 +336,13 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         try
             {
             // read and validate magic
-            if (inData.readInt() != MAGIC)
+            if (in.readInt() != MAGIC)
                 {
                 throw new StreamCorruptedException("the data stream is unrecognized");
                 }
 
             // read and validate version
-            int nVersion = inData.readByte();
+            int nVersion = in.readByte();
             if (nVersion > VERSION)
                 {
                 throw new IOException("the data stream is a newer version ("
@@ -347,26 +354,26 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             while (true)
                 {
                 // read key and value lengths
-                int cbKey = inData.readInt();
+                int cbKey = in.readInt();
                 if (cbKey < 0) // see #write()
                     {
                     break;
                     }
-                int cbValue = inData.readInt();
+                int cbValue = in.readInt();
                 if (cbValue < 0)
                     {
                     throw new StreamCorruptedException();
                     }
 
                 // read extent identifier
-                long lExtentId = inData.readLong();
+                long lExtentId = in.readLong();
 
                 // read key and value
                 byte[] ab = new byte[cbKey + cbValue];
 
                 try
                     {
-                    inData.readFully(ab, 0, cbKey);
+                    in.readFully(ab, 0, cbKey);
                     }
                 catch (EOFException e)
                     {
@@ -375,7 +382,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
 
                 try
                     {
-                    inData.readFully(ab, cbKey, cbValue);
+                    in.readFully(ab, cbKey, cbValue);
                     }
                 catch (EOFException e)
                     {
@@ -404,13 +411,10 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
      * {@inheritDoc}
      */
     @Override
-    public void write(String sId, OutputStream out)
+    public void write(String sId, BufferOutput out)
             throws IOException
         {
         ensureActive();
-
-        final DataOutputStream outData = out instanceof DataOutputStream
-                ? (DataOutputStream) out : new DataOutputStream(out);
 
         // open the store
         AbstractPersistentStore store = (AbstractPersistentStore) open(sId, null);
@@ -420,10 +424,10 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         try
             {
             // write magic
-            outData.writeInt(MAGIC);
+            out.writeInt(MAGIC);
 
             // write version
-            outData.writeByte(VERSION);
+            out.writeByte(VERSION);
 
             // write contents of the store
             final IOException[] ae = new IOException[1];
@@ -432,15 +436,15 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 try
                     {
                     // write key and value lengths
-                    outData.writeInt(bufKey.length());
-                    outData.writeInt(bufValue.length());
+                    out.writeInt(bufKey.length());
+                    out.writeInt(bufValue.length());
 
                     // write extent identifier
-                    outData.writeLong(lExtentId);
+                    out.writeLong(lExtentId);
 
                     // write key and value
-                    bufKey.writeTo((DataOutput) outData);
-                    bufValue.writeTo((DataOutput) outData);
+                    bufKey.writeTo((DataOutput) out);
+                    bufValue.writeTo((DataOutput) out);
                     }
                 catch (IOException e)
                     {
@@ -453,7 +457,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             if (ae[0] == null)
                 {
                 // terminate the stream
-                outData.writeInt(-1);
+                out.writeInt(-1);
                 }
             else
                 {
@@ -465,7 +469,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             store.unlockRead();
             try
                 {
-                outData.flush();
+                out.flush();
                 }
             catch (IOException e)
                 {
@@ -751,6 +755,33 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         }
 
     /**
+     * Submit the provided list of tasks for execution to the pool or execute
+     * directly.
+     *
+     * @param listTasks  the tasks to execute
+     */
+    protected void submitTasks(List<? extends Task> listTasks)
+        {
+        boolean fPool = m_pool == null;
+        for (Task task : listTasks)
+            {
+            if (fPool)
+                {
+                task.register();
+                }
+            else
+                {
+                task.execute();
+                }
+            }
+
+        if (fPool)
+            {
+            m_pool.add(new BatchTasks((List) listTasks));
+            }
+        }
+
+    /**
      * Validate that the given identifier can be used for a persistent store.
      *
      * @param sId  the identifier to check
@@ -811,6 +842,14 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 f_canceled = true;
                 notifyCompleted();
                 }
+            }
+
+        /**
+         * Register this task with the manager.
+         */
+        protected void register()
+            {
+            AbstractPersistenceManager.this.addTask(this);
             }
 
         /**
@@ -884,11 +923,23 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             }
         else
             {
-            synchronized (f_setTasks)
-                {
-                f_setTasks.add(task);
-                pool.add(task);
-                }
+            addTask(task);
+
+            // add to the pool outside of synhronization
+            pool.add(task);
+            }
+        }
+
+    /**
+     * Add the provided task to the set of tasks.
+     *
+     * @param task  the task to add
+     */
+    protected void addTask(Task task)
+        {
+        synchronized (f_setTasks)
+            {
+            f_setTasks.add(task);
             }
         }
 
@@ -981,7 +1032,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 }
 
             f_sId      = sId;
-            f_dirStore = new File(f_dirActive, sId);
+            f_dirStore = new File(f_dirData, sId);
             f_fileLock = new File(getLockDirectory(), sId + ".lck");
             }
 
@@ -1362,7 +1413,11 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         @Override
         public void commit(Object oToken)
             {
-            if (oToken instanceof AbstractPersistenceManager.AbstractPersistentStore.BatchTask)
+            if (oToken instanceof List)
+                {
+                submitTasks((List) oToken);
+                }
+            else if (oToken instanceof AbstractPersistenceManager.AbstractPersistentStore.BatchTask)
                 {
                 AbstractPersistenceManager.this.submitTask((BatchTask) oToken);
                 }
@@ -2685,6 +2740,61 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         protected final Set<Long> f_setDeletedIds = new CopyOnWriteArraySet<>();
         }
 
+    // ----- inner class: BatchTasks ----------------------------------------
+
+    /**
+     * A collection of tasks to execute in a loop.
+     */
+    protected static class BatchTasks
+            implements Runnable, KeyAssociation
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Construct a BatchTasks instance with the given list of tasks to
+         * execute.
+         *
+         * @param listTasks  the tasks to execute
+         */
+        protected BatchTasks(List<Runnable> listTasks)
+            {
+            f_listTasks    = listTasks;
+            f_oAssociation = listTasks.isEmpty()
+                    ? null : ((KeyAssociation) listTasks.iterator().next()).getAssociatedKey();
+            }
+
+        // ----- Runnable methods -------------------------------------------
+
+        @Override
+        public void run()
+            {
+            for (Runnable task : f_listTasks)
+                {
+                task.run();
+                }
+            }
+
+        // ----- KeyAssociation methods -------------------------------------
+
+        @Override
+        public Object getAssociatedKey()
+            {
+            return f_oAssociation;
+            }
+
+        // ----- data members ---------------------------------------------------
+
+        /**
+         * List of tasks to execute.
+         */
+        protected final List<Runnable> f_listTasks;
+
+        /**
+         * Association for this BatchTasks.
+         */
+        protected final Object f_oAssociation;
+        }
+
     // ----- inner class: AbstractPersistenceSnapshotTools ------------------
 
     /**
@@ -2827,7 +2937,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
      */
     public File getDataDirectory()
         {
-        return f_dirActive;
+        return f_dirData;
         }
 
     /**
@@ -2947,7 +3057,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
     /**
      * The directory used to store persisted data.
      */
-    protected final File f_dirActive;
+    protected final File f_dirData;
 
     /**
      * The directory used to store "safe-deleted" data.

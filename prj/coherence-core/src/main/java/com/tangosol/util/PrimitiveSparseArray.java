@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -56,33 +56,33 @@ public class PrimitiveSparseArray
     /**
     * {@inheritDoc}
     */
-    public LongArray.Iterator iterator()
+    public Iterator iterator()
         {
-        return (LongArray.Iterator) super.iterator();
+        return (Iterator) super.iterator();
         }
 
     /**
     * {@inheritDoc}
     */
-    public LongArray.Iterator iterator(long lIndex)
+    public Iterator iterator(long lIndex)
         {
-        return (LongArray.Iterator) super.iterator(lIndex);
+        return (Iterator) super.iterator(lIndex);
         }
 
     /**
     * {@inheritDoc}
     */
-    public LongArray.Iterator reverseIterator()
+    public Iterator reverseIterator()
         {
-        return (LongArray.Iterator) super.reverseIterator();
+        return (Iterator) super.reverseIterator();
         }
 
     /**
     * {@inheritDoc}
     */
-    public LongArray.Iterator reverseIterator(long lIndex)
+    public Iterator reverseIterator(long lIndex)
         {
-        return (LongArray.Iterator) super.reverseIterator(lIndex);
+        return (Iterator) super.reverseIterator(lIndex);
         }
 
     // ----- PrimitiveSparseArray API ---------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -42,7 +42,7 @@ public class StorageVersion
      */
     public StorageVersion()
         {
-        m_laPartitionVersion     = new CopyOnWriteLongArray();
+        m_laPartitionVersion     = new CopyOnWriteLongArray<>();
         m_atomicCommittedVersion = new AtomicLong(0L);
         m_atomicSubmittedVersion = new AtomicLong(0L);
         m_cWaitingThreads = 0;
@@ -74,7 +74,7 @@ public class StorageVersion
             {
             PartitionVersion version = (PartitionVersion) iter.next();
 
-            if (version.submissionCounter.get() > 0)
+            if (version.f_atomicSubmission.get() > 0)
                 {
                 sbMap.append("\n{Partition ")
                    .append(iter.getIndex())
@@ -97,6 +97,17 @@ public class StorageVersion
     public long getSubmittedVersion()
         {
         return m_atomicSubmittedVersion.get();
+        }
+
+    /**
+     * Get the submitted version.
+     *
+     * @return the submitted version
+     */
+    public long getSubmittedVersion(int nPart)
+        {
+        PartitionVersion version = m_laPartitionVersion.get(nPart);
+        return version == null ? 0 : version.f_atomicSubmitted.get();
         }
 
     /**
@@ -150,19 +161,16 @@ public class StorageVersion
      *
      * @param nPartition  the partition to update
      */
-    public void submit(int nPartition)
+    public long submit(int nPartition)
         {
         LongArray laPartitionVersion = m_laPartitionVersion;
 
-        PartitionVersion version = (PartitionVersion) laPartitionVersion.get(nPartition);
-        if (version == null)
-            {
-            // partition not registered, allocate and add to the map
-            laPartitionVersion.set(nPartition, version = new PartitionVersion());
-            }
-        version.submissionCounter.incrementAndGet();
+        PartitionVersion version = ensurePartitionVersion(nPartition);
+        version.f_atomicSubmission.incrementAndGet();
 
         m_atomicSubmittedVersion.incrementAndGet();
+
+        return version.f_atomicSubmitted.incrementAndGet();
         }
 
     /**
@@ -173,16 +181,16 @@ public class StorageVersion
      */
     public void commit(int nPartition)
         {
-        PartitionVersion version = (PartitionVersion) m_laPartitionVersion.get(nPartition);
+        PartitionVersion version = m_laPartitionVersion.get(nPartition);
         boolean          fNotify;
 
         // make sure that two updating threads don't step on each other
         synchronized (version)
             {
             long lVersion = m_atomicCommittedVersion.incrementAndGet();
-            version.committedVersion.set(lVersion);
+            version.f_atomicCommitted.set(lVersion);
 
-            long cPendingUpdates = version.submissionCounter.decrementAndGet();
+            long cPendingUpdates = version.f_atomicSubmission.decrementAndGet();
             assert cPendingUpdates >= 0;
 
             fNotify = cPendingUpdates == 0 && m_cWaitingThreads > 0;
@@ -262,18 +270,18 @@ public class StorageVersion
      */
     public long waitForPendingCommit(int nPartition)
         {
-        PartitionVersion version = (PartitionVersion) m_laPartitionVersion.get(nPartition);
+        PartitionVersion version = m_laPartitionVersion.get(nPartition);
         if (version == null)
             {
             return 0;
             }
 
-        while (version.submissionCounter.get() > 0)
+        while (version.f_atomicSubmission.get() > 0)
             {
             waitForNotify();
             }
 
-        return version.committedVersion.get();
+        return version.f_atomicCommitted.get();
         }
 
     /**
@@ -290,6 +298,52 @@ public class StorageVersion
         }
 
     /**
+     * Reset the submitted version to be the provided version iff that version
+     * is greater than the current submitted version.
+     *
+     * @param nPartition   the partition
+     * @param lNewVersion  the new version
+     */
+    public void resetSubmitted(int nPartition, long lNewVersion)
+        {
+        LongArray laPartitionVersion = m_laPartitionVersion;
+
+        PartitionVersion version = ensurePartitionVersion(nPartition);
+
+        long lCurrentVersion;
+        do
+            {
+            lCurrentVersion = version.f_atomicSubmitted.get();
+            }
+        while (lCurrentVersion < lNewVersion && !version.f_atomicSubmitted.compareAndSet(lCurrentVersion, lNewVersion));
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Return a PartitionVersion data structure that represents the provided
+     * partition
+     *
+     * @param nPartition  the partition
+     *
+     * @return a PartitionVersion data structure that represents the provided
+     *         partition
+     */
+    protected PartitionVersion ensurePartitionVersion(int nPartition)
+        {
+        LongArray laPartitionVersion = m_laPartitionVersion;
+
+        PartitionVersion version = (PartitionVersion) laPartitionVersion.get(nPartition);
+        if (version == null)
+            {
+            // partition not registered, allocate and add to the map
+            laPartitionVersion.set(nPartition, version = new PartitionVersion());
+            }
+
+        return version;
+        }
+
+    /**
      * PartitionVersion encapsulates the partition last commit version and
      * the "pending" update counter used to determine whether or not there is
      * a thread within the "critical section" between the submit and commit.
@@ -298,17 +352,6 @@ public class StorageVersion
      */
     private static class PartitionVersion
         {
-        /**
-         * The last index update made to the partition.
-         */
-        public final AtomicLong committedVersion = new AtomicLong(0L);
-
-        /**
-         * The pending index update counter. A positive value indicates that
-         * there are updates made to the backing map which have not yet been
-         * processed.
-         */
-        public final AtomicLong submissionCounter = new AtomicLong(0L);
 
         /**
          * Check whether or not any modifications have been submitted to
@@ -320,9 +363,11 @@ public class StorageVersion
          */
         public boolean isNewerThan(long lCommittedVersion)
           {
-          return submissionCounter.get() > 0                 // there is a pending change
-              || committedVersion.get() > lCommittedVersion; // the partition version is newer
+          return f_atomicSubmission.get() > 0                 // there is a pending change
+              || f_atomicCommitted.get() > lCommittedVersion; // the partition version is newer
           }
+
+        // ----- object methods ---------------------------------------------
 
         /**
          * Provide a human readable description for this PartitionVersion.
@@ -331,9 +376,29 @@ public class StorageVersion
          */
         public String toString()
             {
-            return "PartitionVersion{CommittedVersion=" + committedVersion.get()
-                 + ", SubmissionCounter=" + submissionCounter.get() + "}";
+            return "PartitionVersion{CommittedVersion=" + f_atomicCommitted.get()
+                 + ", SubmissionCounter=" + f_atomicSubmission.get() + "}";
             }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * A monotonically increasing count of the changes made to a partition
+         * slice.
+         */
+        final AtomicLong f_atomicSubmitted = new AtomicLong();
+
+        /**
+         * The last index update made to the partition.
+         */
+        final AtomicLong f_atomicCommitted = new AtomicLong();
+
+        /**
+         * The pending index update counter. A positive value indicates that
+         * there are updates made to the backing map which have not yet been
+         * processed.
+         */
+        final AtomicLong f_atomicSubmission = new AtomicLong();
         }
 
     // ----- data members ---------------------------------------------------
@@ -351,7 +416,7 @@ public class StorageVersion
     /**
      * The array containing PartitionVersions keyed by the partition id.
      */
-    protected final LongArray m_laPartitionVersion;
+    protected final LongArray<PartitionVersion> m_laPartitionVersion;
 
     /**
      * The number of threads that are currently waiting for pending commits.

@@ -577,6 +577,11 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.net.partition.VersionedOwnership</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>174</type-id>
+      <class-name>com.tangosol.net.partition.DefaultVersionedPartitions</class-name>
+    </user-type>
+
     <!-- com.tangosol.internal.util.collection package (180-189) -->
 
     <user-type>

@@ -102,7 +102,7 @@ meaningful to other cache configurations unless similarly defined there.
       <scheme-name>server</scheme-name>
       <service-name>${coherence.service.name PartitionedCache}</service-name>
       <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
-      <partition-count system-property="coherence.distributed.partitions">257</partition-count>
+      <partition-count system-property="coherence.distributed.partitions">10</partition-count>
       <backing-map-scheme>
         <local-scheme>
           <high-units>{back-limit-bytes 0B}</high-units>

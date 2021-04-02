@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.tangosol.util.listener;
 
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
+import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.MultiplexingMapListener;
 
 import java.util.function.Consumer;
@@ -82,6 +83,45 @@ public class SimpleMapListener<K, V>
                .addDeleteHandler(onEvent);
         }
 
+    /**
+     * Mark this listener as versioned as can be confirmed by {@link
+     * MapListener#isVersionAware()}.
+     *
+     * @return this MapListener
+     */
+    public SimpleMapListener<K, V> versioned()
+        {
+        m_nCharacteristics |= VERSION_AWARE;
+
+        return this;
+        }
+
+    /**
+     * Mark this listener as synchronous as can be confirmed by {@link
+     * MapListener#isSynchronous()} ()}.
+     *
+     * @return this MapListener
+     */
+    public SimpleMapListener<K, V> synchronous()
+        {
+        m_nCharacteristics |= SYNCHRONOUS;
+
+        return this;
+        }
+
+    /**
+     * Mark this listener as asynchronous as can be confirmed by {@link
+     * MapListener#isAsynchronous()}.
+     *
+     * @return this MapListener
+     */
+    public SimpleMapListener<K, V> asynchronous()
+        {
+        m_nCharacteristics &= ~SYNCHRONOUS;
+
+        return this;
+        }
+
     // ---- MapListener interface -------------------------------------------
 
     @Override
@@ -109,6 +149,19 @@ public class SimpleMapListener<K, V>
             {
             m_onDelete.accept(evt);
             }
+        }
+
+    @Override
+    public int characteristics()
+        {
+        return m_nCharacteristics;
+        }
+
+    @Override
+    public boolean equals(Object oThat)
+        {
+        return oThat != null &&
+                super.equals(MapListenerSupport.unwrap((MapListener) oThat));
         }
 
     // ---- helper methods --------------------------------------------------
@@ -145,4 +198,9 @@ public class SimpleMapListener<K, V>
      * The event handler to execute on DELETE event.
      */
     protected Consumer<MapEvent<? extends K, ? extends V>> m_onDelete;
+
+    /**
+     * The characteristics of this MapListener.
+     */
+    protected int m_nCharacteristics = ASYNCHRONOUS;
     }

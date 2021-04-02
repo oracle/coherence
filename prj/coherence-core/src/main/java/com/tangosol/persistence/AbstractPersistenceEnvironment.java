@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -48,10 +48,14 @@ public abstract class AbstractPersistenceEnvironment
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Create a new AbstractPersistenceEnvironment that manages a singleton
-     * AbstractPersistenceManager with the specified data directory and that
-     * creates, opens, and deletes snapshots under the specified snapshot
-     * directory.
+     * Create a new BerkeleyDBEnvironment that manages a singleton
+     * BerkeleyDBManager with the specified directories:
+     * <ol>
+     *     <li>data - active persistence</li>
+     *     <li>snapshot - location for snapshots</li>
+     *     <li>trash - optional location trashed stores</li>
+     *     <li>events - optional location for event storage</li>
+     * </ol>
      *
      * @param fileActive    the data directory of the singleton active
      *                      manager or null if an active manager shouldn't
@@ -68,12 +72,47 @@ public abstract class AbstractPersistenceEnvironment
     public AbstractPersistenceEnvironment(File fileActive, File fileSnapshot, File fileTrash)
             throws IOException
         {
+        this(fileActive, fileSnapshot, fileTrash, null);
+        }
+
+    /**
+     * Create a new BerkeleyDBEnvironment that manages a singleton
+     * BerkeleyDBManager with the specified directories:
+     * <ol>
+     *     <li>data - active persistence</li>
+     *     <li>snapshot - location for snapshots</li>
+     *     <li>trash - optional location trashed stores</li>
+     *     <li>events - optional location for event storage</li>
+     * </ol>
+     *
+     * @param fileActive    the data directory of the singleton active
+     *                      manager or null if an active manager shouldn't
+     *                      be maintained by this environment
+     * @param fileSnapshot  the snapshot directory
+     * @param fileTrash     an optional trash directory used for "safe"
+     *                      deletes
+     * @param fileEvents    an optional events directory used for to store
+     *                      map events
+     *
+     * @throws IOException if the data directory could not be created
+     *
+     * @throws IllegalArgumentException if the data, snapshot, and trash
+     *         directories are not unique
+     */
+    public AbstractPersistenceEnvironment(File fileActive, File fileSnapshot, File fileTrash, File fileEvents)
+            throws IOException
+        {
         if (fileActive != null && !fileActive.exists())
             {
             Logger.info("Creating persistence active directory \"" + fileActive.getAbsolutePath() + '"');
             }
+        if (fileEvents != null && !fileEvents.exists())
+            {
+            Logger.info("Creating persistence events directory \"" + fileEvents.getAbsolutePath() + '"');
+            }
 
         f_fileActive   = fileActive == null ? null : FileHelper.ensureDir(fileActive);
+        f_fileEvents   = fileEvents;
         f_fileSnapshot = fileSnapshot;
         f_fileTrash    = fileTrash;
 
@@ -96,6 +135,27 @@ public abstract class AbstractPersistenceEnvironment
         }
 
     // ----- PersistenceEnvironment interface -------------------------------
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public synchronized PersistenceManager<ReadBuffer> openEvents()
+        {
+        if (f_fileEvents == null)
+            {
+            return null;
+            }
+
+        AbstractPersistenceManager manager = m_managerEvents;
+        if (manager == null)
+            {
+            m_managerEvents = manager = openEventsInternal();
+            manager.setPersistenceEnvironment(this);
+            }
+
+        return manager;
+        }
 
     /**
      * {@inheritDoc}
@@ -255,6 +315,15 @@ public abstract class AbstractPersistenceEnvironment
      * {@inheritDoc}
      */
     @Override
+    public File getPersistenceEventsDirectory()
+        {
+        return f_fileEvents;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public File getPersistenceSnapshotDirectory()
         {
         return f_fileSnapshot;
@@ -352,6 +421,18 @@ public abstract class AbstractPersistenceEnvironment
      * @throws PersistenceException if a general persistence error occurs
      */
     protected abstract AbstractPersistenceManager openActiveInternal();
+
+    /**
+     * Open the active manager.
+     * <p>
+     * Note: this method is guaranteed to only be called by a thread that
+     * holds a monitor on this environment.
+     *
+     * @return the active manager
+     *
+     * @throws PersistenceException if a general persistence error occurs
+     */
+    protected abstract AbstractPersistenceManager openEventsInternal();
 
     /**
      * Open the snapshot with the specified identifier.
@@ -650,6 +731,11 @@ public abstract class AbstractPersistenceEnvironment
     protected final File f_fileActive;
 
     /**
+     * The events directory of the events persistence manager.
+     */
+    protected final File f_fileEvents;
+
+    /**
      * The snapshot directory.
      */
     protected final File f_fileSnapshot;
@@ -663,6 +749,11 @@ public abstract class AbstractPersistenceEnvironment
      * This singleton active manager.
      */
     protected AbstractPersistenceManager<?> m_managerActive;
+
+    /**
+     * This singleton events manager.
+     */
+    protected AbstractPersistenceManager<?> m_managerEvents;
 
     /**
      * The map of snapshots, keyed by snapshot name.

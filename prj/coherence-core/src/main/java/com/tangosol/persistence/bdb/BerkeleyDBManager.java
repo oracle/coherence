@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.sleepycat.je.CacheMode;
 import com.sleepycat.je.CheckpointConfig;
+import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
@@ -758,23 +759,63 @@ public class BerkeleyDBManager
             // iterate each database
             for (Database db : f_mapDB.values())
                 {
-                long          lExtentId  = Long.valueOf(db.getDatabaseName()).longValue();
+                long lExtentId = Long.valueOf(db.getDatabaseName()).longValue();
+                
+                if (!visitor.visitExtent(lExtentId))
+                    {
+                    continue;
+                    }
+
                 DatabaseEntry entryKey   = new DatabaseEntry();
                 DatabaseEntry entryValue = new DatabaseEntry();
-
+                ReadBuffer    bufStart   = visitor.visitFromKey();
                 try
                     {
-                    try (DiskOrderedCursor cursor = db.openCursor(CURSOR_CONFIG))
+                    if (bufStart == null)
                         {
-                        while (cursor.getNext(entryKey, entryValue, null /*lockMode*/)
-                                == OperationStatus.SUCCESS)
+                        try (DiskOrderedCursor cursor = db.openCursor(CURSOR_CONFIG))
                             {
-                            // extract the key and value
-                            ReadBuffer bufKey = newBinaryUnsafe(entryKey.getData());
-                            ReadBuffer bufValue = newBinaryUnsafe(entryValue.getData());
-                            if (!visitor.visit(lExtentId, bufKey, bufValue))
+                            while (cursor.getNext(entryKey, entryValue, null /*lockMode*/)
+                                    == OperationStatus.SUCCESS)
                                 {
-                                return;
+                                // extract the key and value
+                                ReadBuffer bufKey   = newBinaryUnsafe(entryKey.getData());
+                                ReadBuffer bufValue = newBinaryUnsafe(entryValue.getData());
+                                if (!visitor.visit(lExtentId, bufKey, bufValue))
+                                    {
+                                    return;
+                                    }
+                                }
+                            }
+                        }
+                    else
+                        {
+                        boolean fLast = bufStart.equals(CachePersistenceHelper.LAST_ENTRY);
+                        try (Cursor cursor = db.openCursor(null, null))
+                            {
+                            OperationStatus status;
+                            if (fLast)
+                                {
+                                status = cursor.getLast(entryKey, entryValue, null);
+                                }
+                            else
+                                {
+                                entryKey.setData(bufStart.toByteArray());
+
+                                status = cursor.getSearchKey(entryKey, entryValue, null);
+                                }
+
+                            while (status == OperationStatus.SUCCESS)
+                                {
+                                // extract the key and value
+                                ReadBuffer bufKey   = newBinaryUnsafe(entryKey.getData());
+                                ReadBuffer bufValue = newBinaryUnsafe(entryValue.getData());
+
+                                if (!visitor.visit(lExtentId, bufKey, bufValue) || fLast)
+                                    {
+                                    return;
+                                    }
+                                status = cursor.getNext(entryKey, entryValue, null);
                                 }
                             }
                         }

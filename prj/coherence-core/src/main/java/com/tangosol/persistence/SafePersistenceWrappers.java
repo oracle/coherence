@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,6 +13,8 @@ import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistentStore;
 
+import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.WriteBuffer;
 import com.tangosol.util.Base;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.NullImplementation.NullPersistenceEnvironment;
@@ -212,6 +214,23 @@ public class SafePersistenceWrappers
             }
 
         // ----- PersistenceEnvironment methods -----------------------------
+
+        /**
+         * {@inheritDoc}
+         */
+        public PersistenceManager<R> openEvents()
+            {
+            try
+                {
+                return wrap(getEnvironment().openEvents());
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+
+            return NullImplementation.getPersistenceManager();
+            }
 
         /**
          * {@inheritDoc}
@@ -592,6 +611,46 @@ public class SafePersistenceWrappers
          * {@inheritDoc}
          */
         public void write(String sId, OutputStream out)
+                throws IOException
+            {
+            try
+                {
+                getManager().write(sId, out);
+                }
+            catch (IOException e)
+                {
+                throw e;
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void read(String sId, ReadBuffer.BufferInput in)
+                throws IOException
+            {
+            try
+                {
+                getManager().read(sId, in);
+                }
+            catch (IOException e)
+                {
+                throw e;
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void write(String sId, WriteBuffer.BufferOutput out)
                 throws IOException
             {
             try

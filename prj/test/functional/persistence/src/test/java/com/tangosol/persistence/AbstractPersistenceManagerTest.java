@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 
+import com.tangosol.io.ReadBuffer.BufferInput;
 import com.tangosol.persistence.AbstractPersistenceManager.AbstractPersistentStore;
 
 import com.tangosol.util.Base;
@@ -590,7 +591,7 @@ public abstract class AbstractPersistenceManagerTest
         // create a new PersistentStore
         manager.open(TEST_STORE_ID, null);
 
-        manager.read(TEST_STORE_ID, null);
+        manager.read(TEST_STORE_ID, (BufferInput) null);
         }
 
     @Test(expected = StreamCorruptedException.class)
