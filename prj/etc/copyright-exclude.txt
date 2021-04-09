@@ -132,3 +132,4 @@ cache-config-UTF8-BOM.xml
 .yaml
 .zip
 .class
+.cdb
