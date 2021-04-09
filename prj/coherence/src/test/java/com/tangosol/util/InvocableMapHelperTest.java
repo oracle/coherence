@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -40,11 +40,11 @@ public class InvocableMapHelperTest
     public void testQuery()
         {
         Map map = new HashMap();
-        map.put("one",   new Integer(1));
-        map.put("two",   new Integer(2));
-        map.put("three", new Integer(3));
-        map.put("four",  new Integer(4));
-        map.put("five",  new Integer(5));
+        map.put("one",   1);
+        map.put("two",   2);
+        map.put("three", 3);
+        map.put("four",  4);
+        map.put("five",  5);
 
         // simple query for the key set with an always filter
         Set set = InvocableMapHelper.query(map, AlwaysFilter.INSTANCE,
@@ -54,7 +54,7 @@ public class InvocableMapHelperTest
 
         // simple query for the key set with an greater filter
         set = InvocableMapHelper.query(map,
-                new GreaterFilter(new IdentityExtractor(), new Integer(3)),
+                new GreaterFilter(new IdentityExtractor(), 3),
                 false, false, null);
 
         assertTrue(set.size() == 2);
@@ -72,21 +72,21 @@ public class InvocableMapHelperTest
                 true, true, null);
 
         assertTrue(set.size() == 5);
-        assertTrue(checkEntrySetValue(set, new Integer(1), 0));
-        assertTrue(checkEntrySetValue(set, new Integer(2), 1));
-        assertTrue(checkEntrySetValue(set, new Integer(3), 2));
-        assertTrue(checkEntrySetValue(set, new Integer(4), 3));
-        assertTrue(checkEntrySetValue(set, new Integer(5), 4));
+        assertTrue(checkEntrySetValue(set, 1, 0));
+        assertTrue(checkEntrySetValue(set, 2, 1));
+        assertTrue(checkEntrySetValue(set, 3, 2));
+        assertTrue(checkEntrySetValue(set, 4, 3));
+        assertTrue(checkEntrySetValue(set, 5, 4));
 
 
         // simple query for the entry set with an greater filter
         set = InvocableMapHelper.query(map,
-                new GreaterFilter(new IdentityExtractor(), new Integer(3)),
+                new GreaterFilter(new IdentityExtractor(), 3),
                 true, false, null);
 
         assertTrue(set.size() == 2);
-        assertTrue(checkEntrySetValue(set, new Integer(4), -1));
-        assertTrue(checkEntrySetValue(set, new Integer(5), -1));
+        assertTrue(checkEntrySetValue(set, 4, -1));
+        assertTrue(checkEntrySetValue(set, 5, -1));
 
 
         // query for the entery set with a limit filter
@@ -120,8 +120,8 @@ public class InvocableMapHelperTest
                 true, true, null);
 
         assertTrue(set.size() == 2);
-        assertTrue(checkEntrySetValue(set, new Integer(1), 0));
-        assertTrue(checkEntrySetValue(set, new Integer(2), 1));
+        assertTrue(checkEntrySetValue(set, 1, 0));
+        assertTrue(checkEntrySetValue(set, 2, 1));
 
         // page 2
         filter.nextPage();
@@ -129,8 +129,8 @@ public class InvocableMapHelperTest
                 true, true, null);
 
         assertTrue(set.size() == 2);
-        assertTrue(checkEntrySetValue(set, new Integer(3), 0));
-        assertTrue(checkEntrySetValue(set, new Integer(4), 1));
+        assertTrue(checkEntrySetValue(set, 3, 0));
+        assertTrue(checkEntrySetValue(set, 4, 1));
 
         // page 3
         filter.nextPage();
@@ -138,7 +138,7 @@ public class InvocableMapHelperTest
                 true, true, null);
 
         assertTrue(set.size() == 1);
-        assertTrue(checkEntrySetValue(set, new Integer(5), 0));
+        assertTrue(checkEntrySetValue(set, 5, 0));
 
 
         // query for the entery set with a limit filter with sort and comparator
@@ -156,8 +156,8 @@ public class InvocableMapHelperTest
                 true, true, comparator);
 
         assertTrue(set.size() == 2);
-        assertTrue(checkEntrySetValue(set, new Integer(1), 0));
-        assertTrue(checkEntrySetValue(set, new Integer(2), 1));
+        assertTrue(checkEntrySetValue(set, 1, 0));
+        assertTrue(checkEntrySetValue(set, 2, 1));
 
         // page 2
         filter.nextPage();
@@ -165,8 +165,8 @@ public class InvocableMapHelperTest
                 true, true, comparator);
 
         assertTrue(set.size() == 2);
-        assertTrue(checkEntrySetValue(set, new Integer(3), 0));
-        assertTrue(checkEntrySetValue(set, new Integer(4), 1));
+        assertTrue(checkEntrySetValue(set, 3, 0));
+        assertTrue(checkEntrySetValue(set, 4, 1));
 
         // page 3
         filter.nextPage();
@@ -174,7 +174,7 @@ public class InvocableMapHelperTest
                 true, true, comparator);
 
         assertTrue(set.size() == 1);
-        assertTrue(checkEntrySetValue(set, new Integer(5), 0));
+        assertTrue(checkEntrySetValue(set, 5, 0));
         }
 
     /**
@@ -184,11 +184,11 @@ public class InvocableMapHelperTest
     public void testQueryWithIndex()
         {
         Map map = new HashMap();
-        map.put("one",   new Integer(1));
-        map.put("two",   new Integer(2));
-        map.put("three", new Integer(3));
-        map.put("four",  new Integer(4));
-        map.put("five",  new Integer(5));
+        map.put("one",   1);
+        map.put("two",   2);
+        map.put("three", 3);
+        map.put("four",  4);
+        map.put("five",  5);
 
         IdentityExtractor extractor  = new IdentityExtractor();
         Comparator        comparator = new Comparator()
@@ -212,7 +212,7 @@ public class InvocableMapHelperTest
 
         // simple query for the key set with an greater filter
         Set set = InvocableMapHelper.query(map, mapIndex,
-                new GreaterFilter(extractor, new Integer(3)),
+                new GreaterFilter(extractor, 3),
                 false, false, null);
 
         assertTrue(set.size() == 2);
@@ -221,12 +221,12 @@ public class InvocableMapHelperTest
 
         // simple query for the key set with an greater filter
         set = InvocableMapHelper.query(map, mapIndex,
-                new GreaterFilter(extractor, new Integer(3)),
+                new GreaterFilter(extractor, 3),
                 true, false, null);
 
         assertTrue(set.size() == 2);
-        assertTrue(checkEntrySetValue(set, new Integer(4), -1));
-        assertTrue(checkEntrySetValue(set, new Integer(5), -1));
+        assertTrue(checkEntrySetValue(set, 4, -1));
+        assertTrue(checkEntrySetValue(set, 5, -1));
         }
 
     private static boolean checkEntrySetValue(Set entrySet,

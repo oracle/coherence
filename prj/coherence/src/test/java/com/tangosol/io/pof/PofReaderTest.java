@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -248,7 +248,7 @@ public class PofReaderTest
         writer.writeInt(-1, 2);     // property 2
         writer.writeBinary(-1, new Binary());
         writer.writeInt(-1, 3);     // property 3
-        writer.writeObject(-1, new Double(1.0D));
+        writer.writeObject(-1, 1.0D);
         writer.writeInt(-1, -1);    // EOF
 
         out();
@@ -339,7 +339,7 @@ public class PofReaderTest
         Map       map2   = new HashMap();
         Map       map3   = new HashMap();
 
-        list3.add(Integer.valueOf(0));
+        list3.add(0);
         map3.put("key1", "value1");
         map3.put("key2", "value2");
         pc1.setId("child1");

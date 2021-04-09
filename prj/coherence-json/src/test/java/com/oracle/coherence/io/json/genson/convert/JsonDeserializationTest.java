@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -176,9 +176,9 @@ public class JsonDeserializationTest {
       + "\"booleanPrimitive\":true,\"booleanObject\":false}";
     Primitives p = genson.deserialize(src, Primitives.class);
     assertEquals(p.getIntPrimitive(), 1);
-    assertEquals(p.getIntegerObject(), new Integer(7));
+    assertEquals(p.getIntegerObject(), (Integer) 7);
     assertEquals(p.getDoublePrimitive(), 1.01, 0);
-    assertEquals(p.getDoubleObject(), new Double(2.003));
+    assertEquals(p.getDoubleObject(), (Double) 2.003);
     assertEquals(p.getText(), "HEY...YA!");
     assertEquals(p.isBooleanPrimitive(), true);
     assertEquals(p.isBooleanObject(), Boolean.FALSE);
@@ -289,9 +289,9 @@ public class JsonDeserializationTest {
     String json = "{\"p0\":0,\"p1\":1,\"p2\":2,\"shouldSkipIt\":55, \"nameInJson\": 3}";
     ClassWithConstructorFieldsAndGetters c = genson.deserialize(json,
       ClassWithConstructorFieldsAndGetters.class);
-    assertEquals(c.p0, new Integer(0));
-    assertEquals(c.p1, new Integer(1));
-    assertEquals(c.p2, new Integer(2));
+    assertEquals(c.p0, (Integer) 0);
+    assertEquals(c.p1, (Integer) 1);
+    assertEquals(c.p2, (Integer) 2);
     assertTrue(c.constructorCalled);
   }
 
@@ -301,10 +301,10 @@ public class JsonDeserializationTest {
     ClassWithConstructorFieldsAndGetters c = genson.deserialize(json,
       ClassWithConstructorFieldsAndGetters.class);
     assertTrue(c.constructorCalled);
-    assertEquals(new Integer(0), c.p0);
-    assertEquals(new Integer(1), c.p1);
+    assertEquals((Integer) 0, c.p0);
+    assertEquals((Integer) 1, c.p1);
     assertEquals(null, c.p2);
-    assertEquals(new Integer(3), c.hidden);
+    assertEquals((Integer) 3, c.hidden);
   }
 
   @Test
@@ -313,10 +313,10 @@ public class JsonDeserializationTest {
     ClassWithConstructorFieldsAndGetters c = genson.deserialize(json,
       ClassWithConstructorFieldsAndGetters.class);
     assertTrue(c.constructorCalled);
-    assertEquals(c.p0, new Integer(0));
-    assertEquals(c.p1, new Integer(1));
-    assertEquals(c.p2, new Integer(2));
-    assertEquals(c.hidden, new Integer(125));
+    assertEquals(c.p0, (Integer) 0);
+    assertEquals(c.p1, (Integer) 1);
+    assertEquals(c.p2, (Integer) 2);
+    assertEquals(c.hidden, (Integer) 125);
   }
 
   @Test
@@ -352,9 +352,9 @@ public class JsonDeserializationTest {
     String json = "{\"p0\":0,\"p1\":1,\"p2\":2,\"shouldSkipIt\":55,   \"nameInJson\":\"125\"}";
     desc.deserialize(c, new JsonReader(json), new Context(genson));
     assertFalse(c.constructorCalled);
-    assertEquals(c.p0, new Integer(0));
-    assertEquals(c.p1, new Integer(1));
-    assertEquals(c.p2, new Integer(2));
+    assertEquals(c.p0, (Integer) 0);
+    assertEquals(c.p1, (Integer) 1);
+    assertEquals(c.p2, (Integer) 2);
   }
 
   @Test
@@ -646,8 +646,8 @@ public class JsonDeserializationTest {
   }
 
   private Primitives createPrimitives() {
-    return new Primitives(1, new Integer(10), 1.00001, new Double(0.00001), "TEXT ...  HEY!",
-      true, new Boolean(false));
+    return new Primitives(1, 10, 1.00001, 0.00001, "TEXT ...  HEY!",
+                          true, Boolean.FALSE);
   }
 
   static class PojoWithAliasInSetter {

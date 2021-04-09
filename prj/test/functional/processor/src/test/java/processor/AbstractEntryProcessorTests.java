@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -134,7 +134,7 @@ public abstract class AbstractEntryProcessorTests
         try
             {
             value = new TestValue();
-            value.setIntegerValue(new Integer(1));
+            value.setIntegerValue(1);
             cache.put("1", value);
             processor = new CompositeProcessor(new InvocableMap.EntryProcessor[]{});
 
@@ -157,37 +157,37 @@ public abstract class AbstractEntryProcessorTests
             processor = (CompositeProcessor) Processors.composite(
                     new InvocableMap.EntryProcessor[]
                             {
-                                new NumberIncrementor("IntegerValue", new Integer(1), false),
-                                new NumberMultiplier("IntegerValue", new Integer(2), false)
+                                new NumberIncrementor("IntegerValue", 1, false),
+                                new NumberMultiplier("IntegerValue", 2, false)
                             });
 
             aoResult = (Object[]) cache.invoke("1", processor);
             assertTrue("Result=" + aoResult, aoResult.length == 2);
-            assertTrue("Result=" + aoResult[0], equals(aoResult[0], new Integer(2)));
-            assertTrue("Result=" + aoResult[1], equals(aoResult[1], new Integer(4)));
+            assertTrue("Result=" + aoResult[0], equals(aoResult[0], 2));
+            assertTrue("Result=" + aoResult[1], equals(aoResult[1], 4));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), processor);
             aoResult = (Object[]) mapResult.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
             assertTrue("Result=" + mapResult, aoResult.length == 2);
-            assertTrue("Result=" + aoResult[0], equals(aoResult[0], new Integer(5)));
-            assertTrue("Result=" + aoResult[1], equals(aoResult[1], new Integer(10)));
+            assertTrue("Result=" + aoResult[0], equals(aoResult[0], 5));
+            assertTrue("Result=" + aoResult[1], equals(aoResult[1], 10));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, processor);
             aoResult = (Object[]) mapResult.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
             assertTrue("Result=" + mapResult, aoResult.length == 2);
-            assertTrue("Result=" + aoResult[0], equals(aoResult[0], new Integer(11)));
-            assertTrue("Result=" + aoResult[1], equals(aoResult[1], new Integer(22)));
+            assertTrue("Result=" + aoResult[0], equals(aoResult[0], 11));
+            assertTrue("Result=" + aoResult[1], equals(aoResult[1], 22));
 
             value = (TestValue) cache.get("1");
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(22)));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 22));
 
             processor = new CompositeProcessor(
                     new InvocableMap.EntryProcessor[]
                             {
                                 new ConditionalRemove(PresentFilter.INSTANCE),
-                                new NumberIncrementor("IntegerValue", new Integer(1), false),
+                                new NumberIncrementor("IntegerValue", 1, false),
                             });
             cache.invoke("1", processor);
             value = (TestValue) cache.get("1");
@@ -197,13 +197,13 @@ public abstract class AbstractEntryProcessorTests
                     new InvocableMap.EntryProcessor[]
                             {
                                 new ConditionalPut(new NotFilter(PresentFilter.INSTANCE), new TestValue()),
-                                new NumberIncrementor("IntegerValue", new Integer(1), false),
+                                new NumberIncrementor("IntegerValue", 1, false),
                             });
             aoResult = (Object[]) cache.invoke("1", processor);
-            assertTrue("Result=" + aoResult[1], equals(aoResult[1], new Integer(1)));
+            assertTrue("Result=" + aoResult[1], equals(aoResult[1], 1));
 
             value = (TestValue) cache.get("1");
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(1)));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 1));
 
             int cSize = SMALL_TEST_SIZE;
             Map mapTemp = generateTestMap(cSize);
@@ -243,7 +243,7 @@ public abstract class AbstractEntryProcessorTests
         try
             {
             value = new TestValue();
-            value.setIntegerValue(new Integer(1));
+            value.setIntegerValue(1);
             cache.put("1", value);
             processor = (ConditionalProcessor) Processors.conditional(NeverFilter.INSTANCE,
                     new ExtractorProcessor("getIntegerValue"));
@@ -265,32 +265,32 @@ public abstract class AbstractEntryProcessorTests
                     new ExtractorProcessor("getIntegerValue"));
 
             oResult = cache.invoke("1", processor);
-            assertTrue("Result=" + oResult, equals(oResult, new Integer(1)));
+            assertTrue("Result=" + oResult, equals(oResult, 1));
             assertTrue("Value=" + cache.get("1"), equals(cache.get("1"), value));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), processor);
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(1)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 1));
             assertTrue("Value=" + cache.get("1"), equals(cache.get("1"), value));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, processor);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(1)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 1));
             assertTrue("Value=" + cache.get("1"), equals(cache.get("1"), value));
 
             processor = new ConditionalProcessor(
                     new EqualsFilter("getIntegerValue", 1),
-                    new NumberIncrementor("IntegerValue", new Integer(1), false));
+                    new NumberIncrementor("IntegerValue", 1, false));
             oResult = cache.invoke("1", processor);
-            assertTrue("Result=" + oResult, equals(oResult, new Integer(2)));
+            assertTrue("Result=" + oResult, equals(oResult, 2));
 
             oResult = cache.invoke("1", processor);
             assertTrue("Result=" + oResult, equals(oResult, null));
 
             processor = new ConditionalProcessor(
                     new EqualsFilter("getIntegerValue", 2),
-                    new UpdaterProcessor("setIntegerValue", new Integer(3)));
+                    new UpdaterProcessor("setIntegerValue", 3));
             oResult = cache.invoke("1", processor);
             assertTrue("Result=" + oResult, equals(oResult, Boolean.TRUE));
 
@@ -440,22 +440,22 @@ public abstract class AbstractEntryProcessorTests
             cache.clear();
 
             value = new TestValue();
-            value.setIntegerValue(new Integer(1));
+            value.setIntegerValue(1);
             cache.put("1", value);
             extractor = new ExtractorProcessor("getIntegerValue");
 
             oResult = cache.invoke("1", extractor);
-            assertTrue("Result=" + oResult, equals(oResult, new Integer(1)));
+            assertTrue("Result=" + oResult, equals(oResult, 1));
             assertTrue("Value=" + cache.get("1"), equals(cache.get("1"), value));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), extractor);
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(1)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 1));
             assertTrue("Value=" + cache.get("1"), equals(cache.get("1"), value));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, extractor);
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(1)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 1));
             assertTrue("Value=" + cache.get("1"), equals(cache.get("1"), value));
             }
         catch (Throwable t)
@@ -484,7 +484,7 @@ public abstract class AbstractEntryProcessorTests
         try
             {
             // test increment of a non-existent entry
-            incrementor = (NumberIncrementor) Processors.increment("IntegerValue", new Integer(1), false);
+            incrementor = (NumberIncrementor) Processors.increment("IntegerValue", 1, false);
             oResult     = cache.invoke("1", incrementor);
             assertTrue("Result=" + oResult, oResult == null);
             assertTrue("Size=" + cache.size(), cache.size() == 0);
@@ -498,7 +498,7 @@ public abstract class AbstractEntryProcessorTests
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 0);
             assertTrue("Size=" + cache.size(), cache.size() == 0);
 
-            incrementor = new NumberIncrementor("Value", new Integer(1), true);
+            incrementor = new NumberIncrementor("Value", 1, true);
             oResult     = cache.invoke("1", incrementor);
             assertTrue("Result=" + oResult, oResult == null);
             assertTrue("Size=" + cache.size(), cache.size() == 0);
@@ -540,44 +540,44 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-increment of a Byte value
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("ByteValue", new Byte((byte) 1), false);
+            incrementor = new NumberIncrementor("ByteValue", (byte) 1, false);
 
             oResult = cache.invoke("1", incrementor);
             value   = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Byte((byte) 1)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 1)));
+            assertTrue("Result=" + oResult, equals(oResult, (byte) 1));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 1));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Byte((byte) 2)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 2)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (byte) 2));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 2));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Byte((byte) 3)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 3)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (byte) 3));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 3));
 
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("ByteValue", new Byte((byte) 1), true);
+            incrementor = new NumberIncrementor("ByteValue", (byte) 1, true);
 
             oResult = cache.invoke("1", incrementor);
             value   = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Byte((byte) 0)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 1)));
+            assertTrue("Result=" + oResult, equals(oResult, (byte) 0));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 1));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Byte((byte) 1)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 2)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (byte) 1));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 2));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Byte((byte) 2)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 3)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (byte) 2));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 3));
             }
         catch (Throwable t)
             {
@@ -607,44 +607,44 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-increment of a Short value
             cache.put("1", new TestValue());
-            incrementor = (NumberIncrementor) Processors.increment("ShortValue", new Short((short) 1), false);
+            incrementor = (NumberIncrementor) Processors.increment("ShortValue", (short) 1, false);
 
             oResult = cache.invoke("1", incrementor);
             value   = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Short((short) 1)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 1)));
+            assertTrue("Result=" + oResult, equals(oResult, (short) 1));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 1));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Short((short) 2)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 2)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (short) 2));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 2));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Short((short) 3)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 3)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (short) 3));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 3));
 
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("ShortValue", new Short((short) 1), true);
+            incrementor = new NumberIncrementor("ShortValue", (short) 1, true);
 
             oResult = cache.invoke("1", incrementor);
             value   = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Short((short) 0)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 1)));
+            assertTrue("Result=" + oResult, equals(oResult, (short) 0));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 1));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Short((short) 1)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 2)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (short) 1));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 2));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Short((short) 2)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 3)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (short) 2));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 3));
             }
         catch (Throwable t)
             {
@@ -674,44 +674,44 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-increment of a Integer value
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("IntegerValue", new Integer(1), false);
+            incrementor = new NumberIncrementor("IntegerValue", 1, false);
 
             oResult = cache.invoke("1", incrementor);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Integer(1)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(1)));
+            assertTrue("Result=" + oResult, equals(oResult, 1));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 1));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(2)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(2)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 2));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(3)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(3)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 3));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 3));
 
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("IntegerValue", new Integer(1), true);
+            incrementor = new NumberIncrementor("IntegerValue", 1, true);
 
             oResult = cache.invoke("1", incrementor);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Integer(0)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(1)));
+            assertTrue("Result=" + oResult, equals(oResult, 0));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 1));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(1)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(2)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 1));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 2));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(2)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(3)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 3));
 
             int cSize = SMALL_TEST_SIZE;
             Map mapTemp = generateTestMap(cSize);
@@ -720,13 +720,13 @@ public abstract class AbstractEntryProcessorTests
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             assertTrue("Size=" + mapResult.size(), mapResult.size() == cSize);
-            assertTrue("Result=" + mapResult.get(Integer.valueOf(cSize)),
-                    equals(mapResult.get(Integer.valueOf(cSize)), Integer.valueOf(cSize)));
+            assertTrue("Result=" + mapResult.get(cSize),
+                    equals(mapResult.get(cSize), cSize));
 
             mapResult = cache.invokeAll(mapTemp.keySet(), incrementor);
             assertTrue("Size=" + mapResult.size(), mapResult.size() == cSize);
-            assertTrue("Result=" + mapResult.get(Integer.valueOf(1)),
-                    equals(mapResult.get(Integer.valueOf(1)), Integer.valueOf(2)));
+            assertTrue("Result=" + mapResult.get(1),
+                    equals(mapResult.get(1), 2));
             }
         catch (Throwable t)
             {
@@ -756,44 +756,44 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-increment of a Float value
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("FloatValue", new Float(1.0), false);
+            incrementor = new NumberIncrementor("FloatValue", 1.0F, false);
 
             oResult = cache.invoke("1", incrementor);
             value   = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Float(1.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(1.0)));
+            assertTrue("Result=" + oResult, equals(oResult, 1.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 1.0F));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Float(2.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(2.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 2.0F));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Float(3.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(3.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 3.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 3.0F));
 
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("FloatValue", new Float(1.0), true);
+            incrementor = new NumberIncrementor("FloatValue", 1.0F, true);
 
             oResult = cache.invoke("1", incrementor);
             value   = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Float(0.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(1.0)));
+            assertTrue("Result=" + oResult, equals(oResult, 0.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 1.0F));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Float(1.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(2.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 1.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 2.0F));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Float(2.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(3.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 3.0F));
             }
         catch (Throwable t)
             {
@@ -823,45 +823,45 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-increment of a Long value
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("LongValue", new Long(1L), false);
+            incrementor = new NumberIncrementor("LongValue", 1L, false);
 
             oResult = cache.invoke("1", incrementor);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(1L)));
+            assertTrue("Result=" + oResult, equals(oResult, 1L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 1L));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value = (TestValue) cache.get("1");
 
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Long(2L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(2L)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 2L));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Long(3L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(3L)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 3L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 3L));
 
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("LongValue", new Long(1L), true);
+            incrementor = new NumberIncrementor("LongValue", 1L, true);
 
             oResult = cache.invoke("1", incrementor);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Long(0L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(1L)));
+            assertTrue("Result=" + oResult, equals(oResult, 0L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 1L));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Long(1L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(2L)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 1L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 2L));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Long(2L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(3L)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 3L));
             }
         catch (Throwable t)
             {
@@ -891,44 +891,44 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-increment of a Double value
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("DoubleValue", new Double(1.0), false);
+            incrementor = new NumberIncrementor("DoubleValue", 1.0, false);
 
             oResult = cache.invoke("1", incrementor);
             value   = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Double(1.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(1.0)));
+            assertTrue("Result=" + oResult, equals(oResult, 1.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 1.0));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Double(2.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(2.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 2.0));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Double(3.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(3.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 3.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 3.0));
 
             cache.put("1", new TestValue());
-            incrementor = new NumberIncrementor("DoubleValue", new Double(1.0), true);
+            incrementor = new NumberIncrementor("DoubleValue", 1.0, true);
 
             oResult = cache.invoke("1", incrementor);
             value   = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Double(0.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(1.0)));
+            assertTrue("Result=" + oResult, equals(oResult, 0.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 1.0));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Double(1.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(2.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 1.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 2.0));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, incrementor);
             value     = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Double(2.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(3.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 3.0));
             }
         catch (Throwable t)
             {
@@ -1090,7 +1090,7 @@ public abstract class AbstractEntryProcessorTests
         try
             {
             // test increment of a non-existent entry
-            multiplier = (NumberMultiplier) Processors.multiply("IntegerValue", new Integer(2), false);
+            multiplier = (NumberMultiplier) Processors.multiply("IntegerValue", 2, false);
             oResult    = cache.invoke("1", multiplier);
             assertTrue("Result=" + oResult, oResult == null);
             assertTrue("Size=" + cache.size(), cache.size() == 0);
@@ -1104,7 +1104,7 @@ public abstract class AbstractEntryProcessorTests
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 0);
             assertTrue("Size=" + cache.size(), cache.size() == 0);
 
-            multiplier = new NumberMultiplier("IntegerValue", new Integer(2), false);
+            multiplier = new NumberMultiplier("IntegerValue", 2, false);
             oResult    = cache.invoke("1", multiplier);
             assertTrue("Result=" + oResult, oResult == null);
             assertTrue("Size=" + cache.size(), cache.size() == 0);
@@ -1146,48 +1146,48 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-multiply of a Byte value
             value = new TestValue();
-            multiplier = new NumberMultiplier("ByteValue", new Byte((byte) 2), false);
-            value.setByteValue(new Byte((byte) 1));
+            multiplier = new NumberMultiplier("ByteValue", (byte) 2, false);
+            value.setByteValue((byte) 1);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Byte((byte) 2)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 2)));
+            assertTrue("Result=" + oResult, equals(oResult, (byte) 2));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 2));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Byte((byte) 4)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 4)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (byte) 4));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 4));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Byte((byte) 8)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 8)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (byte) 8));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 8));
 
             value = new TestValue();
-            multiplier = new NumberMultiplier("ByteValue", new Byte((byte) 2), true);
-            value.setByteValue(new Byte((byte) 1));
+            multiplier = new NumberMultiplier("ByteValue", (byte) 2, true);
+            value.setByteValue((byte) 1);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Byte((byte) 1)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 2)));
+            assertTrue("Result=" + oResult, equals(oResult, (byte) 1));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 2));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Byte((byte) 2)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 4)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (byte) 2));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 4));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Byte((byte) 4)));
-            assertTrue("Value=" + value, equals(value.getByteValue(), new Byte((byte) 8)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (byte) 4));
+            assertTrue("Value=" + value, equals(value.getByteValue(), (byte) 8));
             }
         catch (Throwable t)
             {
@@ -1217,48 +1217,48 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-multiply of a Short value
             value = new TestValue();
-            multiplier = new NumberMultiplier("ShortValue", new Short((short) 2), false);
-            value.setShortValue(new Short((short) 1));
+            multiplier = new NumberMultiplier("ShortValue", (short) 2, false);
+            value.setShortValue((short) 1);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Short((short) 2)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 2)));
+            assertTrue("Result=" + oResult, equals(oResult, (short) 2));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 2));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Short((short) 4)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 4)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (short) 4));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 4));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Short((short) 8)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 8)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (short) 8));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 8));
 
             value = new TestValue();
-            multiplier = new NumberMultiplier("ShortValue", new Short((short) 2), true);
-            value.setShortValue(new Short((short) 1));
+            multiplier = new NumberMultiplier("ShortValue", (short) 2, true);
+            value.setShortValue((short) 1);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Short((short) 1)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 2)));
+            assertTrue("Result=" + oResult, equals(oResult, (short) 1));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 2));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Short((short) 2)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 4)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (short) 2));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 4));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Short((short) 4)));
-            assertTrue("Value=" + value, equals(value.getShortValue(), new Short((short) 8)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), (short) 4));
+            assertTrue("Value=" + value, equals(value.getShortValue(), (short) 8));
             }
         catch (Throwable t)
             {
@@ -1288,48 +1288,48 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-multiply of a Integer value
             value = new TestValue();
-            multiplier = new NumberMultiplier("IntegerValue", new Integer(2), false);
-            value.setIntegerValue(new Integer(1));
+            multiplier = new NumberMultiplier("IntegerValue", 2, false);
+            value.setIntegerValue(1);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Integer(2)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(2)));
+            assertTrue("Result=" + oResult, equals(oResult, 2));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 2));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(4)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(4)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 4));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 4));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(8)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(8)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 8));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 8));
 
             value = new TestValue();
-            multiplier = new NumberMultiplier("IntegerValue", new Integer(2), true);
-            value.setIntegerValue(new Integer(1));
+            multiplier = new NumberMultiplier("IntegerValue", 2, true);
+            value.setIntegerValue(1);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Integer(1)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(2)));
+            assertTrue("Result=" + oResult, equals(oResult, 1));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 2));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(2)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(4)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 4));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Integer(4)));
-            assertTrue("Value=" + value, equals(value.getIntegerValue(), new Integer(8)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 4));
+            assertTrue("Value=" + value, equals(value.getIntegerValue(), 8));
             }
         catch (Throwable t)
             {
@@ -1359,48 +1359,48 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-multiply of a Long value
             value = new TestValue();
-            multiplier = new NumberMultiplier("LongValue", new Long(2L), false);
-            value.setLongValue(new Long(1L));
+            multiplier = new NumberMultiplier("LongValue", 2L, false);
+            value.setLongValue(1L);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Long(2L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(2L)));
+            assertTrue("Result=" + oResult, equals(oResult, 2L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 2L));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Long(4L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(4L)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 4L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 4L));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Long(8L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(8L)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 8L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 8L));
 
             value = new TestValue();
-            multiplier = new NumberMultiplier("LongValue", new Long(2L), true);
-            value.setLongValue(new Long(1L));
+            multiplier = new NumberMultiplier("LongValue", 2L, true);
+            value.setLongValue(1L);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(2L)));
+            assertTrue("Result=" + oResult, equals(oResult, 1L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 2L));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Long(2L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(4L)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 4L));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Long(4L)));
-            assertTrue("Value=" + value, equals(value.getLongValue(), new Long(8L)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 4L));
+            assertTrue("Value=" + value, equals(value.getLongValue(), 8L));
             }
         catch (Throwable t)
             {
@@ -1430,48 +1430,48 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-multiply of a Float value
             value = new TestValue();
-            multiplier = new NumberMultiplier("FloatValue", new Float(2.0), false);
-            value.setFloatValue(new Float(1.0));
+            multiplier = new NumberMultiplier("FloatValue", 2.0F, false);
+            value.setFloatValue(1.0F);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Float(2.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(2.0)));
+            assertTrue("Result=" + oResult, equals(oResult, 2.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 2.0F));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Float(4.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(4.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 4.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 4.0F));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Float(8.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(8.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 8.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 8.0F));
 
             value = new TestValue();
-            multiplier = new NumberMultiplier("FloatValue", new Float(2.0), true);
-            value.setFloatValue(new Float(1.0));
+            multiplier = new NumberMultiplier("FloatValue", 2.0F, true);
+            value.setFloatValue(1.0F);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Float(1.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(2.0)));
+            assertTrue("Result=" + oResult, equals(oResult, 1.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 2.0F));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Float(2.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(4.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 4.0F));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Float(4.0)));
-            assertTrue("Value=" + value, equals(value.getFloatValue(), new Float(8.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 4.0F));
+            assertTrue("Value=" + value, equals(value.getFloatValue(), 8.0F));
             }
         catch (Throwable t)
             {
@@ -1501,48 +1501,48 @@ public abstract class AbstractEntryProcessorTests
             {
             // test pre and post-multiply of a Double value
             value = new TestValue();
-            multiplier = new NumberMultiplier("DoubleValue", new Double(2.0), false);
-            value.setDoubleValue(new Double(1.0));
+            multiplier = new NumberMultiplier("DoubleValue", 2.0, false);
+            value.setDoubleValue(1.0);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Double(2.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(2.0)));
+            assertTrue("Result=" + oResult, equals(oResult, 2.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 2.0));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Double(4.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(4.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 4.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 4.0));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Double(8.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(8.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 8.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 8.0));
 
             value = new TestValue();
-            multiplier = new NumberMultiplier("DoubleValue", new Double(2.0), true);
-            value.setDoubleValue(new Double(1.0));
+            multiplier = new NumberMultiplier("DoubleValue", 2.0, true);
+            value.setDoubleValue(1.0);
             cache.put("1", value);
 
             oResult = cache.invoke("1", multiplier);
             value = (TestValue) cache.get("1");
-            assertTrue("Result=" + oResult, equals(oResult, new Double(1.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(2.0)));
+            assertTrue("Result=" + oResult, equals(oResult, 1.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 2.0));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Double(2.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(4.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 2.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 4.0));
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, multiplier);
             value = (TestValue) cache.get("1");
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
-            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), new Double(4.0)));
-            assertTrue("Value=" + value, equals(value.getDoubleValue(), new Double(8.0)));
+            assertTrue("Result=" + mapResult, equals(mapResult.get("1"), 4.0));
+            assertTrue("Value=" + value, equals(value.getDoubleValue(), 8.0));
             }
         catch (Throwable t)
             {
@@ -1719,7 +1719,7 @@ public abstract class AbstractEntryProcessorTests
             assertTrue("Result=" + oResult, oResult == null);
 
             value = new TestValue();
-            value.setLongValue(Long.valueOf(getRandom().nextLong()));
+            value.setLongValue(getRandom().nextLong());
 
             cache.put("1", value);
             oResult = cache.invoke("1", agentLite);
@@ -1734,8 +1734,8 @@ public abstract class AbstractEntryProcessorTests
             for (int i = 0; i < 100; i++)
                 {
                 value = new TestValue();
-                value.setLongValue(Long.valueOf(1l));
-                cache.put(Integer.valueOf(i), value);
+                value.setLongValue(1l);
+                cache.put(i, value);
                 }
 
             Map mapResult = cache.invokeAll(AlwaysFilter.INSTANCE,
@@ -1755,8 +1755,8 @@ public abstract class AbstractEntryProcessorTests
             for (int i = 0; i < 100; i++)
                 {
                 value = new TestValue();
-                value.setLongValue(Long.valueOf(2l));
-                cache.put(Integer.valueOf(i), value);
+                value.setLongValue(2l);
+                cache.put(i, value);
                 }
 
             cache.invokeAll(AlwaysFilter.INSTANCE, agentLite);
@@ -1765,8 +1765,8 @@ public abstract class AbstractEntryProcessorTests
             for (int i = 0; i < 100; i++)
                 {
                 value = new TestValue();
-                value.setLongValue(Long.valueOf(3l));
-                cache.put(Integer.valueOf(i), value);
+                value.setLongValue(3l);
+                cache.put(i, value);
                 }
 
             cache.invokeAll(AlwaysFilter.INSTANCE,
@@ -1780,8 +1780,8 @@ public abstract class AbstractEntryProcessorTests
             for (int i = 0; i < 100; i++)
                 {
                 value = new TestValue();
-                value.setLongValue(Long.valueOf(4l));
-                cache.put(Integer.valueOf(i), value);
+                value.setLongValue(4l);
+                cache.put(i, value);
                 }
             cache.invokeAll(new EqualsFilter("getLongValue", 3l), agentLite);
             assertTrue("Not full=" + cache.size(), cache.size() == 100);
@@ -1852,7 +1852,7 @@ public abstract class AbstractEntryProcessorTests
         try
             {
             value = valueOld = new TestValue();
-            value.setLongValue(Long.valueOf(1));
+            value.setLongValue(1L);
 
             // simple puts
             oResult = cache.invoke("1",
@@ -1861,7 +1861,7 @@ public abstract class AbstractEntryProcessorTests
             value = (TestValue) cache.get("1");
             assertTrue(value + "!=" + valueOld, equals(value, valueOld));
 
-            value.setLongValue(Long.valueOf(2));
+            value.setLongValue(2L);
             oResult = cache.invoke("1",
                     new ConditionalPut(AlwaysFilter.INSTANCE, value, true));
             assertTrue("Result=" + oResult, oResult == null);
@@ -1870,11 +1870,11 @@ public abstract class AbstractEntryProcessorTests
 
             // Test ConditionalPut through invokeAll...
             TestValue valueCurrent = new TestValue();
-            valueCurrent.setLongValue(Long.valueOf(100));
+            valueCurrent.setLongValue(100L);
             cache.put("1", valueCurrent);
 
             TestValue valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(99));
+            valueNew.setLongValue(99L);
 
             // Use an AlwaysFilter and verify that the put takes place.
             // An empty map should be returned.
@@ -1927,7 +1927,7 @@ public abstract class AbstractEntryProcessorTests
             cache.clear();
 
             // putIfAbsent
-            value.setLongValue(Long.valueOf(3));
+            value.setLongValue(3L);
             filter = new NotFilter(PresentFilter.INSTANCE);
             cache.invoke("1",
                     new ConditionalPut(filter, value)); // should work
@@ -1936,7 +1936,7 @@ public abstract class AbstractEntryProcessorTests
 
             valueOld = ((TestValue) cache.get("1")).cloneValue();
             value = value.cloneValue();
-            value.setLongValue(Long.valueOf(4));
+            value.setLongValue(4L);
             oResult = cache.invoke("1",
                     new ConditionalPut(filter, value, true)); // should fail
             assertTrue("Result=" + oResult, equals(oResult, valueOld));
@@ -1947,7 +1947,7 @@ public abstract class AbstractEntryProcessorTests
             // replace
             valueOld = ((TestValue) cache.get("1")).cloneValue();
             value = value.cloneValue();
-            value.setLongValue(Long.valueOf(5));
+            value.setLongValue(5L);
             filter = new EqualsFilter(IdentityExtractor.INSTANCE, valueOld);
             cache.invoke("1",
                     new ConditionalPut(filter, value)); // should work
@@ -1956,7 +1956,7 @@ public abstract class AbstractEntryProcessorTests
 
             valueOld = ((TestValue) cache.get("1")).cloneValue();
             value = value.cloneValue();
-            value.setLongValue(Long.valueOf(6));
+            value.setLongValue(6L);
             filter = new EqualsFilter(IdentityExtractor.INSTANCE, value);
             cache.invoke("1",
                     new ConditionalPut(filter, value)); // should fail
@@ -1976,7 +1976,7 @@ public abstract class AbstractEntryProcessorTests
             setEntries.add("3");
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(99));
+            valueNew.setLongValue(99L);
 
             processor = new ConditionalPut(NeverFilter.INSTANCE, valueNew, true);
 
@@ -2029,8 +2029,8 @@ public abstract class AbstractEntryProcessorTests
             // simple puts
             // allow insert = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setLongValue(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setLongValue(100L);
 
             oResult = cache.invoke("1", Processors.versionedPut(value));
             assertTrue("Result=" + oResult, oResult == null);
@@ -2039,12 +2039,12 @@ public abstract class AbstractEntryProcessorTests
 
             // allow insert = true, return = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(101));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(101L);
 
             oResult = cache.invoke("1", new VersionedPut(value, true, false));
             assertTrue("Result=" + oResult, oResult == null);
@@ -2053,12 +2053,12 @@ public abstract class AbstractEntryProcessorTests
 
             // no match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueOld = new TestValue();
-            valueOld.setLongValue(Long.valueOf(1));
-            valueOld.setVersion(Long.valueOf(101));
+            valueOld.setLongValue(1L);
+            valueOld.setVersion(101L);
 
             oResult = cache.invoke("1", Processors.versionedPut(value, true, true));
             assertTrue(value + " != " + valueOld, equals(oResult, valueOld));
@@ -2067,12 +2067,12 @@ public abstract class AbstractEntryProcessorTests
 
             // match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(101));
+            value.setLongValue(1L);
+            value.setVersion(101L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(102));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(102L);
 
             oResult = cache.invoke("1", new VersionedPut(value, true, true));
             assertTrue("Result=" + oResult, oResult == null);
@@ -2084,8 +2084,8 @@ public abstract class AbstractEntryProcessorTests
             //invokeAll tests with key set
             // allow insert = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setLongValue(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setLongValue(100L);
 
             mapResult = cache.invokeAll(Collections.singleton("1"), new VersionedPut(value));
             oResult = mapResult.get("1");
@@ -2095,12 +2095,12 @@ public abstract class AbstractEntryProcessorTests
 
             // allow insert = true, return = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(101));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(101L);
 
             mapResult = cache.invokeAll(Collections.singleton("1"), new VersionedPut(value, true, false));
             oResult = mapResult.get("1");
@@ -2110,12 +2110,12 @@ public abstract class AbstractEntryProcessorTests
 
             // no match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueOld = new TestValue();
-            valueOld.setLongValue(Long.valueOf(1));
-            valueOld.setVersion(Long.valueOf(101));
+            valueOld.setLongValue(1L);
+            valueOld.setVersion(101L);
 
             mapResult = cache.invokeAll(Collections.singleton("1"), new VersionedPut(value, true, true));
             oResult = mapResult.get("1");
@@ -2125,12 +2125,12 @@ public abstract class AbstractEntryProcessorTests
 
             // match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(101));
+            value.setLongValue(1L);
+            value.setVersion(101L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(102));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(102L);
 
             mapResult = cache.invokeAll(Collections.singleton("1"), new VersionedPut(value, true, true));
             oResult = mapResult.get("1");
@@ -2143,8 +2143,8 @@ public abstract class AbstractEntryProcessorTests
             //invokeAll tests with filter
             // allow insert = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setLongValue(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setLongValue(100L);
 
             cache.put("1", null);
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, new VersionedPut(value));
@@ -2155,12 +2155,12 @@ public abstract class AbstractEntryProcessorTests
 
             // allow insert = true, return = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(101));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(101L);
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, new VersionedPut(value, true, false));
             oResult = mapResult.get("1");
@@ -2170,12 +2170,12 @@ public abstract class AbstractEntryProcessorTests
 
             // no match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueOld = new TestValue();
-            valueOld.setLongValue(Long.valueOf(1));
-            valueOld.setVersion(Long.valueOf(101));
+            valueOld.setLongValue(1L);
+            valueOld.setVersion(101L);
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, new VersionedPut(value, true, true));
             oResult = mapResult.get("1");
@@ -2185,12 +2185,12 @@ public abstract class AbstractEntryProcessorTests
 
             // match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(101));
+            value.setLongValue(1L);
+            value.setVersion(101L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(102));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(102L);
 
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, new VersionedPut(value, true, true));
             oResult = mapResult.get("1");
@@ -2227,8 +2227,8 @@ public abstract class AbstractEntryProcessorTests
             // simple puts
             // allow insert = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setLongValue(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setLongValue(100L);
 
             mapEntries.put("1", value);
             oResult = cache.invoke("1", Processors.versionedPutAll(mapEntries));
@@ -2238,12 +2238,12 @@ public abstract class AbstractEntryProcessorTests
 
             // allow insert = true, return = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(101));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(101L);
 
             mapEntries.put("1", value);
             oResult = cache.invoke("1", Processors.versionedPutAll(mapEntries, true, false));
@@ -2253,12 +2253,12 @@ public abstract class AbstractEntryProcessorTests
 
             // no match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueOld = new TestValue();
-            valueOld.setLongValue(Long.valueOf(1));
-            valueOld.setVersion(Long.valueOf(101));
+            valueOld.setLongValue(1L);
+            valueOld.setVersion(101L);
 
             mapEntries.put("1", value);
             oResult = cache.invoke("1", new VersionedPutAll(mapEntries, true, true));
@@ -2268,12 +2268,12 @@ public abstract class AbstractEntryProcessorTests
 
             // match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(101));
+            value.setLongValue(1L);
+            value.setVersion(101L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(102));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(102L);
 
             mapEntries.put("1", value);
             oResult = cache.invoke("1", new VersionedPutAll(mapEntries, true, true));
@@ -2286,8 +2286,8 @@ public abstract class AbstractEntryProcessorTests
             //invokeAll tests with key set
             // allow insert = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setLongValue(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setLongValue(100L);
 
             mapEntries.put("1", value);
             mapResult = cache.invokeAll(Collections.singleton("1"), new VersionedPutAll(mapEntries));
@@ -2298,12 +2298,12 @@ public abstract class AbstractEntryProcessorTests
 
             // allow insert = true, return = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(101));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(101L);
 
             mapEntries.put("1", value);
             mapResult = cache.invokeAll(Collections.singleton("1"), new VersionedPutAll(mapEntries, true, false));
@@ -2314,12 +2314,12 @@ public abstract class AbstractEntryProcessorTests
 
             // no match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueOld = new TestValue();
-            valueOld.setLongValue(Long.valueOf(1));
-            valueOld.setVersion(Long.valueOf(101));
+            valueOld.setLongValue(1L);
+            valueOld.setVersion(101L);
 
             mapEntries.put("1", value);
             mapResult = cache.invokeAll(Collections.singleton("1"), new VersionedPutAll(mapEntries, true, true));
@@ -2330,12 +2330,12 @@ public abstract class AbstractEntryProcessorTests
 
             // match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(101));
+            value.setLongValue(1L);
+            value.setVersion(101L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(102));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(102L);
 
             mapEntries.put("1", value);
             mapResult = cache.invokeAll(Collections.singleton("1"), new VersionedPutAll(mapEntries, true, true));
@@ -2349,8 +2349,8 @@ public abstract class AbstractEntryProcessorTests
             //invokeAll tests with filter
             // allow insert = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setLongValue(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setLongValue(100L);
 
             cache.put("1", null);
             mapEntries.put("1", value);
@@ -2362,12 +2362,12 @@ public abstract class AbstractEntryProcessorTests
 
             // allow insert = true, return = false
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(101));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(101L);
 
             mapEntries.put("1", value);
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, new VersionedPutAll(mapEntries, true, false));
@@ -2378,12 +2378,12 @@ public abstract class AbstractEntryProcessorTests
 
             // no match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(100));
+            value.setLongValue(1L);
+            value.setVersion(100L);
 
             valueOld = new TestValue();
-            valueOld.setLongValue(Long.valueOf(1));
-            valueOld.setVersion(Long.valueOf(101));
+            valueOld.setLongValue(1L);
+            valueOld.setVersion(101L);
 
             mapEntries.put("1", value);
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, new VersionedPutAll(mapEntries, true, true));
@@ -2394,12 +2394,12 @@ public abstract class AbstractEntryProcessorTests
 
             // match, allow insert = true, return = true
             value = new TestValue();
-            value.setLongValue(Long.valueOf(1));
-            value.setVersion(Long.valueOf(101));
+            value.setLongValue(1L);
+            value.setVersion(101L);
 
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(1));
-            valueNew.setVersion(Long.valueOf(102));
+            valueNew.setLongValue(1L);
+            valueNew.setVersion(102L);
 
             mapEntries.put("1", value);
             mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, new VersionedPutAll(mapEntries, true, true));
@@ -2487,29 +2487,29 @@ public abstract class AbstractEntryProcessorTests
             assertTrue("mapResult=" + mapResult, mapResult == null || mapResult.size() == 0);
 
             value = new TestValue();
-            value.setLongValue(Long.valueOf(-1));
-            mapTemp.put(Integer.valueOf(1), value);
+            value.setLongValue((long) -1);
+            mapTemp.put(1, value);
             value = new TestValue();
-            value.setLongValue(Long.valueOf(-2));
-            mapTemp.put(Integer.valueOf(2), value);
+            value.setLongValue((long) -2);
+            mapTemp.put(2, value);
 
             mapResult = cache.invokeAll(mapTemp.keySet(),
                     new ConditionalPutAll(filter, mapTemp));
-            value = (TestValue) cache.get(Integer.valueOf(1));
+            value = (TestValue) cache.get(1);
             assertTrue(value.getLongValue() + "!=" + 1, value.getLongValue().longValue() == 1);
             assertTrue("mapResult=" + mapResult, mapResult == null || mapResult.size() == 0);
 
             // replace
             filter = PresentFilter.INSTANCE;
-            value.setLongValue(Long.valueOf(-3));
-            mapTemp.put(Integer.valueOf(3), value);
+            value.setLongValue((long) -3);
+            mapTemp.put(3, value);
 
             mapResult = cache.invokeAll(mapTemp.keySet(),
                     new ConditionalPutAll(filter, mapTemp));
             assertTrue(cache.size() + "!=" + 2, cache.size() == 2);
             assertTrue("mapResult=" + mapResult, mapResult == null || mapResult.size() == 0);
 
-            value = (TestValue) cache.get(Integer.valueOf(1));
+            value = (TestValue) cache.get(1);
             assertTrue(value.getLongValue() + "!=" + 1, value.getLongValue().longValue() == -1);
 
 
@@ -2531,7 +2531,7 @@ public abstract class AbstractEntryProcessorTests
 
             TestValue valueNew;
             valueNew = new TestValue();
-            valueNew.setLongValue(Long.valueOf(99));
+            valueNew.setLongValue(99L);
 
             ConditionalPutAll processor = new ConditionalPutAll(NeverFilter.INSTANCE, mapTemp);
 
@@ -2572,7 +2572,7 @@ public abstract class AbstractEntryProcessorTests
 
         try
             {
-            oResult = cache.invoke(Integer.valueOf(0), agent);
+            oResult = cache.invoke(0, agent);
             assertTrue("Result=" + oResult, oResult == null);
 
             int cSize = 100;
@@ -2581,8 +2581,8 @@ public abstract class AbstractEntryProcessorTests
 
             for (int i = 1; i <= cSize; i++)
                 {
-                oResult = cache.invoke(Integer.valueOf(i), agent);
-                assertTrue("Result " + oResult, oResult.equals(new Double(i)));
+                oResult = cache.invoke(i, agent);
+                assertTrue("Result " + oResult, oResult.equals((double) i));
                 }
 
             agent = new CustomProcessor(true);
@@ -2615,11 +2615,11 @@ public abstract class AbstractEntryProcessorTests
             {
             TestValue value = new TestValue();
 
-            value.setIntegerValue(Integer.valueOf(i));
-            value.setLongValue(Long.valueOf(i));
-            value.setByteValue(new Byte((byte) i));
-            value.setDoubleValue(new Double(i));
-            map.put(Integer.valueOf(i), value);
+            value.setIntegerValue(i);
+            value.setLongValue((long) i);
+            value.setByteValue((byte) i);
+            value.setDoubleValue((double) i);
+            map.put(i, value);
             }
 
         return map;
@@ -2756,7 +2756,7 @@ public abstract class AbstractEntryProcessorTests
         */
         public TestValue()
             {
-            m_version = new Long(0);
+            m_version = 0L;
             }
 
         // ----- accessors ------------------------------------------------
@@ -2990,7 +2990,7 @@ public abstract class AbstractEntryProcessorTests
         */
         public void incrementVersion()
             {
-            m_version = new Long(m_version.longValue() + 1);
+            m_version = m_version.longValue() + 1;
             }
 
         // ----- Object methods -------------------------------------------

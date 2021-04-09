@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -106,20 +106,20 @@ public class StorageManagerMBeanTests
 
         for (int i = 0; i < 100; i++ )
             {
-            cache.put(new Integer(i), new Integer(i+1));
-            cache.get(new Integer(i));
+            cache.put(i, i + 1);
+            cache.get(i);
             }
 
         ObjectName name = getQueryName(cache);
         Integer keyListenerCount = (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("expected ListenerKeyCount to be 100", new Integer(100), keyListenerCount);
+        assertEquals("expected ListenerKeyCount to be 100", Integer.valueOf(100), keyListenerCount);
         for (int i = 0; i < 100; i++ )
             {
-            cache.remove(new Integer(i));
+            cache.remove(i);
             }
 
         Integer afterRemoveKeyListenerCount =  (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("COH-13113 regression: expected ListenerKeyCount to be 0, if non-zero, still a leak when removing KeyListener", new Integer(0), afterRemoveKeyListenerCount);
+        assertEquals("COH-13113 regression: expected ListenerKeyCount to be 0, if non-zero, still a leak when removing KeyListener", Integer.valueOf(0), afterRemoveKeyListenerCount);
         }
 
     // ----- helpers --------------------------------------------------------

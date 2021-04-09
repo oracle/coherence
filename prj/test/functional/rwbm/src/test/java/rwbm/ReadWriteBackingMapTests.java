@@ -720,7 +720,7 @@ public class ReadWriteBackingMapTests
                 while (getSafeTimeMillis() < ldtStop)
                     {
                     Object oKey = ExternalizableHelper.toBinary(
-                        Integer.valueOf(random.nextInt(100000)));
+                        random.nextInt(100000));
                     rwbm.put(oKey, oKey);
                     if (rwbm.get(oKey) == null)
                         {
@@ -891,7 +891,7 @@ public class ReadWriteBackingMapTests
         processor = new CompositeProcessor(new InvocableMap.EntryProcessor[]
             {
             PreloadRequest.INSTANCE,
-            new NumberIncrementor((PropertyManipulator) null, Integer.valueOf(1), false)
+            new NumberIncrementor((PropertyManipulator) null, 1, false)
             });
         testUpdateProcessor("a2) ", cache, store, processor, listEvents,
                             new EventVerifier(new int[] { MapEvent.ENTRY_INSERTED,
@@ -1174,7 +1174,7 @@ public class ReadWriteBackingMapTests
         store.setProcessor(TestBinaryCacheStore.REMOVING_PROCESSOR);
         try
             {
-            cache.put(Integer.valueOf(0), Integer.valueOf(0));
+            cache.put(0, 0);
 
             if (cDelay > 0)
                 {
@@ -1595,7 +1595,7 @@ public class ReadWriteBackingMapTests
 
         for (int i = 0; i < 10; i++)
             {
-            cache.put(i, Integer.valueOf(i), cExpiryMillis);
+            cache.put(i, i, cExpiryMillis);
             }
 
         definiteSleep(cExpiryMillis + 100L);
@@ -1643,7 +1643,7 @@ public class ReadWriteBackingMapTests
             {
             for (int i = 0; i < 10; i++)
                 {
-                cache.put(i, Integer.valueOf(10 + i), cExpiryMillis);
+                cache.put(i, 10 + i, cExpiryMillis);
                 }
 
             if (cDelay > 0)
@@ -2196,7 +2196,7 @@ public class ReadWriteBackingMapTests
 
         int cExpect = Math.max(1, cInitSize);
 
-        cache.invoke(Integer.valueOf(0), processor);
+        cache.invoke(0, processor);
         assertEquals(sTest + "invoke failed to load", cExpect, cache.size());
 
         ICount = (Integer) cache.aggregate(AlwaysFilter.INSTANCE, new Count());
@@ -2205,10 +2205,10 @@ public class ReadWriteBackingMapTests
         nCount = cache.keySet(AlwaysFilter.INSTANCE).size();
         assertEquals(sTest + "invoke failed to update key index", cExpect, nCount);
 
-        assertTrue(sTest + " missing entry 0", cache.keySet().contains(Integer.valueOf(0)));
+        assertTrue(sTest + " missing entry 0", cache.keySet().contains(0));
 
         cExpect = Math.max(2, cInitSize);
-        setKeys = Collections.singleton(Integer.valueOf(1));
+        setKeys = Collections.singleton(1);
         cache.invokeAll(setKeys, processor);
         assertEquals(sTest + "invokeAll(single) failed", cExpect, cache.size());
 
@@ -2269,7 +2269,7 @@ public class ReadWriteBackingMapTests
             }
 
         int cExpect = Math.max(0, cInitSize - 1);
-        cache.invoke(Integer.valueOf(0), processor);
+        cache.invoke(0, processor);
 
         assertEquals(sTest + "invoke failed", cExpect, cache.size());
 
@@ -2280,7 +2280,7 @@ public class ReadWriteBackingMapTests
         assertEquals(sTest + "invoke failed to update key index", cExpect, nCount);
 
         cExpect = Math.max(0, cInitSize - 2);
-        cache.invokeAll(Collections.singleton(Integer.valueOf(1)), processor);
+        cache.invokeAll(Collections.singleton(1), processor);
         assertEquals(sTest + "invokeAll(single) failed", cExpect, cache.size());
 
         ICount = (Integer) cache.aggregate(AlwaysFilter.INSTANCE, new Count());
@@ -2536,12 +2536,12 @@ public class ReadWriteBackingMapTests
             // confirm aggregation returns the correct result including entries that are not present
             Integer NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"1"}).getSet(),
                     new CustomAggregator(CACHE_RELATED, false));
-            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(Integer.valueOf(2))));
+            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(2)));
 
             // confirm aggregation returns the correct result only for entries that are present
             NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"2"}).getSet(),
                     new CustomAggregator(CACHE_RELATED, true));
-            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(Integer.valueOf(2))));
+            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(2)));
 
             // wait for the entries to expire
             Eventually.assertThat(invoking(cache).size(), is(0));
@@ -2550,12 +2550,12 @@ public class ReadWriteBackingMapTests
             // same aggregation call should cause a read through
             NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"1"}).getSet(),
                     new CustomAggregator(CACHE_RELATED, false));
-            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(Integer.valueOf(2))));
+            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(2)));
 
             // aggregation for only present entries should not cause a load
             NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"2"}).getSet(),
                     new CustomAggregator(CACHE_RELATED, true));
-            assertThat(NResult, Matchers.anyOf(Matchers.nullValue(), is(Integer.valueOf(0))));
+            assertThat(NResult, Matchers.anyOf(Matchers.nullValue(), is(0)));
 
             // force a load on the 'driving' cache to ensure getReadOnlyEntry
             // does not result in a load
@@ -2563,7 +2563,7 @@ public class ReadWriteBackingMapTests
 
             NResult = (Integer) cache.aggregate(new ImmutableArrayList(new Object[] {"2"}).getSet(),
                     new CustomAggregator(CACHE_RELATED, true));
-            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(Integer.valueOf(1))));
+            assertThat(NResult, Matchers.allOf(Matchers.notNullValue(), is(1)));
             }
         finally
             {
@@ -2728,7 +2728,7 @@ public class ReadWriteBackingMapTests
              // simulation of the evict during put
             getEvictingRWBM(entry, m_sCacheName).forceEvict(entry, true);
 
-            entry.setValue(new Integer(IValue.intValue() + 1));
+            entry.setValue(IValue + 1);
             return entry.getValue();
             }
 
@@ -2814,7 +2814,7 @@ public class ReadWriteBackingMapTests
              // simulation of the evict during put
             getEvictingRWBM(entry, m_sCacheName).forceEvict(entry, false);
 
-            entry.setValue(new Integer(IValue.intValue() + 1));
+            entry.setValue(IValue.intValue() + 1);
             return entry.getValue();
             }
 
@@ -2855,7 +2855,7 @@ public class ReadWriteBackingMapTests
             // simulate an eviction during update
             getEvictingRWBM(entry, m_sCacheName).forceEvict(entry, true);
 
-            entry.setValue(new Integer(IValue.intValue() + 1));
+            entry.setValue(IValue.intValue() + 1);
             return IValue;
             }
 
@@ -2901,7 +2901,7 @@ public class ReadWriteBackingMapTests
             // simulate an eviction during update
             getEvictingRWBM(entry, m_sCacheName).forceEvict(entry, false);
 
-            entry.setValue(new Integer(IValue.intValue() + 1));
+            entry.setValue(IValue.intValue() + 1);
             return IValue;
             }
 

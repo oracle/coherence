@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1494,7 +1494,7 @@ public class DefaultConfigurableCacheFactory
                     }
                 else
                     {
-                    Object[] aoParam = new Object[] {mapFront, cacheBack, Integer.valueOf(nStrategy)};
+                    Object[] aoParam = new Object[] {mapFront, cacheBack, nStrategy};
                     cacheNear = (NearCache) instantiateSubclass(sSubclass, NearCache.class, loader,
                         aoParam, xmlScheme.getElement("init-params"));
                     }
@@ -1951,10 +1951,10 @@ public class DefaultConfigurableCacheFactory
         else
             {
             Object[] aoParam = storeBinary == null ?
-                new Object[] {context, mapInternal, mapMisses, store, new Boolean(fReadOnly),
-                    Integer.valueOf(cWriteBehindSec), new Double(dflRefreshAhead)} :
-                new Object[] {context, mapInternal, mapMisses, storeBinary, new Boolean(fReadOnly),
-                    Integer.valueOf(cWriteBehindSec), new Double(dflRefreshAhead)};
+                new Object[] {context, mapInternal, mapMisses, store, fReadOnly,
+                              cWriteBehindSec, dflRefreshAhead} :
+                new Object[] {context, mapInternal, mapMisses, storeBinary, fReadOnly,
+                              cWriteBehindSec, dflRefreshAhead};
             rwbm = (ReadWriteBackingMap) instantiateSubclass(sSubclass, ReadWriteBackingMap.class, loader,
                 aoParam, xmlRWBM.getElement("init-params"));
             }
@@ -2172,10 +2172,10 @@ public class DefaultConfigurableCacheFactory
         else
             {
             Object[] aoParam = store instanceof CacheStore ?
-                new Object[] {context, mapInternal, mapMisses, store, new Boolean(fReadOnly), Integer.valueOf(cWriteBehindSec),
-                              new Double(dflRefreshAhead), cacheTrans, cachePersist, new Boolean(fManageTrans)} :
+                new Object[] {context, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSec,
+                              dflRefreshAhead, cacheTrans, cachePersist, fManageTrans} :
                 new Object[] {context, mapInternal, mapMisses, store,
-                              cacheTrans, cachePersist, new Boolean(fManageTrans)};
+                              cacheTrans, cachePersist, fManageTrans};
             vbm = (VersionedBackingMap) instantiateSubclass(sSubclass, VersionedBackingMap.class, loader,
                 aoParam, xmlVBM.getElement("init-params"));
             }
@@ -2263,8 +2263,7 @@ public class DefaultConfigurableCacheFactory
             }
         else
             {
-            Object[] aoParam = new Object[]
-                {Integer.valueOf(cHighUnits), Integer.valueOf(cExpiryDelayMillis)};
+            Object[] aoParam = new Object[] {cHighUnits, cExpiryDelayMillis};
             cache = (LocalCache) instantiateSubclass(sSubclass, LocalCache.class, loader,
                 aoParam, xmlLocal.getElement("init-params"));
             }
@@ -2680,8 +2679,8 @@ public class DefaultConfigurableCacheFactory
             else
                 {
                 Object[] aoParam = fBinaryMap ?
-                    new Object[] {storeMgr, Integer.valueOf(cPages), Integer.valueOf(cPageSecs), Boolean.TRUE, new Boolean(fBackup)} :
-                    new Object[] {storeMgr, Integer.valueOf(cPages), Integer.valueOf(cPageSecs), loader};
+                    new Object[] {storeMgr, cPages, cPageSecs, Boolean.TRUE, fBackup} :
+                    new Object[] {storeMgr, cPages, cPageSecs, loader};
 
                 return (Map) instantiateSubclass(sSubclass, SerializationPagedCache.class, loader,
                     aoParam, xmlDisk.getElement("init-params"));
@@ -2748,8 +2747,8 @@ public class DefaultConfigurableCacheFactory
             if (cHighUnits > 0 || cExpiryMillis > 0)
                 {
                 Object[] aoParam = fBinaryMap
-                        ? new Object[] {store, Integer.valueOf(cHighUnits), Boolean.TRUE}
-                        : new Object[] {store, Integer.valueOf(cHighUnits), loader};
+                        ? new Object[] {store, cHighUnits, Boolean.TRUE}
+                        : new Object[] {store, cHighUnits, loader};
                 SerializationCache cache = (SerializationCache) instantiateSubclass(sSubclass,
                         SerializationCache.class, loader, aoParam, xmlInitParams);
                 if (cExpiryMillis > 0)
@@ -2849,8 +2848,8 @@ public class DefaultConfigurableCacheFactory
         else
             {
             Object[] aoParam = fBinaryMap ?
-                new Object[] {mgr, Integer.valueOf(cPages), Integer.valueOf(cPageSecs), Boolean.TRUE, new Boolean(fBackup)} :
-                new Object[] {mgr, Integer.valueOf(cPages), Integer.valueOf(cPageSecs), loader};
+                new Object[] {mgr, cPages, cPageSecs, Boolean.TRUE, fBackup} :
+                new Object[] {mgr, cPages, cPageSecs, loader};
 
             return (Map) instantiateSubclass(sSubclass, SerializationPagedCache.class, loader,
                 aoParam, xmlPaged.getElement("init-params"));
@@ -3002,8 +3001,7 @@ public class DefaultConfigurableCacheFactory
                     }
                 else
                     {
-                    Object[] aoParam = new Object[] {Integer.valueOf(cbInitSize),
-                                                     Integer.valueOf(cbMaxSize), fileDir};
+                    Object[] aoParam = new Object[] {cbInitSize, cbMaxSize, fileDir};
                     return (BinaryStoreManager) instantiateSubclass(sSubclass,
                             MappedStoreManager.class, loader, aoParam, xmlParams);
                     }
@@ -3023,7 +3021,7 @@ public class DefaultConfigurableCacheFactory
                 else
                     {
                     Object[] aoParam = cbMaxAsync <= 0 ? new Object[] {mgr}
-                                                       : new Object[] {mgr, Integer.valueOf(cbMaxAsync)};
+                                                       : new Object[] {mgr, cbMaxAsync};
                     return (BinaryStoreManager) instantiateSubclass(sSubclass,
                             AsyncBinaryStoreManager.class, loader, aoParam, xmlParams);
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -624,11 +624,11 @@ public class CacheExpiryTests
                     }
                 else if (d.getTimeUnit() == null)
                     {
-                    return new Long(d.getDurationAmount()).toString();
+                    return Long.toString(d.getDurationAmount());
                     }
                 else
                     {
-                    return new Long(d.getDurationAmount()).toString() + " " + d.getTimeUnit().name();
+                    return d.getDurationAmount() + " " + d.getTimeUnit().name();
                     }
                 }
             }

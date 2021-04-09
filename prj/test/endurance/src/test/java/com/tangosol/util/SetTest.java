@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -266,22 +266,22 @@ public class SetTest
 
         for (int i = 0; i < 20; ++i)
             {
-            setOrig.add(Integer.valueOf(i));
+            setOrig.add(i);
             }
 
         Set<Integer> setPart = new HashSet();
         for (int i = 10; i < 20; ++i)
             {
-            setPart.add(Integer.valueOf(i));
+            setPart.add(i);
             }
 
         SubSet set = new SubSet(setOrig);
         set.retainAll(setPart);
-        assertEquals(Integer.valueOf(10), set.iterator().next());
+        assertEquals(10, set.iterator().next());
 
         set = new SubSet(setOrig);
         set.removeAll(setPart);
-        assertEquals(Integer.valueOf(0), set.iterator().next());
+        assertEquals(0, set.iterator().next());
         }
 
     /**
@@ -373,7 +373,7 @@ public class SetTest
             {
             for (int i = 0; i < 100; ++i)
                 {
-                Integer I = new Integer(i);
+                Integer I = i;
                 fControl = setControl.add("" + I);
                 fTest = setTest.add("" + I);
                 assertIdenticalResult(fControl, fTest);
@@ -389,7 +389,7 @@ public class SetTest
             {
             for (int i = 0; i < 100; ++i)
                 {
-                Integer I = new Integer(i);
+                Integer I = i;
                 fControl = setControl.remove("" + I);
                 fTest = setTest.remove("" + I);
                 assertIdenticalResult(fControl, fTest);
@@ -1196,13 +1196,13 @@ public class SetTest
             switch (m_nOp)
                 {
                 case 0:
-                    return Boolean.valueOf(set.contains(m_value));
+                    return set.contains(m_value);
 
                 case 1:
-                    return Boolean.valueOf(set.add(m_value));
+                    return set.add(m_value);
 
                 case 2:
-                    return Boolean.valueOf(set.remove(m_value));
+                    return set.remove(m_value);
 
                 default:
                     fail("illegal operation: " + m_nOp);
@@ -1269,16 +1269,16 @@ public class SetTest
             switch (m_nOp)
                 {
                 case 0:
-                    return Boolean.valueOf(set.containsAll(m_collValues));
+                    return set.containsAll(m_collValues);
 
                 case 1:
-                    return Boolean.valueOf(set.addAll(m_collValues));
+                    return set.addAll(m_collValues);
 
                 case 2:
-                    return Boolean.valueOf(set.removeAll(m_collValues));
+                    return set.removeAll(m_collValues);
 
                 case 3:
-                    return Boolean.valueOf(set.retainAll(m_collValues));
+                    return set.retainAll(m_collValues);
 
                 default:
                     fail("illegal operation: " + m_nOp);

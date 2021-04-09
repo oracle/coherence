@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -43,8 +43,8 @@ public class XmlBeanTest
         ArrayList    list  = new ArrayList();
         SafeHashMap  map   = new SafeHashMap();
 
-        aI[0] = new Integer(Integer.MIN_VALUE);
-        aI[1] = new Integer(Integer.MAX_VALUE);
+        aI[0] = Integer.MIN_VALUE;
+        aI[1] = Integer.MAX_VALUE;
 
         list.add(Boolean.FALSE);
         list.add(Boolean.TRUE);

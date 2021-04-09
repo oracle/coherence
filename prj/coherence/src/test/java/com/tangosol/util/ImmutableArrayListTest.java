@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -85,7 +85,7 @@ public class ImmutableArrayListTest
         Long[] aL = new Long[c];
         for (int i = 0; i < c; ++i)
             {
-            aL[i] = new Long(i);
+            aL[i] = (long) i;
             }
 
         return aL;
@@ -142,8 +142,8 @@ public class ImmutableArrayListTest
 
         // contains
         assertFalse(list.contains(null));                   // test null
-        assertFalse(list.contains(new Long(-1)));           // test !contains
-        assertTrue(list.contains(new Long(0)) == (c != 0)); // test .equals()
+        assertFalse(list.contains((long) -1));           // test !contains
+        assertTrue(list.contains(0L) == (c != 0)); // test .equals()
         for (int i = 0; i < c; ++i)
             {
             assertTrue(list.contains(aL[i]));
@@ -151,8 +151,8 @@ public class ImmutableArrayListTest
 
         // indexOf
         assertTrue(list.indexOf(null) == -1);                       // test null
-        assertTrue(list.indexOf(new Long(-1)) == -1);               // test !contains
-        assertTrue(list.indexOf(new Long(0)) == (c == 0 ? -1 : 0)); // test .equals()
+        assertTrue(list.indexOf((long) -1) == -1);               // test !contains
+        assertTrue(list.indexOf(0L) == (c == 0 ? -1 : 0)); // test .equals()
         for (int i = 0; i < c; ++i)
             {
             assertTrue(list.indexOf(aL[i]) == i);
@@ -160,8 +160,8 @@ public class ImmutableArrayListTest
 
         // lastIndexOf
         assertTrue(list.lastIndexOf(null) == -1);                       // test null
-        assertTrue(list.lastIndexOf(new Long(-1)) == -1);               // test !contains
-        assertTrue(list.lastIndexOf(new Long(0)) == (c == 0 ? -1 : 0)); // test .equals()
+        assertTrue(list.lastIndexOf((long) -1) == -1);               // test !contains
+        assertTrue(list.lastIndexOf(0L) == (c == 0 ? -1 : 0)); // test .equals()
         for (int i = 0; i < c; ++i)
             {
             assertTrue(list.lastIndexOf(aL[i]) == i);
@@ -192,8 +192,8 @@ public class ImmutableArrayListTest
 
         // contains
         assertFalse(list.contains(null));                   // test null
-        assertFalse(list.contains(new Long(-1)));           // test !contains
-        assertTrue(list.contains(new Long(0)) == (c != 0)); // test .equals()
+        assertFalse(list.contains((long) -1));           // test !contains
+        assertTrue(list.contains(0L) == (c != 0)); // test .equals()
         for (int i = 0; i < c; ++i)
             {
             assertTrue(list.contains(aL[i]));
@@ -201,8 +201,8 @@ public class ImmutableArrayListTest
 
         // indexOf
         assertTrue(list.indexOf(null) == -1);               // test null
-        assertTrue(list.indexOf(new Long(-1)) == -1);       // test !contains
-        assertTrue(list.indexOf(new Long(0)) == 0);         // test .equals()
+        assertTrue(list.indexOf((long) -1) == -1);       // test !contains
+        assertTrue(list.indexOf(0L) == 0);         // test .equals()
         for (int i = 0; i < c-1; ++i)
             {
             assertTrue(list.indexOf(aL[i]) == i);
@@ -210,8 +210,8 @@ public class ImmutableArrayListTest
 
         // lastIndexOf
         assertTrue(list.lastIndexOf(null) == -1);           // test null
-        assertTrue(list.lastIndexOf(new Long(-1)) == -1);   // test !contains
-        assertTrue(list.lastIndexOf(new Long(0)) == (c-1)); // test .equals()
+        assertTrue(list.lastIndexOf((long) -1) == -1);   // test !contains
+        assertTrue(list.lastIndexOf(0L) == (c - 1)); // test .equals()
         for (int i = 1; i < c; ++i)
             {
             assertTrue(list.lastIndexOf(aL[i]) == i);
@@ -231,5 +231,3 @@ public class ImmutableArrayListTest
         assertTrue(cIters == listSub.size());
         }
     }
-
-

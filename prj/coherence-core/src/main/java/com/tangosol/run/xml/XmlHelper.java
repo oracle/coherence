@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -2593,23 +2593,23 @@ public abstract class XmlHelper extends Base
                 }
             else if (sType.equalsIgnoreCase("int") || sType.equals("java.lang.Integer"))
                 {
-                listParam.add(Integer.valueOf(xmlValue.getInt()));
+                listParam.add(xmlValue.getInt());
                 }
             else if (sType.equalsIgnoreCase("long") || sType.equals("java.lang.Long"))
                 {
-                listParam.add(Long.valueOf(xmlValue.getLong()));
+                listParam.add(xmlValue.getLong());
                 }
             else if (sType.equalsIgnoreCase("boolean") || sType.equals("java.lang.Boolean"))
                 {
-                listParam.add(Boolean.valueOf(xmlValue.getBoolean()));
+                listParam.add(xmlValue.getBoolean());
                 }
             else if (sType.equalsIgnoreCase("double") || sType.equals("java.lang.Double"))
                 {
-                listParam.add(new Double(xmlValue.getDouble()));
+                listParam.add(xmlValue.getDouble());
                 }
             else if (sType.equalsIgnoreCase("float") || sType.equals("java.lang.Float"))
                 {
-                listParam.add(new Float(xmlValue.getDouble()));
+                listParam.add((float) xmlValue.getDouble());
                 }
             else if (sType.equalsIgnoreCase("decimal") || sType.equals("java.math.BigDecimal"))
                 {

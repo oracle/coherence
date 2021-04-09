@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -198,7 +198,7 @@ public class SimpleValue
     */
     public void setInt(int nVal)
         {
-        setInternalValue(Integer.valueOf(nVal));
+        setInternalValue(nVal);
         }
 
     /**
@@ -232,7 +232,7 @@ public class SimpleValue
     */
     public void setLong(long lVal)
         {
-        setInternalValue(Long.valueOf(lVal));
+        setInternalValue(lVal);
         }
 
     /**
@@ -266,7 +266,7 @@ public class SimpleValue
     */
     public void setDouble(double dflVal)
         {
-        setInternalValue(new Double(dflVal));
+        setInternalValue(dflVal);
         }
 
     /**
@@ -703,15 +703,15 @@ public class SimpleValue
                 break;
 
             case TYPE_INT:
-                m_oValue = Integer.valueOf(readInt(in));
+                m_oValue = readInt(in);
                 break;
 
             case TYPE_LONG:
-                m_oValue = Long.valueOf(readLong(in));
+                m_oValue = readLong(in);
                 break;
 
             case TYPE_DOUBLE:
-                m_oValue = new Double(in.readDouble());
+                m_oValue = in.readDouble();
                 break;
 
             case TYPE_DECIMAL:
@@ -858,15 +858,15 @@ public class SimpleValue
                 break;
 
             case TYPE_INT:
-                m_oValue = Integer.valueOf(in.readInt(1));
+                m_oValue = in.readInt(1);
                 break;
 
             case TYPE_LONG:
-                m_oValue = Long.valueOf(in.readLong(1));
+                m_oValue = in.readLong(1);
                 break;
 
             case TYPE_DOUBLE:
-                m_oValue = new Double(in.readDouble(1));
+                m_oValue = in.readDouble(1);
                 break;
 
             case TYPE_DECIMAL:

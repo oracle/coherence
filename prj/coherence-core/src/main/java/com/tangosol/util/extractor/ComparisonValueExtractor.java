@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -219,10 +219,10 @@ public class ComparisonValueExtractor<T, E extends Number>
                     return (E) Long.valueOf(num1.longValue() - num2.longValue());
 
                 case FMT_FLOAT:
-                    return (E) new Float(num1.floatValue() - num2.floatValue());
+                    return (E) Float.valueOf(num1.floatValue() - num2.floatValue());
 
                 case FMT_DOUBLE:
-                    return (E) new Double(num1.doubleValue() - num2.doubleValue());
+                    return (E) Double.valueOf(num1.doubleValue() - num2.doubleValue());
 
                 case FMT_INTEGER:
                     return (E) ((BigInteger) num1).subtract((BigInteger) num2);
@@ -232,8 +232,7 @@ public class ComparisonValueExtractor<T, E extends Number>
                 }
 
             }
-        return (E) Integer.valueOf(
-            SafeComparator.compareSafe(comparator, o1, o2));
+        return (E) Integer.valueOf(SafeComparator.compareSafe(comparator, o1, o2));
         }
 
 

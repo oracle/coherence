@@ -2656,16 +2656,16 @@ public abstract class ExternalizableHelper
                 return null;
 
             case FMT_INT:
-                return Integer.valueOf(readInt(in));
+                return readInt(in);
 
             case FMT_LONG:
-                return Long.valueOf(readLong(in));
+                return readLong(in);
 
             case FMT_STRING:
                 return readUTF(in);
 
             case FMT_DOUBLE:
-                return new Double(in.readDouble());
+                return in.readDouble();
 
             case FMT_INTEGER:
                 return readBigInteger(in);
@@ -2708,13 +2708,13 @@ public abstract class ExternalizableHelper
                 return readXmlBean(in, loader);
 
             case FMT_FLOAT:
-                return new Float(in.readFloat());
+                return in.readFloat();
 
             case FMT_SHORT:
-                return new Short(in.readShort());
+                return in.readShort();
 
             case FMT_BYTE:
-                return new Byte(in.readByte());
+                return in.readByte();
 
             case FMT_BOOLEAN:
                 return in.readBoolean() ? Boolean.TRUE : Boolean.FALSE;
@@ -6174,19 +6174,19 @@ public abstract class ExternalizableHelper
                 }
             else if (method.getName().equals("arrayLength"))
                 {
-                return Long.valueOf(-1);
+                return (long) -1;
                 }
             else if (method.getName().equals("depth"))
                 {
-                return Long.valueOf(1);
+                return 1L;
                 }
             else if (method.getName().equals("references"))
                 {
-                return Long.valueOf(0);
+                return 0L;
                 }
             else if (method.getName().equals("streamBytes"))
                 {
-                return Long.valueOf(0);
+                return 0L;
                 }
             return null;
             }

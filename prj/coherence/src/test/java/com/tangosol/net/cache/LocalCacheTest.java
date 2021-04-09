@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -139,16 +139,16 @@ public class LocalCacheTest
 
                             Map cache = (Map) clz.newInstance();
 
-                            ClassHelper.invoke(cache, "setExpiryDelay" , new Object[] {new Integer(cMillis)});
-                            ClassHelper.invoke(cache, "setHighUnits"   , new Object[] {new Integer(MAX)});
-                            ClassHelper.invoke(cache, "setEvictionType", new Object[] {new Integer(iPolicy)});
+                            ClassHelper.invoke(cache, "setExpiryDelay" , new Object[] {cMillis});
+                            ClassHelper.invoke(cache, "setHighUnits"   , new Object[] {MAX});
+                            ClassHelper.invoke(cache, "setEvictionType", new Object[] {iPolicy});
                             if (fOverrideLowUnits)
                                 {
-                                ClassHelper.invoke(cache, "setLowUnits", new Object[] {new Integer((int) (dflPruneFactor * MAX))});
+                                ClassHelper.invoke(cache, "setLowUnits", new Object[] {(int) (dflPruneFactor * MAX)});
                                 }
                             if (fIncr)
                                 {
-                                ClassHelper.invoke(cache, "setIncrementalEviction", new Object[] {new Boolean(iIncr == 1)});
+                                ClassHelper.invoke(cache, "setIncrementalEviction", new Object[] {iIncr == 1});
                                 }
 
                             TestPlan planPut = new TestPlan(cache, THREADS, 5, MAX * 2, 0);

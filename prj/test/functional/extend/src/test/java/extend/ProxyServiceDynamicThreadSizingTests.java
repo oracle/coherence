@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,35 +7,43 @@
 package extend;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.coherence.component.net.Cluster;
+
 import com.tangosol.coherence.component.util.SafeCluster;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
+
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.partition.PartitionSet;
+
 import com.tangosol.util.Filter;
+
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.PartitionedFilter;
+
 import java.io.IOException;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Test;
-
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -385,7 +393,7 @@ public class ProxyServiceDynamicThreadSizingTests
         */
         public Object getResult()
             {
-            return new Integer(m_nValue);
+            return m_nValue;
             }
 
         // ----- PortableObject interface ---------------------------------
@@ -396,7 +404,7 @@ public class ProxyServiceDynamicThreadSizingTests
         public void readExternal(PofReader in)
                 throws IOException
             {
-            m_nValue = in.readInt(0);
+            m_nValue       = in.readInt(0);
             m_sServiceName = in.readString(1);
             }
 
@@ -461,9 +469,9 @@ public class ProxyServiceDynamicThreadSizingTests
         */
         public ThreadCountChecker(int cThreshold)
             {
-            m_cThreshold = cThreshold;
+            m_cThreshold      = cThreshold;
             m_cMaxThreadCount = 0;
-            m_fStop = false;
+            m_fStop           = false;
             }
 
         // ----- Runnable interface -------------------------------------

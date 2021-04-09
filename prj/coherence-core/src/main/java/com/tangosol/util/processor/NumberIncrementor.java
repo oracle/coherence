@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -127,19 +127,19 @@ public class NumberIncrementor<K, V, N extends Number>
         Number numNew;
         if (numOld instanceof Integer)
             {
-            numNew = Integer.valueOf(numOld.intValue() + numInc.intValue());
+            numNew = numOld.intValue() + numInc.intValue();
             }
         else if (numOld instanceof Long)
             {
-            numNew = Long.valueOf(numOld.longValue() + numInc.longValue());
+            numNew = numOld.longValue() + numInc.longValue();
             }
         else if (numOld instanceof Double)
             {
-            numNew = new Double(numOld.doubleValue() + numInc.doubleValue());
+            numNew = numOld.doubleValue() + numInc.doubleValue();
             }
         else if (numOld instanceof Float)
             {
-            numNew = new Float(numOld.floatValue() + numInc.floatValue());
+            numNew = numOld.floatValue() + numInc.floatValue();
             }
         else if (numOld instanceof BigInteger)
             {
@@ -151,11 +151,11 @@ public class NumberIncrementor<K, V, N extends Number>
             }
         else if (numOld instanceof Short)
             {
-            numNew = new Short((short) (numOld.shortValue() + numInc.shortValue()));
+            numNew = (short) (numOld.shortValue() + numInc.shortValue());
             }
         else if (numOld instanceof Byte)
             {
-            numNew = new Byte((byte) (numOld.byteValue() + numInc.byteValue()));
+            numNew = (byte) (numOld.byteValue() + numInc.byteValue());
             }
         else
             {
@@ -260,22 +260,22 @@ public class NumberIncrementor<K, V, N extends Number>
     /**
     * The Integer value of 0.
     */
-    static final Number INTEGER_ZERO = Integer.valueOf(0);
+    static final Number INTEGER_ZERO = 0;
 
     /**
     * The Long value of 0.
     */
-    static final Number LONG_ZERO = Long.valueOf(0);
+    static final Number LONG_ZERO = 0L;
 
     /**
     * The Double value of 0.
     */
-    static final Number DOUBLE_ZERO = new Double(0);
+    static final Number DOUBLE_ZERO = (double) 0;
 
     /**
     * The Float value of 0.
     */
-    static final Number FLOAT_ZERO = new Float(0);
+    static final Number FLOAT_ZERO = (float) 0;
 
     /**
     * The BigDecimal value of 0.
@@ -290,12 +290,12 @@ public class NumberIncrementor<K, V, N extends Number>
     /**
     * The Short value of 0.
     */
-    static final Number SHORT_ZERO = new Short((short) 0);
+    static final Number SHORT_ZERO = (short) 0;
 
     /**
     * The Byte value of 0.
     */
-    static final Number BYTE_ZERO = new Byte((byte) 0);
+    static final Number BYTE_ZERO = (byte) 0;
 
 
     // ----- data members ---------------------------------------------------

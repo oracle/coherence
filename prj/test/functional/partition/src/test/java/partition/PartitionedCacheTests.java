@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -111,7 +111,7 @@ public class PartitionedCacheTests
 
         for (int i = 0; i < 10; i++)
             {
-            cache.put(Integer.valueOf(i), Long.valueOf(i), 500L);
+            cache.put(i, (long) i, 500L);
             }
 
         sleep(2000);
@@ -251,7 +251,7 @@ public class PartitionedCacheTests
     public void testCoh8795()
         {
         NamedCache cache = getNamedCache("dist-Coh8795");
-        Integer oKey = new Integer(10);
+        Integer    oKey  = 10;
         try
             {
             cache.addMapListener(new TestSynchronousMapListener(), oKey, false);

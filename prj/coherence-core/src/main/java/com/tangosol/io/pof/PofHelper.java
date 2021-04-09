@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -2194,59 +2194,59 @@ public abstract class PofHelper
     static
         {
         Map map = new HashMap();
-        map.put(Short.TYPE                , Integer.valueOf(T_INT16));
-        map.put(Short.class               , Integer.valueOf(T_INT16));
-        map.put(Integer.TYPE              , Integer.valueOf(T_INT32));
-        map.put(Integer.class             , Integer.valueOf(T_INT32));
-        map.put(Long.TYPE                 , Integer.valueOf(T_INT64));
-        map.put(Long.class                , Integer.valueOf(T_INT64));
-        map.put(Float.TYPE                , Integer.valueOf(T_FLOAT32));
-        map.put(Float.class               , Integer.valueOf(T_FLOAT32));
-        map.put(Double.TYPE               , Integer.valueOf(T_FLOAT64));
-        map.put(Double.class              , Integer.valueOf(T_FLOAT64));
-        map.put(RawQuad.class             , Integer.valueOf(T_FLOAT128));
-        map.put(Boolean.TYPE              , Integer.valueOf(T_BOOLEAN));
-        map.put(Boolean.class             , Integer.valueOf(T_BOOLEAN));
-        map.put(Byte.TYPE                 , Integer.valueOf(T_OCTET));
-        map.put(Byte.class                , Integer.valueOf(T_OCTET));
-        map.put(Binary.class              , Integer.valueOf(T_OCTET_STRING));
-        map.put(Character.TYPE            , Integer.valueOf(T_CHAR));
-        map.put(Character.class           , Integer.valueOf(T_CHAR));
-        map.put(String.class              , Integer.valueOf(T_CHAR_STRING));
-        map.put(Date.class                , Integer.valueOf(T_DATETIME));
-        map.put(java.sql.Date.class       , Integer.valueOf(T_DATE));
-        map.put(Time.class                , Integer.valueOf(T_TIME));
-        map.put(Timestamp.class           , Integer.valueOf(T_DATETIME));
-        map.put(RawDate.class             , Integer.valueOf(T_DATE));
-        map.put(RawTime.class             , Integer.valueOf(T_TIME));
-        map.put(RawDateTime.class         , Integer.valueOf(T_DATETIME));
-        map.put(RawYearMonthInterval.class, Integer.valueOf(T_YEAR_MONTH_INTERVAL));
-        map.put(RawTimeInterval.class     , Integer.valueOf(T_TIME_INTERVAL));
-        map.put(RawDayTimeInterval.class  , Integer.valueOf(T_DAY_TIME_INTERVAL));
-        map.put(boolean[].class           , Integer.valueOf(T_UNIFORM_ARRAY));
-        map.put(byte[].class              , Integer.valueOf(T_UNIFORM_ARRAY));
-        map.put(char[].class              , Integer.valueOf(T_CHAR_STRING));
-        map.put(short[].class             , Integer.valueOf(T_UNIFORM_ARRAY));
-        map.put(int[].class               , Integer.valueOf(T_UNIFORM_ARRAY));
-        map.put(long[].class              , Integer.valueOf(T_UNIFORM_ARRAY));
-        map.put(float[].class             , Integer.valueOf(T_UNIFORM_ARRAY));
-        map.put(double[].class            , Integer.valueOf(T_UNIFORM_ARRAY));
-        map.put(ArrayList.class           , Integer.valueOf(T_COLLECTION));
-        map.put(ImmutableArrayList.class  , Integer.valueOf(T_COLLECTION));
-        map.put(Vector.class              , Integer.valueOf(T_COLLECTION));
-        map.put(LinkedList.class          , Integer.valueOf(T_COLLECTION));
-        map.put(SafeLinkedList.class      , Integer.valueOf(T_COLLECTION));
-        map.put(RecyclingLinkedList.class , Integer.valueOf(T_COLLECTION));
-        map.put(LiteSet.class             , Integer.valueOf(T_COLLECTION));
-        map.put(HashSet.class             , Integer.valueOf(T_COLLECTION));
-        map.put(SafeHashSet.class         , Integer.valueOf(T_COLLECTION));
-        map.put(TreeSet.class             , Integer.valueOf(T_COLLECTION));
-        map.put(LiteMap.class             , Integer.valueOf(T_MAP));
-        map.put(Hashtable.class           , Integer.valueOf(T_MAP));
-        map.put(HashMap.class             , Integer.valueOf(T_MAP));
-        map.put(SafeHashMap.class         , Integer.valueOf(T_MAP));
-        map.put(ObservableHashMap.class   , Integer.valueOf(T_MAP));
-        map.put(TreeMap.class             , Integer.valueOf(T_MAP));
+        map.put(Short.TYPE                , T_INT16);
+        map.put(Short.class               , T_INT16);
+        map.put(Integer.TYPE              , T_INT32);
+        map.put(Integer.class             , T_INT32);
+        map.put(Long.TYPE                 , T_INT64);
+        map.put(Long.class                , T_INT64);
+        map.put(Float.TYPE                , T_FLOAT32);
+        map.put(Float.class               , T_FLOAT32);
+        map.put(Double.TYPE               , T_FLOAT64);
+        map.put(Double.class              , T_FLOAT64);
+        map.put(RawQuad.class             , T_FLOAT128);
+        map.put(Boolean.TYPE              , T_BOOLEAN);
+        map.put(Boolean.class             , T_BOOLEAN);
+        map.put(Byte.TYPE                 , T_OCTET);
+        map.put(Byte.class                , T_OCTET);
+        map.put(Binary.class              , T_OCTET_STRING);
+        map.put(Character.TYPE            , T_CHAR);
+        map.put(Character.class           , T_CHAR);
+        map.put(String.class              , T_CHAR_STRING);
+        map.put(Date.class                , T_DATETIME);
+        map.put(java.sql.Date.class       , T_DATE);
+        map.put(Time.class                , T_TIME);
+        map.put(Timestamp.class           , T_DATETIME);
+        map.put(RawDate.class             , T_DATE);
+        map.put(RawTime.class             , T_TIME);
+        map.put(RawDateTime.class         , T_DATETIME);
+        map.put(RawYearMonthInterval.class, T_YEAR_MONTH_INTERVAL);
+        map.put(RawTimeInterval.class     , T_TIME_INTERVAL);
+        map.put(RawDayTimeInterval.class  , T_DAY_TIME_INTERVAL);
+        map.put(boolean[].class           , T_UNIFORM_ARRAY);
+        map.put(byte[].class              , T_UNIFORM_ARRAY);
+        map.put(char[].class              , T_CHAR_STRING);
+        map.put(short[].class             , T_UNIFORM_ARRAY);
+        map.put(int[].class               , T_UNIFORM_ARRAY);
+        map.put(long[].class              , T_UNIFORM_ARRAY);
+        map.put(float[].class             , T_UNIFORM_ARRAY);
+        map.put(double[].class            , T_UNIFORM_ARRAY);
+        map.put(ArrayList.class           , T_COLLECTION);
+        map.put(ImmutableArrayList.class  , T_COLLECTION);
+        map.put(Vector.class              , T_COLLECTION);
+        map.put(LinkedList.class          , T_COLLECTION);
+        map.put(SafeLinkedList.class      , T_COLLECTION);
+        map.put(RecyclingLinkedList.class , T_COLLECTION);
+        map.put(LiteSet.class             , T_COLLECTION);
+        map.put(HashSet.class             , T_COLLECTION);
+        map.put(SafeHashSet.class         , T_COLLECTION);
+        map.put(TreeSet.class             , T_COLLECTION);
+        map.put(LiteMap.class             , T_MAP);
+        map.put(Hashtable.class           , T_MAP);
+        map.put(HashMap.class             , T_MAP);
+        map.put(SafeHashMap.class         , T_MAP);
+        map.put(ObservableHashMap.class   , T_MAP);
+        map.put(TreeMap.class             , T_MAP);
         JAVA_TO_POF_TYPE = map;
         }
 

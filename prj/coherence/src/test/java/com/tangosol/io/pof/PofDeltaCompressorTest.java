@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1217,21 +1217,21 @@ public class PofDeltaCompressorTest
             switch (nDT)
                 {
                 case DT_BOOLEAN:
-                    return new Boolean(!((Boolean) oVal).booleanValue());
+                    return !(Boolean) oVal;
                 case DT_BYTE:
-                    return new Byte((byte) (((Byte) oVal).byteValue() + rnd.nextInt(5) - 2));
+                    return (byte) ((Byte) oVal + rnd.nextInt(5) - 2);
                 case DT_CHAR:
-                    return new Character((char) (((Character) oVal).charValue() + rnd.nextInt(5) - 2));
+                    return (char) ((Character) oVal + rnd.nextInt(5) - 2);
                 case DT_SHORT:
-                    return new Short((short) (((Short) oVal).shortValue() + rnd.nextInt(5) - 2));
+                    return (short) ((Short) oVal + rnd.nextInt(5) - 2);
                 case DT_INT:
-                    return new Integer(((Integer) oVal).intValue() + rnd.nextInt(5) - 2);
+                    return (Integer) oVal + rnd.nextInt(5) - 2;
                 case DT_LONG:
-                    return new Long(((Long) oVal).longValue() + rnd.nextInt(5) - 2);
+                    return (Long) oVal + rnd.nextInt(5) - 2;
                 case DT_FLOAT:
-                    return new Float(((Float) oVal).floatValue() + rnd.nextInt(5) - 2);
+                    return ((Float) oVal).floatValue() + rnd.nextInt(5) - 2;
                 case DT_DOUBLE:
-                    return new Double(((Double) oVal).doubleValue() + rnd.nextInt(5) - 2);
+                    return (Double) oVal + rnd.nextInt(5) - 2;
 
                 case DT_BOOLEANARRAY:
                     {
@@ -1644,23 +1644,23 @@ public class PofDeltaCompressorTest
             switch (nDT)
                 {
                 case DT_BOOLEAN:
-                    return new Boolean(rnd.nextBoolean());
+                    return rnd.nextBoolean();
                 case DT_BYTE:
-                    return new Byte((byte) rnd.nextInt(0x100));
+                    return (byte) rnd.nextInt(0x100);
                 case DT_CHAR:
-                    return new Character(rnd.nextBoolean()
-                            ? (char) (32 + rnd.nextInt(128 - 32))
-                            : (char) rnd.nextInt(0x10000));
+                    return rnd.nextBoolean()
+                           ? (char) (32 + rnd.nextInt(128 - 32))
+                           : (char) rnd.nextInt(0x10000);
                 case DT_SHORT:
-                    return new Short((short) rnd.nextInt(0x10000));
+                    return (short) rnd.nextInt(0x10000);
                 case DT_INT:
-                    return new Integer(rnd.nextInt());
+                    return rnd.nextInt();
                 case DT_LONG:
-                    return new Long(rnd.nextLong());
+                    return rnd.nextLong();
                 case DT_FLOAT:
-                    return new Float(rnd.nextFloat());
+                    return rnd.nextFloat();
                 case DT_DOUBLE:
-                    return new Double(rnd.nextDouble());
+                    return rnd.nextDouble();
 
                 case DT_BOOLEANARRAY:
                     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -264,20 +264,20 @@ public abstract class AbstractEntryAggregatorTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(5.5D)));
+        assertTrue("Result=" + oResult, equals(oResult, 5.5D));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(5.5D)));
+        assertTrue("Result=" + oResult, equals(oResult, 5.5D));
         }
 
     /**
@@ -293,20 +293,20 @@ public abstract class AbstractEntryAggregatorTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(10.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 10.0D));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(10.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 10.0D));
         }
 
     /**
@@ -321,20 +321,20 @@ public abstract class AbstractEntryAggregatorTests
         testEmpty(cache, agent);
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
         }
 
     /**
@@ -350,20 +350,20 @@ public abstract class AbstractEntryAggregatorTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(55.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 55.0D));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(55.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 55.0D));
         }
 
     /**
@@ -379,20 +379,20 @@ public abstract class AbstractEntryAggregatorTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(10L)));
+        assertTrue("Result=" + oResult, equals(oResult, 10L));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(10L)));
+        assertTrue("Result=" + oResult, equals(oResult, 10L));
         }
 
     /**
@@ -408,20 +408,20 @@ public abstract class AbstractEntryAggregatorTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
         }
 
     /**
@@ -437,20 +437,20 @@ public abstract class AbstractEntryAggregatorTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(55L)));
+        assertTrue("Result=" + oResult, equals(oResult, 55L));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(55L)));
+        assertTrue("Result=" + oResult, equals(oResult, 55L));
         }
 
     /**
@@ -944,7 +944,7 @@ public abstract class AbstractEntryAggregatorTests
         int cKeys = 10000;
         for (int i = 1; i <= cKeys; ++i)
             {
-            map.put(String.valueOf(i), new Integer(i));
+            map.put(String.valueOf(i), i);
             }
         cache.putAll(map);
 
@@ -973,7 +973,7 @@ public abstract class AbstractEntryAggregatorTests
         map   = new HashMap();
         for (int i = 1; i <= cKeys; ++i)
             {
-            map.put(String.valueOf(i), new Integer(i / 2));
+            map.put(String.valueOf(i), i / 2);
             }
         cache.putAll(map);
 
@@ -1011,7 +1011,7 @@ public abstract class AbstractEntryAggregatorTests
         {
         public Object aggregateResults(Collection collResults)
             {
-            return Boolean.valueOf(collResults.contains(Boolean.TRUE));
+            return collResults.contains(Boolean.TRUE);
             }
 
         public InvocableMap.EntryAggregator getParallelAggregator()
@@ -1192,7 +1192,7 @@ public abstract class AbstractEntryAggregatorTests
                     oVal = BigInteger.valueOf(i);
                     break;
                 case 2:
-                    oVal = new Double(i);
+                    oVal = (double) i;
                     break;
                 }
             cache.put(String.valueOf(i), oVal);

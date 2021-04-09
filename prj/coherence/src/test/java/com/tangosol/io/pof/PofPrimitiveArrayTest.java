@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -69,10 +69,10 @@ public class PofPrimitiveArrayTest
 
         af = m_reader.readBooleanArray(0);
         assertEquals(ao.length, af.length);
-        assertEquals(ao[0], Boolean.valueOf(af[0]));
-        assertEquals(ao[1], Boolean.valueOf(af[1]));
-        assertEquals(ao[2], Boolean.valueOf(af[2]));
-        assertEquals(ao[3], Boolean.valueOf(af[3]));
+        assertEquals(ao[0], af[0]);
+        assertEquals(ao[1], af[1]);
+        assertEquals(ao[2], af[2]);
+        assertEquals(ao[3], af[3]);
 
         af = m_reader.readBooleanArray(0);
         assertEquals(adfl.length, af.length);
@@ -111,7 +111,7 @@ public class PofPrimitiveArrayTest
         {
         byte[]   ab1  = new byte[]{1, 22, 0, Byte.MIN_VALUE, Byte.MAX_VALUE};
         List     list = new ArrayList(0);
-        Object[] ao   = new Object[]{new Byte((byte) 1), new Byte((byte) 127), new Byte((byte) -128)};
+        Object[] ao   = new Object[]{(byte) 1, (byte) 127, (byte) -128};
 
         initPOFWriter();
         m_writer.writeByteArray(0, ab1);
@@ -179,9 +179,7 @@ public class PofPrimitiveArrayTest
         {
         char[]   ach1 = new char[]{'a', Character.MAX_VALUE, Character.MIN_VALUE, (char) 0x007F};
         char[]   ach2 = new char[]{'B', Character.MAX_VALUE, Character.MIN_VALUE};
-        Object[] ao   = new Object[]{new Character('a'),
-                new Character(Character.MIN_VALUE),
-                new Character(Character.MAX_VALUE)};
+        Object[] ao   = new Object[]{'a', Character.MIN_VALUE, Character.MAX_VALUE};
 
         List   list = new ArrayList(0);
         String s    = "string_char";
@@ -266,8 +264,7 @@ public class PofPrimitiveArrayTest
         {
         short[]  an1  = new short[]{0, 12222, Short.MAX_VALUE, Short.MIN_VALUE};
         short[]  an2  = new short[]{1, -1, Short.MAX_VALUE};
-        Object[] ao   = new Object[]{new Short((short) 1), new Short((short) 2),
-                new Byte((byte) 20), new Long(100)};
+        Object[] ao   = new Object[]{(short) 1, (short) 2, (byte) 20, 100L};
 
         List     list = new ArrayList(0);
         double[] adfl = new double[]{1.0, 0.0, -1.0};
@@ -346,8 +343,7 @@ public class PofPrimitiveArrayTest
         {
         int[]    an1 = new int[]{0, Integer.MAX_VALUE, Integer.MIN_VALUE};
         int[]    an2 = new int[]{1, -1, Integer.MAX_VALUE, Integer.MIN_VALUE};
-        Object[] ao  = new Object[]{new Integer(1), new Integer(0),
-                new Byte((byte) 20), new Long(100)};
+        Object[] ao  = new Object[]{1, 0, (byte) 20, 100L};
 
         List     list = new ArrayList(0);
         double[] adfl = new double[]{1.0, 0.0, -1.0};
@@ -425,8 +421,7 @@ public class PofPrimitiveArrayTest
         {
         long[] al1      = new long[]{0, Long.MAX_VALUE, Long.MIN_VALUE, 8888888L};
         long[] al2      = new long[]{-1, 1, Long.MIN_VALUE, Long.MAX_VALUE, 88888};
-        Object[] ao     = new Object[]{new Long(1), new Long(2),
-                new Byte((byte) 20), null, new Long(100000)};
+        Object[] ao     = new Object[]{1L, 2L, (byte) 20, null, 100000L};
         LongArray aLong = new SparseArray();
 
         List     list = new ArrayList(0);
@@ -526,8 +521,7 @@ public class PofPrimitiveArrayTest
                 Float.MIN_VALUE, -1.0F};
         float[] afl2 = new float[]{-1, 1, Float.MAX_VALUE,
                 Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY};
-        Object[] ao  = new Object[]{new Float(1), new Float(2.222),
-                new Long(100), new Float(Float.NaN)};
+        Object[] ao  = new Object[]{1F, (float) 2.222, 100L, Float.NaN};
 
         float[] afl3 = new float[0];
         List    list = new ArrayList(0);
@@ -547,7 +541,7 @@ public class PofPrimitiveArrayTest
         for (int i = 0; i < afl.length; i++)
             {
             // REVIEW
-            assertEquals(new Float(afl[i]), new Float(afl1[i]));
+            assertEquals(Float.valueOf(afl[i]), Float.valueOf(afl1[i]));
             }
 
         // afl2
@@ -572,7 +566,7 @@ public class PofPrimitiveArrayTest
         assertEquals(afl[1], ((Float) ao[1]).floatValue(), 0);
         assertEquals(afl[2], ((Long) ao[2]).floatValue(), 0);
         // REVIEW
-        assertEquals(new Float(afl[3]), ao[3]);
+        assertEquals(afl[3], ao[3]);
 
         // list
         afl = m_reader.readFloatArray(0);
@@ -607,8 +601,7 @@ public class PofPrimitiveArrayTest
         double[] adfl2 = new double[]{-1, 1, Double.MIN_VALUE,
                 Double.MAX_VALUE, Double.POSITIVE_INFINITY};
         double[] adfl3 = new double[]{0, -1.11111, 0.1};
-        Object[] ao    = new Object[]{new Double(1), new Long(100),
-                new Double(Double.MAX_VALUE), new Double(Double.NaN)};
+        Object[] ao    = new Object[]{1.0, 100L, Double.MAX_VALUE, Double.NaN};
 
         double[] adfl4 = new double[0];
         List     list  = new ArrayList(0);
@@ -629,7 +622,7 @@ public class PofPrimitiveArrayTest
         for (int i = 0; i < adfl.length; i++)
             {
             // REVIEW
-            assertEquals(new Double(adfl[i]), new Double(adfl1[i]));
+            assertEquals(Double.valueOf(adfl[i]), Double.valueOf(adfl1[i]));
             }
 
         // adfl2
@@ -662,7 +655,7 @@ public class PofPrimitiveArrayTest
         assertEquals(adfl[1], ((Long) ao[1]).doubleValue(), 0);
         assertEquals(adfl[2], ((Double) ao[2]).doubleValue(), 0);
         // REVIEW
-        assertEquals(new Double(adfl[3]), ao[3]);
+        assertEquals(adfl[3], ao[3]);
 
         // list
         adfl = m_reader.readDoubleArray(0);
@@ -696,11 +689,9 @@ public class PofPrimitiveArrayTest
         Object[] ao1 = {new BigDecimal(32), new BigDecimal(Integer.MAX_VALUE),
                 new BigDecimal(-1), null, new BigDecimal(0)};
         Object[] ao2 = {true, null, false};
-        Object[] ao3 = {new Byte((byte)65), null, new Byte((byte)PofConstants.V_REFERENCE_NULL),
-                new Byte((byte)0), null};
+        Object[] ao3 = {(byte) 65, null, (byte) PofConstants.V_REFERENCE_NULL, (byte) 0, null};
         Object[] ao4 = {'A', 'B', null};
-        Object[] ao5 = {new Float(32), new Float(Float.MAX_VALUE),
-                new Float(-1), new Float(0), null};
+        Object[] ao5 = {32F, Float.MAX_VALUE, (float) -1, (float) 0, null};
         Object[] ao6 = {32, Integer.MAX_VALUE, -1, 0, PofConstants.V_REFERENCE_NULL, null};
         Object[] ao7 = {new RawDateTime(new RawDate(2006, 12, 2),
                 new RawTime(8, 51, 15, 100, true)), null};

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -524,7 +524,7 @@ public class BufferTest
             {
             try
                 {
-                return new Byte(buf.byteAt(of));
+                return buf.byteAt(of);
                 }
             catch (IndexOutOfBoundsException e)
                 {
@@ -714,7 +714,7 @@ public class BufferTest
             {
             try
                 {
-                return new Integer(in.read());
+                return in.read();
                 }
             catch (IOException e)
                 {
@@ -869,7 +869,7 @@ public class BufferTest
             {
             try
                 {
-                return new Boolean(in.readBoolean());
+                return in.readBoolean();
                 }
             catch (IOException e)
                 {
@@ -909,7 +909,7 @@ public class BufferTest
             {
             try
                 {
-                return new Byte(in.readByte());
+                return in.readByte();
                 }
             catch (IOException e)
                 {
@@ -942,7 +942,7 @@ public class BufferTest
             {
             try
                 {
-                return new Integer(in.readUnsignedByte());
+                return in.readUnsignedByte();
                 }
             catch (IOException e)
                 {
@@ -964,7 +964,7 @@ public class BufferTest
             {
             try
                 {
-                return new Short(in.readShort());
+                return in.readShort();
                 }
             catch (IOException e)
                 {
@@ -1004,7 +1004,7 @@ public class BufferTest
             {
             try
                 {
-                return new Integer(in.readUnsignedShort());
+                return in.readUnsignedShort();
                 }
             catch (IOException e)
                 {
@@ -1026,7 +1026,7 @@ public class BufferTest
             {
             try
                 {
-                return new Character(in.readChar());
+                return in.readChar();
                 }
             catch (IOException e)
                 {
@@ -1068,7 +1068,7 @@ public class BufferTest
             {
             try
                 {
-                return new Integer(in.readInt());
+                return in.readInt();
                 }
             catch (IOException e)
                 {
@@ -1110,7 +1110,7 @@ public class BufferTest
             {
             try
                 {
-                return new Long(in.readLong());
+                return in.readLong();
                 }
             catch (IOException e)
                 {
@@ -1152,7 +1152,7 @@ public class BufferTest
             {
             try
                 {
-                return new Float(in.readFloat());
+                return in.readFloat();
                 }
             catch (IOException e)
                 {
@@ -1194,7 +1194,7 @@ public class BufferTest
             {
             try
                 {
-                return new Double(in.readDouble());
+                return in.readDouble();
                 }
             catch (IOException e)
                 {
@@ -1346,7 +1346,7 @@ public class BufferTest
             {
             try
                 {
-                return new Integer(in.readPackedInt());
+                return in.readPackedInt();
                 }
             catch (IOException e)
                 {
@@ -1381,7 +1381,7 @@ public class BufferTest
             {
             try
                 {
-                return new Long(in.readPackedLong());
+                return in.readPackedLong();
                 }
             catch (IOException e)
                 {

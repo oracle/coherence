@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -46,12 +46,12 @@ public class MapListenerTest
         NamedCache map = new WrapperNamedCache(new ObservableHashMap(), "test");
         for (int i = 0; i < 10; ++i)
             {
-            map.put(new Integer(i), new Integer(i));
+            map.put(i, i);
             }
 
         // find and keep track of everything over 5
         final Set    setKeys   = new HashSet();
-        final Filter filterMap = new GreaterFilter("intValue", new Integer(5));
+        final Filter filterMap = new GreaterFilter("intValue", 5);
         final Filter filterEvt = new MapEventFilter(filterMap);
         MapListener  listener  = new MultiplexingMapListener()
             {
@@ -75,20 +75,20 @@ public class MapListenerTest
 
         for (int i = 0; i < 10; ++i)
             {
-            map.put(new Integer(i), new Integer(10-i));
+            map.put(i, 10 - i);
             }
         out("changed to value=10-key:" + setKeys);
 
-        map.put(new Integer(3), new Integer(0));
-        map.put(new Integer(7), new Integer(0));
+        map.put(3, 0);
+        map.put(7, 0);
         out("after setting 3 and 7 to 0: " + setKeys);
 
-        map.put(new Integer(3), new Integer(50));
-        map.put(new Integer(7), new Integer(50));
+        map.put(3, 50);
+        map.put(7, 50);
         out("after setting 3 and 7 to 50: " + setKeys);
 
-        map.put(new Integer(3), new Integer(5));
-        map.put(new Integer(7), new Integer(5));
+        map.put(3, 5);
+        map.put(7, 5);
         out("after setting 3 and 7 to 5: " + setKeys);
         }
 
@@ -112,7 +112,7 @@ public class MapListenerTest
             {
             for (int j = 0; j < 3; ++j)
                 {
-                cache.put(new Integer(i), "test i=" + i + ", j=" + j);
+                cache.put(i, "test i=" + i + ", j=" + j);
                 }
             }
 
@@ -132,7 +132,7 @@ public class MapListenerTest
             {
             for (int j = 0; j < 3; ++j)
                 {
-                cache.put(new Integer(i), "test i=" + i + ", j=" + j);
+                cache.put(i, "test i=" + i + ", j=" + j);
                 }
             }
 
@@ -142,7 +142,7 @@ public class MapListenerTest
             {
             for (int j = 0; j < 3; ++j)
                 {
-                cache.remove(new Integer(i));
+                cache.remove(i);
                 }
             }
 

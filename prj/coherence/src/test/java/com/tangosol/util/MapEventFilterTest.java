@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -189,15 +189,15 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(9);
-        Object oUpdatedValue = new Integer(10);
+        Object oOrigValue = 9;
+        Object oUpdatedValue = 10;
         MapEvent[] aExpectedEvents = {
             new MapEvent(map, MapEvent.ENTRY_INSERTED, oKey, null, oOrigValue)
             };
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_INSERTED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -213,13 +213,13 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(1);
-        Object oUpdatedValue = new Integer(10);
+        Object oOrigValue = 1;
+        Object oUpdatedValue = 10;
         MapEvent[] aExpectedEvents = {};
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_INSERTED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -235,8 +235,8 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(1);
-        Object oUpdatedValue = new Integer(10);
+        Object oOrigValue = 1;
+        Object oUpdatedValue = 10;
         MapEvent[] aExpectedEvents = {
             new MapEvent(map, MapEvent.ENTRY_INSERTED, oKey, null, oOrigValue)
             };
@@ -259,15 +259,15 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(1);
-        Object oUpdatedValue = new Integer(10);
+        Object oOrigValue = 1;
+        Object oUpdatedValue = 10;
         MapEvent[] aExpectedEvents = {
             new MapEvent(map, MapEvent.ENTRY_DELETED, oKey, oUpdatedValue, null)
             };
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_DELETED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -284,13 +284,13 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(10);
-        Object oUpdatedValue = new Integer(1);
+        Object oOrigValue = 10;
+        Object oUpdatedValue = 1;
         MapEvent[] aExpectedEvents = {};
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_DELETED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -306,8 +306,8 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(1);
-        Object oUpdatedValue = new Integer(10);
+        Object oOrigValue = 1;
+        Object oUpdatedValue = 10;
         MapEvent[] aExpectedEvents = {
             new MapEvent(map, MapEvent.ENTRY_DELETED, oKey, oUpdatedValue, null)
             };
@@ -332,15 +332,15 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(10);
-        Object oUpdatedValue = new Integer(1);
+        Object oOrigValue = 10;
+        Object oUpdatedValue = 1;
         MapEvent[] aExpectedEvents = {
                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, oOrigValue, oUpdatedValue)
             };
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_UPDATED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -357,15 +357,15 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(1);
-        Object oUpdatedValue = new Integer(10);
+        Object oOrigValue = 1;
+        Object oUpdatedValue = 10;
         MapEvent[] aExpectedEvents = {
                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, oOrigValue, oUpdatedValue)
             };
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_UPDATED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -382,13 +382,13 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(1);
-        Object oUpdatedValue = new Integer(2);
+        Object oOrigValue = 1;
+        Object oUpdatedValue = 2;
         MapEvent[] aExpectedEvents = {};
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_UPDATED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -405,8 +405,8 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(1);
-        Object oUpdatedValue = new Integer(2);
+        Object oOrigValue = 1;
+        Object oUpdatedValue = 2;
         MapEvent[] aExpectedEvents = {
                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, oOrigValue, oUpdatedValue)
             };
@@ -429,15 +429,15 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(1);
-        Object oUpdatedValue = new Integer(10);
+        Object oOrigValue = 1;
+        Object oUpdatedValue = 10;
         MapEvent[] aExpectedEvents = {
                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, oOrigValue, oUpdatedValue)
             };
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_UPDATED_ENTERED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -454,13 +454,13 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object oOrigValue = new Integer(10);
-        Object oUpdatedValue = new Integer(1);
+        Object oOrigValue = 10;
+        Object oUpdatedValue = 1;
         MapEvent[] aExpectedEvents = {};
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                            new MapEventFilter(MapEventFilter.E_UPDATED_ENTERED,
-                                              new GreaterFilter("intValue", new Integer(5))),
+                                              new GreaterFilter("intValue", 5)),
                            false);
         map.put(oKey, oOrigValue);
         map.put(oKey, oUpdatedValue);
@@ -478,8 +478,8 @@ public class MapEventFilterTest
          {
          NamedCache map = instantiateTestCache();
          Object oKey = "foo";
-         Object oOrigValue = new Integer(10);
-         Object oUpdatedValue = new Integer(1);
+         Object oOrigValue = 10;
+         Object oUpdatedValue = 1;
          MapEvent[] aExpectedEvents = {
                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, oOrigValue, oUpdatedValue)
             };
@@ -503,15 +503,15 @@ public class MapEventFilterTest
          {
          NamedCache map = instantiateTestCache();
          Object oKey = "foo";
-         Object oOrigValue = new Integer(10);
-         Object oUpdatedValue = new Integer(1);
+         Object oOrigValue = 10;
+         Object oUpdatedValue = 1;
          MapEvent[] aExpectedEvents = {
                  new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, oOrigValue, oUpdatedValue)
              };
          AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
          map.addMapListener(listener,
                             new MapEventFilter(MapEventFilter.E_UPDATED_LEFT,
-                                               new GreaterFilter("intValue", new Integer(5))),
+                                               new GreaterFilter("intValue", 5)),
                             false);
          map.put(oKey, oOrigValue);
          map.put(oKey, oUpdatedValue);
@@ -529,13 +529,13 @@ public class MapEventFilterTest
          {
          NamedCache map = instantiateTestCache();
          Object oKey = "foo";
-         Object oOrigValue = new Integer(1);
-         Object oUpdatedValue = new Integer(2);
+         Object oOrigValue = 1;
+         Object oUpdatedValue = 2;
          MapEvent[] aExpectedEvents = {};
          AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
          map.addMapListener(listener,
                             new MapEventFilter(MapEventFilter.E_UPDATED_LEFT,
-                                               new GreaterFilter("intValue", new Integer(5))),
+                                               new GreaterFilter("intValue", 5)),
                             false);
          map.put(oKey, oOrigValue);
          map.put(oKey, oUpdatedValue);
@@ -552,8 +552,8 @@ public class MapEventFilterTest
          {
          NamedCache map = instantiateTestCache();
          Object oKey = "foo";
-         Object oOrigValue = new Integer(1);
-         Object oUpdatedValue = new Integer(10);
+         Object oOrigValue = 1;
+         Object oUpdatedValue = 10;
          MapEvent[] aExpectedEvents = {
                  new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, oOrigValue, oUpdatedValue)
              };
@@ -578,19 +578,14 @@ public class MapEventFilterTest
         {
         NamedCache map = instantiateTestCache();
         Object oKey = "foo";
-        Object[] oValue = {
-                new Integer(1),
-                new Integer(10),
-                new Integer(11),
-                new Integer(3)
-        };
+        Object[] oValue = {1, 10, 11, 3};
         MapEvent[] aExpectedEvents = {
-                new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, new Integer(10), new Integer(11))
+                new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, 10, 11)
         };
         AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
         map.addMapListener(listener,
                 new MapEventFilter(MapEventFilter.E_UPDATED_WITHIN,
-                        new GreaterFilter("intValue", new Integer(5))),
+                        new GreaterFilter("intValue", 5)),
                 false);
         for (int i = 0, c = oValue.length; i < c; ++i)
             {
@@ -610,11 +605,7 @@ public class MapEventFilterTest
          {
          NamedCache map = instantiateTestCache();
          Object oKey = "foo";
-         Object[] oValue = {
-                 new Integer(1),
-                 new Integer(2),
-                 new Integer(3)
-         };
+         Object[] oValue = {1, 2, 3};
          MapEvent[] aExpectedEvents = {
                  new MapEvent(map, MapEvent.ENTRY_INSERTED, oKey, null,      oValue[0]),
                  new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, oValue[0], oValue[1]),
@@ -653,17 +644,11 @@ public class MapEventFilterTest
          {
          NamedCache map = instantiateTestCache();
          Object oKey = "foo";
-         Object[] oValue = {
-                 new Integer(1),
-                 new Integer(2),
-                 new Integer(7),
-                 new Integer(8),
-                 new Integer(3)
-         };
+         Object[] oValue = {1, 2, 7, 8, 3};
          MapEvent[] aExpectedEvents = {
-                 new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, new Integer(2), new Integer(7)),
-                 new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, new Integer(7), new Integer(8)),
-                 new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, new Integer(8), new Integer(3))
+                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, 2, 7),
+                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, 7, 8),
+                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, 8, 3)
              };
          AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
          // note this event mask evaulates to the same as E_UPDATED
@@ -671,7 +656,7 @@ public class MapEventFilterTest
                             new MapEventFilter(MapEventFilter.E_UPDATED_ENTERED |
                                                MapEventFilter.E_UPDATED_LEFT |
                                                MapEventFilter.E_UPDATED,
-                                               new GreaterFilter("intValue", new Integer(5))),
+                                               new GreaterFilter("intValue", 5)),
                             false);
          for (int i = 0, c = oValue.length; i < c; ++i)
              {
@@ -690,22 +675,16 @@ public class MapEventFilterTest
          {
          NamedCache map = instantiateTestCache();
          Object oKey = "foo";
-         Object[] oValue = {
-                 new Integer(1),
-                 new Integer(2),
-                 new Integer(7),
-                 new Integer(8),
-                 new Integer(3)
-         };
+         Object[] oValue = {1, 2, 7, 8, 3};
          MapEvent[] aExpectedEvents = {
-                 new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, new Integer(2), new Integer(7)),
-                 new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, new Integer(7), new Integer(8)),
+                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, 2, 7),
+                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, 7, 8),
              };
          AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
          map.addMapListener(listener,
                             new MapEventFilter(MapEventFilter.E_UPDATED_ENTERED |
                                                MapEventFilter.E_UPDATED_WITHIN,
-                                               new GreaterFilter("intValue", new Integer(5))),
+                                               new GreaterFilter("intValue", 5)),
                             false);
          for (int i = 0, c = oValue.length; i < c; ++i)
              {
@@ -724,22 +703,16 @@ public class MapEventFilterTest
          {
          NamedCache map = instantiateTestCache();
          Object oKey = "foo";
-         Object[] oValue = {
-                 new Integer(1),
-                 new Integer(2),
-                 new Integer(7),
-                 new Integer(8),
-                 new Integer(3)
-         };
+         Object[] oValue = {1, 2, 7, 8, 3};
          MapEvent[] aExpectedEvents = {
-                 new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, new Integer(7), new Integer(8)),
-                 new MapEvent(map, MapEvent.ENTRY_UPDATED,  oKey, new Integer(8), new Integer(3)),
+                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, 7, 8),
+                 new MapEvent(map, MapEvent.ENTRY_UPDATED, oKey, 8, 3),
              };
          AssertingMapEventListener listener = new AssertingMapEventListener(aExpectedEvents);
          map.addMapListener(listener,
                             new MapEventFilter(MapEventFilter.E_UPDATED_LEFT |
                                                MapEventFilter.E_UPDATED_WITHIN,
-                                               new GreaterFilter("intValue", new Integer(5))),
+                                               new GreaterFilter("intValue", 5)),
                             false);
          for (int i = 0, c = oValue.length; i < c; ++i)
              {
@@ -759,7 +732,7 @@ public class MapEventFilterTest
            {
            MapEventFilter mef = new MapEventFilter(MapEventFilter.E_UPDATED_LEFT |
                                                MapEventFilter.E_UPDATED_WITHIN,
-                                               new GreaterFilter("intValue", new Integer(5)));
+                                               new GreaterFilter("intValue", 5));
 
            ByteArrayOutputStream baos = new ByteArrayOutputStream();
            DataOutputStream out = new DataOutputStream(baos);
@@ -780,10 +753,10 @@ public class MapEventFilterTest
         {
         NamedCache<Integer, String> map = instantiateTestCache();
 
-        Integer key1 = Integer.valueOf(1);
+        Integer key1 = 1;
         String value1 = "one";
         String updatedValue1 = "ONE";
-        Integer key2 = Integer.valueOf(2);
+        Integer key2 = 2;
         String value2 = "two";
         String updatedValue2 = "TWO";
 
@@ -818,10 +791,10 @@ public class MapEventFilterTest
     public void testMapEvenFiltertWithValueType()
         {
         NamedCache<Integer, String> map = instantiateTestCache();
-        Integer key1 = Integer.valueOf(1);
+        Integer key1 = 1;
         String value1 = "one";
         String updatedValue1 = "ONE";
-        Integer key2 = Integer.valueOf(2);
+        Integer key2 = 2;
         String value2 = "two";
         String updatedValue2 = "TWO";
 

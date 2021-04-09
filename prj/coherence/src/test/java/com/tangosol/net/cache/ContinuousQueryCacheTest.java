@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -279,18 +279,18 @@ public class ContinuousQueryCacheTest
     public void limitedKeySet_helper(boolean fCacheValues)
         {
         NamedCache cacheBase = getNewCache("cqc-test");
-        cacheBase.put("1", new Integer(1));
-        cacheBase.put("2", new Integer(2));
-        cacheBase.put("3", new Integer(3));
-        cacheBase.put("4", new Integer(4));
-        cacheBase.put("5", new Integer(5));
+        cacheBase.put("1", 1);
+        cacheBase.put("2", 2);
+        cacheBase.put("3", 3);
+        cacheBase.put("4", 4);
+        cacheBase.put("5", 5);
 
-        Filter filter = new LessFilter("intValue", new Integer(4));
+        Filter filter = new LessFilter("intValue", 4);
         ContinuousQueryCache cacheCQC = new ContinuousQueryCache(cacheBase,
                 filter, fCacheValues);
 
         LimitFilter filterLimit = new LimitFilter(
-                new GreaterFilter("intValue", new Integer(1)), 1 /*page size*/);
+            new GreaterFilter("intValue", 1), 1 /*page size*/);
         Set setKeys = null;
         int page    = 0;
         Set setExpected = new HashSet(Arrays.asList(
@@ -337,23 +337,23 @@ public class ContinuousQueryCacheTest
     public void limitedEntrySet_helper(boolean fCacheValues)
         {
         NamedCache cacheBase = getNewCache("cqc-test");
-        cacheBase.put("1", new Integer(1));
-        cacheBase.put("2", new Integer(2));
-        cacheBase.put("3", new Integer(3));
-        cacheBase.put("4", new Integer(4));
-        cacheBase.put("5", new Integer(5));
+        cacheBase.put("1", 1);
+        cacheBase.put("2", 2);
+        cacheBase.put("3", 3);
+        cacheBase.put("4", 4);
+        cacheBase.put("5", 5);
 
-        Filter filter = new LessFilter("intValue", new Integer(4));
+        Filter filter = new LessFilter("intValue", 4);
         ContinuousQueryCache cacheCQC = new ContinuousQueryCache(cacheBase,
                 filter, fCacheValues);
 
         LimitFilter filterLimit = new LimitFilter(
-                new GreaterFilter("intValue", new Integer(1)), 1 /*page size*/);
+            new GreaterFilter("intValue", 1), 1 /*page size*/);
         Set setKeys = null;
         int page    = 0;
         Set setExpected = new HashSet(Arrays.asList(
-                new SimpleMapEntry[] {new SimpleMapEntry("2", new Integer(2)),
-                new SimpleMapEntry("3", new Integer(3))}));
+                new SimpleMapEntry[] {new SimpleMapEntry("2", 2),
+                new SimpleMapEntry("3", 3)}));
 
         do
             {
@@ -396,13 +396,13 @@ public class ContinuousQueryCacheTest
                                    Map mapExpected)
         {
         NamedCache cacheBase = getNewCache("cqc-test");
-        cacheBase.put("1", new Integer(1));
-        cacheBase.put("2", new Integer(2));
-        cacheBase.put("3", new Integer(3));
-        cacheBase.put("4", new Integer(4));
-        cacheBase.put("5", new Integer(5));
+        cacheBase.put("1", 1);
+        cacheBase.put("2", 2);
+        cacheBase.put("3", 3);
+        cacheBase.put("4", 4);
+        cacheBase.put("5", 5);
 
-        Filter filter = new LessFilter("intValue", new Integer(4));
+        Filter filter = new LessFilter("intValue", 4);
         ContinuousQueryCache cacheCQC = new ContinuousQueryCache(cacheBase,
                 filter, fCacheValues);
 
@@ -416,7 +416,7 @@ public class ContinuousQueryCacheTest
     public void getAllCache_singleHit_helper(boolean fCacheValues)
         {
         Map mapExpected = new HashMap();
-        mapExpected.put("2", new Integer(2));
+        mapExpected.put("2", 2);
         getAllCache_helper(fCacheValues, new String[] {"2"}, mapExpected);
         }
 
@@ -471,8 +471,8 @@ public class ContinuousQueryCacheTest
     public void getAllCache_multiHit_helper(boolean fCacheValues)
         {
         Map mapExpected = new HashMap();
-        mapExpected.put("2", new Integer(2));
-        mapExpected.put("3", new Integer(3));
+        mapExpected.put("2", 2);
+        mapExpected.put("3", 3);
         getAllCache_helper(fCacheValues, new String[] {"2", "3"}, mapExpected);
         }
 
@@ -500,7 +500,7 @@ public class ContinuousQueryCacheTest
     public void getAllCache_multiMiss_helper(boolean fCacheValues)
         {
         Map mapExpected = new HashMap();
-        mapExpected.put("2", new Integer(2));
+        mapExpected.put("2", 2);
         getAllCache_helper(fCacheValues, new String[] {"2", "4"}, mapExpected);
         }
 
@@ -555,44 +555,44 @@ public class ContinuousQueryCacheTest
     public void cqcBetween_helper(boolean fCacheValues)
         {
         NamedCache cacheBase = getNewCache("cqc-test");
-        cacheBase.put("1", new Integer(1));
-        cacheBase.put("2", new Integer(2));
-        cacheBase.put("3", new Integer(3));
-        cacheBase.put("4", new Integer(4));
-        cacheBase.put("5", new Integer(5));
-        cacheBase.put("11", new Integer(11));
-        cacheBase.put("12", new Integer(12));
+        cacheBase.put("1", 1);
+        cacheBase.put("2", 2);
+        cacheBase.put("3", 3);
+        cacheBase.put("4", 4);
+        cacheBase.put("5", 5);
+        cacheBase.put("11", 11);
+        cacheBase.put("12", 12);
 
         Filter filter = new BetweenFilter("intValue",
-                new Integer(3), new Integer(10));
+                                          3, 10);
         ContinuousQueryCache cacheCQC = new ContinuousQueryCache(cacheBase,
                 filter, fCacheValues);
 
         Map mapExpected = new HashMap();
-        mapExpected.put("3", new Integer(3));
-        mapExpected.put("4", new Integer(4));
-        mapExpected.put("5", new Integer(5));
+        mapExpected.put("3", 3);
+        mapExpected.put("4", 4);
+        mapExpected.put("5", 5);
 
         BaseMapTest.assertIdenticalMaps(mapExpected, cacheCQC);
 
         // enter
-        cacheBase.put("6", new Integer(6));
-        mapExpected.put("6", new Integer(6));
+        cacheBase.put("6", 6);
+        mapExpected.put("6", 6);
         BaseMapTest.assertIdenticalMaps(mapExpected, cacheCQC);
 
         // update within
-        cacheBase.put("6", new Integer(7));
-        mapExpected.put("6", new Integer(7));
+        cacheBase.put("6", 7);
+        mapExpected.put("6", 7);
         BaseMapTest.assertIdenticalMaps(mapExpected, cacheCQC);
 
         // update left
-        cacheBase.put("6", new Integer(1));
+        cacheBase.put("6", 1);
         mapExpected.remove("6");
         BaseMapTest.assertIdenticalMaps(mapExpected, cacheCQC);
 
         // update entered
-        cacheBase.put("6", new Integer(6));
-        mapExpected.put("6", new Integer(6));
+        cacheBase.put("6", 6);
+        mapExpected.put("6", 6);
         BaseMapTest.assertIdenticalMaps(mapExpected, cacheCQC);
 
         // remove
@@ -626,12 +626,12 @@ public class ContinuousQueryCacheTest
     public void releaseTest()
         {
         NamedCache cacheBase = getNewCache("cqc-test");
-        cacheBase.put("1", new Integer(1));
-        cacheBase.put("2", new Integer(2));
-        cacheBase.put("3", new Integer(3));
+        cacheBase.put("1", 1);
+        cacheBase.put("2", 2);
+        cacheBase.put("3", 3);
 
         Filter filter = new BetweenFilter("intValue",
-                new Integer(3), new Integer(10));
+                                          3, 10);
         ContinuousQueryCache cacheCQC = new ContinuousQueryCache(cacheBase,
                 filter, false);
         cacheCQC.release();
@@ -643,24 +643,24 @@ public class ContinuousQueryCacheTest
     public void overlappingCQC_helper(boolean fCacheValues1, boolean fCacheValues2)
         {
         NamedCache cacheBase = getNewCache("cqc-test");
-        cacheBase.put("1", new Integer(1));
-        cacheBase.put("2", new Integer(2));
-        cacheBase.put("3", new Integer(3));
-        cacheBase.put("4", new Integer(4));
-        cacheBase.put("5", new Integer(5));
+        cacheBase.put("1", 1);
+        cacheBase.put("2", 2);
+        cacheBase.put("3", 3);
+        cacheBase.put("4", 4);
+        cacheBase.put("5", 5);
 
-        Filter filter1 = new LessFilter("intValue", new Integer(5));
+        Filter filter1 = new LessFilter("intValue", 5);
         ContinuousQueryCache cacheCQC1 = new ContinuousQueryCache(cacheBase,
                 filter1, fCacheValues1);
 
-        Filter filter2 = new GreaterFilter("intValue", new Integer(1));
+        Filter filter2 = new GreaterFilter("intValue", 1);
         ContinuousQueryCache cacheCQC2 = new ContinuousQueryCache(cacheCQC1,
                 filter2, fCacheValues2);
 
         Map mapExpected = new HashMap();
-        mapExpected.put("2", new Integer(2));
-        mapExpected.put("3", new Integer(3));
-        mapExpected.put("4", new Integer(4));
+        mapExpected.put("2", 2);
+        mapExpected.put("3", 3);
+        mapExpected.put("4", 4);
 
         BaseMapTest.assertIdenticalMaps(mapExpected, cacheCQC2);
         }
@@ -708,22 +708,22 @@ public class ContinuousQueryCacheTest
     public void testIndex()
         {
         NamedCache cacheBase = getNewCache("cqc-test");
-        cacheBase.put("one",         new Integer(1));
-        cacheBase.put("another_one", new Integer(1));
-        cacheBase.put("one_more",    new Integer(1));
-        cacheBase.put("two",         new Integer(2));
-        cacheBase.put("three",       new Integer(3));
-        cacheBase.put("four",        new Integer(4));
-        cacheBase.put("four_again",  new Integer(4));
-        cacheBase.put("five",        new Integer(5));
-        cacheBase.put("five_a",      new Integer(5));
-        cacheBase.put("five_b",      new Integer(5));
-        cacheBase.put("five_c",      new Integer(5));
-        cacheBase.put("five_d",      new Integer(5));
+        cacheBase.put("one", 1);
+        cacheBase.put("another_one", 1);
+        cacheBase.put("one_more", 1);
+        cacheBase.put("two", 2);
+        cacheBase.put("three", 3);
+        cacheBase.put("four", 4);
+        cacheBase.put("four_again", 4);
+        cacheBase.put("five", 5);
+        cacheBase.put("five_a", 5);
+        cacheBase.put("five_b", 5);
+        cacheBase.put("five_c", 5);
+        cacheBase.put("five_d", 5);
 
         ValueExtractor extractor = new IdentityExtractor();
         Filter                   filter    = new GreaterEqualsFilter(extractor,
-                                        new Integer(3));
+                                                                     3);
         TestContinuousQueryCache cacheCQC  = new TestContinuousQueryCache(
                                         cacheBase, filter, true);
 
@@ -736,24 +736,24 @@ public class ContinuousQueryCacheTest
 
         Map indexContents = index.getIndexContents();
 
-        Set setOne = (Set) indexContents.get(new Integer(1));
+        Set setOne = (Set) indexContents.get(1);
         assertTrue(setOne == null);
 
-        Set setTwo = (Set) indexContents.get(new Integer(2));
+        Set setTwo = (Set) indexContents.get(2);
         assertTrue(setTwo == null);
 
-        Set setThree = (Set) indexContents.get(new Integer(3));
+        Set setThree = (Set) indexContents.get(3);
         assertTrue(setThree.size()==1);
         assertTrue(setThree.contains("three"));
 
-        assertTrue(index.get("three").equals(new Integer(3)));
+        assertTrue(index.get("three").equals(3));
 
-        Set setFour = (Set) indexContents.get(new Integer(4));
+        Set setFour = (Set) indexContents.get(4);
         assertTrue(setFour.size()==2);
         assertTrue(setFour.contains("four"));
         assertTrue(setFour.contains("four_again"));
 
-        Set setFive = (Set) indexContents.get(new Integer(5));
+        Set setFive = (Set) indexContents.get(5);
         assertTrue(setFive.size()==5);
         assertTrue(setFive.contains("five"));
         assertTrue(setFive.contains("five_a"));
@@ -764,28 +764,28 @@ public class ContinuousQueryCacheTest
         // test insert
         assertTrue(index.get("ten") == index.NO_VALUE);
 
-        cacheBase.put("ten", new Integer(10));
+        cacheBase.put("ten", 10);
 
-        assertTrue(index.get("ten").equals(new Integer(10)));
+        assertTrue(index.get("ten").equals(10));
 
         indexContents = index.getIndexContents();
 
-        Set set = (Set) indexContents.get(new Integer(10));
+        Set set = (Set) indexContents.get(10);
         assertTrue(set.size()==1);
         assertTrue(set.contains("ten"));
 
         // test update
-        cacheBase.put("five", new Integer(55));
+        cacheBase.put("five", 55);
 
-        assertTrue(index.get("five").equals(new Integer(55)));
+        assertTrue(index.get("five").equals(55));
 
         indexContents = index.getIndexContents();
 
-        set = (Set) indexContents.get(new Integer(55));
+        set = (Set) indexContents.get(55);
         assertTrue(set.size()==1);
         assertTrue(set.contains("five"));
 
-        set = (Set) indexContents.get(new Integer(5));
+        set = (Set) indexContents.get(5);
         assertTrue(set.size()==4);
         assertTrue(set.contains("five_a"));
         assertTrue(set.contains("five_b"));
@@ -799,11 +799,11 @@ public class ContinuousQueryCacheTest
 
         indexContents = index.getIndexContents();
 
-        set = (Set) indexContents.get(new Integer(3));
+        set = (Set) indexContents.get(3);
         assertTrue(set == null || set.size()==0);
 
         // query the CQC with an index
-        filter = new GreaterFilter(extractor, new Integer(4));
+        filter = new GreaterFilter(extractor, 4);
 
         set = cacheCQC.keySet(filter);
         assertTrue(set.size() == 6);

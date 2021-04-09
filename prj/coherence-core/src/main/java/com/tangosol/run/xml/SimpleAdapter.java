@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -482,7 +482,7 @@ public abstract class SimpleAdapter
 
             if (o != null)
                 {
-                o = new Byte((byte) xml.getInt());
+                o = (byte) xml.getInt();
                 }
 
             return o;
@@ -503,7 +503,7 @@ public abstract class SimpleAdapter
                 return null;
                 }
 
-            o = Integer.valueOf(((Number) o).intValue());
+            o = ((Number) o).intValue();
 
             return new SimpleElement(getXmlName(), o);
             }
@@ -566,7 +566,7 @@ public abstract class SimpleAdapter
         public Object readExternal(DataInput in)
                 throws IOException
             {
-            return new Byte(in.readByte());
+            return in.readByte();
             }
 
         /**
@@ -629,7 +629,7 @@ public abstract class SimpleAdapter
 
             if (o != null)
                 {
-                o = new Character((char) xml.getInt());
+                o = (char) xml.getInt();
                 }
 
             return o;
@@ -650,7 +650,7 @@ public abstract class SimpleAdapter
                 return null;
                 }
 
-            o = Integer.valueOf(((Character) o).charValue());
+            o = (int) ((Character) o).charValue();
 
             return new SimpleElement(getXmlName(), o);
             }
@@ -675,7 +675,7 @@ public abstract class SimpleAdapter
                 {
                 throw new IllegalArgumentException("Illegal character URI: " + sUri);
                 }
-            return new Character(s.charAt(0));
+            return s.charAt(0);
             }
 
         /**
@@ -710,7 +710,7 @@ public abstract class SimpleAdapter
         public Object readExternal(DataInput in)
                 throws IOException
             {
-            return new Character(in.readChar());
+            return in.readChar();
             }
 
         /**
@@ -773,7 +773,7 @@ public abstract class SimpleAdapter
 
             if (o != null)
                 {
-                o = new Short((short) xml.getInt());
+                o = (short) xml.getInt();
                 }
 
             return o;
@@ -794,7 +794,7 @@ public abstract class SimpleAdapter
                 return null;
                 }
 
-            o = Integer.valueOf(((Number) o).intValue());
+            o = ((Number) o).intValue();
 
             return new SimpleElement(getXmlName(), o);
             }
@@ -857,7 +857,7 @@ public abstract class SimpleAdapter
         public Object readExternal(DataInput in)
                 throws IOException
             {
-            return new Short(in.readShort());
+            return in.readShort();
             }
 
         /**
@@ -920,7 +920,7 @@ public abstract class SimpleAdapter
 
             if (o != null)
                 {
-                o = Integer.valueOf(xml.getInt());
+                o = xml.getInt();
                 }
 
             return o;
@@ -984,7 +984,7 @@ public abstract class SimpleAdapter
         public Object readExternal(DataInput in)
                 throws IOException
             {
-            return Integer.valueOf(readInt(in));
+            return readInt(in);
             }
 
         /**
@@ -1047,7 +1047,7 @@ public abstract class SimpleAdapter
 
             if (o != null)
                 {
-                o = Long.valueOf(xml.getLong());
+                o = xml.getLong();
                 }
 
             return o;
@@ -1111,7 +1111,7 @@ public abstract class SimpleAdapter
         public Object readExternal(DataInput in)
                 throws IOException
             {
-            return Long.valueOf(readLong(in));
+            return readLong(in);
             }
 
         /**
@@ -1174,7 +1174,7 @@ public abstract class SimpleAdapter
 
             if (o != null)
                 {
-                o = new Float((float) xml.getDouble());
+                o = (float) xml.getDouble();
                 }
 
             return o;
@@ -1195,7 +1195,7 @@ public abstract class SimpleAdapter
                 return null;
                 }
 
-            o = new Double(((Number) o).doubleValue());
+            o = ((Number) o).doubleValue();
 
             return new SimpleElement(getXmlName(), o);
             }
@@ -1216,7 +1216,7 @@ public abstract class SimpleAdapter
         public Object fromUri(String sUri)
             {
             // "n" or "(n)" (where n is the float's "int bits")
-            return new Float(Float.intBitsToFloat(Integer.parseInt(parseNumber(sUri))));
+            return Float.intBitsToFloat(Integer.parseInt(parseNumber(sUri)));
             }
 
         /**
@@ -1259,7 +1259,7 @@ public abstract class SimpleAdapter
         public Object readExternal(DataInput in)
                 throws IOException
             {
-            return new Float(in.readFloat());
+            return in.readFloat();
             }
 
         /**
@@ -1322,7 +1322,7 @@ public abstract class SimpleAdapter
 
             if (o != null)
                 {
-                o = new Double(xml.getDouble());
+                o = xml.getDouble();
                 }
 
             return o;
@@ -1344,7 +1344,7 @@ public abstract class SimpleAdapter
         public Object fromUri(String sUri)
             {
             // "n" or "(n)" (where n is the double's "long bits")
-            return new Double(Double.longBitsToDouble(Long.parseLong(parseNumber(sUri))));
+            return Double.longBitsToDouble(Long.parseLong(parseNumber(sUri)));
             }
 
         /**
@@ -1387,7 +1387,7 @@ public abstract class SimpleAdapter
         public Object readExternal(DataInput in)
                 throws IOException
             {
-            return new Double(in.readDouble());
+            return in.readDouble();
             }
 
         /**
@@ -2443,7 +2443,7 @@ public abstract class SimpleAdapter
                 Timestamp ts = xml.getDateTime();
                 if (ts != null)
                     {
-                    o = Long.valueOf(ts.getTime());
+                    o = ts.getTime();
                     }
                 }
 
@@ -2482,7 +2482,7 @@ public abstract class SimpleAdapter
         */
         public Object fromUri(String sUri)
             {
-            return Long.valueOf(TimestampAdapter.toTimestamp(sUri).getTime());
+            return TimestampAdapter.toTimestamp(sUri).getTime();
             }
 
         /**

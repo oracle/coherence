@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -78,31 +78,31 @@ public class ObjectWithAllTypes
         m_BooleanFalse          = Boolean.FALSE;
         m_BooleanTrue           = Boolean.TRUE;
         m_BooleanNull           = null;
-        m_ByteZero              = Byte.valueOf((byte) 0);
-        m_ByteTwentyTwo         = Byte.valueOf((byte) 22);
+        m_ByteZero              = (byte) 0;
+        m_ByteTwentyTwo         = (byte) 22;
         m_ByteNull              = null;
-        m_Byte                  = Byte.valueOf(Byte.MAX_VALUE);
-        m_Character             = new Character('a');
-        m_ShortZero             = Short.valueOf((short) 0);
-        m_ShortTwentyTwo        = Short.valueOf((short) 22);
+        m_Byte                  = Byte.MAX_VALUE;
+        m_Character             = 'a';
+        m_ShortZero             = (short) 0;
+        m_ShortTwentyTwo        = (short) 22;
         m_ShortNull             = null;
-        m_Short                 = Short.valueOf(Short.MAX_VALUE);
-        m_IntegerZero           = Integer.valueOf(0);
-        m_IntegerTwentyTwo      = Integer.valueOf(22);
+        m_Short                 = Short.MAX_VALUE;
+        m_IntegerZero           = 0;
+        m_IntegerTwentyTwo      = 22;
         m_IntegerNull           = null;
-        m_Integer               = Integer.valueOf(Integer.MAX_VALUE);
-        m_LongZero              = Long.valueOf(0);
-        m_LongTwentyTwo         = Long.valueOf(22);
+        m_Integer               = Integer.MAX_VALUE;
+        m_LongZero              = 0L;
+        m_LongTwentyTwo         = 22L;
         m_LongNull              = null;
-        m_Long                  = Long.valueOf(Long.MAX_VALUE);
-        m_FloatZero             = Float.valueOf(0);
-        m_FloatTwentyTwo        = Float.valueOf(22);
+        m_Long                  = Long.MAX_VALUE;
+        m_FloatZero             = (float) 0;
+        m_FloatTwentyTwo        = 22F;
         m_FloatNull             = null;
-        m_Float                 = Float.valueOf(Float.MAX_VALUE);
-        m_DoubleZero            = Double.valueOf(0);
-        m_DoubleTwentyTwo       = Double.valueOf(22);
+        m_Float                 = Float.MAX_VALUE;
+        m_DoubleZero            = (double) 0;
+        m_DoubleTwentyTwo       = 22.0;
         m_DoubleNull            = null;
-        m_Double                = Double.valueOf(Double.MAX_VALUE);
+        m_Double                = Double.MAX_VALUE;
         // arrays of primitives
         m_booleanFalseArray     = new boolean[]{false, false};
         m_booleanTrueArray      = new boolean[]{true, true};
@@ -132,43 +132,43 @@ public class ObjectWithAllTypes
         // arrays of Objects
         m_BooleanFalseArray     = new Boolean[]{Boolean.FALSE, Boolean.FALSE};
         m_BooleanTrueArray      = new Boolean[]{Boolean.TRUE, Boolean.TRUE};
-        m_ByteZeroArray         = new Byte[]{Byte.valueOf((byte) 0),
-                                  Byte.valueOf((byte) 0)};
-        m_ByteTwentyTwoArray    = new Byte[]{Byte.valueOf((byte) 22),
-                                  Byte.valueOf((byte) 22)};
-        m_ByteArray             = new Byte[]{Byte.valueOf(Byte.MAX_VALUE),
-                                  Byte.valueOf(Byte.MAX_VALUE)};
-        m_CharacterArray        = new Character[]{new Character('a'),
-                                  new Character('a')};
-        m_ShortZeroArray        = new Short[]{Short.valueOf((short) 0),
-                                  Short.valueOf((short) 0)};
-        m_ShortTwentyTwoArray   = new Short[]{Short.valueOf((short) 22),
-                                  Short.valueOf((short) 22)};
-        m_ShortArray            = new Short[]{Short.valueOf(Short.MAX_VALUE),
-                                  Short.valueOf(Short.MAX_VALUE)};
-        m_IntegerZeroArray      = new Integer[]{Integer.valueOf(0),
-                                  Integer.valueOf(0)};
-        m_IntegerTwentyTwoArray = new Integer[]{Integer.valueOf(22),};
-        m_IntegerArray          = new Integer[]{Integer.valueOf(Integer.MAX_VALUE),
-                                  Integer.valueOf(Integer.MAX_VALUE)};
-        m_LongZeroArray         = new Long[]{Long.valueOf(0), Long.valueOf(0)};
-        m_LongTwentyTwoArray    = new Long[]{Long.valueOf(22), Long.valueOf(22)};
-        m_LongArray             = new Long[]{Long.valueOf(Long.MAX_VALUE),
-                                  Long.valueOf(Long.MAX_VALUE)};
-        m_FloatZeroArray        = new Float[]{Float.valueOf(0), Float.valueOf(0)};
-        m_FloatTwentyTwoArray   = new Float[]{Float.valueOf(22), Float.valueOf(22)};
-        m_FloatArray            = new Float[]{Float.valueOf(Float.MAX_VALUE),
-                                  Float.valueOf(Float.MAX_VALUE)};
-        m_DoubleZeroArray       = new Double[]{Double.valueOf(0), Double.valueOf(0)};
-        m_DoubleTwentyTwoArray  = new Double[]{Double.valueOf(22),
-                                  Double.valueOf(22)};
-        m_DoubleArray           = new Double[]{Double.valueOf(Double.MAX_VALUE),
-                                  Double.valueOf(Double.MAX_VALUE)};
+        m_ByteZeroArray         = new Byte[]{(byte) 0,
+                                             (byte) 0};
+        m_ByteTwentyTwoArray    = new Byte[]{(byte) 22,
+                                             (byte) 22};
+        m_ByteArray             = new Byte[]{Byte.MAX_VALUE,
+                                             Byte.MAX_VALUE};
+        m_CharacterArray        = new Character[]{'a',
+                                                  'a'};
+        m_ShortZeroArray        = new Short[]{(short) 0,
+                                              (short) 0};
+        m_ShortTwentyTwoArray   = new Short[]{(short) 22,
+                                              (short) 22};
+        m_ShortArray            = new Short[]{Short.MAX_VALUE,
+                                              Short.MAX_VALUE};
+        m_IntegerZeroArray      = new Integer[]{0,
+                                                0};
+        m_IntegerTwentyTwoArray = new Integer[]{22,};
+        m_IntegerArray          = new Integer[]{Integer.MAX_VALUE,
+                                                Integer.MAX_VALUE};
+        m_LongZeroArray         = new Long[]{0L, 0L};
+        m_LongTwentyTwoArray    = new Long[]{22L, 22L};
+        m_LongArray             = new Long[]{Long.MAX_VALUE,
+                                             Long.MAX_VALUE};
+        m_FloatZeroArray        = new Float[]{(float) 0, (float) 0};
+        m_FloatTwentyTwoArray   = new Float[]{22F, 22F};
+        m_FloatArray            = new Float[]{Float.MAX_VALUE,
+                                              Float.MAX_VALUE};
+        m_DoubleZeroArray       = new Double[]{(double) 0, (double) 0};
+        m_DoubleTwentyTwoArray  = new Double[]{22.0,
+                                               22.0};
+        m_DoubleArray           = new Double[]{Double.MAX_VALUE,
+                                               Double.MAX_VALUE};
         // other types
         m_PortablePerson        = new PortablePerson("me", new Date(75, 0, 1));
         m_BigInteger            = BigInteger.ZERO;
         m_Map                   = new HashMap();
-        m_Map.put(Integer.valueOf(1), "1");
+        m_Map.put(1, "1");
         m_dt                    = new Date(41, 11, 7);
         m_dtTime                = new Date(41, 11, 7, 9, 1, 1);
         m_timeStamp             = new Timestamp(41, 11, 7, 9, 1, 1, 1);
@@ -181,24 +181,24 @@ public class ObjectWithAllTypes
         m_listStringUniform.add("second");
         m_listStringUniform.add("");
         m_listInteger           = new ArrayList();
-        m_listInteger.add(Integer.valueOf(1));
-        m_listInteger.add(Integer.valueOf(0));
-        m_listInteger.add(Integer.valueOf(-1));
-        m_listInteger.add(Integer.valueOf(Integer.MAX_VALUE));
+        m_listInteger.add(1);
+        m_listInteger.add(0);
+        m_listInteger.add(-1);
+        m_listInteger.add(Integer.MAX_VALUE);
         m_listIntegerUniform    = new ArrayList();
-        m_listIntegerUniform.add(Integer.valueOf(1));
-        m_listIntegerUniform.add(Integer.valueOf(0));
-        m_listIntegerUniform.add(Integer.valueOf(-1));
-        m_listIntegerUniform.add(Integer.valueOf(Integer.MIN_VALUE));
+        m_listIntegerUniform.add(1);
+        m_listIntegerUniform.add(0);
+        m_listIntegerUniform.add(-1);
+        m_listIntegerUniform.add(Integer.MIN_VALUE);
         m_listDouble            = new ArrayList();
-        m_listDouble.add(Double.valueOf(1.0));
-        m_listDouble.add(Double.valueOf(0));
-        m_listDouble.add(Double.valueOf(-1.0));
+        m_listDouble.add(1.0);
+        m_listDouble.add((double) 0);
+        m_listDouble.add(-1.0);
         m_listDouble.add(Double.NEGATIVE_INFINITY);
         m_listDoubleUniform    = new ArrayList();
-        m_listDoubleUniform.add(Double.valueOf(1.0));
-        m_listDoubleUniform.add(Double.valueOf(0));
-        m_listDoubleUniform.add(Double.valueOf(-1.0));
+        m_listDoubleUniform.add(1.0);
+        m_listDoubleUniform.add((double) 0);
+        m_listDoubleUniform.add(-1.0);
         m_listDoubleUniform.add(Double.NaN);
         }
 

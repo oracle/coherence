@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -164,7 +164,7 @@ public class PofPrimitiveValueTest
         assertEquals(m_reader.readFloat(0), Float.NEGATIVE_INFINITY, 0);
         assertEquals(m_reader.readFloat(0), Float.POSITIVE_INFINITY, 0);
         // REVIEW
-        assertEquals(new Float(m_reader.readFloat(0)), new Float(Float.NaN));
+        assertEquals(Float.valueOf(m_reader.readFloat(0)), Float.valueOf(Float.NaN));
         }
 
     @Test
@@ -192,7 +192,7 @@ public class PofPrimitiveValueTest
         assertEquals(m_reader.readDouble(0), Double.NEGATIVE_INFINITY, 0);
         assertEquals(m_reader.readDouble(0), Double.POSITIVE_INFINITY, 0);
         // REVIEW
-        assertEquals(new Double(m_reader.readDouble(0)), new Double(Double.NaN));
+        assertEquals(Double.valueOf(m_reader.readDouble(0)), Double.valueOf(Double.NaN));
         }
 
     @Test

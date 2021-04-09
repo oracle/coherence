@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,8 +8,7 @@ package com.tangosol.coherence.config.scheme;
 
 import com.tangosol.coherence.config.builder.EvictionPolicyBuilder;
 import com.tangosol.coherence.config.builder.UnitCalculatorBuilder;
-import com.tangosol.coherence.config.scheme.LocalScheme;
-import com.tangosol.coherence.config.unit.Bytes;
+
 import com.tangosol.coherence.config.unit.Units;
 import com.tangosol.coherence.config.unit.Seconds;
 
@@ -84,10 +83,10 @@ public class OptimisticSchemeTest
         assertEquals(cLowUnits, scheme.getLowUnits(new NullParameterResolver()).getUnitCount());
 
         int nUnitFactor = 10;
-        scheme.setUnitFactor(new LiteralExpression<Integer>(new Integer(nUnitFactor)));
+        scheme.setUnitFactor(new LiteralExpression<Integer>(nUnitFactor));
         assertEquals(nUnitFactor, scheme.getUnitFactor(new NullParameterResolver()));
 
-        scheme.setPreLoad(new LiteralExpression<Boolean>(new Boolean(true)));
+        scheme.setPreLoad(new LiteralExpression<Boolean>(Boolean.TRUE));
         assertTrue(scheme.isPreLoad(new NullParameterResolver()));
         }
 

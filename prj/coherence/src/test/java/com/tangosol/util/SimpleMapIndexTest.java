@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -31,30 +31,24 @@ public class SimpleMapIndexTest
     {
     /**
     * Test getValueExtractor.
-    *
-    * @throws Exception  rethrow any exception to be caught by test framework
     */
     @Test
     public void testGetValueExtractor()
-        throws Exception
         {
         ValueExtractor extractor = new IdentityExtractor();
-        SimpleMapIndex index = new SimpleMapIndex(extractor, false, null, null);
+        SimpleMapIndex index     = new SimpleMapIndex(extractor, false, null, null);
 
         assertEquals(extractor, index.getValueExtractor());
         }
 
     /**
     * Test isOrdered.
-    *
-    * @throws Exception  rethrow any exception to be caught by test framework
     */
     @Test
     public void testIsOrdered()
-        throws Exception
         {
         ValueExtractor extractor = new IdentityExtractor();
-        SimpleMapIndex index = new SimpleMapIndex(extractor, false, null, null);
+        SimpleMapIndex index     = new SimpleMapIndex(extractor, false, null, null);
 
         assertFalse(index.isOrdered());
 
@@ -89,51 +83,48 @@ public class SimpleMapIndexTest
 
     /**
     * Test getIndexContents.
-    *
-    * @throws Exception  rethrow any exception to be caught by test framework
     */
     @Test
     public void testGetIndexContents()
-        throws Exception
         {
         Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put("one", new Integer(1));
-        map.put("another_one", new Integer(1));
-        map.put("one_more", new Integer(1));
-        map.put("two", new Integer(2));
-        map.put("three", new Integer(3));
-        map.put("four", new Integer(4));
-        map.put("four_again", new Integer(4));
-        map.put("five", new Integer(5));
-        map.put("five_a", new Integer(5));
-        map.put("five_b", new Integer(5));
-        map.put("five_c", new Integer(5));
-        map.put("five_d", new Integer(5));
+        map.put("one",         1);
+        map.put("another_one", 1);
+        map.put("one_more",    1);
+        map.put("two",         2);
+        map.put("three",       3);
+        map.put("four",        4);
+        map.put("four_again",  4);
+        map.put("five",        5);
+        map.put("five_a",      5);
+        map.put("five_b",      5);
+        map.put("five_c",      5);
+        map.put("five_d",      5);
 
         ValueExtractor extractor = new IdentityExtractor();
         SimpleMapIndex index = createIndex(map, extractor);
         Map indexContents = index.getIndexContents();
 
-        Set setOne = (Set) indexContents.get(new Integer(1));
+        Set setOne = (Set) indexContents.get(1);
         assertEquals(3, setOne.size());
         assertTrue(setOne.contains("one"));
         assertTrue(setOne.contains("another_one"));
         assertTrue(setOne.contains("one_more"));
 
-        Set setTwo = (Set) indexContents.get(new Integer(2));
+        Set setTwo = (Set) indexContents.get(2);
         assertEquals(1, setTwo.size());
         assertTrue(setTwo.contains("two"));
 
-        Set setThree = (Set) indexContents.get(new Integer(3));
+        Set setThree = (Set) indexContents.get(3);
         assertEquals(1, setThree.size());
         assertTrue(setThree.contains("three"));
 
-        Set setFour = (Set) indexContents.get(new Integer(4));
+        Set setFour = (Set) indexContents.get(4);
         assertEquals(2, setFour.size());
         assertTrue(setFour.contains("four"));
         assertTrue(setFour.contains("four_again"));
 
-        Set setFive = (Set) indexContents.get(new Integer(5));
+        Set setFive = (Set) indexContents.get(5);
         assertEquals(5, setFive.size());
         assertTrue(setFive.contains("five"));
         assertTrue(setFive.contains("five_a"));
@@ -152,21 +143,21 @@ public class SimpleMapIndexTest
         throws Exception
         {
         Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put("one", new Integer(1));
-        map.put("two", new Integer(2));
-        map.put("three", new Integer(3));
-        map.put("four", new Integer(4));
-        map.put("five", new Integer(5));
+        map.put("one",   1);
+        map.put("two",   2);
+        map.put("three", 3);
+        map.put("four",  4);
+        map.put("five",  5);
 
 
         ValueExtractor extractor = new IdentityExtractor();
         SimpleMapIndex index = createIndex(map, extractor);
 
-        assertEquals(new Integer(1), index.get("one"));
-        assertEquals(new Integer(2), index.get("two"));
-        assertEquals(new Integer(3), index.get("three"));
-        assertEquals(new Integer(4), index.get("four"));
-        assertEquals(new Integer(5), index.get("five"));
+        assertEquals(1, index.get("one"));
+        assertEquals(2, index.get("two"));
+        assertEquals(3, index.get("three"));
+        assertEquals(4, index.get("four"));
+        assertEquals(5, index.get("five"));
 
         // test fix for COH-9237
         SimpleMapIndex indexNF = new SimpleMapIndex(extractor, false, null, null);
@@ -200,12 +191,12 @@ public class SimpleMapIndexTest
             null);
 
         // define the keys and values for the mock entries
-        Object oKey = "key";
-        Object oValue = 1;
-        Object oExtracted = 11;
-        Object oKey2 = "key2";
-        Object oValue2 = 2;
-        Object oExtracted2 = new Integer(11);
+        Object oKey        = "key";
+        Object oValue      = 1;
+        Object oExtracted  = 11;
+        Object oKey2       = "key2";
+        Object oValue2     = 2;
+        Object oExtracted2 = 11;
 
         // set mock expectations
         when(entry.getKey()).thenReturn(oKey);
@@ -297,9 +288,9 @@ public class SimpleMapIndexTest
         throws Exception
         {
         // create the mocks
-        Map.Entry entry = mock(Map.Entry.class);
-        Map.Entry entry2 = mock(Map.Entry.class);
-        Map.Entry entryNew = mock(Map.Entry.class);
+        Map.Entry      entry     = mock(Map.Entry.class);
+        Map.Entry      entry2    = mock(Map.Entry.class);
+        Map.Entry      entryNew  = mock(Map.Entry.class);
         ValueExtractor extractor = mock(ValueExtractor.class);
 
         // create the SimpleMapIndex to be tested
@@ -307,14 +298,14 @@ public class SimpleMapIndexTest
             null);
 
         // define the keys and values for the mock entries
-        Object oKey = "key";
-        Object oValue = new Integer(0);
-        Object oExtracted = new Integer(10);
-        Object oNewValue = new Integer(1);
-        Object oExtractedNew = new Integer(11);
-        Object oKey2 = "key2";
-        Object oValue2 = new Integer(2);
-        Object oExtracted2 = new Integer(11);
+        Object oKey          = "key";
+        Object oValue        = 0;
+        Object oExtracted    = 10;
+        Object oNewValue     = 1;
+        Object oExtractedNew = 11;
+        Object oKey2         = "key2";
+        Object oValue2       = 2;
+        Object oExtracted2   = 11;
 
         // set mock expectations
         when(entry.getKey()).thenReturn(oKey);
@@ -398,7 +389,7 @@ public class SimpleMapIndexTest
         throws Exception
         {
         // create the mocks
-        Map.Entry entry = mock(Map.Entry.class);
+        Map.Entry      entry     = mock(Map.Entry.class);
         ValueExtractor extractor = mock(ValueExtractor.class);
 
         // create the SimpleMapIndex to be tested
@@ -406,9 +397,9 @@ public class SimpleMapIndexTest
             null);
 
         // define the keys and values for the mock entries
-        Object oKey = "key";
-        Object oValue = new Integer(1);
-        Object oExtracted = new Integer(11);
+        Object oKey       = "key";
+        Object oValue     = 1;
+        Object oExtracted = 11;
 
         // set mock expectations
         when(entry.getKey()).thenReturn(oKey);
@@ -478,7 +469,7 @@ public class SimpleMapIndexTest
         {
         Map.Entry         entry     = mock(Map.Entry.class);
         AbstractExtractor extractor = mock(AbstractExtractor.class);
-        Integer           NValue    = Integer.valueOf(1); // key, value & extracted value
+        Integer           NValue    = 1; // key, value & extracted value
 
         when(extractor.getTarget()).thenReturn(AbstractExtractor.KEY);
 
@@ -527,11 +518,8 @@ public class SimpleMapIndexTest
     *
     * @param fUpdate  if true then do an insert followed by an update; else
     *                 do an insert only
-    *
-    * @throws Exception  rethrow any exception to be caught by test framework
     */
     private static void insertUpdateWithCollection(boolean fUpdate)
-        throws Exception
         {
         // create the mocks
         Map.Entry entry = mock(Map.Entry.class);
@@ -562,14 +550,14 @@ public class SimpleMapIndexTest
         Collection<Integer> collectionInit = new LinkedList<Integer>();
 
         // Values used to populate the Collection values
-        Integer nCollectionItem1 = new Integer(1);
-        Integer nCollectionItem2 = new Integer(2);
-        Integer nCollectionItem3 = new Integer(3);
-        Integer nCollectionItem4 = new Integer(4);
-        Integer nCollectionItem5 = new Integer(5);
+        Integer nCollectionItem1 = 1;
+        Integer nCollectionItem2 = 2;
+        Integer nCollectionItem3 = 3;
+        Integer nCollectionItem4 = 4;
+        Integer nCollectionItem5 = 5;
 
         // use new String to get a different instance than nCollectionItem1
-        Integer sCollectionItem1a = new Integer(1);
+        Integer sCollectionItem1a = 1;
 
         collection.add(nCollectionItem1);
         collection.add(nCollectionItem2);
@@ -673,17 +661,14 @@ public class SimpleMapIndexTest
     *
     * @param fUpdate  if true then do an insert followed by an update; else
     *                 do an insert only
-    *
-    * @throws Exception  rethrow any exception to be caught by test framework
     */
     private static void insertUpdateWithArray(boolean fUpdate)
-        throws Exception
         {
         // create the mocks
-        Map.Entry entry = mock(Map.Entry.class);
-        Map.Entry entry2 = mock(Map.Entry.class);
-        Map.Entry entry3 = mock(Map.Entry.class);
-        Map.Entry entry4 = mock(Map.Entry.class);
+        Map.Entry      entry     = mock(Map.Entry.class);
+        Map.Entry      entry2    = mock(Map.Entry.class);
+        Map.Entry      entry3    = mock(Map.Entry.class);
+        Map.Entry      entry4    = mock(Map.Entry.class);
         ValueExtractor extractor = mock(ValueExtractor.class);
 
         // create the SimpleMapIndex to be tested
@@ -691,29 +676,29 @@ public class SimpleMapIndexTest
             null);
 
         // define the keys for the mock entries
-        Object oKey = "key";
-        Object oValue = "value";
-        Object oKey2 = "key2";
+        Object oKey    = "key";
+        Object oValue  = "value";
+        Object oKey2   = "key2";
         Object oValue2 = "value2";
-        Object oKey3 = "key3";
+        Object oKey3   = "key3";
         Object oValue3 = "value3";
-        Object oKey4 = "key4";
+        Object oKey4   = "key4";
         Object oValue4 = "value4";
 
         // define and populate the Object array values for the mock entries
-        Object[] ao = new Object[3];
-        Object[] ao2 = new Object[3];
-        Object[] ao3 = new Object[5];
-        Object[] ao4 = new Object[3];
+        Object[] ao     = new Object[3];
+        Object[] ao2    = new Object[3];
+        Object[] ao3    = new Object[5];
+        Object[] ao4    = new Object[3];
         Object[] aoInit = new Object[1];
 
         // Values used to populate the Object array values
-        Integer nArrayItem1 = new Integer(1);
-        Integer nArrayItem2 = new Integer(2);
-        Integer nArrayItem3 = new Integer(3);
-        Integer nArrayItem4 = new Integer(4);
-        Integer nArrayItem5 = new Integer(5);
-        Integer nArrayItem1a = new Integer(1);
+        Integer nArrayItem1  = 1;
+        Integer nArrayItem2  = 2;
+        Integer nArrayItem3  = 3;
+        Integer nArrayItem4  = 4;
+        Integer nArrayItem5  = 5;
+        Integer nArrayItem1a = 1;
 
         ao[0] = nArrayItem1;
         ao[1] = nArrayItem2;
@@ -784,7 +769,7 @@ public class SimpleMapIndexTest
             mapIndex.insert(entry4);
             }
 
-        Object[] aoIndexValue = (Object[]) mapIndex.get(oKey);
+        Object[] aoIndexValue  = (Object[]) mapIndex.get(oKey);
         Object[] aoIndexValue2 = (Object[]) mapIndex.get(oKey2);
         Object[] aoIndexValue3 = (Object[]) mapIndex.get(oKey3);
         Object[] aoIndexValue4 = (Object[]) mapIndex.get(oKey4);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -145,8 +145,7 @@ public class GuardianTests
             service = startService("PartitionedCacheDefaultPolicies");
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             }
         finally
             {
@@ -162,8 +161,7 @@ public class GuardianTests
             service = startService("PartitionedCacheDefaultPolicies");
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             }
         finally
             {
@@ -183,8 +181,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(1, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -207,8 +204,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(1, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -231,8 +227,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(2, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -255,8 +250,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(2, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -280,8 +274,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
-            assertNotSame("Slow task was not interrupted after " + cDelay + "ms",
-                Integer.valueOf(0), oResult);
+            assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
             assertNotNull(policy);
             assertEquals(1, policy.m_cRecover);
             assertEquals(0, policy.m_cTerminate);
@@ -553,7 +546,7 @@ public class GuardianTests
                     Eventually.assertThat(invoking(guard).getContext(), is(notNullValue()));
                     Guardian.GuardContext ctx      = guard.getContext();
                     Guardian              guardian = ctx.getGuardian();
-                    guardian.guard(guard, new Long(3000), new Float(0.9F));
+                    guardian.guard(guard, 3000L, 0.9F);
                     }
                 });
 
@@ -569,7 +562,7 @@ public class GuardianTests
                     PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
                     Base.out("Modifying task-timeout to 3 seconds");
-                    serviceReal.getDaemonPool().setTaskTimeout(new Long(3000));
+                    serviceReal.getDaemonPool().setTaskTimeout(3000L);
                     }
                 });
             }
@@ -767,7 +760,7 @@ public class GuardianTests
             oResult = cache.invoke("key", new LoserTask(5000, /*fInterruptible*/ true));
 
             assertEquals("Logging policy should not result in recovery",
-                         Integer.valueOf(0), oResult);
+                         0, oResult);
             }
         finally
             {
@@ -941,7 +934,7 @@ public class GuardianTests
                 }
 
             // return the number of times this thread was interrupted
-            return Integer.valueOf(cInterrupt);
+            return cInterrupt;
             }
 
         // ----- data members ---------------------------------------------
@@ -974,7 +967,7 @@ public class GuardianTests
             int         mNodeId   = cluster.getLocalMember().getId();
             ObjectName  oBeanName = new ObjectName("Coherence:type=Node,nodeId=" + mNodeId);
 
-            Eventually.assertThat(invoking(this).getMBeanAttribute(server, oBeanName, "Guard" + sType + "Count"), is(Integer.valueOf(cTrueNumber)));
+            Eventually.assertThat(invoking(this).getMBeanAttribute(server, oBeanName, "Guard" + sType + "Count"), is(cTrueNumber));
             }
         catch (Exception e)
             {

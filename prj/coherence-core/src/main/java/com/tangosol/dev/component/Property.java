@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -763,30 +763,30 @@ public class Property
                 switch (dt.getTypeString().charAt(0))
                     {
                     case 'B':
-                        oValue = new Byte((byte) ((IntConstant) constant).getValue());
+                        oValue = (byte) ((IntConstant) constant).getValue();
                         break;
                     case 'C':
-                        oValue = new Character((char) ((IntConstant) constant).getValue());
+                        oValue = (char) ((IntConstant) constant).getValue();
                         break;
                     case 'S':
-                        oValue = new Short((short) ((IntConstant) constant).getValue());
+                        oValue = (short) ((IntConstant) constant).getValue();
                         break;
                     case 'I':
-                        oValue = Integer.valueOf(((IntConstant) constant).getValue());
+                        oValue = ((IntConstant) constant).getValue();
                         break;
                     }
                 }
             else if (constant instanceof LongConstant)
                 {
-                oValue = Long.valueOf(((LongConstant) constant).getValue());
+                oValue = ((LongConstant) constant).getValue();
                 }
             else if (constant instanceof FloatConstant)
                 {
-                oValue = new Float(((FloatConstant) constant).getValue());
+                oValue = ((FloatConstant) constant).getValue();
                 }
             else if (constant instanceof DoubleConstant)
                 {
-                oValue = new Double(((DoubleConstant) constant).getValue());
+                oValue = ((DoubleConstant) constant).getValue();
                 }
             else if (constant instanceof StringConstant)
                 {
@@ -1230,7 +1230,7 @@ public class Property
                         }
                     else if (sType.equals("byte"))
                         {
-                        oValue = new Byte((byte) xmlValue.getInt());
+                        oValue = (byte) xmlValue.getInt();
                         }
                     else if (sType.equals("binary"))
                         {
@@ -1241,7 +1241,7 @@ public class Property
                 case 'c':
                     if (sType.equals("char"))
                         {
-                        oValue = new Character((char) xmlValue.getInt());
+                        oValue = (char) xmlValue.getInt();
                         }
                     else if (sType.equals("complex"))
                         {
@@ -1252,35 +1252,35 @@ public class Property
                 case 'd':
                     if (sType.equals("double"))
                         {
-                        oValue = new Double(xmlValue.getDouble());
+                        oValue = xmlValue.getDouble();
                         }
                     break;
 
                 case 'f':
                     if (sType.equals("float"))
                         {
-                        oValue = new Float((float) xmlValue.getDouble());
+                        oValue = (float) xmlValue.getDouble();
                         }
                     break;
 
                 case 'i':
                     if (sType.equals("int"))
                         {
-                        oValue = Integer.valueOf(xmlValue.getInt());
+                        oValue = xmlValue.getInt();
                         }
                     break;
 
                 case 'l':
                     if (sType.equals("long"))
                         {
-                        oValue = Long.valueOf(xmlValue.getLong());
+                        oValue = xmlValue.getLong();
                         }
                     break;
 
                 case 's':
                     if (sType.equals("short"))
                         {
-                        oValue = new Short((short) xmlValue.getInt());
+                        oValue = (short) xmlValue.getInt();
                         }
                     else if (sType.equals("string"))
                         {
@@ -4322,8 +4322,8 @@ public class Property
             return;
             }
 
-        Integer prev  = Integer.valueOf(nPrev);
-        Integer value = Integer.valueOf(nAccess);
+        Integer prev  = nPrev;
+        Integer value = nAccess;
 
         if (fVetoable)
             {
@@ -4670,8 +4670,8 @@ public class Property
             return;
             }
 
-        Integer prev  = Integer.valueOf(nPrevVis);
-        Integer value = Integer.valueOf(nVis);
+        Integer prev  = nPrevVis;
+        Integer value = nVis;
 
         if (fVetoable)
             {
@@ -5017,8 +5017,8 @@ public class Property
             return;
             }
 
-        Integer prev  = Integer.valueOf(nPrev);
-        Integer value = Integer.valueOf(nDir);
+        Integer prev  = nPrev;
+        Integer value = nDir;
 
         if (fVetoable)
             {
@@ -6162,8 +6162,8 @@ public class Property
             return;
             }
 
-        Integer prev  = Integer.valueOf(nPrev);
-        Integer value = Integer.valueOf(nIndexed);
+        Integer prev  = nPrev;
+        Integer value = nIndexed;
 
         if (fVetoable)
             {
@@ -7771,14 +7771,14 @@ public class Property
     */
     protected static final Object[] DEFAULT_VALUES =
         {
-        new Boolean(false),
-        new Byte((byte) 0x00),
-        new Character('\0'),
-        new Short((short) 0),
-        Integer.valueOf(0),
-        Long.valueOf(0L),
-        new Float(0.0F),
-        new Double(0.0D),
+        Boolean.FALSE,
+        (byte) 0x00,
+        '\0',
+        (short) 0,
+        0,
+        0L,
+        0.0F,
+        0.0D,
         (byte[]) null,
         (String) null,
         (Component) null,

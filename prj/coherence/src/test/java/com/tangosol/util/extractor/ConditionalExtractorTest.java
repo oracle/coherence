@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -33,7 +33,7 @@ public class ConditionalExtractorTest
     public void testCreateIndex()
         {
         ValueExtractor extractor = new IdentityExtractor();
-        Filter filter            = new GreaterFilter(extractor, new Integer(5));
+        Filter filter            = new GreaterFilter(extractor, 5);
         Map    map               = new HashMap();
 
         ConditionalExtractor condExtractor = new ConditionalExtractor(filter, extractor, true);
@@ -57,7 +57,7 @@ public class ConditionalExtractorTest
     public void testDestroyIndex()
         {
         ValueExtractor extractor = new IdentityExtractor();
-        Filter filter            = new GreaterFilter(extractor, new Integer(5));
+        Filter filter            = new GreaterFilter(extractor, 5);
         Map    map               = new HashMap();
 
         ConditionalExtractor condExtractor = new ConditionalExtractor(filter, extractor, true);
@@ -83,7 +83,7 @@ public class ConditionalExtractorTest
     public void testExtract()
         {
         ValueExtractor extractor = new ReflectionExtractor("getId");
-        Filter filter            = new GreaterFilter(extractor, new Integer(5));
+        Filter filter            = new GreaterFilter(extractor, 5);
 
         ConditionalExtractor condExtractor = new ConditionalExtractor(filter, extractor, true);
         

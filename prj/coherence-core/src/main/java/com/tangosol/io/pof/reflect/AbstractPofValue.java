@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -797,28 +797,28 @@ public abstract class AbstractPofValue
                     // because the serialized form has lost knowledge of
                     // the original type.
                     case T_INT16:
-                        return new Short(readShort(0));
+                        return readShort(0);
 
                     case T_INT32:
-                        return Integer.valueOf(readInt(0));
+                        return readInt(0);
 
                     case T_INT64:
-                        return Long.valueOf(readLong(0));
+                        return readLong(0);
 
                     case T_FLOAT32:
-                        return new Float(readFloat(0));
+                        return readFloat(0);
 
                     case T_FLOAT64:
-                        return new Double(readDouble(0));
+                        return readDouble(0);
 
                     case T_BOOLEAN:
                         return readBoolean(0) ? Boolean.TRUE : Boolean.FALSE;
 
                     case T_OCTET:
-                        return new Byte(readByte(0));
+                        return readByte(0);
 
                     case T_CHAR:
-                        return new Character(readChar(0));
+                        return readChar(0);
 
                     case T_DATE:
                     case T_DATETIME:

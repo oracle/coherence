@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -118,7 +118,7 @@ public class JsonSerializationTest {
 
   @Test
   public void testSerializeBoxedFloat() {
-    assertEquals("2.0", genson.serialize(new Float(2)));
+    assertEquals("2.0", genson.serialize(2F));
   }
 
   @Test
@@ -175,8 +175,8 @@ public class JsonSerializationTest {
   }
 
   private Primitives createPrimitives() {
-    return new Primitives(1, new Integer(10), 1.00001, new Double(0.00001), "TEXT ...  HEY!",
-      true, new Boolean(false));
+    return new Primitives(1, 10, 1.00001, 0.00001, "TEXT ...  HEY!",
+                          true, Boolean.FALSE);
   }
 
   @SuppressWarnings("unused")

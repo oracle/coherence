@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -24,12 +24,12 @@ public abstract class DomainClassPolicy
         {
         public Object createPk(int nId)
             {
-            return new Integer(nId);
+            return nId;
             }
 
         public Object getPkFromEntity(Object obj)
             {
-            return new Integer(((Person) obj).getId());
+            return ((Person) obj).getId();
             }
 
         public Object newEntity(int nId, String sName)

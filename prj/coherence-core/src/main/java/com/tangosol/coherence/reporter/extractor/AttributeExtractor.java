@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -117,11 +117,11 @@ public class AttributeExtractor
                         if (oReturn instanceof Long ||
                             oReturn instanceof Integer)
                             {
-                            return Long.valueOf(0);
+                            return 0L;
                             }
                         else
                             {
-                            return new Double(0.0);
+                            return 0.0;
                             }
                         }
                     }
@@ -131,8 +131,8 @@ public class AttributeExtractor
             }
         catch (InstanceNotFoundException e)
             {
-            // Exceptions will occure when nodes are removed from the grid after
-            // query and before the data is extracted.   The Default 'n/a'
+            // Exceptions will occur when nodes are removed from the grid after
+            // query and before the data is extracted. The Default 'n/a'
             // will be returned when this occurs.
             // Return Default
             }

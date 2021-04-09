@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1018,9 +1018,9 @@ public class ExternalizableHelperTest extends ExternalizableHelper
     * Some test data for decorating.
     */
     public static final Binary[] DIGITS      = new Binary[] {
-            toBinary(Boolean.TRUE), toBinary("one"), toBinary(new Integer(2)),
-            toBinary(new Double(3)), toBinary(new Long(4)),
-            toBinary(new Float(5)), toBinary(new java.math.BigInteger("6")),
-            toBinary(new java.math.BigDecimal("7")),
-            toBinary(new Short((short) 8)), toBinary("3^2")};
+        toBinary(Boolean.TRUE), toBinary("one"), toBinary(2),
+        toBinary(3.0), toBinary(4L),
+        toBinary(5F), toBinary(new java.math.BigInteger("6")),
+        toBinary(new java.math.BigDecimal("7")),
+        toBinary((short) 8), toBinary("3^2")};
     }

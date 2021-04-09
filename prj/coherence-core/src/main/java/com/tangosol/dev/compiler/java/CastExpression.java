@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -390,19 +390,19 @@ public class CastExpression extends UnaryExpression
         switch (getType().getTypeString().charAt(0))
             {
             case 'B':
-                return new Byte(number.byteValue());
+                return number.byteValue();
             case 'C':
-                return Integer.valueOf((char) number.intValue());
+                return (int) (char) number.intValue();
             case 'S':
-                return new Short(number.shortValue());
+                return number.shortValue();
             case 'I':
-                return Integer.valueOf(number.intValue());
+                return number.intValue();
             case 'J':
-                return Long.valueOf(number.longValue());
+                return number.longValue();
             case 'F':
-                return new Float(number.floatValue());
+                return number.floatValue();
             case 'D':
-                return new Double(number.doubleValue());
+                return number.doubleValue();
             default:
                 throw new IllegalStateException();
             }

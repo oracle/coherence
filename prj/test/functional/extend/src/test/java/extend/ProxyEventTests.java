@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -123,8 +123,7 @@ public class ProxyEventTests
 
         TestListener filterListener = new TestListener(SOME_EVENTS, "FILTER");
 
-        Filter filter = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(SOME_EVENTS));
+        Filter filter = new LessFilter(IdentityExtractor.INSTANCE, SOME_EVENTS);
         MapEventFilter eventFilter = new MapEventFilter(MapEventFilter.E_ALL, filter);
 
         cache.addMapListener(filterListener, eventFilter, false);
@@ -181,12 +180,10 @@ public class ProxyEventTests
         TestListener filterListener  = new TestListener(SOME_EVENTS, "FILTER");
         TestListener filterListener2 = new TestListener(1,           "FILTER2");
 
-        Filter filter = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(SOME_EVENTS));
+        Filter filter = new LessFilter(IdentityExtractor.INSTANCE, SOME_EVENTS);
         MapEventFilter eventFilter = new MapEventFilter(MapEventFilter.E_ALL, filter);
 
-        Filter filter2 = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(1));
+        Filter filter2 = new LessFilter(IdentityExtractor.INSTANCE, 1);
         MapEventFilter eventFilter2 = new MapEventFilter(MapEventFilter.E_ALL, filter2);
 
         cache.addMapListener(filterListener,  eventFilter, false);
@@ -219,8 +216,7 @@ public class ProxyEventTests
         TestListener keyListener    = new TestListener(1,           "KEY");
         TestListener filterListener = new TestListener(SOME_EVENTS, "FILTER");
 
-        Filter filter = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(SOME_EVENTS));
+        Filter filter = new LessFilter(IdentityExtractor.INSTANCE, SOME_EVENTS);
         MapEventFilter eventFilter = new MapEventFilter(MapEventFilter.E_ALL, filter);
 
         cache.addMapListener(keyListener,    "TestKey1",  false);
@@ -254,10 +250,9 @@ public class ProxyEventTests
         TestListener filterListener  = new TestListener(SOME_EVENTS, "FILTER");
         TestListener filterListener2 = new TestListener(1,           "FILTER2");
 
-        Filter filter = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(SOME_EVENTS));
-        Filter filter2 = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(1));
+        Filter filter  = new LessFilter(IdentityExtractor.INSTANCE, SOME_EVENTS);
+        Filter filter2 = new LessFilter(IdentityExtractor.INSTANCE, 1);
+
         MapEventFilter eventFilter  = new MapEventFilter(MapEventFilter.E_ALL, filter);
         MapEventFilter eventFilter2 = new MapEventFilter(MapEventFilter.E_ALL, filter2);
 
@@ -298,8 +293,8 @@ public class ProxyEventTests
         TestListener keyListener2   = new TestListener(1,           "KEY2");
         TestListener filterListener = new TestListener(SOME_EVENTS, "FILTER");
 
-        Filter filter = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(SOME_EVENTS));
+        Filter filter = new LessFilter(IdentityExtractor.INSTANCE, SOME_EVENTS);
+
         MapEventFilter eventFilter = new MapEventFilter(MapEventFilter.E_ALL, filter);
 
         cache.addMapListener(keyListener,    "TestKey1",  false);
@@ -340,12 +335,12 @@ public class ProxyEventTests
         TestListener filterListener  = new TestListener(SOME_EVENTS, "FILTER");
         TestListener filterListener2 = new TestListener(1,           "FILTER2");
 
-        Filter filter = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(SOME_EVENTS));
+        Filter filter = new LessFilter(IdentityExtractor.INSTANCE, SOME_EVENTS);
+
         MapEventFilter eventFilter = new MapEventFilter(MapEventFilter.E_ALL, filter);
 
-        Filter filter2 = new LessFilter(IdentityExtractor.INSTANCE,
-                new Integer(1));
+        Filter filter2 = new LessFilter(IdentityExtractor.INSTANCE, 1);
+
         MapEventFilter eventFilter2 = new MapEventFilter(MapEventFilter.E_ALL, filter2);
 
         cache.addMapListener(keyListener,     "TestKey1",   false);
@@ -450,7 +445,7 @@ public class ProxyEventTests
         WaitListener waitListener = new WaitListener("WAIT");
         cache.addMapListener(waitListener, "WaitKey", false);
         waitListener.startWait();
-        cache.put("WaitKey", new Integer(SOME_EVENTS+1));
+        cache.put("WaitKey", SOME_EVENTS + 1);
         Eventually.assertThat(invoking(waitListener).getEventReceived(), is(true));
         cache.removeMapListener(waitListener);
 
@@ -460,7 +455,7 @@ public class ProxyEventTests
         waitListener.reset();
         cache.addMapListener(waitListener, "WaitKey", false);
         waitListener.startWait();
-        cache.put("WaitKey", new Integer(SOME_EVENTS+1));
+        cache.put("WaitKey", SOME_EVENTS + 1);
         Eventually.assertThat(invoking(waitListener).getEventReceived(), is(true));
         cache.removeMapListener(waitListener);
         }
@@ -476,13 +471,13 @@ public class ProxyEventTests
         // insert events
         for (int i = 0; i < SOME_DATA; i++)
             {
-            cache.put("TestKey" + i, new Integer(i));
+            cache.put("TestKey" + i, i);
             }
 
         // update events
         for (int i = 0; i < SOME_DATA; i++)
             {
-            cache.put("TestKey" + i, new Integer(i));
+            cache.put("TestKey" + i, i);
             }
 
         // delete events

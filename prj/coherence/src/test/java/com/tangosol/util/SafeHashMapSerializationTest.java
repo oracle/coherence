@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -30,13 +30,13 @@ public class SafeHashMapSerializationTest
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             map.put(wrapper, wrapper);
             }
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             assertTrue(equals(wrapper, map.get(wrapper)));
             }
         }
@@ -48,13 +48,13 @@ public class SafeHashMapSerializationTest
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             map.put(wrapper, null);
             }
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             assertTrue(map.containsKey(wrapper));
             assertTrue(map.get(wrapper) == null);
             }
@@ -67,7 +67,7 @@ public class SafeHashMapSerializationTest
 
         for (int i = 0; i < MEDIUM_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             map.put(wrapper, wrapper);
             }
 
@@ -76,13 +76,13 @@ public class SafeHashMapSerializationTest
 
         for (int i = MEDIUM_NUMBER; i < 2 * MEDIUM_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             newMap.put(wrapper, wrapper);
             }
 
         for (int i = 0; i < 2 * MEDIUM_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             assertTrue(equals(wrapper, newMap.get(wrapper)));
             }
         }
@@ -94,7 +94,7 @@ public class SafeHashMapSerializationTest
 
         for (int i = 0; i < MEDIUM_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             map.put(wrapper, null);
             }
 
@@ -103,13 +103,13 @@ public class SafeHashMapSerializationTest
 
         for (int i = MEDIUM_NUMBER; i < 2 * MEDIUM_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             newMap.put(wrapper, null);
             }
 
         for (int i = 0; i < 2 * MEDIUM_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             assertTrue(newMap.containsKey(wrapper));
             assertTrue(newMap.get(wrapper) == null);
             }

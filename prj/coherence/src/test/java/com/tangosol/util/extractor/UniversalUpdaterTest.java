@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -162,7 +162,7 @@ public class UniversalUpdaterTest
         for (int i = 0; i < 10; i++)
             {
             TestJavaBean bean = new TestJavaBean();
-            bean.setFoo(new Integer(i).toString());
+            bean.setFoo(Integer.toString(i));
             bean.setFlag(false);
             beans.add(bean);
             }
@@ -186,7 +186,7 @@ public class UniversalUpdaterTest
         for (int i = 0; i < 10; i++)
             {
             TestJavaBean bean = new TestJavaBean();
-            bean.setFoo(new Integer(i).toString());
+            bean.setFoo(Integer.toString(i));
             bean.setFlag(false);
             beans.add(bean);
             }

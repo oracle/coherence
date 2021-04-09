@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -483,7 +483,7 @@ public abstract class ConstantPoolEntry
             {
             if (referencedObject == null)
                 {
-                referencedObject = Integer.valueOf(value);
+                referencedObject = value;
                 }
             }
         }
@@ -511,7 +511,7 @@ public abstract class ConstantPoolEntry
             {
             if (referencedObject == null)
                 {
-                referencedObject = new Float(value);
+                referencedObject = value;
                 }
             }
         }
@@ -539,7 +539,7 @@ public abstract class ConstantPoolEntry
             {
             if (referencedObject == null)
                 {
-                referencedObject = Long.valueOf(value);
+                referencedObject = value;
                 }
             }
         }
@@ -567,7 +567,7 @@ public abstract class ConstantPoolEntry
             {
             if (referencedObject == null)
                 {
-                referencedObject = new Double(value);
+                referencedObject = value;
                 }
             }
         }

@@ -112,7 +112,7 @@ public class SimpleQueryHelperTest
         {
         Filter f = QueryHelper.createFilter("value() = 42");
 
-        assertTrue(f.evaluate(new Integer(42)));
+        assertTrue(f.evaluate(42));
         }
 
     @Test
@@ -120,10 +120,10 @@ public class SimpleQueryHelperTest
         {
         Filter f = QueryHelper.createFilter("value() > 42 and value() <= 150");
 
-        assertTrue(f.evaluate(new Integer(43)));
-        assertTrue(f.evaluate(new Integer(100)));
-        assertTrue(f.evaluate(new Integer(150)));
-        assertFalse(f.evaluate(new Integer(42)));
+        assertTrue(f.evaluate(43));
+        assertTrue(f.evaluate(100));
+        assertTrue(f.evaluate(150));
+        assertFalse(f.evaluate(42));
         }
 
     @Test
@@ -131,10 +131,10 @@ public class SimpleQueryHelperTest
         {
         Filter f = QueryHelper.createFilter("value() between 42 and 150");
 
-        assertTrue(f.evaluate(new Integer(43)));
-        assertTrue(f.evaluate(new Integer(100)));
-        assertTrue(f.evaluate(new Integer(150)));
-        assertTrue(f.evaluate(new Integer(42)));
+        assertTrue(f.evaluate(43));
+        assertTrue(f.evaluate(100));
+        assertTrue(f.evaluate(150));
+        assertTrue(f.evaluate(42));
         }
 
     @Test
@@ -142,10 +142,10 @@ public class SimpleQueryHelperTest
         {
         Filter f = QueryHelper.createFilter("value() in (10,20,30)");
 
-        assertTrue(f.evaluate(new Integer(10)));
-        assertTrue(f.evaluate(new Integer(20)));
-        assertTrue(f.evaluate(new Integer(30)));
-        assertFalse(f.evaluate(new Integer(42)));
+        assertTrue(f.evaluate(10));
+        assertTrue(f.evaluate(20));
+        assertTrue(f.evaluate(30));
+        assertFalse(f.evaluate(42));
         }
 
     @Test
@@ -153,8 +153,8 @@ public class SimpleQueryHelperTest
         {
         Filter f = QueryHelper.createFilter("17 > value()");
 
-        assertTrue(f.evaluate(new Integer(16)));
-        assertTrue(false == f.evaluate(new Integer(17)));
+        assertTrue(f.evaluate(16));
+        assertTrue(false == f.evaluate(17));
         }
 
     @Test
@@ -175,9 +175,9 @@ public class SimpleQueryHelperTest
     @Test
     public void testCreateFilter7()
         {
-        Filter f = QueryHelper.createFilter("value() = ?3 ", new Object[] {"hello", "goodby", new Integer(42)});
+        Filter f = QueryHelper.createFilter("value() = ?3 ", new Object[] {"hello", "goodby", 42});
 
-        assertTrue(f.evaluate(new Integer(42)));
+        assertTrue(f.evaluate(42));
         }
 
     @Test
@@ -185,8 +185,8 @@ public class SimpleQueryHelperTest
         {
         Filter f = QueryHelper.createFilter("toString() like '42'");
 
-        assertTrue(f.evaluate(new Integer(42)));
-        assertFalse(f.evaluate(new Integer(43)));
+        assertTrue(f.evaluate(42));
+        assertFalse(f.evaluate(43));
         }
 
     @Test
@@ -228,7 +228,7 @@ public class SimpleQueryHelperTest
         {
         HashMap env = new HashMap();
 
-        env.put("val", new Integer(765));
+        env.put("val", 765);
         env.put("big", "brother");
 
         Filter f = QueryHelper.createFilter("value() like :big ", env);
@@ -249,9 +249,9 @@ public class SimpleQueryHelperTest
         {
         ArrayList l = new ArrayList();
 
-        l.add(new Integer(10));
-        l.add(new Integer(20));
-        l.add(new Integer(30));
+        l.add(10);
+        l.add(20);
+        l.add(30);
 
         Filter f = QueryHelper.createFilter("value() contains 20");
 
@@ -263,9 +263,9 @@ public class SimpleQueryHelperTest
         {
         ArrayList l = new ArrayList();
 
-        l.add(new Integer(10));
-        l.add(new Integer(20));
-        l.add(new Integer(30));
+        l.add(10);
+        l.add(20);
+        l.add(30);
 
         Filter f = QueryHelper.createFilter("value().toArray() contains 20");
 
@@ -277,9 +277,9 @@ public class SimpleQueryHelperTest
         {
         ArrayList l = new ArrayList();
 
-        l.add(new Integer(10));
-        l.add(new Integer(20));
-        l.add(new Integer(30));
+        l.add(10);
+        l.add(20);
+        l.add(30);
 
         Filter f = QueryHelper.createFilter("value() contains any (50, 100, 20)");
 
@@ -291,9 +291,9 @@ public class SimpleQueryHelperTest
         {
         ArrayList l = new ArrayList();
 
-        l.add(new Integer(10));
-        l.add(new Integer(20));
-        l.add(new Integer(30));
+        l.add(10);
+        l.add(20);
+        l.add(30);
 
         Filter f = QueryHelper.createFilter("value() contains all (10, 20, 30)");
 
@@ -305,9 +305,9 @@ public class SimpleQueryHelperTest
         {
         ArrayList l = new ArrayList();
 
-        l.add(new Integer(10));
-        l.add(new Integer(20));
-        l.add(new Integer(30));
+        l.add(10);
+        l.add(20);
+        l.add(30);
 
         Filter f = QueryHelper.createFilter("value() contains all (10, 20, 30, 40)");
 
@@ -334,7 +334,7 @@ public class SimpleQueryHelperTest
         {
         Filter f = QueryHelper.createFilter("value() <> 42");
 
-        assertTrue(f.evaluate(new Integer(43)));
+        assertTrue(f.evaluate(43));
         }
 
     @Test
@@ -343,19 +343,19 @@ public class SimpleQueryHelperTest
         Filter f;
 
         f = QueryHelper.createFilter("value() = 42.0");
-        assertTrue(f.evaluate(new Double(42.0)));
+        assertTrue(f.evaluate(42.0));
         f = QueryHelper.createFilter("value() = 42.0d");
-        assertTrue(f.evaluate(new Double(42.0)));
+        assertTrue(f.evaluate(42.0));
         f = QueryHelper.createFilter("value() = 42.0f");
-        assertTrue(f.evaluate(new Float(42.0f)));
+        assertTrue(f.evaluate(42.0f));
         f = QueryHelper.createFilter("value() = 6.12E10");
-        assertTrue(f.evaluate(new Double(6.12E10)));
+        assertTrue(f.evaluate(6.12E10));
         f = QueryHelper.createFilter("value() = 6.12E-10");
-        assertTrue(f.evaluate(new Double(6.12E-10)));
+        assertTrue(f.evaluate(6.12E-10));
         f = QueryHelper.createFilter("value() = 6.12E-10D");
-        assertTrue(f.evaluate(new Double(6.12E-10)));
+        assertTrue(f.evaluate(6.12E-10));
         f = QueryHelper.createFilter("value() = 6.12e-10f");
-        assertTrue(f.evaluate(new Float(6.12e-10f)));
+        assertTrue(f.evaluate(6.12e-10f));
         }
 
     @Test(expected = FilterBuildingException.class)
@@ -451,9 +451,9 @@ public class SimpleQueryHelperTest
         m_oResults = QueryHelper.executeStatement(m_sQuery, m_executionContext);
         assertTrue((m_oResults instanceof Collection) || (m_oResults instanceof Map));
         assertEquals(((double) m_nAgeTotal / (double) m_nAgeMax),
-                     (((Number) (((Set) m_oResults).toArray())[0]).doubleValue()), Double.valueOf(0.5));
+                     (((Number) (((Set) m_oResults).toArray())[0]).doubleValue()), 0.5);
         assertEquals(((double) m_nSalaryTotal / (double) m_nAgeMax),
-                     (((Number) (((Set) m_oResults).toArray())[1]).doubleValue()), Double.valueOf(0.5));
+                     (((Number) (((Set) m_oResults).toArray())[1]).doubleValue()), 0.5);
         }
 
     @Test
@@ -462,10 +462,10 @@ public class SimpleQueryHelperTest
         m_sQuery   = "select avg(age),avg(salary) from test where salary > 100000";
         m_oResults = QueryHelper.executeStatement(m_sQuery, m_executionContext);
         assertTrue((m_oResults instanceof Collection) || (m_oResults instanceof Map));
-        assertEquals((double) m_nAgeMax, (((Number) (((Set) m_oResults).toArray())[0]).doubleValue()),
-                     Double.valueOf(0.5));
+        assertEquals((double) m_nAgeMax,
+                     (((Number) (((Set) m_oResults).toArray())[0]).doubleValue()), 0.5);
         assertEquals((double) ((m_nAgeMax * 1000) + m_nAgeMax),
-                     (((Number) (((Set) m_oResults).toArray())[1]).doubleValue()), Double.valueOf(0.5));
+                     (((Number) (((Set) m_oResults).toArray())[1]).doubleValue()), 0.5);
         }
 
     @Test

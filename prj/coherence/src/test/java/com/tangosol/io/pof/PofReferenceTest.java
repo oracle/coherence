@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -440,7 +440,7 @@ public class PofReferenceTest
         Map  map2  = new HashMap();
         Map  map3  = map2;
 
-        list3.add(new Integer(0));
+        list3.add(0);
         map3.put("key1", pc1);
         map3.put("key2", pc2);
         pc1.setId("child1");

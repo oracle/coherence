@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -141,7 +141,7 @@ public class NumberMultiplier<K, V, N extends Number>
                 {
                 iNew *= numFactor.intValue();
                 }
-            numNew = Integer.valueOf(iNew);
+            numNew = iNew;
             }
         else if (numOld instanceof Long)
             {
@@ -154,15 +154,15 @@ public class NumberMultiplier<K, V, N extends Number>
                 {
                 lNew *= numFactor.longValue();
                 }
-            numNew = Long.valueOf(lNew);
+            numNew = lNew;
             }
         else if (numOld instanceof Double)
             {
-            numNew = new Double(numOld.doubleValue() * numFactor.doubleValue());
+            numNew = numOld.doubleValue() * numFactor.doubleValue();
             }
         else if (numOld instanceof Float)
             {
-            numNew = new Float(numOld.floatValue() * numFactor.floatValue());
+            numNew = numOld.floatValue() * numFactor.floatValue();
             }
         else if (numOld instanceof BigInteger)
             {
@@ -183,7 +183,7 @@ public class NumberMultiplier<K, V, N extends Number>
                 {
                 iNew *= numFactor.shortValue();
                 }
-            numNew = new Short(iNew);
+            numNew = iNew;
             }
         else if (numOld instanceof Byte)
             {
@@ -196,7 +196,7 @@ public class NumberMultiplier<K, V, N extends Number>
                 {
                 bNew *= numFactor.byteValue();
                 }
-            numNew = new Byte(bNew);
+            numNew = bNew;
             }
         else
             {

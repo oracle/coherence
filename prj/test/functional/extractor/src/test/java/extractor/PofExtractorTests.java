@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -87,8 +87,7 @@ public class PofExtractorTests
     public void filterIntegrationTest()
         {
         NamedCache cache        = getNamedCache();
-        Integer    iCurrentYear = Integer.valueOf(Calendar.getInstance().
-                                      get(Calendar.YEAR));
+        Integer    iCurrentYear = Calendar.getInstance().get(Calendar.YEAR);
         for (int i = 0; i < 100; i++)
             {
             Person customers = new Person();
@@ -96,10 +95,10 @@ public class PofExtractorTests
             customers.setLastName("LastName"+i);
             customers.setId(""+i);
             customers.setBirthYear(iCurrentYear.intValue() - i);
-            cache.put(Integer.valueOf(i), customers);
+            cache.put(i, customers);
             }
 
-        Integer  nBirthYear   = Integer.valueOf(iCurrentYear.intValue() - 30);
+        Integer  nBirthYear   = iCurrentYear.intValue() - 30;
 
         ValueExtractor itTestExt = new PofExtractor(null, Person.BIRTH_YEAR);
         Filter         filter2   = new LessEqualsFilter(itTestExt, nBirthYear);
@@ -161,7 +160,7 @@ public class PofExtractorTests
         cache.put("1", new Person("1", "Bob", "Smith", 0, null, new String[]{}));
 
         cacheCQC = new ContinuousQueryCache(cache, new EqualsFilter(
-                new PofExtractor(int.class, Person.BIRTH_YEAR), new Integer(0)));
+            new PofExtractor(int.class, Person.BIRTH_YEAR), 0));
 
         org.junit.Assert.assertEquals(1, cacheCQC.size());
 

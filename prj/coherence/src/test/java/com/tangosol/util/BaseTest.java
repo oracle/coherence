@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -902,7 +902,7 @@ public class BaseTest
         assertTrue(equalsDeep(aOld, randomize(a)));
 
         a = new Integer[1];
-        a[0] = new Integer(99);
+        a[0] = 99;
         aOld = a.clone();
         assertTrue(equalsDeep(aOld, randomize(a)));
 
@@ -911,7 +911,7 @@ public class BaseTest
             a = new Integer[64];
             for (int of = 0, c = a.length; of < c; ++of)
                 {
-                a[of] = new Integer(of);
+                a[of] = of;
                 }
             aOld = a.clone();
             assertTrue(a == randomize(a));

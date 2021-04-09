@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -150,28 +150,28 @@ public class PofSparseArray
                 switch (nType)
                     {
                     case PofConstants.T_INT16:
-                        return Short.valueOf((short) 0);
+                        return (short) 0;
 
                     case PofConstants.T_INT32:
-                        return Integer.valueOf(0);
+                        return 0;
 
                     case PofConstants.T_INT64:
-                        return Long.valueOf(0);
+                        return 0L;
 
                     case PofConstants.T_FLOAT32:
-                        return Float.valueOf(0);
+                        return (float) 0;
 
                     case PofConstants.T_FLOAT64:
-                        return Double.valueOf(0);
+                        return (double) 0;
 
                     case PofConstants.T_BOOLEAN:
                         return Boolean.FALSE;
 
                     case PofConstants.T_OCTET:
-                        return Byte.valueOf((byte) 0);
+                        return (byte) 0;
 
                     case PofConstants.T_CHAR:
-                        return new Character((char) 0);
+                        return (char) 0;
 
                     default:
                         return null;

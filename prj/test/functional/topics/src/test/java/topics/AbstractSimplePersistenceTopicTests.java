@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -282,7 +282,7 @@ public abstract class AbstractSimplePersistenceTopicTests
                      i < 50;
                      i++)
                     {
-                    publisher.send(new Integer(i).toString());
+                    publisher.send(Integer.toString(i));
                     }
 
                 // needed before taking a snapshot.
@@ -301,7 +301,7 @@ public abstract class AbstractSimplePersistenceTopicTests
                      i < 100;
                      i++)
                     {
-                    publisher.send(new Integer(i).toString());
+                    publisher.send(Integer.toString(i));
                     }
 
                 // needed before creating a snapshot.

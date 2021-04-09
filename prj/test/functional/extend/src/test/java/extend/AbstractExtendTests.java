@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1412,8 +1412,8 @@ public abstract class AbstractExtendTests
         cache.removeIndex(extractor);
 
         cache.clear();
-        cache.put(getKeyObject("Key1"), new Integer(1));
-        cache.put(getKeyObject("Key2"), new Integer(2));
+        cache.put(getKeyObject("Key1"), 1);
+        cache.put(getKeyObject("Key2"), 2);
         }
 
     /**
@@ -1435,21 +1435,21 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(getKeyObject(String.valueOf(i)), Integer.valueOf(i));
+            cache.put(getKeyObject(String.valueOf(i)), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
-        assertEquals("Result=" + oResult, Integer.valueOf(0), oResult);
+        assertEquals("Result=" + oResult, 0, oResult);
 
         oResult = cache.aggregate(Collections.singletonList(getKeyObject("1")), agent);
-        assertEquals("Result=" + oResult, Integer.valueOf(1), oResult);
+        assertEquals("Result=" + oResult, 1, oResult);
 
         Collection col = new HashSet();
         col.add(getKeyObject("3"));
         col.add(getKeyObject("4"));
 
         oResult = cache.aggregate(col, agent);
-        assertEquals("Result=" + oResult, Integer.valueOf(2), oResult);
+        assertEquals("Result=" + oResult, 2, oResult);
         }
 
     /**
@@ -1471,17 +1471,17 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(getKeyObject(String.valueOf(i)), Integer.valueOf(i));
+            cache.put(getKeyObject(String.valueOf(i)), i);
             }
 
         Object oResult = cache.aggregate(NeverFilter.INSTANCE, agent);
-        assertEquals("Result=" + oResult, Integer.valueOf(0), oResult);
+        assertEquals("Result=" + oResult, 0, oResult);
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertEquals("Result=" + oResult, Integer.valueOf(cache.size()), oResult);
+        assertEquals("Result=" + oResult, cache.size(), oResult);
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertEquals("Result=" + oResult, Integer.valueOf(cache.size()), oResult);
+        assertEquals("Result=" + oResult, cache.size(), oResult);
         }
 
     /**
@@ -1495,14 +1495,14 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Collection setResult = (Collection) cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue(setResult.isEmpty());
 
         Set setExpected = new HashSet();
-        setExpected.add(new Integer(1));
+        setExpected.add(1);
 
         setResult = (Collection) cache.aggregate(Collections.singletonList("1"), agent);
         assertTrue("Result=" + setResult, equals(new HashSet(setResult), setExpected));
@@ -1510,7 +1510,7 @@ public abstract class AbstractExtendTests
         setExpected.clear();
         for (int i = 1; i <= 10; ++i)
             {
-            setExpected.add(new Integer(i));
+            setExpected.add(i);
             }
 
         setResult = (Collection) cache.aggregate((Filter) null, agent);
@@ -1521,11 +1521,11 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(0));
+            cache.put(String.valueOf(i), 0);
             }
 
         setExpected.clear();
-        setExpected.add(new Integer(0));
+        setExpected.add(0);
 
         setResult = (Collection) cache.aggregate(Collections.singletonList("1"), agent);
         assertTrue("Result=" + setResult, equals(new HashSet(setResult), setExpected));
@@ -1548,20 +1548,20 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(5.5D)));
+        assertTrue("Result=" + oResult, equals(oResult, 5.5D));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(5.5D)));
+        assertTrue("Result=" + oResult, equals(oResult, 5.5D));
         }
 
     /**
@@ -1575,20 +1575,20 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(10.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 10.0D));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(10.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 10.0D));
         }
 
     /**
@@ -1602,20 +1602,20 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
         }
 
     /**
@@ -1629,20 +1629,20 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(1.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 1.0D));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(55.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 55.0D));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Double(55.0D)));
+        assertTrue("Result=" + oResult, equals(oResult, 55.0D));
         }
 
     /**
@@ -1656,20 +1656,20 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(10L)));
+        assertTrue("Result=" + oResult, equals(oResult, 10L));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(10L)));
+        assertTrue("Result=" + oResult, equals(oResult, 10L));
         }
 
     /**
@@ -1683,20 +1683,20 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
         }
 
     /**
@@ -1710,20 +1710,20 @@ public abstract class AbstractExtendTests
 
         for (int i = 1; i <= 10; ++i)
             {
-            cache.put(String.valueOf(i), new Integer(i));
+            cache.put(String.valueOf(i), i);
             }
 
         Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
         assertTrue("Result=" + oResult, oResult == null);
 
         oResult = cache.aggregate(Collections.singletonList("1"), agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(1L)));
+        assertTrue("Result=" + oResult, equals(oResult, 1L));
 
         oResult = cache.aggregate((Filter) null, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(55L)));
+        assertTrue("Result=" + oResult, equals(oResult, 55L));
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
-        assertTrue("Result=" + oResult, equals(oResult, new Long(55L)));
+        assertTrue("Result=" + oResult, equals(oResult, 55L));
         }
 
     /**
@@ -2040,7 +2040,7 @@ public abstract class AbstractExtendTests
         int cKeys = 10000;
         for (int i = 1; i <= cKeys; ++i)
             {
-            map.put(String.valueOf(i), new Integer(i));
+            map.put(String.valueOf(i), i);
             }
         cache.putAll(map);
 
@@ -2278,7 +2278,7 @@ public abstract class AbstractExtendTests
 
         for (int i = 0; i < 1000; i++)
             {
-            map.put(Integer.valueOf(i), Integer.valueOf(i));
+            map.put(i, i);
             }
 
         cache.putAll(map);
@@ -2294,8 +2294,8 @@ public abstract class AbstractExtendTests
         for (Map.Entry entry : set)
             {
             i--;
-            assertEquals("Expected value=" + Integer.valueOf(i) + ", Returned value="
-                    + entry.getValue(), Integer.valueOf(i), entry.getValue());
+            assertEquals("Expected value=" + i + ", Returned value="
+                         + entry.getValue(), i, entry.getValue());
             }
         }
 
@@ -2313,7 +2313,7 @@ public abstract class AbstractExtendTests
 
         NamedCache        cache = getNamedCache();
         NumberIncrementor agent = new NumberIncrementor("Lot",
-                Integer.valueOf(1), false);
+                                                        1, false);
 
         cache.clear();
 
@@ -2327,7 +2327,7 @@ public abstract class AbstractExtendTests
         assertEquals("Result=" + oResult, null, oResult);
 
         oResult = cache.invoke(getKeyObject("1"), agent);
-        assertEquals("Result=" + oResult, Integer.valueOf(2), oResult);
+        assertEquals("Result=" + oResult, 2, oResult);
         }
 
     /**
@@ -2344,7 +2344,7 @@ public abstract class AbstractExtendTests
 
         NamedCache        cache = getNamedCache();
         NumberIncrementor agent = new NumberIncrementor("Lot",
-                Integer.valueOf(1), false);
+                                                        1, false);
 
         cache.clear();
 
@@ -2358,7 +2358,7 @@ public abstract class AbstractExtendTests
         assertEquals("Result=" + mapResult, NullImplementation.getMap(), mapResult);
 
         mapResult = cache.invokeAll(Collections.singleton(getKeyObject("1")), agent);
-        assertEquals("Result=" + mapResult, Integer.valueOf(2), mapResult.get(getKeyObject("1")));
+        assertEquals("Result=" + mapResult, 2, mapResult.get(getKeyObject("1")));
 
         Collection col = new HashSet();
         col.add(getKeyObject("3"));
@@ -2366,8 +2366,8 @@ public abstract class AbstractExtendTests
 
         mapResult = cache.invokeAll(col, agent);
         assertEquals("Result=" + mapResult, 2, mapResult.size());
-        assertEquals("Result=" + mapResult, Integer.valueOf(4), mapResult.get(getKeyObject("3")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(5), mapResult.get(getKeyObject("4")));
+        assertEquals("Result=" + mapResult, 4, mapResult.get(getKeyObject("3")));
+        assertEquals("Result=" + mapResult, 5, mapResult.get(getKeyObject("4")));
         }
 
     /**
@@ -2384,7 +2384,7 @@ public abstract class AbstractExtendTests
 
         NamedCache        cache = getNamedCache();
         NumberIncrementor agent = new NumberIncrementor("Lot",
-                Integer.valueOf(1), false);
+                                                        1, false);
 
         cache.clear();
 
@@ -2399,19 +2399,19 @@ public abstract class AbstractExtendTests
 
         mapResult = cache.invokeAll((Filter) null, agent);
         assertEquals("Result=" + mapResult, 5, mapResult.size());
-        assertEquals("Result=" + mapResult, Integer.valueOf(2), mapResult.get(getKeyObject("1")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(3), mapResult.get(getKeyObject("2")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(4), mapResult.get(getKeyObject("3")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(5), mapResult.get(getKeyObject("4")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(6), mapResult.get(getKeyObject("5")));
+        assertEquals("Result=" + mapResult, 2, mapResult.get(getKeyObject("1")));
+        assertEquals("Result=" + mapResult, 3, mapResult.get(getKeyObject("2")));
+        assertEquals("Result=" + mapResult, 4, mapResult.get(getKeyObject("3")));
+        assertEquals("Result=" + mapResult, 5, mapResult.get(getKeyObject("4")));
+        assertEquals("Result=" + mapResult, 6, mapResult.get(getKeyObject("5")));
 
         mapResult = cache.invokeAll((Filter) null, agent);
         assertEquals("Result=" + mapResult, 5, mapResult.size());
-        assertEquals("Result=" + mapResult, Integer.valueOf(3), mapResult.get(getKeyObject("1")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(4), mapResult.get(getKeyObject("2")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(5), mapResult.get(getKeyObject("3")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(6), mapResult.get(getKeyObject("4")));
-        assertEquals("Result=" + mapResult, Integer.valueOf(7), mapResult.get(getKeyObject("5")));
+        assertEquals("Result=" + mapResult, 3, mapResult.get(getKeyObject("1")));
+        assertEquals("Result=" + mapResult, 4, mapResult.get(getKeyObject("2")));
+        assertEquals("Result=" + mapResult, 5, mapResult.get(getKeyObject("3")));
+        assertEquals("Result=" + mapResult, 6, mapResult.get(getKeyObject("4")));
+        assertEquals("Result=" + mapResult, 7, mapResult.get(getKeyObject("5")));
         }
 
     /**
@@ -2999,7 +2999,7 @@ public abstract class AbstractExtendTests
                 atomicFilterDelete.incrementAndGet();
                 }
             }, new MapEventFilter(MapEventFilter.E_ALL,
-                                  new LessFilter(IdentityExtractor.INSTANCE, new Integer(50))), false);
+                                  new LessFilter(IdentityExtractor.INSTANCE, 50)), false);
 
         cache.addMapListener(new MapListener()
             {
@@ -3018,7 +3018,7 @@ public abstract class AbstractExtendTests
                 atomicFilterLiteDelete.incrementAndGet();
                 }
             }, new MapEventFilter(MapEventFilter.E_ALL,
-                                  new LessFilter(IdentityExtractor.INSTANCE, new Integer(50))), true);
+                                  new LessFilter(IdentityExtractor.INSTANCE, 50)), true);
 
         cache.addMapListener(new MapListener()
             {
@@ -3038,7 +3038,7 @@ public abstract class AbstractExtendTests
                 }
             }, new MapEventTransformerFilter(
                 new MapEventFilter(MapEventFilter.E_ALL,
-                                   new LessFilter(IdentityExtractor.INSTANCE, new Integer(50))),
+                                   new LessFilter(IdentityExtractor.INSTANCE, 50)),
                 SemiLiteEventTransformer.INSTANCE), false);
 
         cache.addMapListener(new MapListener()
@@ -3059,19 +3059,19 @@ public abstract class AbstractExtendTests
                 }
             }, new MapEventTransformerFilter(
                 new MapEventFilter(MapEventFilter.E_ALL,
-                                   new LessFilter(IdentityExtractor.INSTANCE, new Integer(50))),
+                                   new LessFilter(IdentityExtractor.INSTANCE, 50)),
                 SemiLiteEventTransformer.INSTANCE), true);
 
         // Insert
         for (int i = 0; i < 100; i++)
             {
-            cache.put("Key" + i, new Integer(i));
+            cache.put("Key" + i, i);
             }
 
         // Update
         for (int i = 0; i < 100; i++)
             {
-            cache.put("Key" + i, new Integer(i));
+            cache.put("Key" + i, i);
             }
 
         // Delete
@@ -3242,7 +3242,7 @@ public abstract class AbstractExtendTests
                     oVal = BigInteger.valueOf(i);
                     break;
                 case 2:
-                    oVal = new Double(i);
+                    oVal = (double) i;
                     break;
                 }
             cache.put(String.valueOf(i), oVal);

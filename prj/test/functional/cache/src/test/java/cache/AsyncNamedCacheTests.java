@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -803,7 +803,7 @@ public class AsyncNamedCacheTests
                 .thenAccept(x -> assertEquals((long) 0, (long) x));
 
         cache.async().aggregate(cache.keySet(), new LongSum(IdentityExtractor.INSTANCE))
-                .thenAccept(x -> assertEquals(Long.valueOf(6l), x));
+                .thenAccept(x -> assertEquals(6l, x));
         }
 
     @Test
@@ -823,11 +823,11 @@ public class AsyncNamedCacheTests
                 .thenAccept(x -> assertEquals(3, x));
 
         cache.async().aggregate(AlwaysFilter.INSTANCE, new LongSum(IdentityExtractor.INSTANCE))
-                    .thenAccept(x -> assertEquals(Long.valueOf(6l), x));
+                    .thenAccept(x -> assertEquals(6l, x));
 
         cache.async().aggregate(
                 Filters.greater(x -> ((Integer) x), 1), new LongSum(IdentityExtractor.INSTANCE))
-                .thenAccept(x -> assertEquals(new Long(5), x));
+                .thenAccept(x -> assertEquals(5L, x));
         }
 
     /**
@@ -852,7 +852,7 @@ public class AsyncNamedCacheTests
             {
             List<Number> oResult = (List<Number>) x;
             assertEquals(oResult.get(0), 10);
-            assertEquals(oResult.get(1), new Long(55));
+            assertEquals(oResult.get(1), 55L);
             });
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -239,7 +239,7 @@ public abstract class Config
         {
         Float d = getFloat(sName);
 
-        return d == null ? new Float(fDefault) : d;
+        return d == null ? fDefault : d;
         }
 
     /**
@@ -280,7 +280,7 @@ public abstract class Config
         {
         Double d = getDouble(sName);
 
-        return d == null ? new Double(dDefault) : d;
+        return d == null ? dDefault : d;
         }
 
     /**

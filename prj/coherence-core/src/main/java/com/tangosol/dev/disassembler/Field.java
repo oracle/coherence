@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -86,7 +86,7 @@ public class Field extends Member
                 return new StringBuffer().append(l).append('L').toString();
             case Constant.CONSTANT_Double:
                 double dfl = ((DoubleConstant) constant).getDouble();
-                return (new Double(dfl)).toString();
+                return (Double.toString(dfl));
             default:
                 throw new RuntimeException("Illegal \"ConstantValue\" data type (" + constant.getType() + ").");
             }

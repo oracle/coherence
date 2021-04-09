@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -28,20 +28,20 @@ public class IteratorTest
 
         assertFalse(iter.hasNext());
 
-        iter.setItem(new Object[] {Integer.valueOf(0)});
+        iter.setItem(new Object[] {0});
         iter.setNextIndex(0);
 
         assertTrue(iter.hasNext());
-        assertEquals(iter.next(), Integer.valueOf(0));
+        assertEquals(iter.next(), 0);
         assertFalse(iter.hasNext());
 
-        iter.setItem(new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
+        iter.setItem(new Object[] {0, 1});
         iter.setNextIndex(0);
 
         assertTrue(iter.hasNext());
-        assertEquals(iter.next(), Integer.valueOf(0));
+        assertEquals(iter.next(), 0);
         assertTrue(iter.hasNext());
-        assertEquals(iter.next(), Integer.valueOf(1));
+        assertEquals(iter.next(), 1);
         assertFalse(iter.hasNext());
         }
     }

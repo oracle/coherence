@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -67,7 +67,7 @@ public class InitParamProcessorTest
         assertEquals("size", parameter.getName());
         assertTrue(parameter.isExplicitlyTyped());
         assertEquals(Long.class, parameter.getExplicitType());
-        assertEquals(new Long(100), (Long) parameter.evaluate(resolver).get());
+        assertEquals(Long.valueOf(100), (Long) parameter.evaluate(resolver).get());
         }
 
     /**

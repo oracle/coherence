@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -273,16 +273,16 @@ public class AddExpression extends AdditiveExpression
         switch (getType().getTypeString().charAt(0))
             {
             case 'I':
-                return Integer.valueOf(((Number) oLeft).intValue() + ((Number) oRight).intValue());
+                return ((Number) oLeft).intValue() + ((Number) oRight).intValue();
 
             case 'J':
-                return Long.valueOf(((Number) oLeft).longValue() + ((Number) oRight).longValue());
+                return ((Number) oLeft).longValue() + ((Number) oRight).longValue();
 
             case 'F':
-                return new Float(((Number) oLeft).floatValue() + ((Number) oRight).floatValue());
+                return ((Number) oLeft).floatValue() + ((Number) oRight).floatValue();
 
             case 'D':
-                return new Double(((Number) oLeft).doubleValue() + ((Number) oRight).doubleValue());
+                return ((Number) oLeft).doubleValue() + ((Number) oRight).doubleValue();
 
             case 'L':
                 return left.getStringValue() + right.getStringValue();

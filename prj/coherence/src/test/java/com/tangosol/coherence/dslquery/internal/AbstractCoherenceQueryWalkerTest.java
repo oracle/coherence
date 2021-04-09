@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -184,12 +184,11 @@ public class AbstractCoherenceQueryWalkerTest
      */
     @Test
     public void shouldAcceptKeyedBindingWithNonStringValue()
-            throws Exception
         {
         Map<String, ? super Object> bindings = new HashMap<>();
 
-        bindings.put("A", new Integer(2));
-        bindings.put("B", new Long(3L));
+        bindings.put("A", 2);
+        bindings.put("B", 3L);
         bindings.put("C", "stringValue");
 
         Walker walker = new Walker(new ArrayList<>(), new ResolvableParameterList(bindings));
@@ -213,14 +212,13 @@ public class AbstractCoherenceQueryWalkerTest
      */
     @Test
     public void shouldFailAcceptKeyedBinding()
-            throws Exception
         {
         expectedEx.expect(RuntimeException.class);
         expectedEx.expectMessage("Unable to resolve named bind variable: notdefinedKeyedBinding");
 
         Map<String, ? super Object> bindings = new HashMap<>();
 
-        bindings.put("A", new Integer(2));
+        bindings.put("A", 2);
 
         Walker walker = new Walker(new ArrayList<>(), new ResolvableParameterList(bindings));
         walker.acceptKeyedBinding("notdefinedKeyedBinding");

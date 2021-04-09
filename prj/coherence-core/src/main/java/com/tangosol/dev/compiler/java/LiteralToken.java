@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -29,7 +29,7 @@ public class LiteralToken
     */
     public LiteralToken(int iValue, int iLine, int ofInLine, int cchToken)
         {
-        super(LITERAL, INT, LIT_INT, Integer.valueOf(iValue), null, iLine, ofInLine, cchToken);
+        super(LITERAL, INT, LIT_INT, iValue, null, iLine, ofInLine, cchToken);
         }
 
     /**
@@ -47,7 +47,7 @@ public class LiteralToken
     */
     public LiteralToken(int iValue, boolean bStoredNeg, int iLine, int ofInLine, int cchToken)
         {
-        super(LITERAL, INT, LIT_INT, Integer.valueOf(iValue), null, iLine, ofInLine, cchToken);
+        super(LITERAL, INT, LIT_INT, iValue, null, iLine, ofInLine, cchToken);
         fStoredNeg = bStoredNeg;
         }
 
@@ -61,7 +61,7 @@ public class LiteralToken
     */
     public LiteralToken(long lValue, int iLine, int ofInLine, int cchToken)
         {
-        super(LITERAL, LONG, LIT_LONG, Long.valueOf(lValue), null, iLine, ofInLine, cchToken);
+        super(LITERAL, LONG, LIT_LONG, lValue, null, iLine, ofInLine, cchToken);
         }
 
     /**
@@ -79,7 +79,7 @@ public class LiteralToken
     */
     public LiteralToken(long lValue, boolean bStoredNeg, int iLine, int ofInLine, int cchToken)
         {
-        super(LITERAL, LONG, LIT_LONG, Long.valueOf(lValue), null, iLine, ofInLine, cchToken);
+        super(LITERAL, LONG, LIT_LONG, lValue, null, iLine, ofInLine, cchToken);
         fStoredNeg = bStoredNeg;
         }
 
@@ -93,7 +93,7 @@ public class LiteralToken
     */
     public LiteralToken(float flValue, int iLine, int ofInLine, int cchToken)
         {
-        super(LITERAL, FLOAT, LIT_FLOAT, new Float(flValue), null, iLine, ofInLine, cchToken);
+        super(LITERAL, FLOAT, LIT_FLOAT, flValue, null, iLine, ofInLine, cchToken);
         }
 
     /**
@@ -106,7 +106,7 @@ public class LiteralToken
     */
     public LiteralToken(double dflValue, int iLine, int ofInLine, int cchToken)
         {
-        super(LITERAL, DOUBLE, LIT_DOUBLE, new Double(dflValue), null, iLine, ofInLine, cchToken);
+        super(LITERAL, DOUBLE, LIT_DOUBLE, dflValue, null, iLine, ofInLine, cchToken);
         }
 
     /**
@@ -119,7 +119,7 @@ public class LiteralToken
     */
     public LiteralToken(char chValue, int iLine, int ofInLine, int cchToken)
         {
-        super(LITERAL, CHAR, LIT_CHAR, new Character(chValue), null, iLine, ofInLine, cchToken);
+        super(LITERAL, CHAR, LIT_CHAR, chValue, null, iLine, ofInLine, cchToken);
         }
 
     /**
@@ -172,21 +172,21 @@ public class LiteralToken
                 case INT:
                     if (isOutOfRange())
                         {
-                        value = Integer.valueOf(0);
+                        value = 0;
                         }
                     else
                         {
-                        value = Integer.valueOf(-((Number)value).intValue());
+                        value = -((Number) value).intValue();
                         }
                     break;
                 case LONG:
                     if (isOutOfRange())
                         {
-                        value = Long.valueOf(0);
+                        value = 0L;
                         }
                     else
                         {
-                        value = Long.valueOf(-((Number)value).longValue());
+                        value = -((Number) value).longValue();
                         }
                     break;
                 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -170,7 +170,7 @@ public class ClassHelperTest
         assertNotNull(constrObj);
 
         // test Boolean and boolean constructors
-        Boolean fValue = new Boolean(true);
+        Boolean fValue = Boolean.TRUE;
         Object[] aofParam = {fValue};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aofParam);
@@ -181,7 +181,7 @@ public class ClassHelperTest
         assertEquals(fValue, constrPrimitive.getBooleanValue());
 
         // test Character and char constructors
-        Character chValue = new Character('a');
+        Character chValue = 'a';
         Object[] aochParam = {chValue};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aochParam);
@@ -192,7 +192,7 @@ public class ClassHelperTest
         assertEquals(chValue.charValue(), constrPrimitive.getCharValue());
 
         // test Byte and byte constructors
-        Byte bValue = new Byte((byte) 1);
+        Byte bValue = (byte) 1;
         Object[] aobParam = {bValue};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aobParam);
@@ -203,7 +203,7 @@ public class ClassHelperTest
         assertEquals(bValue.byteValue(), constrPrimitive.getByteValue());
 
         // test Short and short constructors
-        Short shValue = new Short((short) 3);
+        Short shValue = (short) 3;
         Object[] aoshParam = {shValue};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aoshParam);
@@ -214,7 +214,7 @@ public class ClassHelperTest
         assertEquals(shValue.shortValue(), constrPrimitive.getShortValue());
 
         // test Integer and int constructors
-        Integer nValue = new Integer(4);
+        Integer nValue = 4;
         Object[] aonParam = {nValue};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aonParam);
@@ -225,7 +225,7 @@ public class ClassHelperTest
         assertEquals(nValue.intValue(), constrPrimitive.getIntValue());
 
         // test Long and long constructors
-        Long lValue = new Long(5);
+        Long lValue = 5L;
         Object[] aolParam = {lValue};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aolParam);
@@ -236,7 +236,7 @@ public class ClassHelperTest
         assertEquals(lValue.longValue(), constrPrimitive.getLongValue());
 
         // test Float and float constructors
-        Float flValue = new Float(6);
+        Float flValue = 6F;
         Object[] aoflParam = {flValue};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aoflParam);
@@ -247,7 +247,7 @@ public class ClassHelperTest
         assertEquals(flValue, constrPrimitive.getFloatValue(), 0);
 
         // test Double and double constructors
-        Double dValue = new Double(7.8);
+        Double dValue = 7.8;
         Object[] aodParam = {dValue};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aodParam);
@@ -275,7 +275,7 @@ public class ClassHelperTest
 
         // test constructor with mixed primitive and
         // non-primitive arguments
-        Integer nIValue = new Integer(5);
+        Integer nIValue = 5;
         Object[] aoMixedParam = {nValue, nIValue};
         constrPrimitive = (TestPrimitiveConstructor) ClassHelper.newInstance(
                 TestPrimitiveConstructor.class, aoMixedParam);
@@ -297,11 +297,11 @@ public class ClassHelperTest
         assertNull(constrObj.getIntegerValue());
 
         // test valid argument count with leading null
-        Object[] aoLNullParam = {null, new Integer(3)};
+        Object[] aoLNullParam = {null, 3};
         constrObj = (TestConstructors) ClassHelper.newInstance(
                 TestConstructors.class, aoLNullParam);
         assertNull(constrObj.getStringValue());
-        assertEquals(new Integer(3), constrObj.getIntegerValue());
+        assertEquals(Integer.valueOf(3), constrObj.getIntegerValue());
 
         // test multiple null arguments
         Object[] aoMNullParam = new Object[4];

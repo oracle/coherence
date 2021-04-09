@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -55,7 +55,7 @@ public class UniversalExtractorTest
     @Test(expected = IllegalArgumentException.class)
     public void testOptionalParametersNoMethodSuffix()
         {
-        UniversalExtractor missingMethodSuffix = new UniversalExtractor("foo", new Object[]{new Integer(5)});
+        UniversalExtractor missingMethodSuffix = new UniversalExtractor("foo", new Object[]{5});
         }
 
     @Test
@@ -83,13 +83,13 @@ public class UniversalExtractorTest
     @Test
     public void testOptionalParameters()
         {
-        UniversalExtractor methodExtractor = new UniversalExtractor("getFoo()", new Object[]{new Integer(5)});
+        UniversalExtractor methodExtractor = new UniversalExtractor("getFoo()", new Object[]{5});
         assertEquals(null, methodExtractor.getCanonicalName());
         assertEquals("getFoo", methodExtractor.getMethodName());
         assertFalse(methodExtractor.isPropertyExtractor());
         assertTrue(methodExtractor.isMethodExtractor());
 
-        UniversalExtractor methodExtractor2 = new UniversalExtractor("foo()",  new Object[]{new Integer(5)} );
+        UniversalExtractor methodExtractor2 = new UniversalExtractor("foo()",  new Object[]{5});
         assertEquals(null, methodExtractor2.getCanonicalName());
         assertTrue(methodExtractor2.isMethodExtractor());
         assertFalse(methodExtractor2.isPropertyExtractor());
@@ -145,7 +145,7 @@ public class UniversalExtractorTest
                 sRet.equals("Return Value"));
         assertEquals("retVal()", extractorTest1.getCanonicalName());
 
-        Integer             iTest2Value    = Integer.valueOf(100);
+        Integer             iTest2Value    = 100;
         Object[]            aoTest2Parm    = {iTest2Value};
         UniversalExtractor extractorTest2 = new UniversalExtractor("retVal()", aoTest2Parm);
         Integer             iRet           = (Integer) extractorTest2.extract(oTestClass);
@@ -174,7 +174,7 @@ public class UniversalExtractorTest
         for (int j = 0, c = aoTest4Value.length; j < c; j++)
             {
             nExp += j + 1;
-            aoTest4Value[j] = Integer.valueOf(j + 1);
+            aoTest4Value[j] = j + 1;
             }
         iRet = (Integer) ExtractorTest4.extract(oTestClass);
         assertTrue("UniversalExtractor : Error invoking Array Parameters",
@@ -212,7 +212,7 @@ public class UniversalExtractorTest
             fail(e.toString());
             }
 
-        Object[]            aoTest5Parm    = {Integer.valueOf(100), Integer.valueOf(200), Integer.valueOf(300)};
+        Object[]           aoTest5Parm    = {100, 200, 300};
         UniversalExtractor extractorTest5 = new UniversalExtractor("sumIntTest()", aoTest5Parm);
         iRet  = (Integer) extractorTest5.extract(oTestClass);
         assertTrue("UniversalExtractor : Error Invoking sum of 3 Integer Parameters.",
@@ -395,7 +395,7 @@ public class UniversalExtractorTest
         for (int i = 0; i < 10; i++)
             {
             TestJavaBean bean = new TestJavaBean();
-            bean.setFoo(new Integer(i).toString());
+            bean.setFoo(Integer.toString(i));
             bean.setFlag(false);
             beans.add(bean);
             }
@@ -404,7 +404,7 @@ public class UniversalExtractorTest
         ReflectionExtractorWithStatistics extractor = new ReflectionExtractorWithStatistics("foo");
         for (int i = 0; i < beans.size(); i++)
             {
-            assertEquals(extractor.extract(beans.get(i)), new Integer(i).toString());
+            assertEquals(extractor.extract(beans.get(i)), Integer.toString(i));
             }
 
         assertTrue("expected 1, observed " + extractor.nExtractComplexCalls, extractor.nExtractComplexCalls == 1);
@@ -418,7 +418,7 @@ public class UniversalExtractorTest
         for (int i = 0; i < 10; i++)
             {
             TestJavaBean bean = new TestJavaBean();
-            bean.setFoo(new Integer(i).toString());
+            bean.setFoo(Integer.toString(i));
             bean.setFlag(false);
             beans.add(bean);
             }
@@ -427,7 +427,7 @@ public class UniversalExtractorTest
         ReflectionExtractorWithStatistics extractor = new ReflectionExtractorWithStatistics("foo");
         for (int i = 0; i < 10; i++)
             {
-            assertEquals(extractor.extract(beans.get(i)), new Integer(i).toString());
+            assertEquals(extractor.extract(beans.get(i)), Integer.toString(i));
             }
 
         assertTrue("expected 1, observed " + extractor.nExtractComplexCalls, extractor.nExtractComplexCalls == 1);

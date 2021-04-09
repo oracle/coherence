@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -61,7 +61,7 @@ public class BDBStoreTests
 
             Properties props = new Properties();
             props.put("test.bdb.directory", fileBDBTempDir.getAbsolutePath());
-            props.put("test.abnormal_termination", new Integer(nTerminationValue).toString());
+            props.put("test.abnormal_termination", Integer.toString(nTerminationValue));
 
             // 1. create a bdb-store-manager persistent binary store and terminate abnormally, (bypassing BDBShutdownHook)
             CoherenceClusterMember member = startCacheApplication("TestAutoRecoveryCreatePersistentCacheTerminatesAbnormal",
@@ -108,7 +108,7 @@ public class BDBStoreTests
 
             Properties props = new Properties();
             props.put("test.bdb.directory", fileBDBTempDir.getAbsolutePath());
-            props.put("test.abnormal_termination", new Integer(nTerminationValue).toString());
+            props.put("test.abnormal_termination", Integer.toString(nTerminationValue));
 
             // 1. create a bdb-store-manager persistent binary store and terminate abnormally, (bypassing BDBShutdownHook)
             CoherenceClusterMember member = startCacheApplication("testPersistentBDBLogCleaning_first",
@@ -148,7 +148,7 @@ public class BDBStoreTests
         public static void main(String[] args)
             {
             String  sAbnormalTermination = System.getProperty("test.abnormal_termination");
-            int     nTerminationValue    = sAbnormalTermination == null ? 0 : new Integer(sAbnormalTermination);
+            int     nTerminationValue    = sAbnormalTermination == null ? 0 : Integer.parseInt(sAbnormalTermination);
             boolean fRequireKeysExist    = Boolean.getBoolean("test.require_keys_exist");
 
             System.out.println("Exit client with TerminationValue=" + nTerminationValue);
@@ -225,7 +225,7 @@ public class BDBStoreTests
             throws Exception
             {
             String  sAbnormalTermination = System.getProperty("test.abnormal_termination");
-            int     nTerminationValue    = sAbnormalTermination == null ? 0 : new Integer(sAbnormalTermination);
+            int     nTerminationValue    = sAbnormalTermination == null ? 0 : Integer.parseInt(sAbnormalTermination);
             boolean fRequireKeysExist    = Boolean.getBoolean("test.require_keys_exist");
 
             System.out.println("Exit client with TerminationValue=" + nTerminationValue);

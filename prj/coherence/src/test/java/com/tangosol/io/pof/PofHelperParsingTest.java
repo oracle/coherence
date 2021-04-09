@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -337,8 +337,8 @@ public class PofHelperParsingTest
             throws IOException
         {
         Map map = new HashMap();
-        map.put(new Integer(1), "t");
-        map.put(new Integer(2), "g");
+        map.put(1, "t");
+        map.put(2, "g");
 
         initPOFWriter();
         m_writer.writeRawDate(0, new RawDate(2006, 8, 11));
@@ -347,7 +347,7 @@ public class PofHelperParsingTest
                 new RawTime(11, 59, 57, 100, true)));
         m_writer.writeCharArray(0, new char[]{'g', 't', 's'});
         m_writer.writeObjectArray(0,
-                new Object[]{new Character('g'), "Gor", new Integer(55)});
+                new Object[]{'g', "Gor", 55});
         m_writer.writeObjectArray(0,
                 new Object[]{new int[]{1, 2}, new int[]{3, 2, 4}});
         m_writer.writeObject(0, map);

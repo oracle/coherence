@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -165,97 +165,76 @@ public class PofExtractorTest
                 Boolean.TRUE);
 
         extractor = new PofExtractor(char.class, ObjectWithAllTypes.P_CHAR);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Character('a'));
+        assertEquals(extractor.extractFromEntry(binEntry), 'a');
 
         extractor = new PofExtractor(byte.class, ObjectWithAllTypes.P_BYTE_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Byte((byte) 0));
+        assertEquals(extractor.extractFromEntry(binEntry), (byte) 0);
 
         extractor = new PofExtractor(byte.class,
                 ObjectWithAllTypes.P_BYTE_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Byte((byte) 22));
+        assertEquals(extractor.extractFromEntry(binEntry), (byte) 22);
 
         extractor = new PofExtractor(byte.class, ObjectWithAllTypes.P_BYTE);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Byte(Byte.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Byte.MAX_VALUE);
 
         extractor = new PofExtractor(short.class,
                 ObjectWithAllTypes.P_SHORT_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Short((short) 0));
+        assertEquals(extractor.extractFromEntry(binEntry), (short) 0);
 
         extractor = new PofExtractor(short.class,
                 ObjectWithAllTypes.P_SHORT_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Short((short) 22));
+        assertEquals(extractor.extractFromEntry(binEntry), (short) 22);
 
         extractor = new PofExtractor(short.class, ObjectWithAllTypes.P_SHORT);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Short(Short.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Short.MAX_VALUE);
 
         extractor = new PofExtractor(int.class, ObjectWithAllTypes.P_INT_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Integer(0));
+        assertEquals(extractor.extractFromEntry(binEntry), 0);
 
         extractor = new PofExtractor(int.class, ObjectWithAllTypes.P_INT_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Integer(22));
+        assertEquals(extractor.extractFromEntry(binEntry), 22);
 
         extractor = new PofExtractor(int.class, ObjectWithAllTypes.P_INT);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Integer(Integer.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Integer.MAX_VALUE);
 
         extractor = new PofExtractor(long.class, ObjectWithAllTypes.P_LONG_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Long(0));
+        assertEquals(extractor.extractFromEntry(binEntry), 0L);
 
         extractor = new PofExtractor(long.class,
                 ObjectWithAllTypes.P_LONG_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Long(22));
+        assertEquals(extractor.extractFromEntry(binEntry), 22L);
 
         extractor = new PofExtractor(long.class, ObjectWithAllTypes.P_LONG);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Long(Long.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Long.MAX_VALUE);
 
         extractor = new PofExtractor(float.class,
                 ObjectWithAllTypes.P_FLOAT_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Float(0));
+        assertEquals(extractor.extractFromEntry(binEntry), (float) 0);
 
         extractor = new PofExtractor(float.class,
                 ObjectWithAllTypes.P_FLOAT_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Float(22));
+        assertEquals(extractor.extractFromEntry(binEntry), 22F);
 
         extractor = new PofExtractor(float.class, ObjectWithAllTypes.P_FLOAT);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Float(Float.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Float.MAX_VALUE);
 
         extractor = new PofExtractor(double.class,
                 ObjectWithAllTypes.P_DOUBLE_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Double(0));
+        assertEquals(extractor.extractFromEntry(binEntry), (double) 0);
 
         extractor = new PofExtractor(double.class,
                 ObjectWithAllTypes.P_DOUBLE_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Double(22));
+        assertEquals(extractor.extractFromEntry(binEntry), 22.0);
 
         extractor = new PofExtractor(double.class,
                 ObjectWithAllTypes.P_DOUBLE);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Double(Double.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Double.MAX_VALUE);
         // tests with null Class
         extractor = new PofExtractor(null, ObjectWithAllTypes.P_SHORT);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Short(Short.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Short.MAX_VALUE);
 
         extractor = new PofExtractor(null, ObjectWithAllTypes.P_DOUBLE);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Double(Double.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Double.MAX_VALUE);
         }
 
     /**
@@ -286,129 +265,107 @@ public class PofExtractorTest
 
         extractor = new PofExtractor(Boolean.class,
                 ObjectWithAllTypes.BOOLEAN_NULL);
-        assertEquals(extractor.extractFromEntry(binEntry), null);
+        assertNull(extractor.extractFromEntry(binEntry));
 
         extractor = new PofExtractor(Character.class,
                 ObjectWithAllTypes.CHARACTER);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Character('a'));
+        assertEquals(extractor.extractFromEntry(binEntry), 'a');
 
         extractor = new PofExtractor(Character.class,
                 ObjectWithAllTypes.CHARACTER_NULL);
-        assertEquals(extractor.extractFromEntry(binEntry), null);
+        assertNull(extractor.extractFromEntry(binEntry));
 
         extractor = new PofExtractor(Byte.class, ObjectWithAllTypes.BYTE_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Byte((byte) 0));
+        assertEquals(extractor.extractFromEntry(binEntry), (byte) 0);
 
         extractor = new PofExtractor(Byte.class, ObjectWithAllTypes.BYTE_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Byte((byte) 22));
+        assertEquals(extractor.extractFromEntry(binEntry), (byte) 22);
 
         extractor = new PofExtractor(Byte.class,
                 ObjectWithAllTypes.BYTE_NULL);
-        assertEquals(extractor.extractFromEntry(binEntry), null);
+        assertNull(extractor.extractFromEntry(binEntry));
 
         extractor = new PofExtractor(Byte.class, ObjectWithAllTypes.BYTE);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Byte(Byte.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Byte.MAX_VALUE);
 
         extractor = new PofExtractor(Short.class, ObjectWithAllTypes.SHORT_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Short((short) 0));
+        assertEquals(extractor.extractFromEntry(binEntry), (short) 0);
 
         extractor = new PofExtractor(Short.class,
                 ObjectWithAllTypes.SHORT_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Short((short) 22));
+        assertEquals(extractor.extractFromEntry(binEntry), (short) 22);
 
         extractor = new PofExtractor(Short.class,
                 ObjectWithAllTypes.SHORT_NULL);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                null);
+        assertNull(extractor.extractFromEntry(binEntry));
 
         extractor = new PofExtractor(Short.class, ObjectWithAllTypes.SHORT);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Short(Short.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Short.MAX_VALUE);
 
         extractor = new PofExtractor(Integer.class,
                 ObjectWithAllTypes.INTEGER_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Integer(0));
+        assertEquals(extractor.extractFromEntry(binEntry), 0);
 
         extractor = new PofExtractor(Integer.class,
                 ObjectWithAllTypes.INTEGER_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Integer(22));
+        assertEquals(extractor.extractFromEntry(binEntry), 22);
 
         extractor = new PofExtractor(Integer.class,
                 ObjectWithAllTypes.INTEGER_NULL);
-        assertEquals(extractor.extractFromEntry(binEntry), null);
+        assertNull(extractor.extractFromEntry(binEntry));
 
         extractor = new PofExtractor(Integer.class,
                 ObjectWithAllTypes.INTEGER);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Integer(Integer.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Integer.MAX_VALUE);
 
         extractor = new PofExtractor(Long.class, ObjectWithAllTypes.LONG_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Long(0));
+        assertEquals(extractor.extractFromEntry(binEntry), 0L);
 
         extractor = new PofExtractor(Long.class, ObjectWithAllTypes.LONG_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Long(22));
+        assertEquals(extractor.extractFromEntry(binEntry), 22L);
 
         extractor = new PofExtractor(Long.class,
                 ObjectWithAllTypes.LONG_NULL);
-        assertEquals(extractor.extractFromEntry(binEntry), null);
+        assertNull(extractor.extractFromEntry(binEntry));
 
         extractor = new PofExtractor(Long.class, ObjectWithAllTypes.LONG);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Long(Long.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Long.MAX_VALUE);
 
         extractor = new PofExtractor(Float.class,
                 ObjectWithAllTypes.FLOAT_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Float(0));
+        assertEquals(extractor.extractFromEntry(binEntry), (float) 0);
 
         extractor = new PofExtractor(Float.class,
                 ObjectWithAllTypes.FLOAT_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Float(22));
+        assertEquals(extractor.extractFromEntry(binEntry), 22F);
 
         extractor = new PofExtractor(Float.class,
                 ObjectWithAllTypes.FLOAT_NULL);
-        assertEquals(extractor.extractFromEntry(binEntry), null);
+        assertNull(extractor.extractFromEntry(binEntry));
 
         extractor = new PofExtractor(Float.class, ObjectWithAllTypes.FLOAT);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Float(Float.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Float.MAX_VALUE);
 
         extractor = new PofExtractor(Double.class,
                 ObjectWithAllTypes.DOUBLE_0);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Double(0));
+        assertEquals(extractor.extractFromEntry(binEntry), (double) 0);
 
         extractor = new PofExtractor(Double.class,
                 ObjectWithAllTypes.DOUBLE_22);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Double(22));
+        assertEquals(extractor.extractFromEntry(binEntry), 22.0);
 
         extractor = new PofExtractor(Double.class,
                 ObjectWithAllTypes.DOUBLE_NULL);
-        assertEquals(extractor.extractFromEntry(binEntry), null);
+        assertNull(extractor.extractFromEntry(binEntry));
 
         extractor = new PofExtractor(Double.class, ObjectWithAllTypes.DOUBLE);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Double(Double.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Double.MAX_VALUE);
         // tests with null Class
         extractor = new PofExtractor(null, ObjectWithAllTypes.SHORT);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Short(Short.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Short.MAX_VALUE);
 
         extractor = new PofExtractor(null, ObjectWithAllTypes.DOUBLE);
-        assertEquals(extractor.extractFromEntry(binEntry),
-                new Double(Double.MAX_VALUE));
+        assertEquals(extractor.extractFromEntry(binEntry), Double.MAX_VALUE);
        }
 
     /**
@@ -490,17 +447,17 @@ public class PofExtractorTest
         extractor = new PofExtractor(Long[].class,
                 ObjectWithAllTypes.LONG_0_ARRAY);
         assertEquals((Object[]) extractor.extractFromEntry(binEntry),
-        new Object[]{new Long(0), new Long(0)});
+        new Object[]{0L, 0L});
 
         extractor = new PofExtractor(Long[].class,
                 ObjectWithAllTypes.LONG_22_ARRAY);
         assertEquals((Object[]) extractor.extractFromEntry(binEntry),
-        new Object[]{new Long(22), new Long(22)});
+        new Object[]{22L, 22L});
 
         extractor = new PofExtractor(Long[].class,
                 ObjectWithAllTypes.LONG_ARRAY);
         assertEquals((Object[]) extractor.extractFromEntry(binEntry),
-        new Object[]{new Long(Long.MAX_VALUE), new Long(Long.MAX_VALUE)});
+        new Object[]{Long.MAX_VALUE, Long.MAX_VALUE});
         }
 
     /**

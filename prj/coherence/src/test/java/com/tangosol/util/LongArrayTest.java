@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -312,8 +312,8 @@ public class LongArrayTest
                 assertFalse(la1.exists(lIdx1));
                 assertTrue(la0.get(lIdx0) == null);
                 assertTrue(la1.get(lIdx1) == null);
-                assertFalse(la0.contains(new Long(lValue0)));
-                assertFalse(la1.contains(new Long(lValue1)));
+                assertFalse(la0.contains(lValue0));
+                assertFalse(la1.contains(lValue1));
 
                 // multiple calls to remove() should throw an Exception
                 try
@@ -336,8 +336,8 @@ public class LongArrayTest
             else
                 {
                 // test setValue()
-                iter0.setValue(new Long(lValue0 * -1));
-                iter1.setValue(new Long(lValue1 * -1));
+                iter0.setValue(lValue0 * -1);
+                iter1.setValue(lValue1 * -1);
                 assertTrue(((Long)iter0.getValue()).longValue() == (lValue0 * -1));
                 assertTrue(((Long)iter1.getValue()).longValue() == (lValue1 * -1));
 
@@ -345,10 +345,10 @@ public class LongArrayTest
                 // value is gone
                 assertTrue(la0.exists(lIdx0));
                 assertTrue(la1.exists(lIdx1));
-                assertTrue(la0.contains(new Long(lValue0 * -1)));
-                assertTrue(la1.contains(new Long(lValue1 * -1)));
-                assertTrue(Base.equals(la0.get(lIdx0), new Long(lValue0 * -1)));
-                assertTrue(Base.equals(la1.get(lIdx1), new Long(lValue1 * -1)));
+                assertTrue(la0.contains(lValue0 * -1));
+                assertTrue(la1.contains(lValue1 * -1));
+                assertTrue(Base.equals(la0.get(lIdx0), lValue0 * -1));
+                assertTrue(Base.equals(la1.get(lIdx1), lValue1 * -1));
                 }
             }
         assertTrue(str, !iter1.hasNext());
@@ -360,9 +360,9 @@ public class LongArrayTest
     private static void testIndexOf(LongArray la0, LongArray la1)
         {
         StringBuffer sb = new StringBuffer();
-        Long L500 = new Long(500);
-        Long L20  = new Long(20);
-        Long L21  = new Long(21);
+        Long L500 = 500L;
+        Long L20  = 20L;
+        Long L21  = 21L;
 
         la0.clear();
         la1.clear();
@@ -391,10 +391,10 @@ public class LongArrayTest
         sequentialInsertion(la0, la1, 0, 39, sb);
         assertLongArrayEqual(la0, la1, sb.toString());
 
-        la0.set(40, new Long(20));
-        la1.set(40, new Long(20));
-        la0.set(41, new Long(21));
-        la1.set(41, new Long(21));
+        la0.set(40, 20L);
+        la1.set(40, 20L);
+        la0.set(41, 21L);
+        la1.set(41, 21L);
 
         sequentialInsertion(la0, la1, 42, 49, sb);
         assertLongArrayEqual(la0, la1, sb.toString());
@@ -513,8 +513,8 @@ public class LongArrayTest
         sb.append("]");
         for(long l = lStartKey; l <= lEndKey; l++)
             {
-            la0.set(l, new Long(l));
-            la1.set(l, new Long(l));
+            la0.set(l, l);
+            la1.set(l, l);
             }
         }
 
@@ -534,8 +534,8 @@ public class LongArrayTest
             {
             int key = rng.nextInt(iMax);
 
-            la0.set((long)key, new Long(key));
-            la1.set((long)key, new Long(key));
+            la0.set((long)key, (long) key);
+            la1.set((long)key, (long) key);
 
             sb.append(key);
             sb.append(", ");
@@ -629,7 +629,7 @@ public class LongArrayTest
          */
         public Object get(long lIndex)
             {
-            return m_map.get(new Long(lIndex));
+            return m_map.get(lIndex);
             }
 
          /**
@@ -649,7 +649,7 @@ public class LongArrayTest
         public Object set(long lIndex, Object oValue)
             {
             m_iNonce++;
-            return m_map.put(new Long(lIndex), oValue);
+            return m_map.put(lIndex, oValue);
             }
 
         /**
@@ -677,7 +677,7 @@ public class LongArrayTest
          */
         public boolean exists(long lIndex)
             {
-            return m_map.containsKey(new Long(lIndex));
+            return m_map.containsKey(lIndex);
             }
 
         /**
@@ -692,7 +692,7 @@ public class LongArrayTest
         public Object remove(long lIndex)
             {
             m_iNonce++;
-            return m_map.remove(new Long(lIndex));
+            return m_map.remove(lIndex);
             }
 
         /**
@@ -822,7 +822,7 @@ public class LongArrayTest
          */
         public LongArray.Iterator iterator(long lIndex)
             {
-             Set setKey = m_map.tailMap(new Long(lIndex)).keySet();
+             Set setKey = m_map.tailMap(lIndex).keySet();
              Object[] aKey = setKey.toArray(new Object[setKey.size()]);
              Arrays.sort(aKey);
              return new Iterator(aKey);
@@ -853,7 +853,7 @@ public class LongArrayTest
          */
         public LongArray.Iterator reverseIterator(long lIndex)
             {
-             Set setKey = m_map.headMap(new Long(lIndex + 1)).keySet();
+             Set setKey = m_map.headMap(lIndex + 1).keySet();
              Object[] aKey = setKey.toArray(new Object[setKey.size()]);
              Arrays.sort(aKey, Collections.reverseOrder());
              return new Iterator(aKey);

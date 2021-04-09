@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -226,7 +226,7 @@ public class ListTest
             {
             for (int i = 0; i < 100; ++i)
                 {
-                Integer I = new Integer(i);
+                Integer I = i;
                 listControl.add(i, "" + I);
                 listTest   .add(i, "" + I);
                 assertIdenticalLists(listControl, listTest);
@@ -1123,16 +1123,16 @@ public class ListTest
             switch (m_nOp)
                 {
                 case 0:
-                    return Boolean.valueOf(list.containsAll(m_collValues));
+                    return list.containsAll(m_collValues);
 
                 case 1:
-                    return Boolean.valueOf(list.addAll(m_collValues));
+                    return list.addAll(m_collValues);
 
                 case 2:
-                    return Boolean.valueOf(list.removeAll(m_collValues));
+                    return list.removeAll(m_collValues);
 
                 case 3:
-                    return Boolean.valueOf(list.retainAll(m_collValues));
+                    return list.retainAll(m_collValues);
 
                 default:
                     fail("illegal operation: " + m_nOp);

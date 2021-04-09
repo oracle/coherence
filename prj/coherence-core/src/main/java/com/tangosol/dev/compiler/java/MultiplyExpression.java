@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -123,16 +123,16 @@ public class MultiplyExpression extends MultiplicativeExpression
         switch (left.getType().getTypeString().charAt(0))
             {
             case 'I':
-                return Integer.valueOf(nbrLeft.intValue() * nbrRight.intValue());
+                return nbrLeft.intValue() * nbrRight.intValue();
 
             case 'J':
-                return Long.valueOf(nbrLeft.longValue() * nbrRight.longValue());
+                return nbrLeft.longValue() * nbrRight.longValue();
 
             case 'F':
-                return new Float(nbrLeft.floatValue() * nbrRight.floatValue());
+                return nbrLeft.floatValue() * nbrRight.floatValue();
 
             case 'D':
-                return new Double(nbrLeft.doubleValue() * nbrRight.doubleValue());
+                return nbrLeft.doubleValue() * nbrRight.doubleValue();
 
             default:
                 throw new IllegalStateException();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -39,7 +39,7 @@ public class ConditionalIndexTest
     public void testGetValueExtractor() throws Exception
         {
         ValueExtractor extractor = new IdentityExtractor();
-        Filter         filter    = new GreaterFilter(extractor, new Integer(5));
+        Filter         filter    = new GreaterFilter(extractor, 5);
 
         ConditionalIndex index   = new ConditionalIndex(filter, extractor, false, null, true, null);
 
@@ -55,7 +55,7 @@ public class ConditionalIndexTest
     public void testGetFilter() throws Exception
         {
         ValueExtractor extractor = new IdentityExtractor();
-        Filter         filter    = new GreaterFilter(extractor, new Integer(5));
+        Filter         filter    = new GreaterFilter(extractor, 5);
 
         ConditionalIndex index   = new ConditionalIndex(filter, extractor, false, null, true, null);
 
@@ -72,7 +72,7 @@ public class ConditionalIndexTest
     public void testIsOrdered() throws Exception
         {
         ValueExtractor extractor = new IdentityExtractor();
-        Filter         filter    = new GreaterFilter(extractor, new Integer(5));
+        Filter         filter    = new GreaterFilter(extractor, 5);
 
         ConditionalIndex index   = new ConditionalIndex(filter, extractor, false, null, true, null);
 
@@ -90,7 +90,7 @@ public class ConditionalIndexTest
     public void testIsPartial()
         {
         ValueExtractor extractor = new IdentityExtractor();
-        Filter         filter    = new GreaterFilter(extractor, new Integer(5));
+        Filter         filter    = new GreaterFilter(extractor, 5);
 
         ConditionalIndex index   = new ConditionalIndex(filter, extractor, false, null, true, null);
 
@@ -126,44 +126,44 @@ public class ConditionalIndexTest
     public void testGetIndexContents() throws Exception
         {
         Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put("one",         new Integer(1));
-        map.put("another_one", new Integer(1));
-        map.put("one_more",    new Integer(1));
-        map.put("two",         new Integer(2));
-        map.put("three",       new Integer(3));
-        map.put("four",        new Integer(4));
-        map.put("four_again",  new Integer(4));
-        map.put("five",        new Integer(5));
-        map.put("five_a",      new Integer(5));
-        map.put("five_b",      new Integer(5));
-        map.put("five_c",      new Integer(5));
-        map.put("five_d",      new Integer(5));
+        map.put("one",         1);
+        map.put("another_one", 1);
+        map.put("one_more",    1);
+        map.put("two",         2);
+        map.put("three",       3);
+        map.put("four",        4);
+        map.put("four_again",  4);
+        map.put("five",        5);
+        map.put("five_a",      5);
+        map.put("five_b",      5);
+        map.put("five_c",      5);
+        map.put("five_d",      5);
 
         ValueExtractor   extractor     = new IdentityExtractor();
-        Filter           filter        = new LessFilter(extractor, new Integer(5));
+        Filter           filter        = new LessFilter(extractor, 5);
         ConditionalIndex index         = createIndex(map, filter, extractor, true);
         Map              indexContents = index.getIndexContents();
 
-        Set setOne = (Set) indexContents.get(new Integer(1));
+        Set setOne = (Set) indexContents.get(1);
         assertEquals(3, setOne.size());
         assertTrue(setOne.contains("one"));
         assertTrue(setOne.contains("another_one"));
         assertTrue(setOne.contains("one_more"));
 
-        Set setTwo = (Set) indexContents.get(new Integer(2));
+        Set setTwo = (Set) indexContents.get(2);
         assertEquals(1, setTwo.size());
         assertTrue(setTwo.contains("two"));
 
-        Set setThree = (Set) indexContents.get(new Integer(3));
+        Set setThree = (Set) indexContents.get(3);
         assertEquals(1, setThree.size());
         assertTrue(setThree.contains("three"));
 
-        Set setFour = (Set) indexContents.get(new Integer(4));
+        Set setFour = (Set) indexContents.get(4);
         assertEquals(2, setFour.size());
         assertTrue(setFour.contains("four"));
         assertTrue(setFour.contains("four_again"));
 
-        Set setFive = (Set) indexContents.get(new Integer(5));
+        Set setFive = (Set) indexContents.get(5);
         assertNull(setFive);
         }
 
@@ -176,20 +176,20 @@ public class ConditionalIndexTest
     public void testGet() throws Exception
         {
         Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put("one",   new Integer(1));
-        map.put("two",   new Integer(2));
-        map.put("three", new Integer(3));
-        map.put("four",  new Integer(4));
-        map.put("five",  new Integer(5));
+        map.put("one",   1);
+        map.put("two",   2);
+        map.put("three", 3);
+        map.put("four",  4);
+        map.put("five",  5);
 
         ValueExtractor   extractor = new IdentityExtractor();
-        Filter           filter    = new LessFilter(extractor, new Integer(5));
+        Filter           filter    = new LessFilter(extractor, 5);
         ConditionalIndex index     = createIndex(map, filter, extractor, true);
 
-        assertEquals(new Integer(1), index.get("one"));
-        assertEquals(new Integer(2), index.get("two"));
-        assertEquals(new Integer(3), index.get("three"));
-        assertEquals(new Integer(4), index.get("four"));
+        assertEquals(1, index.get("one"));
+        assertEquals(2, index.get("two"));
+        assertEquals(3, index.get("three"));
+        assertEquals(4, index.get("four"));
         assertEquals(MapIndex.NO_VALUE, index.get("five"));
 
         // forward map support == false
@@ -223,7 +223,7 @@ public class ConditionalIndexTest
         ValueExtractor extractor = mock(ValueExtractor.class);
 
         // create the ConditionalIndex to be tested
-        Filter           filter   = new LessFilter(extractor, new Integer(15));
+        Filter           filter   = new LessFilter(extractor, 15);
         ConditionalIndex mapIndex = new ConditionalIndex(filter, extractor, true, null, true, null);
 
         // define the keys and values for the mock entries
@@ -232,7 +232,7 @@ public class ConditionalIndexTest
         Object oExtracted  = 11;
         Object oKey2       = "key2";
         Object oValue2     = 2;
-        Object oExtracted2 = new Integer(11);
+        Object oExtracted2 = 11;
         Object oKey3       = "key3";
         Object oValue3     = 25;
 
@@ -343,7 +343,7 @@ public class ConditionalIndexTest
         ValueExtractor   extractor = mock(ValueExtractor.class);
 
         // create the ConditionalIndex to be tested
-        Filter           filter   = new LessFilter(extractor, new Integer(15));
+        Filter           filter   = new LessFilter(extractor, 15);
         ConditionalIndex mapIndex = new ConditionalIndex(filter, extractor, true, null, false, null);
 
         // define the keys and values for the mock entries
@@ -352,7 +352,7 @@ public class ConditionalIndexTest
         Object oExtracted  = 11;
         Object oKey2       = "key2";
         Object oValue2     = 2;
-        Object oExtracted2 = new Integer(11);
+        Object oExtracted2 = 11;
         Object oKey3       = "key3";
         Object oValue3     = 25;
 
@@ -445,23 +445,23 @@ public class ConditionalIndexTest
         ValueExtractor extractor = mock(ValueExtractor.class);
 
         // create the ConditionalIndex to be tested
-        Filter           filter   = new LessFilter(extractor, new Integer(15));
+        Filter           filter   = new LessFilter(extractor, 15);
         ConditionalIndex mapIndex = new ConditionalIndex(filter, extractor, true, null, true, null);
 
         // define the keys and values for the mock entries
         Object oKey           = "key";
-        Object oValue         = new Integer(0);
-        Object oExtracted     = new Integer(10);
-        Object oNewValue      = new Integer(1);
-        Object oExtractedNew  = new Integer(11);
+        Object oValue         = 0;
+        Object oExtracted     = 10;
+        Object oNewValue      = 1;
+        Object oExtractedNew  = 11;
         Object oKey2          = "key2";
-        Object oValue2        = new Integer(2);
-        Object oExtracted2    = new Integer(11);
+        Object oValue2        = 2;
+        Object oExtracted2    = 11;
         Object oKey3          = "key3";
-        Object oValue3        = new Integer(3);
-        Object oExtracted3    = new Integer(21);
-        Object oNewValue2     = new Integer(4);
-        Object oExtractedNew2 = new Integer(30);
+        Object oValue3        = 3;
+        Object oExtracted3    = 21;
+        Object oNewValue2     = 4;
+        Object oExtractedNew2 = 30;
 
         // set mock expectations
         when(entry.getKey()).thenReturn(oKey);
@@ -506,7 +506,7 @@ public class ConditionalIndexTest
                 oExtracted2, oIndexValue2);
 
         // since the extracted value (21) for key3 fails the filter check
-        // LessFilter(extractor, new Integer(15)), it should not be part of
+        // LessFilter(extractor, 15), it should not be part of
         // the index
         Object oIndexValue3 = mapIndex.get(oKey3);
         assertEquals(MapIndex.NO_VALUE, oIndexValue3);
@@ -553,7 +553,7 @@ public class ConditionalIndexTest
 
         // verify the value for key2 is no longer available from the index
         // since the updated extracted value (30) for key2 fails the filter
-        // check : LessFilter(extractor, new Integer(15)), it should not be
+        // check : LessFilter(extractor, 15), it should not be
         // part of the index
         oIndexValue2 = mapIndex.get(oKey2);
         assertEquals("The index should not contain the extracted value for key2.",
@@ -614,24 +614,24 @@ public class ConditionalIndexTest
         ValueExtractor   extractor = mock(ValueExtractor.class);
 
         // create the ConditionalIndex to be tested
-        Filter           filter   = new LessFilter(extractor, new Integer(15));
+        Filter           filter   = new LessFilter(extractor, 15);
         ConditionalIndex mapIndex = new ConditionalIndex(filter, extractor,
                 true, null, false, null);
 
         // define the keys and values for the mock entries
         Object oKey           = "key";
-        Object oValue         = new Integer(0);
-        Object oExtracted     = new Integer(10);
-        Object oNewValue      = new Integer(1);
-        Object oExtractedNew  = new Integer(11);
+        Object oValue         = 0;
+        Object oExtracted     = 10;
+        Object oNewValue      = 1;
+        Object oExtractedNew  = 11;
         Object oKey2          = "key2";
-        Object oValue2        = new Integer(2);
-        Object oExtracted2    = new Integer(11);
+        Object oValue2        = 2;
+        Object oExtracted2    = 11;
         Object oKey3          = "key3";
-        Object oValue3        = new Integer(3);
-        Object oExtracted3    = new Integer(21);
-        Object oNewValue2     = new Integer(4);
-        Object oExtractedNew2 = new Integer(14);
+        Object oValue3        = 3;
+        Object oExtracted3    = 21;
+        Object oNewValue2     = 4;
+        Object oExtractedNew2 = 14;
 
         // set mock expectations
         when(entry.getKey()).thenReturn(oKey);
@@ -752,13 +752,13 @@ public class ConditionalIndexTest
         ValueExtractor extractor = mock(ValueExtractor.class);
 
         // create the ConditionalIndex to be tested
-        Filter           filter   = new LessFilter(extractor, new Integer(15));
+        Filter           filter   = new LessFilter(extractor, 15);
         ConditionalIndex mapIndex = new ConditionalIndex(filter, extractor, true, null, true, null);
 
         // define the keys and values for the mock entries
         Object oKey       = "key";
-        Object oValue     = new Integer(1);
-        Object oExtracted = new Integer(11);
+        Object oValue     = 1;
+        Object oExtracted = 11;
 
         // set mock expectations
         when(entry.getKey()).thenReturn(oKey);
@@ -798,13 +798,13 @@ public class ConditionalIndexTest
         ValueExtractor   extractor = mock(ValueExtractor.class);
 
         // create the ConditionalIndex to be tested
-        Filter           filter   = new LessFilter(extractor, new Integer(15));
+        Filter           filter   = new LessFilter(extractor, 15);
         ConditionalIndex mapIndex = new ConditionalIndex(filter, extractor, true, null, false, null);
 
         // define the keys and values for the mock entries
         Object oKey       = "key";
-        Object oValue     = new Integer(1);
-        Object oExtracted = new Integer(11);
+        Object oValue     = 1;
+        Object oExtracted = 11;
 
         // set mock expectations
         when(entry.getKey()).thenReturn(oKey);

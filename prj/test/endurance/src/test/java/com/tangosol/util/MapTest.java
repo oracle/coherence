@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -110,11 +110,11 @@ public class MapTest
         Map map = new HashMap();
         assertIdenticalMaps(map, map);
 
-        map.put("a", new Integer(1));
+        map.put("a", 1);
         assertIdenticalMaps(map, map);
 
-        map.put("b", new Integer(2));
-        map.put("c", new Integer(3));
+        map.put("b", 2);
+        map.put("c", 3);
         assertIdenticalMaps(map, map);
         }
 
@@ -129,14 +129,14 @@ public class MapTest
         Map map2 = new Hashtable();
         assertIdenticalMaps(map1, map2);
 
-        map1.put("a", new Integer(1));
-        map2.put("a", new Integer(1));
+        map1.put("a", 1);
+        map2.put("a", 1);
         assertIdenticalMaps(map1, map2);
 
-        map1.put("b", new Integer(2));
-        map2.put("b", new Integer(2));
-        map1.put("c", new Integer(3));
-        map2.put("c", new Integer(3));
+        map1.put("b", 2);
+        map2.put("b", 2);
+        map1.put("c", 3);
+        map2.put("c", 3);
         assertIdenticalMaps(map1, map2);
         }
 
@@ -149,13 +149,13 @@ public class MapTest
         {
         Map map1 = new HashMap();
         Map map2 = new Hashtable();
-        map1.put("a", new Integer(1));
-        map2.put("a", new Integer(1));
-        map1.put("b", new Integer(2));
-        map2.put("b", new Integer(2));
-        map1.put("c", new Integer(3));
-        map2.put("c", new Integer(3));
-        map1.put("d", new Integer(4));
+        map1.put("a", 1);
+        map2.put("a", 1);
+        map1.put("b", 2);
+        map2.put("b", 2);
+        map1.put("c", 3);
+        map2.put("c", 3);
+        map1.put("d", 4);
         assertFalse(map1.size() == map2.size());
         }
 
@@ -432,11 +432,11 @@ public class MapTest
         SafeSortedMap map = new SafeSortedMap();
         for (int i = 1; i <= 101; i++)
             {
-            map.put(Integer.valueOf(i), Integer.valueOf(i));
+            map.put(i, i);
             }
 
         // this triggers COH-2515
-        map.split(Integer.valueOf(0)).isHeadHeavy();
+        map.split(0).isHeadHeavy();
         }
 
     /**
@@ -511,34 +511,34 @@ public class MapTest
         Coh3755SafeSortedMap map = new Coh3755SafeSortedMap();
 
         // test an empty map
-        assertEquals(null, map.findLT(Integer.valueOf(0)));
-        assertEquals(null, map.findLTEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findGTEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findGT(Integer.valueOf(0)));
+        assertEquals(null, map.findLT(0));
+        assertEquals(null, map.findLTEQ(0));
+        assertEquals(null, map.findEQ(0));
+        assertEquals(null, map.findGTEQ(0));
+        assertEquals(null, map.findGT(0));
 
         // test a map with 1 entry
-        map.put(Integer.valueOf(5), Integer.valueOf(5));
+        map.put(5, 5);
 
-        assertEquals(null, map.findLT(Integer.valueOf(4)));
-        assertEquals(null, map.findLT(Integer.valueOf(5)));
-        assertEquals(Integer.valueOf(5), map.findLT(Integer.valueOf(6)));
+        assertEquals(null, map.findLT(4));
+        assertEquals(null, map.findLT(5));
+        assertEquals(5, map.findLT(6));
 
-        assertEquals(null, map.findLTEQ(Integer.valueOf(4)));
-        assertEquals(Integer.valueOf(5), map.findLTEQ(Integer.valueOf(5)));
-        assertEquals(Integer.valueOf(5), map.findLTEQ(Integer.valueOf(6)));
+        assertEquals(null, map.findLTEQ(4));
+        assertEquals(5, map.findLTEQ(5));
+        assertEquals(5, map.findLTEQ(6));
 
-        assertEquals(null, map.findEQ(Integer.valueOf(4)));
-        assertEquals(Integer.valueOf(5), map.findEQ(Integer.valueOf(5)));
-        assertEquals(null, map.findEQ(Integer.valueOf(6)));
+        assertEquals(null, map.findEQ(4));
+        assertEquals(5, map.findEQ(5));
+        assertEquals(null, map.findEQ(6));
 
-        assertEquals(Integer.valueOf(5), map.findGTEQ(Integer.valueOf(4)));
-        assertEquals(Integer.valueOf(5), map.findGTEQ(Integer.valueOf(5)));
-        assertEquals(null, map.findGTEQ(Integer.valueOf(6)));
+        assertEquals(5, map.findGTEQ(4));
+        assertEquals(5, map.findGTEQ(5));
+        assertEquals(null, map.findGTEQ(6));
 
-        assertEquals(Integer.valueOf(5), map.findGT(Integer.valueOf(4)));
-        assertEquals(null, map.findGT(Integer.valueOf(5)));
-        assertEquals(null, map.findGTEQ(Integer.valueOf(6)));
+        assertEquals(5, map.findGT(4));
+        assertEquals(null, map.findGT(5));
+        assertEquals(null, map.findGTEQ(6));
 
         // test a map that has a bunch of data
         map.clear();
@@ -551,49 +551,49 @@ public class MapTest
 
         for (int i = 0; i < 500; i++)
             {
-            Integer IKey = Integer.valueOf(ai[i]);
+            Integer IKey = ai[i];
             map.put(IKey, IKey);
             }
 
         // test LT
-        assertEquals(Integer.valueOf(30), map.findLT(Integer.valueOf(32)));
-        assertEquals(Integer.valueOf(30), map.findLT(Integer.valueOf(31)));
-        assertEquals(null, map.findLT(Integer.valueOf(0)));
-        assertEquals(null, map.findLT(Integer.valueOf(-1)));
-        assertEquals(Integer.valueOf(996), map.findLT(Integer.valueOf(998)));
-        assertEquals(Integer.valueOf(998), map.findLT(Integer.valueOf(1001)));
+        assertEquals(30, map.findLT(32));
+        assertEquals(30, map.findLT(31));
+        assertEquals(null, map.findLT(0));
+        assertEquals(null, map.findLT(-1));
+        assertEquals(996, map.findLT(998));
+        assertEquals(998, map.findLT(1001));
 
         // test LTEQ
-        assertEquals(Integer.valueOf(32), map.findLTEQ(Integer.valueOf(32)));
-        assertEquals(Integer.valueOf(30), map.findLTEQ(Integer.valueOf(31)));
-        assertEquals(Integer.valueOf(0), map.findLTEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findLTEQ(Integer.valueOf(-1)));
-        assertEquals(Integer.valueOf(998), map.findLTEQ(Integer.valueOf(998)));
-        assertEquals(Integer.valueOf(998), map.findLTEQ(Integer.valueOf(1001)));
+        assertEquals(32, map.findLTEQ(32));
+        assertEquals(30, map.findLTEQ(31));
+        assertEquals(0, map.findLTEQ(0));
+        assertEquals(null, map.findLTEQ(-1));
+        assertEquals(998, map.findLTEQ(998));
+        assertEquals(998, map.findLTEQ(1001));
 
         // test EQ
-        assertEquals(Integer.valueOf(32), map.findEQ(Integer.valueOf(32)));
-        assertEquals(null, map.findEQ(Integer.valueOf(31)));
-        assertEquals(Integer.valueOf(0), map.findEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findEQ(Integer.valueOf(-1)));
-        assertEquals(Integer.valueOf(998), map.findEQ(Integer.valueOf(998)));
-        assertEquals(null, map.findEQ(Integer.valueOf(1001)));
+        assertEquals(32, map.findEQ(32));
+        assertEquals(null, map.findEQ(31));
+        assertEquals(0, map.findEQ(0));
+        assertEquals(null, map.findEQ(-1));
+        assertEquals(998, map.findEQ(998));
+        assertEquals(null, map.findEQ(1001));
 
         // test GTEQ
-        assertEquals(Integer.valueOf(32), map.findGTEQ(Integer.valueOf(32)));
-        assertEquals(Integer.valueOf(32), map.findGTEQ(Integer.valueOf(31)));
-        assertEquals(Integer.valueOf(0), map.findGTEQ(Integer.valueOf(0)));
-        assertEquals(Integer.valueOf(0), map.findGTEQ(Integer.valueOf(-1)));
-        assertEquals(Integer.valueOf(998), map.findGTEQ(Integer.valueOf(998)));
-        assertEquals(null, map.findGTEQ(Integer.valueOf(1001)));
+        assertEquals(32, map.findGTEQ(32));
+        assertEquals(32, map.findGTEQ(31));
+        assertEquals(0, map.findGTEQ(0));
+        assertEquals(0, map.findGTEQ(-1));
+        assertEquals(998, map.findGTEQ(998));
+        assertEquals(null, map.findGTEQ(1001));
 
         // test GT
-        assertEquals(Integer.valueOf(34), map.findGT(Integer.valueOf(32)));
-        assertEquals(Integer.valueOf(32), map.findGT(Integer.valueOf(31)));
-        assertEquals(Integer.valueOf(2), map.findGT(Integer.valueOf(0)));
-        assertEquals(Integer.valueOf(0), map.findGT(Integer.valueOf(-1)));
-        assertEquals(null, map.findGT(Integer.valueOf(998)));
-        assertEquals(null, map.findGT(Integer.valueOf(1001)));
+        assertEquals(34, map.findGT(32));
+        assertEquals(32, map.findGT(31));
+        assertEquals(2, map.findGT(0));
+        assertEquals(0, map.findGT(-1));
+        assertEquals(null, map.findGT(998));
+        assertEquals(null, map.findGT(1001));
         }
 
 

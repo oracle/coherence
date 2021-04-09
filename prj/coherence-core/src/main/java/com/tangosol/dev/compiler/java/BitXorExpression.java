@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -230,15 +230,15 @@ public class BitXorExpression extends BitwiseExpression
         DataType dt = getType();
         if (dt == BOOLEAN)
             {
-            oVal = new Boolean(((Boolean) oLeft).booleanValue() ^ ((Boolean) oRight).booleanValue());
+            oVal = ((Boolean) oLeft).booleanValue() ^ ((Boolean) oRight).booleanValue();
             }
         else if (dt == LONG)
             {
-            oVal = Long.valueOf(((Number) oLeft).longValue() ^ ((Number) oRight).longValue());
+            oVal = ((Number) oLeft).longValue() ^ ((Number) oRight).longValue();
             }
         else // int
             {
-            oVal = Integer.valueOf(((Number) oLeft).intValue() ^ ((Number) oRight).intValue());
+            oVal = ((Number) oLeft).intValue() ^ ((Number) oRight).intValue();
             }
 
         return oVal;

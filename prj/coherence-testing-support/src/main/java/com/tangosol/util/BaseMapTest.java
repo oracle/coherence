@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -131,9 +131,9 @@ public class BaseMapTest
             {
             for (int i = 0; i < 200; ++i)
                 {
-                Integer I = new Integer(i);
-                oControl = mapControl.put(I, I);
-                oTest    = mapTest   .put(I, I);
+                Integer I = i;
+                oControl  = mapControl.put(I, I);
+                oTest     = mapTest   .put(I, I);
                 assertIdenticalResult(oControl, oTest);
                 assertIdenticalMaps(mapControl, mapTest);
                 }
@@ -149,7 +149,7 @@ public class BaseMapTest
             {
             for (int i = 0; i < 100; ++i)
                 {
-                Integer I = new Integer(i);
+                Integer I = i;
                 oControl = mapControl.remove(I);
                 oTest    = mapTest   .remove(I);
                 assertIdenticalResult(oControl, oTest);
@@ -272,7 +272,7 @@ public class BaseMapTest
         int nRange = 10000;
         for (int i = 0; i < cIters; i++)
             {
-            Integer IRandom = Integer.valueOf(rnd(nRange));
+            Integer IRandom = rnd(nRange);
             mapControl.put(IRandom, IRandom);
             mapTest   .put(IRandom, IRandom);
             }
@@ -286,16 +286,16 @@ public class BaseMapTest
 
         i = rnd(nRange);
         j = rnd(nRange);
-        IFrom = Integer.valueOf(Math.min(i, j));
-        ITo   = Integer.valueOf(Math.max(i, j));
+        IFrom = Math.min(i, j);
+        ITo   = Math.max(i, j);
         assertIdenticalSortedMaps(mapControl.subMap(IFrom, ITo),
                                   mapTest   .subMap(IFrom, ITo));
 
-        ITo = Integer.valueOf(rnd(nRange));
+        ITo = rnd(nRange);
         assertIdenticalSortedMaps(mapControl.headMap(ITo),
                                   mapTest   .headMap(ITo));
 
-        IFrom = Integer.valueOf(rnd(nRange));
+        IFrom = rnd(nRange);
         assertIdenticalSortedMaps(mapControl.tailMap(IFrom),
                                   mapTest   .tailMap(IFrom));
 
@@ -320,7 +320,7 @@ public class BaseMapTest
         // initialize the concurrent map
         for (int i = 0; i < cKeys; i++)
             {
-            mapTest.put(Integer.valueOf(i), Boolean.FALSE);
+            mapTest.put(i, Boolean.FALSE);
             }
 
         // spin up worker threads
@@ -339,7 +339,7 @@ public class BaseMapTest
                                 mapTest.lock(ConcurrentMap.LOCK_ALL, -1L);
                                 for (int j = 0; j < cKeys; j++)
                                     {
-                                    Integer IKey = Integer.valueOf(j);
+                                    Integer IKey = j;
                                     assertTrue(mapTest.get(IKey).equals(Boolean.FALSE));
                                     mapTest.put(IKey, Boolean.TRUE);
                                     }
@@ -355,7 +355,7 @@ public class BaseMapTest
 
                                 for (int j = 0; j < cKeys; j++)
                                     {
-                                    mapTest.put(Integer.valueOf(j), Boolean.FALSE);
+                                    mapTest.put(j, Boolean.FALSE);
                                     }
 
                                 mapTest.unlock(ConcurrentMap.LOCK_ALL);
@@ -364,7 +364,7 @@ public class BaseMapTest
 
                             default: // individual key lock/unlock
                                 {
-                                Integer IKey = Integer.valueOf(random.nextInt(cKeys));
+                                Integer IKey = random.nextInt(cKeys);
 
                                 mapTest.lock(IKey, -1);
                                 assertTrue(mapTest.get(IKey).equals(Boolean.FALSE));
@@ -1328,14 +1328,14 @@ public class BaseMapTest
     public static Map convertCollectionToMap(Collection coll)
         {
         Map map = new HashMap();
-        Integer ONE = new Integer(1);
+        Integer ONE = 1;
         for (Iterator iter = coll.iterator(); iter.hasNext(); )
             {
             Object o = iter.next();
             Integer IPrev = (Integer) map.put(o, ONE);
             if (IPrev != null)
                 {
-                map.put(o, new Integer(IPrev.intValue() + 1));
+                map.put(o, IPrev.intValue() + 1);
                 }
             }
         return map;
@@ -2045,7 +2045,7 @@ public class BaseMapTest
         Object[] aoKeys = new Object[cKeys];
         for (int i = 0; i < cKeys; ++i)
             {
-            aoKeys[i] = new Integer(i);
+            aoKeys[i] = i;
             }
 
         // create the test daemon objects

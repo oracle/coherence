@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -517,33 +517,33 @@ public class PofObjectValueTest
         m_writer.writeObject(0, null);
         m_writer.writeObject(0, Boolean.FALSE);
         m_writer.writeObject(0, true);
-        m_writer.writeObject(0, new Character('a'));
-        m_writer.writeObject(0, new Byte(Byte.MIN_VALUE));
-        m_writer.writeObject(0, new Short(Short.MAX_VALUE));
-        m_writer.writeObject(0, new Integer(0));
-        m_writer.writeObject(0, new Integer(-1));
-        m_writer.writeObject(0, new Integer(Integer.MAX_VALUE));
-        m_writer.writeObject(0, new Long(-1));
-        m_writer.writeObject(0, new Long(Long.MAX_VALUE));
-        m_writer.writeObject(0, new Float(0));
-        m_writer.writeObject(0, new Float(Float.NEGATIVE_INFINITY));
-        m_writer.writeObject(0, new Double(Double.MAX_VALUE));
+        m_writer.writeObject(0, 'a');
+        m_writer.writeObject(0, Byte.MIN_VALUE);
+        m_writer.writeObject(0, Short.MAX_VALUE);
+        m_writer.writeObject(0, 0);
+        m_writer.writeObject(0, -1);
+        m_writer.writeObject(0, Integer.MAX_VALUE);
+        m_writer.writeObject(0, (long) -1);
+        m_writer.writeObject(0, Long.MAX_VALUE);
+        m_writer.writeObject(0, (float) 0);
+        m_writer.writeObject(0, Float.NEGATIVE_INFINITY);
+        m_writer.writeObject(0, Double.MAX_VALUE);
 
         initPOFReader();
-        assertEquals(null, m_reader.readObject(0));
-        assertEquals(new Boolean(false), m_reader.readObject(0));
-        assertEquals(new Boolean(true), m_reader.readObject(0));
-        assertEquals(new Character('a'), m_reader.readObject(0));
-        assertEquals(new Byte(Byte.MIN_VALUE), m_reader.readObject(0));
-        assertEquals(new Short(Short.MAX_VALUE), m_reader.readObject(0));
-        assertEquals(new Integer(0), m_reader.readObject(0));
-        assertEquals(new Integer(-1), m_reader.readObject(0));
-        assertEquals(new Integer(Integer.MAX_VALUE), m_reader.readObject(0));
-        assertEquals(new Long(-1), m_reader.readObject(0));
-        assertEquals(new Long(Long.MAX_VALUE), m_reader.readObject(0));
-        assertEquals(new Float(0), m_reader.readObject(0));
-        assertEquals(new Float(Float.NEGATIVE_INFINITY), m_reader.readObject(0));
-        assertEquals(new Double(Double.MAX_VALUE), m_reader.readObject(0));
+        assertNull(m_reader.readObject(0));
+        assertEquals(false, m_reader.readObject(0));
+        assertEquals(true, m_reader.readObject(0));
+        assertEquals((Character) 'a', m_reader.readObject(0));
+        assertEquals((Byte) Byte.MIN_VALUE, m_reader.readObject(0));
+        assertEquals((Short) Short.MAX_VALUE, m_reader.readObject(0));
+        assertEquals((Integer) 0, m_reader.readObject(0));
+        assertEquals((Integer) (-1), m_reader.readObject(0));
+        assertEquals((Integer) Integer.MAX_VALUE, m_reader.readObject(0));
+        assertEquals((Long) (-1L), m_reader.readObject(0));
+        assertEquals((Long) Long.MAX_VALUE, m_reader.readObject(0));
+        assertEquals((Float) 0f, m_reader.readObject(0));
+        assertEquals((Float) Float.NEGATIVE_INFINITY, m_reader.readObject(0));
+        assertEquals((Double) Double.MAX_VALUE, m_reader.readObject(0));
         }
 
     private void testArrayTypes() throws IOException

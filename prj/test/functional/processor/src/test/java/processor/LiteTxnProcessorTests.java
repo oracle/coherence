@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -174,9 +174,9 @@ public class LiteTxnProcessorTests
             for (int i = 0; i < cKeys; i++)
                 {
                 String sKey = getKey(i);
-                cache1.put(sKey, Integer.valueOf(0));
-                cache2.put(sKey, Integer.valueOf(0));
-                cache3.put(sKey, Integer.valueOf(0));
+                cache1.put(sKey, 0);
+                cache2.put(sKey, 0);
+                cache3.put(sKey, 0);
                 }
 
             // start the client (load) thread
@@ -246,19 +246,19 @@ public class LiteTxnProcessorTests
     @Test
     public void testDeadlockDetectionSame()
         {
-        doDeadlockDetectionTest("same", "test-associator1", "test-associator1", Integer.valueOf(2), Integer.valueOf(102));
+        doDeadlockDetectionTest("same", "test-associator1", "test-associator1", 2, 102);
         }
 
     @Test
     public void testDeadlockDetectionDiff1()
         {
-        doDeadlockDetectionTest("diff1", "test-associator1", "test-associator2", Integer.valueOf(2), Integer.valueOf(102));
+        doDeadlockDetectionTest("diff1", "test-associator1", "test-associator2", 2, 102);
         }
 
     @Test
     public void testDeadlockDetectionDiff2()
         {
-        doDeadlockDetectionTest("diff2", "test-associator1", "test-associator2", Integer.valueOf(2), Integer.valueOf(2));
+        doDeadlockDetectionTest("diff2", "test-associator1", "test-associator2", 2, 2);
         }
 
     @Test
@@ -387,8 +387,8 @@ public class LiteTxnProcessorTests
         final NamedCache cache          = getFactory().ensureCache(sCache1, null);
         final NamedCache cacheSecondary = getFactory().ensureCache(sCache2, null);
 
-        cache.put(oKey, new Integer(0));
-        cacheSecondary.put(oKey, new Integer(0));
+        cache.put(oKey, 0);
+        cacheSecondary.put(oKey, 0);
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
         Runnable        runner1  = () -> cacheSecondary.invokeAll(AlwaysFilter.INSTANCE,
@@ -655,9 +655,9 @@ public class LiteTxnProcessorTests
 
         for (int i = 0; i < 3; i++)
             {
-            map.put(Integer.valueOf(i), Integer.valueOf(i));
-            map.put(Integer.valueOf(i + 100), Integer.valueOf(i + 100));
-            setKeys.add(Integer.valueOf(i));
+            map.put(i, i);
+            map.put(i + 100, i + 100);
+            setKeys.add(i);
             }
 
         cache1.putAll(map);
@@ -665,7 +665,7 @@ public class LiteTxnProcessorTests
 
         try
             {
-            cache1.invoke(Integer.valueOf(1), new Coh9931Processor());
+            cache1.invoke(1, new Coh9931Processor());
             cache1.invokeAll(setKeys, new Coh9931Processor());
             }
         catch (Exception e)
@@ -1044,7 +1044,7 @@ public class LiteTxnProcessorTests
             if (oKey instanceof Integer)
                 {
                 int nKey = ((Integer) oKey).intValue();
-                return Integer.valueOf(nKey % 100);
+                return nKey % 100;
                 }
 
             return oKey;
@@ -1065,7 +1065,7 @@ public class LiteTxnProcessorTests
             Binary binValue, Converter convUp, Converter convDown)
         {
         Integer IValue = (Integer) convUp.convert(binValue);
-        return (Binary) convDown.convert(Integer.valueOf(IValue.intValue() + 1));
+        return (Binary) convDown.convert(IValue.intValue() + 1);
         }
 
     /**

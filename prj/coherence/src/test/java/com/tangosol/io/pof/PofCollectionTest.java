@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -48,7 +48,7 @@ public class PofCollectionTest
         Object[] ao1 = {"test", "test3", "testPOF1"};
         Object[] ao2 = {"test", "test1", "testPOF2"};
         Object[] ao3 = new Object[0];
-        Object[] ao  = new Object[]{new Integer(11), "test", Boolean.TRUE};
+        Object[] ao  = new Object[]{11, "test", Boolean.TRUE};
 
         initPOFWriter();
         m_writer.writeObjectArray(0, null);
@@ -72,7 +72,7 @@ public class PofCollectionTest
             throws IOException
         {
         Object[] ao1 = {"test", "test3", "testPOF1"};
-        Object[] ao2 = {new Integer(32), new Integer(Integer.MAX_VALUE), new Integer(-1)};
+        Object[] ao2 = {32, Integer.MAX_VALUE, -1};
 
         initPOFWriter();
         m_writer.writeObjectArray(0, ao1, String.class);
@@ -89,7 +89,7 @@ public class PofCollectionTest
             throws IOException
         {
         Object[] ao1 = {"test", "test3", null, null, "test4"};
-        Object[] ao2 = {new Integer(32), new Integer(Integer.MAX_VALUE), new Integer(-1), null};
+        Object[] ao2 = {32, Integer.MAX_VALUE, -1, null};
 
         initPOFWriter();
         m_writer.writeObjectArray(0, ao1, String.class);
@@ -109,9 +109,9 @@ public class PofCollectionTest
         col1.add("A");
         col1.add("Z");
         col1.add("7");
-        col2.add(new Integer(32));
-        col2.add(new Integer(Integer.MIN_VALUE));
-        col2.add(new Integer(Integer.MAX_VALUE));
+        col2.add(32);
+        col2.add(Integer.MIN_VALUE);
+        col2.add(Integer.MAX_VALUE);
 
         initPOFWriter();
         m_writer.writeCollection(0, null);
@@ -173,9 +173,9 @@ public class PofCollectionTest
         list1.add("A");
         list1.add("Z");
         list1.add("7");
-        list2.add(new Integer(32));
-        list2.add(new Integer(Integer.MIN_VALUE));
-        list2.add(new Integer(Integer.MAX_VALUE));
+        list2.add(32);
+        list2.add(Integer.MIN_VALUE);
+        list2.add(Integer.MAX_VALUE);
 
         initPOFWriter();
         m_writer.writeCollection(0, list1, String.class);
@@ -210,22 +210,22 @@ public class PofCollectionTest
         list1.add("Z");
         list1.add("7");
         list1.add(null);
-        list2.add(new Integer(32));
-        list2.add(new Integer(PofConstants.V_REFERENCE_NULL));
-        list2.add(new Integer(Integer.MIN_VALUE));
-        list2.add(new Integer(Integer.MAX_VALUE));
-        list2.add(new Integer(-1));
+        list2.add(32);
+        list2.add(PofConstants.V_REFERENCE_NULL);
+        list2.add(Integer.MIN_VALUE);
+        list2.add(Integer.MAX_VALUE);
+        list2.add(-1);
         list2.add(null);
-        list3.add(new Long(64));
-        list3.add(new Long(Long.MIN_VALUE));
-        list3.add(new Long(Long.MAX_VALUE));
+        list3.add(64L);
+        list3.add(Long.MIN_VALUE);
+        list3.add(Long.MAX_VALUE);
         list3.add(null);
-        list3.add(new Long(-1));
-        list4.add(new Short((short)16));
-        list4.add(new Short(Short.MIN_VALUE));
-        list4.add(new Short(Short.MAX_VALUE));
+        list3.add((long) -1);
+        list4.add((short) 16);
+        list4.add(Short.MIN_VALUE);
+        list4.add(Short.MAX_VALUE);
         list4.add(null);
-        list4.add(new Short((short)-1));
+        list4.add((short) -1);
 
         initPOFWriter();
         m_writer.writeCollection(0, list1, String.class);
@@ -286,12 +286,12 @@ public class PofCollectionTest
         {
         Map map1 = new HashMap();
         Map map2 = new HashMap();
-        map1.put(new Integer(0), "A");
-        map1.put(new Integer(1), "Z");
-        map1.put(new Integer(2), "7");
-        map2.put(new Integer(5), new Integer(32));
-        map2.put(new Integer(10), new Integer(Integer.MIN_VALUE));
-        map2.put(new Integer(15), new Integer(Integer.MAX_VALUE));
+        map1.put(0, "A");
+        map1.put(1, "Z");
+        map1.put(2, "7");
+        map2.put(5, 32);
+        map2.put(10, Integer.MIN_VALUE);
+        map2.put(15, Integer.MAX_VALUE);
 
         initPOFWriter();
         m_writer.writeMap(0, map1);
@@ -343,13 +343,13 @@ public class PofCollectionTest
         {
         Map map1 = new HashMap();
         Map map2 = new HashMap();
-        map1.put(new Short((short) 0), "A");
-        map1.put(new Short((short) 1), "Z");
-        map1.put(new Short((short) 2), "7");
+        map1.put((short) 0, "A");
+        map1.put((short) 1, "Z");
+        map1.put((short) 2, "7");
 
-        map2.put(new Integer(5), new Integer(32));
-        map2.put(new Integer(10), new Integer(Integer.MIN_VALUE));
-        map2.put(new Integer(15), new Integer(Integer.MAX_VALUE));
+        map2.put(5, 32);
+        map2.put(10, Integer.MIN_VALUE);
+        map2.put(15, Integer.MAX_VALUE);
 
         initPOFWriter();
         m_writer.writeMap(0, map1, Short.class);
@@ -389,13 +389,13 @@ public class PofCollectionTest
         {
         Map map1 = new HashMap();
         Map map2 = new HashMap();
-        map1.put(new Short((short) 0), "A");
-        map1.put(new Short((short) 1), "Z");
-        map1.put(new Short((short) 2), "7");
+        map1.put((short) 0, "A");
+        map1.put((short) 1, "Z");
+        map1.put((short) 2, "7");
 
-        map2.put(new Integer(5), new Integer(32));
-        map2.put(new Integer(10), new Integer(Integer.MIN_VALUE));
-        map2.put(new Integer(15), new Integer(Integer.MAX_VALUE));
+        map2.put(5, 32);
+        map2.put(10, Integer.MIN_VALUE);
+        map2.put(15, Integer.MAX_VALUE);
 
         initPOFWriter();
         m_writer.writeMap(0, map1, Short.class, String.class);
@@ -446,17 +446,17 @@ public class PofCollectionTest
         {
         Map map1 = new HashMap();
         Map map2 = new HashMap();
-        map1.put(new Short((short) 0), "A");
-        map1.put(new Short((short) 1), "Z");
-        map1.put(new Short((short) 2), "7");
-        map1.put(new Short((short) 3), null);
+        map1.put((short) 0, "A");
+        map1.put((short) 1, "Z");
+        map1.put((short) 2, "7");
+        map1.put((short) 3, null);
         map1.put(null, null);
 
-        map2.put(new Integer(5), new Integer(32));
-        map2.put(new Integer(10), new Integer(Integer.MIN_VALUE));
-        map2.put(new Integer(15), new Integer(Integer.MAX_VALUE));
-        map2.put(new Integer(20), null);
-        map2.put(null, new Integer(77));
+        map2.put(5, 32);
+        map2.put(10, Integer.MIN_VALUE);
+        map2.put(15, Integer.MAX_VALUE);
+        map2.put(20, null);
+        map2.put(null, 77);
 
         initPOFWriter();
         m_writer.writeMap(0, map1, Short.class, String.class);
@@ -481,10 +481,10 @@ public class PofCollectionTest
 
         // compare map2 with result 2
         assertEquals(mapR2.size(), map2.size());
-        assertEquals(mapR2.get(new Integer(5)), map2.get(new Integer(5)));
-        assertEquals(mapR2.get(new Integer(10)), map2.get(new Integer(10)));
-        assertEquals(mapR2.get(new Integer(15)), map2.get(new Integer(15)));
-        assertEquals(mapR2.get(new Integer(20)), map2.get(new Integer(20)));
+        assertEquals(mapR2.get(5), map2.get(5));
+        assertEquals(mapR2.get(10), map2.get(10));
+        assertEquals(mapR2.get(15), map2.get(15));
+        assertEquals(mapR2.get(20), map2.get(20));
         assertEquals(mapR2.get(null), map2.get(null));
 
         try
@@ -505,21 +505,21 @@ public class PofCollectionTest
         Map col1 = new HashMap();
         Map col2 = new HashMap();
 
-        col1.put(new Integer(0), "A");
-        col1.put(new Integer(1), "G");
-        col1.put(new Integer(2), "7");
+        col1.put(0, "A");
+        col1.put(1, "G");
+        col1.put(2, "7");
 
-        col2.put(new Integer(0), new java.sql.Date(106, 7, 7));
-        col2.put(new Integer(1), new Time(7, 7, 7));
-        col2.put(new Integer(2), new Date(106, 7, 8));
-        col2.put(new Integer(3), new Timestamp(106, 7, 8, 0, 0, 0, 0));
-        col2.put(new Integer(10), col1);
-        col2.put(new Integer(15), new Double(Double.POSITIVE_INFINITY));
-        col2.put(new Integer(20), new Double(Double.NEGATIVE_INFINITY));
-        col2.put(new Integer(25), new Double(Double.NaN));
-        col2.put(new Integer(30), new Float(Float.POSITIVE_INFINITY));
-        col2.put(new Integer(35), new Float(Float.NEGATIVE_INFINITY));
-        col2.put(new Integer(40), new Float(Float.NaN));
+        col2.put(0, new java.sql.Date(106, 7, 7));
+        col2.put(1, new Time(7, 7, 7));
+        col2.put(2, new Date(106, 7, 8));
+        col2.put(3, new Timestamp(106, 7, 8, 0, 0, 0, 0));
+        col2.put(10, col1);
+        col2.put(15, Double.POSITIVE_INFINITY);
+        col2.put(20, Double.NEGATIVE_INFINITY);
+        col2.put(25, Double.NaN);
+        col2.put(30, Float.POSITIVE_INFINITY);
+        col2.put(35, Float.NEGATIVE_INFINITY);
+        col2.put(40, Float.NaN);
 
         initPOFWriter();
         m_writer.writeMap(0, col2);
@@ -540,7 +540,7 @@ public class PofCollectionTest
         assertEquals(colVal2.size(), colValR2.size());
         assertEquals(colKey2.size(), colKeyR2.size());
 
-        Object obj = colR2.get(new Integer(10));
+        Object obj = colR2.get(10);
 
         assertTrue(obj instanceof HashMap);
         HashMap    hashCol    = (HashMap) obj;
@@ -560,9 +560,9 @@ public class PofCollectionTest
             throws IOException
         {
         Map map1 = new HashMap();
-        map1.put(new Integer(0), "A");
-        map1.put(new Integer(1), "G");
-        map1.put(new Integer(2), "7");
+        map1.put(0, "A");
+        map1.put(1, "G");
+        map1.put(2, "7");
 
         initPOFWriter();
         m_writer.writeMap(0, map1, Integer.class);
@@ -576,17 +576,17 @@ public class PofCollectionTest
         assertTrue(o instanceof Map);
         Map mapR1 = (Map) o;
         assertEquals(mapR1.size(), map1.size());
-        assertEquals(mapR1.get(new Integer(0)), map1.get(new Integer(0)));
-        assertEquals(mapR1.get(new Integer(1)), map1.get(new Integer(1)));
-        assertEquals(mapR1.get(new Integer(2)), map1.get(new Integer(2)));
+        assertEquals(mapR1.get(0), map1.get(0));
+        assertEquals(mapR1.get(1), map1.get(1));
+        assertEquals(mapR1.get(2), map1.get(2));
 
         o = m_reader.readObject(0);
         assertTrue(o instanceof Map);
         mapR1 = (Map) o;
         assertEquals(mapR1.size(), map1.size());
-        assertEquals(mapR1.get(new Integer(0)), map1.get(new Integer(0)));
-        assertEquals(mapR1.get(new Integer(1)), map1.get(new Integer(1)));
-        assertEquals(mapR1.get(new Integer(2)), map1.get(new Integer(2)));
+        assertEquals(mapR1.get(0), map1.get(0));
+        assertEquals(mapR1.get(1), map1.get(1));
+        assertEquals(mapR1.get(2), map1.get(2));
         }
 
     @Test
@@ -697,9 +697,9 @@ public class PofCollectionTest
         m_writer = new PofBufferWriter(m_bo, ctx);
 
         Map<String, Double> map = new HashMap<String, Double>();
-        map.put("A", new Double(11.11));
-        map.put("Z", new Double(88.88));
-        map.put("7", new Double(100.1));
+        map.put("A", 11.11);
+        map.put("Z", 88.88);
+        map.put("7", 100.1);
 
         Map<String, PortableObject> mapPerson = new HashMap<String, PortableObject>();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -834,7 +834,7 @@ public class RunnerProtocol
 
                             for (int x = i, z = i + cBatch; x < z; ++x)
                                 {
-                                col.add(new Integer(x));
+                                col.add(x);
                                 }
 
                             break;
@@ -844,7 +844,7 @@ public class RunnerProtocol
 
                             for (int x = i, z = i + cBatch; x < z; ++x)
                                 {
-                                map.put(new Integer(x), oValue);
+                                map.put(x, oValue);
                                 }
 
                             break;
@@ -1362,7 +1362,7 @@ public class RunnerProtocol
 
                     for (int x = i, z = i + cBatch; x < z; ++x)
                         {
-                        col.add(new Integer(x));
+                        col.add(x);
                         }
 
                     long ldtStart = System.currentTimeMillis();
@@ -1526,7 +1526,7 @@ public class RunnerProtocol
 
                     for (int x = i, z = i + cBatch; x < z; ++x)
                         {
-                        col.add(new Integer(x));
+                        col.add(x);
                         }
 
                     long ldtStart = System.currentTimeMillis();
@@ -1817,7 +1817,7 @@ public class RunnerProtocol
 
                 for (int x = i, z = i + cBatch; x < z; ++x)
                     {
-                    map.put(new Integer(x), oValue);
+                    map.put(x, oValue);
                     }
 
                 cache.putAll(map);
@@ -2450,7 +2450,7 @@ public class RunnerProtocol
                         tempArray = new byte[m_abValue.length];
                         // wheel.nextBytes(tempArray);
                         Arrays.fill(tempArray, (byte) rr.getRandomSize(1000));
-                        map.put(new Integer(x), tempArray);
+                        map.put(x, tempArray);
                         }
 
                     long ldtStart = System.currentTimeMillis();
@@ -2775,7 +2775,7 @@ public class RunnerProtocol
 
                             }
 
-                        map.put(new Integer(x), ctv);
+                        map.put(x, ctv);
                         batchTotalBytes += tv.toString().length() - 5;
                         }
 
@@ -3067,7 +3067,7 @@ public class RunnerProtocol
                         // wheel.nextBytes(tempArray);
                         Arrays.fill(tempArray, (byte) rr.getRandomSize(1000));    // (int)(range * generator.nextDouble());
                         // try {     FW.o("\n after ="+Arrays.toString(sourceArray));    } catch (IOException e) {   }
-                        map.put(new Integer(x), tempArray);
+                        map.put(x, tempArray);
                         }
 
                     long ldtStart = System.currentTimeMillis();
@@ -3320,7 +3320,7 @@ public class RunnerProtocol
                         {
                         abValue         = new byte[rRange.getRandomSize()];
                         batchTotalBytes += abValue.length;
-                        map.put(new Integer(x), abValue);
+                        map.put(x, abValue);
                         }
 
                     long ldtStart = System.currentTimeMillis();
