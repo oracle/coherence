@@ -143,7 +143,6 @@
     <eclipse.mp.config.version>1.4</eclipse.mp.config.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.metrics.version>2.3.2</eclipse.mp.metrics.version>
-    <eclipse.jetty.version>9.3.28.v20191105</eclipse.jetty.version>
     <felix.version>6.0.3</felix.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
     <graal.version>19.3.1</graal.version>
