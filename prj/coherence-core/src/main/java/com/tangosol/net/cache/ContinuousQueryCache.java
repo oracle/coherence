@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -631,7 +631,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         switch (nState)
             {
             case STATE_DISCONNECTED:
-                m_cache  = null;
+                resetCacheRefs();
                 m_nState = STATE_DISCONNECTED;
                 break;
 
@@ -681,6 +681,16 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             default:
                 throw new IllegalArgumentException("unknown state: " + nState);
             }
+        }
+
+    /**
+     * Reset cache references to null.
+     */
+    protected void resetCacheRefs()
+        {
+        m_converterFromBinary = null;
+        m_converterToBinary   = null;
+        m_cache               = null;
         }
 
     /**
@@ -789,7 +799,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
                 }
             }
 
-        return oOrig;
+        return fromInternal(oOrig);
         }
 
     @Override
@@ -909,7 +919,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             checkEntry(oKey, oValue);
 
             NamedCache<K, V_FRONT> cache = (NamedCache<K, V_FRONT>) getCache();    // safe (no transformer)
-            V_FRONT                oOrig = cache.put(oKey, oValue, cMillis);
+            V_FRONT                oOrig = fromInternal(cache.put(oKey, oValue, cMillis));
             return InvocableMapHelper.evaluateEntry(getFilter(), oKey, oOrig)
                     ? oOrig : null;
             }
@@ -1269,12 +1279,10 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         synchronized (this)
             {
             releaseListeners();
+            resetCacheRefs();
 
-            m_mapLocal            = null;
-            m_cache               = null;
-            m_converterFromBinary = null;
-            m_converterToBinary   = null;
-            m_nState              = STATE_DISCONNECTED;
+            m_mapLocal = null;
+            m_nState   = STATE_DISCONNECTED;
             }
         }
 
@@ -2907,6 +2915,8 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
                 convDown = convUp = NullImplementation.getConverter();
                 }
 
+            // Note: value up converter is intentionally a no-op converter to avoid
+            //       deserialization until it needs to be surfaced to the client
             cacheLocal = ConverterCollections.getNamedCache(cacheLocal, convUp, convDown, convNull, convDown);
 
             m_converterFromBinary = convUp;

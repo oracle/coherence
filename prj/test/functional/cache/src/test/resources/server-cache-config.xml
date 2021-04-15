@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -37,6 +37,10 @@
     <cache-mapping>
       <cache-name>test-coh20907</cache-name>
       <scheme-name>test-coh20907</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>view-*</cache-name>
+      <scheme-name>view-scheme</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
@@ -137,5 +141,10 @@
       </backing-map-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
+
+    <view-scheme>
+      <scheme-name>view-scheme</scheme-name>
+      <autostart>true</autostart>
+    </view-scheme>
   </caching-schemes>
 </cache-config>

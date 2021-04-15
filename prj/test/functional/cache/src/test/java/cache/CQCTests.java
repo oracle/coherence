@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
@@ -38,6 +39,9 @@ import common.TestNCDListener;
 import data.Person;
 
 import java.io.IOException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import java.util.ArrayList;
 
@@ -564,6 +568,59 @@ public class CQCTests
         assertThat(cacheCQC.getState(), is(ContinuousQueryCache.STATE_DISCONNECTED));
         assertThat(cacheCQC.get(1), is(new Person("111-11-1111", "Homer", "Simpson", 1945, null, new String[0])));
         assertThat(cacheCQC.getState(), is(ContinuousQueryCache.STATE_SYNCHRONIZED));
+        }
+
+    @Test
+    public void testViewServiceRestart()
+        {
+        // Note: service is not set to autostart thus this is a single server test
+
+        ContinuousQueryCache<Integer, String, String> cacheView = (ContinuousQueryCache) getNamedCache("view-foo");
+        try
+            {
+            for (int i = 0; i < 100; ++i)
+                {
+                cacheView.put(i, "value " + i);
+                }
+
+            causeServiceDisruption(cacheView.getCache());
+
+            cacheView.size(); // cause the service restart
+
+            Eventually.assertThat(invoking(() -> cacheView.getState()), is(ContinuousQueryCache.STATE_DISCONNECTED));
+
+            String sReturn = cacheView.put(0, "value new");
+            assertEquals("value 0", sReturn);
+            }
+        finally
+            {
+            cacheView.destroy();
+            }
+        }
+
+    /**
+     * Stop the inner service.
+     *
+     * @param cache  the cache hosted by the service to stop
+     */
+    protected void causeServiceDisruption(NamedCache cache)
+        {
+        CacheService serviceSafe = cache.getCacheService();
+        try
+            {
+            Method       methRunningService = serviceSafe.getClass().getMethod("getRunningService");
+            CacheService serviceInternal    = (CacheService) methRunningService.invoke(serviceSafe);
+
+            serviceInternal.stop();
+            }
+        catch (NoSuchMethodException e)
+            {
+            fail("Unexpected service: " + serviceSafe);
+            }
+        catch (IllegalAccessException | InvocationTargetException e)
+            {
+            fail("Failed to call getRunningService on: " + serviceSafe);
+            }
         }
 
     // ----- helper methods ----------------------------------------------------
