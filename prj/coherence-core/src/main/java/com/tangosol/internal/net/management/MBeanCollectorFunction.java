@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.management;
+
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
@@ -28,6 +30,7 @@ import com.tangosol.util.function.Remote;
 import com.tangosol.util.stream.RemoteCollectors;
 
 import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
@@ -139,6 +142,12 @@ public class MBeanCollectorFunction
                     }
                 mapObjectNames.put(setAttributeName, colNames);
                 }
+            catch (InstanceNotFoundException ex)
+                {
+                // ignore when MBean unregistered between query and request for its info/attributes
+                Logger.log("MBeanCollector#apply(objName=" + objName +
+                           "): ignoring InstanceNotFoundException: " + ex.getMessage(), Base.LOG_QUIET);
+                }
             catch (Exception e)
                 {
                 throw Base.ensureRuntimeException(e);
@@ -189,6 +198,12 @@ public class MBeanCollectorFunction
                     try
                         {
                         return mbs.getAttribute(objectName, sAttributeName);
+                        }
+                    catch (InstanceNotFoundException ex)
+                        {
+                        // ignore when MBean unregistered between query and request for its attributes
+                        Logger.log("MBeanCollectorFunction#apply(objName=" + objectName + ",attribute=" + sAttributeName + "): ignoring InstanceNotFoundException: " + ex.getMessage(), Base.LOG_QUIET);
+                        return null;
                         }
                     catch (Exception e)
                         {
@@ -648,6 +663,12 @@ public class MBeanCollectorFunction
                             }
                         }
                     return f_supplierCollector == null ? null : f_supplierCollector.get();
+                    }
+                catch (InstanceNotFoundException ex)
+                    {
+                    // ignore when MBean unregistered between query and request for MBean info/attributes
+                    Logger.log("MBeanCollectorFunction#findCollector(objName=" + objName + "): ignoring InstanceNotFoundException: " + ex.getMessage(), Base.LOG_QUIET);
+                    return null;
                     }
                 catch (Exception e)
                     {
