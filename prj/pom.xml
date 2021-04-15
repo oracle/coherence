@@ -964,6 +964,8 @@
     <tde.projects.path>${root.path}/tde</tde.projects.path>
     <tde.projects.dependencies.path>${tde.projects.path}/core/1.3/ext</tde.projects.dependencies.path>
 
+    <copyright.exclude.files>${projects.path}/etc/copyright-exclude.txt</copyright.exclude.files>
+
     <!-- ================================================================== -->
     <!--                   External Tool Configuration                      -->
     <!-- ================================================================== -->
@@ -1979,7 +1981,7 @@
                     <arguments>
                       <argument>-c</argument>
                       <argument>-X</argument>
-                      <argument>@${top.parent.basedir}/etc/copyright-exclude.txt</argument>
+                      <argument>@${copyright.exclude.files}</argument>
                       <argument>-C</argument>
                       <argument>${top.parent.basedir}/etc/header.txt</argument>
                       <argument>-A</argument>
@@ -2386,6 +2388,17 @@
       <properties>
         <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
         <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
+      </properties>
+    </profile>
+    <profile>
+      <id>Windows</id>
+      <activation>
+        <os>
+          <family>Windows</family>
+        </os>
+      </activation>
+      <properties>
+        <copyright.exclude.files>${top.parent.basedir}\etc\copyright-exclude-windows.txt</copyright.exclude.files>
       </properties>
     </profile>
   </profiles>
