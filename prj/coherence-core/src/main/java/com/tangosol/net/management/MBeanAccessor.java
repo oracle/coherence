@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
@@ -668,18 +669,26 @@ public class MBeanAccessor
 
                     for (ObjectName oObjectName : setObjectNames)
                         {
-                        AttributeList       attrResponseList     = mBeanServer.setAttributes(oObjectName, attrList);
-                        Map<String, Object> mapUpdatedAttributes = new HashMap<>();
-
-                        if (attrResponseList != null && !attrResponseList.isEmpty())
+                        try
                             {
-                            for (Attribute attr : attrResponseList.asList())
-                                {
-                                mapUpdatedAttributes.put(attr.getName(), attr.getValue());
-                                }
-                            }
+                            AttributeList       attrResponseList     = mBeanServer.setAttributes(oObjectName, attrList);
+                            Map<String, Object> mapUpdatedAttributes = new HashMap<>();
 
-                        mapUpdatedMBeans.put(oObjectName.toString(), mapUpdatedAttributes);
+                            if (attrResponseList != null && !attrResponseList.isEmpty())
+                                {
+                                for (Attribute attr : attrResponseList.asList())
+                                    {
+                                    mapUpdatedAttributes.put(attr.getName(), attr.getValue());
+                                    }
+                                }
+                            mapUpdatedMBeans.put(oObjectName.toString(), mapUpdatedAttributes);
+                            }
+                        catch (InstanceNotFoundException e)
+                            {
+                            // ignore when MBean unregistered between query and request to set its attributes
+                           CacheFactory.log("MBeanAccessor$SetAttributes#apply(objName=" + oObjectName +
+                                      "): ignoring InstanceNotFoundException: " + e.getMessage(), Base.LOG_QUIET);
+                            }
                         }
                     }
 
@@ -774,7 +783,21 @@ public class MBeanAccessor
                 for (ObjectName oObjectName : setObjectNames)
                     {
                     String sObjectName = oObjectName.toString();
-                    mapMBeans.put(sObjectName, invokeOperation(mBeanServer, sObjectName));
+                    Object result = null;
+                    try
+                        {
+                        result = invokeOperation(mBeanServer, sObjectName);
+                        }
+                    catch (InstanceNotFoundException e)
+                        {
+                        // ignore; assume MBean unregistered between query and invoke
+                        CacheFactory.log("MBeanAccessor$Invoke#apply(mbeanServer=" + mBeanServer +
+                                         ", objName=" + sObjectName +
+                                         "): ignoring InstanceNotFoundException: " + e.getMessage(), Base.LOG_QUIET);
+
+                        continue;
+                        }
+                    mapMBeans.put(sObjectName, result);
                     }
                 return mapMBeans;
 
@@ -796,6 +819,7 @@ public class MBeanAccessor
          * @return the response of the operation
          */
         protected Object invokeOperation(MBeanServer mBeanServer, String sObjectName)
+            throws InstanceNotFoundException
             {
             try
                 {
@@ -803,7 +827,7 @@ public class MBeanAccessor
                 }
             catch (Exception e)
                 {
-                throw new RuntimeException(e);
+                throw Base.ensureRuntimeException(e, "invoke operation " + m_sOperationName + " to MBean " + sObjectName + " failed with an exception");
                 }
             }
 
@@ -895,7 +919,16 @@ public class MBeanAccessor
                     String sObjectName = oObjectName.toString();
                     Map<String, Object> mapAttributes = new HashMap<>();
 
-                    addMBeanAttributes(oObjectName, mapAttributes, mBeanServer, m_filter);
+                    try
+                        {
+                        addMBeanAttributes(oObjectName, mapAttributes, mBeanServer, m_filter);
+                        }
+                    catch (InstanceNotFoundException e)
+                        {
+                        // ignore when MBean unregistered between query and request for its attributes
+                        CacheFactory.log("MBeanAccessor$GetAttributes#apply(objName=" + sObjectName +
+                                         "): ignoring InstanceNotFoundException: " + e.getMessage(), Base.LOG_QUIET);
+                        }
 
                     // in case of CacheMBean, if it is a back tier cache, then append the StorageManageMBean
                     // attributes also to the response map
