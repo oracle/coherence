@@ -585,9 +585,9 @@ public class CQCTests
 
             causeServiceDisruption(cacheView.getCache());
 
-            cacheView.size(); // cause the service restart
+            Eventually.assertDeferred(cacheView::getState, is(ContinuousQueryCache.STATE_DISCONNECTED));
 
-            Eventually.assertThat(invoking(() -> cacheView.getState()), is(ContinuousQueryCache.STATE_DISCONNECTED));
+            cacheView.size(); // cause the service restart
 
             String sReturn = cacheView.put(0, "value new");
             assertEquals("value 0", sReturn);
