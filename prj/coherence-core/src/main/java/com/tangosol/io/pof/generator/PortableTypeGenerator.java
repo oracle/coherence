@@ -1,11 +1,18 @@
 /*
- * Copyright (c) 2013, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2013, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof.generator;
 
+import com.tangosol.io.pof.RawDate;
+import com.tangosol.io.pof.RawDateTime;
+import com.tangosol.io.pof.RawDayTimeInterval;
+import com.tangosol.io.pof.RawQuad;
+import com.tangosol.io.pof.RawTime;
+import com.tangosol.io.pof.RawTimeInterval;
+import com.tangosol.io.pof.RawYearMonthInterval;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -1469,47 +1476,76 @@ public class PortableTypeGenerator
                 return new ObjectArrayReadMethod();
 
             default:
-                if (type.getClassName().equals(String.class.getName()))
+                String sClassName = type.getClassName();
+                if (sClassName.equals(String.class.getName()))
                     {
                     return new ReadMethod("readString", "(I)Ljava/lang/String;");
                     }
-                if (type.getClassName().equals(Date.class.getName()))
+                if (sClassName.equals(Date.class.getName()))
                     {
                     return new ReadMethod("readDate", "(I)Ljava/util/Date;");
                     }
-                if (type.getClassName().equals(LocalDate.class.getName()))
+                if (sClassName.equals(LocalDate.class.getName()))
                     {
                     return new ReadMethod("readLocalDate", "(I)Ljava/time/LocalDate;");
                     }
-                if (type.getClassName().equals(LocalDateTime.class.getName()))
+                if (sClassName.equals(LocalDateTime.class.getName()))
                     {
                     return new ReadMethod("readLocalDateTime", "(I)Ljava/time/LocalDateTime;");
                     }
-                if (type.getClassName().equals(LocalTime.class.getName()))
+                if (sClassName.equals(LocalTime.class.getName()))
                     {
                     return new ReadMethod("readLocalTime", "(I)Ljava/time/LocalTime;");
                     }
-                if (type.getClassName().equals(OffsetDateTime.class.getName()))
+                if (sClassName.equals(OffsetDateTime.class.getName()))
                     {
                     return new ReadMethod("readOffsetDateTime", "(I)Ljava/time/OffsetDateTime;");
                     }
-                if (type.getClassName().equals(OffsetTime.class.getName()))
+                if (sClassName.equals(OffsetTime.class.getName()))
                     {
                     return new ReadMethod("readOffsetTime", "(I)Ljava/time/OffsetTime;");
                     }
-                if (type.getClassName().equals(ZonedDateTime.class.getName()))
+                if (sClassName.equals(ZonedDateTime.class.getName()))
                     {
                     return new ReadMethod("readZonedDateTime", "(I)Ljava/time/ZonedDateTime;");
                     }
-                if (type.getClassName().equals(BigDecimal.class.getName()))
+                if (sClassName.equals(RawDate.class.getName()))
+                    {
+                    return new ReadMethod("readRawDate", "(I)Lcom/tangosol/io/pof/RawDate;");
+                    }
+                if (sClassName.equals(RawDateTime.class.getName()))
+                    {
+                    return new ReadMethod("readRawDateTime", "(I)Lcom/tangosol/io/pof/RawDateTime;");
+                    }
+                if (sClassName.equals(RawDayTimeInterval.class.getName()))
+                    {
+                    return new ReadMethod("readRawDayTimeInterval", "(I)Lcom/tangosol/io/pof/RawDayTimeInterval;");
+                    }
+                if (sClassName.equals(RawQuad.class.getName()))
+                    {
+                    return new ReadMethod("readRawQuad", "(I)Lcom/tangosol/io/pof/RawQuad;");
+                    }
+                if (sClassName.equals(RawTime.class.getName()))
+                    {
+                    return new ReadMethod("readRawTime", "(I)Lcom/tangosol/io/pof/RawTime;");
+                    }
+                if (sClassName.equals(RawTimeInterval.class.getName()))
+                    {
+                    return new ReadMethod("readRawTimeInterval", "(I)Lcom/tangosol/io/pof/RawTimeInterval;");
+                    }
+                if (sClassName.equals(RawYearMonthInterval.class.getName()))
+                    {
+                    return new ReadMethod("readRawYearMonthInterval", "(I)Lcom/tangosol/io/pof/RawYearMonthInterval;");
+                    }
+                if (sClassName.equals(BigDecimal.class.getName()))
                     {
                     return new ReadMethod("readBigDecimal", "(I)Ljava/math/BigDecimal;");
                     }
-                if (type.getClassName().equals(BigInteger.class.getName()))
+                if (sClassName.equals(BigInteger.class.getName()))
                     {
                     return new ReadMethod("readBigInteger", "(I)Ljava/math/BigInteger;");
                     }
-                if (type.getClassName().equals(Binary.class.getName()))
+                if (sClassName.equals(Binary.class.getName()))
                     {
                     return new ReadMethod("readBinary", "(I)Lcom/tangosol/util/Binary;");
                     }
@@ -1590,61 +1626,62 @@ public class PortableTypeGenerator
                 return getObjectArrayWriteMethod(property, type);
 
             default: // Type.OBJECT
-                if (type.getClassName().equals(String.class.getName()))
+                String sClassName = type.getClassName();
+                if (sClassName.equals(String.class.getName()))
                     {
                     return new WriteMethod("writeString",
                                            "(ILjava/lang/String;)V");
                     }
-                if (type.getClassName().equals(BigDecimal.class.getName()))
+                if (sClassName.equals(BigDecimal.class.getName()))
                     {
                     return new WriteMethod("writeBigDecimal",
                                            "(ILjava/math/BigDecimal;)V");
                     }
-                if (type.getClassName().equals(BigInteger.class.getName()))
+                if (sClassName.equals(BigInteger.class.getName()))
                     {
                     return new WriteMethod("writeBigInteger",
                                            "(ILjava/math/BigInteger;)V");
                     }
-                if (type.getClassName().equals(Binary.class.getName()))
+                if (sClassName.equals(Binary.class.getName()))
                     {
                     return new WriteMethod("writeBinary",
                                            "(ILcom/tangosol/util/Binary;)V");
                     }
-                if (type.getClassName().equals(LocalDate.class.getName()))
+                if (sClassName.equals(LocalDate.class.getName()))
                     {
                     return new WriteMethod("writeDate",
                                            "(ILjava/time/LocalDate;)V");
                     }
-                if (type.getClassName().equals(LocalDateTime.class.getName()))
+                if (sClassName.equals(LocalDateTime.class.getName()))
                     {
                     return new WriteMethod("writeDateTime",
                                            "(ILjava/time/LocalDateTime;)V");
                     }
-                if (type.getClassName().equals(LocalTime.class.getName()))
+                if (sClassName.equals(LocalTime.class.getName()))
                     {
                     return new WriteMethod("writeTime",
                                            "(ILjava/time/LocalTime;)V");
                     }
-                if (type.getClassName().equals(OffsetDateTime.class.getName()))
+                if (sClassName.equals(OffsetDateTime.class.getName()))
                     {
                     return new WriteMethod("writeDateTimeWithZone",
                                            "(ILjava/time/OffsetDateTime;)V");
                     }
-                if (type.getClassName().equals(OffsetTime.class.getName()))
+                if (sClassName.equals(OffsetTime.class.getName()))
                     {
                     return new WriteMethod("writeTimeWithZone",
                                            "(ILjava/time/OffsetTime;)V");
                     }
-                if (type.getClassName().equals(ZonedDateTime.class.getName()))
+                if (sClassName.equals(ZonedDateTime.class.getName()))
                     {
                     return new WriteMethod("writeDateTimeWithZone",
                                            "(ILjava/time/ZonedDateTime;)V");
                     }
-                if (type.getClassName().equals(Date.class.getName()))
+                if (sClassName.equals(Date.class.getName()))
                     {
                     return getDateWriteMethod(property, type);
                     }
-                if (type.getClassName().equals("java.sql.Timestamp"))
+                if (sClassName.equals("java.sql.Timestamp"))
                     {
                     return getDateWriteMethod(property, type);
                     }
@@ -1655,6 +1692,41 @@ public class PortableTypeGenerator
                 if (property.isMap())
                     {
                     return getMapWriteMethod(property, type);
+                    }
+                if (sClassName.equals(RawDate.class.getName()))
+                    {
+                    return new WriteMethod("writeRawDate",
+                                           "(ILcom/tangosol/io/pof/RawDate;)V");
+                    }
+                if (sClassName.equals(RawDateTime.class.getName()))
+                    {
+                    return new WriteMethod("writeRawDateTime",
+                                           "(ILcom/tangosol/io/pof/RawDateTime;)V");
+                    }
+                if (sClassName.equals(RawDayTimeInterval.class.getName()))
+                    {
+                    return new WriteMethod("writeRawDayTimeInterval",
+                                           "(ILcom/tangosol/io/pof/RawDayTimeInterval;)V");
+                    }
+                if (sClassName.equals(RawQuad.class.getName()))
+                    {
+                    return new WriteMethod("writeRawQuad",
+                                           "(ILcom/tangosol/io/pof/RawQuad;)V");
+                    }
+                if (sClassName.equals(RawTime.class.getName()))
+                    {
+                    return new WriteMethod("writeRawTime",
+                                           "(ILcom/tangosol/io/pof/RawTime;)V");
+                    }
+                if (sClassName.equals(RawTimeInterval.class.getName()))
+                    {
+                    return new WriteMethod("writeRawTimeInterval",
+                                           "(ILcom/tangosol/io/pof/RawTimeInterval;)V");
+                    }
+                if (sClassName.equals(RawYearMonthInterval.class.getName()))
+                    {
+                    return new WriteMethod("writeRawYearMonthInterval",
+                                           "(ILcom/tangosol/io/pof/RawYearMonthInterval;)V");
                     }
                 return new WriteMethod("writeObject", "(ILjava/lang/Object;)V");
             }
