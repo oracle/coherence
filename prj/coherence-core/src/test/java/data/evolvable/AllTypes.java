@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2012, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,13 @@ package data.evolvable;
 
 import com.tangosol.io.pof.DateMode;
 
+import com.tangosol.io.pof.RawDate;
+import com.tangosol.io.pof.RawDateTime;
+import com.tangosol.io.pof.RawDayTimeInterval;
+import com.tangosol.io.pof.RawQuad;
+import com.tangosol.io.pof.RawTime;
+import com.tangosol.io.pof.RawTimeInterval;
+import com.tangosol.io.pof.RawYearMonthInterval;
 import com.tangosol.io.pof.schema.annotation.Portable;
 import com.tangosol.io.pof.schema.annotation.PortableArray;
 import com.tangosol.io.pof.schema.annotation.PortableDate;
@@ -33,8 +40,11 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+
+import static com.oracle.coherence.common.base.Randoms.getRandomBinary;
 
 /**
  * Test class for all supported POF types.
@@ -139,6 +149,24 @@ public class AllTypes
     private OffsetTime m_offsetTime = OffsetTime.now();
     @Portable
     private ZonedDateTime m_zonedDateTime = OffsetDateTime.now().toZonedDateTime();
+
+    // Raw type
+    @Portable
+    private RawDate m_rawDate = new RawDate(1976, 6, 20);
+    @Portable
+    private RawDateTime m_rawDateTime = new RawDateTime(new RawDate(1976, 6, 20), new RawTime(12, 30, 55, 100, 3, 30));
+    @Portable
+    private RawDayTimeInterval m_rawDayTimeInterval = new RawDayTimeInterval(5, 10, 12, 50, 9876);
+    @Portable
+    private RawTime m_rawTime = new RawTime(10, 55, 14, 765, 2, 30);
+    @Portable
+    private RawTimeInterval m_rawTimeInterval = new RawTimeInterval(9, 5, 2, 1234);
+    @Portable
+    private RawYearMonthInterval m_rawYearMonthInterval = new RawYearMonthInterval(22, 5);
+    @Portable
+    private RawQuad m_rawQuad = new RawQuad(getRandomBinary(16, 16));
+
+
 
     // object arrays
     @PortableArray(elementClass = String.class)
@@ -413,6 +441,34 @@ public class AllTypes
             {
             return false;
             }
+        if (!Objects.equals(m_rawDate, allTypes.m_rawDate))
+            {
+            return false;
+            }
+        if (!Objects.equals(m_rawDayTimeInterval, allTypes.m_rawDayTimeInterval))
+            {
+            return false;
+            }
+        if (!Objects.equals(m_rawDateTime, allTypes.m_rawDateTime))
+            {
+            return false;
+            }
+        if (!Objects.equals(m_rawTime, allTypes.m_rawTime))
+            {
+            return false;
+            }
+        if (!Objects.equals(m_rawTimeInterval, allTypes.m_rawTimeInterval))
+            {
+            return false;
+            }
+        if (!Objects.equals(m_rawYearMonthInterval, allTypes.m_rawYearMonthInterval))
+            {
+            return false;
+            }
+        if (!Objects.equals(m_rawQuad, allTypes.m_rawQuad))
+            {
+            return false;
+            }
 
         return true;
         }
@@ -470,6 +526,13 @@ public class AllTypes
         result = 31 * result + (m_map != null ? m_map.hashCode() : 0);
         result = 31 * result + (m_uniformKeysMap != null ? m_uniformKeysMap.hashCode() : 0);
         result = 31 * result + (m_uniformMap != null ? m_uniformMap.hashCode() : 0);
+        result = 31 * result + (m_rawDate != null ? m_rawDate.hashCode() : 0);
+        result = 31 * result + (m_rawDateTime != null ? m_rawDateTime.hashCode() : 0);
+        result = 31 * result + (m_rawDayTimeInterval != null ? m_rawDayTimeInterval.hashCode() : 0);
+        result = 31 * result + (m_rawTime != null ? m_rawTime.hashCode() : 0);
+        result = 31 * result + (m_rawTimeInterval != null ? m_rawTimeInterval.hashCode() : 0);
+        result = 31 * result + (m_rawYearMonthInterval != null ? m_rawYearMonthInterval.hashCode() : 0);
+        result = 31 * result + (m_rawQuad != null ? m_rawQuad.hashCode() : 0);
         return result;
         }
 
@@ -488,6 +551,13 @@ public class AllTypes
                 ", m_offsetDateTime=" + m_offsetDateTime +
                 ", m_offsetTime=" + m_offsetTime +
                 ", m_zonedDateTime=" + m_zonedDateTime +
+                ", m_rawDate=" + m_rawDate +
+                ", m_rawDateTime=" + m_rawDateTime +
+                ", m_rawTime=" + m_rawTime +
+                ", m_rawTimeInterval=" + m_rawTimeInterval +
+                ", m_rawDayTimeInterval=" + m_rawDayTimeInterval +
+                ", m_rawYearMonthInterval=" + m_rawYearMonthInterval +
+                ", m_rawQuad=" + m_rawQuad +
                 '}';
         }
     }
