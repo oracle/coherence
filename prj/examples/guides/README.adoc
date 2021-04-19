@@ -46,6 +46,13 @@ A guide to using Caching Data Stores
 This guide walks you through how to use and configure Cache Stores
 --
 
+[CARD]
+.Near Caching
+[link=examples/guides/130-near-caching/README.adoc]
+--
+This guide walks you through how to use near caching within Coherence
+--
+
 ====
 
 // DO NOT ADD CONTENT AFTER THIS LINE

@@ -28,6 +28,7 @@
   <modules>
     <module>guides/100-put-get-remove</module>
     <module>guides/110-queries</module>
+    <module>guides/130-near-caching</module>
     <module>guides/190-cache-stores</module>
     <module>guides/460-topics</module>
     <module>tutorials/500-graphql/initial</module>

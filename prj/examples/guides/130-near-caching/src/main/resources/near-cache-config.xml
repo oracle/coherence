@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <!-- tag::config[] -->
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>size-cache-*</cache-name>  <!--1-->
+      <scheme-name>near-scheme</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>front-limit-entries</param-name>
+          <param-value>100</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>expiring-cache-*</cache-name>  <!--2-->
+      <scheme-name>near-scheme</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>front-limit-entries</param-name>
+          <param-value>100</param-value>
+        </init-param>
+        <init-param>
+          <param-name>front-expiry</param-name>
+          <param-value>8s</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <near-scheme>
+      <scheme-name>near-scheme</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <eviction-policy>LRU</eviction-policy> <!--3-->
+          <high-units>{front-limit-entries 10}</high-units> <!--4-->
+          <expiry-delay>{front-expiry 0s}</expiry-delay>  <!--5-->
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>   <!--6-->
+        <distributed-scheme>
+          <scheme-name>sample-distributed</scheme-name>
+          <service-name>DistributedCache</service-name>
+          <backing-map-scheme>
+            <local-scheme/>
+          </backing-map-scheme>
+        </distributed-scheme>
+      </back-scheme>
+      <invalidation-strategy system-property="test.invalidation.strategy">all</invalidation-strategy> <!--7-->
+      <autostart>true</autostart>
+    </near-scheme>
+    <!-- end::config[] -->
+  </caching-schemes>
+</cache-config>
