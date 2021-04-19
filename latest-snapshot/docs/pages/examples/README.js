@@ -122,6 +122,19 @@ making them simple to build as stand-alone projects without needing to build the
 </v-card-text>
 </v-card>
 </v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/guides/130-near-caching/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Near Caching</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>This guide walks you through how to use near caching within Coherence</p>
+</v-card-text>
+</v-card>
+</v-flex>
 </v-layout>
 </v-container>
 </v-flex>

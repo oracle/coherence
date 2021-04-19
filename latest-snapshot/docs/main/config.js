@@ -312,6 +312,19 @@ function createRoutes(){
             component: loadPage('examples-guides-110-queries-README', '/examples/guides/110-queries/README', {})
         },
         {
+            path: '/examples/guides/130-near-caching/README',
+            meta: {
+                h1: 'Near Caching',
+                title: 'Near Caching',
+                h1Prefix: null,
+                description: 'Coherence Guides Near Caching',
+                keywords: 'coherence, java, documentation, near-cache, near cache',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-guides-130-near-caching-README', '/examples/guides/130-near-caching/README', {})
+        },
+        {
             path: '/examples/guides/190-cache-stores/README',
             meta: {
                 h1: 'Cache Stores',
@@ -547,6 +560,7 @@ function createNav(){
                                 { href: '/examples/guides/000-overview', title: 'Guides Overview' },
                                 { href: '/examples/guides/100-put-get-remove/README', title: 'Put Get and Remove Operations' },
                                 { href: '/examples/guides/110-queries/README', title: 'Querying' },
+                                { href: '/examples/guides/130-near-caching/README', title: 'Near Caching' },
                                 { href: '/examples/guides/190-cache-stores/README', title: 'Cache Stores' },
                                 { href: '/examples/guides/460-topics/README', title: 'Topics' }
                             ]
