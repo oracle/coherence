@@ -542,17 +542,18 @@ lang="java"
     // generate a leave message
     if (topicPublic.isActive()) {
         publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.LEAVE, null)).join();
+        publisherPublic.flush().join();
+        publisherPublic.close();
+        subscriberPublic.close();
+        topicPublic.close();
     }
 
-    publisherPublic.flush().join();
-    publisherPublic.close();
-    subscriberPublic.close();
-    topicPublic.close();
-
-    publisherPrivate.flush().join();
-    publisherPrivate.close();
-    subscriberPrivate.close();
-    topicPrivate.close();
+    if (topicPrivate.isActive()) {
+        publisherPrivate.flush().join();
+        publisherPrivate.close();
+        subscriberPrivate.close();
+        topicPrivate.close();
+    }
 }</markup>
 
 </li>
