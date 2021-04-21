@@ -8,6 +8,7 @@
 package com.oracle.coherence.guides.topics;
 
 import com.tangosol.net.Session;
+
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
@@ -19,7 +20,6 @@ import java.util.Date;
 import java.util.Scanner;
 
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.tangosol.net.ValueTypeAssertion.withType;
@@ -227,18 +227,19 @@ public class ChatApplication implements Runnable {
         // tag::leave[]
         if (topicPublic.isActive()) {
             publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.LEAVE, null)).join();
+            publisherPublic.flush().join();
+            publisherPublic.close();
+            subscriberPublic.close();
+            topicPublic.close();
         }
         // end::leave[]
 
-        publisherPublic.flush().join();
-        publisherPublic.close();
-        subscriberPublic.close();
-        topicPublic.close();
-
-        publisherPrivate.flush().join();
-        publisherPrivate.close();
-        subscriberPrivate.close();
-        topicPrivate.close();
+        if (topicPrivate.isActive()) {
+            publisherPrivate.flush().join();
+            publisherPrivate.close();
+            subscriberPrivate.close();
+            topicPrivate.close();
+        }
     }
     // end::cleanup[]
 
