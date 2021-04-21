@@ -63,7 +63,7 @@ Oracle Coherence commercial edition product documentation.
 --
 [CARD]
 .API Docs
-[icon=library_books,link=../java/api/index.html,link-type=url]
+[icon=library_books,link=../api/java/index.html,link-type=url]
 --
 Browse the Coherence CE API Docs.
 --
