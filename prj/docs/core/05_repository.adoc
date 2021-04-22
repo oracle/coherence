@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -28,7 +28,7 @@ In addition to the basic CRUD functionality, the Repository API provides many fe
 
 === Implementing a Repository
 
-Coherence provides an abstract base class `com.oracle.coherence.repository.AbstractRepository`, which your custom repository implementation needs to extend and provide implementation of the three abstract methods:
+Coherence provides an abstract base class `com.oracle.coherence.repository.AbstractRepository`, which your custom repository implementation needs to extend and provide implementation of three abstract methods:
 
 [source,java]
 ----
@@ -55,7 +55,7 @@ However, you are free (and encouraged) to add additional business methods to the
         {
         Filter<Person> filter = Filters.like(Person::getFirstName, name)
                                     .or(Filters.like(Person::getLastName, name));
-        return findAll(filter);
+        return getAll(filter);
         }
 ----
 
@@ -71,7 +71,7 @@ for (Person p : people.findByName("A%"))
 
 === Basic CRUD Operations
 
-We've already seen one read operation, `findAll`, in the example above, but let's start from the beginning and look into how we can add, remove, update and query our repository.
+We've already seen one read operation, `getAll`, in the example above, but let's start from the beginning and look into how we can add, remove, update and query our repository.
 
 To add new entities to the repository, or replace the existing ones, you can use either the `save` or the `saveAll` method.
 
@@ -82,29 +82,29 @@ The former takes a single entity as an argument and stores it in the backing `Na
 people.save(new Person("555-11-2222", "Aleks", 46));
 ----
 
-The latter allows you to store a batch of entities at once by passing either an array, a collection or a stream of entities as an argument.
+The latter allows you to store a batch of entities at once by passing either a collection or a stream of entities as an argument.
 
-Once you have some entities stored in a repository, you can query the repository using `findById` and `findAll` methods.
+Once you have some entities stored in a repository, you can query the repository using `get` and `getAll` methods.
 
 [source,java]
 ----
-Person person = people.findById("555-11-2222");                                            // <1>
+Person person = people.get("555-11-2222");                                                // <1>
 assert person.getName().equals("Aleks");
 assert person.getAge() == 46;
 
-Collection<Person> allPeople = people.findAll();                                           // <2>
-Collection<Person> allAdults = people.findAll(Filters.greaterOrEqual(Person::getAge, 18)); // <3>
+Collection<Person> allPeople = people.getAll();                                           // <2>
+Collection<Person> allAdults = people.getAll(Filters.greaterOrEqual(Person::getAge, 18)); // <3>
 
 ----
-<1> find a single `Person` by identifier
-<2> find all the people in the repository
-<3> find all the people in the repository that are 18 or older
+<1> get a single `Person` by identifier
+<2> get all the people from the repository
+<3> get all the people from the repository that are 18 or older
 
-When using `findAll`, you can also specify an optional sort order for the results, by specifying a `Comparable` property via a method reference:
+You can retrieve sorted results by calling `getAllOrderedBy` method and specifying a `Comparable` property via a method reference:
 
 [source,java]
 ----
-Collection<Person> peopleOrderedByAge = people.findAll(Person::getAge)     // <1>
+Collection<Person> peopleOrderedByAge = people.getAllOrderedBy(Person::getAge)     // <1>
 ----
 <1> the result will contain all people from the repository, sorted by age from the youngest to the oldest
 
@@ -116,14 +116,14 @@ For more complex use cases, you can specify a `Comparator` to use instead. For e
         {
         Filter<Person> filter = Filters.like(Person::getFirstName, name)
                                     .or(Filters.like(Person::getLastName, name));
-        return findAll(filter,
-                       Remote.comparator(Person::getLastName)
-                             .thenComparing(Person::getFirstName));     // <1>
+        return getAllOrderedBy(filter,
+                               Remote.comparator(Person::getLastName)
+                                     .thenComparing(Person::getFirstName));     // <1>
         }
 ----
-<1> the results will be sorted by last name, and then by first name; note that we are using Coherence `Remote.comparator` instead of standard Java `Comparator` in order to ensure that the specified comparator is serializable and can be sent to remote cluster members.
+<1> the results will be sorted by last name, and then by first name; note that we are using Coherence `Remote.comparator` instead of standard Java `Comparator` in order to ensure that the specified comparator is serializable and can be sent to remote cluster members
 
-Finally, to remove entities from a repository you can use one of several `remove` methods:
+Finally, to remove entities from a repository you can use one of the several `remove` methods:
 
 [source,java]
 ----
@@ -171,7 +171,7 @@ Map<String, Person> mapRemoved =
 
 === Projection
 
-While querying repository for a collection of entities that satisfy some criteria is certainly a common and useful operation, sometimes you don't need all the information contained within the entity. For example, if you only need a person's name, querying for and then discarding all the information contained within the `Person` instances is unnecessary and wasteful.
+While querying repository for a collection of entities that satisfy some criteria is certainly a common and useful operation, sometimes you don't need all the attributes within the entity. For example, if you only need a person's name, querying for and then discarding all the information contained within the `Person` instances is unnecessary and wasteful.
 
 It is the equivalent of executing
 [source,sql]
@@ -200,7 +200,8 @@ Obviously, returning either the whole entity or a single attribute from an entit
 
 [source,java]
 ----
-Fragment<Person> fragment = people.get("111-22-3333", Person::getName, Person::getAge);  // <1>
+Fragment<Person> fragment = people.get("111-22-3333",
+                                       Extractors.fragment(Person::getName, Person::getAge));  // <1>
 String name = fragment.get(Person::getName);  // <2>
 int    age  = fragment.get(Person::getAge);   // <3>
 ----
@@ -214,7 +215,7 @@ You can, of course, perform the same projection across multiple entities using o
 ----
 Map<String, Fragment<Person>> fragments = people.getAll(
         Filters.less(Person::getAge, 18),
-        Person::getName, Person::getAge);  // <1>
+        Extractors.fragment(Person::getName, Person::getAge));  // <1>
 ----
 <1> return a map of fragments containing the name and age of all the people younger than 18, keyed by person's identifier
 
@@ -224,8 +225,8 @@ Unlike the relational database, which contains a set of columns for each row in 
 ----
 Fragment<Person> person = people.get(
         "111-22-3333",
-        Person::getName,
-        Extractors.fragment(Person::getAddress, Address::getCountry));  // <1>
+        Extractors.fragment(Person::getName,
+                            Extractors.fragment(Person::getAddress, Address::getCountry)));  // <1>
 String            name    = person.get(Person::getName);                // <2>
 Fragment<Address> address = person.getFragment(Person::getAddress);     // <3>
 String            country = address.get(Address::getCountry);           // <4>
@@ -241,7 +242,7 @@ By far the most common approach for updating data in modern applications is the 
 
 [source,java]
 ----
-Person person = people.findById("111-22-3333");
+Person person = people.get("111-22-3333");
 person.setAge(55);
 people.save(person);
 ----
@@ -353,7 +354,7 @@ Just like with single-entity updates, the result of each function invocation wil
 
 === Stream API and Data Aggregation
 
-We've already covered how you can query the repository to retrieve a subset of entities using a `findAll` method and a `Filter`, but sometimes you don't need the entities themselves, but a result of some computation applied to a subset of entities in the repository. For example, you may need to calculate average salary of all the employees in a department, or the total value of all equity positions in a portfolio.
+We've already covered how you can query the repository to retrieve a subset of entities using a `getAll` method and a `Filter`, but sometimes you don't need the entities themselves, but a result of some computation applied to a subset of entities in the repository. For example, you may need to calculate average salary of all the employees in a department, or the total value of all equity positions in a portfolio.
 
 While you could certainly query the repository for the entities that need to be processed and perform processing itself on the client, this is very inefficient way to accomplish the task, as you may end up moving significant amount of data over the network, just to discard it after the client-side processing.
 
