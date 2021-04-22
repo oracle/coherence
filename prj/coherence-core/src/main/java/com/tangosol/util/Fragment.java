@@ -6,8 +6,6 @@
  */
 package com.tangosol.util;
 
-import com.tangosol.internal.util.invoke.Lambdas;
-
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
@@ -80,7 +78,10 @@ public class Fragment<T>
     @SuppressWarnings("unchecked")
     public <E> E get(String sName)
         {
-        return (E) m_mapAttr.get(sName);
+        Object oAttr = m_mapAttr.get(sName);
+        return oAttr instanceof Fragment
+               ? (E) ((Fragment<?>) oAttr).m_mapAttr
+               : (E) oAttr;
         }
 
     /**

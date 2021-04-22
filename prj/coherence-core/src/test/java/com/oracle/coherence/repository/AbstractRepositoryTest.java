@@ -41,7 +41,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.tangosol.util.Filters.*;
+import static com.tangosol.util.Extractors.fragment;
+import static com.tangosol.util.Filters.always;
+import static com.tangosol.util.Filters.equal;
+import static com.tangosol.util.Filters.greater;
+import static com.tangosol.util.Filters.isFalse;
+import static com.tangosol.util.Filters.isTrue;
+import static com.tangosol.util.Filters.less;
 
 import static data.repository.Gender.FEMALE;
 import static data.repository.Gender.MALE;
@@ -67,7 +73,7 @@ public abstract class AbstractRepositoryTest
     public void populateRepository()
         {
         getMap().clear();
-        people().saveAll(
+        people().saveAll(Stream.of(
                 new Person("aleks").name("Aleks")
                         .dateOfBirth(LocalDate.of(1974, 8, 24))
                         .age(46).gender(MALE).height(79).weight(260.0).salary(BigDecimal.valueOf(5000)),
@@ -83,7 +89,7 @@ public abstract class AbstractRepositoryTest
                 new Person("kiki").name("Kristina")
                         .dateOfBirth(LocalDate.of(2013, 2, 13))
                         .age(8).gender(FEMALE).height(50).weight(60.0).salary(BigDecimal.valueOf(400))
-                );
+                ));
         }
 
     @Test
@@ -129,51 +135,60 @@ public abstract class AbstractRepositoryTest
         }
 
     @Test
-    public void testFindById()
+    public void testGetById()
         {
-        assertThat(people().findById("kiki").getName(), is("Kristina"));
+        assertThat(people().get("kiki").getName(), is("Kristina"));
         }
 
     @Test
-    public void testFindAll()
+    public void testGetAll()
         {
-        Collection<? extends Person> results = people().findAll();
+        Collection<? extends Person> results = people().getAll();
         assertThat(results.size(), is(5));
         assertThat(results.stream().map(Person::getName).collect(Collectors.toList()),
                            containsInAnyOrder("Kristina",  "Novak", "Ana Maria", "Marija", "Aleks"));
         }
 
     @Test
-    public void testFindAllOrdered()
+    public void testGetAllOrdered()
         {
-        Collection<? extends Person> results = people().findAll(Person::getAge);
+        Collection<? extends Person> results = people().getAllOrderedBy(Person::getAge);
         assertThat(results.size(), is(5));
         assertThat(results.stream().map(Person::getName).collect(Collectors.toList()),
                            contains("Kristina",  "Novak", "Ana Maria", "Marija", "Aleks"));
         }
 
     @Test
-    public void testFindAllOrderedByComparator()
+    public void testGetAllOrderedByComparator()
         {
-        Collection<? extends Person> results = people().findAll(Remote.comparator(Person::getAge).reversed());
+        Collection<? extends Person> results = people().getAllOrderedBy(Remote.comparator(Person::getAge).reversed());
         assertThat(results.size(), is(5));
         assertThat(results.stream().map(Person::getName).collect(Collectors.toList()),
                    contains("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
         }
 
     @Test
-    public void testFindAllFiltered()
+    public void testGetAllById()
         {
-        Collection<? extends Person> results = people().findAll(less(Person::getAge, 10));
+        Collection<? extends Person> results = people().getAll(setOf("kiki", "ana"));
+        assertThat(results.size(), is(2));
+        assertThat(results.stream().map(Person::getName).collect(Collectors.toList()),
+                           containsInAnyOrder("Kristina",  "Ana Maria"));
+        }
+
+    @Test
+    public void testGetAllFiltered()
+        {
+        Collection<? extends Person> results = people().getAll(less(Person::getAge, 10));
         assertThat(results.size(), is(1));
         assertThat(results.iterator().next().getName(), is("Kristina"));
         }
 
     @Test
-    public void testFindAllFilteredOrdered()
+    public void testGetAllFilteredOrdered()
         {
         Collection<? extends Person> results = people()
-                .findAll(greater(Person::getAge, 10), Person::getName);
+                .getAllOrderedBy(greater(Person::getAge, 10), Person::getName);
         assertThat(results.size(), is(4));
         assertThat(results.stream().map(Person::getName).collect(Collectors.toList()),
                    contains("Aleks", "Ana Maria", "Marija", "Novak"));
@@ -188,7 +203,7 @@ public abstract class AbstractRepositoryTest
     @Test
     public void testGetFragment()
         {
-        Fragment<Person> fragment = people().get("nole", Person::getName, Person::getAge);
+        Fragment<Person> fragment = people().get("nole", fragment(Person::getName, Person::getAge));
         assertThat(fragment.get(Person::getName), is("Novak"));
         assertThat(fragment.get(Person::getAge), is(13));
         }
@@ -215,7 +230,7 @@ public abstract class AbstractRepositoryTest
     @Test
     public void testGetAllFragment()
         {
-        Map<String, Fragment<Person>> map = people().getAll(Person::getName, Person::getAge);
+        Map<String, Fragment<Person>> map = people().getAll(fragment(Person::getName, Person::getAge));
         assertThat(map.get("aleks").get(Person::getAge), is(46));
         assertThat(map.get("marija").get(Person::getAge), is(43));
         assertThat(map.get("ana").get(Person::getAge), is(16));
@@ -226,7 +241,8 @@ public abstract class AbstractRepositoryTest
     @Test
     public void testGetAllFragmentById()
         {
-        Map<String, Fragment<Person>> map = people().getAll(Collections.singleton("ana"), Person::getName, Person::getAge);
+        Map<String, Fragment<Person>> map = people().getAll(Collections.singleton("ana"),
+                                                            fragment(Person::getName, Person::getAge));
         assertThat(map.size(), is(1));
         assertThat(map.get("ana").get(Person::getAge), is(16));
         }
@@ -378,8 +394,8 @@ public abstract class AbstractRepositoryTest
         Person ana    = getMap().get("ana");
         Person nole   = getMap().get("nole");
 
-        assertThat(people().removeAll(aleks, marija), is(true));
-        assertThat(people().removeAll(aleks, marija), is(false));
+        assertThat(people().removeAll(Stream.of(aleks, marija)), is(true));
+        assertThat(people().removeAll(Stream.of(aleks, marija)), is(false));
         assertThat(people().count(), is(3L));
 
         Map<String, Person> map = people().removeAll(setOf(aleks, marija, ana, nole), true);

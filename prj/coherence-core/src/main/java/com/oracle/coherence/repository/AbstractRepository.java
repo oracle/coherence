@@ -13,7 +13,6 @@ import com.tangosol.net.NamedMap;
 
 import com.tangosol.util.Aggregators;
 import com.tangosol.util.ClassHelper;
-import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.Fragment;
@@ -102,100 +101,6 @@ public abstract class AbstractRepository<ID, T>
     // ---- CRUD support ----------------------------------------------------
 
     /**
-     * Return an entity with a given identifier.
-     *
-     * @param id  the entity's identifier
-     *
-     * @return an entity with a given identifier
-     */
-    public T findById(ID id)
-        {
-        return getMapInternal().get(id);
-        }
-
-    /**
-     * Return all entities in this repository.
-     *
-     * @return all entities in this repository
-     */
-    public Collection<T> findAll()
-        {
-        return getMapInternal().values();
-        }
-
-    /**
-     * Return all entities that satisfy the specified criteria.
-     *
-     * @param filter  the criteria to evaluate
-     *
-     * @return all entities that satisfy the specified criteria
-     */
-    public Collection<T> findAll(Filter<?> filter)
-        {
-        return getMapInternal().values(filter);
-        }
-
-    /**
-     * Return all entities in this repository, sorted using
-     * specified {@link Comparable} attribute.
-     *
-     * @param orderBy  the {@link Comparable} attribute to sort the results by
-     * @param <R>      the type of the extracted values
-     *
-     * @return all entities in this repository, sorted using
-     *         specified {@link Comparable} attribute.
-     */
-    public <R extends Comparable<? super R>> Collection<T> findAll(ValueExtractor<? super T, ? extends R> orderBy)
-        {
-        return findAll(Filters.always(), Remote.comparator(orderBy));
-        }
-
-    /**
-     * Return all entities that satisfy the specified criteria, sorted using
-     * specified {@link Comparable} attribute.
-     *
-     * @param filter   the criteria to evaluate
-     * @param orderBy  the {@link Comparable} attribute to sort the results by
-     * @param <R>      the type of the extracted values
-     *
-     * @return all entities that satisfy specified criteria, sorted using
-     *         specified {@link Comparable} attribute.
-     */
-    public <R extends Comparable<? super R>> Collection<T> findAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy)
-        {
-        return findAll(filter, Remote.comparator(orderBy));
-        }
-
-    /**
-     * Return all entities in this repository, sorted using
-     * specified {@link Remote.Comparator}.
-     *
-     * @param orderBy  the comparator to sort the results with
-     *
-     * @return all entities in this repository, sorted using
-     *         specified {@link Remote.Comparator}.
-     */
-    public Collection<T> findAll(Remote.Comparator<?> orderBy)
-        {
-        return getMapInternal().values(Filters.always(), orderBy);
-        }
-
-    /**
-     * Return all entities that satisfy the specified criteria, sorted using
-     * specified {@link Remote.Comparator}.
-     *
-     * @param filter   the criteria to evaluate
-     * @param orderBy  the comparator to sort the results with
-     *
-     * @return all entities that satisfy specified criteria, sorted using
-     * specified {@link Remote.Comparator}.
-     */
-    public Collection<T> findAll(Filter<?> filter, Remote.Comparator<?> orderBy)
-        {
-        return getMapInternal().values(filter, orderBy);
-        }
-
-    /**
      * Store the specified entity.
      *
      * @param entity  the entity to store
@@ -206,17 +111,6 @@ public abstract class AbstractRepository<ID, T>
         {
         getMapInternal().putAll(Collections.singletonMap(getId(entity), entity));
         return entity;
-        }
-
-    /**
-     * Store all specified entities as a batch.
-     *
-     * @param entities  the entities to store
-     */
-    @SuppressWarnings("unchecked")
-    public void saveAll(T... entities)
-        {
-        saveAll(Stream.of(entities));
         }
 
     /**
@@ -240,12 +134,46 @@ public abstract class AbstractRepository<ID, T>
         }
 
     /**
+     * Return an entity with a given identifier.
+     *
+     * @param id  the entity's identifier
+     *
+     * @return an entity with a given identifier
+     */
+    public T get(ID id)
+        {
+        return getMapInternal().get(id);
+        }
+
+    /**
      * Return the value extracted from an entity with a given identifier.
      * <p/>
      * For example, you could extract {@code Person}'s {@code name} attribute by
      * calling a getter on a remote {@code Person} entity instance:
      * <pre>
      *     people.get(ssn, Person::getName);
+     * </pre>
+     *
+     * You could also extract a {@link Fragment} containing the {@code Person}'s
+     * {@code name} and {@code age} attributes by calling corresponding getters
+     * on the remote {@code Person} entity instance:
+     * <pre>
+     *     Fragment&lt;Person> person = people.get(ssn, Extractors.fragment(Person::getName, Person::getAge));
+     *     System.out.println("name: " + person.get(Person::getName));
+     *     System.out.println(" age: " + person.get(Person::getAge));
+     * </pre>
+     *
+     * Finally, you can also extract nested fragments:
+     * <pre>
+     *     Fragment&lt;Person> person = people.get(ssn,
+     *           Extractors.fragment(Person::getName, Person::getAge,
+     *                               Extractors.fragment(Person::getAddress, Address::getCity, Address::getState));
+     *     System.out.println(" name: " + person.get(Person::getName));
+     *     System.out.println("  age: " + person.get(Person::getAge));
+     *
+     *     Fragment&lt;Address> address = person.getFragment(Person::getAddress);
+     *     System.out.println(" city: " + address.get(Address::getCity));
+     *     System.out.println("state: " + address.get(Address::getState));
      * </pre>
      * Note that the actual extraction (via the invocation of the specified
      * getter method) will happen on the primary owner for the specified entity,
@@ -264,44 +192,13 @@ public abstract class AbstractRepository<ID, T>
         }
 
     /**
-     * Return a {@link Fragment} extracted from an entity with a given
-     * identifier.
-     * <p/>
-     * For example, you could extract {@code Person}'s {@code name} and {@code
-     * age} attributes by calling corresponding getters on the remote {@code
-     * Person} entity instance:
-     * <pre>
-     *     Fragment&lt;Person> person = people.get(ssn, Person::getName, Person::getAge);
-     *     System.out.println("name: " + person.get(Person::getName));
-     *     System.out.println(" age: " + person.get(Person::getAge));
-     * </pre>
-     * You can also extract nested attributes by defining additional fragments in the
-     * {@code extractors} array:
-     * <pre>
-     *     Fragment&lt;Person> person = people.get(ssn,
-     *                                             Person::getName, Person::getAge,
-     *                                             Extractors.fragment(Person::getAddress, Address::getCity, Address::getState));
-     *     System.out.println(" name: " + person.get(Person::getName));
-     *     System.out.println("  age: " + person.get(Person::getAge));
+     * Return all entities in this repository.
      *
-     *     Fragment&lt;Address> address = person.getFragment(Person::getAddress);
-     *     System.out.println(" city: " + address.get(Address::getCity));
-     *     System.out.println("state: " + address.get(Address::getState));
-     * </pre>
-     * Note that the actual extraction (via the invocation of the specified
-     * getter methods) will happen on the primary owner for the specified entity,
-     * and only the extracted fragment will be sent over the network to the client,
-     * which can significantly reduce the amount of data transferred.
-     *
-     * @param id          the entity's identifier
-     * @param extractors  the {@link ValueExtractor}s to extract values with
-     *
-     * @return the extracted {@link Fragment}
+     * @return all entities in this repository
      */
-    @SuppressWarnings("unchecked")
-    public Fragment<T> get(ID id, ValueExtractor<? super T, ?>... extractors)
+    public Collection<T> getAll()
         {
-        return getMapInternal().invoke(id, Processors.extract(Extractors.fragment(extractors)));
+        return getMapInternal().values();
         }
 
     /**
@@ -316,6 +213,18 @@ public abstract class AbstractRepository<ID, T>
     public <R> Map<ID, R> getAll(ValueExtractor<? super T, ? extends R> extractor)
         {
         return getAll(Filters.always(), extractor);
+        }
+
+    /**
+     * Return the entities with the specified identifiers.
+     *
+     * @param colIds  the entity identifiers
+     *
+     * @return the entities with the specified identifiers
+     */
+    public Collection<T> getAll(Collection<? extends ID> colIds)
+        {
+        return getMapInternal().getAll(colIds).values();
         }
 
     /**
@@ -335,6 +244,18 @@ public abstract class AbstractRepository<ID, T>
         }
 
     /**
+     * Return all entities that satisfy the specified criteria.
+     *
+     * @param filter  the criteria to evaluate
+     *
+     * @return all entities that satisfy the specified criteria
+     */
+    public Collection<T> getAll(Filter<?> filter)
+        {
+        return getMapInternal().values(filter);
+        }
+
+    /**
      * Return a map of values extracted from a set of entities based on the
      * specified criteria.
      *
@@ -351,53 +272,63 @@ public abstract class AbstractRepository<ID, T>
         }
 
     /**
-     * Return a map of a {@link Fragment}s extracted from all entities in the
-     * repository.
+     * Return all entities in this repository, sorted using
+     * specified {@link Comparable} attribute.
      *
-     * @param extractors  the {@link ValueExtractor}s to extract the list of
-     *                    values with
+     * @param orderBy  the {@link Comparable} attribute to sort the results by
+     * @param <R>      the type of the extracted values
      *
-     * @return the map of extracted {@link Fragment}s, keyed by entity id
-     * @see #get(Object, ValueExtractor[])
+     * @return all entities in this repository, sorted using
+     *         specified {@link Comparable} attribute.
      */
-    @SuppressWarnings("unchecked")
-    public Map<ID, Fragment<T>> getAll(ValueExtractor<? super T, ?>... extractors)
+    public <R extends Comparable<? super R>> Collection<T> getAllOrderedBy(ValueExtractor<? super T, ? extends R> orderBy)
         {
-        return getAll(Filters.always(), extractors);
+        return getAllOrderedBy(Filters.always(), Remote.comparator(orderBy));
         }
 
     /**
-     * Return a map of {@link Fragment}s extracted from a set of entities with the
-     * given identifiers.
+     * Return all entities that satisfy the specified criteria, sorted using
+     * specified {@link Comparable} attribute.
      *
-     * @param colIds      the entity identifiers
-     * @param extractors  the {@link ValueExtractor}s to extract the list of
-     *                    values with
+     * @param filter   the criteria to evaluate
+     * @param orderBy  the {@link Comparable} attribute to sort the results by
+     * @param <R>      the type of the extracted values
      *
-     * @return the map of extracted {@link Fragment}s, keyed by entity id
-     * @see #get(Object, ValueExtractor[])
+     * @return all entities that satisfy specified criteria, sorted using
+     *         specified {@link Comparable} attribute.
      */
-    @SuppressWarnings("unchecked")
-    public Map<ID, Fragment<T>> getAll(Collection<? extends ID> colIds, ValueExtractor<? super T, ?>... extractors)
+    public <R extends Comparable<? super R>> Collection<T> getAllOrderedBy(Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy)
         {
-        return getMapInternal().invokeAll(colIds, Processors.extract(Extractors.fragment(extractors)));
+        return getAllOrderedBy(filter, Remote.comparator(orderBy));
         }
 
     /**
-     * Return a map of {@link Fragment}s extracted from a set of entities based on
-     * the specified criteria.
+     * Return all entities in this repository, sorted using
+     * specified {@link Remote.Comparator}.
      *
-     * @param filter      the criteria to use to select entities for extraction
-     * @param extractors  the {@link ValueExtractor}s to extract the list of
-     *                    values with
+     * @param orderBy  the comparator to sort the results with
      *
-     * @return the map of extracted {@link Fragment}s, keyed by entity id
-     * @see #get(Object, ValueExtractor[])
+     * @return all entities in this repository, sorted using
+     *         specified {@link Remote.Comparator}.
      */
-    @SuppressWarnings("unchecked")
-    public Map<ID, Fragment<T>> getAll(Filter<?> filter, ValueExtractor<? super T, ?>... extractors)
+    public Collection<T> getAllOrderedBy(Remote.Comparator<? super T> orderBy)
         {
-        return getMapInternal().invokeAll(filter, Processors.extract(Extractors.fragment(extractors)));
+        return getMapInternal().values(Filters.always(), orderBy);
+        }
+
+    /**
+     * Return all entities that satisfy the specified criteria, sorted using
+     * specified {@link Remote.Comparator}.
+     *
+     * @param filter   the criteria to evaluate
+     * @param orderBy  the comparator to sort the results with
+     *
+     * @return all entities that satisfy specified criteria, sorted using
+     * specified {@link Remote.Comparator}.
+     */
+    public Collection<T> getAllOrderedBy(Filter<?> filter, Remote.Comparator<? super T> orderBy)
+        {
+        return getMapInternal().values(filter, orderBy);
         }
 
     /**
@@ -754,19 +685,6 @@ public abstract class AbstractRepository<ID, T>
     public Map<ID, T> removeAllById(Collection<? extends ID> colIds, boolean fReturn)
         {
         return getMapInternal().invokeAll(colIds, Processors.remove(fReturn));
-        }
-
-    /**
-     * Remove specified entities.
-     *
-     * @param entities  the entities to remove
-     *
-     * @return {@code true} if this repository changed as a result of the call
-     */
-    @SuppressWarnings("unchecked")
-    public boolean removeAll(T... entities)
-        {
-        return removeAll(Arrays.asList(entities));
         }
 
     /**

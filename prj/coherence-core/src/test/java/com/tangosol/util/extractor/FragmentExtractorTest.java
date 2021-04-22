@@ -14,6 +14,7 @@ import data.repository.Person;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +24,7 @@ import static com.tangosol.util.Extractors.fragment;
 import static data.repository.Gender.MALE;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -46,6 +48,7 @@ public class FragmentExtractorTest
                 .salary(BigDecimal.valueOf(1000.00))
                 .address(new Address("555 Main St", "Lutz", "FL", "33559"));
         }
+
     @Test
     public void shouldExtractDirectAttributes()
         {
@@ -76,11 +79,13 @@ public class FragmentExtractorTest
                                              )).extract(aleks);
 
         System.out.println(fragment);
+        System.out.println(fragment.get("address").toString());
 
         assertThat(fragment.get(Person::getName), is(aleks.getName()));
         assertThat(fragment.get("name"), is(aleks.getName()));
         assertThat(fragment.get(Person::getAge), is(aleks.getAge()));
         assertThat(fragment.get("age"), is(aleks.getAge()));
+        assertThat(fragment.get("address"), isA(Map.class));
         assertThat(fragment.getFragment(Person::getAddress).get(Address::getCity), is(aleks.getAddress().getCity()));
         assertThat(fragment.getFragment("address").get("city"), is(aleks.getAddress().getCity()));
         assertThat(fragment.getFragment(Person::getAddress).getFragment(Address::getStreet).get(String::length), is(aleks.getAddress().getStreet().length()));

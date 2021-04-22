@@ -363,7 +363,7 @@ public class Extractors
         }
 
     /**
-     * Return a {@code ValueExtractor} that extracts a {@link Fragment} from a
+     * Return a {@code ValueExtractor} that extracts a nested {@link Fragment} from a
      * property of the target object.
      *
      * @param from         an extractor for the nested property to extract the fragment from
