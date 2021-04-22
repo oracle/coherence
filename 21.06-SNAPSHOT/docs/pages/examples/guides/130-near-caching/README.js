@@ -68,7 +68,7 @@ for detailed information on near caches.</p>
 
 </li>
 <li>
-<p>Configuring expiry and eviction policies</p>
+<p>Configuring eviction policies</p>
 
 </li>
 <li>
@@ -193,7 +193,7 @@ lang="bash"
 <div class="section">
 <p>The example code comprises the <code>SimpleNearCachingExample</code> class, which uses the <code>near-cache-config.xml</code>
 configuration to define a near cache. The front cache is configured with 100 entries as the <code>high-units</code>
-as well as optionally with an expiry. The back cache is a distributed cache.</p>
+and the back cache is a distributed cache.</p>
 
 <p>When a near cache has reached it&#8217;s <code>high-units</code> limit, it prunes itself back to the
 value of the <code>low-units</code> element (or not less than 80% of <code>high-units</code> if not set).  The entries
@@ -214,7 +214,7 @@ Least Frequently Used (LFU), Hybrid or custom.</p>
 
 </li>
 <li>
-<p>Displays <code>Cache</code> MBean metrics for the front cache</p>
+<p>Displays <code>CacheMBean</code> metrics for the front cache</p>
 
 </li>
 <li>
@@ -226,15 +226,15 @@ Least Frequently Used (LFU), Hybrid or custom.</p>
 
 </li>
 <li>
-<p>Displays <code>Cache</code> MBean metrics for the front cache to show cache pruning happening</p>
+<p>Displays <code>CacheMBean</code> metrics for the front cache to show cache pruning happening</p>
 
 </li>
 <li>
-<p>Displays <code>StorageManager</code> MBean metrics to show listener registrations</p>
+<p>Displays <code>StorageManagerMBean</code> metrics to show listener registrations</p>
 
 </li>
 </ul>
-<p>There are three tests that exercise the above <code>SimpleNearCachingExample</code> class and using different caches
+<p>There are two tests that exercise the above <code>SimpleNearCachingExample</code> class and using different caches
 as well as different invalidation strategies set via a system property. They are described in more detail in the following sections.</p>
 
 <ul class="ulist">
@@ -244,10 +244,6 @@ as well as different invalidation strategies set via a system property. They are
 </li>
 <li>
 <p>com.oracle.coherence.guides.nearcaching.SimpleNearCachingExamplePRESENTTest</p>
-
-</li>
-<li>
-<p>com.oracle.coherence.guides.nearcaching.SimpleExpiringNearCachingExampleTest</p>
 
 </li>
 </ul>
@@ -268,20 +264,6 @@ lang="java"
       &lt;/init-param&gt;
     &lt;/init-params&gt;
   &lt;/cache-mapping&gt;
-  &lt;cache-mapping&gt;
-    &lt;cache-name&gt;expiring-cache-*&lt;/cache-name&gt;  <span class="conum" data-value="2" />
-    &lt;scheme-name&gt;near-scheme&lt;/scheme-name&gt;
-    &lt;init-params&gt;
-      &lt;init-param&gt;
-        &lt;param-name&gt;front-limit-entries&lt;/param-name&gt;
-        &lt;param-value&gt;100&lt;/param-value&gt;
-      &lt;/init-param&gt;
-      &lt;init-param&gt;
-        &lt;param-name&gt;front-expiry&lt;/param-name&gt;
-        &lt;param-value&gt;8s&lt;/param-value&gt;
-      &lt;/init-param&gt;
-    &lt;/init-params&gt;
-  &lt;/cache-mapping&gt;
 &lt;/caching-scheme-mapping&gt;
 
 &lt;caching-schemes&gt;
@@ -289,12 +271,11 @@ lang="java"
     &lt;scheme-name&gt;near-scheme&lt;/scheme-name&gt;
     &lt;front-scheme&gt;
       &lt;local-scheme&gt;
-        &lt;eviction-policy&gt;LRU&lt;/eviction-policy&gt; <span class="conum" data-value="3" />
-        &lt;high-units&gt;{front-limit-entries 10}&lt;/high-units&gt; <span class="conum" data-value="4" />
-        &lt;expiry-delay&gt;{front-expiry 0s}&lt;/expiry-delay&gt;  <span class="conum" data-value="5" />
+        &lt;eviction-policy&gt;LRU&lt;/eviction-policy&gt; <span class="conum" data-value="2" />
+        &lt;high-units&gt;{front-limit-entries 10}&lt;/high-units&gt; <span class="conum" data-value="3" />
       &lt;/local-scheme&gt;
     &lt;/front-scheme&gt;
-    &lt;back-scheme&gt;   <span class="conum" data-value="6" />
+    &lt;back-scheme&gt;   <span class="conum" data-value="4" />
       &lt;distributed-scheme&gt;
         &lt;scheme-name&gt;sample-distributed&lt;/scheme-name&gt;
         &lt;service-name&gt;DistributedCache&lt;/service-name&gt;
@@ -303,20 +284,17 @@ lang="java"
         &lt;/backing-map-scheme&gt;
       &lt;/distributed-scheme&gt;
     &lt;/back-scheme&gt;
-    &lt;invalidation-strategy system-property="test.invalidation.strategy"&gt;all&lt;/invalidation-strategy&gt; <span class="conum" data-value="7" />
+    &lt;invalidation-strategy system-property="test.invalidation.strategy"&gt;all&lt;/invalidation-strategy&gt; <span class="conum" data-value="5" />
     &lt;autostart&gt;true&lt;/autostart&gt;
   &lt;/near-scheme&gt;</markup>
 
 <ul class="colist">
 <li data-value="1">Define cache mapping for caches matching <code>size-cache-*</code> to the <code>near-scheme</code> using macros to set the
 front limit to 100</li>
-<li data-value="2">Define cache mapping for caches matching <code>expiring-cache-*</code> to the <code>near-scheme</code> using macros to set the front limit
-to 100, and the expiry to 8 seconds</li>
-<li data-value="3">Define an eviction policy to apply when <code>high-units</code> are reached</li>
-<li data-value="4">Define front scheme <code>high-units</code> using the macro and defaulting to 10 if not set</li>
-<li data-value="5">Define front scheme <code>expiry-delay</code> using the macro and defaulting to 0s if not set</li>
-<li data-value="6">Define back scheme as standard distributed scheme</li>
-<li data-value="7">System property to set the invalidation strategy for each test</li>
+<li data-value="2">Define an eviction policy to apply when <code>high-units</code> are reached</li>
+<li data-value="3">Define front scheme <code>high-units</code> using the macro and defaulting to 10 if not set</li>
+<li data-value="4">Define back scheme as standard distributed scheme</li>
+<li data-value="5">System property to set the invalidation strategy for each test</li>
 </ul>
 </li>
 <li>
@@ -337,7 +315,6 @@ public SimpleNearCachingExample(String cacheName, String invalidationStrategy) {
     if (invalidationStrategy != null) {
         System.setProperty("test.invalidation.strategy", invalidationStrategy);
     }
-    System.setProperty("coherence.cacheconfig", "near-cache-config.xml");
     System.setProperty("coherence.management.refresh.expiry", "1s");
     System.setProperty("coherence.management", "all");
 }</markup>
@@ -353,11 +330,20 @@ lang="java"
  * Run the example.
  */
 public void runExample() throws Exception {
-    Session                   session = Session.create();
-    NamedMap&lt;Integer, String&gt; map     = session.getMap(cacheName);
-    map.clear();
-
     final int MAX = 100;
+
+    // Create the Coherence instance from the configuration
+    CoherenceConfiguration cfg = CoherenceConfiguration.builder()
+                       .withSession(SessionConfiguration.create("near-cache-config.xml"))
+                       .build();
+    Coherence coherence = Coherence.clusterMember(cfg);
+    coherence.start().join();
+
+    // retrieve a session
+    Session session = coherence.getSession();
+
+    NamedMap&lt;Integer, String&gt; map = session.getMap(cacheName);
+    map.clear();
 
     Logger.info("Running test with cache " + cacheName);
 
@@ -379,8 +365,8 @@ public void runExample() throws Exception {
         Logger.info("Iteration #" + j + " Total time for gets "
                     + String.format("%.3f", duration / 1_000_000f) + "ms");
 
-        // Wait for some time for the JMX stats to catch up, and expiry to happen if we are using expiring front cache
-        Base.sleep(5000L); <span class="conum" data-value="3" />
+        // Wait for some time for the JMX stats to catch up
+        Base.sleep(3000L); <span class="conum" data-value="3" />
 
         logJMXNearCacheStats(); <span class="conum" data-value="4" />
     }
@@ -399,7 +385,7 @@ public void runExample() throws Exception {
 <ul class="colist">
 <li data-value="1">Populate the cache with 100 entries</li>
 <li data-value="2">Issue a get for each of the 100 entries</li>
-<li data-value="3">Sleep for 5 seconds to ensure JMX stats are up to date as well as expire entries second time around if the expiring cache is being used</li>
+<li data-value="3">Sleep for 3 seconds to ensure JMX stats are up to date</li>
 <li data-value="4">Display the Cache MBean front cache metrics</li>
 <li data-value="5">Issue 10 more puts and gets which will cause the front cache to be pruned</li>
 <li data-value="6">Display the Cache MBean front cache metrics and StorageManager metrics</li>
@@ -419,10 +405,6 @@ public void runExample() throws Exception {
 </li>
 <li>
 <p>SimpleNearCachingExamplePRESENTTest - uses <code>present</code> invalidation strategy and high units of 100</p>
-
-</li>
-<li>
-<p>SimpleExpiringNearCachingExampleTest - uses <code>all</code> invalidation strategy and front expiry of 3 seconds</p>
 
 </li>
 </ul>
@@ -493,38 +475,12 @@ lang="java"
 invalidation strategy of `present.</p>
 </div>
 </li>
-<li>
-Review the <code>SimpleExpiringNearCachingExampleTest</code>
-<markup
-lang="java"
-
->public class SimpleExpiringNearCachingExampleTest {
-
-    @Test
-    public void testExpiringNearCache() throws Exception {
-        System.setProperty("coherence.log.level", "3");
-        SimpleNearCachingExample example = new SimpleNearCachingExample("expiring-cache-all", "all");
-        example.runExample();
-
-        Coherence coherence = Coherence.getInstance();
-        if (coherence != null) {
-            coherence.close();
-        }
-    }
-}</markup>
-
-<div class="admonition note">
-<p class="admonition-inline">This test runs with a cache called <code>expiring-cache-all</code>, which matches the size limited and expiring near cache and
-invalidation strategy of <code>all</code>.
-Due to the expiry behaviour, the output will be different from the size limited cache.</p>
-</div>
-</li>
 </ol>
 </div>
 
 <h3 id="run-example-1">Run the Examples</h3>
 <div class="section">
-<p>Run the examples using one of the methods below:</p>
+<p>Run the examples using one of the test classes below:</p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -536,10 +492,6 @@ Run directly from your IDE by running either of the following test classes:
 </li>
 <li>
 <p>com.oracle.coherence.guides.nearcaching.SimpleNearCachingExamplePRESENTTest</p>
-
-</li>
-<li>
-<p>com.oracle.coherence.guides.nearcaching.SimpleExpiringNearCachingExampleTest</p>
 
 </li>
 </ul>
@@ -656,56 +608,6 @@ lang="bash"
 <ul class="colist">
 <li data-value="1">Number of listener registrations</li>
 </ul>
-<p><strong>SimpleExpiringNearCachingExampleTest Output</strong></p>
-
-<p>The output of this test is slightly different from the previous two as and expiring cache is used.
-See below for details of the output.</p>
-
-<markup
-lang="bash"
-
->&lt;Info&gt; (thread=main, member=1): Running test with cache expiring-cache-all
-&lt;Info&gt; (thread=main, member=1): Iteration #1 Total time for gets 21.364ms <span class="conum" data-value="1" />
-&lt;Info&gt; (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=expiring-cache-all,nodeId=1,tier=front,loader=414493378 <span class="conum" data-value="2" />
-&lt;Info&gt; (thread=main, member=1): Name: TotalGets, value=100
-&lt;Info&gt; (thread=main, member=1): Name: TotalPuts, value=100
-&lt;Info&gt; (thread=main, member=1): Name: CacheHits, value=0
-&lt;Info&gt; (thread=main, member=1): Name: Size, value=100
-&lt;Info&gt; (thread=main, member=1): Name: HitProbability, value=0.0
-&lt;Info&gt; (thread=main, member=1): Name: AverageMissMillis, value=0.2
-&lt;Info&gt; (thread=main, member=1): Name: CachePrunes, value=0
-&lt;Info&gt; (thread=main, member=1): Iteration #2 Total time for gets 0.543ms <span class="conum" data-value="3" />
-&lt;Info&gt; (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=expiring-cache-all,nodeId=1,tier=front,loader=414493378
-&lt;Info&gt; (thread=main, member=1): Name: TotalGets, value=200
-&lt;Info&gt; (thread=main, member=1): Name: TotalPuts, value=100
-&lt;Info&gt; (thread=main, member=1): Name: CacheHits, value=100
-&lt;Info&gt; (thread=main, member=1): Name: Size, value=100
-&lt;Info&gt; (thread=main, member=1): Name: HitProbability, value=0.5 <span class="conum" data-value="4" />
-&lt;Info&gt; (thread=main, member=1): Name: AverageMissMillis, value=0.2
-&lt;Info&gt; (thread=main, member=1): Name: CachePrunes, value=0
-&lt;Info&gt; (thread=main, member=1): After extra 10 values put and get
-&lt;Info&gt; (thread=main, member=1): Coherence:type=Cache,service=DistributedCache,name=expiring-cache-all,nodeId=1,tier=front,loader=414493378
-&lt;Info&gt; (thread=main, member=1): Name: TotalGets, value=210
-&lt;Info&gt; (thread=main, member=1): Name: TotalPuts, value=110
-&lt;Info&gt; (thread=main, member=1): Name: CacheHits, value=110
-&lt;Info&gt; (thread=main, member=1): Name: Size, value=10 <span class="conum" data-value="5" />
-&lt;Info&gt; (thread=main, member=1): Name: HitProbability, value=0.5238095238095238
-&lt;Info&gt; (thread=main, member=1): Name: AverageMissMillis, value=0.2
-&lt;Info&gt; (thread=main, member=1): Name: CachePrunes, value=0 <span class="conum" data-value="6" />
-&lt;Info&gt; (thread=main, member=1): Coherence:type=StorageManager,service=DistributedCache,cache=expiring-cache-all,nodeId=1
-&lt;Info&gt; (thread=main, member=1): Name: ListenerRegistrations, value=1 <span class="conum" data-value="7" />
-&lt;Info&gt; (thread=main, member=1): Name: InsertCount, value=110</markup>
-
-<ul class="colist">
-<li data-value="1">Iteration #1 for gets takes 21.364ms which includes the time to populate the front cache</li>
-<li data-value="2">The Cache MBean object name for the front cache and various metrics</li>
-<li data-value="3">Iteration #2 for gets takes only 0.543ms which is considerably quicker due to the entries being in the front cache</li>
-<li data-value="4">The Hit Probability is 0.5 or 50% as 100 out of 200 entries were read from the front cache</li>
-<li data-value="5">After the extra puts and gets, we can see the size is 10 as the total sleep time was &gt; 8 seconds which meant
-the near cache expired 100 entries before the next 10 entries were added</li>
-<li data-value="6">Number of prune operations are 0 as no size limiting pruning has been done</li>
-<li data-value="7">Because we are using the <code>all</code> invalidation strategy there is only 1 listener registered for all the entries</li>
-</ul>
 </div>
 
 <h3 id="summary">Summary</h3>
@@ -726,7 +628,7 @@ the near cache expired 100 entries before the next 10 entries were added</li>
 
 </li>
 <li>
-<p>Configured expiry and eviction policies</p>
+<p>Configured eviction policies</p>
 
 </li>
 <li>
