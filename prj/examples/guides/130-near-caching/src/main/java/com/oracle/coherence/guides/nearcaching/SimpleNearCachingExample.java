@@ -8,8 +8,11 @@
 package com.oracle.coherence.guides.nearcaching;
 
 import com.oracle.coherence.common.base.Logger;
+import com.tangosol.net.Coherence;
+import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
+import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.util.Base;
 
@@ -62,7 +65,6 @@ public class SimpleNearCachingExample {
         if (invalidationStrategy != null) {
             System.setProperty("test.invalidation.strategy", invalidationStrategy);
         }
-        System.setProperty("coherence.cacheconfig", "near-cache-config.xml");
         System.setProperty("coherence.management.refresh.expiry", "1s");
         System.setProperty("coherence.management", "all");
     }
@@ -83,12 +85,21 @@ public class SimpleNearCachingExample {
      * Run the example.
      */
     public void runExample() throws Exception {
-        Session                   session = Session.create();
-        NamedMap<Integer, String> map     = session.getMap(cacheName);
-        map.clear();
-
         final int MAX = 100;
 
+        // Create the Coherence instance from the configuration
+        CoherenceConfiguration cfg = CoherenceConfiguration.builder()
+                           .withSession(SessionConfiguration.create("near-cache-config.xml"))
+                           .build();
+        Coherence coherence = Coherence.clusterMember(cfg);
+        coherence.start().join();
+
+        // retrieve a session
+        Session session = coherence.getSession();
+        
+        NamedMap<Integer, String> map = session.getMap(cacheName);
+        map.clear();
+        
         Logger.info("Running test with cache " + cacheName);
 
         // sleep so we don't get distribution messages intertwined with test output
@@ -109,8 +120,8 @@ public class SimpleNearCachingExample {
             Logger.info("Iteration #" + j + " Total time for gets "
                         + String.format("%.3f", duration / 1_000_000f) + "ms");
 
-            // Wait for some time for the JMX stats to catch up, and expiry to happen if we are using expiring front cache
-            Base.sleep(5000L); // <3>
+            // Wait for some time for the JMX stats to catch up
+            Base.sleep(3000L); // <3>
 
             logJMXNearCacheStats(); // <4>
         }

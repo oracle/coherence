@@ -22,20 +22,6 @@
         </init-param>
       </init-params>
     </cache-mapping>
-    <cache-mapping>
-      <cache-name>expiring-cache-*</cache-name>  <!--2-->
-      <scheme-name>near-scheme</scheme-name>
-      <init-params>
-        <init-param>
-          <param-name>front-limit-entries</param-name>
-          <param-value>100</param-value>
-        </init-param>
-        <init-param>
-          <param-name>front-expiry</param-name>
-          <param-value>8s</param-value>
-        </init-param>
-      </init-params>
-    </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -43,12 +29,11 @@
       <scheme-name>near-scheme</scheme-name>
       <front-scheme>
         <local-scheme>
-          <eviction-policy>LRU</eviction-policy> <!--3-->
-          <high-units>{front-limit-entries 10}</high-units> <!--4-->
-          <expiry-delay>{front-expiry 0s}</expiry-delay>  <!--5-->
+          <eviction-policy>LRU</eviction-policy> <!--2-->
+          <high-units>{front-limit-entries 10}</high-units> <!--3-->
         </local-scheme>
       </front-scheme>
-      <back-scheme>   <!--6-->
+      <back-scheme>   <!--4-->
         <distributed-scheme>
           <scheme-name>sample-distributed</scheme-name>
           <service-name>DistributedCache</service-name>
@@ -57,7 +42,7 @@
           </backing-map-scheme>
         </distributed-scheme>
       </back-scheme>
-      <invalidation-strategy system-property="test.invalidation.strategy">all</invalidation-strategy> <!--7-->
+      <invalidation-strategy system-property="test.invalidation.strategy">all</invalidation-strategy> <!--5-->
       <autostart>true</autostart>
     </near-scheme>
     <!-- end::config[] -->
