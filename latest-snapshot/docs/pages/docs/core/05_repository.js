@@ -43,7 +43,7 @@
 
 <h3 id="_implementing_a_repository">Implementing a Repository</h3>
 <div class="section">
-<p>Coherence provides an abstract base class <code>com.oracle.coherence.repository.AbstractRepository</code>, which your custom repository implementation needs to extend and provide implementation of the three abstract methods:</p>
+<p>Coherence provides an abstract base class <code>com.oracle.coherence.repository.AbstractRepository</code>, which your custom repository implementation needs to extend and provide implementation of three abstract methods:</p>
 
 <markup
 lang="java"
@@ -118,7 +118,7 @@ lang="java"
         {
         Filter&lt;Person&gt; filter = Filters.like(Person::getFirstName, name)
                                     .or(Filters.like(Person::getLastName, name));
-        return findAll(filter);
+        return getAll(filter);
         }</markup>
 
 <p>You can then invoke <code>findByName</code> method directly within the application to find all the people whose first or last name starts with a letter <code>A</code>, for example:</p>
@@ -135,7 +135,7 @@ lang="java"
 
 <h3 id="_basic_crud_operations">Basic CRUD Operations</h3>
 <div class="section">
-<p>We&#8217;ve already seen one read operation, <code>findAll</code>, in the example above, but let&#8217;s start from the beginning and look into how we can add, remove, update and query our repository.</p>
+<p>We&#8217;ve already seen one read operation, <code>getAll</code>, in the example above, but let&#8217;s start from the beginning and look into how we can add, remove, update and query our repository.</p>
 
 <p>To add new entities to the repository, or replace the existing ones, you can use either the <code>save</code> or the <code>saveAll</code> method.</p>
 
@@ -146,31 +146,31 @@ lang="java"
 
 >people.save(new Person("555-11-2222", "Aleks", 46));</markup>
 
-<p>The latter allows you to store a batch of entities at once by passing either an array, a collection or a stream of entities as an argument.</p>
+<p>The latter allows you to store a batch of entities at once by passing either a collection or a stream of entities as an argument.</p>
 
-<p>Once you have some entities stored in a repository, you can query the repository using <code>findById</code> and <code>findAll</code> methods.</p>
+<p>Once you have some entities stored in a repository, you can query the repository using <code>get</code> and <code>getAll</code> methods.</p>
 
 <markup
 lang="java"
 
->Person person = people.findById("555-11-2222");                                            <span class="conum" data-value="1" />
+>Person person = people.get("555-11-2222");                                                <span class="conum" data-value="1" />
 assert person.getName().equals("Aleks");
 assert person.getAge() == 46;
 
-Collection&lt;Person&gt; allPeople = people.findAll();                                           <span class="conum" data-value="2" />
-Collection&lt;Person&gt; allAdults = people.findAll(Filters.greaterOrEqual(Person::getAge, 18)); <span class="conum" data-value="3" /></markup>
+Collection&lt;Person&gt; allPeople = people.getAll();                                           <span class="conum" data-value="2" />
+Collection&lt;Person&gt; allAdults = people.getAll(Filters.greaterOrEqual(Person::getAge, 18)); <span class="conum" data-value="3" /></markup>
 
 <ul class="colist">
-<li data-value="1">find a single <code>Person</code> by identifier</li>
-<li data-value="2">find all the people in the repository</li>
-<li data-value="3">find all the people in the repository that are 18 or older</li>
+<li data-value="1">get a single <code>Person</code> by identifier</li>
+<li data-value="2">get all the people from the repository</li>
+<li data-value="3">get all the people from the repository that are 18 or older</li>
 </ul>
-<p>When using <code>findAll</code>, you can also specify an optional sort order for the results, by specifying a <code>Comparable</code> property via a method reference:</p>
+<p>You can retrieve sorted results by calling <code>getAllOrderedBy</code> method and specifying a <code>Comparable</code> property via a method reference:</p>
 
 <markup
 lang="java"
 
->Collection&lt;Person&gt; peopleOrderedByAge = people.findAll(Person::getAge)     <span class="conum" data-value="1" /></markup>
+>Collection&lt;Person&gt; peopleOrderedByAge = people.getAllOrderedBy(Person::getAge)     <span class="conum" data-value="1" /></markup>
 
 <ul class="colist">
 <li data-value="1">the result will contain all people from the repository, sorted by age from the youngest to the oldest</li>
@@ -184,15 +184,15 @@ lang="java"
         {
         Filter&lt;Person&gt; filter = Filters.like(Person::getFirstName, name)
                                     .or(Filters.like(Person::getLastName, name));
-        return findAll(filter,
-                       Remote.comparator(Person::getLastName)
-                             .thenComparing(Person::getFirstName));     <span class="conum" data-value="1" />
+        return getAllOrderedBy(filter,
+                               Remote.comparator(Person::getLastName)
+                                     .thenComparing(Person::getFirstName));     <span class="conum" data-value="1" />
         }</markup>
 
 <ul class="colist">
-<li data-value="1">the results will be sorted by last name, and then by first name; note that we are using Coherence <code>Remote.comparator</code> instead of standard Java <code>Comparator</code> in order to ensure that the specified comparator is serializable and can be sent to remote cluster members.</li>
+<li data-value="1">the results will be sorted by last name, and then by first name; note that we are using Coherence <code>Remote.comparator</code> instead of standard Java <code>Comparator</code> in order to ensure that the specified comparator is serializable and can be sent to remote cluster members</li>
 </ul>
-<p>Finally, to remove entities from a repository you can use one of several <code>remove</code> methods:</p>
+<p>Finally, to remove entities from a repository you can use one of the several <code>remove</code> methods:</p>
 
 <markup
 lang="java"
@@ -250,7 +250,7 @@ Map&lt;String, Person&gt; mapRemoved =
 
 <h3 id="_projection">Projection</h3>
 <div class="section">
-<p>While querying repository for a collection of entities that satisfy some criteria is certainly a common and useful operation, sometimes you don&#8217;t need all the information contained within the entity. For example, if you only need a person&#8217;s name, querying for and then discarding all the information contained within the <code>Person</code> instances is unnecessary and wasteful.</p>
+<p>While querying repository for a collection of entities that satisfy some criteria is certainly a common and useful operation, sometimes you don&#8217;t need all the attributes within the entity. For example, if you only need a person&#8217;s name, querying for and then discarding all the information contained within the <code>Person</code> instances is unnecessary and wasteful.</p>
 
 <p>It is the equivalent of executing</p>
 
@@ -286,7 +286,8 @@ Map&lt;String, String&gt; mapNames =
 <markup
 lang="java"
 
->Fragment&lt;Person&gt; fragment = people.get("111-22-3333", Person::getName, Person::getAge);  <span class="conum" data-value="1" />
+>Fragment&lt;Person&gt; fragment = people.get("111-22-3333",
+                                       Extractors.fragment(Person::getName, Person::getAge));  <span class="conum" data-value="1" />
 String name = fragment.get(Person::getName);  <span class="conum" data-value="2" />
 int    age  = fragment.get(Person::getAge);   <span class="conum" data-value="3" /></markup>
 
@@ -302,7 +303,7 @@ lang="java"
 
 >Map&lt;String, Fragment&lt;Person&gt;&gt; fragments = people.getAll(
         Filters.less(Person::getAge, 18),
-        Person::getName, Person::getAge);  <span class="conum" data-value="1" /></markup>
+        Extractors.fragment(Person::getName, Person::getAge));  <span class="conum" data-value="1" /></markup>
 
 <ul class="colist">
 <li data-value="1">return a map of fragments containing the name and age of all the people younger than 18, keyed by person&#8217;s identifier</li>
@@ -314,8 +315,8 @@ lang="java"
 
 >Fragment&lt;Person&gt; person = people.get(
         "111-22-3333",
-        Person::getName,
-        Extractors.fragment(Person::getAddress, Address::getCountry));  <span class="conum" data-value="1" />
+        Extractors.fragment(Person::getName,
+                            Extractors.fragment(Person::getAddress, Address::getCountry)));  <span class="conum" data-value="1" />
 String            name    = person.get(Person::getName);                <span class="conum" data-value="2" />
 Fragment&lt;Address&gt; address = person.getFragment(Person::getAddress);     <span class="conum" data-value="3" />
 String            country = address.get(Address::getCountry);           <span class="conum" data-value="4" /></markup>
@@ -335,7 +336,7 @@ String            country = address.get(Address::getCountry);           <span cl
 <markup
 lang="java"
 
->Person person = people.findById("111-22-3333");
+>Person person = people.get("111-22-3333");
 person.setAge(55);
 people.save(person);</markup>
 
@@ -480,7 +481,7 @@ lang="java"
 
 <h3 id="_stream_api_and_data_aggregation">Stream API and Data Aggregation</h3>
 <div class="section">
-<p>We&#8217;ve already covered how you can query the repository to retrieve a subset of entities using a <code>findAll</code> method and a <code>Filter</code>, but sometimes you don&#8217;t need the entities themselves, but a result of some computation applied to a subset of entities in the repository. For example, you may need to calculate average salary of all the employees in a department, or the total value of all equity positions in a portfolio.</p>
+<p>We&#8217;ve already covered how you can query the repository to retrieve a subset of entities using a <code>getAll</code> method and a <code>Filter</code>, but sometimes you don&#8217;t need the entities themselves, but a result of some computation applied to a subset of entities in the repository. For example, you may need to calculate average salary of all the employees in a department, or the total value of all equity positions in a portfolio.</p>
 
 <p>While you could certainly query the repository for the entities that need to be processed and perform processing itself on the client, this is very inefficient way to accomplish the task, as you may end up moving significant amount of data over the network, just to discard it after the client-side processing.</p>
 
