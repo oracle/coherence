@@ -6,41 +6,40 @@
  */
 package com.oracle.coherence.repository;
 
-import com.oracle.coherence.common.base.Exceptions;
-import com.oracle.coherence.common.base.Logger;
-
+import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.NamedMap;
 
 import com.tangosol.util.Aggregators;
-import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.Fragment;
+import com.tangosol.util.InvocableMap;
 import com.tangosol.util.Processors;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueUpdater;
 
 import com.tangosol.util.comparator.ExtractorComparator;
 
-import com.tangosol.util.extractor.DeserializationAccelerator;
-
 import com.tangosol.util.function.Remote;
 
 import com.tangosol.util.stream.RemoteCollector;
 import com.tangosol.util.stream.RemoteCollectors;
-import com.tangosol.util.stream.RemoteStream;
 
 import java.math.BigDecimal;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
+
+import java.util.concurrent.CompletableFuture;
+
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,25 +49,26 @@ import static com.tangosol.util.function.Remote.Comparator.comparing;
 import static com.tangosol.util.stream.RemoteCollectors.groupingBy;
 
 /**
- * Abstract base class for Coherence
+ * Abstract base class for asynchronous Coherence
  * <a href="https://martinfowler.com/eaaCatalog/repository.html">repository</a>
  * implementations.
  *
  * @param <ID>  the type of entity's identifier
  * @param <T>   the type of entity stored in this repository
  *
- * @author Aleks Seovic  2021.01.28
+ * @author Ryan Lubke    2021.04.08
+ * @author Aleks Seovic
  * @since 21.06
  */
-public abstract class AbstractRepository<ID, T>
-        extends AbstractRepositoryBase<ID, T, NamedMap<ID, T>>
+public abstract class AbstractAsyncRepository<ID, T>
+        extends AbstractRepositoryBase<ID, T, AsyncNamedMap<ID, T>>
     {
     // ----- AbstractRepositoryBase methods ---------------------------------
 
     @Override
     NamedMap<ID, T> getNamedMap()
         {
-        return getMapInternal();
+        return getMap().getNamedMap();
         }
 
     // ----- CRUD support ---------------------------------------------------
@@ -80,30 +80,35 @@ public abstract class AbstractRepository<ID, T>
      *
      * @return the saved entity
      */
-    public T save(T entity)
+    public CompletableFuture<T> save(T entity)
         {
-        getMapInternal().putAll(Collections.singletonMap(getId(entity), entity));
-        return entity;
+        return getMapInternal().putAll(Collections.singletonMap(getId(entity), entity)).thenApply(unused -> entity);
         }
 
     /**
      * Store all specified entities as a batch.
      *
      * @param colEntities  the entities to store
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
      */
-    public void saveAll(Collection<? extends T> colEntities)
+    public CompletableFuture<Void> saveAll(Collection<? extends T> colEntities)
         {
-        saveAll(colEntities.stream());
+        return saveAll(colEntities.stream());
         }
 
     /**
      * Store all specified entities as a batch.
      *
      * @param strEntities  the entities to store
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
      */
-    public void saveAll(Stream<? extends T> strEntities)
+    public CompletableFuture<Void> saveAll(Stream<? extends T> strEntities)
         {
-        getMapInternal().putAll(strEntities.collect(Collectors.toMap(this::getId, v -> v)));
+        return getMapInternal().putAll(strEntities.collect(Collectors.toMap(this::getId, v -> v)));
         }
 
     /**
@@ -111,9 +116,10 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param id  the entity's identifier
      *
-     * @return an entity with a given identifier
+     * @return a {@link CompletableFuture} for the value to which the specified
+     *         {@code id} is mapped
      */
-    public T get(ID id)
+    public CompletableFuture<T> get(ID id)
         {
         return getMapInternal().get(id);
         }
@@ -157,9 +163,9 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the {@link ValueExtractor} to extract value with
      * @param <R>        the type of the extracted value
      *
-     * @return the extracted value
+     * @return a {@link CompletableFuture} that will resolve to the extracted value
      */
-    public <R> R get(ID id, ValueExtractor<? super T, ? extends R> extractor)
+    public <R> CompletableFuture<R> get(ID id, ValueExtractor<? super T, ? extends R> extractor)
         {
         return getMapInternal().invoke(id, Processors.extract(extractor));
         }
@@ -167,11 +173,26 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return all entities in this repository.
      *
-     * @return all entities in this repository
+     * @return a {@link CompletableFuture} that will resolve to all entities in this repository
      */
-    public Collection<T> getAll()
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public CompletableFuture<Collection<? extends T>> getAll()
         {
-        return getMapInternal().values();
+        return (CompletableFuture) getMapInternal().values();
+        }
+
+    /**
+     * Stream all entities all entities in this repository.
+     *
+     * @param callback  a {@link Consumer consumer} of results as they become available
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
+     * @see #getAll()
+     */
+    public CompletableFuture<Void> getAll(Consumer<? super T> callback)
+        {
+        return getMapInternal().values(callback);
         }
 
     /**
@@ -180,12 +201,29 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the {@link ValueExtractor} to extract values with
      * @param <R>        the type of the extracted values
      *
-     * @return the map of extracted values, keyed by entity id
+     * @return a {@link CompletableFuture} that will resolve to a map of extracted values, keyed by entity id
      * @see #get(Object, ValueExtractor)
      */
-    public <R> Map<ID, R> getAll(ValueExtractor<? super T, ? extends R> extractor)
+    public <R> CompletableFuture<Map<ID, R>> getAll(ValueExtractor<? super T, ? extends R> extractor)
         {
         return getAll(Filters.always(), extractor);
+        }
+
+    /**
+     * Streams the id and the associated extracted value from all entities in the repository.
+     *
+     * @param extractor  the {@link ValueExtractor} to extract values with
+     * @param callback   a {@link BiConsumer consumer} of results as they become available
+     * @param <R>        the type of the extracted values
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
+     * @see #getAll(ValueExtractor)
+     */
+    public <R> CompletableFuture<Void> getAll(ValueExtractor<? super T, ? extends R> extractor,
+                BiConsumer<? super ID, ? super R> callback)
+        {
+        return getAll(Filters.always(), extractor, callback);
         }
 
     /**
@@ -193,11 +231,26 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param colIds  the entity identifiers
      *
-     * @return the entities with the specified identifiers
+     * @return a {@link CompletableFuture} that will resolve to the entities with the specified identifiers
      */
-    public Collection<T> getAll(Collection<? extends ID> colIds)
+    public CompletableFuture<Collection<T>> getAll(Collection<? extends ID> colIds)
         {
-        return getMapInternal().getAll(colIds).values();
+        return getMapInternal().getAll(colIds).thenApply(Map::values);
+        }
+
+    /**
+     * Stream the entities associated with the specified ids to the provided callback.
+     *
+     * @param colIds    a {@link Collection} of ids that may be present in this repository
+     * @param callback  a {@link Consumer consumer} of results as they become available
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
+     * @see #getAll(Collection)
+     */
+    public CompletableFuture<Void> getAll(Collection<? extends ID> colIds, Consumer<? super T> callback)
+        {
+        return getMapInternal().getAll(colIds, entry -> callback.accept(entry.getValue()));
         }
 
     /**
@@ -208,12 +261,31 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the {@link ValueExtractor} to extract values with
      * @param <R>        the type of the extracted values
      *
-     * @return the map of extracted values, keyed by entity id
+     * @return a {@link CompletableFuture} that will resolve to a map of extracted values, keyed by entity id
      * @see #get(Object, ValueExtractor)
      */
-    public <R> Map<ID, R> getAll(Collection<? extends ID> colIds, ValueExtractor<? super T, ? extends R> extractor)
+    public <R> CompletableFuture<Map<ID, R>> getAll(Collection<? extends ID> colIds,
+            ValueExtractor<? super T, ? extends R> extractor)
         {
         return getMapInternal().invokeAll(colIds, Processors.extract(extractor));
+        }
+
+    /**
+     * Stream the entities associated with the specified ids to the provided callback.
+     *
+     * @param colIds     a {@link Collection} of ids that may be present in this repository
+     * @param extractor  the {@link ValueExtractor} to extract values with
+     * @param callback   a {@link BiConsumer consumer} of results as they become available
+     * @param <R>        the type of the extracted values
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
+     * @see #getAll(Collection)
+     */
+    public <R> CompletableFuture<Void> getAll(Collection<? extends ID> colIds,
+                 ValueExtractor<? super T, ? extends R> extractor, BiConsumer<? super ID, ? super R> callback)
+        {
+        return getMapInternal().invokeAll(colIds, Processors.extract(extractor), callback);
         }
 
     /**
@@ -221,11 +293,26 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param filter  the criteria to evaluate
      *
-     * @return all entities that satisfy the specified criteria
+     * @return a {@link CompletableFuture} that will resolve to all entities that satisfy the specified criteria
      */
-    public Collection<T> getAll(Filter<?> filter)
+    public CompletableFuture<Collection<T>> getAll(Filter<?> filter)
         {
         return getMapInternal().values(filter);
+        }
+
+    /**
+     * Stream all entities that satisfy the specified criteria.
+     *
+     * @param filter    the criteria to evaluate
+     * @param callback  a consumer of results as they become available
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
+     * @see #getAll(Filter)
+     */
+    public CompletableFuture<Void> getAll(Filter<?> filter, Consumer<? super T> callback)
+        {
+        return getMapInternal().values(filter, callback);
         }
 
     /**
@@ -236,12 +323,31 @@ public abstract class AbstractRepository<ID, T>
      * @param extractor  the {@link ValueExtractor} to extract values with
      * @param <R>        the type of the extracted values
      *
-     * @return the map of extracted values, keyed by entity id
+     * @return a {@link CompletableFuture} that will resolve to a map of extracted values, keyed by entity id
      * @see #get(Object, ValueExtractor)
      */
-    public <R> Map<ID, R> getAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor)
+    public <R> CompletableFuture<Map<ID, R>> getAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor)
         {
         return getMapInternal().invokeAll(filter, Processors.extract(extractor));
+        }
+
+    /**
+     * Streams the id and the associated extracted value from a set of entities based on the
+     * specified criteria.
+     *
+     * @param filter     the criteria to use to select entities for extraction
+     * @param extractor  the {@link ValueExtractor} to extract values with
+     * @param callback   a {@link BiConsumer consumer} of results as they become available
+     * @param <R>        the type of the extracted values
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
+     * @see #getAll(Filter, ValueExtractor)
+     */
+    public <R> CompletableFuture<Void> getAll(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor,
+                BiConsumer<? super ID, ? super R> callback)
+        {
+        return getMapInternal().invokeAll(filter, Processors.extract(extractor), callback);
         }
 
     /**
@@ -251,10 +357,11 @@ public abstract class AbstractRepository<ID, T>
      * @param orderBy  the {@link Comparable} attribute to sort the results by
      * @param <R>      the type of the extracted values
      *
-     * @return all entities in this repository, sorted using
+     * @return a {@link CompletableFuture} that will resolve to all entities in this repository, sorted using
      *         specified {@link Comparable} attribute.
      */
-    public <R extends Comparable<? super R>> Collection<T> getAllOrderedBy(ValueExtractor<? super T, ? extends R> orderBy)
+    public <R extends Comparable<? super R>> CompletableFuture<Collection<T>> getAllOrderedBy(
+            ValueExtractor<? super T, ? extends R> orderBy)
         {
         return getAllOrderedBy(Filters.always(), Remote.comparator(orderBy));
         }
@@ -267,10 +374,11 @@ public abstract class AbstractRepository<ID, T>
      * @param orderBy  the {@link Comparable} attribute to sort the results by
      * @param <R>      the type of the extracted values
      *
-     * @return all entities that satisfy specified criteria, sorted using
-     *         specified {@link Comparable} attribute.
+     * @return a {@link CompletableFuture} that will resolve to all entities that satisfy specified criteria,
+     *         sorted using specified {@link Comparable} attribute.
      */
-    public <R extends Comparable<? super R>> Collection<T> getAllOrderedBy(Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy)
+    public <R extends Comparable<? super R>> CompletableFuture<Collection<T>> getAllOrderedBy(
+            Filter<?> filter, ValueExtractor<? super T, ? extends R> orderBy)
         {
         return getAllOrderedBy(filter, Remote.comparator(orderBy));
         }
@@ -281,12 +389,12 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param orderBy  the comparator to sort the results with
      *
-     * @return all entities in this repository, sorted using
+     * @return a {@link CompletableFuture} that will resolve to all entities in this repository, sorted using
      *         specified {@link Remote.Comparator}.
      */
-    public Collection<T> getAllOrderedBy(Remote.Comparator<? super T> orderBy)
+    public CompletableFuture<Collection<T>> getAllOrderedBy(Remote.Comparator<? super T> orderBy)
         {
-        return getMapInternal().values(Filters.always(), orderBy);
+        return getAllOrderedBy(Filters.always(), orderBy);
         }
 
     /**
@@ -296,10 +404,10 @@ public abstract class AbstractRepository<ID, T>
      * @param filter   the criteria to evaluate
      * @param orderBy  the comparator to sort the results with
      *
-     * @return all entities that satisfy specified criteria, sorted using
-     * specified {@link Remote.Comparator}.
+     * @return a {@link CompletableFuture} that will resolve to all entities that satisfy specified criteria,
+     *         sorted using specified {@link Remote.Comparator}.
      */
-    public Collection<T> getAllOrderedBy(Filter<?> filter, Remote.Comparator<? super T> orderBy)
+    public CompletableFuture<Collection<T>> getAllOrderedBy(Filter<?> filter, Remote.Comparator<? super T> orderBy)
         {
         return getMapInternal().values(filter, orderBy);
         }
@@ -322,12 +430,13 @@ public abstract class AbstractRepository<ID, T>
      * @param value    the value to update entity with, which will be passed as
      *                 an argument to the updater function
      * @param <U>      the type of value to update
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
      */
-    public <U> void update(ID id,
-                           ValueUpdater<? super T, ? super U> updater,
-                           U value)
+    public <U> CompletableFuture<Void> update(ID id, ValueUpdater<? super T, ? super U> updater, U value)
         {
-        update(id, updater, value, null);
+        return update(id, updater, value, null);
         }
 
     /**
@@ -356,13 +465,14 @@ public abstract class AbstractRepository<ID, T>
      *                 an argument to the updater function
      * @param <U>      the type of value to update
      * @param factory  the entity factory to use to create new entity instance
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
      */
-    public <U> void update(ID id,
-                           ValueUpdater<? super T, ? super U> updater,
-                           U value,
-                           EntityFactory<? super ID, ? extends T> factory)
+    public <U> CompletableFuture<Void> update(ID id, ValueUpdater<? super T, ? super U> updater, U value,
+                EntityFactory<? super ID, ? extends T> factory)
         {
-        getMapInternal().invoke(id, updaterProcessor(updater, value, factory));
+        return getMapInternal().invoke(id, updaterProcessor(updater, value, factory));
         }
 
     /**
@@ -391,10 +501,9 @@ public abstract class AbstractRepository<ID, T>
      * @param updater  the updater function to use
      * @param <R>      the type of return value of the updater function
      *
-     * @return the result of updater function evaluation
+     * @return a {@link CompletableFuture} that will resolve to the result of updater function evaluation
      */
-    public <R> R update(ID id,
-                        Remote.Function<? super T, ? extends R> updater)
+    public <R> CompletableFuture<R> update(ID id, Remote.Function<? super T, ? extends R> updater)
         {
         return update(id, updater, null);
         }
@@ -433,11 +542,10 @@ public abstract class AbstractRepository<ID, T>
      * @param factory  the entity factory to use to create new entity instance
      * @param <R>      the type of return value of the updater function
      *
-     * @return the result of updater function evaluation
+     * @return a {@link CompletableFuture} that will resolve to the result of updater function evaluation
      */
-    public <R> R update(ID id,
-                        Remote.Function<? super T, ? extends R> updater,
-                        EntityFactory<? super ID, ? extends T> factory)
+    public <R> CompletableFuture<R> update(ID id, Remote.Function<? super T, ? extends R> updater,
+                EntityFactory<? super ID, ? extends T> factory)
         {
         return getMapInternal().invoke(id, updateFunctionProcessor(updater, factory));
         }
@@ -469,11 +577,10 @@ public abstract class AbstractRepository<ID, T>
      * @param <U>      the type of value to update
      * @param <R>      the type of return value of the updater function
      *
-     * @return the result of updater function evaluation
+     * @return a {@link CompletableFuture} that will resolve to the result of updater function evaluation
      */
-    public <U, R> R update(ID id,
-                           Remote.BiFunction<? super T, ? super U, ? extends R> updater,
-                           U value)
+    public <U, R> CompletableFuture<R> update(ID id, Remote.BiFunction<? super T, ? super U, ? extends R> updater,
+                U value)
         {
         return update(id, updater, value, null);
         }
@@ -513,12 +620,10 @@ public abstract class AbstractRepository<ID, T>
      * @param <U>      the type of value to update
      * @param <R>      the type of return value of the updater function
      *
-     * @return the result of updater function evaluation
+     * @return a {@link CompletableFuture} that will resolve to the result of updater function evaluation
      */
-    public <U, R> R update(ID id,
-                           Remote.BiFunction<? super T, ? super U, ? extends R> updater,
-                           U value,
-                           EntityFactory<? super ID, ? extends T> factory)
+    public <U, R> CompletableFuture<R> update(ID id, Remote.BiFunction<? super T, ? super U, ? extends R> updater,
+                U value, EntityFactory<? super ID, ? extends T> factory)
         {
         return getMapInternal().invoke(id, updateBiFunctionProcessor(updater, value, factory));
         }
@@ -531,12 +636,15 @@ public abstract class AbstractRepository<ID, T>
      * @param value    the value to update each entity with, which will be passed
      *                 as an argument to the updater function
      * @param <U>      the type of value to update
+     *
+     * @return a {@link CompletableFuture} that can be used to determine whether
+     *         the operation completed
      */
-    public <U> void updateAll(Filter<?> filter,
-                              ValueUpdater<? super T, ? super U> updater,
-                              U value)
+    @SuppressWarnings("CheckStyle")
+    public <U> CompletableFuture<Void> updateAll(Filter<?> filter, ValueUpdater<? super T, ? super U> updater,
+                U value)
         {
-        getMapInternal().invokeAll(filter, updaterProcessor(updater, value, null));
+        return getMapInternal().invokeAll(filter, updaterProcessor(updater, value, null)).thenAccept(m -> {});
         }
 
     /**
@@ -546,10 +654,10 @@ public abstract class AbstractRepository<ID, T>
      * @param updater  the updater function to use
      * @param <R>      the type of return value of the updater function
      *
-     * @return a map of updater function results, keyed by entity id
+     * @return a {@link CompletableFuture} that will resolve to a map of updater function results, keyed by entity id
      */
-    public <R> Map<ID, R> updateAll(Filter<?> filter,
-                                    Remote.Function<? super T, ? extends R> updater)
+    public <R> CompletableFuture<Map<ID, R>> updateAll(Filter<?> filter,
+                Remote.Function<? super T, ? extends R> updater)
         {
         return getMapInternal().invokeAll(filter, updateFunctionProcessor(updater, null));
         }
@@ -564,11 +672,10 @@ public abstract class AbstractRepository<ID, T>
      * @param <U>      the type of value to update
      * @param <R>      the type of return value of the updater function
      *
-     * @return a map of updater function results, keyed by entity id
+     * @return a {@link CompletableFuture} that will resolve to a map of updater function results, keyed by entity id
      */
-    public <U, R> Map<ID, R> updateAll(Filter<?> filter,
-                                       Remote.BiFunction<? super T, ? super U, ? extends R> updater,
-                                       U value)
+    public <U, R> CompletableFuture<Map<ID, R>> updateAll(Filter<?> filter,
+            Remote.BiFunction<? super T, ? super U, ? extends R> updater, U value)
         {
         return getMapInternal().invokeAll(filter, updateBiFunctionProcessor(updater, value, null));
         }
@@ -578,9 +685,10 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param id  the identifier of an entity to remove, if present
      *
-     * @return {@code true} if this repository contained the specified entity
+     * @return a {@link CompletableFuture} that will resolve to {@code true} if this repository contained
+     *        the specified entity
      */
-    public boolean removeById(ID id)
+    public CompletableFuture<Boolean> removeById(ID id)
         {
         return getMapInternal().invoke(id, Processors.remove());
         }
@@ -591,10 +699,10 @@ public abstract class AbstractRepository<ID, T>
      * @param id       the identifier of an entity to remove
      * @param fReturn  the flag specifying whether to return removed entity
      *
-     * @return removed entity, iff {@code fReturn == true}; {@code null}
-     *         otherwise
+     * @return a {@link CompletableFuture} that will resolve to the removed entity, iff {@code fReturn == true};
+     *         {@code null} otherwise
      */
-    public T removeById(ID id, boolean fReturn)
+    public CompletableFuture<T> removeById(ID id, boolean fReturn)
         {
         return getMapInternal().invoke(id, Processors.remove(fReturn));
         }
@@ -604,23 +712,24 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param entity  the entity to remove
      *
-     * @return {@code true} if this repository contained the specified entity
+     * @return a {@link CompletableFuture} that will resolve to {@code true} if this repository contained
+     *         the specified entity
      */
-    public boolean remove(T entity)
+    public CompletableFuture<Boolean> remove(T entity)
         {
         return removeById(getId(entity));
         }
 
     /**
-     * Remove specified entity.
+     * Remove the specified entity.
      *
      * @param entity   the entity to remove
      * @param fReturn  the flag specifying whether to return removed entity
      *
-     * @return removed entity, iff {@code fReturn == true}; {@code null}
-     *         otherwise
+     * @return a {@link CompletableFuture} that will resolve to the removed entity, iff {@code fReturn == true};
+     *         {@code null} otherwise
      */
-    public T remove(T entity, boolean fReturn)
+    public CompletableFuture<T> remove(T entity, boolean fReturn)
         {
         return removeById(getId(entity), fReturn);
         }
@@ -630,20 +739,24 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param colIds  the identifiers of the entities to remove
      *
-     * @return {@code true} if this repository changed as a result of the call
+     * @return a {@link CompletableFuture} that will resolve to {@code true} if this repository changed
+     *         as a result of the call
      */
-    public boolean removeAllById(Collection<? extends ID> colIds)
+    public CompletableFuture<Boolean> removeAllById(Collection<? extends ID> colIds)
         {
-        Map<ID, Boolean> mapResults = getMapInternal().invokeAll(colIds, Processors.remove());
-        for (boolean fResult : mapResults.values())
-            {
-            if (fResult)
-                {
-                return true;
-                }
-            }
+        return getMapInternal().invokeAll(colIds, Processors.remove())
+                               .thenApply(idBooleanMap ->
+                                              {
+                                              for (boolean fResult : idBooleanMap.values())
+                                                  {
+                                                  if (fResult)
+                                                      {
+                                                      return true;
+                                                      }
+                                                  }
 
-        return false;
+                                              return false;
+                                              });
         }
 
     /**
@@ -652,10 +765,10 @@ public abstract class AbstractRepository<ID, T>
      * @param colIds   the identifiers of the entities to remove
      * @param fReturn  the flag specifying whether to return removed entity
      *
-     * @return the map of removed entity identifiers as keys, and the removed
-     *         entities as values iff {@code fReturn == true}; {@code null} otherwise
+     * @return a {@link CompletableFuture} that will resolve to a map of removed entity identifiers as keys,
+     *         and the removed entities as values iff {@code fReturn == true}; {@code null} otherwise
      */
-    public Map<ID, T> removeAllById(Collection<? extends ID> colIds, boolean fReturn)
+    public CompletableFuture<Map<ID, T>> removeAllById(Collection<? extends ID> colIds, boolean fReturn)
         {
         return getMapInternal().invokeAll(colIds, Processors.remove(fReturn));
         }
@@ -665,9 +778,10 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param colEntities  the entities to remove
      *
-     * @return {@code true} if this repository changed as a result of the call
+     * @return a {@link CompletableFuture} that will resolve to {@code true} if this repository changed
+     *         as a result of the call
      */
-    public boolean removeAll(Collection<? extends T> colEntities)
+    public CompletableFuture<Boolean> removeAll(Collection<? extends T> colEntities)
         {
         return removeAll(colEntities.stream());
         }
@@ -678,10 +792,10 @@ public abstract class AbstractRepository<ID, T>
      * @param colEntities  the entities to remove
      * @param fReturn      the flag specifying whether to return removed entity
      *
-     * @return the map of removed entity identifiers as keys, and the removed
-     *         entities as values iff {@code fReturn == true}; {@code null} otherwise
+     * @return a {@link CompletableFuture} that will resolve to a map of removed entity identifiers as keys,
+     *         and the removed entities as values iff {@code fReturn == true}; {@code null} otherwise
      */
-    public Map<ID, T> removeAll(Collection<? extends T> colEntities, boolean fReturn)
+    public CompletableFuture<Map<ID, T>> removeAll(Collection<? extends T> colEntities, boolean fReturn)
         {
         return removeAll(colEntities.stream(), fReturn);
         }
@@ -691,23 +805,24 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param strEntities  the entities to remove
      *
-     * @return {@code true} if this repository changed as a result of the call
+     * @return a {@link CompletableFuture} that will resolve to {@code true} if this repository changed
+     *         as a result of the call
      */
-    public boolean removeAll(Stream<? extends T> strEntities)
+    public CompletableFuture<Boolean> removeAll(Stream<? extends T> strEntities)
         {
         return removeAllById(strEntities.map(this::getId).collect(Collectors.toSet()));
         }
 
     /**
-     * Remove specified entities.
+     * Remove the specified entities.
      *
      * @param strEntities  the entities to remove
      * @param fReturn      the flag specifying whether to return removed entity
      *
-     * @return the map of removed entity identifiers as keys, and the removed
-     * entities as values iff {@code fReturn == true}; {@code null} otherwise
+     * @return a {@link CompletableFuture} that will resolve to a map of removed entity identifiers as keys,
+     *         and the removed entities as values iff {@code fReturn == true}; {@code null} otherwise
      */
-    public Map<ID, T> removeAll(Stream<? extends T> strEntities, boolean fReturn)
+    public CompletableFuture<Map<ID, T>> removeAll(Stream<? extends T> strEntities, boolean fReturn)
         {
         return removeAllById(strEntities.map(this::getId).collect(Collectors.toSet()), fReturn);
         }
@@ -718,20 +833,23 @@ public abstract class AbstractRepository<ID, T>
      * @param filter  the criteria that should be used to select entities to
      *                remove
      *
-     * @return {@code true} if this repository changed as a result of the call
+     * @return a {@link CompletableFuture} that will resolve to {@code true} if this repository changed
+     *         as a result of the call
      */
-    public boolean removeAll(Filter<?> filter)
+    public CompletableFuture<Boolean> removeAll(Filter<?> filter)
         {
-        Map<ID, Boolean> mapResults = getMapInternal().invokeAll(filter, Processors.remove());
-        for (boolean fResult : mapResults.values())
-            {
-            if (fResult)
-                {
-                return true;
-                }
-            }
-
-        return false;
+        return getMapInternal().invokeAll(filter, Processors.remove())
+                .thenApply(idBooleanMap ->
+                               {
+                               for (boolean fResult : idBooleanMap.values())
+                                   {
+                                   if (fResult)
+                                       {
+                                       return true;
+                                       }
+                                   }
+                               return false;
+                               });
         }
 
     /**
@@ -741,51 +859,12 @@ public abstract class AbstractRepository<ID, T>
      *                 remove
      * @param fReturn  the flag specifying whether to return removed entity
      *
-     * @return the map of removed entity identifiers as keys, and the removed
-     * entities as values iff {@code fReturn == true}; {@code null} otherwise
+     * @return a {@link CompletableFuture} that will resolve to a map of removed entity identifiers as keys,
+     *         and the removed entities as values iff {@code fReturn == true}; {@code null} otherwise
      */
-    public Map<ID, T> removeAll(Filter<?> filter, boolean fReturn)
+    public CompletableFuture<Map<ID, T>> removeAll(Filter<?> filter, boolean fReturn)
         {
         return getMapInternal().invokeAll(filter, Processors.remove(fReturn));
-        }
-
-    // ---- Stream API support ----------------------------------------------
-
-    /**
-     * Return a stream of all entities in this repository.
-     *
-     * @return a stream of all entities in this repository
-     */
-    public RemoteStream<T> stream()
-        {
-        return getMapInternal().stream().map(Map.Entry::getValue);
-        }
-
-    /**
-     * Return a stream of entities with the specified identifiers.
-     *
-     * @param colIds  the identifiers of the entities to include in the
-     *                returned stream
-     *
-     * @return a stream of entities for the specified identifiers
-     */
-    public RemoteStream<T> stream(Collection<? extends ID> colIds)
-        {
-        return getMapInternal().stream(colIds).map(Map.Entry::getValue);
-        }
-
-    /**
-     * Return a stream of all entities in this repository that satisfy the
-     * specified criteria.
-     *
-     * @param filter  the criteria an entity must satisfy in order to be
-     *                included in the returned stream
-     *
-     * @return a stream of entities that satisfy the specified criteria
-     */
-    public RemoteStream<T> stream(Filter<?> filter)
-        {
-        return getMapInternal().stream(filter).map(Map.Entry::getValue);
         }
 
     // ---- aggregation support ---------------------------------------------
@@ -793,11 +872,11 @@ public abstract class AbstractRepository<ID, T>
     /**
      * Return the number of entities in this repository.
      *
-     * @return the number of entities in this repository
+     * @return a {@link CompletableFuture} that will resolve to the number of entities in this repository
      */
-    public long count()
+    public CompletableFuture<Long> count()
         {
-        return getMapInternal().aggregate(Aggregators.count());
+        return getMapInternal().aggregate(Aggregators.count()).thenApply(Integer::longValue);
         }
 
     /**
@@ -806,12 +885,12 @@ public abstract class AbstractRepository<ID, T>
      *
      * @param filter  the filter to evaluate
      *
-     * @return the number of entities in this repository that satisfy specified
-     *         filter
+     * @return a {@link CompletableFuture} that will resolve to the number of entities in this repository
+     *         that satisfy specified filter
      */
-    public long count(Filter<?> filter)
+    public CompletableFuture<Long> count(Filter<?> filter)
         {
-        return getMapInternal().aggregate(filter, Aggregators.count());
+        return getMapInternal().aggregate(filter, Aggregators.count()).thenApply(Integer::longValue);
         }
 
     /**
@@ -821,11 +900,11 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public int max(Remote.ToIntFunction<? super T> extractor)
+    public CompletableFuture<Integer> max(Remote.ToIntFunction<? super T> extractor)
         {
-        return getMapInternal().aggregate(Aggregators.max(extractor)).intValue();
+        return getMapInternal().aggregate(Aggregators.max(extractor)).thenApply(Long::intValue);
         }
 
     /**
@@ -836,11 +915,11 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public int max(Filter<?> filter, Remote.ToIntFunction<? super T> extractor)
+    public CompletableFuture<Integer> max(Filter<?> filter, Remote.ToIntFunction<? super T> extractor)
         {
-        return getMapInternal().aggregate(filter, Aggregators.max(extractor)).intValue();
+        return getMapInternal().aggregate(filter, Aggregators.max(extractor)).thenApply(Long::intValue);
         }
 
     /**
@@ -850,9 +929,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public long max(Remote.ToLongFunction<? super T> extractor)
+    public CompletableFuture<Long> max(Remote.ToLongFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.max(extractor));
         }
@@ -865,9 +944,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public long max(Filter<?> filter, Remote.ToLongFunction<? super T> extractor)
+    public CompletableFuture<Long> max(Filter<?> filter, Remote.ToLongFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.max(extractor));
         }
@@ -879,9 +958,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getWeight}
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public double max(Remote.ToDoubleFunction<? super T> extractor)
+    public CompletableFuture<Double> max(Remote.ToDoubleFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.max(extractor));
         }
@@ -894,9 +973,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getWeight}
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public double max(Filter<?> filter, Remote.ToDoubleFunction<? super T> extractor)
+    public CompletableFuture<Double> max(Filter<?> filter, Remote.ToDoubleFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.max(extractor));
         }
@@ -908,9 +987,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getSalary}
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public BigDecimal max(Remote.ToBigDecimalFunction<? super T> extractor)
+    public CompletableFuture<BigDecimal> max(Remote.ToBigDecimalFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.max(extractor));
         }
@@ -923,9 +1002,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getSalary}
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public BigDecimal max(Filter<?> filter, Remote.ToBigDecimalFunction<? super T> extractor)
+    public CompletableFuture<BigDecimal> max(Filter<?> filter, Remote.ToBigDecimalFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.max(extractor));
         }
@@ -938,9 +1017,10 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getName}
      * @param <R>        the type of the extracted value
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public <R extends Comparable<? super R>> R max(Remote.ToComparableFunction<? super T, R> extractor)
+    public <R extends Comparable<? super R>> CompletableFuture<R> max(
+            Remote.ToComparableFunction<? super T, R> extractor)
         {
         return getMapInternal().aggregate(Aggregators.max(extractor));
         }
@@ -954,9 +1034,11 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getName}
      * @param <R>        the type of the extracted value
      *
-     * @return the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the maximum value of the specified function
      */
-    public <R extends Comparable<? super R>> R max(Filter<?> filter, Remote.ToComparableFunction<? super T, R> extractor)
+    public <R extends Comparable<? super R>> CompletableFuture<R> max(
+            Filter<?> filter,
+            Remote.ToComparableFunction<? super T, R> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.max(extractor));
         }
@@ -969,11 +1051,15 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getAge}
      * @param <R>        the type of the extracted value
      *
-     * @return the entity with the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the entity with the maximum value
+     *        of the specified function
      */
-    public <R extends Comparable<? super R>> Optional<T> maxBy(ValueExtractor<? super T, ? extends R> extractor)
+    public <R extends Comparable<? super R>> CompletableFuture<Optional<T>> maxBy(
+            ValueExtractor<? super T, ? extends R> extractor)
         {
-        return stream().reduce(Remote.BinaryOperator.maxBy(comparing(extractor)));
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream()
+                .map(Map.Entry::getValue)
+                .reduce(Remote.BinaryOperator.maxBy(comparing(extractor))));
         }
 
     /**
@@ -985,11 +1071,15 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getAge}
      * @param <R>        the type of the extracted value
      *
-     * @return the entity with the maximum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the entity with the maximum value
+     *        of the specified function
      */
-    public <R extends Comparable<? super R>> Optional<T> maxBy(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor)
+    public <R extends Comparable<? super R>> CompletableFuture<Optional<T>> maxBy(
+            Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor)
         {
-        return stream(filter).reduce(Remote.BinaryOperator.maxBy(comparing(extractor)));
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream(filter)
+                .map(Map.Entry::getValue)
+                .reduce(Remote.BinaryOperator.maxBy(comparing(extractor))));
         }
 
     /**
@@ -999,11 +1089,11 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public int min(Remote.ToIntFunction<? super T> extractor)
+    public CompletableFuture<Integer> min(Remote.ToIntFunction<? super T> extractor)
         {
-        return getMapInternal().aggregate(Aggregators.min(extractor)).intValue();
+        return getMapInternal().aggregate(Aggregators.min(extractor)).thenApply(Long::intValue);
         }
 
     /**
@@ -1014,11 +1104,11 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public int min(Filter<?> filter, Remote.ToIntFunction<? super T> extractor)
+    public CompletableFuture<Integer> min(Filter<?> filter, Remote.ToIntFunction<? super T> extractor)
         {
-        return getMapInternal().aggregate(filter, Aggregators.min(extractor)).intValue();
+        return getMapInternal().aggregate(filter, Aggregators.min(extractor)).thenApply(Long::intValue);
         }
 
     /**
@@ -1028,9 +1118,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public long min(Remote.ToLongFunction<? super T> extractor)
+    public CompletableFuture<Long> min(Remote.ToLongFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.min(extractor));
         }
@@ -1043,9 +1133,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public long min(Filter<?> filter, Remote.ToLongFunction<? super T> extractor)
+    public CompletableFuture<Long> min(Filter<?> filter, Remote.ToLongFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.min(extractor));
         }
@@ -1057,9 +1147,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getWeight}
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public double min(Remote.ToDoubleFunction<? super T> extractor)
+    public CompletableFuture<Double> min(Remote.ToDoubleFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.min(extractor));
         }
@@ -1072,9 +1162,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getWeight}
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public double min(Filter<?> filter, Remote.ToDoubleFunction<? super T> extractor)
+    public CompletableFuture<Double> min(Filter<?> filter, Remote.ToDoubleFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.min(extractor));
         }
@@ -1086,9 +1176,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getSalary}
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public BigDecimal min(Remote.ToBigDecimalFunction<? super T> extractor)
+    public CompletableFuture<BigDecimal> min(Remote.ToBigDecimalFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.min(extractor));
         }
@@ -1101,9 +1191,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getSalary}
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public BigDecimal min(Filter<?> filter, Remote.ToBigDecimalFunction<? super T> extractor)
+    public CompletableFuture<BigDecimal> min(Filter<?> filter, Remote.ToBigDecimalFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.min(extractor));
         }
@@ -1116,9 +1206,10 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getName}
      * @param <R>        the type of the extracted value
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public <R extends Comparable<? super R>> R min(Remote.ToComparableFunction<? super T, R> extractor)
+    public <R extends Comparable<? super R>> CompletableFuture<R> min(
+            Remote.ToComparableFunction<? super T, R> extractor)
         {
         return getMapInternal().aggregate(Aggregators.min(extractor));
         }
@@ -1132,9 +1223,10 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getName}
      * @param <R>        the type of the extracted value
      *
-     * @return the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the minimum value of the specified function
      */
-    public <R extends Comparable<? super R>> R min(Filter<?> filter, Remote.ToComparableFunction<? super T, R> extractor)
+    public <R extends Comparable<? super R>> CompletableFuture<R> min(Filter<?> filter,
+                Remote.ToComparableFunction<? super T, R> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.min(extractor));
         }
@@ -1147,11 +1239,15 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getAge}
      * @param <R>        the type of the extracted value
      *
-     * @return the entity with the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the entity with the minimum value
+     *         of the specified function
      */
-    public <R extends Comparable<? super R>> Optional<T> minBy(ValueExtractor<? super T, ? extends R> extractor)
+    public <R extends Comparable<? super R>> CompletableFuture<Optional<T>> minBy(
+                ValueExtractor<? super T, ? extends R> extractor)
         {
-        return stream().reduce(Remote.BinaryOperator.minBy(comparing(extractor)));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+                .map(Map.Entry::getValue)
+                .reduce(Remote.BinaryOperator.minBy(comparing(extractor))));
         }
 
     /**
@@ -1163,11 +1259,15 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getAge}
      * @param <R>        the type of the extracted value
      *
-     * @return the entity with the minimum value of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the entity with the minimum value
+     *         of the specified function
      */
-    public <R extends Comparable<? super R>> Optional<T> minBy(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor)
+    public <R extends Comparable<? super R>> CompletableFuture<Optional<T>> minBy(Filter<?> filter,
+                ValueExtractor<? super T, ? extends R> extractor)
         {
-        return stream(filter).reduce(Remote.BinaryOperator.minBy(comparing(extractor)));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+                .map(Map.Entry::getValue)
+                .reduce(Remote.BinaryOperator.minBy(comparing(extractor))));
         }
 
     /**
@@ -1177,9 +1277,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the sum of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the sum of the specified function
      */
-    public long sum(Remote.ToIntFunction<? super T> extractor)
+    public CompletableFuture<Long> sum(Remote.ToIntFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.sum(extractor));
         }
@@ -1192,9 +1292,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the sum of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the sum of the specified function
      */
-    public long sum(Filter<?> filter, Remote.ToIntFunction<? super T> extractor)
+    public CompletableFuture<Long> sum(Filter<?> filter, Remote.ToIntFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.sum(extractor));
         }
@@ -1206,9 +1306,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the sum of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the sum of the specified function
      */
-    public long sum(Remote.ToLongFunction<? super T> extractor)
+    public CompletableFuture<Long> sum(Remote.ToLongFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.sum(extractor));
         }
@@ -1221,9 +1321,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the sum of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the sum of the specified function
      */
-    public long sum(Filter<?> filter, Remote.ToLongFunction<? super T> extractor)
+    public CompletableFuture<Long> sum(Filter<?> filter, Remote.ToLongFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.sum(extractor));
         }
@@ -1235,9 +1335,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getWeight}
      *
-     * @return the sum of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the sum of the specified function
      */
-    public double sum(Remote.ToDoubleFunction<? super T> extractor)
+    public CompletableFuture<Double> sum(Remote.ToDoubleFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.sum(extractor));
         }
@@ -1250,9 +1350,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getWeight}
      *
-     * @return the sum of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the sum of the specified function
      */
-    public double sum(Filter<?> filter, Remote.ToDoubleFunction<? super T> extractor)
+    public CompletableFuture<Double> sum(Filter<?> filter, Remote.ToDoubleFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.sum(extractor));
         }
@@ -1264,9 +1364,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getSalary}
      *
-     * @return the sum of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the sum of the specified function
      */
-    public BigDecimal sum(Remote.ToBigDecimalFunction<? super T> extractor)
+    public CompletableFuture<BigDecimal> sum(Remote.ToBigDecimalFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.sum(extractor));
         }
@@ -1279,9 +1379,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getSalary}
      *
-     * @return the sum of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the sum of the specified function
      */
-    public BigDecimal sum(Filter<?> filter, Remote.ToBigDecimalFunction<? super T> extractor)
+    public CompletableFuture<BigDecimal> sum(Filter<?> filter, Remote.ToBigDecimalFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.sum(extractor));
         }
@@ -1293,9 +1393,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the average of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the average of the specified function
      */
-    public double average(Remote.ToIntFunction<? super T> extractor)
+    public CompletableFuture<Double> average(Remote.ToIntFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.average(extractor));
         }
@@ -1308,9 +1408,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the average of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the average of the specified function
      */
-    public double average(Filter<?> filter, Remote.ToIntFunction<? super T> extractor)
+    public CompletableFuture<Double> average(Filter<?> filter, Remote.ToIntFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.average(extractor));
         }
@@ -1322,9 +1422,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the average of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the average of the specified function
      */
-    public double average(Remote.ToLongFunction<? super T> extractor)
+    public CompletableFuture<Double> average(Remote.ToLongFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.average(extractor));
         }
@@ -1337,9 +1437,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getAge}
      *
-     * @return the average of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the average of the specified function
      */
-    public double average(Filter<?> filter, Remote.ToLongFunction<? super T> extractor)
+    public CompletableFuture<Double> average(Filter<?> filter, Remote.ToLongFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.average(extractor));
         }
@@ -1351,9 +1451,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getWeight}
      *
-     * @return the average of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the average of the specified function
      */
-    public double average(Remote.ToDoubleFunction<? super T> extractor)
+    public CompletableFuture<Double> average(Remote.ToDoubleFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.average(extractor));
         }
@@ -1366,9 +1466,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getWeight}
      *
-     * @return the average of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the average of the specified function
      */
-    public double average(Filter<?> filter, Remote.ToDoubleFunction<? super T> extractor)
+    public CompletableFuture<Double> average(Filter<?> filter, Remote.ToDoubleFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.average(extractor));
         }
@@ -1380,9 +1480,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getSalary}
      *
-     * @return the average of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the average of the specified function
      */
-    public BigDecimal average(Remote.ToBigDecimalFunction<? super T> extractor)
+    public CompletableFuture<BigDecimal> average(Remote.ToBigDecimalFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(Aggregators.average(extractor));
         }
@@ -1395,9 +1495,9 @@ public abstract class AbstractRepository<ID, T>
      *                   typically a method reference on the entity class,
      *                   such as {@code Person::getSalary}
      *
-     * @return the average of the specified function
+     * @return a {@link CompletableFuture} that will resolve to the average of the specified function
      */
-    public BigDecimal average(Filter<?> filter, Remote.ToBigDecimalFunction<? super T> extractor)
+    public CompletableFuture<BigDecimal> average(Filter<?> filter, Remote.ToBigDecimalFunction<? super T> extractor)
         {
         return getMapInternal().aggregate(filter, Aggregators.average(extractor));
         }
@@ -1410,11 +1510,14 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getName}
      * @param <R>        the type of extracted values
      *
-     * @return the set of distinct values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to a set of distinct values for the specified extractor
      */
-    public <R> Collection<? extends R> distinct(ValueExtractor<? super T, ? extends R> extractor)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R> CompletableFuture<Collection<? extends R>> distinct(ValueExtractor<? super T, ? extends R> extractor)
         {
-        return getMapInternal().aggregate(Aggregators.distinctValues(extractor));
+        InvocableMap.StreamingAggregator aggregator = Aggregators.distinctValues(extractor);
+
+        return getMapInternal().aggregate(aggregator);
         }
 
     /**
@@ -1426,11 +1529,15 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getName}
      * @param <R>        the type of extracted values
      *
-     * @return the set of distinct values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to a set of distinct values for the specified extractor
      */
-    public <R> Collection<? extends R> distinct(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R> CompletableFuture<Collection<? extends R>> distinct(Filter<?> filter,
+                ValueExtractor<? super T, ? extends R> extractor)
         {
-        return getMapInternal().aggregate(filter, Aggregators.distinctValues(extractor));
+        InvocableMap.StreamingAggregator aggregator = Aggregators.distinctValues(extractor);
+
+        return getMapInternal().aggregate(filter, aggregator);
         }
 
     /**
@@ -1441,14 +1548,15 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getGender}
      * @param <K>        the type of extracted grouping keys
      *
-     * @return the the grouping of entities by the specified extractor; the keys
-     *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be sets of entities
-     *         that match each extracted key
+     * @return a {@link CompletableFuture} that will resolve to a grouping of entities by the specified extractor;
+     *         the keys in the returned map will be distinct values extracted by the specified {@code extractor},
+     *         and the values will be sets of entities that match each extracted key
      */
-    public <K> Map<K, Set<T>> groupBy(ValueExtractor<? super T, ? extends K> extractor)
+    public <K> CompletableFuture<Map<K, Set<T>>> groupBy(ValueExtractor<? super T, ? extends K> extractor)
         {
-        return stream().collect(groupingBy(extractor, RemoteCollectors.toSet()));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+                .map(Map.Entry::getValue)
+                .collect(groupingBy(extractor, RemoteCollectors.toSet())));
         }
 
     /**
@@ -1462,15 +1570,16 @@ public abstract class AbstractRepository<ID, T>
      *                   within each group by
      * @param <K>        the type of extracted grouping keys
      *
-     * @return the the grouping of entities by the specified extractor; the keys
-     *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be sorted sets
-     *         of entities that match each extracted key
+     * @return a {@link CompletableFuture} that will resolve to a grouping of entities by the specified extractor;
+     *         the keys in the returned map will be distinct values extracted by the specified {@code extractor},
+     *         and the values will be sets of entities that match each extracted key
      */
-    public <K> Map<K, SortedSet<T>> groupBy(ValueExtractor<? super T, ? extends K> extractor,
-                                            Remote.Comparator<? super T> orderBy)
+    public <K> CompletableFuture<Map<K, SortedSet<T>>> groupBy(ValueExtractor<? super T, ? extends K> extractor,
+                Remote.Comparator<? super T> orderBy)
         {
-        return stream().collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy)));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+                .map(Map.Entry::getValue)
+                .collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy))));
         }
 
     /**
@@ -1482,14 +1591,16 @@ public abstract class AbstractRepository<ID, T>
      *                   such as {@code Person::getGender}
      * @param <K>        the type of extracted grouping keys
      *
-     * @return the the grouping of entities by the specified extractor; the keys
-     *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be sets of entities
-     *         that match each extracted key
+     * @return a {@link CompletableFuture} that will resolve to a grouping of entities by the specified extractor;
+     *         the keys in the returned map will be distinct values extracted by the specified {@code extractor},
+     *         and the values will be sets of entities that match each extracted key
      */
-    public <K> Map<K, Set<T>> groupBy(Filter<?> filter, ValueExtractor<? super T, ? extends K> extractor)
+    public <K> CompletableFuture<Map<K, Set<T>>> groupBy(Filter<?> filter,
+                ValueExtractor<? super T, ? extends K> extractor)
         {
-        return stream(filter).collect(groupingBy(extractor, RemoteCollectors.toSet()));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+                .map(Map.Entry::getValue)
+                .collect(groupingBy(extractor, RemoteCollectors.toSet())));
         }
 
     /**
@@ -1504,16 +1615,16 @@ public abstract class AbstractRepository<ID, T>
      *                   within each group by
      * @param <K>        the type of extracted grouping keys
      *
-     * @return the the grouping of entities by the specified extractor; the keys
-     *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be sorted sets
-     *         of entities that match each extracted key
+     * @return a {@link CompletableFuture} that will resolve to a grouping of entities by the specified extractor;
+     *         the keys in the returned map will be distinct values extracted by the specified {@code extractor},
+     *         and the values will be sets of entities that match each extracted key
      */
-    public <K> Map<K, SortedSet<T>> groupBy(Filter<?> filter,
-                                            ValueExtractor<? super T, ? extends K> extractor,
-                                            Remote.Comparator<? super T> orderBy)
+    public <K> CompletableFuture<Map<K, SortedSet<T>>> groupBy(Filter<?> filter,
+                ValueExtractor<? super T, ? extends K> extractor, Remote.Comparator<? super T> orderBy)
         {
-        return stream(filter).collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy)));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+                .map(Map.Entry::getValue)
+                .collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy))));
         }
 
     /**
@@ -1527,17 +1638,18 @@ public abstract class AbstractRepository<ID, T>
      * @param <A>        the type of collector's accumulator
      * @param <R>        the type of collector's result
      *
-     * @return the the grouping of entities by the specified extractor; the keys
-     *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be results of
-     *         the specified {@code collector} for each group
+     * @return a {@link CompletableFuture} that will resolve to a grouping of entities by the specified extractor;
+     *         the keys in the returned map will be distinct values extracted by the specified {@code extractor},
+     *         and the values will be results of the specified {@code collector} for each group
      *
      * @see RemoteCollectors
      */
-    public <K, A, R> Map<K, R> groupBy(ValueExtractor<? super T, ? extends K> extractor,
-                                       RemoteCollector<? super T, A, R> collector)
+    public <K, A, R> CompletableFuture<Map<K, R>> groupBy(ValueExtractor<? super T, ? extends K> extractor,
+                RemoteCollector<? super T, A, R> collector)
         {
-        return stream().collect(groupingBy(extractor, collector));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+                .map(Map.Entry::getValue)
+                .collect(groupingBy(extractor, collector)));
         }
 
     /**
@@ -1552,18 +1664,18 @@ public abstract class AbstractRepository<ID, T>
      * @param <A>        the type of collector's accumulator
      * @param <R>        the type of collector's result
      *
-     * @return the the grouping of entities by the specified extractor; the keys
-     *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be results of
-     *         the specified {@code collector} for each group
+     * @return a {@link CompletableFuture} that will resolve to a grouping of entities by the specified extractor;
+     *         the keys in the returned map will be distinct values extracted by the specified {@code extractor},
+     *         and the values will be results of the specified {@code collector} for each group
      *
      * @see RemoteCollectors
      */
-    public <K, A, R> Map<K, R> groupBy(Filter<?> filter,
-                                       ValueExtractor<? super T, ? extends K> extractor,
-                                       RemoteCollector<? super T, A, R> collector)
+    public <K, A, R> CompletableFuture<Map<K, R>> groupBy(Filter<?> filter,
+                ValueExtractor<? super T, ? extends K> extractor, RemoteCollector<? super T, A, R> collector)
         {
-        return stream(filter).collect(groupingBy(extractor, collector));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+                .map(Map.Entry::getValue)
+                .collect(groupingBy(extractor, collector)));
         }
 
     /**
@@ -1579,18 +1691,18 @@ public abstract class AbstractRepository<ID, T>
      * @param <R>         the type of collector's result
      * @param <M>         the type of result {@code Map}
      *
-     * @return the the grouping of entities by the specified extractor; the keys
-     *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be results of
-     *         the specified {@code collector} for each group
+     * @return a {@link CompletableFuture} that will resolve to a grouping of entities by the specified extractor;
+     *         the keys in the returned map will be distinct values extracted by the specified {@code extractor},
+     *         and the values will be results of the specified {@code collector} for each group
      *
      * @see RemoteCollectors
      */
-    public <K, A, R, M extends Map<K, R>> M groupBy(ValueExtractor<? super T, ? extends K> extractor,
-                                                    Remote.Supplier<M> mapFactory,
-                                                    RemoteCollector<? super T, A, R> collector)
+    public <K, A, R, M extends Map<K, R>> CompletableFuture<M> groupBy(ValueExtractor<? super T, ? extends K> extractor,
+                Remote.Supplier<M> mapFactory, RemoteCollector<? super T, A, R> collector)
         {
-        return stream().collect(groupingBy(extractor, mapFactory, collector));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+                .map(Map.Entry::getValue)
+                .collect(groupingBy(extractor, mapFactory, collector)));
         }
 
     /**
@@ -1607,19 +1719,19 @@ public abstract class AbstractRepository<ID, T>
      * @param <R>         the type of collector's result
      * @param <M>         the type of result {@code Map}
      *
-     * @return the the grouping of entities by the specified extractor; the keys
-     *         in the returned map will be distinct values extracted by the
-     *         specified {@code extractor}, and the values will be results of
-     *         the specified {@code collector} for each group
+     * @return a {@link CompletableFuture} that will resolve to a grouping of entities by the specified extractor;
+     *         the keys in the returned map will be distinct values extracted by the specified {@code extractor},
+     *         and the values will be results of the specified {@code collector} for each group
      *
      * @see RemoteCollectors
      */
-    public <K, A, R, M extends Map<K, R>> M groupBy(Filter<?> filter,
-                                                    ValueExtractor<? super T, ? extends K> extractor,
-                                                    Remote.Supplier<M> mapFactory,
-                                                    RemoteCollector<? super T, A, R> collector)
+    public <K, A, R, M extends Map<K, R>> CompletableFuture<M> groupBy(Filter<?> filter,
+                ValueExtractor<? super T, ? extends K> extractor, Remote.Supplier<M> mapFactory,
+                RemoteCollector<? super T, A, R> collector)
         {
-        return stream(filter).collect(groupingBy(extractor, mapFactory, collector));
+        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+                .map(Map.Entry::getValue)
+                .collect(groupingBy(extractor, mapFactory, collector)));
         }
 
     /**
@@ -1629,13 +1741,18 @@ public abstract class AbstractRepository<ID, T>
      * @param cResults   the number of highest values to return
      * @param <R>        the type of returned values
      *
-     * @return the top N highest values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to the top N highest values for the specified extractor
      */
-    @SuppressWarnings("unchecked")
-    public <R extends Comparable<? super R>> List<R> top(ValueExtractor<? super T, ? extends R> extractor, int cResults)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R extends Comparable<? super R>> CompletableFuture<List<R>> top(
+                ValueExtractor<? super T, ? extends R> extractor,
+                int cResults)
         {
-        Object[] aoResults = getMapInternal().aggregate(Aggregators.topN(extractor, cResults));
-        return Stream.of(aoResults).map(o -> (R) o).collect(Collectors.toList());
+        InvocableMap.StreamingAggregator aggregator = Aggregators.topN(extractor, cResults);
+
+        return getMapInternal()
+                .aggregate(aggregator)
+                .thenApply(rs -> Arrays.stream((Object[]) rs).collect(Collectors.toList()));
         }
 
     /**
@@ -1646,13 +1763,17 @@ public abstract class AbstractRepository<ID, T>
      * @param cResults   the number of highest values to return
      * @param <R>        the type of returned values
      *
-     * @return the top N highest values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to the top N highest values for the specified extractor
      */
-    @SuppressWarnings("unchecked")
-    public <R extends Comparable<? super R>> List<R> top(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor, int cResults)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R extends Comparable<? super R>> CompletableFuture<List<R>> top(Filter<?> filter,
+                ValueExtractor<? super T, ? extends R> extractor, int cResults)
         {
-        Object[] aoResults = getMapInternal().aggregate(filter, Aggregators.topN(extractor, cResults));
-        return Stream.of(aoResults).map(o -> (R) o).collect(Collectors.toList());
+        InvocableMap.StreamingAggregator aggregator = Aggregators.topN(extractor, cResults);
+
+        return getMapInternal()
+                .aggregate(filter, aggregator)
+                .thenApply(rs -> Arrays.stream((Object[]) rs).collect(Collectors.toList()));
         }
 
     /**
@@ -1663,12 +1784,17 @@ public abstract class AbstractRepository<ID, T>
      * @param cResults    the number of highest values to return
      * @param <R>         the type of returned values
      *
-     * @return the top N highest values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to the top N highest values for the specified extractor
      */
-    public <R> List<R> top(ValueExtractor<? super T, ? extends R> extractor, Remote.Comparator<? super R> comparator, int cResults)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R> CompletableFuture<List<R>> top(ValueExtractor<? super T, ? extends R> extractor,
+                Remote.Comparator<? super R> comparator, int cResults)
         {
-        R[] results = getMapInternal().aggregate(Aggregators.topN(extractor, comparator, cResults));
-        return Arrays.asList(results);
+        InvocableMap.StreamingAggregator aggregator = Aggregators.topN(extractor, comparator, cResults);
+
+        return getMapInternal()
+                .aggregate(aggregator)
+                .thenApply(rs -> Arrays.stream((Object[]) rs).collect(Collectors.toList()));
         }
 
     /**
@@ -1680,12 +1806,17 @@ public abstract class AbstractRepository<ID, T>
      * @param cResults    the number of highest values to return
      * @param <R>         the type of returned values
      *
-     * @return the top N highest values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to the top N highest values for the specified extractor
      */
-    public <R> List<R> top(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor, Remote.Comparator<? super R> comparator, int cResults)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R> CompletableFuture<List<R>> top(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor,
+                Remote.Comparator<? super R> comparator, int cResults)
         {
-        R[] results = getMapInternal().aggregate(filter, Aggregators.topN(extractor, comparator, cResults));
-        return Arrays.asList(results);
+        InvocableMap.StreamingAggregator aggregator = Aggregators.topN(extractor, comparator, cResults);
+
+        return getMapInternal()
+                .aggregate(filter, aggregator)
+                .thenApply(rs -> Arrays.stream((Object[]) rs).collect(Collectors.toList()));
         }
 
     /**
@@ -1695,12 +1826,19 @@ public abstract class AbstractRepository<ID, T>
      * @param cResults   the number of highest values to return
      * @param <R>        the type of values used for comparison
      *
-     * @return the top N entities with the highest values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to the top N entities with the highest values
+     *         for the specified extractor
      */
-    public <R extends Comparable<? super R>> List<T> topBy(ValueExtractor<? super T, ? extends R> extractor, int cResults)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R extends Comparable<? super R>> CompletableFuture<List<T>> topBy(
+                ValueExtractor<? super T, ? extends R> extractor, int cResults)
         {
-        T[] results = getMapInternal().aggregate(Aggregators.topN(ValueExtractor.identity(), new ExtractorComparator<>(extractor), cResults));
-        return Arrays.asList(results);
+        InvocableMap.StreamingAggregator aggregator =
+                Aggregators.topN(ValueExtractor.identity(), new ExtractorComparator<>(extractor), cResults);
+
+        return getMapInternal()
+                .aggregate(aggregator)
+                .thenApply(rs -> Arrays.stream((Object[]) rs).collect(Collectors.toList()));
         }
 
     /**
@@ -1711,12 +1849,19 @@ public abstract class AbstractRepository<ID, T>
      * @param cResults   the number of highest values to return
      * @param <R>        the type of values used for comparison
      *
-     * @return the top N entities with the highest values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to the top N entities with the highest values
+     *        for the specified extractor
      */
-    public <R extends Comparable<? super R>> List<T> topBy(Filter<?> filter, ValueExtractor<? super T, ? extends R> extractor, int cResults)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R extends Comparable<? super R>> CompletableFuture<List<T>> topBy(Filter<?> filter,
+                ValueExtractor<? super T, ? extends R> extractor, int cResults)
         {
-        T[] results = getMapInternal().aggregate(filter, Aggregators.topN(ValueExtractor.identity(), new ExtractorComparator<>(extractor), cResults));
-        return Arrays.asList(results);
+        InvocableMap.StreamingAggregator aggregator =
+                Aggregators.topN(ValueExtractor.identity(), new ExtractorComparator<>(extractor), cResults);
+
+        return getMapInternal()
+                .aggregate(filter, aggregator)
+                .thenApply(rs -> Arrays.stream((Object[]) rs).collect(Collectors.toList()));
         }
 
     /**
@@ -1725,12 +1870,17 @@ public abstract class AbstractRepository<ID, T>
      * @param comparator  the comparator to use when comparing extracted values
      * @param cResults    the number of highest values to return
      *
-     * @return the top N entities with the highest values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to the top N entities with the highest value
+     *        for the specified extractor
      */
-    public List<T> topBy(Remote.Comparator<? super T> comparator, int cResults)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public CompletableFuture<List<T>> topBy(Remote.Comparator<? super T> comparator, int cResults)
         {
-        T[] results = getMapInternal().aggregate(Aggregators.topN(ValueExtractor.identity(), comparator, cResults));
-        return Arrays.asList(results);
+        InvocableMap.StreamingAggregator aggregator = Aggregators.topN(ValueExtractor.identity(), comparator, cResults);
+
+        return getMapInternal()
+                .aggregate(aggregator)
+                .thenApply(rs -> Arrays.stream((Object[]) rs).collect(Collectors.toList()));
         }
 
     /**
@@ -1740,12 +1890,17 @@ public abstract class AbstractRepository<ID, T>
      * @param comparator  the comparator to use when comparing extracted values
      * @param cResults    the number of highest values to return
      *
-     * @return the top N entities with the highest values for the specified extractor
+     * @return a {@link CompletableFuture} that will resolve to the top N entities with the highest values
+     *         for the specified extractor
      */
-    public List<T> topBy(Filter<?> filter, Remote.Comparator<? super T> comparator, int cResults)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public CompletableFuture<List<T>> topBy(Filter<?> filter, Remote.Comparator<? super T> comparator, int cResults)
         {
-        T[] results = getMapInternal().aggregate(filter, Aggregators.topN(ValueExtractor.identity(), comparator, cResults));
-        return Arrays.asList(results);
+        InvocableMap.StreamingAggregator aggregator = Aggregators.topN(ValueExtractor.identity(), comparator, cResults);
+
+        return getMapInternal()
+                .aggregate(filter, aggregator)
+                .thenApply(rs -> Arrays.stream((Object[]) rs).collect(Collectors.toList()));
         }
 
     // ---- helpers ---------------------------------------------------------
@@ -1757,74 +1912,9 @@ public abstract class AbstractRepository<ID, T>
      * @return the {@link NamedMap} returned by the {@link #getMap()} method
      *         implemented by the concrete subclass
      */
-    private NamedMap<ID, T> getMapInternal()
+    private AsyncNamedMap<ID, T> getMapInternal()
         {
         ensureInitialized();
         return getMap();
         }
-
-    /**
-     * Ensures that this repository is initialized by creating necessary indices
-     * on the backing map.
-     * <p/>
-     * Base framework classes that extend this class should call this method
-     * after the backing map has been initialized, but before any other calls
-     * are made.
-     */
-    protected void ensureInitialized()
-        {
-        if (!m_fInitialized)
-            {
-            createIndices();
-            m_fInitialized = true;
-            }
-        }
-
-    /**
-     * Creates indices for this repository that are defined via
-     * {@link Accelerated @Accelerated} and {@link Indexed @Indexed} annotations.
-     * <p/>
-     * If overriding this method, please call {@code super.createIndices()} or
-     * the standard behavior will not work.
-     */
-    @SuppressWarnings("unchecked")
-    protected void createIndices()
-        {
-        Class<? extends T> entityType = getEntityType();
-        if (getClass().isAnnotationPresent(Accelerated.class) || entityType.isAnnotationPresent(Accelerated.class))
-            {
-            Logger.info("Configuring deserialization accelerator for " + getClass().getName());
-            getMap().addIndex(new DeserializationAccelerator());
-            }
-
-        Stream.of(entityType.getMethods())
-                .filter(m -> m.isAnnotationPresent(Indexed.class))
-                .forEach(m ->
-                         {
-                         try
-                             {
-                             Indexed idx = m.getAnnotation(Indexed.class);
-                             boolean fOrdered = idx.ordered();
-                             Comparator<?> comparator = Comparator.class.equals(idx.comparator())
-                                                                ? null
-                                                                : (Comparator<?>) ClassHelper.newInstance(idx.comparator(), null);
-
-                             Logger.info(() -> String.format("Creating index %s::%s (ordered=%b, comparator=%s)",
-                                                       entityType.getSimpleName(), m.getName(), fOrdered, comparator));
-
-                             getMap().addIndex(ValueExtractor.forMethod(m), fOrdered, comparator);
-                             }
-                         catch (Exception e)
-                             {
-                             throw Exceptions.ensureRuntimeException(e);
-                             }
-                         });
-        }
-
-    // ---- data members ----------------------------------------------------
-
-    /**
-     * Flag indicating initialization status.
-     */
-    private volatile boolean m_fInitialized;
     }

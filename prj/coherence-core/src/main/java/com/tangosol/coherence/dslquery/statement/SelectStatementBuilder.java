@@ -330,7 +330,7 @@ public class SelectStatementBuilder
         public CompletableFuture<StatementResult> executeAsync(ExecutionContext ctx)
             {
             NamedCache cache = ctx.getSession().getCache(f_sCache, withoutTypeChecking());
-            CompletableFuture<StatementResult> future;
+            CompletableFuture future;
 
             if (f_aggregator == null)
                 {
@@ -341,7 +341,9 @@ public class SelectStatementBuilder
                 future = cache.async().aggregate(f_filter, f_aggregator);
                 }
 
-            return future.thenApply(oResult -> new DefaultStatementResult(oResult, !f_fReduction));
+            future = future.thenApply(oResult -> new DefaultStatementResult(oResult, !f_fReduction));
+
+            return future;
             }
 
         @Override
