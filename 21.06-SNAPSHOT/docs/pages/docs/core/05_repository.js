@@ -45,31 +45,6 @@
 <div class="section">
 <p>Coherence provides an abstract base class <code>com.oracle.coherence.repository.AbstractRepository</code>, which your custom repository implementation needs to extend and provide implementation of three abstract methods:</p>
 
-<markup
-lang="java"
-
->    /**
-     * Return the {@link NamedMap} that is used as the underlying entity store.
-     *
-     * @return the {@link NamedMap} that is used as the underlying entity store
-     */
-    protected abstract NamedMap&lt;ID, T&gt; getMap();
-
-    /**
-     * Return the identifier of the specified entity instance.
-     *
-     * @param entity  the entity to get the identifier from
-     *
-     * @return the identifier of the specified entity instance
-     */
-    protected abstract ID getId(T entity);
-
-    /**
-     * Return the type of entities in this repository.
-     *
-     * @return the type of entities in this repository
-     */
-    protected abstract Class&lt;? extends T&gt; getEntityType();</markup>
 
 <p>For example, a repository implementation that can be used to store <code>Person</code> entities, with <code>String</code> identifiers, can be as simple as:</p>
 
