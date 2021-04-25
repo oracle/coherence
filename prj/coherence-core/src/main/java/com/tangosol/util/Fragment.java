@@ -36,6 +36,7 @@ public class Fragment<T>
     /**
      * Deserialization constructor.
      */
+    @SuppressWarnings("unused")
     public Fragment()
         {
         }
@@ -78,10 +79,7 @@ public class Fragment<T>
     @SuppressWarnings("unchecked")
     public <E> E get(String sName)
         {
-        Object oAttr = m_mapAttr.get(sName);
-        return oAttr instanceof Fragment
-               ? (E) ((Fragment<?>) oAttr).m_mapAttr
-               : (E) oAttr;
+        return (E) m_mapAttr.get(sName);
         }
 
     /**
@@ -109,6 +107,28 @@ public class Fragment<T>
     public <E> Fragment<E> getFragment(String sName)
         {
         return (Fragment<E>) m_mapAttr.get(sName);
+        }
+
+    /**
+     * Convert this {@code Fragment} into a {@code Map}.
+     * <p/>
+     * Any nested fragments within this fragment will be recursively converted
+     * into the map as well.
+     *
+     * @return a {@code Map} with property names as keys, and the property
+     *         values as values
+     */
+    public Map<String, Object> toMap()
+        {
+        Map<String, Object> map = new HashMap<>(m_mapAttr.size());
+        for (Map.Entry<String, ?> entry : m_mapAttr.entrySet())
+            {
+            Object oValue = entry.getValue();
+            map.put(entry.getKey(), oValue instanceof Fragment
+                                    ? ((Fragment<?>) oValue).toMap()
+                                    : oValue);
+            }
+        return map;
         }
 
     // ---- Object methods --------------------------------------------------

@@ -1245,7 +1245,7 @@ public abstract class AbstractAsyncRepository<ID, T>
     public <R extends Comparable<? super R>> CompletableFuture<Optional<T>> minBy(
                 ValueExtractor<? super T, ? extends R> extractor)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream()
                 .map(Map.Entry::getValue)
                 .reduce(Remote.BinaryOperator.minBy(comparing(extractor))));
         }
@@ -1265,7 +1265,7 @@ public abstract class AbstractAsyncRepository<ID, T>
     public <R extends Comparable<? super R>> CompletableFuture<Optional<T>> minBy(Filter<?> filter,
                 ValueExtractor<? super T, ? extends R> extractor)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream(filter)
                 .map(Map.Entry::getValue)
                 .reduce(Remote.BinaryOperator.minBy(comparing(extractor))));
         }
@@ -1554,7 +1554,7 @@ public abstract class AbstractAsyncRepository<ID, T>
      */
     public <K> CompletableFuture<Map<K, Set<T>>> groupBy(ValueExtractor<? super T, ? extends K> extractor)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream()
                 .map(Map.Entry::getValue)
                 .collect(groupingBy(extractor, RemoteCollectors.toSet())));
         }
@@ -1577,7 +1577,7 @@ public abstract class AbstractAsyncRepository<ID, T>
     public <K> CompletableFuture<Map<K, SortedSet<T>>> groupBy(ValueExtractor<? super T, ? extends K> extractor,
                 Remote.Comparator<? super T> orderBy)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream()
                 .map(Map.Entry::getValue)
                 .collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy))));
         }
@@ -1598,7 +1598,7 @@ public abstract class AbstractAsyncRepository<ID, T>
     public <K> CompletableFuture<Map<K, Set<T>>> groupBy(Filter<?> filter,
                 ValueExtractor<? super T, ? extends K> extractor)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream(filter)
                 .map(Map.Entry::getValue)
                 .collect(groupingBy(extractor, RemoteCollectors.toSet())));
         }
@@ -1622,7 +1622,7 @@ public abstract class AbstractAsyncRepository<ID, T>
     public <K> CompletableFuture<Map<K, SortedSet<T>>> groupBy(Filter<?> filter,
                 ValueExtractor<? super T, ? extends K> extractor, Remote.Comparator<? super T> orderBy)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream(filter)
                 .map(Map.Entry::getValue)
                 .collect(groupingBy(extractor, RemoteCollectors.toSortedSet(orderBy))));
         }
@@ -1647,7 +1647,7 @@ public abstract class AbstractAsyncRepository<ID, T>
     public <K, A, R> CompletableFuture<Map<K, R>> groupBy(ValueExtractor<? super T, ? extends K> extractor,
                 RemoteCollector<? super T, A, R> collector)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream()
                 .map(Map.Entry::getValue)
                 .collect(groupingBy(extractor, collector)));
         }
@@ -1673,7 +1673,7 @@ public abstract class AbstractAsyncRepository<ID, T>
     public <K, A, R> CompletableFuture<Map<K, R>> groupBy(Filter<?> filter,
                 ValueExtractor<? super T, ? extends K> extractor, RemoteCollector<? super T, A, R> collector)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream(filter)
                 .map(Map.Entry::getValue)
                 .collect(groupingBy(extractor, collector)));
         }
@@ -1700,7 +1700,7 @@ public abstract class AbstractAsyncRepository<ID, T>
     public <K, A, R, M extends Map<K, R>> CompletableFuture<M> groupBy(ValueExtractor<? super T, ? extends K> extractor,
                 Remote.Supplier<M> mapFactory, RemoteCollector<? super T, A, R> collector)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream()
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream()
                 .map(Map.Entry::getValue)
                 .collect(groupingBy(extractor, mapFactory, collector)));
         }
@@ -1729,7 +1729,7 @@ public abstract class AbstractAsyncRepository<ID, T>
                 ValueExtractor<? super T, ? extends K> extractor, Remote.Supplier<M> mapFactory,
                 RemoteCollector<? super T, A, R> collector)
         {
-        return CompletableFuture.supplyAsync(() -> getMapInternal().getNamedMap().stream(filter)
+        return CompletableFuture.supplyAsync(() -> getNamedMap().stream(filter)
                 .map(Map.Entry::getValue)
                 .collect(groupingBy(extractor, mapFactory, collector)));
         }
@@ -1909,8 +1909,7 @@ public abstract class AbstractAsyncRepository<ID, T>
      * Ensures that this repository is initialized when accessed for the first
      * time, and calls {@link #getMap()}.
      *
-     * @return the {@link NamedMap} returned by the {@link #getMap()} method
-     *         implemented by the concrete subclass
+     * @return the {@link AsyncNamedMap} returned by the {@link #getMap()} method
      */
     private AsyncNamedMap<ID, T> getMapInternal()
         {

@@ -68,7 +68,7 @@ public abstract class AbstractRepository<ID, T>
     @Override
     NamedMap<ID, T> getNamedMap()
         {
-        return getMapInternal();
+        return getMap();
         }
 
     // ----- CRUD support ---------------------------------------------------
@@ -1755,76 +1755,10 @@ public abstract class AbstractRepository<ID, T>
      * time, and calls {@link #getMap()}.
      *
      * @return the {@link NamedMap} returned by the {@link #getMap()} method
-     *         implemented by the concrete subclass
      */
     private NamedMap<ID, T> getMapInternal()
         {
         ensureInitialized();
         return getMap();
         }
-
-    /**
-     * Ensures that this repository is initialized by creating necessary indices
-     * on the backing map.
-     * <p/>
-     * Base framework classes that extend this class should call this method
-     * after the backing map has been initialized, but before any other calls
-     * are made.
-     */
-    protected void ensureInitialized()
-        {
-        if (!m_fInitialized)
-            {
-            createIndices();
-            m_fInitialized = true;
-            }
-        }
-
-    /**
-     * Creates indices for this repository that are defined via
-     * {@link Accelerated @Accelerated} and {@link Indexed @Indexed} annotations.
-     * <p/>
-     * If overriding this method, please call {@code super.createIndices()} or
-     * the standard behavior will not work.
-     */
-    @SuppressWarnings("unchecked")
-    protected void createIndices()
-        {
-        Class<? extends T> entityType = getEntityType();
-        if (getClass().isAnnotationPresent(Accelerated.class) || entityType.isAnnotationPresent(Accelerated.class))
-            {
-            Logger.info("Configuring deserialization accelerator for " + getClass().getName());
-            getMap().addIndex(new DeserializationAccelerator());
-            }
-
-        Stream.of(entityType.getMethods())
-                .filter(m -> m.isAnnotationPresent(Indexed.class))
-                .forEach(m ->
-                         {
-                         try
-                             {
-                             Indexed idx = m.getAnnotation(Indexed.class);
-                             boolean fOrdered = idx.ordered();
-                             Comparator<?> comparator = Comparator.class.equals(idx.comparator())
-                                                                ? null
-                                                                : (Comparator<?>) ClassHelper.newInstance(idx.comparator(), null);
-
-                             Logger.info(() -> String.format("Creating index %s::%s (ordered=%b, comparator=%s)",
-                                                       entityType.getSimpleName(), m.getName(), fOrdered, comparator));
-
-                             getMap().addIndex(ValueExtractor.forMethod(m), fOrdered, comparator);
-                             }
-                         catch (Exception e)
-                             {
-                             throw Exceptions.ensureRuntimeException(e);
-                             }
-                         });
-        }
-
-    // ---- data members ----------------------------------------------------
-
-    /**
-     * Flag indicating initialization status.
-     */
-    private volatile boolean m_fInitialized;
     }

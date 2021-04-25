@@ -85,7 +85,6 @@ public class FragmentExtractorTest
         assertThat(fragment.get("name"), is(aleks.getName()));
         assertThat(fragment.get(Person::getAge), is(aleks.getAge()));
         assertThat(fragment.get("age"), is(aleks.getAge()));
-        assertThat(fragment.get("address"), isA(Map.class));
         assertThat(fragment.getFragment(Person::getAddress).get(Address::getCity), is(aleks.getAddress().getCity()));
         assertThat(fragment.getFragment("address").get("city"), is(aleks.getAddress().getCity()));
         assertThat(fragment.getFragment(Person::getAddress).getFragment(Address::getStreet).get(String::length), is(aleks.getAddress().getStreet().length()));
@@ -115,4 +114,31 @@ public class FragmentExtractorTest
         assertThat(fragment.getFragment(Person::getAddress).get("$0"), is(aleks.getAddress().getCity()));
         assertThat(fragment.getFragment(Person::getAddress).getFragment(Address::getStreet).get("$0"), is(aleks.getAddress().getStreet().length()));
         }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldRecursivelyConvertFragmentToMap()
+        {
+        Fragment<Person> fragment = fragment(Person::getName,
+                                             Person::getAge,
+                                             fragment(Person::getAddress,
+                                                      Address::getCity,
+                                                      fragment(Address::getStreet,
+                                                               String::length
+                                                      )
+                                             )).extract(aleks);
+
+        Map<String, Object> mapPerson  = fragment.toMap();
+        Map<String, Object> mapAddress = (Map<String, Object>) mapPerson.get("address");
+        Map<String, Object> mapStreet = (Map<String, Object>) mapAddress.get("street");
+
+        System.out.println(mapPerson);
+        System.out.println(mapAddress.toString());
+
+        assertThat(mapPerson.get("name"), is(aleks.getName()));
+        assertThat(mapPerson.get("age"), is(aleks.getAge()));
+        assertThat(mapAddress.get("city"), is(aleks.getAddress().getCity()));
+        assertThat(mapStreet.get("length()"), is(aleks.getAddress().getStreet().length()));
+        }
+
     }
