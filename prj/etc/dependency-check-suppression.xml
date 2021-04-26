@@ -266,4 +266,20 @@
      <vulnerabilityName>CVE-2019-17571</vulnerabilityName>
   </suppress>
 
+  <!-- Commons IO pulled in by Maven Plugin API - not shipped by us and no later version available -->
+  <suppress>
+     <notes><![CDATA[
+     file name: commons-io-2.5.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/commons\-io/commons\-io@.*$</packageUrl>
+     <cpe>cpe:/a:apache:commons_io</cpe>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: commons-io-2.5.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/commons\-io/commons\-io@.*$</packageUrl>
+     <cve>CVE-2021-29425</cve>
+  </suppress>
+
 </suppressions>

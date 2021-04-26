@@ -28,6 +28,7 @@ readonly RESULT_FILE=$(mktemp -t XXXdependency-check-result)
 
 die(){ cat ${RESULT_FILE} ; echo "Dependency report in ${WS_DIR}/target" ; echo "${1}" ; exit 1 ;}
 
+echo "Running CVE check - results: ${RESULT_FILE}"
 mvn ${MAVEN_ARGS} -Dorg.slf4j.simpleLogger.defaultLogLevel=WARN org.owasp:dependency-check-maven:aggregate \
         -f ${WS_DIR}/pom.xml \
         -Dtop.parent.basedir="${WS_DIR}" \
