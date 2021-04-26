@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -463,23 +463,19 @@ public class OldCache
         }
 
     /**
-     * Evict a specified key from the cache, as if it had expired from the
-     * cache. If the key is not in the cache or the entry is not eligible
-     * for eviction, then this method has no effect.
-     *
-     * @param oKey  the key to evict from the cache
-     *
-     * @return true if the key was successfully evicted
-     */
-    public boolean evict(Object oKey)
+    * Evict a specified key from the cache, as if it had expired from the
+    * cache. If the key is not in the cache or the entry is not eligible
+    * for eviction, then this method has no effect.
+    *
+    * @param oKey  the key to evict from the cache
+    */
+    public void evict(Object oKey)
         {
         Entry entry = (Entry) getEntryInternal(oKey);
         if (entry != null)
             {
-            return removeEvicted(entry);
+            removeEvicted(entry);
             }
-
-        return false;
         }
 
     /**

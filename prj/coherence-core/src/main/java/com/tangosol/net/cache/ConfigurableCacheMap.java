@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -117,10 +117,8 @@ public interface ConfigurableCacheMap
     * cache. If the key is not in the cache, then the method has no effect.
     *
     * @param oKey  the key to evict from the cache
-    *
-    * @return true if the key was successfully evicted
     */
-    public boolean evict(Object oKey);
+    public void evict(Object oKey);
 
     /**
     * Evict the specified keys from the cache, as if they had each expired
