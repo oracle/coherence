@@ -47,6 +47,7 @@ import java.util.stream.Stream;
  */
 public abstract class AbstractRepositoryBase<ID, T, M>
     {
+    // tag::abstract[]
     /**
      * Return the identifier of the specified entity instance.
      *
@@ -69,6 +70,7 @@ public abstract class AbstractRepositoryBase<ID, T, M>
      * @return the map that is used as the underlying entity store
      */
     protected abstract M getMap();
+    // end::abstract[]
 
     /**
      * Return the underlying {@link NamedMap}.  This is used internally

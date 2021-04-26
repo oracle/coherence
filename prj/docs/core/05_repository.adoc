@@ -32,7 +32,7 @@ Coherence provides an abstract base class `com.oracle.coherence.repository.Abstr
 
 [source,java]
 ----
-include::../../coherence-core/src/main/java/com/oracle/coherence/repository/AbstractRepository.java[tag=abstract]
+include::../../coherence-core/src/main/java/com/oracle/coherence/repository/AbstractRepositoryBase.java[tag=abstract]
 ----
 
 For example, a repository implementation that can be used to store `Person` entities, with `String` identifiers, can be as simple as:
