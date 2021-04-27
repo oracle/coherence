@@ -78,12 +78,18 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
         return WITHOUT_TYPE_CHECKING;
         }
 
-    // ----- inner class WithValueTypeAssertion ---------------------------------------------------------------------------
+    // ----- inner class WithValueTypeAssertion --------------------------------
 
+    /**
+     * Defines a {@link NamedTopic.Option} for asserting the type
+     * of values used with a {@link NamedTopic}.
+     *
+     * @param <V>  the type of the topic values
+     */
     static class WithValueTypeAssertion<V>
             implements ValueTypeAssertion<V>
         {
-        // ----- constructors -----------------------------------------------------------------------------------------
+        // ----- constructors --------------------------------------------------
 
         /**
          * Constructs {@link WithValueTypeAssertion}
@@ -94,14 +100,14 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
             {
             if (clsValue == null)
                 {
-                throw new IllegalArgumentException(clsValue == null ? "valueClass" : " valueClass" +
-                                                                                   " parameter must be non-null" );
+                throw new IllegalArgumentException(clsValue == null
+                        ? "valueClass" : " valueClass" + " parameter must be non-null" );
                 }
 
             m_sValueClassName   = clsValue.getName();
             }
 
-        // ----- TypeAssertion interface ------------------------------------------------------------------------------
+        // ----- TypeAssertion interface ---------------------------------------
 
         /**
          * {@inheritDoc}
@@ -113,8 +119,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
             if (mapping.usesRawTypes())
                 {
                 Logger.config("The topic \"" + sTopicName + "\" is configured without a value type "
-                                + "but the application is requesting NamedTopic<"
-                                + getValueClassName() + ">");
+                        + "but the application is requesting NamedTopic<" + getValueClassName() + ">");
                 return;
                 }
             else
@@ -123,16 +128,14 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
                 if (!getValueClassName().equals(mapping.getValueClassName()))
                     {
                     throw new IllegalArgumentException("The topic mapping for \"" + sTopicName
-                                                       + "\" has been configured as NamedTopic<"
-                                                       + mapping.getValueClassName()
-                                                       + ">, but the application is requesting NamedTopic<"
-                                                       + getValueClassName() + ">");
+                            + "\" has been configured as NamedTopic<" + mapping.getValueClassName()
+                            + ">, but the application is requesting NamedTopic<" + getValueClassName() + ">");
                     }
                 }
             return;
             }
 
-        // ----- WithTypesAssertion methods ---------------------------------------------------------------------------
+        // ----- WithTypesAssertion methods ------------------------------------
 
         /**
          * Get Value ClassName
@@ -144,7 +147,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
             return m_sValueClassName;
             }
 
-        // ----- Object methods ---------------------------------------------------------------------------------------
+        // ----- Object methods ------------------------------------------------
 
         /**
          * {@inheritDoc}
@@ -187,7 +190,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
             return "WithValueAssertion" + "_" + m_sValueClassName;
             }
 
-        // ----- data members -----------------------------------------------------------------------------------------
+        // ----- data members --------------------------------------------------
 
         /**
          * Value class name
@@ -229,8 +232,8 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
             if (!topicMapping.usesRawTypes())
                 {
                 Logger.config("The topic \"" + sTopicName + "\" has been configured as NamedTopic<"
-                             + topicMapping.getValueClassName()
-                             + "> but the application is requesting the topic using raw types");
+                        + topicMapping.getValueClassName()
+                        + "> but the application is requesting the topic using raw types");
                 return;
                 }
             return;
