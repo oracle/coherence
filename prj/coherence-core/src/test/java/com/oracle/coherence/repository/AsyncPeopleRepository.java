@@ -5,10 +5,8 @@
  * http://oss.oracle.com/licenses/upl.
  */
 
-package repository;
+package com.oracle.coherence.repository;
 
-import com.oracle.coherence.repository.AbstractAsyncRepository;
-import com.oracle.coherence.repository.Accelerated;
 import com.tangosol.net.AsyncNamedMap;
 
 import data.repository.Person;

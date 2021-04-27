@@ -4,28 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package repository;
-
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
-import com.oracle.bedrock.junit.SessionBuilder;
-import com.oracle.bedrock.junit.SessionBuilders;
-
-import com.oracle.bedrock.runtime.LocalPlatform;
-import com.oracle.bedrock.runtime.coherence.options.LocalHost;
-
-import com.oracle.bedrock.runtime.java.options.SystemProperty;
-
-import com.oracle.coherence.repository.AbstractAsyncRepository;
-
-import com.oracle.coherence.repository.AbstractRepositoryBase;
-
-import com.tangosol.coherence.config.Config;
-
-import com.tangosol.internal.util.invoke.Lambdas;
+package com.oracle.coherence.repository;
 
 import com.tangosol.net.AsyncNamedMap;
-import com.tangosol.net.ConfigurableCacheFactory;
-
 import com.tangosol.net.NamedMap;
 
 import com.tangosol.util.Extractors;
@@ -45,7 +26,6 @@ import java.math.BigDecimal;
 
 import java.time.LocalDate;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -66,11 +46,7 @@ import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import static com.tangosol.util.Filters.always;
 import static com.tangosol.util.Filters.equal;
@@ -96,33 +72,10 @@ import static org.hamcrest.Matchers.isOneOf;
  *
  * @since 21.06
  */
-@RunWith(Parameterized.class)
-public class AsyncRepositoryTests
+public abstract class AbstractAsyncRepositoryTest
     {
-    @ClassRule
-    public static CoherenceClusterOrchestration orchestration = new CoherenceClusterOrchestration()
-            .withOptions(SystemProperty.of("coherence.nameservice.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()))
-            .withOptions(LocalHost.only())
-            .withOptions(SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
-                                           Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
-
-    public static SessionBuilder MEMBER = SessionBuilders.storageDisabledMember();
-
-    @Parameterized.Parameters(name = "client={0}, serializer={1}")
-    public static Collection<Object[]> parameters()
-        {
-        return Arrays.asList(new Object[][]{
-                {MEMBER, "pof"}, {MEMBER, "java"},
-            });
-        }
-
-    public AsyncRepositoryTests(SessionBuilder bldrSession, String sSerializer)
-        {
-        ConfigurableCacheFactory cacheFactory = orchestration.getSessionFor(bldrSession);
-
-        m_map = (AsyncNamedMap) cacheFactory.ensureCache(sSerializer, null).async();
-        m_people = new AsyncPeopleRepository(m_map);
-        }
+    protected abstract AsyncNamedMap<String, Person> getMap();
+    protected abstract AbstractAsyncRepository<String, Person> people();
 
     @Before
     public void populateRepository()
@@ -679,6 +632,7 @@ public class AsyncRepositoryTests
         }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
+    @Test
     public void testGroupByCollectorFiltered()
         {
         Map<Boolean, Optional<Person>> map = people().groupBy(less(Person::getWeight, 200.0),
@@ -834,8 +788,7 @@ public class AsyncRepositoryTests
                           cUpdate.incrementAndGet();
 
                           assertThat(personOld.getName(), isOneOf("Aleks", "Marija"));
-
-                          //assertThat(personNew.getName(), isOneOf("ALEKS", "MARIJA"));
+                          assertThat(personNew.getName(), isOneOf("ALEKS", "MARIJA"));
                           })
                 .onRemove(person ->
                           {
@@ -962,21 +915,8 @@ public class AsyncRepositoryTests
         return Stream.of(values).collect(Collectors.toSet());
         }
 
-    protected AsyncNamedMap<String, Person> getMap()
-        {
-        return m_map;
-        }
-
     protected NamedMap<String, Person> getNamedMap()
         {
         return getMap().getNamedMap();
         }
-
-    protected AbstractAsyncRepository<String, Person> people()
-        {
-        return m_people;
-        }
-
-    private final AsyncNamedMap<String, Person> m_map;
-    private final AbstractAsyncRepository<String, Person> m_people;
     }
