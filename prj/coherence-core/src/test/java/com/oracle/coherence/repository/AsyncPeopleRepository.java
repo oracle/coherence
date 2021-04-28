@@ -17,6 +17,7 @@ import data.repository.Person;
  * @since 21.06
  */
 @Accelerated
+// tag::doc[]
 public class AsyncPeopleRepository
         extends AbstractAsyncRepository<String, Person>
     {
@@ -27,18 +28,19 @@ public class AsyncPeopleRepository
         this.people = people;
         }
 
-    protected AsyncNamedMap<String, Person> getMap()
+    protected AsyncNamedMap<String, Person> getMap()          // <1>
         {
         return people;
         }
 
-    protected String getId(Person entity)
+    protected String getId(Person entity)                     // <2>
         {
         return entity.getSsn();
         }
 
-    protected Class<? extends Person> getEntityType()
+    protected Class<? extends Person> getEntityType()         // <3>
         {
         return Person.class;
         }
     }
+// end::doc[]

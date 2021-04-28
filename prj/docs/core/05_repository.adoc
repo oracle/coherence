@@ -530,21 +530,19 @@ people.addListener(
 
 Just like when implementing listener class explicitly, you can still pass entity identifier or a `Filter` as the first argument to `addListener` method in order to limit the scope of the events received.
 
-=== Asynchronous Repositories
+=== Asynchronous Repository API
 
-In addition to the synchronous repository, `AbstractRepository<ID, T>`, we offer an asynchronous version,
-`AbstractAsyncRepository<ID, T>`.  The same abstract methods as previously described will need to be implemented.
-The main differences between the two APIs is of the asynchronous API returns `java.util.CompletableFuture` of the
-return type.  For example, `Collection<T> getAll()` in the blocking version would be
-`CompletableFuture<Collection<T>>` in the asynchronous version of the Repository API. The asynchronous
-API also offers callbacks that will be passed the results of the operation as they
-become available from Coherence instead of Coherence buffering the result into a collection prior to returning.
+In addition to the synchronous repository, `AbstractRepository<ID, T>`, we offer an asynchronous version, `AbstractAsyncRepository<ID, T>`. The same abstract methods as previously described will need to be implemented.
+
+The main differences between the two APIs is that the asynchronous API returns `java.util.CompletableFuture` of the return type. For example, `Collection<T> getAll()` in the blocking version would be `CompletableFuture<Collection<T>>` in the asynchronous version of the Repository API.
+
+The asynchronous API also offers callbacks that will be passed the results of the operation as they become available, instead of buffering the result into a collection prior to returning. This allows you to stream and process very large result sets without paying the cost of accumulating all the results in memory at once, which is not possible with the blocking API.
 
 ==== AbstractAsyncRepository Examples
 
 [source,java]
 ----
-include::../../../prj/test/functional/repository/src/test/java/repository/AsyncPeopleRepository.java[tag=doc]
+include::../../coherence-core/src/test/java/com/oracle/coherence/repository/AsyncPeopleRepository.java[tag=doc]
 ----
 <1> The `getMap` method returns the `AsyncNamedMap` that should be used as a backing data store for the repository,
 which
@@ -556,34 +554,43 @@ An example using the `AsyncPersonRepository` make a simple query for an entity:
 
 [source,java]
 ----
-asyncPersonRepo.get(somePersonsId)    //1
-    .thenApply(Person::getName())     //2
-    .thenApply(String::toUpperCase)   //3
-    .join()  //4
+String upercaseName = asyncPeople.get("111-22-3333")               // <1>
+                                 .thenApply(Person::getName)       // <2>
+                                 .thenApply(String::toUpperCase)   // <3>
+                                 .get()                            // <4>
 ----
-<1> `get` a `Person` based on their ID
-<2> Obtain the `Person` 's name
+<1> Get a `CompletableFuture<Person>` based on their ID
+<2> When the future is completed, obtain the person's name from the `Person` instance
 <3> Convert the name to uppercase
-<4> Return the upper cased name
+<4> Block and return the upper-cased name
 
-This usage pattern will be similar across those APIs that return `CompletableFuture`
+This usage pattern will be similar across all the methods that return `CompletableFuture`, which is pretty much all of them.
 
 ==== Asynchronous Callbacks
 
-Instead of dealing with an entire collection being realized for the results, it is possible to define a callback that
-will be invoked as results become available.  These APIs will return `CompletableFuture<Void>` to signal all results
-have been processed.
+Instead of dealing with an entire collection being realized for the results, it is possible to define a callback that will be invoked as results become available.  These APIs will return `CompletableFuture<Void>` to signal all the results have been processed.
 
-Building on the previous example where we uppercased a single name, we can instead apply similar logic:
+For example, if we simply want to print out the people as they are streamed back from the server, without accumulating result set on the client, we can simply do the following:
 
 [source,java]
 ----
-asyncPersonRepo.getAll(person -> System.out.println(person.getName().toUpperCase())); //1
-    .whenComplete((unused, throwable) -> System.out.println("DONE!")) //2
+asyncPeople.getAll(person -> System.out.println(person.getName()));    // <1>
+    .thenApply(done -> System.out.println("DONE!"))                    // <2>
 ----
-<1> Print the name of each `Person` within the Repository
-<2> Print `DONE!` when all `Person` s have been processed
+<1> Print the name of each `Person` within the repository
+<2> Print `DONE!` when all people have been processed
 
+Of course, you can also extract the name attribute only by providing a `ValueExtractor` for it as the first argument, in which case the code above could be rewritten to move less data over the network like this:
+
+[source,java]
+----
+asyncPeople.getAll(Person::getName, (id, name) -> System.out.println(name));    // <1>
+    .thenApply(done -> System.out.println("DONE!"))                             // <2>
+----
+<1> Print the name of each `Person` within the repository
+<2> Print `DONE!` when all people have been processed
+
+In the example above, the callback is implemented as a `BiConsumer` that will receive entity identifer and the extracted value as arguments. Of course, we could've used fragment extractor as the first argument to `getAll` method above, in which case the second argument to the callback would've been `Fragment<Person>` instead of just the name attribute.
 
 === Summary
 
