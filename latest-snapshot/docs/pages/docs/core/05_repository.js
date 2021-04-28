@@ -687,15 +687,13 @@ lang="java"
 
 </div>
 
-<h3 id="_asynchronous_repositories">Asynchronous Repositories</h3>
+<h3 id="_asynchronous_repository_api">Asynchronous Repository API</h3>
 <div class="section">
-<p>In addition to the synchronous repository, <code>AbstractRepository&lt;ID, T&gt;</code>, we offer an asynchronous version,
-<code>AbstractAsyncRepository&lt;ID, T&gt;</code>.  The same abstract methods as previously described will need to be implemented.
-The main differences between the two APIs is of the asynchronous API returns <code>java.util.CompletableFuture</code> of the
-return type.  For example, <code>Collection&lt;T&gt; getAll()</code> in the blocking version would be
-<code>CompletableFuture&lt;Collection&lt;T&gt;&gt;</code> in the asynchronous version of the Repository API. The asynchronous
-API also offers callbacks that will be passed the results of the operation as they
-become available from Coherence instead of Coherence buffering the result into a collection prior to returning.</p>
+<p>In addition to the synchronous repository, <code>AbstractRepository&lt;ID, T&gt;</code>, we offer an asynchronous version, <code>AbstractAsyncRepository&lt;ID, T&gt;</code>. The same abstract methods as previously described will need to be implemented.</p>
+
+<p>The main differences between the two APIs is that the asynchronous API returns <code>java.util.CompletableFuture</code> of the return type. For example, <code>Collection&lt;T&gt; getAll()</code> in the blocking version would be <code>CompletableFuture&lt;Collection&lt;T&gt;&gt;</code> in the asynchronous version of the Repository API.</p>
+
+<p>The asynchronous API also offers callbacks that will be passed the results of the operation as they become available, instead of buffering the result into a collection prior to returning. This allows you to stream and process very large result sets without paying the cost of accumulating all the results in memory at once, which is not possible with the blocking API.</p>
 
 
 <h4 id="_abstractasyncrepository_examples">AbstractAsyncRepository Examples</h4>
@@ -703,7 +701,31 @@ become available from Coherence instead of Coherence buffering the result into a
 <markup
 lang="java"
 
->Unresolved directive in 05_repository.adoc - include::../../../prj/test/functional/repository/src/test/java/repository/AsyncPeopleRepository.java[tag=doc]</markup>
+>public class AsyncPeopleRepository
+        extends AbstractAsyncRepository&lt;String, Person&gt;
+    {
+    private AsyncNamedMap&lt;String, Person&gt; people;
+
+    public AsyncPeopleRepository(AsyncNamedMap&lt;String, Person&gt; people)
+        {
+        this.people = people;
+        }
+
+    protected AsyncNamedMap&lt;String, Person&gt; getMap()          <span class="conum" data-value="1" />
+        {
+        return people;
+        }
+
+    protected String getId(Person entity)                     <span class="conum" data-value="2" />
+        {
+        return entity.getSsn();
+        }
+
+    protected Class&lt;? extends Person&gt; getEntityType()         <span class="conum" data-value="3" />
+        {
+        return Person.class;
+        }
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">The <code>getMap</code> method returns the <code>AsyncNamedMap</code> that should be used as a backing data store for the repository,
@@ -717,39 +739,51 @@ is in this case provided via constructor argument, but could just as easily be i
 <markup
 lang="java"
 
->asyncPersonRepo.get(somePersonsId)    //1
-    .thenApply(Person::getName())     //2
-    .thenApply(String::toUpperCase)   //3
-    .join()  //4</markup>
+>String upercaseName = asyncPeople.get("111-22-3333")               <span class="conum" data-value="1" />
+                                 .thenApply(Person::getName)       <span class="conum" data-value="2" />
+                                 .thenApply(String::toUpperCase)   <span class="conum" data-value="3" />
+                                 .get()                            <span class="conum" data-value="4" /></markup>
 
 <ul class="colist">
-<li data-value="1"><code>get</code> a <code>Person</code> based on their ID</li>
-<li data-value="2">Obtain the <code>Person</code> 's name</li>
+<li data-value="1">Get a <code>CompletableFuture&lt;Person&gt;</code> based on their ID</li>
+<li data-value="2">When the future is completed, obtain the person&#8217;s name from the <code>Person</code> instance</li>
 <li data-value="3">Convert the name to uppercase</li>
-<li data-value="4">Return the upper cased name</li>
+<li data-value="4">Block and return the upper-cased name</li>
 </ul>
-<p>This usage pattern will be similar across those APIs that return <code>CompletableFuture</code></p>
+<p>This usage pattern will be similar across all the methods that return <code>CompletableFuture</code>, which is pretty much all of them.</p>
 
 </div>
 
 <h4 id="_asynchronous_callbacks">Asynchronous Callbacks</h4>
 <div class="section">
-<p>Instead of dealing with an entire collection being realized for the results, it is possible to define a callback that
-will be invoked as results become available.  These APIs will return <code>CompletableFuture&lt;Void&gt;</code> to signal all results
-have been processed.</p>
+<p>Instead of dealing with an entire collection being realized for the results, it is possible to define a callback that will be invoked as results become available.  These APIs will return <code>CompletableFuture&lt;Void&gt;</code> to signal all the results have been processed.</p>
 
-<p>Building on the previous example where we uppercased a single name, we can instead apply similar logic:</p>
+<p>For example, if we simply want to print out the people as they are streamed back from the server, without accumulating result set on the client, we can simply do the following:</p>
 
 <markup
 lang="java"
 
->asyncPersonRepo.getAll(person -&gt; System.out.println(person.getName().toUpperCase())); //1
-    .whenComplete((unused, throwable) -&gt; System.out.println("DONE!")) //2</markup>
+>asyncPeople.getAll(person -&gt; System.out.println(person.getName()));    <span class="conum" data-value="1" />
+    .thenApply(done -&gt; System.out.println("DONE!"))                    <span class="conum" data-value="2" /></markup>
 
 <ul class="colist">
-<li data-value="1">Print the name of each <code>Person</code> within the Repository</li>
-<li data-value="2">Print <code>DONE!</code> when all <code>Person</code> s have been processed</li>
+<li data-value="1">Print the name of each <code>Person</code> within the repository</li>
+<li data-value="2">Print <code>DONE!</code> when all people have been processed</li>
 </ul>
+<p>Of course, you can also extract the name attribute only by providing a <code>ValueExtractor</code> for it as the first argument, in which case the code above could be rewritten to move less data over the network like this:</p>
+
+<markup
+lang="java"
+
+>asyncPeople.getAll(Person::getName, (id, name) -&gt; System.out.println(name));    <span class="conum" data-value="1" />
+    .thenApply(done -&gt; System.out.println("DONE!"))                             <span class="conum" data-value="2" /></markup>
+
+<ul class="colist">
+<li data-value="1">Print the name of each <code>Person</code> within the repository</li>
+<li data-value="2">Print <code>DONE!</code> when all people have been processed</li>
+</ul>
+<p>In the example above, the callback is implemented as a <code>BiConsumer</code> that will receive entity identifer and the extracted value as arguments. Of course, we could&#8217;ve used fragment extractor as the first argument to <code>getAll</code> method above, in which case the second argument to the callback would&#8217;ve been <code>Fragment&lt;Person&gt;</code> instead of just the name attribute.</p>
+
 </div>
 </div>
 
