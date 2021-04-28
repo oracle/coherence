@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,6 +12,8 @@ import com.tangosol.coherence.config.ResourceMapping;
 import com.tangosol.coherence.config.TopicMapping;
 
 import com.tangosol.net.topic.NamedTopic;
+
+import com.tangosol.util.Base;
 
 /**
  * Defines a {@link NamedTopic.Option} for asserting the type
@@ -49,32 +51,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
      */
     static <V> ValueTypeAssertion<V> withType(final Class<V> clsElement)
         {
-        return new ValueTypeAssertion<V>()
-            {
-            @Override
-            public void assertTypeSafety(String sName, TopicMapping mapping)
-                    throws IllegalArgumentException
-                {
-                if (mapping.usesRawTypes())
-                    {
-                    CacheFactory.log("The topic \"" + sName + "\" is configured without an element type "
-                            + "but the application is requesting "
-                            + clsElement.getName(), CacheFactory.LOG_DEBUG);
-                    }
-                else
-                    {
-                    // ensure that the specified types match the cache mapping types
-                    if (!clsElement.getName().equals(mapping.getValueClassName()))
-                        {
-                        throw new IllegalArgumentException("The mapping for topic \"" + sName
-                                + "\" has been configured as "
-                                + mapping.getValueClassName()
-                                + ", but the application is requesting "
-                                + clsElement.getName());
-                        }
-                    }
-                }
-            };
+        return new WithValueTypeAssertion(clsElement);
         }
 
     /**
@@ -87,26 +64,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
     @Options.Default
     static <V> ValueTypeAssertion<V> withRawTypes()
         {
-        return new ValueTypeAssertion<V>()
-            {
-            @Override
-            public void assertTypeSafety(String sCacheName, TopicMapping mapping)
-                    throws IllegalArgumentException
-                {
-                if (mapping.usesRawTypes())
-                    {
-                    // nothing to do
-                    }
-                else
-                    {
-                    CacheFactory
-                            .log("The topic \"" + sCacheName + "\" has been configured as "
-                                    + mapping.getValueClassName()
-                                    + " but the application is requesting the topic using raw types", CacheFactory
-                                    .LOG_DEBUG);
-                    }
-                }
-            };
+        return WITH_RAW_TYPES;
         }
 
     /**
@@ -117,14 +75,178 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
      */
     static <V> ValueTypeAssertion<V> withoutTypeChecking()
         {
-        return new ValueTypeAssertion<V>()
-            {
-            @Override
-            public void assertTypeSafety(String sCacheName, TopicMapping mapping)
-                    throws IllegalArgumentException
-                {
-                // NOTE: completely by-passes all type-checking and warnings
-                }
-            };
+        return WITHOUT_TYPE_CHECKING;
         }
+
+    // ----- inner class WithValueTypeAssertion --------------------------------
+
+    /**
+     * Defines a {@link NamedTopic.Option} for asserting the type
+     * of values used with a {@link NamedTopic}.
+     *
+     * @param <V>  the type of the topic values
+     */
+    static class WithValueTypeAssertion<V>
+            implements ValueTypeAssertion<V>
+        {
+        // ----- constructors --------------------------------------------------
+
+        /**
+         * Constructs {@link WithValueTypeAssertion}
+         *
+         * @param clsValue the desired type of the values within the topic
+         */
+        public WithValueTypeAssertion(Class<V> clsValue)
+            {
+            if (clsValue == null)
+                {
+                throw new IllegalArgumentException(clsValue == null
+                        ? "valueClass" : " valueClass" + " parameter must be non-null" );
+                }
+
+            m_sValueClassName   = clsValue.getName();
+            }
+
+        // ----- TypeAssertion interface ------------------------------------------------------------------------------
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void assertTypeSafety(String sTopicName, TopicMapping mapping)
+                throws IllegalArgumentException
+            {
+            if (mapping.usesRawTypes())
+                {
+                CacheFactory.log("The topic \"" + sTopicName + "\" is configured without a value type "
+                        + "but the application is requesting NamedTopic<"
+                        + getValueClassName() + ">",
+                        Base.LOG_INFO);
+                return;
+                }
+            else
+  
+                {
+                // ensure that the specified types match the topic mapping type
+                if (!getValueClassName().equals(mapping.getValueClassName()))
+                    {
+                    throw new IllegalArgumentException("The topic mapping for \"" + sTopicName
+                            + "\" has been configured as NamedTopic<" + mapping.getValueClassName()
+                            + ">, but the application is requesting NamedTopic<" + getValueClassName() + ">");
+                    }
+                }
+            return;
+            }
+
+        // ----- WithTypesAssertion methods ------------------------------------
+
+        /**
+         * Get Value ClassName
+         *
+         * @return Value class name
+         */
+        public String getValueClassName()
+            {
+            return m_sValueClassName;
+            }
+
+        // ----- Object methods ------------------------------------------------
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean equals(Object o)
+            {
+            if (this == o)
+                {
+                return true;
+                }
+
+            if (o instanceof WithValueTypeAssertion)
+                {
+                WithValueTypeAssertion a = (WithValueTypeAssertion) o;
+
+                return m_sValueClassName.equals(a.getValueClassName());
+                }
+            else
+                {
+                return false;
+                }
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int hashCode()
+            {
+            return m_sValueClassName.hashCode();
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toString()
+            {
+            return "WithValueAssertion" + "_" + m_sValueClassName;
+            }
+
+        // ----- data members --------------------------------------------------
+
+        /**
+         * Value class name
+         */
+        final private String m_sValueClassName;
+        }
+
+    // ----- constants --------------------------------------------------
+
+    /**
+     * When used no type checking will occur and no warnings will be generated.
+     */
+    final ValueTypeAssertion WITHOUT_TYPE_CHECKING = new ValueTypeAssertion()
+        {
+        @Override
+        public void assertTypeSafety(String sTopicName, TopicMapping topicMapping)
+                throws IllegalArgumentException
+            {
+            // NOTE: completely by-passes all type-checking and warnings
+            return;
+            }
+
+        @Override
+        public String toString()
+            {
+            return "WITHOUT_TYPE_CHECKING";
+            }
+        };
+
+    /**
+     * When used warnings will be issued where types are configured but not used.
+     */
+    final ValueTypeAssertion WITH_RAW_TYPES = new ValueTypeAssertion()
+        {
+        @Override
+        public void assertTypeSafety(String sTopicName, TopicMapping topicMapping)
+                throws IllegalArgumentException
+            {
+            if (!topicMapping.usesRawTypes())
+                {
+                CacheFactory.log("The topic \"" + sTopicName + "\" has been configured as NamedTopic<"
+                             + topicMapping.getValueClassName()
+                             + "> but the application is requesting the topic using raw types",
+                             Base.LOG_INFO);
+                return;
+                }
+            return;
+            }
+
+        @Override
+        public String toString()
+            {
+            return "WITH_RAW_TYPES";
+            }
+        };
     }

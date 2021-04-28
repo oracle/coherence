@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package topics;
 
 
+import com.oracle.bedrock.deferred.DeferredHelper;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Test;
@@ -102,6 +104,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -270,17 +273,50 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldCreateAndDestroyTopic() throws Exception
         {
-        Session            session = getSession();
-        String             sName   = m_sSerializer + "-test";
-        NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+        Session                  session = getSession();
+        String                   sName   = m_sSerializer + "-test";
+        final NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
 
-        populate(topic.createPublisher(), 20);
+        try (Publisher<String> publisher = topic.createPublisher())
+            {
+            populate(publisher, 20);
+            }
+        assertTrue("assert topic is active", topic.isActive());
+        assertFalse("assert topic is not destroyed", topic.isDestroyed());
 
         topic.destroy();
+        Eventually.assertDeferred("Assert topic " + sName + " is not active",
+                                  () -> topic.isActive(), Matchers.is(false),
+                                  DeferredHelper.within(30, TimeUnit.SECONDS));
+        Eventually.assertDeferred("Assert topic " + sName + " is destroyed",
+                                  () -> topic.isDestroyed(), Matchers.is(true),
+                                  DeferredHelper.within(30, TimeUnit.SECONDS));
+        assertTrue(topic.isReleased());
 
-        topic = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
 
-        populate(topic.createPublisher(), 20);
+        NamedTopic<String> topic2 = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+
+        populate(topic2.createPublisher(), 20);
+        }
+
+    @Test
+    public void shouldCreateAndReleaseTopic() throws Exception
+        {
+        Session                  session = getSession();
+        String                   sName   = m_sSerializer + "-test";
+        final NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+
+        try (Publisher<String> publisher = topic.createPublisher())
+            {
+            populate(publisher, 20);
+            }
+        assertTrue("assert topic is active", topic.isActive());
+        assertFalse("assert topic is not released", topic.isReleased());
+        topic.release();
+        Eventually.assertDeferred("Assert topic " + sName + " is released",
+                                  () -> topic.isReleased(), Matchers.is(true),
+                                  DeferredHelper.within(15, TimeUnit.SECONDS));
+        assertFalse(topic.isActive());
         }
 
     @Test
@@ -1892,6 +1928,42 @@ public abstract class AbstractNamedTopicTests
     public void validateTopicMBeans() throws Exception
         {
         validateTopicMBeans(m_sSerializer + "-binary-test");
+        }
+
+    // regression test for when ValueTypeAssertion.withXXX returned values that were not considered equal
+    @Test
+    public void shouldBeSameSessionNamedTopic() throws Exception
+        {
+        ValueTypeAssertion[] assertion1 =
+                {
+                ValueTypeAssertion.withType(String.class),
+                ValueTypeAssertion.withRawTypes(),
+                ValueTypeAssertion.withoutTypeChecking()
+                };
+
+        ValueTypeAssertion[] assertion2 =
+                {
+                ValueTypeAssertion.withType(String.class),
+                ValueTypeAssertion.withRawTypes(),
+                ValueTypeAssertion.withoutTypeChecking()
+                };
+
+        NamedTopic<Customer> topic1  = null;
+        NamedTopic<Customer> topic2  = null;
+
+        Session session = getSession();
+        for (int i = 0; i < assertion1.length; i++)
+            {
+            assertEquals(assertion1[i], assertion2[i]);
+            topic1 = session.getTopic(m_sSerializer + "-XXX", assertion1[i]);
+            topic2 = session.getTopic(m_sSerializer + "-XXX", assertion2[i]);
+            assertTrue("testing " + assertion1[i], topic1 == topic2);
+            }
+
+        final NamedTopic topic = topic1;
+
+        topic.destroy();
+        Eventually.assertDeferred(()->topic.isDestroyed(), is(true));
         }
 
     // ----- helper methods -------------------------------------------------

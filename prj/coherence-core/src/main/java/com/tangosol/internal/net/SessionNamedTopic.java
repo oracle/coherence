@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -37,15 +37,33 @@ public class SessionNamedTopic<V>
     /**
      * Constructs a {@link SessionNamedTopic}.
      *
-     * @param session      the {@link ConfigurableCacheFactorySession} that produced this {@link SessionNamedTopic}
-     * @param topic        the {@link NamedTopic} to which requests will be delegated
+     * @param session        the {@link ConfigurableCacheFactorySession} that produced this {@link SessionNamedTopic}
+     * @param topic          the {@link NamedTopic} to which requests will be delegated
+     * @param typeAssertion  the {@link ValueTypeAssertion} for the NamedTopic
      */
     public SessionNamedTopic(ConfigurableCacheFactorySession session, NamedTopic<V> topic,
+                             ValueTypeAssertion<V> typeAssertion)
+        {
+        this(session, topic, Base.ensureClassLoader(null), typeAssertion);
+        }
+
+    /**
+     * Constructs a {@link SessionNamedTopic}.
+     *
+     * @param session        the {@link ConfigurableCacheFactorySession} that produced this {@link SessionNamedTopic}
+     * @param topic          the {@link NamedTopic} to which requests will be delegated
+     * @param loader         the {@link ClassLoader} associated with the topic
+     * @param typeAssertion  the {@link ValueTypeAssertion} for the NamedTopic
+     */
+    public SessionNamedTopic(ConfigurableCacheFactorySession session,
+                             NamedTopic<V> topic,
+                             ClassLoader loader,
                              ValueTypeAssertion<V> typeAssertion)
         {
         f_topic         = Objects.requireNonNull(topic);
         f_session       = Objects.requireNonNull(session);
         f_typeAssertion = typeAssertion;
+        f_loader        = Objects.requireNonNull(loader);
 
         m_fActive       = f_topic.isActive();
         }
@@ -54,9 +72,9 @@ public class SessionNamedTopic<V>
     // ----- SessionNamedTopic methods --------------------------------------
 
     /**
-     * Obtain the wwrapped {@link NamedTopic}.
+     * Obtain the wrapped {@link NamedTopic}.
      *
-     * @return  the wwrapped {@link NamedTopic}
+     * @return  the wrapped {@link NamedTopic}
      */
     NamedTopic<V> getInternalNamedTopic()
         {
@@ -80,6 +98,7 @@ public class SessionNamedTopic<V>
      */
     void onClosing()
         {
+        m_fActive = false;
         }
 
     /**
@@ -94,6 +113,7 @@ public class SessionNamedTopic<V>
      */
     void onDestroying()
         {
+        m_fActive = false;
         }
 
     /**
@@ -167,6 +187,28 @@ public class SessionNamedTopic<V>
         return m_fActive && f_topic.isActive();
         }
 
+    @Override
+    public boolean isDestroyed()
+        {
+        return f_topic.isDestroyed();
+        }
+
+    @Override
+    public boolean isReleased()
+        {
+        return f_topic.isReleased();
+        }
+
+    /**
+     * Return the {@link ClassLoader} used by the wrapped topic.
+     *
+     * @return the {@link ClassLoader} used by the wrapped topic
+     */
+    ClassLoader getContextClassLoader()
+        {
+        return f_loader;
+        }
+
     // ----- object methods -------------------------------------------------
 
     @Override
@@ -177,7 +219,8 @@ public class SessionNamedTopic<V>
             SessionNamedTopic sessionOther = (SessionNamedTopic) obj;
 
             return Base.equals(f_session, sessionOther.f_session)
-                    && Base.equals(f_topic, sessionOther.f_topic);
+                    && Base.equals(f_topic, sessionOther.f_topic)
+                    && f_loader.equals(sessionOther.f_loader);
             }
 
         return false;
@@ -188,7 +231,7 @@ public class SessionNamedTopic<V>
         {
         int hash = HashHelper.hash(f_session, 31);
 
-        return HashHelper.hash(f_topic, hash);
+        return HashHelper.hash(f_topic, hash) + f_loader.hashCode();
         }
 
     @Override
@@ -205,6 +248,11 @@ public class SessionNamedTopic<V>
     private final NamedTopic<V> f_topic;
 
     /**
+     * The {@link ClassLoader} associated with this session's topic.
+     */
+    private final ClassLoader f_loader;
+
+    /**
      * The {@link ConfigurableCacheFactorySession} used to create the topic.
      */
     private final ConfigurableCacheFactorySession f_session;
@@ -217,5 +265,5 @@ public class SessionNamedTopic<V>
     /**
      * A flag indicating whether the topic is active.
      */
-    private boolean m_fActive;
+    private volatile boolean m_fActive;
     }

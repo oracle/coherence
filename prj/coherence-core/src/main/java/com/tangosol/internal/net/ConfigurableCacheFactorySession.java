@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -113,48 +113,52 @@ public class ConfigurableCacheFactorySession
     @SuppressWarnings("unchecked")
     public <V> NamedTopic<V> getTopic(String sName, NamedTopic.Option... options)
         {
-        assertActive();
+        if (m_fActive)
+            {
+            ResourceRegistry registry = m_ccf.getResourceRegistry();
 
-        ResourceRegistry registry = m_ccf.getResourceRegistry();
+            // ensure we have a reference counter for the named topic
+            registry.registerResource(
+                    NamedTopicReferenceCounter.class, sName,
+                    NamedTopicReferenceCounter::new,
+                    RegistrationBehavior.IGNORE, null);
 
-        // ensure we have a reference counter for the named topic
-        registry.registerResource(
-                NamedTopicReferenceCounter.class, sName,
-                NamedTopicReferenceCounter::new,
-                RegistrationBehavior.IGNORE, null);
+            // grab the map of topics organized by the type assertion, creating if necessary
+            ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic> mapTopicsByTypeAssertion =
+                    m_mapTopics.computeIfAbsent(sName, any -> new ConcurrentHashMap<>());
 
-        // grab the map of topics organized by the type assertion, creating if necessary
-        ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic> mapTopicsByTypeAssertion =
-                m_mapTopics.computeIfAbsent(sName, any -> new ConcurrentHashMap<>());
+            // grab the type assertion
+            Options<NamedTopic.Option> optionSet     = Options.from(NamedTopic.Option.class, options);
+            ValueTypeAssertion<V>      typeAssertion = optionSet.get(ValueTypeAssertion.class);
 
-        // grab the type assertion from the provided options
-        Options<NamedTopic.Option> optionSet     = Options.from(NamedTopic.Option.class, options);
-        ValueTypeAssertion<V>      typeAssertion = optionSet.get(ValueTypeAssertion.class);
+            // grab the session-based named topic for the type of assertion, creating one if necessary
+            return mapTopicsByTypeAssertion.compute(
+                    typeAssertion,
+                    (key, value) ->
+                        {
+                        // only return a valid session-based named topic
+                        if (value != null && !value.isDestroyed() && !value.isReleased())
+                            {
+                            return value;
+                            }
 
-        SessionNamedTopic<V>  topicSession = mapTopicsByTypeAssertion.computeIfAbsent(
-            typeAssertion,
-            any -> {
-            try
-                {
-                // increment the reference count for the underlying NamedTopic
-                registry.getResource(NamedTopicReferenceCounter.class, sName).incrementAndGet();
+                        // request an underlying NamedTopic from the CCF
+                        NamedTopic<V> topicUnderlying = m_ccf.ensureTopic(sName, m_classLoader, typeAssertion);
 
-                // request an underlying NamedTopic from the CCF
-                NamedTopic<V> topicUnderlying = m_ccf.ensureTopic(sName, m_classLoader, typeAssertion);
+                        SessionNamedTopic<V> topic = new SessionNamedTopic<>(this,
+                                topicUnderlying,
+                                typeAssertion);
 
-                return new SessionNamedTopic<>(this, topicUnderlying, typeAssertion);
-                }
-            catch (Exception e)
-                {
-                // when we can't acquire the NamedTopic,
-                // ensure we don't impact the reference count
-                registry.getResource(NamedTopicReferenceCounter.class, sName).decrementAndGet();
+                        // increment the reference count for the underlying NamedTopic
+                        registry.getResource(NamedTopicReferenceCounter.class, sName).incrementAndGet();
 
-                throw e;
-                }
-            });
-
-        return topicSession;
+                        return topic;
+                        });
+            }
+        else
+            {
+            throw new IllegalStateException("Session is closed");
+            }
         }
 
     @Override
@@ -176,7 +180,7 @@ public class ConfigurableCacheFactorySession
 
             // close all of the named topics created by this session
             m_mapTopics.values().stream()
-                       .flatMap(mapCachesByAssertion -> mapCachesByAssertion.values().stream())
+                       .flatMap(mapTopicsByAssertion -> mapTopicsByAssertion.values().stream())
                        .forEach(SessionNamedTopic::close);
 
             // drop the references to topic
@@ -194,66 +198,13 @@ public class ConfigurableCacheFactorySession
             }
         }
 
-    private <K, V> SessionNamedCache createSessionNamedCache(String sName, TypeAssertion<K, V> typeAssertion,
-                                                             ResourceRegistry registry)
-        {
-        try
-            {
-            // increment the reference count for the underlying NamedCache
-            registry.getResource(NamedCacheReferenceCounter.class,
-                                 sName).incrementAndGet();
-
-            // request an underlying NamedCache from the CCF
-            NamedCache<K, V> cacheUnderlying = m_ccf.ensureTypedCache(
-                    sName,
-                    m_classLoader,
-                    typeAssertion);
-
-            return new SessionNamedCache<>(this,
-                                           cacheUnderlying,
-                                           typeAssertion);
-            }
-        catch (Exception e)
-            {
-            // when we can't acquire the NamedCache,
-            // ensure we don't impact the reference count
-            registry.getResource(NamedCacheReferenceCounter.class,
-                                 sName).decrementAndGet();
-
-            throw e;
-            }
-        }
-
-    private <V> SessionNamedTopic<V> createSessionNamedTopic(String sName, ValueTypeAssertion<V> typeAssertion,
-            ResourceRegistry registry)
-        {
-        try
-            {
-            // increment the reference count for the underlying NamedTopic
-            registry.getResource(NamedTopicReferenceCounter.class, sName).incrementAndGet();
-
-            // request an underlying NamedTopic from the CCF
-            NamedTopic<V> topicUnderlying = m_ccf.ensureTopic(sName, m_classLoader, typeAssertion);
-
-            return new SessionNamedTopic<>(this, topicUnderlying, typeAssertion);
-            }
-        catch (Exception e)
-            {
-            // when we can't acquire the NamedTopic,
-            // ensure we don't impact the reference count
-            registry.getResource(NamedTopicReferenceCounter.class, sName).decrementAndGet();
-
-            throw e;
-            }
-        }
-
     <V> void onClose(SessionNamedTopic<V> topic)
         {
         dropNamedTopic(topic);
 
         topic.onClosing();
 
-        // decrement the reference count for the underlying NamedCache
+        // decrement the reference count for the underlying NamedTopic
         ResourceRegistry registry = m_ccf.getResourceRegistry();
 
         if (registry.getResource(NamedTopicReferenceCounter.class, topic.getName()).decrementAndGet() == 0)
@@ -280,15 +231,16 @@ public class ConfigurableCacheFactorySession
         topic.onDestroyed();
         }
 
-    <V> void dropNamedTopic(SessionNamedTopic<V> namedCache)
+    @SuppressWarnings({"rawtypes", "SuspiciousMethodCalls"})
+    <V> void dropNamedTopic(SessionNamedTopic<V> namedTopic)
         {
-        // drop the NamedCache from this session
-        ConcurrentHashMap<TypeAssertion, SessionNamedCache> mapCachesByTypeAssertion =
-                m_mapCaches.get(namedCache.getName());
+        // drop the NamedTopic from this session
+        ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic> mapTopicsByTypeAssertion =
+                m_mapTopics.get(namedTopic.getName());
 
-        if (mapCachesByTypeAssertion != null)
+        if (mapTopicsByTypeAssertion != null)
             {
-            mapCachesByTypeAssertion.remove(namedCache.getTypeAssertion());
+            mapTopicsByTypeAssertion.remove(namedTopic.getTypeAssertion());
             }
         }
 
