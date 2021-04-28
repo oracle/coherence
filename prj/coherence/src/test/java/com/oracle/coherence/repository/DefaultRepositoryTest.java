@@ -14,7 +14,7 @@ import com.tangosol.net.cache.WrapperNamedCache;
 
 import data.repository.Person;
 
-import java.util.HashMap;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 /**
@@ -40,6 +40,15 @@ public class DefaultRepositoryTest
         coherence.start().join();
         s_personNamedMap = coherence.getSession().getMap("people");
         s_personRepo     = new PeopleRepository(s_personNamedMap);
+        }
+
+    @AfterClass
+    public static void _after()
+        {
+        Coherence.closeAll();
+        CacheFactory.getCacheFactoryBuilder().releaseAll(null);
+        CacheFactory.shutdown();
+        System.getProperties().remove("coherence.distributed.localstorage");
         }
 
     protected NamedMap<String, Person> getMap()
