@@ -6,17 +6,15 @@
  */
 package com.oracle.coherence.repository;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedMap;
 
-import com.tangosol.net.cache.TypeAssertion;
 import com.tangosol.net.cache.WrapperNamedCache;
 
 import data.repository.Person;
 
-import org.junit.AfterClass;
+import java.util.HashMap;
 import org.junit.BeforeClass;
-
 
 /**
  * Simple, in-memory only repository tests against a {@link WrapperNamedCache}.
@@ -29,16 +27,8 @@ public class DefaultRepositoryTest
     @BeforeClass
     public static void _before()
         {
-        System.setProperty("coherence.distributed.localstorage", "true");
-        s_personNamedMap = CacheFactory.getCache("people", TypeAssertion.withTypes(String.class, Person.class));
-        s_personRepo = new PeopleRepository(s_personNamedMap);
-        }
-
-    @AfterClass
-    public static void _after()
-        {
-        CacheFactory.shutdown();
-        System.getProperties().remove("coherence.distributed.localstorage");
+        s_personNamedMap = new WrapperNamedCache<>(new HashMap<>(), "people");
+        s_personRepo     = new PeopleRepository(s_personNamedMap);
         }
 
     protected NamedMap<String, Person> getMap()

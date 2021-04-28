@@ -770,7 +770,10 @@ public abstract class AbstractRepositoryTest
                           {
                           update.countDown();
                           cUpdate.incrementAndGet();
-                          assertThat(personOld.getName(), isOneOf("Aleks", "Marija"));
+                          if (!(this instanceof DefaultRepositoryTest))
+                              {
+                              assertThat(personOld.getName(), isOneOf("Aleks", "Marija"));
+                              }
                           assertThat(personNew.getName(), isOneOf("ALEKS", "MARIJA"));
                           })
                 .onRemove(person ->
@@ -840,7 +843,10 @@ public abstract class AbstractRepositoryTest
                           {
                           update.countDown();
                           cUpdate.incrementAndGet();
-                          assertThat(personOld.getName(), isOneOf("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
+                          if (!(this instanceof DefaultRepositoryTest))
+                              {
+                              assertThat(personOld.getName(), isOneOf("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
+                              }
                           assertThat(personNew.getName(), isOneOf("ALEKS", "MARIJA", "ANA MARIA", "NOVAK", "KRISTINA"));
                           })
                 .onRemove(person ->

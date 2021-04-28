@@ -8,8 +8,11 @@ package com.oracle.coherence.repository;
 
 import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Coherence;
+import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.NamedMap;
 
+import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.cache.TypeAssertion;
 
 import data.repository.Person;
@@ -26,18 +29,28 @@ public class DefaultAsyncRepositoryTest
         extends AbstractAsyncRepositoryTest
     {
     @BeforeClass
-    public static void _before()
+    public static void _before() throws InterruptedException
         {
+        CacheFactory.shutdown();
+
+        Thread.sleep(500);
+
         System.setProperty("coherence.distributed.localstorage", "true");
-        NamedMap<String, Person> cache = CacheFactory.getCache("people",
-                TypeAssertion.withTypes(String.class, Person.class));
-        s_personAsyncNamedMap = cache.async();
+        System.setProperty("coherence.ttl", "0");
+        System.setProperty("coherence.cluster", "CoherenceAsyncRepoTests");
+
+        Coherence coherence = Coherence.clusterMember();
+        coherence.start().join();
+        NamedMap<String, Person> namedMap = coherence.getSession().getMap("people");
+        s_personAsyncNamedMap = namedMap.async();
         s_personRepo = new AsyncPeopleRepository(s_personAsyncNamedMap);
         }
 
     @AfterClass
     public static void _after()
         {
+        Coherence.closeAll();
+        CacheFactory.getCacheFactoryBuilder().releaseAll(null);
         CacheFactory.shutdown();
         System.getProperties().remove("coherence.distributed.localstorage");
         }
