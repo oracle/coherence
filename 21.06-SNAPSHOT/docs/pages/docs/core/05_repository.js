@@ -27,6 +27,10 @@
 
 </li>
 <li>
+<p>Asynchronous API support</p>
+
+</li>
+<li>
 <p>Event listener support</p>
 
 </li>
@@ -681,6 +685,72 @@ lang="java"
 
 <p>Just like when implementing listener class explicitly, you can still pass entity identifier or a <code>Filter</code> as the first argument to <code>addListener</code> method in order to limit the scope of the events received.</p>
 
+</div>
+
+<h3 id="_asynchronous_repositories">Asynchronous Repositories</h3>
+<div class="section">
+<p>In addition to the synchronous repository, <code>AbstractRepository&lt;ID, T&gt;</code>, we offer an asynchronous version,
+<code>AbstractAsyncRepository&lt;ID, T&gt;</code>.  The same abstract methods as previously described will need to be implemented.
+The main differences between the two APIs is of the asynchronous API returns <code>java.util.CompletableFuture</code> of the
+return type.  For example, <code>Collection&lt;T&gt; getAll()</code> in the blocking version would be
+<code>CompletableFuture&lt;Collection&lt;T&gt;&gt;</code> in the asynchronous version of the Repository API. The asynchronous
+API also offers callbacks that will be passed the results of the operation as they
+become available from Coherence instead of Coherence buffering the result into a collection prior to returning.</p>
+
+
+<h4 id="_abstractasyncrepository_examples">AbstractAsyncRepository Examples</h4>
+<div class="section">
+<markup
+lang="java"
+
+>Unresolved directive in 05_repository.adoc - include::../../../prj/test/functional/repository/src/test/java/repository/AsyncPeopleRepository.java[tag=doc]</markup>
+
+<ul class="colist">
+<li data-value="1">The <code>getMap</code> method returns the <code>AsyncNamedMap</code> that should be used as a backing data store for the repository,
+which
+is in this case provided via constructor argument, but could just as easily be injected via CDI</li>
+<li data-value="2">The <code>getId</code> method returns an identifier for a given entity</li>
+<li data-value="3">The <code>getEntityType</code> method returns the class of the entities stored in the repository</li>
+</ul>
+<p>An example using the <code>AsyncPersonRepository</code> make a simple query for an entity:</p>
+
+<markup
+lang="java"
+
+>asyncPersonRepo.get(somePersonsId)    //1
+    .thenApply(Person::getName())     //2
+    .thenApply(String::toUpperCase)   //3
+    .join()  //4</markup>
+
+<ul class="colist">
+<li data-value="1"><code>get</code> a <code>Person</code> based on their ID</li>
+<li data-value="2">Obtain the <code>Person</code> 's name</li>
+<li data-value="3">Convert the name to uppercase</li>
+<li data-value="4">Return the upper cased name</li>
+</ul>
+<p>This usage pattern will be similar across those APIs that return <code>CompletableFuture</code></p>
+
+</div>
+
+<h4 id="_asynchronous_callbacks">Asynchronous Callbacks</h4>
+<div class="section">
+<p>Instead of dealing with an entire collection being realized for the results, it is possible to define a callback that
+will be invoked as results become available.  These APIs will return <code>CompletableFuture&lt;Void&gt;</code> to signal all results
+have been processed.</p>
+
+<p>Building on the previous example where we uppercased a single name, we can instead apply similar logic:</p>
+
+<markup
+lang="java"
+
+>asyncPersonRepo.getAll(person -&gt; System.out.println(person.getName().toUpperCase())); //1
+    .whenComplete((unused, throwable) -&gt; System.out.println("DONE!")) //2</markup>
+
+<ul class="colist">
+<li data-value="1">Print the name of each <code>Person</code> within the Repository</li>
+<li data-value="2">Print <code>DONE!</code> when all <code>Person</code> s have been processed</li>
+</ul>
+</div>
 </div>
 
 <h3 id="_summary">Summary</h3>
