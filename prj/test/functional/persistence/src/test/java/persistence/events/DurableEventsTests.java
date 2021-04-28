@@ -37,6 +37,9 @@ import com.tangosol.util.listener.SimpleMapListener;
 
 import common.AbstractFunctionalTest;
 
+import org.hamcrest.CoreMatchers;
+
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -54,6 +57,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
@@ -120,16 +125,36 @@ public class DurableEventsTests
 
         AbstractFunctionalTest._startup();
 
-        List<String> setServerNames = new ArrayList<>(SERVERS);
+        List<String>           setServerNames = new ArrayList<>(SERVERS);
+        CoherenceClusterMember member         = null;
         for (int i = 1; i <= SERVERS; ++i)
             {
             String sServer = "durable-event-store-" + i;
-            startCacheServer(sServer, "persistence", FILE_CFG, props);
+            member = startCacheServer(sServer, "persistence", FILE_CFG, props);
 
             setServerNames.add(sServer);
             }
 
+        Eventually.assertThat(invoking(member).getClusterSize(), CoreMatchers.is(SERVERS + 1));
+
         s_listServerNames = Collections.synchronizedList(setServerNames);
+        }
+
+    /**
+     * Pre-test initialization.
+     */
+    @Before
+    public void setUp()
+        {
+        final String CACHE_NAME = "foo";
+
+        NamedCache<Integer, String> cache = getNamedCache(CACHE_NAME);
+
+        Eventually.assertDeferred(
+                () -> ((PartitionedService) cache.getCacheService()).getOwnershipEnabledMembers().size(),
+                is(SERVERS));
+
+        waitForBalanced(cache.getCacheService());
         }
 
     /**
