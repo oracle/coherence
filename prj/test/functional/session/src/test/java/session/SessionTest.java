@@ -1,15 +1,20 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package session;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.coherence.component.util.SafeNamedCache;
 import com.tangosol.net.CoherenceSession;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
+import com.tangosol.net.ValueTypeAssertion;
+import com.tangosol.net.options.WithConfiguration;
+import com.tangosol.net.topic.NamedTopic;
 
 import common.AbstractFunctionalTest;
 
@@ -19,6 +24,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 
@@ -270,6 +276,253 @@ public class SessionTest
             assertThat(namedCache1.isDestroyed(), is(Boolean.FALSE));
             assertThat(namedCache1.isActive(), is(Boolean.TRUE));
             assertThat(namedCache1.as(SafeNamedCache.class), is(namedCache2.as(SafeNamedCache.class)));
+            }
+        }
+
+    /**
+     * Ensure we can auto-detect and create a {@link Session} against the
+     * implicit deployment and then get some resources from it.
+     */
+    @Test
+    public void shouldAcquireNamedTopicFromSession()
+            throws Exception
+        {
+        try (Session session = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            assertThat(session, is(not(nullValue())));
+
+            NamedTopic<String> topic = session.getTopic("my-topic");
+
+            assertThat(topic.isActive(), is(true));
+            assertThat(topic, is(not(nullValue())));
+            }
+        }
+
+    /**
+     * Ensure that a {@link Session} returns the same {@link NamedTopic} instance
+     * when asked for the same name / type assertion.
+     */
+    @Test
+    public void shouldReturnSameNamedTopicWithSameType()
+            throws Exception
+        {
+        try (Session session = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            NamedTopic<String> topic = session.getTopic("my-topic", ValueTypeAssertion.withType(String.class));
+
+            NamedTopic<String> anotherTopic = session.getTopic("my-topic", ValueTypeAssertion.withType(String.class));
+
+            assertThat(topic, is(anotherTopic));
+            }
+        }
+
+    /**
+     * Ensure that a {@link Session} returns the same {@link NamedTopic} instance
+     * when asked for the same name / type assertion.
+     */
+    @Test
+    public void shouldReturnSameNamedTopicWithRawTypes()
+            throws Exception
+        {
+        try (Session session = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            NamedTopic<String> topic = session.getTopic("my-topic", ValueTypeAssertion.withRawTypes());
+
+            NamedTopic<String> anotherTopic = session.getTopic("my-topic", ValueTypeAssertion.withRawTypes());
+
+            assertThat(topic, is(anotherTopic));
+            }
+        }
+
+    /**
+     * Ensure that a {@link Session} returns the same {@link NamedTopic} instance
+     * when asked for the same name / type assertion.
+     */
+    @Test
+    public void shouldReturnSameNamedTopic()
+            throws Exception
+        {
+        try (Session session = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            NamedTopic<String> topic = session.getTopic("my-topic");
+
+            NamedTopic<String> anotherTopic = session.getTopic("my-topic");
+
+            assertThat(topic, is(anotherTopic));
+            }
+        }
+
+    /**
+     * Ensure that a {@link Session} doesn't return a released {@link NamedTopic}
+     * after it is released.
+     */
+    @Test
+    public void shouldNotReturnReleasedNamedTopic()
+            throws Exception
+        {
+        try (Session session = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            NamedTopic topic = session.getTopic("my-topic");
+
+            topic.release();
+
+            NamedTopic anotherTopic = session.getTopic("my-topic");
+
+            // the first topic should be inactive (released)
+            assertThat(topic.isActive(), is(false));
+
+            // the second topic should be active
+            assertThat(anotherTopic.isActive(), is(true));
+
+            // and not the same as the second topic
+            assertThat(System.identityHashCode(topic), is(not(System.identityHashCode(anotherTopic))));
+            }
+        }
+
+    /**
+     * Ensure that a {@link Session} doesn't return a destroyed {@link NamedTopic}
+     * after it is destroyed.
+     */
+    @Test
+    public void shouldNotReturnDestroyedNamedTopic()
+            throws Exception
+        {
+        try (Session session = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            NamedTopic topic = session.getTopic("my-topic");
+
+            topic.destroy();
+            Eventually.assertDeferred(()-> topic.isDestroyed(), is(true));
+
+            NamedTopic anotherTopic = session.getTopic("my-topic");
+
+            // the first topic should be inactive (destroyed)
+            assertThat(topic.isActive(), is(false));
+
+            // and not the same as the second topic
+            assertFalse(topic == anotherTopic);
+            assertThat(System.identityHashCode(topic), is(not(System.identityHashCode(anotherTopic))));
+            }
+        }
+
+    /**
+     * Ensure that closing a {@link Session} releases acquired {@link NamedTopic}s.
+     */
+    @Test
+    public void shouldReleaseNamedTopicWhenSessionClosed()
+            throws Exception
+        {
+        NamedTopic namedTopic;
+
+        try (Session session = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            namedTopic = session.getTopic("my-topic");
+
+            // the topic should be active
+            assertThat(namedTopic.isActive(), is(true));
+            }
+
+        // the topic should be inactive
+        assertThat(namedTopic.isActive(), is(false));
+        }
+
+    /**
+     * Ensure that two {@link Session}s produce different {@link NamedTopic}
+     * instances for the same named topic.
+     * @throws Exception
+     */
+    @Test
+    public void shouldReturnDifferentNamedTopicsForDifferentSessions()
+            throws Exception
+        {
+        try (Session session1 = Session.create(WithConfiguration.using("default-coherence-cache-config.xml"));
+             Session session2 = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            NamedTopic namedTopic1 = session1.getTopic("my-topic");
+            NamedTopic namedTopic2 = session2.getTopic("my-topic");
+
+            assertThat(namedTopic1, is(not(namedTopic2)));
+
+            namedTopic1.release();
+
+            assertThat(namedTopic1.isActive(), is(false));
+            assertThat(namedTopic2.isActive(), is(true));
+
+            namedTopic2.release();
+
+            assertThat(namedTopic1.isActive(), is(false));
+            assertThat(namedTopic2.isActive(), is(false));
+            }
+        }
+
+    /**
+     * Ensure that closing a {@link Session} releases acquired {@link NamedTopic}s
+     * and doesn't effect {@link NamedTopic}s from other {@link Session}s.
+     */
+    @Test
+    public void shouldReleaseNamedTopicWhenSessionClosedButNotEffectOtherSessions()
+            throws Exception
+        {
+        try (Session session1 = Session.create(WithConfiguration.using("default-coherence-cache-config.xml"));
+             Session session2 = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            NamedTopic namedTopic1 = session1.getTopic("my-topic");
+            NamedTopic namedTopic2 = session2.getTopic("my-topic");
+
+            assertThat(namedTopic1, is(not(namedTopic2)));
+
+            assertThat(namedTopic1.isActive(), is(true));
+            assertThat(namedTopic2.isActive(), is(true));
+
+            session1.close();
+
+            assertThat(namedTopic1.isActive(), is(false));
+            assertThat(namedTopic2.isActive(), is(true));
+
+            namedTopic2.release();
+
+            assertThat(namedTopic1.isActive(), is(false));
+            assertThat(namedTopic2.isActive(), is(false));
+            }
+        }
+
+    /**
+     * Ensure that two {@link Session}s produce different {@link NamedTopic}
+     * instances for the same named topic and that if one topic is destroyed,
+     * and if Session.getTopic is called on the second session, the topic should
+     * be ensured.
+     * @throws Exception
+     */
+    @Test
+    public void shouldNotReturnInactiveTopicWhenNamedTopicDestroyedByOtherSession()
+            throws Exception
+        {
+        try (Session session1 = Session.create(WithConfiguration.using("default-coherence-cache-config.xml"));
+             Session session2 = Session.create(WithConfiguration.using("default-coherence-cache-config.xml")))
+            {
+            NamedTopic namedTopic1 = session1.getTopic("my-topic");
+            NamedTopic namedTopic2 = session2.getTopic("my-topic");
+
+            assertThat(namedTopic1, is(not(namedTopic2)));
+
+            namedTopic1.destroy();
+
+            // both session NT considered destroyed since shared internal NT
+            assertThat(namedTopic1.isDestroyed(), is(Boolean.TRUE));
+            assertThat(namedTopic1.isActive(), is(Boolean.FALSE));
+            assertThat(namedTopic1.isReleased(), is(Boolean.TRUE));
+            assertThat(namedTopic2.isDestroyed(), is(Boolean.TRUE));
+            assertThat(namedTopic2.isReleased(), is(Boolean.TRUE));
+
+            // validate that destroyed topic is detected and not returned.
+            namedTopic2 = session2.getTopic("my-topic");
+            assertThat(namedTopic2.isDestroyed(), is(Boolean.FALSE));
+            assertThat(namedTopic2.isActive(), is(Boolean.TRUE));
+
+            // validate for both sessions.
+            namedTopic1 = session1.getTopic("my-topic");
+            assertThat(namedTopic1.isDestroyed(), is(Boolean.FALSE));
+            assertThat(namedTopic1.isActive(), is(Boolean.TRUE));
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020-2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Classes;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.ValueTypeAssertion;
 import com.tangosol.net.cache.TypeAssertion;
 
 import com.tangosol.net.options.WithClassLoader;
@@ -22,6 +23,10 @@ import com.tangosol.util.SimpleResourceRegistry;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -143,5 +148,149 @@ public class ConfigurableCacheFactorySessionTest
         session.getTopic("foo", WithClassLoader.autoDetect());
 
         verify(ccf).ensureTopic(eq("foo"), same(loaderCtx), any(NamedTopic.Option.class));
+        }
+
+    // COH-23438
+    @Test
+    public void shouldNotThrowOnTopicReleaseAfterCoherenceClose() throws Exception
+        {
+        ClassLoader              loader   = mock(ClassLoader.class);
+        ConfigurableCacheFactory ccf      = mock(ConfigurableCacheFactory.class);
+        ResourceRegistry         registry = new SimpleResourceRegistry();
+        NamedTopic               topic    = mock(NamedTopic.class);
+
+        when(ccf.getResourceRegistry()).thenReturn(registry);
+        when(ccf.ensureTopic(anyString(), any(ClassLoader.class), any(NamedTopic.Option.class))).thenReturn(topic);
+        when(topic.isActive()).thenReturn(true);
+        when(topic.getName()).thenReturn("foo");
+
+        ConfigurableCacheFactorySession session  = new ConfigurableCacheFactorySession(ccf, loader, "testSession");
+        NamedTopic sessionTopic = session.getTopic("foo");
+        assertNotNull(sessionTopic);
+
+        verify(ccf).ensureTopic(eq("foo"), same(loader), any(NamedTopic.Option.class));
+
+        session.close();
+
+        // simulate test case that released CCF as part of Coherence.close() and then registered shutdown handler that called sessionTopic.close
+        // topic close after Coherence.shutdown throws IllegalStateException when accessing disposed CCF
+        when(ccf.getResourceRegistry()).thenThrow(IllegalStateException.class);
+        when(topic.isReleased()).thenReturn(true);
+        assertTrue(sessionTopic.isReleased());
+
+        sessionTopic.close();
+        }
+
+    // inserted in hash map with TypeAssertion as key, must all be equal
+    @Test
+    public void testTypeAssertion()
+        {
+        assertEquals(TypeAssertion.withRawTypes(), TypeAssertion.withRawTypes());
+        assertEquals(TypeAssertion.withoutTypeChecking(), TypeAssertion.withoutTypeChecking());
+        assertEquals(TypeAssertion.withTypes(String.class, String.class), TypeAssertion.withTypes(String.class, String.class));
+        }
+
+    // inserted in hash map with ValueTypeAssertion as key, must all be equal
+    @Test
+    public void testValueTypeAssertion()
+        {
+        assertEquals(ValueTypeAssertion.withRawTypes(), ValueTypeAssertion.withRawTypes());
+        assertEquals(ValueTypeAssertion.withoutTypeChecking(), ValueTypeAssertion.withoutTypeChecking());
+        assertEquals(ValueTypeAssertion.withType(String.class), ValueTypeAssertion.withType(String.class));
+        }
+
+    @Test
+    public void shouldGetSameSessionNamedTopicWithType() throws Exception
+        {
+        ClassLoader              loader   = mock(ClassLoader.class);
+        ConfigurableCacheFactory ccf      = mock(ConfigurableCacheFactory.class);
+        ResourceRegistry         registry = new SimpleResourceRegistry();
+        NamedTopic               topic    = mock(NamedTopic.class);
+
+        when(ccf.getResourceRegistry()).thenReturn(registry);
+        when(ccf.ensureTopic(anyString(), any(ClassLoader.class), any(NamedTopic.Option.class))).thenReturn(topic);
+        when(topic.isActive()).thenReturn(true);
+        when(topic.getName()).thenReturn("foo");
+
+        ConfigurableCacheFactorySession session  = new ConfigurableCacheFactorySession(ccf, loader, "testSession");
+        NamedTopic sessionTopic = session.getTopic("foo", ValueTypeAssertion.withType(String.class));
+        assertNotNull(sessionTopic);
+
+        NamedTopic sessionTopic1 = session.getTopic("foo", ValueTypeAssertion.withType(String.class));
+        assertTrue(sessionTopic == sessionTopic1);
+
+        sessionTopic.close();
+        }
+
+    @Test
+    public void shouldGetSameSessionNamedTopicWithoutTypechecking() throws Exception
+        {
+        ClassLoader              loader   = mock(ClassLoader.class);
+        ConfigurableCacheFactory ccf      = mock(ConfigurableCacheFactory.class);
+        ResourceRegistry         registry = new SimpleResourceRegistry();
+        NamedTopic               topic    = mock(NamedTopic.class);
+
+        when(ccf.getResourceRegistry()).thenReturn(registry);
+        when(ccf.ensureTopic(anyString(), any(ClassLoader.class), any(NamedTopic.Option.class))).thenReturn(topic);
+        when(topic.isActive()).thenReturn(true);
+        when(topic.getName()).thenReturn("foo");
+
+        ConfigurableCacheFactorySession session  = new ConfigurableCacheFactorySession(ccf, loader, "testSession");
+        NamedTopic sessionTopic = session.getTopic("foo", ValueTypeAssertion.withoutTypeChecking());
+        assertNotNull(sessionTopic);
+
+        NamedTopic sessionTopic1 = session.getTopic("foo", ValueTypeAssertion.withoutTypeChecking());
+        assertTrue(sessionTopic == sessionTopic1);
+
+        sessionTopic.close();
+        }
+
+    // Default ValueTypeAssertion is withRawTypes
+    @Test
+    public void shouldGetSameSessionNamedTopic() throws Exception
+        {
+        ClassLoader              loader   = mock(ClassLoader.class);
+        ConfigurableCacheFactory ccf      = mock(ConfigurableCacheFactory.class);
+        ResourceRegistry         registry = new SimpleResourceRegistry();
+        NamedTopic               topic    = mock(NamedTopic.class);
+
+        when(ccf.getResourceRegistry()).thenReturn(registry);
+        when(ccf.ensureTopic(anyString(), any(ClassLoader.class), any(NamedTopic.Option.class))).thenReturn(topic);
+        when(topic.isActive()).thenReturn(true);
+        when(topic.getName()).thenReturn("foo");
+
+        ConfigurableCacheFactorySession session  = new ConfigurableCacheFactorySession(ccf, loader, "testSession");
+        NamedTopic sessionTopic = session.getTopic("foo");
+        assertNotNull(sessionTopic);
+
+        NamedTopic sessionTopic1 = session.getTopic("foo");
+        assertTrue(sessionTopic == sessionTopic1);
+
+        sessionTopic.close();
+        }
+
+    @Test
+    public void shouldNotBeSameSessionNamedTopic() throws Exception
+        {
+        ClassLoader              loader   = mock(ClassLoader.class);
+        ConfigurableCacheFactory ccf      = mock(ConfigurableCacheFactory.class);
+        ResourceRegistry         registry = new SimpleResourceRegistry();
+        NamedTopic               topic    = mock(NamedTopic.class);
+
+        when(ccf.getResourceRegistry()).thenReturn(registry);
+        when(ccf.ensureTopic(anyString(), any(ClassLoader.class), any(NamedTopic.Option.class))).thenReturn(topic);
+        when(topic.isActive()).thenReturn(true);
+        when(topic.getName()).thenReturn("foo");
+
+        ConfigurableCacheFactorySession session  = new ConfigurableCacheFactorySession(ccf, loader, "testSession");
+        NamedTopic sessionTopic = session.getTopic("foo", ValueTypeAssertion.withType(String.class));
+        assertNotNull(sessionTopic);
+
+        NamedTopic sessionTopic1 = session.getTopic("foo");
+
+        // different value type assertions result in two different SessionNamedTopic instances
+        assertTrue(sessionTopic != sessionTopic1);
+
+        sessionTopic.close();
         }
     }

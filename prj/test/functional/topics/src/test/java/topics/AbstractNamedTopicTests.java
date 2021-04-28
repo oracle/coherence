@@ -28,6 +28,7 @@ import com.tangosol.net.FlowControl;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.Session;
+import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.ValueTypeAssertion;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.topic.NamedTopic;
@@ -95,6 +96,7 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.testsupport.deferred.Eventually.assertDeferred;
 import static com.tangosol.net.topic.Subscriber.Name.of;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -104,6 +106,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -284,10 +287,10 @@ public abstract class AbstractNamedTopicTests
         assertFalse("assert topic is not destroyed", topic.isDestroyed());
 
         topic.destroy();
-        Eventually.assertDeferred("Assert topic " + sName + " is not active",
+        assertDeferred("Assert topic " + sName + " is not active",
                                   () -> topic.isActive(), Matchers.is(false),
                                   DeferredHelper.within(30, TimeUnit.SECONDS));
-        Eventually.assertDeferred("Assert topic " + sName + " is destroyed",
+        assertDeferred("Assert topic " + sName + " is destroyed",
                                   () -> topic.isDestroyed(), Matchers.is(true),
                                   DeferredHelper.within(30, TimeUnit.SECONDS));
         assertTrue(topic.isReleased());
@@ -312,7 +315,7 @@ public abstract class AbstractNamedTopicTests
         assertTrue("assert topic is active", topic.isActive());
         assertFalse("assert topic is not released", topic.isReleased());
         topic.release();
-        Eventually.assertDeferred("Assert topic " + sName + " is released",
+        assertDeferred("Assert topic " + sName + " is released",
                                   () -> topic.isReleased(), Matchers.is(true),
                                   DeferredHelper.within(15, TimeUnit.SECONDS));
         assertFalse(topic.isActive());
@@ -1927,6 +1930,42 @@ public abstract class AbstractNamedTopicTests
     public void validateTopicMBeans() throws Exception
         {
         validateTopicMBeans(m_sSerializer + "-binary-test");
+        }
+
+    // regression test for when ValueTypeAssertion.withXXX returned values that were not considered equal
+    @Test
+    public void shouldBeSameSessionNamedTopic() throws Exception
+        {
+        ValueTypeAssertion[] assertion1 =
+                {
+                ValueTypeAssertion.withType(String.class),
+                ValueTypeAssertion.withRawTypes(),
+                ValueTypeAssertion.withoutTypeChecking()
+                };
+
+        ValueTypeAssertion[] assertion2 =
+                {
+                ValueTypeAssertion.withType(String.class),
+                ValueTypeAssertion.withRawTypes(),
+                ValueTypeAssertion.withoutTypeChecking()
+                };
+
+        NamedTopic<Customer> topic1  = null;
+        NamedTopic<Customer> topic2  = null;
+
+        Session session = getSession();
+        for (int i = 0; i < assertion1.length; i++)
+            {
+            assertEquals(assertion1[i], assertion2[i]);
+            topic1 = session.getTopic(m_sSerializer + "-XXX", assertion1[i]);
+            topic2 = session.getTopic(m_sSerializer + "-XXX", assertion2[i]);
+            assertTrue("testing " + assertion1[i], topic1 == topic2);
+            }
+
+        final NamedTopic topic = topic1;
+
+        topic.destroy();
+        Eventually.assertDeferred(()->topic.isDestroyed(), is(true));
         }
 
     // ----- helper methods -------------------------------------------------
