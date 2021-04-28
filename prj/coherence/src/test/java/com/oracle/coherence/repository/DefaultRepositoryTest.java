@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.repository;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedMap;
 
@@ -25,9 +26,19 @@ public class DefaultRepositoryTest
         extends AbstractRepositoryTest
     {
     @BeforeClass
-    public static void _before()
+    public static void _before() throws InterruptedException
         {
-        s_personNamedMap = new WrapperNamedCache<>(new HashMap<>(), "people");
+        CacheFactory.shutdown();
+
+        Thread.sleep(500);
+
+        System.setProperty("coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.ttl", "0");
+        System.setProperty("coherence.cluster", "CoherenceAsyncRepoTests");
+
+        Coherence coherence = Coherence.clusterMember();
+        coherence.start().join();
+        s_personNamedMap = coherence.getSession().getMap("people");
         s_personRepo     = new PeopleRepository(s_personNamedMap);
         }
 
