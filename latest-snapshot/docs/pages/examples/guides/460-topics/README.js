@@ -385,8 +385,7 @@ System Properties
 <markup
 lang="java"
 
->System.setProperty("coherence.cacheconfig", "topics-cache-config.xml");
-System.setProperty("coherence.distributed.localstorage", "false");
+>System.setProperty("coherence.distributed.localstorage", "false");
 System.setProperty("coherence.log.level", "2");</markup>
 
 </li>
@@ -395,7 +394,12 @@ Obtain a Coherence session
 <markup
 lang="java"
 
->Session session = Session.create();</markup>
+>Coherence coherence = Coherence.getInstance();
+if (coherence == null) {
+    Coherence.clusterMember().start().join();
+    coherence = Coherence.getInstance();
+}
+Session session = coherence.getSession();</markup>
 
 </li>
 <li>
