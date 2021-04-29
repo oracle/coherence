@@ -7,7 +7,10 @@
 
 package com.oracle.coherence.guides.topics;
 
+import com.tangosol.net.Coherence;
+import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.Session;
+import com.tangosol.net.SessionConfiguration;
 
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
@@ -108,7 +111,6 @@ public class ChatApplication implements Runnable {
      */
     public static void main(String[] args) {
         // tag::systemProperties[]
-        System.setProperty("coherence.cacheconfig", "topics-cache-config.xml");
         System.setProperty("coherence.distributed.localstorage", "false");
         System.setProperty("coherence.log.level", "2");
         // end::systemProperties[]
@@ -139,7 +141,12 @@ public class ChatApplication implements Runnable {
         this.inputStream = inputStream;
 
         // tag::sessionCreate[]
-        Session session = Session.create();
+        Coherence coherence = Coherence.getInstance();
+        if (coherence == null) {
+            Coherence.clusterMember().start().join();
+            coherence = Coherence.getInstance();
+        }
+        Session session = coherence.getSession();
         // end::sessionCreate[]
 
         // tag::public[]
