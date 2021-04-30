@@ -16,8 +16,12 @@ import com.tangosol.net.Cluster;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.CacheStore;
+import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.comparator.SafeComparator;
+import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.ValueExtractor;
 
 import common.AbstractFunctionalTest;
 
@@ -30,13 +34,15 @@ import java.nio.file.Files;
 
 import java.util.Properties;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 
 /**
@@ -83,7 +89,7 @@ public class BerkeleyDBWriteBehindPersistenceTests
     public void testPersistenceWithWriteBehindAndActivePersistence()
             throws IOException
         {
-        testPersistenceWithWriteBehind("testWriteBehindActive-BDB", "active");
+        testPersistenceWithWriteBehind("testWriteBehindActive-BDB", "active", /*fMetrics*/false);
         }
 
     /**
@@ -93,7 +99,17 @@ public class BerkeleyDBWriteBehindPersistenceTests
     public void testPersistenceWithWriteBehindAndOnDemandPersistence()
             throws IOException
         {
-        testPersistenceWithWriteBehind("testWriteBehindOnDemand-BDB", "on-demand");
+        testPersistenceWithWriteBehind("testWriteBehindOnDemand-BDB", "on-demand", /*fMetrics*/false);
+        }
+
+    /**
+     * Tests persistence and snapshot recovery with write-behind.
+     */
+    @Test
+    public void testPersistenceMetrics()
+            throws IOException
+        {
+        testPersistenceWithWriteBehind("testWriteBehindOnDemand-BDB", "active", /*fMetrics*/true);
         }
 
     // ----- helpers --------------------------------------------------------
@@ -106,7 +122,7 @@ public class BerkeleyDBWriteBehindPersistenceTests
      *
      * @throws IOException if any errors
      */
-    private void testPersistenceWithWriteBehind(String sServer, String sPersistenceMode)
+    private void testPersistenceWithWriteBehind(String sServer, String sPersistenceMode, boolean fMetrics)
             throws IOException
         {
         final int DELAY_SECONDS = 30;
@@ -151,6 +167,15 @@ public class BerkeleyDBWriteBehindPersistenceTests
 
             cache.clear();
 
+            if (fMetrics)
+                {
+                ValueExtractor ext1 = new ReflectionExtractor("toString");
+                ValueExtractor ext2 = new ReflectionExtractor("hashCode");
+
+                cache.addIndex(ext1, false, null);
+                cache.addIndex(ext2, true, SafeComparator.INSTANCE);
+                }
+
             // assert that nothing is on disk
             assertFileStatus(false, MAX);
 
@@ -187,6 +212,14 @@ public class BerkeleyDBWriteBehindPersistenceTests
 
                 // assert that everything has eventually been written from write-behind
                 assertFileStatus(true, MAX);
+
+                if (fMetrics)
+                    {
+                    long  lMax      = (long) getMbeanAttribute(sService, clusterMember1.getLocalMemberId(), "PersistenceLatencyMax");
+                    float flAverage = (float) getMbeanAttribute(sService, clusterMember1.getLocalMemberId(), "PersistenceLatencyAverage");
+                    assertTrue("The max latency is too big! " + lMax, lMax >= 0 && lMax < 60000);
+                    assertTrue("The average latency is too big! " + flAverage, flAverage >0 && flAverage < 60000);
+                    }
                 }
             else
                 {
@@ -240,6 +273,31 @@ public class BerkeleyDBWriteBehindPersistenceTests
     public boolean keyFileExists(int nKey)
         {
         return BerkeleyDBWriteBehindPersistenceTests.FileCacheStore.getFile(fileWriteBehind, nKey).exists();
+        }
+
+    /**
+     * Helper function to an attribute from ServiceMBean.
+     *
+     * @param  sService   the service name that is tried to get this attribute from
+     * @param  nodeId     the node Id of the member that is running the service
+     * @param  sAttribute the attribute name
+     *
+     * @return  the attribute value in Object.
+     */
+    public Object getMbeanAttribute(String sService, int nodeId, String sAttribute)
+        {
+        try
+            {
+            MBeanServer server    = MBeanHelper.findMBeanServer();
+            ObjectName oBeanName = new ObjectName("Coherence:type=Service,name=" + sService + ",nodeId=" + nodeId);
+
+            return server.getAttribute(oBeanName, sAttribute);
+            }
+        catch (Exception e)
+            {
+            Assert.fail(printStackTrace(e));
+            }
+        return -1;
         }
         
     /**
