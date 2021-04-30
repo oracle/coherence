@@ -195,7 +195,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 synchronized (store.f_setDeletedIds)
                     {
                     long cMillis = 10_000L;
-                    GuardSupport.heartbeat(cMillis);
+                    GuardSupport.heartbeat(cMillis << 1);
 
                     // wait for deleteExtent tasks to finish before release
                     try (Timeout t = Timeout.after(cMillis))
@@ -212,6 +212,8 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                                 store.getId());
                         }
                     }
+                // reset the guardian timeout to the default
+                GuardSupport.heartbeat();
                 }
             store.release();
             }

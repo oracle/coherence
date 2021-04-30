@@ -195,6 +195,7 @@ public abstract class AbstractPersistenceEnvironment
             {
             manager = openSnapshotInternal(fileSnapshot, sSnapshot);
             manager.setPersistenceEnvironment(this);
+            manager.setDaemonPool(null);
             f_mapSnapshots.put(sSnapshot, manager);
             }
 
@@ -240,6 +241,7 @@ public abstract class AbstractPersistenceEnvironment
         AbstractPersistenceManager snapshot = createSnapshotInternal(
                 fileSnapshot, sSnapshot, manager);
         snapshot.setPersistenceEnvironment(this);
+        snapshot.setDaemonPool(null);
         f_mapSnapshots.put(sSnapshot, snapshot);
 
         return snapshot;
