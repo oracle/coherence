@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -201,6 +201,19 @@ public class WrapperBufferInput
         public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
             {
             return f_message.isSenderCompatible(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+            }
+
+        /**
+        * Determine whether the sender of the content of this BufferInput
+        * runs a version that supersedes (greater or equal to) the specified
+        * version.
+        *
+        * @return true iff the sender's version is greater or equal to the
+        *         specified one
+        */
+        public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+            {
+            return f_message.isSenderCompatible(nYear, nMonth, nPatch);
             }
 
 
