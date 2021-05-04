@@ -461,7 +461,8 @@ public class MapEvent<K, V>
             {
             case ENTRY_INSERTED:
                 return " inserted: key=" + getKey() +
-                     sSuffix;
+                      ", value=" + getNewValue() +
+                      sSuffix;
 
             case ENTRY_UPDATED:
                 return " updated: key=" + getKey() +
