@@ -123,7 +123,8 @@ title="MyServerConfig.java"
 
 import com.oracle.coherence.grpc.proxy.GrpcServerConfiguration;
 
-import io.grpc.ServerBuilder;import io.grpc.inprocess.InProcessServerBuilder;
+import io.grpc.ServerBuilder;
+import io.grpc.inprocess.InProcessServerBuilder;
 
 public class MyServerConfig
         implements GrpcServerConfiguration
