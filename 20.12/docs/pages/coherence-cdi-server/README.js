@@ -26,7 +26,7 @@ lang="xml"
 >    &lt;dependency&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;coherence-cdi-server&lt;/artifactId&gt;
-        &lt;version&gt;20.12.1&lt;/version&gt;
+        &lt;version&gt;20.12.2&lt;/version&gt;
     &lt;/dependency&gt;</markup>
 
 <p>Once the necessary dependency is in place, you can start using CDI to inject Coherence objects into managed CDI beans,

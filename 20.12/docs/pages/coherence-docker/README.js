@@ -81,8 +81,8 @@ lang="bash"
 The <code>${docker.registry}</code> property is the name of the registry that the image will be published to, by default
 this is <code>oraclecoherence</code>.</p>
 
-<p>So, if the version in the <code>pom.xml</code> is <code>20.12.1</code> the image produced will be
-<code>oraclecoherence/coherence-ce:20.12.1</code></p>
+<p>So, if the version in the <code>pom.xml</code> is <code>20.12.2</code> the image produced will be
+<code>oraclecoherence/coherence-ce:20.12.2</code></p>
 
 <p>To change the registry name the image can be built by specifying the <code>docker.registry</code> property, for example:</p>
 
@@ -91,7 +91,7 @@ lang="bash"
 
 >mvn clean install -P docker -pl coherence-docker -Ddocker.registry=foo</markup>
 
-<p>The example above would build an image named <code>foo/coherence:20.12.1</code></p>
+<p>The example above would build an image named <code>foo/coherence:20.12.2</code></p>
 
 </div>
 

@@ -18,7 +18,7 @@ lang="xml"
 >    &lt;dependency&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;coherence-micrometer&lt;/artifactId&gt;
-        &lt;version&gt;20.12.1&lt;/version&gt;
+        &lt;version&gt;20.12.2&lt;/version&gt;
     &lt;/dependency&gt;</markup>
 
 <p>The <code>coherence-micrometer</code> provides a Micrometer <code>MeterBinder</code> implementation class called <code>CoherenceMicrometerMetrics</code>.

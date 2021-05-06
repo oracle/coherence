@@ -18,7 +18,7 @@ lang="xml"
 >    &lt;dependency&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;coherence-mp-config&lt;/artifactId&gt;
-        &lt;version&gt;20.12.1&lt;/version&gt;
+        &lt;version&gt;20.12.2&lt;/version&gt;
     &lt;/dependency&gt;</markup>
 
 <p>You will also need an implementation of the Eclipse MP Config specification as a  dependency.

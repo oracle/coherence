@@ -29,7 +29,7 @@ lang="xml"
       &lt;plugin&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;pof-maven-plugin&lt;/artifactId&gt;
-        &lt;version&gt;20.12.1&lt;/version&gt;
+        &lt;version&gt;20.12.2&lt;/version&gt;
         &lt;executions&gt;
           &lt;execution&gt;
             &lt;id&gt;instrument&lt;/id&gt;
