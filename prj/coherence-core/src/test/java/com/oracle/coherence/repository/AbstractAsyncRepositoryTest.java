@@ -633,7 +633,7 @@ public abstract class AbstractAsyncRepositoryTest
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Test
-    public void testGroupByCollectorFiltered()
+    public void testGroupByCollectorFiltered() throws Throwable
         {
         Map<Boolean, Optional<Person>> map = people().groupBy(less(Person::getWeight, 200.0),
                                                               Person::isAdult,
