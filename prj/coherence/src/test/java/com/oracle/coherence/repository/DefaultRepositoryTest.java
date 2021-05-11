@@ -15,6 +15,7 @@ import com.tangosol.net.cache.WrapperNamedCache;
 import data.repository.Person;
 
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 
 /**
@@ -28,6 +29,7 @@ public class DefaultRepositoryTest
     @BeforeClass
     public static void _before() throws InterruptedException
         {
+        Assume.assumeFalse(Boolean.getBoolean("coverage.enabled"));
         CacheFactory.shutdown();
 
         Thread.sleep(500);
