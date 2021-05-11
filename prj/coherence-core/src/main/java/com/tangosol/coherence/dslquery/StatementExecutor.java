@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -59,6 +59,7 @@ public class StatementExecutor
         OPScanner              scanner    = parser.getScanner();
         PrintWriter            out        = ctx.getWriter();
         Object                 oResult    = null;
+        boolean                fTrace     = ctx.isTraceEnabled();
 
         do
             try
@@ -73,7 +74,6 @@ public class StatementExecutor
                     }
 
                 boolean fShowPlan = false;
-                boolean fTrace = ctx.isTraceEnabled();
                 boolean fExecute = true;
 
                 // Check whether we are doing a show plan statement
@@ -151,6 +151,10 @@ public class StatementExecutor
                 }
             catch (Throwable e)
                 {
+                if (fTrace)
+                    {
+                    out.println("\nCallstack for Exception: " + Base.printStackTrace(e));
+                    }
                 if (ctx.isStopOnError())
                     {
                     throw Base.ensureRuntimeException(e);
