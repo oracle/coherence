@@ -141,6 +141,15 @@ public abstract class AbstractRepositoryTest
         }
 
     @Test
+    public void testExists()
+        {
+        getMap().clear();
+        assertThat(people().exists("aleks"), is(false));
+        people().save(new Person("aleks").name("Aleks").age(46));
+        assertThat(people().exists("aleks"), is(true));
+        }
+
+    @Test
     public void testGetAll()
         {
         Collection<? extends Person> results = people().getAll();

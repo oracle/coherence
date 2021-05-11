@@ -119,6 +119,18 @@ public abstract class AbstractRepository<ID, T>
         }
 
     /**
+     * Returns true if this repository contains the entity with the specified identifier.
+     *
+     * @param id  the identifier of an entity to check if it exists
+     *
+     * @return {@code true} if this repository contains the entity with the specified identifier
+     */
+    public boolean exists(ID id)
+        {
+        return getMapInternal().containsKey(id);
+        }
+
+    /**
      * Return the value extracted from an entity with a given identifier.
      * <p/>
      * For example, you could extract {@code Person}'s {@code name} attribute by

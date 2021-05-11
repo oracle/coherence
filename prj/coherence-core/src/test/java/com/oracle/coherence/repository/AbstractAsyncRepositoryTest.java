@@ -149,6 +149,15 @@ public abstract class AbstractAsyncRepositoryTest
         }
 
     @Test
+    public void testExists()
+        {
+        getMap().clear();
+        assertThat(people().exists("aleks").join(), is(false));
+        people().save(new Person("aleks").name("Aleks").age(46));
+        assertThat(people().exists("aleks").join(), is(true));
+        }
+
+    @Test
     public void testGetAll()
         {
         Collection<? extends Person> results = people().getAll().join();
