@@ -18,5 +18,5 @@ ifndef::duration[:duration: 15]
 Although the source comes with the Maven and Gradle wrappers included so they can be built without first installing
 either build tool.
 * You can also import the code straight into your IDE:
-** link:/guides/gs/intellij-idea/[IntelliJ IDEA]
+** <<examples/setup/intellij.adoc#, IntelliJ IDEA>>
 // # end::text[]
