@@ -55,8 +55,3 @@ For example for *Near Caching* you would open `prj/examples/guides/130-near-cach
 ==== See Also
 
 * https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
-
-
-
-
-
