@@ -442,6 +442,19 @@ function createRoutes(){
             component: loadPage('examples-internal-includes-what-you-need', '/examples/internal/includes/what-you-need', {})
         },
         {
+            path: '/examples/setup/intellij',
+            meta: {
+                h1: 'Import a Project Into IntelliJ IDEA',
+                title: 'Import a Project Into IntelliJ IDEA',
+                h1Prefix: null,
+                description: 'Coherence Guides Import Project Into Intellij',
+                keywords: 'coherence, import, intellij',
+                customLayout: null,
+                hasNav: false
+            },
+            component: loadPage('examples-setup-intellij', '/examples/setup/intellij', {})
+        },
+        {
             path: '/', redirect: '/docs/about/01_overview'
         },
         {

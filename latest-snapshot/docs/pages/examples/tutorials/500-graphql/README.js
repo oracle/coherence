@@ -103,7 +103,7 @@ either build tool.</p>
 <p>You can also import the code straight into your IDE:</p>
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="/guides/gs/intellij-idea/">IntelliJ IDEA</a></p>
+<p><router-link to="/examples/setup/intellij">IntelliJ IDEA</router-link></p>
 
 </li>
 </ul>

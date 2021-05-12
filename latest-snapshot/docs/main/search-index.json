@@ -1086,6 +1086,41 @@
             "title": "Coherence Global Tags"
         },
         {
+            "location": "/examples/setup/intellij",
+            "text": " About 15 Minutes IntelliJ IDEA JDK 6 or later ",
+            "title": "What You Need"
+        },
+        {
+            "location": "/examples/setup/intellij",
+            "text": " If you don’t have IntelliJ IDEA (Ultimate Edition) installed yet, visit the link up above. From there, you can download a copy for your platform. To install it simply unpack the downloaded archive. When you’re done, go ahead and launch IntelliJ IDEA. ",
+            "title": "Installing IntelliJ IDEA"
+        },
+        {
+            "location": "/examples/setup/intellij",
+            "text": " To import an existing project you need to clone the Coherence CE repository if you have not already done so. <markup lang=\"bash\" >$ git clone https://github.com/oracle/coherence.git ",
+            "title": "Clone the Coherence CE Repository"
+        },
+        {
+            "location": "/examples/setup/intellij",
+            "text": " With IntelliJ IDEA up and running, click Import Project on the Welcome Screen, or File | New Project From Existing Sources . Navigate to the cloned repository directory, then prj/examples and then to the guide or tutorial directory. For example for Near Caching you would open prj/examples/guides/130-near-caching directory. In the pop-up dialog select either Maven or Gradle as the external model to import from. Once the project is imported, follow the README to build or run the example or guide. ",
+            "title": "Importing a Guide or Tutorial"
+        },
+        {
+            "location": "/examples/setup/intellij",
+            "text": " IntelliJ IDEA ",
+            "title": "See Also"
+        },
+        {
+            "location": "/examples/setup/intellij",
+            "text": " You will pick a Coherence guide or example and import it into IntelliJ IDEA. Then you can then read and follow the individual guide or tutorial documentation. What You Need About 15 Minutes IntelliJ IDEA JDK 6 or later Installing IntelliJ IDEA If you don’t have IntelliJ IDEA (Ultimate Edition) installed yet, visit the link up above. From there, you can download a copy for your platform. To install it simply unpack the downloaded archive. When you’re done, go ahead and launch IntelliJ IDEA. Clone the Coherence CE Repository To import an existing project you need to clone the Coherence CE repository if you have not already done so. <markup lang=\"bash\" >$ git clone https://github.com/oracle/coherence.git Importing a Guide or Tutorial With IntelliJ IDEA up and running, click Import Project on the Welcome Screen, or File | New Project From Existing Sources . Navigate to the cloned repository directory, then prj/examples and then to the guide or tutorial directory. For example for Near Caching you would open prj/examples/guides/130-near-caching directory. In the pop-up dialog select either Maven or Gradle as the external model to import from. Once the project is imported, follow the README to build or run the example or guide. See Also IntelliJ IDEA ",
+            "title": "What You Will Build"
+        },
+        {
+            "location": "/examples/setup/intellij",
+            "text": " This guide walks you through importing one of the Coherence guides or tutorials into IntelliJ IDEA. What You Will Build You will pick a Coherence guide or example and import it into IntelliJ IDEA. Then you can then read and follow the individual guide or tutorial documentation. What You Need About 15 Minutes IntelliJ IDEA JDK 6 or later Installing IntelliJ IDEA If you don’t have IntelliJ IDEA (Ultimate Edition) installed yet, visit the link up above. From there, you can download a copy for your platform. To install it simply unpack the downloaded archive. When you’re done, go ahead and launch IntelliJ IDEA. Clone the Coherence CE Repository To import an existing project you need to clone the Coherence CE repository if you have not already done so. <markup lang=\"bash\" >$ git clone https://github.com/oracle/coherence.git Importing a Guide or Tutorial With IntelliJ IDEA up and running, click Import Project on the Welcome Screen, or File | New Project From Existing Sources . Navigate to the cloned repository directory, then prj/examples and then to the guide or tutorial directory. For example for Near Caching you would open prj/examples/guides/130-near-caching directory. In the pop-up dialog select either Maven or Gradle as the external model to import from. Once the project is imported, follow the README to build or run the example or guide. See Also IntelliJ IDEA ",
+            "title": "Import a Project Into IntelliJ IDEA"
+        },
+        {
             "location": "/coherence-grpc-proxy/README",
             "text": " Coherence gRPC proxy is the server-side implementation of the services defined within the Coherence gRPC module. The gRPC proxy uses standard gRPC Java libraries to provide Coherence APIs over gRPC. ",
             "title": "Coherence gRPC Server"
