@@ -390,7 +390,7 @@ The following Oracle Coherence features are not included in Coherence Community 
 * Transaction Framework
 * CommonJ Work Manager
 
-Below is a matrix highlighting the features supported in each edition:
+Below is an overview of features supported in each Coherence edition for comparison purposes:
 
 <img src=https://oracle.github.io/coherence/assets/images/coherence-edition-matrix.png><img>
 
