@@ -36,13 +36,6 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-core</artifactId>
-      <version>${project.version}</version>
-      <classifier>sources</classifier>
-    </dependency>
-
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-core-components</artifactId>
       <version>${project.version}</version>
     </dependency>
