@@ -32,7 +32,7 @@
 
 ## <a name="intro"></a>Introduction
 
-[Coherence](http://coherence.java.net/) is a scalable, fault-tolerant, cloud-ready,
+[Coherence](http://coherence.community/) is a scalable, fault-tolerant, cloud-ready,
 distributed platform for building grid-based applications and reliably storing data.
 The product is used at scale, for both compute and raw storage, in a vast array of
 industries such as critical financial trading systems, high performance telecommunication
@@ -389,6 +389,10 @@ The following Oracle Coherence features are not included in Coherence Community 
 * Federation and WAN (wide area network) Support
 * Transaction Framework
 * CommonJ Work Manager
+
+Below is a matrix highlighting the features supported in each edition:
+
+<img src=https://oracle.github.io/coherence/assets/images/coherence-edition-matrix.png><img>
 
 ## <a name="contrib"></a>Contribute
 
