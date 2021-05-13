@@ -394,6 +394,8 @@ Below is an overview of features supported in each Coherence edition for compari
 
 <img src=https://oracle.github.io/coherence/assets/images/coherence-edition-matrix.png><img>
 
+Please refer to <a href="https://docs.oracle.com/en/middleware/fusion-middleware/fmwlc/application-server-products-new-structure.html#GUID-00982997-3110-4AC8-8729-80F1D904E62B">Oracle Fusion Middleware Licensing Documentation</a> for official documentation of Oracle Coherence commercial editions and licensing details.
+
 ## <a name="contrib"></a>Contribute
 
 Interested in contributing?  See our contribution [guidelines](CONTRIBUTING.md) for details.
