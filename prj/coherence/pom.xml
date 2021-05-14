@@ -36,6 +36,15 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core</artifactId>
+      <version>${project.version}</version>
+      <classifier>sources</classifier>
+      <!-- A slight hack - test scope so that this dependency does not appear in the flattened pom -->
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-core-components</artifactId>
       <version>${project.version}</version>
     </dependency>
