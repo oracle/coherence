@@ -498,9 +498,6 @@ lang="java"
 >// generate a join message and send synchronously
 publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.JOIN, null)).join();</markup>
 
-<ul class="colist">
-<li data-value="1">Asynchronously send the message and increment the messages sent when complete</li>
-</ul>
 </li>
 <li>
 Send a public message when the user uses the <code>sendpm</code> command:
