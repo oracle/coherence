@@ -218,7 +218,6 @@ include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[t
 include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=join]
 ----
 +
-<1> Asynchronously send the message and increment the messages sent when complete
 
 9. Send a public message when the user uses the `sendpm` command:
 +
