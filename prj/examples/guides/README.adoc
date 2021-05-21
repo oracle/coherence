@@ -26,13 +26,6 @@ A guide showing basic CRUD `put`, `get`, and `remove` operations on a `NamedMap`
 --
 
 [CARD]
-.Queries
-[link=examples/guides/110-queries/README.adoc]
---
-A guide to the basic querying APIs in `NamedMap` and `NamedCache`.
---
-
-[CARD]
 .Topics
 [link=examples/guides/460-topics/README.adoc]
 --
@@ -40,17 +33,24 @@ A guide to using Caching Data Stores
 --
 
 [CARD]
-.Cache Stores
-[link=examples/guides/190-cache-stores/README.adoc]
---
-This guide walks you through how to use and configure Cache Stores
---
-
-[CARD]
 .Near Caching
 [link=examples/guides/130-near-caching/README.adoc]
 --
 This guide walks you through how to use near caching within Coherence
+--
+
+[CARD]
+.Client Events
+[link=examples/guides/140-client-events/README.adoc]
+--
+This guide walks you through how to use client events within Coherence
+--
+
+[CARD]
+.Cache Stores
+[link=examples/guides/190-cache-stores/README.adoc]
+--
+This guide walks you through how to use and configure Cache Stores
 --
 
 ====
