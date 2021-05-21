@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -80,7 +80,7 @@ public class FileHelperTest
         FileHelper.copyFile(file, fileNew);
         assertTrue(fileNew.exists());
         assertEquals(0L, fileNew.length());
-        assertEquals(file.lastModified(), fileNew.lastModified());
+        assertTrue(file.isFile() == fileNew.isFile());
 
         fileNew.delete();
         assertFalse(fileNew.exists());
@@ -103,7 +103,7 @@ public class FileHelperTest
         FileHelper.copyFile(file, fileNew);
         assertTrue(fileNew.exists());
         assertEquals(FILE_SIZE, fileNew.length());
-        assertEquals(file.lastModified(), fileNew.lastModified());
+        assertTrue(file.isFile() == fileNew.isFile());
 
         FileInputStream in = new FileInputStream(fileNew);
         try
