@@ -15,7 +15,6 @@ import com.tangosol.net.Session;
 
 import com.tangosol.util.Base;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -28,6 +27,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Unit tests for {@link ExecutionContext}.
  */
+@SuppressWarnings("deprecation")
 public class ExecutionContextTest
     {
 
@@ -39,11 +39,12 @@ public class ExecutionContextTest
         assertThat(ctx.getSession(), notNullValue());
         }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldThrowIfNoSession()
+    @Test
+    public void shouldReturnDefaultConfigurableCacheFactoryForSession()
         {
         ExecutionContext ctx = new ExecutionContext();
-        ctx.getSession();
+        assertThat(ctx.getSession(), notNullValue());
+        assertThat(ctx.getCacheFactory(), is(CacheFactory.getConfigurableCacheFactory()));
         }
 
     @Test

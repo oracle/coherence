@@ -134,12 +134,10 @@ public class ExecutionContext
             ConfigurableCacheFactory cacheFactory = m_cacheFactory;
             if (cacheFactory == null)
                 {
-                throw new IllegalStateException("No CacheFactory available");
+                m_cacheFactory = cacheFactory = CacheFactory.getConfigurableCacheFactory();
                 }
 
             m_session = session = new ConfigurableCacheFactorySession(cacheFactory, Base.getContextClassLoader());
-
-            m_cacheFactory = cacheFactory;
             }
 
         return session;
