@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -30,6 +31,7 @@ import static org.junit.Assert.*;
 public class SerializationTests
         extends Base
     {
+    @Ignore("COH-23556")
     @Test
     public void testLargeObject()
         {
