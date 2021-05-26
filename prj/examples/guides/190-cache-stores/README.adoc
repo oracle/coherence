@@ -22,7 +22,7 @@ support both intensive read-only and read/write operations, and for read/write o
 the cache and database must be kept fully synchronized. To accomplish caching of data sources,
 Coherence supports Read-Through, Write-Through, Refresh-Ahead and Write-Behind caching.
 
-See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600[Coherence Documentation]
+See the {commercial-docs-base-url}/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600[Coherence Documentation]
 for detailed information on Cache Stores.
 
 === Table of Contents
@@ -39,6 +39,8 @@ for detailed information on Cache Stores.
 * <<expiring-hsqldb-cache-store, Refresh Ahead Expiring HSQLDb Cache Store Example>>
 * <<write-behind-hsqldb-cache-store, Write Behind HSQLDb Cache Store Example>>
 * <<pluggable, Pluggable Cache Stores>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
 
 [#what-you-will-build]
 === What You Will Build
@@ -710,11 +712,12 @@ include::src/test/java/com/oracle/coherence/guides/cachestores/HibernateCacheSto
 include::src/test/java/com/oracle/coherence/guides/cachestores/HibernateCacheStoreTest.java[tag=remove]
 ----
 
-
+[#summary]
 === Summary
 
 You have seen how to use and configure Cache Stores within Coherence.
 
+[#see-also]
 === See Also
-* https://docs.oracle.com/middleware/12213/coherence/develop-applications/caching-data-sources.htm#COHDG5177[Caching Data Stores]
+* {commercial-docs-base-url}/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600[Caching Data Stores]
 * https://github.com/coherence-community/coherence-hibernate[Coherence Hibernate OpenSource Project]

@@ -33,9 +33,9 @@ and Continuous Query Caches (CQC).
 
 See the Coherence Documentation links below for more information:
 
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/using-map-events.html[Develop Applications using Map Events]
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/introduction-coherence-caches.html[Understanding Near Caches]
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/using-continuous-query-caching.html[Using Continuous Query Caches]
+* {commercial-docs-base-url}/develop-applications/using-map-events.html[Develop Applications using Map Events]
+* {commercial-docs-base-url}/develop-applications/introduction-coherence-caches.html[Understanding Near Caches]
+* {commercial-docs-base-url}/develop-applications/using-continuous-query-caching.html[Using Continuous Query Caches]
 
 === Table of Contents
 
@@ -369,6 +369,6 @@ In this example you have seen how to use the following features of client events
 [#see-also]
 === See Also
 
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/using-map-events.html[Develop Applications using Map Events]
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/introduction-coherence-caches.html[Understanding Near Caches]
-* https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/using-continuous-query-caching.html[Using Continuous Query Caches]
+* {commercial-docs-base-url}/develop-applications/using-map-events.html[Develop Applications using Map Events]
+* {commercial-docs-base-url}/develop-applications/introduction-coherence-caches.html[Understanding Near Caches]
+* {commercial-docs-base-url}/develop-applications/using-continuous-query-caching.html[Using Continuous Query Caches]
