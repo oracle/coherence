@@ -408,7 +408,7 @@ public void runExample() throws Exception {
 
 </li>
 </ul>
-<p>There are a number of invalidation strategies, described <a id="" title="" target="_blank" href="https://docs.oracle.com/pls/topic/lookup?ctx=en/middleware/standalone/coherence/14.1.1.0/install&amp;id=COHDG5219">here</a>,
+<p>There are a number of invalidation strategies, described <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/configuring-caches.html#GUID-78557F0D-1CCC-4A4B-B52C-61D6EBF88295">here</a>,
 but we will utilize the following for the tests above:</p>
 
 <ul class="ulist">
@@ -650,7 +650,7 @@ lang="bash"
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/pls/topic/lookup?ctx=en/middleware/standalone/coherence/14.1.1.0/install&amp;id=COHDG5219">Near Cache Invalidation Strategies</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/configuring-caches.html#GUID-78557F0D-1CCC-4A4B-B52C-61D6EBF88295">Near Cache Invalidation Strategies</a></p>
 
 </li>
 <li>

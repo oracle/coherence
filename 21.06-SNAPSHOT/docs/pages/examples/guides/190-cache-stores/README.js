@@ -68,6 +68,14 @@ for detailed information on Cache Stores.</p>
 <p><router-link to="#pluggable" @click.native="this.scrollFix('#pluggable')">Pluggable Cache Stores</router-link></p>
 
 </li>
+<li>
+<p><router-link to="#summary" @click.native="this.scrollFix('#summary')">Summary</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#see-also" @click.native="this.scrollFix('#see-also')">See Also</router-link></p>
+
+</li>
 </ul>
 </div>
 
@@ -1494,17 +1502,17 @@ assertNull(person4);</markup>
 </ol>
 </div>
 
-<h3 id="_summary">Summary</h3>
+<h3 id="summary">Summary</h3>
 <div class="section">
 <p>You have seen how to use and configure Cache Stores within Coherence.</p>
 
 </div>
 
-<h3 id="_see_also">See Also</h3>
+<h3 id="see-also">See Also</h3>
 <div class="section">
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://docs.oracle.com/middleware/12213/coherence/develop-applications/caching-data-sources.htm#COHDG5177">Caching Data Stores</a></p>
+<p><a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600">Caching Data Stores</a></p>
 
 </li>
 <li>
