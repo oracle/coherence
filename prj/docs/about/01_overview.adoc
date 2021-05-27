@@ -81,6 +81,13 @@ Coherence Core Improvements.
 --
 
 [CARD]
+.Topics
+[icon=forward_to_inbox,link=docs/topics/01_introduction.adoc]
+--
+Coherence Topics (Messaging, Streams) Improvements.
+--
+
+[CARD]
 .CDI
 [icon=extension,link=coherence-cdi-server/README.adoc]
 --

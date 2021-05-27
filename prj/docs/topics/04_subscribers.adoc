@@ -1,0 +1,361 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Subscribers
+:description: Coherence Topics Subscribers
+:keywords: coherence, topics, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Subscribers
+
+Subscribers are used to receive messages to a Coherence topic, a subscriber receives messages from a single topic.
+
+* <<_creating_subscribers,Creating Subscribers>>
+* <<_creating_group_subscribers,Creating Subscriber Groups>>
+* <<_closing_subscribers,Closing Subscribers>>
+* <<_receiving_messages,Receiving Messages>>
+* <<_committing_message_acknowledgement,Committing>>
+* <<_seeking__reposition_a_subscriber,Seek to a Position>>
+
+[#_creating_subscribers]
+=== Creating Subscribers
+
+The simplest way to create a `Subscribers` is from the Coherence `Session` API, by calling the `createSubscriber` method.
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Subscriber;
+
+Session session = Coherence.getSession();
+
+Subscriber<String> subscriber = session.createSubscriber("test-topic");
+----
+The code snippet above creates an anonymous `Subscriber` that subscribes to `String` messages from the topic names `test-topic`.
+
+Alternatively, a `Subscriber` can be obtained directly from a `NamedTopic` instance.
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Subscriber;
+
+Session            session = Coherence.getSession();
+NamedTopic<String> topic   = session.getTopic("test-topic");
+
+Subscriber<String> subscriber = topic.createSubscriber("test-topic");
+----
+
+Both the `Session.createSubscriber()` and `NamedTopic.createSubscriber()` methods also take a var-args array of `Subscriber.Option` instances to futher configure the behaviour of the subscriber.Some of these options are described below.
+
+[#_creating_group_subscribers]
+=== Creating Group Subscribers
+
+To create a subscriber that is part of a subscriber group the `Subscriber.Name` option can be used.
+Subscriber groups have a unique name and a subscriber joins a group by specifying the group name.
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Subscriber;
+import static com.tangosol.net.topic.Subscriber.Name.inGroup;
+
+Session session = Coherence.getSession();
+
+Subscriber<String> subscriber = session.createSubscriber("test-topic", inGroup("group-one"));
+----
+
+The code above creates a subscriber that subscribes from the `test-topic`.The subscriber is part of the group named `group-one`.This is specified by adding a `Subscriber.Name` option using the static factory method `Subscriber.Name.inGroup`.
+
+[#_closing_subscribers]
+=== Closing Subscribers
+
+Subscribers should ideally be closed when application code finishes with them so that any server side and client side resources associated with them are also closed and cleaned up.Orphaned subscribers, where the client application has gone away, will eventually be cleaned up by servr side code.Subscriber groups that are durable will remain until manually removed.
+
+Subscribers have a `close()` method, and are in fact auto-closable, so can be used in a try with resources block.For example:
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Subscriber;
+
+Session session = Coherence.getSession();
+
+try (Subscriber<String> subscriber = session.createSubscriber("test-topic"))
+    {
+    // ... receive messages ...
+    }
+----
+
+In the above example, the subscriber is used to receive messages inside the try/catch block.Once the try/catch block exits the subscriber is closed.
+
+When a subscriber is closed, it can no longer be used.Calls to subscriber methods after closing will throw an `IllegalStateException`.
+
+[#_receiving_messages]
+=== Receiving Messages
+
+The sole purpose of a subscriber is to receive messages from a topic.This is done by calling the `Subscriber.receive()` method to receive a single message or `Subscriber.receive(int)` to receive multiple messages in a batch.Both forms of the `receive` method are asynchronous, and return a `CompletableFuture` that will be completed with the result of polling the topic for messages.
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.Element;
+
+Session            session    = Coherence.getSession();
+Subscriber<String> subscriber = session.createSubscriber("test-topic");
+
+CompletableFuture<Element<String>> future subscriber.receive();                // <1>
+
+CompletableFuture<List<Element<String>>> futureBatch subscriber.receive(10);   // <2>
+----
+
+<1> The first call to receive will return a `CompletableFuture` that will complete with a `Subscriber.Element` that will contain the message from the topic and meta-data about the element.
+
+<2> The second call to receive will return a `CompletableFuture` that will complete with a batch of upto 10 elements.The `int` parameter is a hint to the subscriber to return a batch and is the maximum number of messages that should be returned, the subscriber could return less messages.At most, a subscriber will return a full page of messages in a batch, so calling receive with a value higher than a page size will not return more messages than the page contains.
+
+==== Future Completion
+
+By default, the `CompletableFuture` returned from a call to receive will not complete until a message is received. If the topic is empty (or in the case of a group subscriber all the channels owned by the subscriber are empty) the future will not complete until a new message is published to the topic or channel.
+
+This behaviour can be changed so that is a topic or owned channels are empty, the future will complete with a `null` element value. This is controled by creating the subscriber with the `CompleteOnEmpty` option.
+
+For example, to create a subscriber where calls to receive return even if the topic is empty:
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
+import com.tangosol.net.topic.Subscriber.Element;
+
+Session            session    = Coherence.getSession();
+Subscriber<String> subscriber = session.createSubscriber("test-topic", CompleteOnEmpty.enabled()); // <1>
+
+CompletableFuture<Element<String>> future subscriber.receive();
+Element<String> element = future.get();                           // <2>
+----
+
+<1> The subscriber is created using the `CompleteOnEmpty.enabled()` option, so it will complete futures even if the topic is empty.
+<2> The call to `future.get()` may return `null` if the topic or owned channels are emtpy.
+
+==== Multiple calls to Receive and Message Ordering
+
+Because the subscriber API is asynchronous, multiple consecutive calls can be made to the `receive` methods, without waiting for the first call to complete.To maintain message delivery order, the subscriber will complete the futures in the order that the calls were made.
+
+[IMPORTANT]
+====
+Any use of the `CompleteableFuture` async API (for example `future.thenApplyAsync()`, `future.handleAsync()` etc) to hand of completion handling to another thread will then remove any ordering guarantees for message processing. The same applies to application code that manually hands the returned elements off to other worker threads for processing.
+
+It is up to the application code to then handle the futures in such a way that ordering is maintained if that is important to the application's use-case..
+====
+
+The use of the synchronous `CompletableFuture` API (for example `future.thenApply()`, `future.handle()` etc) will cause completion of other futures by the subscriber to block until the handler code is complete.To maintain order of completion, the subscribe queues up the futures to be completed by a single daemon thread.
+
+For examples:
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
+import com.tangosol.net.topic.Subscriber.Element;
+
+Session            session    = Coherence.getSession();
+Subscriber<String> subscriber = session.createSubscriber("test-topic", CompleteOnEmpty.enabled()); // <1>
+
+CompletableFuture<Void> futureOne = subscriber.receive()
+        .thenAccept(element -> {
+            // handle first element...
+        });
+
+CompletableFuture<Void> futureTwo = subscriber.receive()
+        .thenAccept(element -> {
+            // handle second element...
+        });
+----
+
+In the example above, the code that handles the first element must fully complete before the second future will complete.
+
+In use cases where order of processing on the client is not important the full async API can be used.
+
+[IMPORTANT]
+====
+Another important aspect of using the async API with subscribers is correct error handling.
+
+This is bad code:
+[source,java]
+----
+subscriber.receive()
+        .thenAccept(element -> {
+            // handle first element...
+        });
+----
+If the call to `receive()` fails and the future completes exceptionally, or the handler code in the `thenAccept` call fails and throws an exception, those exceptions will be lost and not even logged.
+
+A better way is to always finish with a `handle` call or use one of the other methods of the `CompletableFuture` API to check for exceptions.
+[source,java]
+----
+subscriber.receive()
+        .thenAccept(element -> {
+            // process second element...
+        }).handle((_void, error) -> {
+            if (error != null)
+                {
+                // something went wrong!!!
+                }
+            return null;
+        });
+----
+
+====
+
+[#_committing_message_acknowledgement]
+=== Committing (Message Acknowledgement)
+
+In order to provide at least once delivery guarantees, the subscriber API has methods that allow messages to be committed, so that the server knows they have been processed and will not re-deliver them in the case where a group subscriber fails over or is closed, and a new subscriber in the group takes over the channel ownership.
+
+When a subscriber does a commit, it is actually committing a position in a channel of a topic.It effectively says that a specific position in a channel and all earlier positions have been processed.For example if a subscriber reads 10 messages from positions 0 - 9 and commits position 9, then positions 0 - 8 are also committed.
+
+There are two ways to commit a position; either using the commit method on an `Element` returned from a call to `receive()`, or by calling the `commit` method on a `Subscriber` that takes a channel and  `Position` argument.
+
+==== Commit a Received Element
+
+The `Element` returnd from a `receive` call has a `commit()` method that can be used to commit the element's channel and position.
+
+For example:
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.CommitResult;
+import com.tangosol.net.topic.Subscriber.Element;
+import com.tangosol.net.topic.Subscriber.Name.inGroup;
+
+Session            session    = Coherence.getSession();
+Subscriber<String> subscriber = session.createSubscriber("test-topic", Name.inGroup("test-group"));
+
+CompletableFuture<Element<String>> future = subscriber.receive();   <1>
+Element<String> element = future.get();                             <2>
+String value = element.getValue();                                  <3>
+
+// process the message value                                        <4>
+
+CommitResult result = element.commit();                             <5>
+----
+<1> The application calls `receive()`
+<2> The `element` will be returned when the future completes
+<3> The message value can be obtained from the element
+<4> Application code processes the message value
+<5> The `commit` method is called to commit the position of the element.
+
+By committing the element directly, application code does not need to track the channel or positions of received elements.
+
+==== Commit a Position
+
+To commit a `Position` in a channel directly the `Subscriber.commit(int, Position)` method can be used.
+For example:
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Position;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.CommitResult;
+import com.tangosol.net.topic.Subscriber.Element;
+import com.tangosol.net.topic.Subscriber.Name.inGroup;
+
+Session            session    = Coherence.getSession();
+Subscriber<String> subscriber = session.createSubscriber("test-topic", Name.inGroup("test-group"));
+
+CompletableFuture<Element<String>> future = subscriber.receive();   <1>
+Element<String> element = future.get();                             <2>
+String value = element.getValue();                                  <3>
+
+// process the message value   <4>
+
+int channel = element.getChannel();      <5>
+Position position = element.commit();
+
+CommitResult result = subscriber.commit(channel, position);   <6>
+----
+<1> The application calls `receive()`
+<2> The `element` will be returned when the future completes
+<3> The message value can be obtained from the element
+<4> Application code processes the message value
+<5> The channel and `Position` can be obtained for the element
+<6> The channel and `Position` can then be committed later by calling `commit` on the subscriber
+
+[#_seeking__reposition_a_subscriber]
+=== Seeking - Reposition a Subscriber
+
+The common behaviour for a subscriber is to connect and then receive messages in order until all the messages are processed.Sometimes though it is desirable to rewind a subscriber to reprocess previously consumed messages, or to move a subscriber forwards to skip messages.
+
+When rewinding a position, whether the action is successful or not depends on how the topic has been configured.If the topic is configured to retain messages (not the default) then previously received messages are still available and can be re-received.For topics that do not retain messages, then messages are removed once all connected subscribers, or subscriber groups, have read the message.In the case of non-retained topics therefore, it may not be possible to rewind as the messages may have been removed.Even in topics that retain consumed messages, the messages may have been removed if the topic is configured with message expiry.
+
+If an attempt is made to rewind further back than the first message in the topic, the seek will reposition the subscriber just before the first available message.If an attempt is made to reposition a subscriber much further ahead than the current tail of the topic, the subscriber will be positioned at the tail, so that it receives the next published message.
+
+==== Seek to a Position
+
+The subscriber has a `seek` method that takes a channel, and a `Position` that moves the subscriber to the specified position in the channel.
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Position;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.CommitResult;
+import com.tangosol.net.topic.Subscriber.Element;
+import com.tangosol.net.topic.Subscriber.Name.inGroup;
+
+Session            session    = Coherence.getSession();
+Subscriber<String> subscriber = session.createSubscriber("test-topic", Name.inGroup("test-group"));
+
+Element<String> firstElement = subscriber.receive().get();     <1>
+
+for (int i = 0; i < 10; i++)                                   <2>
+    {
+    Element<String> element = subscriber.receive().get();
+    // process element...
+    }
+
+subscriber.seek(firstElement.getChannel(), firstElement.getPosition());   <3>
+----
+
+<1> The example above is a bit contrived, but shows how seek can be used.The first element is received from the topic.
+<2> Another 10 elements are then processed from the subscriber.
+<3> The `seek` method is then used to move the subscriber back to the position of the first message.
+
+NOTE: When seeking, the next message received is the message *after* the seek position.In the example above, after the seek call the next message received wil not be the same as first element, it will be the next message, so the first message received in the for loop.
+
+The subscriber also has methods to seek to the head (re-read the first message) or tail (read the next message published) for a channel without needing to know the head or tail positions.
+
+==== Seek to a Timestamp
+
+Subscribers can also be repositioned to the next message based on a timestamp that the message was published. All messages have a timestamp based on the Coherence cluster time in the storage member that accepted the published message. When seeking using a timestamp, the subscriber is repositioned such that the next message received is the first message *after* the specified timestamp.
+
+The timestamp is specified as a `java.time.Instant` when seeking to a timestamp.
+
+For example:
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Position;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.Element;
+
+Session            session    = Coherence.getSession();
+Subscriber<String> subscriber = session.createSubscriber("test-topic", Name.inGroup("test-group"));
+
+Instant timestamp = LocalDateTime.of(LocalDate.now(), LocalTime.of(20, 30))  // <1>
+        .toInstant(ZoneOffset.UTC);
+
+Position position = subscriber.seek(1, timestamp);                           // <2>
+----
+
+<1> A `java.time.Instant` is created for 20:30 today.
+<2> Seek is called to reposition the subscriber so that the next message received from channel `1` will be the first message published after 20:30.
+
+NOTE: Repositioning to a timestamp in the future will reposition the subscriber at the tail, so the next message received will be the next published message, regardless of the time. It is not possible to seek to a timestamp in the future so that messages are ignored until the time is reached.

@@ -1,0 +1,200 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Publishers
+:description: Coherence Topics Publishers
+:keywords: coherence, topics, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Publishers
+
+Publishers are used to publish messages to a Coherence topic, a publisher publishes to a single topic.
+
+* <<_creating_publishers,Creating Publishers>>
+* <<_closing_a_publisher,Closing a Publisher>>
+* <<_configure_ordering_guarantees,Configure Ordering Guarantees>>
+** <<_orderby_thread,Ordering by publishing thread>>
+** <<_orderby_value,Ordering by message value>>
+** <<_orderby_id,Ordering by fixed channel>>
+** <<_publish_orderable_messages,Orderable messages>>
+
+
+[#_creating_publishers]
+=== Creating Publishers
+
+The simplest way to create a `Publisher` is from the Coherence `Session` API, by calling the `createPublisher` method.
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Publisher;
+
+Session session = Coherence.getSession();
+
+Publisher<String> publisher = session.createPublisher("test-topic");
+----
+The code snippet above creates an anonymous `Publisher` that publishes to `String` messages to the topic names `test-topic`.
+
+Alternatively, a `Publisher` can be obtained directly from a `NamedTopic` instance.
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Publisher;
+
+Session            session  = Coherence.getSession();
+NamedTopic<String> topic    = session.getTopic("test-topic");
+
+Publisher<String>  publisher = topic.createPublisher("test-topic");
+----
+
+Both the `Session.createPublisher()` and `NamedTopic.createPublisher()` methods also take a var-args array of `Publisher.Option` instances to further configure the behaviour of the publisher.Some of these options are described below.
+
+[#_closing_a_publisher]
+=== Closing a Publisher
+
+Publishers should ideally be closed when application code finishes with them so that any resources associated with them are also closed and cleaned up.
+
+Pubishers have a `close()` method, and are in fact auto-closable, so can be used in a try with resources block.For example:
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Publisher;
+
+Session session = Coherence.getSession();
+
+try (Publisher<String> publisher = session.createPublisher("test-topic"))
+    {
+    // ... publish messages ...
+    }
+----
+
+In the above example, the publisher is used to publish messages inside the try/catch block.Once the try/catch block exits, the publisher is closed.
+
+When a publisher is closed, it can no longer be used.Calls to publish methods after closing will throw an `IllegalStateException`.
+
+
+[#_configure_ordering_guarantees]
+=== Configure Ordering Guarantees
+
+In a lot of use cases it is important that messages are processed by subscribers in a guaranteed order.The publisher can be configured when it is created to use different ordering guarantees by using the `Publisher.OrderBy` option.
+
+The OrderBy options controls which channel (or channels) in a topic a publisher publishes messages to.Subscribers receive messages from a specific channel in the order that they were published.
+
+[#_orderby_thread]
+==== OrderBy Thread
+
+The default behaviour in Coherence Topics is that messages published by a publisher on a specific JVM thread are received in order they were published.Messages published on different threads, or by different publishers could be received interleaved with each other but always in order from the viewpoint of the publishing thread.
+
+The `OrderBy.thread()` option can be specified explicitly as shown below:
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Publisher.OrderBy;
+
+Session session = Coherence.getSession();
+
+Publisher<String> publisher = session.createPublisher("test-topic", OrderBy.thread());
+----
+
+[#_orderby_value]
+==== OrderBy Value
+
+It is possible to publish messages to a channel based on a function that derives a channel from the value being published.This is achieved using the `OrderBy.value(ToIntFunction<? super V> orderIdFunction)` option, where the `orderIdFunction` is a `java.util.function.ToIntFunction` that takes the value being published and returns an `int`.The publisher channel the value is published to will be derived by modding the returned int with the number of channels available for the topic.For example, if there were 17 channels (0 - 16), and the function returned 8, the message would be published to channel 8, if the function returned 19, the message would be published to `19 % 17` - which is 2. If the int returned is negative, a positive channel number is calculated equal to `n % channelCount + channelCount`)
+
+For example, suppose a `Publisher` is publishing `Order` messages, and we only care about ordering by the orders `customerId` (which coincidentally is an `int`).We could do something like this:
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Publisher.OrderBy;
+
+Session session = Coherence.getSession();
+
+OrderBy orderBy = OrderBy.value(order -> order.getCustomerId());
+Publisher<Order> publisher = session.createPublisher("test-topic", orderBy);
+----
+
+[#_orderby_id]
+==== OrderBy Id
+
+Messages can be published to a fixed channel by using the `OrderBy.id(int nOrderId)` option, where the `nOrderId` parameter is used to determine the channel.The exact channel is worked out in the same way that it is for the `OrderBy.value()` option, by modding the `int` value used in the `OrderBy.id()` option with the number of channels.For example, if there were 17 channels, and the option used was `OrderBy.id(8)` then all messages would be published to channel 8, if the `OrderBy.id(19)` was used all messages would go to channel `19 % 17`, which is channel 2.
+
+For example, to publish all messages from a `Publisher` to channel 5:
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Publisher.OrderBy;
+
+Session session = Coherence.getSession();
+
+Publisher<Order> publisher = session.createPublisher("test-topic", OrderBy.is(5));
+----
+
+Using the `OrderBy.id()` option with multiple publishers with the same Id value will cause all those publishers to publish to the same channel.This would mean that message ordering would be global across all of those publishers, with the caveat that there would be more contention with publishers against the tail of the channel.
+
+==== OrderBy None
+
+Finally, using `OrderBy.none()` will guarantee no ordering, each message would be published to a random channel.This would allow the least contention in use cases where the order of message processing by subscribers did not matter.
+
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Publisher.OrderBy;
+
+Session session = Coherence.getSession();
+
+Publisher<Order> publisher = session.createPublisher("test-topic", OrderBy.none());
+----
+
+[#_publish_orderable_messages]
+==== Publish Orderable Messages
+
+It is possible to use the values themselves to determine ordering by making the message value implement the interface `com.tangosol.net.topic.Publisher.Orderable`.This interface has a single `getOrderId()` method that returns an `int` that is used in the same way as other options above to determine the channel to publish to.
+
+Publishing `Orderable` values will override any `OrderBy` option that might have been specified for the publisher.
+
+This is an similar to the `OrderBy.value()` option, but in this case the code that creates the publisher does not need to know how to determine the order, this can be different for each type of message that the publisher publishes.
+
+For example, if there is a `Transaction` class with a `String` customer identifier that should be used to order published `Transactions`, we might implement it like this:
+[source,java]
+.Transaction.java
+----
+public class Transaction
+        implements Publisher.Orderable
+    {
+    private String customerId;
+
+    @Override
+    public int getOrderId()
+        {
+        return Objects.hashCode(customerId);
+        }
+    }
+----
+
+Now we can configure a publisher:
+[source,java]
+----
+import com.tangosol.net.Session;
+import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Publisher.OrderBy;
+
+Session session = Coherence.getSession();
+
+Publisher<Transaction> publisher = session.createPublisher("test-topic");
+----
+
+The publisher above did not specify an `OrderBy` option, so the default or `OrderBy.thread()` will be used, but as the `Transaction` class implements `Publisher.Orderable` then it's `getOrderId` method wil be used to determine message ordering.
+

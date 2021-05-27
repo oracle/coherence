@@ -74,6 +74,14 @@ backend:
               items:
                 - includes:
                     - "docs/core/*.adoc"
+            - title: "Topics (Messaging)"
+              pathprefix: "/topics"
+              glyph:
+                type: "icon"
+                value: "forward_to_inbox"
+              items:
+                - includes:
+                    - "docs/topics/*.adoc"
             - title: "CDI Support"
               pathprefix: "/coherence-cdi-server"
               glyph:
