@@ -2301,7 +2301,7 @@ listLog.add("Received (3): NULL");
         PagedTopic.Dependencies      dependencies = getDependencies(topic);
         NamedTopic.ElementCalculator calculator   = dependencies.getElementCalculator();
         AtomicLong                   cReq         = new AtomicLong();
-        int                          cbValue      = calculator.calculateUnits(ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()));
+        int                          cbValue      = calculator.calculateUnits(ExternalizableHelper.toBinary( "Element-" + 100, topic.getService().getSerializer()));
         long                         nHigh        = (dependencies.getMaxBatchSizeBytes() * 3) / cbValue;
 
         Thread thread = new Thread(() ->
