@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -57,6 +57,7 @@ import static org.junit.Assert.assertThat;
  * @author jk 2015.05.28
  */
 @RunWith(Parameterized.class)
+@SuppressWarnings("unchecked")
 public class NamedTopicTests
         extends AbstractNamedTopicTests
     {
@@ -88,14 +89,14 @@ public class NamedTopicTests
     @Test
     public void shouldDestroy() throws Exception
         {
-        NamedTopic<Object> topic = getSession().getTopic(m_sSerializer + "-topic-foo");
+        NamedTopic<String> topic = getSession().getTopic(m_sSerializer + "-topic-foo");
 
-        Subscriber<Object> foo = topic.createSubscriber(Subscriber.Name.of("foo"));
+        Subscriber<String> foo = topic.createSubscriber(Subscriber.Name.of("foo"));
 
-        topic.createPublisher().send("value-1");
+        topic.createPublisher().publish("value-1");
 
-        CompletableFuture<Subscriber.Element<Object>> future1 = foo.receive();
-        CompletableFuture<Subscriber.Element<Object>> future2 = foo.receive();
+        CompletableFuture<Subscriber.Element<String>> future1 = foo.receive();
+        CompletableFuture<Subscriber.Element<String>> future2 = foo.receive();
 
         Thread.sleep(5000);
 
@@ -103,7 +104,6 @@ public class NamedTopicTests
 
         future1.handle((v, err) ->
             {
-            System.err.println("**** (1) value is " + v);
             if (err != null)
                 {
                 err.printStackTrace();
@@ -114,7 +114,6 @@ public class NamedTopicTests
 
         future2.handle((v, err) ->
             {
-            System.err.println("**** (2) value is " + v);
             if (err != null)
                 {
                 err.printStackTrace();
@@ -123,8 +122,7 @@ public class NamedTopicTests
             return null;
             });
 
-        System.err.println("***** sleeping...");
-        Thread.sleep(60000);
+       // Thread.sleep(60000);
         }
 
 
@@ -138,7 +136,7 @@ public class NamedTopicTests
 
         for (int i=0; i<1000; i++)
             {
-            publisher.send("Element-" + i);
+            publisher.publish("Element-" + i);
             }
 
         bounceProxy();

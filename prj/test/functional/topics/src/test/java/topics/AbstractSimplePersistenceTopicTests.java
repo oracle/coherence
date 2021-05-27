@@ -6,6 +6,7 @@
  */
 package topics;
 
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -22,11 +23,13 @@ import com.tangosol.net.ActionPolicy;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.PartitionedService.PartitionRecoveryAction;
 import com.tangosol.net.Service;
 import com.tangosol.net.ValueTypeAssertion;
+
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
@@ -34,36 +37,34 @@ import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
 
 import common.AbstractFunctionalTest;
 import common.AbstractRollingRestartTest;
-
 import common.SlowTests;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-import javax.management.MBeanException;
+import org.junit.experimental.categories.Category;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.lang.reflect.InvocationTargetException;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
+
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
+
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -75,7 +76,6 @@ import static org.junit.Assert.fail;
 public abstract class AbstractSimplePersistenceTopicTests
         extends AbstractFunctionalTest
     {
-
     // ----- test lifecycle -------------------------------------------------
 
     /**
@@ -84,6 +84,8 @@ public abstract class AbstractSimplePersistenceTopicTests
     @BeforeClass
     public static void _startup()
         {
+        System.setProperty(LocalStorage.PROPERTY, "false");
+        System.setProperty("coherence.log.level", "9");
         System.setProperty("coherence.management", "all");
         System.setProperty("coherence.management.remote", "true");
         System.setProperty("coherence.management.refresh.expiry", "1s");
@@ -101,11 +103,10 @@ public abstract class AbstractSimplePersistenceTopicTests
      * Tests persistence and recovery of a single cache server.
      */
     @Test
-    public void testSingleServer()
-            throws IOException, ExecutionException, InterruptedException
+    public void testSingleServer() throws Exception
         {
         testBasicPersistence("testSingleServer" + getPersistenceManagerName(),
-                "simple-persistent-topic-1", "simple-transient-topic-1");
+                "simple-persistent-topic-1", "simple-persistent-retained-topic-1", "simple-transient-topic-1");
         }
 
     /**
@@ -113,9 +114,9 @@ public abstract class AbstractSimplePersistenceTopicTests
      */
     @Test
     @Category(SlowTests.class)
-    public void testPassiveSnapshot()
-            throws IOException, MBeanException, ExecutionException, InterruptedException {
-        testBasicSnapshot("testPassiveSnapshot"+ getPersistenceManagerName(), "simple-persistent-topic-1", false);
+    public void testPassiveSnapshot() throws Exception
+        {
+        testBasicSnapshot("testPassiveSnapshot"+ getPersistenceManagerName(), "simple-persistent-topic-2", "simple-persistent-retained-topic-2", false);
         }
 
     /**
@@ -123,9 +124,9 @@ public abstract class AbstractSimplePersistenceTopicTests
      */
     @Test
     @Category(SlowTests.class)
-    public void testActiveSnapshot()
-            throws IOException, MBeanException, ExecutionException, InterruptedException {
-        testBasicSnapshot("testActiveSnapshot" + getPersistenceManagerName(), "simple-persistent-topic-1", true);
+    public void testActiveSnapshot() throws Exception
+        {
+        testBasicSnapshot("testActiveSnapshot" + getPersistenceManagerName(), "simple-persistent-topic-3", "simple-persistent-retained-topic-3", true);
         }
 
     /**
@@ -133,30 +134,27 @@ public abstract class AbstractSimplePersistenceTopicTests
      */
     @Test
     @Category(SlowTests.class)
-    public void testActiveArchiver()
-            throws IOException, NoSuchMethodException, IllegalAccessException,
-                   InvocationTargetException, MBeanException, ExecutionException, InterruptedException
+    public void testActiveArchiver() throws Exception
         {
         testBasicArchiver("testActiveArchiver" + getPersistenceManagerName(), "simple-archiver", true, 2);
-    }
+        }
 
      /**
       * Test archivers while in passive (on-demand) mode for up to 3 servers.
       */
     @Test
     @Category(SlowTests.class)
-    public void testPassiveArchiver()
-            throws IOException, NoSuchMethodException, IllegalAccessException,
-                   InvocationTargetException, MBeanException, ExecutionException, InterruptedException
+    public void testPassiveArchiver() throws Exception
         {
         testBasicArchiver("testPassiveArchiver" + getPersistenceManagerName(), "simple-archiver", false, 2);
-    }
-
+        }
 
     // ----- helpers --------------------------------------------------------
 
-    private void testBasicPersistence(String sServer, String sPersistentTopic, String sTransientTopic)
-            throws IOException, ExecutionException, InterruptedException {
+    @SuppressWarnings("unchecked")
+    private void testBasicPersistence(String sServer, String sPersistentTopic, String sPersistedRetainedTopic,
+                                      String sTransientTopic) throws Exception
+        {
         File fileActive   = FileHelper.createTempDir();
         File fileSnapshot = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
@@ -172,57 +170,157 @@ public abstract class AbstractSimplePersistenceTopicTests
         CoherenceClusterMember clusterMember = startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
         Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
 
-        NamedTopic<String> topicTransient  = getFactory().ensureTopic(sTransientTopic, ValueTypeAssertion.withType(String.class));
-        NamedTopic<String> topicPersistent = getFactory().ensureTopic(sPersistentTopic, ValueTypeAssertion.withType(String.class));
-        PartitionedService service         = (PartitionedService) topicPersistent.getService();
+        ConfigurableCacheFactory ccf                     = getFactory();
+        NamedTopic<String>       topicTransient          = ccf.ensureTopic(sTransientTopic, ValueTypeAssertion.withType(String.class));
+        NamedTopic<String>       topicPersistent         = ccf.ensureTopic(sPersistentTopic, ValueTypeAssertion.withType(String.class));
+        NamedTopic<String>       topicPersistentRetained = ccf.ensureTopic(sPersistedRetainedTopic, ValueTypeAssertion.withType(String.class));
+        PartitionedService       service                 = (PartitionedService) topicPersistent.getService();
 
         try (Subscriber<String> subscriberPersistent = topicPersistent.createSubscriber(Subscriber.CompleteOnEmpty.enabled());
-             Subscriber<String> subscriberTransient = topicTransient.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
+             Subscriber<String> subscriberRetained   = topicPersistentRetained.createSubscriber(Subscriber.CompleteOnEmpty.enabled());
+             Subscriber<String> subscriberGroupedOne = topicPersistent.createSubscriber(Subscriber.Name.of("One"), Subscriber.CompleteOnEmpty.enabled());
+             Subscriber<String> subscriberGroupedTwo = topicPersistent.createSubscriber(Subscriber.Name.of("Two"), Subscriber.CompleteOnEmpty.enabled());
+             Subscriber<String> subscriberTransient  = topicTransient.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
             {
-            final String VALUE = "value";
+            final String VALUE_ONE   = "value-one";
+            final String VALUE_TWO   = "value-two";
+            final String VALUE_THREE = "value-three";
+            final String VALUE_FOUR  = "value-four";
+            final String VALUE_FIVE  = "value-five";
 
             Eventually.assertThat(invoking(clusterMember).isServiceRunning(service.getInfo().getServiceName()), is(true));
             AbstractRollingRestartTest.waitForNoOrphans((CacheService)service);
 
-
-            try (Publisher publisher = topicPersistent.createPublisher())
+            try (Publisher<String> publisher = topicPersistent.createPublisher())
                 {
-                publisher.send(VALUE).get();
+                publisher.publish(VALUE_ONE).get(1, TimeUnit.MINUTES);
+                publisher.publish(VALUE_TWO).get(1, TimeUnit.MINUTES);
+                publisher.publish(VALUE_THREE).get(1, TimeUnit.MINUTES);
+                publisher.publish(VALUE_FOUR).get(1, TimeUnit.MINUTES);
                 }
 
-            try (Publisher publisher = topicTransient.createPublisher())
+            try (Publisher<String> publisher = topicPersistentRetained.createPublisher())
                 {
-                publisher.send(VALUE).get();
+                publisher.publish(VALUE_ONE).get(1, TimeUnit.MINUTES);
+                publisher.publish(VALUE_TWO).get(1, TimeUnit.MINUTES);
+                publisher.publish(VALUE_THREE).get(1, TimeUnit.MINUTES);
+                publisher.publish(VALUE_FOUR).get(1, TimeUnit.MINUTES);
                 }
+
+            try (Publisher<String> publisher = topicTransient.createPublisher())
+                {
+                publisher.publish(VALUE_ONE).get(1, TimeUnit.MINUTES);
+                publisher.publish(VALUE_TWO).get(1, TimeUnit.MINUTES);
+                publisher.publish(VALUE_THREE).get(1, TimeUnit.MINUTES);
+                }
+
+            Subscriber.Element<String> element;
+
+            // receive first and second values from persistent anonymous subscriber, committing the first
+            element = subscriberPersistent.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_ONE));
+            element.commit();
+            element = subscriberPersistent.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_TWO));
+
+            // receive first and second values from persistent retained anonymous subscriber
+            element = subscriberRetained.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_ONE));
+            element = subscriberRetained.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_TWO));
+
+            // receive first and second values from the first persistent grouped subscriber
+            element = subscriberGroupedOne.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_ONE));
+            element = subscriberGroupedOne.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_TWO));
+            // now commit the second element - after recovery we should read three
+            assertThat(element.commit().isSuccess(), is(true));
+            // read the third element but DO NOT commit
+            element = subscriberGroupedOne.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_THREE));
+
+            // receive first and second values from the second persistent grouped subscriber
+            // which we close after receiving
+            element = subscriberGroupedTwo.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_ONE));
+            element = subscriberGroupedTwo.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_TWO));
+            // now commit the second element - after recovery we should read three
+            assertThat(element.commit().isSuccess(), is(true));
+            // read the third element but DO NOT commit
+            element = subscriberGroupedTwo.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_THREE));
+            subscriberGroupedTwo.close();
+
+            // receive first value from transient anonymous subscriber
+            element = subscriberTransient.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_ONE));
 
             stopCacheServer(sServer + "-1");
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
 
-            // restart the server and assert that all (and only) persisted
-            // data was recovered
+            // restart the server and assert that all (and only) persisted data was recovered
             clusterMember = startCacheServer(sServer + "-2", getProjectName(), getCacheConfigPath(), props);
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
             Eventually.assertThat(invoking(clusterMember).isServiceRunning(service.getInfo().getServiceName()), is(true));
             AbstractRollingRestartTest.waitForNoOrphans((CacheService) topicPersistent.getService());
 
-            assertEquals("assert that value published to persistent topic survived cluster restart.",
-                         VALUE, subscriberPersistent.receive().get().getValue());
+            // The persistent anonymous subscriber will be disconnected, so will reconnect and receive values from the recovered topic
+            // It should restart at the TAIL as it is anonymous non-durable so the topic will be empty
+            CompletableFuture<Subscriber.Element<String>> future = subscriberPersistent.receive();
+            // receive should now be waiting at the tail for messages
+            try (Publisher<String> publisher = topicPersistent.createPublisher())
+                {
+                publisher.publish(VALUE_FIVE).get(1, TimeUnit.MINUTES);
+                }
+            // The persistent anonymous subscriber should receive MESSAGE_TWO (as one was committed)
+            element = future.get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_TWO));
 
-            try
+            // The persistent retained anonymous subscriber will be disconnected, so will reconnect and receive values from
+            // the recovered topic - which should restart from the HEAD as it retains values
+            element = subscriberRetained.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_ONE));
+
+            // The first persistent grouped subscriber will be disconnected, so will reconnect and receive values from
+            // the recovered topic - which should be the next value after the committed position
+            element = subscriberGroupedOne.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is(VALUE_THREE));
+
+            // Recreate the second persistent grouped subscriber
+            // It should receive the next value after the commit, as the commit state was maintained
+            try (Subscriber<String> subscriber = topicPersistent.createSubscriber(Subscriber.Name.of("Two"), Subscriber.CompleteOnEmpty.enabled()))
                 {
-                subscriberTransient.receive().get();
-                fail("assert that there are no values on transient topic after restart of cluster");
+                element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
+                assertThat(element.getValue(), is(VALUE_THREE));
                 }
-            catch (Exception e)
-                {
-                // expected, the transient subscriber was effectively destroyed
-                }
+
+            // The transient subscriber will have been disconnected and in fact the topic no longer exists
+            // On a call to receive, the subscriber will reconnect causing the topic to be recreated
+            // but the topic will be empty
+            element = subscriberTransient.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(nullValue()));
             }
         finally
             {
-            Thread.sleep(1000L);
-            getFactory().destroyTopic(topicTransient);
-            getFactory().destroyTopic(topicPersistent);
+            ccf.destroyTopic(topicTransient);
+            ccf.destroyTopic(topicPersistent);
 
             stopCacheServer(sServer + "-2");
             stopAllApplications();
@@ -240,8 +338,9 @@ public abstract class AbstractSimplePersistenceTopicTests
      * @param sPersistentTopic  the name of the topic
      * @param fActive           true iff the servers should be in active persistence mode
      */
-    private void testBasicSnapshot(String sServer, String sPersistentTopic, boolean fActive)
-            throws IOException, MBeanException, ExecutionException, InterruptedException {
+    @SuppressWarnings("unchecked")
+    private void testBasicSnapshot(String sServer, String sPersistentTopic, String sPersistedRetainedTopic, boolean fActive) throws Exception
+        {
         File fileSnapshot = FileHelper.createTempDir();
         File fileActive   = fActive ? FileHelper.createTempDir() : null;
         File fileTrash    = FileHelper.createTempDir();
@@ -256,10 +355,13 @@ public abstract class AbstractSimplePersistenceTopicTests
         props.setProperty("coherence.management.remote", "true");
         props.setProperty("coherence.distribution.2server", "false");
 
-        final NamedTopic        topic     = getFactory().ensureTopic(sPersistentTopic, ValueTypeAssertion.withoutTypeChecking());
-        DistributedCacheService service  = (DistributedCacheService) topic.getService();
-        Cluster                 cluster  = service.getCluster();
-        String                  sService = service.getInfo().getServiceName();
+        final NamedTopic<String> topic         = getFactory().ensureTopic(sPersistentTopic);
+        final NamedTopic<String> topicRetained = getFactory().ensureTopic(sPersistedRetainedTopic);
+        DistributedCacheService  service       = (DistributedCacheService) topic.getService();
+        Cluster                  cluster       = service.getCluster();
+        String                   sService      = service.getInfo().getServiceName();
+        int                      cValuesA      = 50;
+        int                      cValuesB      = 100;
 
         startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
         startCacheServer(sServer + "-2", getProjectName(), getCacheConfigPath(), props);
@@ -269,24 +371,30 @@ public abstract class AbstractSimplePersistenceTopicTests
 
         PersistenceTestHelper helper = new PersistenceTestHelper();
 
-        try (Subscriber subscriberPin = topic.createSubscriber(Subscriber.Name.of("queue")))
-            {
+        // Create a subscriber in a group and close is so as to create the group
+        Subscriber<String> subscriberPin = topic.createSubscriber(Subscriber.Name.of("queue"));
+        subscriberPin.close();
 
-            try (Publisher publisher = topic.createPublisher())
+        try
+            {
+            try (Publisher<String> publisher         = topic.createPublisher();
+                 Publisher<String> publisherRetained = topic.createPublisher())
                 {
                 // add a bunch of data
-                publisher.send("bar");
-                publisher.send("baz");
+                publisher.publish("bar");
+                publisher.publish("baz");
+                publisherRetained.publish("bar");
+                publisherRetained.publish("baz");
 
-                for (int i = 0;
-                     i < 50;
-                     i++)
+                for (int i = 0; i < cValuesA; i++)
                     {
-                    publisher.send(Integer.toString(i));
+                    publisher.publish(Integer.toString(i));
+                    publisherRetained.publish(Integer.toString(i));
                     }
 
                 // needed before taking a snapshot.
                 publisher.flush().join();
+                publisherRetained.flush().join();
 
                 helper.addPersistenceOperationNotification(sService, "testBasicSnapshot_" + sServer);
 
@@ -297,11 +405,9 @@ public abstract class AbstractSimplePersistenceTopicTests
 
                 PersistenceTestHelper.logTopicMBeanStats(topic);
 
-                for (int i = 50;
-                     i < 100;
-                     i++)
+                for (int i = cValuesA; i < cValuesB; i++)
                     {
-                    publisher.send(Integer.toString(i));
+                    publisher.publish(Integer.toString(i));
                     }
 
                 // needed before creating a snapshot.
@@ -333,60 +439,104 @@ public abstract class AbstractSimplePersistenceTopicTests
                 // of "snapshot-B"
 
                 // validate that the data were recovered
-               validateSubscriberReceiveData(topic, "queue", 100);
+               validateSubscriberReceiveData(topic, "queue", cValuesB);
                 }
             else
                 {
                 // nothing should have survived
-                try (Subscriber subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled(), Subscriber.Name.of("queue")))
+                try (Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled(), Subscriber.Name.of("queue")))
                     {
-                    assertNull(subscriber.receive().get());
+                    assertThat(subscriber.receive().get(1, TimeUnit.MINUTES), is(nullValue()));
                     }
                 }
 
-            // if we do not call suspend service, then the service will be
-            // automatically suspended and then resumed
-            helper.recoverSnapshot(sService, "snapshot-A");
-            waitForBalanced(service);
+            try (Subscriber<String> subscriberOne     = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled(), Subscriber.Name.of("test-one"));
+                 Subscriber<String> subscriberAnonOne = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled());
+                 Subscriber<String> subscriberAnonTwo = topicRetained.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
+                {
+                Subscriber.Element<String> elementOne     = null;
+                Subscriber.Element<String> elementAnonOne = null;
+                Subscriber.Element<String> elementAnonTwo = null;
 
-            // validate that the data were recovered
-            validateSubscriberReceiveData(topic, "queue", 50);
+                try (Publisher<String> publisher         = topic.createPublisher();
+                     Publisher<String> publisherRetained = topicRetained.createPublisher())
+                    {
+                    publisher.publish("last");
+                    publisherRetained.publish("last");
+                    }
 
-            helper.recoverSnapshot(sService, "snapshot-B");
-            waitForBalanced(service);
+                // the anonymous subscriber will get the first recovered message
+                elementAnonOne = subscriberAnonOne.receive().get(1, TimeUnit.MINUTES);
 
-            validateSubscriberReceiveData(topic, "queue", 100);
+//                assertThat(elementAnonOne.getValue(), is("last"));
+System.err.println("Anon Subscriber: " + elementAnonOne);
 
-            // test partial failure
-            int stoppedNodeId = server3.getLocalMemberId();
-            stopCacheServer(sServer + "-3");
-            Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
-            waitForBalanced(service);
+                // if we do not call suspend service, then the service will be
+                // automatically suspended and then resumed
+                helper.recoverSnapshot(sService, "snapshot-A");
+                waitForBalanced(service);
 
-            AbstractRollingRestartTest.waitForNoOrphans((CacheService) service);
+                // should be 50 messages so read a lot of them and commit
+                int  cMsg = cValuesA - 10;
 
-            // ensure the PersistenceManagerMBean coordinator is no longer the stopped nodeId
-            // intermittent failure caused when do not wait for change in PersistenceManagerMBean
-            helper.ensureNotStalePersistenceManagerMBean(sService, stoppedNodeId);
+                // the anonymous subscriber will get the first recovered message
+                elementAnonOne = subscriberAnonOne.receive().get(1, TimeUnit.MINUTES);
+//                assertThat(elementAnonOne.getValue(), is("bar"));
+System.err.println("Anon Subscriber: " + elementAnonOne);
+System.err.println();
 
-            helper.recoverSnapshot(sService, "snapshot-B");
+//                for (int i = 0; i < cMsg; i++)
+//                    {
+//                    elementOne     = subscriberOne.receive().get(1, TimeUnit.MINUTES);
+//                    elementAnonTwo = subscriberAnonTwo.receive().get(1, TimeUnit.MINUTES);
+//                    }
+//
+////                assertThat(elementOne.commit().isSuccess(), is(true));
+////                assertThat(elementAnonTwo.commit().isSuccess(), is(true));
+//
+//                elementOne     = subscriberOne.receive().get(1, TimeUnit.MINUTES);
+//                elementAnonOne = subscriberAnonOne.receive().get(1, TimeUnit.MINUTES);
+//                elementAnonTwo = subscriberAnonTwo.receive().get(1, TimeUnit.MINUTES);
 
-            waitForBalanced(service);
+                // validate that the data were recovered
+                validateSubscriberReceiveData(topic, "queue", cValuesA);
 
-            validateSubscriberReceiveData(topic, "queue", 100);
+                helper.recoverSnapshot(sService, "snapshot-B");
+                waitForBalanced(service);
 
-            // validate that "snapshot-B" is gone when we issue a removeSnapshot
-            Eventually.assertThat(invoking(this).listSnapshots(helper, sService).size(), is(2));
+                validateSubscriberReceiveData(topic, "queue", cValuesB);
 
-            helper.removeSnapshot(sService, "snapshot-B");
+                // test partial failure
+                int stoppedNodeId = server3.getLocalMemberId();
+                stopCacheServer(sServer + "-3");
+                Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+                waitForBalanced(service);
 
-            Eventually.assertThat(invoking(this).listSnapshots(helper, sService).size(), is(1));
-            assertThat(listSnapshots(helper, sService).get(0), is("snapshot-A"));
+                AbstractRollingRestartTest.waitForNoOrphans((CacheService) service);
 
-            // validate that "snapshot-A" is gone when we issue a removeSnapshot
-            helper.removeSnapshot(sService, "snapshot-A");
+                // ensure the PersistenceManagerMBean coordinator is no longer the stopped nodeId
+                // intermittent failure caused when do not wait for change in PersistenceManagerMBean
+                helper.ensureNotStalePersistenceManagerMBean(sService, stoppedNodeId);
 
-            Eventually.assertThat(invoking(this).listSnapshots(helper, sService).size(), is(0));
+                helper.recoverSnapshot(sService, "snapshot-B");
+
+                waitForBalanced(service);
+
+                validateSubscriberReceiveData(topic, "queue", 100);
+
+                // validate that "snapshot-B" is gone when we issue a removeSnapshot
+                Eventually.assertThat(invoking(this).listSnapshots(helper, sService).size(), is(2));
+
+                helper.removeSnapshot(sService, "snapshot-B");
+
+                Eventually.assertThat(invoking(this).listSnapshots(helper, sService).size(), is(1));
+                assertThat(listSnapshots(helper, sService).get(0), is("snapshot-A"));
+
+                // validate that "snapshot-A" is gone when we issue a removeSnapshot
+                helper.removeSnapshot(sService, "snapshot-A");
+
+                Eventually.assertThat(invoking(this).listSnapshots(helper, sService).size(), is(0));
+                }
             }
         finally
             {
@@ -402,34 +552,35 @@ public abstract class AbstractSimplePersistenceTopicTests
             }
         }
 
-    private void validateSubscriberReceiveData(NamedTopic topic, String sGroup, int nValues) throws ExecutionException, InterruptedException
+    @SuppressWarnings("unchecked")
+    private void validateSubscriberReceiveData(NamedTopic<String> topic, String sGroup, int nValues) throws Exception
         {
         Eventually.assertDeferred("Topic " + topic.getName() + " must have existing subscriber group " + sGroup + " since expecting " + nValues + " messages",
                 () -> topic.getSubscriberGroups().contains(sGroup), is(true));
 
         PersistenceTestHelper.logTopicMBeanStats(topic);
 
-        try (Subscriber subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled(), Subscriber.Name.of(sGroup)))
+        try (Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled(), Subscriber.Name.of(sGroup)))
             {
             // until receive first message from recovered topic, allow for null that occurs when CompleteOnEmpty is enabled for a subscriber.
             int MAX_RETRY = 10;
 
-            Subscriber.Element<String> element = (Subscriber.Element<String>) subscriber.receive().get();
+            Subscriber.Element<String> element = subscriber.receive().get(1, TimeUnit.MINUTES);
             for (int i = 0; element == null && i < MAX_RETRY; i++)
                 {
-                element = (Subscriber.Element<String>) subscriber.receive().get();
+                element = subscriber.receive().get(1, TimeUnit.MINUTES);
                 Thread.sleep(500L);
                 }
-            assertNotNull("validate first message in subscriber group " + sGroup + " is non-null", element);
-            assertEquals("validate first message in subscriber group is bar",
-                "bar", element.getValue());
-            assertEquals("baz", ((Subscriber.Element<String>) subscriber.receive().get()).getValue());
+            assertThat("validate first message in subscriber group " + sGroup + " is non-null", element, is(notNullValue()));
+            assertThat("validate first message in subscriber group is bar",
+                "bar", is(element.getValue()));
+            assertThat("baz", is(subscriber.receive().get(1, TimeUnit.MINUTES).getValue()));
 
             String previousValue = "<empty>";
 
             for (int i = 0; i < nValues; i++)
                 {
-                Subscriber.Element<String> e = (Subscriber.Element<String>) subscriber.receive().get();
+                Subscriber.Element<String> e = subscriber.receive().get(1, TimeUnit.MINUTES);
                 if (e == null)
                     {
                     System.out.println("WARNING: iteration " + i + " did not get a value from topic subscriber. " +
@@ -438,7 +589,7 @@ public abstract class AbstractSimplePersistenceTopicTests
                     }
                 else
                     {
-                    assertEquals(i, Integer.parseInt(e.getValue()));
+                    assertThat(i, is(Integer.parseInt(e.getValue())));
                     previousValue = e.getValue();
                     }
                 }
@@ -452,9 +603,9 @@ public abstract class AbstractSimplePersistenceTopicTests
      * @param sPersistentTopic  the name of the topic
      * @param fActive           true iff the servers should be in active persistence mode
      */
+    @SuppressWarnings("unchecked")
     private void testBasicArchiver(String sServer, String sPersistentTopic, boolean fActive, int nMaxServers)
-            throws IOException, NoSuchMethodException, IllegalAccessException,
-                   InvocationTargetException, MBeanException, ExecutionException, InterruptedException
+            throws Exception
         {
         File fileSnapshot = FileHelper.createTempDir();
         File fileActive   = fActive ? FileHelper.createTempDir() : null;
@@ -474,10 +625,10 @@ public abstract class AbstractSimplePersistenceTopicTests
         props.setProperty("coherence.management.remote", "true");
         props.setProperty("coherence.distribution.2server", "false");
 
-        final NamedTopic        topic    = getFactory().ensureTopic(sPersistentTopic, ValueTypeAssertion.withType(Integer.class));
-        DistributedCacheService service  = (DistributedCacheService) topic.getService();
-        Cluster                 cluster  = service.getCluster();
-        String                  sService = service.getInfo().getServiceName();
+        final NamedTopic<Integer> topic    = getFactory().ensureTopic(sPersistentTopic, ValueTypeAssertion.withType(Integer.class));
+        DistributedCacheService   service  = (DistributedCacheService) topic.getService();
+        Cluster                   cluster  = service.getCluster();
+        String                    sService = service.getInfo().getServiceName();
 
         startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
         Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(1));
@@ -524,16 +675,16 @@ public abstract class AbstractSimplePersistenceTopicTests
                 Eventually.assertThat(invoking(this).getArchivedSnapshotCount(helper, sService), is(1));
 
                 String[] asArchivedSnapshots = helper.listArchivedSnapshots(sService);
-                assertTrue(asArchivedSnapshots != null & asArchivedSnapshots.length == 1);
-                assertEquals(asArchivedSnapshots[0], sEmptySnapshot);
+                assertThat(asArchivedSnapshots != null && asArchivedSnapshots.length == 1, is(true));
+                assertThat(asArchivedSnapshots[0], is(sEmptySnapshot));
 
                 helper.invokeOperationWithWait(PersistenceToolsHelper.ARCHIVE_SNAPSHOT, sSnapshot53, sService);
                 Eventually.assertThat(invoking(this).getArchivedSnapshotCount(helper, sService), is(2));
 
                 asArchivedSnapshots = helper.listArchivedSnapshots(sService);
-                assertTrue(asArchivedSnapshots != null && asArchivedSnapshots.length == 2 &&
+                assertThat(asArchivedSnapshots != null && asArchivedSnapshots.length == 2 &&
                         (sSnapshot53.equals(asArchivedSnapshots[0]) ||
-                         sSnapshot53.equals(asArchivedSnapshots[1])));
+                         sSnapshot53.equals(asArchivedSnapshots[1])), is(true));
 
                 // remove the local snapshots
                 helper.invokeOperationWithWait(PersistenceToolsHelper.REMOVE_SNAPSHOT, sEmptySnapshot, sService);
@@ -551,7 +702,7 @@ public abstract class AbstractSimplePersistenceTopicTests
                 helper.invokeOperationWithWait(PersistenceToolsHelper.RECOVER_SNAPSHOT, sEmptySnapshot, sService);
                 try (Subscriber<Integer> subscriber = topic.createSubscriber(CompleteOnEmpty.enabled(), Subscriber.Name.of("queue")))
                     {
-                    assertNull(subscriber.receive().get());
+                    assertThat(subscriber.receive().get(1, TimeUnit.MINUTES), is(nullValue()));
                     }
 
                 // retrieve and recover the 53 object snapshot

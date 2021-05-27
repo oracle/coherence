@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,9 +7,6 @@
 package com.tangosol.internal.net.topic.impl.paged;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-
-import com.tangosol.io.Serializer;
-import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
@@ -24,23 +21,22 @@ import com.tangosol.util.SimpleResourceRegistry;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author jk 2015.06.23
  */
+@SuppressWarnings("rawtypes")
 public class PagedTopicTest
     {
     @Test
     public void shouldEnsurePartitionedQueue()
-            throws Exception
         {
         BinaryEntry              entry         = mock(BinaryEntry.class);
         BackingMapContext        ctxBackingMap = mock(BackingMapContext.class);
@@ -60,7 +56,6 @@ public class PagedTopicTest
 
     @Test
     public void shouldGetKeyToInternalConverter()
-            throws Exception
         {
         BackingMapManagerContext ctxManager = mock(BackingMapManagerContext.class);
         Converter                converter  = mock(Converter.class);
@@ -74,7 +69,6 @@ public class PagedTopicTest
 
     @Test
     public void shouldGetBackingMapContext()
-            throws Exception
         {
         BackingMapManagerContext ctxManager    = mock(BackingMapManagerContext.class);
         BackingMapContext        ctxBackingMap = mock(BackingMapContext.class);
@@ -90,7 +84,6 @@ public class PagedTopicTest
 
     @Test
     public void shouldGetBackingMapEntry()
-            throws Exception
         {
         BackingMapManagerContext ctxManager    = mock(BackingMapManagerContext.class);
         BackingMapContext        ctxBackingMap = mock(BackingMapContext.class);
@@ -109,21 +102,20 @@ public class PagedTopicTest
 
     @Test
     public void shouldGetQueueConfiguration()
-            throws Exception
         {
         BackingMapManagerContext ctxManager    = mock(BackingMapManagerContext.class);
         CacheService             cacheService  = mock(CacheService.class);
         ResourceRegistry         registry      = new SimpleResourceRegistry();
-        Configuration configuration = new Configuration();
+        PagedTopic.Dependencies  configuration = new Configuration();
 
         when(ctxManager.getCacheService()).thenReturn(cacheService);
         when(cacheService.getResourceRegistry()).thenReturn(registry);
 
-        registry.registerResource(Configuration.class, "Foo", configuration);
+        registry.registerResource(PagedTopic.Dependencies.class, "Foo", configuration);
 
         PagedTopicPartition queue = new PagedTopicPartition(ctxManager, "Foo", 0);
 
-        assertThat(queue.getTopicConfiguration(), is(sameInstance(configuration)));
+        assertThat(queue.getDependencies(), is(sameInstance(configuration)));
         }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -131,7 +123,7 @@ public class PagedTopicTest
         {
         CacheService cacheService = mock(CacheService.class);
 
-        PagedTopic topic = new PagedTopic(new PagedTopicCaches("topic", cacheService));
+        PagedTopic<?> topic = new PagedTopic<>(new PagedTopicCaches("topic", cacheService));
         topic.setContextClassLoader(Thread.currentThread().getContextClassLoader());
         }
 
@@ -155,19 +147,17 @@ public class PagedTopicTest
         PagedTopic topic4 = new PagedTopic(null);
         PagedTopic topic5 = new PagedTopic(null);
 
-        assertEquals(topic1, topic1);
-        assertEquals(topic1, topic3);
-        assertEquals(topic1.hashCode(), topic3.hashCode());
-        assertEquals(topic4, topic5);
-        assertEquals(topic4.hashCode(), topic5.hashCode());
+        assertThat(topic1, is(topic1));
+        assertThat(topic1, is(topic3));
+        assertThat(topic1.hashCode(), is(topic3.hashCode()));
+        assertThat(topic4, is(topic5));
+        assertThat(topic4.hashCode(), is(topic5.hashCode()));
 
-        assertNotEquals(topic1, null);
-        assertNotEquals(topic1, topic2);
-        assertNotEquals(topic4, topic1);
-        assertNotEquals(topic1, topic4);
+        assertThat(topic1, is(notNullValue()));
+        assertThat(topic1, is(not(topic2)));
+        assertThat(topic4, is(not(topic1)));
+        assertThat(topic1, is(not(topic4)));
 
-        assertNotNull(topic1.toString());
+        assertThat(topic1.toString(), is(notNullValue()));
         }
-
-    private static final Serializer s_serializer = new ConfigurablePofContext("coherence-pof-config.xml");
     }

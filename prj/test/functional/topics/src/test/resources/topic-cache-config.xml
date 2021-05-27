@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -46,8 +46,8 @@
     </topic-mapping>
 
     <topic-mapping>
-      <topic-name>pof-binary*</topic-name>
-      <scheme-name>pof-binary-calculator-scheme</scheme-name>
+      <topic-name>pof-one-kilobyte*</topic-name>
+      <scheme-name>pof-one-kilobyte-scheme</scheme-name>
       <value-type>java.lang.String</value-type>
     </topic-mapping>
 
@@ -61,6 +61,12 @@
           <param-value>true</param-value>
         </init-param>
       </init-params>
+    </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>pof-fixed*</topic-name>
+      <scheme-name>pof-fixed-scheme</scheme-name>
+      <value-type>java.lang.String</value-type>
     </topic-mapping>
 
     <topic-mapping>
@@ -94,8 +100,8 @@
     </topic-mapping>
 
     <topic-mapping>
-      <topic-name>java-binary*</topic-name>
-      <scheme-name>java-binary-calculator-scheme</scheme-name>
+      <topic-name>java-one-kilobyte*</topic-name>
+      <scheme-name>java-one-kilobyte-scheme</scheme-name>
       <value-type>java.lang.String</value-type>
     </topic-mapping>
 
@@ -109,6 +115,12 @@
           <param-value>true</param-value>
         </init-param>
       </init-params>
+    </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>java-fixed*</topic-name>
+      <scheme-name>java-fixed-scheme</scheme-name>
+      <value-type>java.lang.String</value-type>
     </topic-mapping>
 
     <topic-mapping>
@@ -180,10 +192,18 @@
     </paged-topic-scheme>
 
     <paged-topic-scheme>
-      <scheme-name>pof-binary-calculator-scheme</scheme-name>
+      <scheme-name>pof-one-kilobyte-scheme</scheme-name>
       <scheme-ref>common-pof-topic-scheme</scheme-ref>
       <storage>on-heap</storage>
       <page-size system-property="page.size">1KB</page-size>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>pof-fixed-scheme</scheme-name>
+      <scheme-ref>common-pof-topic-scheme</scheme-ref>
+      <page-size>10</page-size>
+      <retain-consumed>true</retain-consumed>
+      <element-calculator>FIXED</element-calculator>
     </paged-topic-scheme>
 
     <paged-topic-scheme>
@@ -202,14 +222,23 @@
       <service-name>java-topic-service</service-name>
       <serializer>java</serializer>
       <autostart>true</autostart>
-      <page-size system-property="page.size">100B</page-size>
+      <page-size system-property="page.size">{page-size 100B}</page-size>
       <expiry-delay>{expiry-delay 0}</expiry-delay>
       <high-units>{high-units 0B}</high-units>
       <retain-consumed>{retain-values false}</retain-consumed>
+      <element-calculator>{calculator BINARY}</element-calculator>
     </paged-topic-scheme>
 
     <paged-topic-scheme>
-      <scheme-name>java-binary-calculator-scheme</scheme-name>
+      <scheme-name>java-fixed-scheme</scheme-name>
+      <scheme-ref>java-topic-scheme</scheme-ref>
+      <page-size>10</page-size>
+      <retain-consumed>true</retain-consumed>
+      <element-calculator>FIXED</element-calculator>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>java-one-kilobyte-scheme</scheme-name>
       <scheme-ref>java-topic-scheme</scheme-ref>
       <storage>on-heap</storage>
       <page-size system-property="page.size">1KB</page-size>

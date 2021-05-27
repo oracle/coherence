@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -16,7 +16,8 @@ import com.tangosol.util.SparseArray;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author jk 2015.05.18
@@ -25,11 +26,10 @@ public class OfferResultTest
     {
     @Test
     public void shouldSerializeUsingPof()
-            throws Exception
         {
         SparseArray<Throwable> aErrors     = new SparseArray<>();
         ConfigurablePofContext serializer  = new ConfigurablePofContext("coherence-pof-config.xml");
-        OfferProcessor.Result  toSerialize = new OfferProcessor.Result(OfferProcessor.Result.Status.Success, 100, 99, aErrors);
+        OfferProcessor.Result  toSerialize = new OfferProcessor.Result(OfferProcessor.Result.Status.Success, 100, 99, aErrors, 19);
         Binary                 binary      = ExternalizableHelper.toBinary(toSerialize, serializer);
         OfferProcessor.Result  result      = ExternalizableHelper.fromBinary(binary, serializer);
 
@@ -37,6 +37,7 @@ public class OfferResultTest
         assertThat(result.getAcceptedCount(), is(100));
         assertThat(result.getPageCapacity(), is(99));
         assertThat(result.getErrors(), is(aErrors));
+        assertThat(result.getOffset(), is(19));
 
         // validate Evolvable version across pof serialization
         assertThat(result.getDataVersion(), is(toSerialize.getImplVersion()));
@@ -44,7 +45,6 @@ public class OfferResultTest
 
     @Test
     public void shouldSerializeUsingPofWithErrors()
-            throws Exception
         {
         SparseArray<Throwable> aErrors = new SparseArray<>();
         RuntimeException       error   = new RuntimeException("No!");
@@ -52,9 +52,9 @@ public class OfferResultTest
         aErrors.set(19L, error);
 
         ConfigurablePofContext serializer    = new ConfigurablePofContext("coherence-pof-config.xml");
-        OfferProcessor.Result toSerialize   = new OfferProcessor.Result(OfferProcessor.Result.Status.Success, 100, 99, aErrors);
+        OfferProcessor.Result toSerialize    = new OfferProcessor.Result(OfferProcessor.Result.Status.Success, 100, 99, aErrors, 19);
         Binary                 binary        = ExternalizableHelper.toBinary(toSerialize, serializer);
-        OfferProcessor.Result result        = ExternalizableHelper.fromBinary(binary, serializer);
+        OfferProcessor.Result result         = ExternalizableHelper.fromBinary(binary, serializer);
         LongArray<Throwable>   aResultErrors = result.getErrors();
         Throwable              throwable     = aResultErrors.get(19L);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -74,8 +74,9 @@ public class OfferProcessor
      * @param supplier         the {@link Function} to use to provide a
      *                         {@link PagedTopicPartition} instance
      */
-    protected OfferProcessor( List<Binary> listElements, int nNotifyPostFull, boolean fSealPage,
-            Function<BinaryEntry, PagedTopicPartition> supplier)
+    @SuppressWarnings("rawtypes")
+    protected OfferProcessor(List<Binary> listElements, int nNotifyPostFull, boolean fSealPage,
+                             Function<BinaryEntry, PagedTopicPartition> supplier)
         {
         super(supplier);
 
@@ -199,10 +200,11 @@ public class OfferProcessor
          * @param status     the status of the offer invocation
          * @param cAccepted  the number of elements successfully offered.
          * @param cbFree     the pages remaining capacity
+         * @param nOffset    the offset of the first accepted element
          */
-        public Result(Status status, int cAccepted, int cbFree)
+        public Result(Status status, int cAccepted, int cbFree, int nOffset)
             {
-            this(status, cAccepted, cbFree, null);
+            this(status, cAccepted, cbFree, null, nOffset);
             }
 
         /**
@@ -210,14 +212,17 @@ public class OfferProcessor
          *
          * @param status     the status of the offer invocation
          * @param cAccepted  the number of elements successfully offered.
-         * @param cbFree  the pages remaining capacity
+         * @param cbFree     the pages remaining capacity
+         * @param aErrors    any errors that occurred adding elements
+         * @param nOffset    the offset of the first accepted element
          */
-        public Result(Status status, int cAccepted, int cbFree, LongArray<Throwable> aErrors)
+        public Result(Status status, int cAccepted, int cbFree, LongArray<Throwable> aErrors, int nOffset)
             {
             m_status     = status;
             m_cAccepted  = cAccepted;
             m_cbPageFree = cbFree;
             m_aErrors    = aErrors;
+            m_nOffset    = nOffset;
             }
 
         // ----- QueueOfferResult methods -----------------------------------
@@ -264,6 +269,18 @@ public class OfferProcessor
             return m_aErrors;
             }
 
+        /**
+         * Returns the offset of the first accepted element or {@code -1}
+         * if no elements were accepted.
+         *
+         * @return the offset of the first accepted elementor {@code -1}
+         *         if no elements were accepted
+         */
+        public int getOffset()
+            {
+            return m_nOffset;
+            }
+
         // ----- EvolvablePortableObject interface --------------------------
 
        @Override
@@ -280,6 +297,10 @@ public class OfferProcessor
             m_cAccepted  = in.readInt(1);
             m_cbPageFree = in.readInt(2);
             m_aErrors    = in.readObject(3);
+            if (getImplVersion() >= 2)
+                {
+                m_nOffset = in.readInt(4);
+                }
             }
 
         @Override
@@ -290,6 +311,19 @@ public class OfferProcessor
             out.writeInt(1, m_cAccepted);
             out.writeInt(2, m_cbPageFree);
             out.writeObject(3, m_aErrors);
+            out.writeInt(4, m_nOffset);
+            }
+
+        @Override
+        public String toString()
+            {
+            return "Result(" +
+                    " status=" + m_status +
+                    ", offset=" + m_nOffset +
+                    ", accepted=" + m_cAccepted +
+                    ", pageFree=" + m_cbPageFree +
+                    ", errors=" + m_aErrors +
+                    ')';
             }
 
         // ----- inner class: Status ----------------------------------------
@@ -326,7 +360,7 @@ public class OfferProcessor
         /**
          * {@link EvolvablePortableObject} data version of this class.
          */
-        public static final int DATA_VERSION = 1;
+        public static final int DATA_VERSION = 2;
 
         // ----- data members -----------------------------------------------
 
@@ -353,5 +387,10 @@ public class OfferProcessor
          * if that element was rejected.
          */
         protected LongArray<Throwable> m_aErrors;
+
+        /**
+         * The offset of the first accepted element.
+         */
+        protected int m_nOffset;
         }
     }

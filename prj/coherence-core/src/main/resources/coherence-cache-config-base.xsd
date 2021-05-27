@@ -407,6 +407,16 @@
         </xsd:complexType>
     </xsd:element>
 
+  <xsd:complexType name="calculator-type" mixed="true">
+      <xsd:sequence>
+          <xsd:element ref="instance" minOccurs="0" maxOccurs="1" />
+          <xsd:any namespace="##other" processContents="lax"
+              minOccurs="0" maxOccurs="unbounded" />
+      </xsd:sequence>
+      <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+      <xsd:anyAttribute namespace="##other" processContents="lax"/>
+  </xsd:complexType>
+
     <xsd:element name="unit-factor" type="coherence-positiveInteger-type">
         <xsd:annotation>
             <xsd:documentation>

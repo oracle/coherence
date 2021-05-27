@@ -440,6 +440,19 @@ public class NullImplementation
         return () -> {};
         }
 
+    /**
+     * Returns an immutable empty {@link LongArray}.
+     *
+     * @param <V>  the type of values the {@link LongArray} would hold
+     *
+     * @return an immutable empty {@link LongArray}
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> LongArray<V> getLongArray()
+        {
+        return (LongArray<V>) NullLongArray.INSTANCE;
+        }
+
     // ----- inner classes ----------------------------------------------
 
     /**
@@ -2889,6 +2902,248 @@ public class NullImplementation
         * Singleton instance of a NullResourceRegistry.
         */
         public static final NullResourceRegistry INSTANCE = new NullResourceRegistry();
+        }
+
+    // ----- inner class: NullLongArray ---------------------------------
+
+    /**
+     * An immutable empty {@link LongArray}
+     *
+     * @param <V> the type of value in the array
+     *
+     * @author Jonathan Knight  2021.05.05
+     * @since 21.06
+     */
+    public static class NullLongArray<V>
+            implements LongArray<V>
+        {
+        /**
+         * Create an immutable empty {@link LongArray}.
+         */
+        public NullLongArray()
+            {
+            }
+
+        // ----- LongArray API ------------------------------------------
+
+        @Override
+        public V get(long lIndex)
+            {
+            return null;
+            }
+
+        @Override
+        public long floorIndex(long lIndex)
+            {
+            return NOT_FOUND;
+            }
+
+        @Override
+        public V floor(long lIndex)
+            {
+            return null;
+            }
+
+        @Override
+        public long ceilingIndex(long lIndex)
+            {
+            return NOT_FOUND;
+            }
+
+        @Override
+        public V ceiling(long lIndex)
+            {
+            return null;
+            }
+
+        @Override
+        public V set(long lIndex, V oValue)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        @Override
+        public long add(V oValue)
+            {
+            return 0;
+            }
+
+        @Override
+        public boolean exists(long lIndex)
+            {
+            return false;
+            }
+
+        @Override
+        public V remove(long lIndex)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        @Override
+        public void remove(long lIndexFrom, long lIndexTo)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        @Override
+        public boolean contains(V oValue)
+            {
+            return false;
+            }
+
+        @Override
+        public void clear()
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        @Override
+        public boolean isEmpty()
+            {
+            return true;
+            }
+
+        @Override
+        public int getSize()
+            {
+            return 0;
+            }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Iterator<V> iterator()
+            {
+            return (Iterator<V>) INSTANCE_ITERATOR;
+            }
+
+        @Override
+        public Iterator<V> iterator(long lIndex)
+            {
+            throw new NoSuchElementException();
+            }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Iterator<V> reverseIterator()
+            {
+            return (Iterator<V>) INSTANCE_ITERATOR;
+            }
+
+        @Override
+        public Iterator<V> reverseIterator(long lIndex)
+            {
+            throw new NoSuchElementException();
+            }
+
+        @Override
+        public long getFirstIndex()
+            {
+            return NOT_FOUND;
+            }
+
+        @Override
+        public long getLastIndex()
+            {
+            return NOT_FOUND;
+            }
+
+        @Override
+        public long indexOf(V oValue)
+            {
+            return NOT_FOUND;
+            }
+
+        @Override
+        public long indexOf(V oValue, long lIndex)
+            {
+            return NOT_FOUND;
+            }
+
+        @Override
+        public long lastIndexOf(V oValue)
+            {
+            return NOT_FOUND;
+            }
+
+        @Override
+        public long lastIndexOf(V oValue, long lIndex)
+            {
+            return NOT_FOUND;
+            }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public LongArray<V> clone()
+            {
+            try
+                {
+                return (NullLongArray<V>) super.clone();
+                }
+            catch (CloneNotSupportedException e)
+                {
+                throw new RuntimeException(e);
+                }
+            }
+
+        // ----- inner class: EmptyIterator ---------------------------------
+
+        /**
+         * An empty {@link LongArray.Iterator}.
+         *
+         * @param <V>  the type of values in the {@link LongArray}
+         */
+        private static class EmptyIterator<V>
+                implements LongArray.Iterator<V>
+            {
+            @Override
+            public boolean hasNext()
+                {
+                return false;
+                }
+
+            @Override
+            public V next()
+                {
+                throw new NoSuchElementException();
+                }
+
+            @Override
+            public long getIndex()
+                {
+                throw new IllegalStateException();
+                }
+
+            @Override
+            public V getValue()
+                {
+                throw new IllegalStateException();
+                }
+
+            @Override
+            public V setValue(V oValue)
+                {
+                throw new IllegalStateException();
+                }
+
+            @Override
+            public void remove()
+                {
+                throw new IllegalStateException();
+                }
+            }
+
+        // ----- constants --------------------------------------------------
+
+        /**
+         * The singleton empty {@link LongArray}.
+         */
+        private static final NullLongArray<?> INSTANCE = new NullLongArray<>();
+
+        /**
+         * The singleton empty {@link LongArray.Iterator}.
+         */
+        private static final LongArray.Iterator<?> INSTANCE_ITERATOR = new NullLongArray.EmptyIterator<>();
         }
 
     // ----- data members -----------------------------------------------

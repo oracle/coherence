@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -57,14 +57,14 @@ public class AddInvocable<E>
             NamedTopic<E> queue    = eccf.ensureTopic(m_sName, ValueTypeAssertion.withoutTypeChecking());
             Publisher<E> publisher = queue.createPublisher();
 
-            m_listElements.forEach(publisher::send);
+            m_listElements.forEach(publisher::publish);
             }
         else
             {
             NamedTopic<E> queue    = eccf.ensureTopic(m_sName, ValueTypeAssertion.withoutTypeChecking());
             Publisher<E> publisher = queue.createPublisher();
 
-            m_listElements.forEach(publisher::send);
+            m_listElements.forEach(publisher::publish);
             }
         }
 

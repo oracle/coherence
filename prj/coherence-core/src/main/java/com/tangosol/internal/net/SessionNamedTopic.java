@@ -6,10 +6,10 @@
  */
 package com.tangosol.internal.net;
 
-import com.tangosol.net.NamedCache;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
+
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
@@ -42,6 +42,7 @@ public class SessionNamedTopic<V>
      * @param topic          the {@link NamedTopic} to which requests will be delegated
      * @param typeAssertion  the {@link ValueTypeAssertion} for the NamedTopic
      */
+    @SuppressWarnings("unused")
     public SessionNamedTopic(ConfigurableCacheFactorySession session, NamedTopic<V> topic,
                              ValueTypeAssertion<V> typeAssertion)
         {
@@ -89,6 +90,7 @@ public class SessionNamedTopic<V>
      * @return the {@link ValueTypeAssertion} to use to
      * assert the type of topic values
      */
+    @SuppressWarnings("unchecked")
     ValueTypeAssertion<V> getTypeAssertion()
         {
         return f_typeAssertion;
@@ -127,6 +129,7 @@ public class SessionNamedTopic<V>
     // ----- NamedTopic methods ---------------------------------------------
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Subscriber<V> createSubscriber(Subscriber.Option... options)
         {
         return f_topic.createSubscriber(options);
@@ -145,6 +148,7 @@ public class SessionNamedTopic<V>
         }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Publisher<V> createPublisher(Publisher.Option... options)
         {
         return f_topic.createPublisher(options);
@@ -200,6 +204,12 @@ public class SessionNamedTopic<V>
         return f_topic.isReleased();
         }
 
+    @Override
+    public int getChannelCount()
+        {
+        return f_topic.getChannelCount();
+        }
+
     /**
      * Return the {@link ClassLoader} used by the wrapped topic.
      *
@@ -213,6 +223,7 @@ public class SessionNamedTopic<V>
     // ----- object methods -------------------------------------------------
 
     @Override
+    @SuppressWarnings("rawtypes")
     public boolean equals(Object obj)
         {
         if (obj instanceof SessionNamedTopic)
@@ -261,6 +272,7 @@ public class SessionNamedTopic<V>
     /**
      * The {@link ValueTypeAssertion} used to assert the topic value types.
      */
+    @SuppressWarnings("rawtypes")
     private final ValueTypeAssertion f_typeAssertion;
 
     /**

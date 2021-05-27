@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,7 +7,7 @@
 package topics;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
-import com.tangosol.internal.net.topic.impl.paged.model.Position;
+import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 
 import com.tangosol.io.Serializer;
 
@@ -38,10 +38,10 @@ import static org.junit.Assert.assertThat;
 public class TopicAssertions
     {
     public static class PositionComparator
-        implements Comparator<Position>
+        implements Comparator<ContentKey>
         {
         @Override
-        public int compare(Position a, Position b)
+        public int compare(ContentKey a, ContentKey b)
             {
             if (a.getPage() < b.getPage())
                 {
@@ -74,13 +74,13 @@ public class TopicAssertions
         Converter<Binary, String>  convValue     = bin -> bin == null ? null : ExternalizableHelper.fromBinary(bin, serializer);
         NamedCache<Binary, Binary> cacheElements = cacheService.ensureCache(sElementsCacheName, NullImplementation.getClassLoader());
 
-        int[] anChan = new HashSet<>(cacheElements.keySet()).stream().map(Position::fromBinary).mapToInt(Position::getChannel).distinct().toArray();
+        int[] anChan = new HashSet<>(cacheElements.keySet()).stream().map(ContentKey::fromBinary).mapToInt(ContentKey::getChannel).distinct().toArray();
         for (int nChan : anChan)
             {
             // Get the starting Position - i.e. the lowest
-            Position position = new HashSet<>(cacheElements.keySet()).stream().map(Position::fromBinary).filter(pos -> pos.getChannel() == nChan).min(PositionComparator.INSTANCE).get();
+            ContentKey position = new HashSet<>(cacheElements.keySet()).stream().map(ContentKey::fromBinary).filter(pos -> pos.getChannel() == nChan).min(PositionComparator.INSTANCE).get();
 
-            int cTotalElements = (int) new HashSet<>(cacheElements.keySet()).stream().map(Position::fromBinary).filter(pos -> pos.getChannel() == nChan).count();
+            int cTotalElements = (int) new HashSet<>(cacheElements.keySet()).stream().map(ContentKey::fromBinary).filter(pos -> pos.getChannel() == nChan).count();
             long lPage  = position.getPage();
             int  nElement = position.getElement();
 
@@ -88,7 +88,7 @@ public class TopicAssertions
             // Pull all of the elements from the cache in order
             for (int i=0; i<cTotalElements; i++)
                 {
-                Position positionTest = new Position(nChan, lPage, nElement++);
+                ContentKey positionTest = new ContentKey(nChan, lPage, nElement++);
                 String   sValue       = convValue.apply(cacheElements.get(positionTest.toBinary(cacheService.getPartitionCount())));
 
                 // If the value is null then try the next page
@@ -97,9 +97,8 @@ public class TopicAssertions
                     lPage++;
                     nElement = 0;
 
-                    positionTest = new Position(nChan, lPage, nElement++);
+                    positionTest = new ContentKey(nChan, lPage, nElement++);
                     sValue       = convValue.apply(cacheElements.get(positionTest.toBinary(cacheService.getPartitionCount())));
-                    System.out.println("NEXT PAGE: at index: " + i + " positionTest: " + positionTest);
                     }
 
                 // Assert there was a value

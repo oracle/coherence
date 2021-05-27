@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -33,11 +33,37 @@ import java.util.function.ToIntFunction;
 /**
  * Publisher provides a means to publish values to the {@link NamedTopic}.
  * <p>
- * The factory method {@link NamedTopic#createPublisher(Publisher.Option[])} allows one to specify
- * one or more {@link Publisher.Option}s to configure the {@link Publisher}.
+ * The factory method {@link NamedTopic#createPublisher(Publisher.Option[])} or
+ * {@link com.tangosol.net.Session#createPublisher(String)} allows one to specify one or more
+ * {@link Publisher.Option}s to configure the {@link Publisher}.
  * <p>
- * Since the {@link #send(Object)} method is asynchronous, there is a {@link #flush()} that allows one to block until all outstanding
- * {@link #send sent values} for the {@link Publisher} have completed.
+ * Since the {@link #publish(Object)} method is asynchronous, there is a {@link #flush()} that allows one to
+ * block until all outstanding {@link #publish sent values} for the {@link Publisher} have completed.
+ *
+ * <h3>Channels</h3>
+ * Topics use the concept of channels to improve scalability. This is similar to how Coherence uses partition for caches
+ * but to avoid confusion the name channel was chosen. The default is the next prime above the square root of the
+ * partition count for the underlying cache service, which for the default partition count of 257 is 17 channels.
+ * <p>
+ * {@link Publisher Publishers} publish messages to a channel based on their ordering configuration. Subscribers then
+ * subscribe from channels by assigning channel ownership to subscribers. An anonymous subscriber has ownership of all
+ * channels. A subscriber that is part of a subscriber group has ownership of a sub-set of the available channels.
+ * <p>
+ * Channel count is configurable, but ideally should not be set too high nor too low. For example setting the channel
+ * count to 1, would mean that all publishers contend to publish to a single channel, and that only one subscriber
+ * in a subscriber group will be able to receive messages. Setting the channel count too high (above say the number of
+ * publishers) may mean that some channels never receive any messages and are wasted. Finding the appropriate value is
+ * admittedly non-trivial, however when faced with maxing out throughput from a publishers perspective this is a
+ * configuration that can be tweaked.
+ *
+ * <h3>Positions</h3>
+ * Elements in a {@link NamedTopic} are published to a channel have a unique {@link Position} within that channel.
+ * A {@link Position} is an opaque representation of the underlying position as theoretically the implementation of
+ * the {@link Position} could change for different types of topic. Positions are used in various places in the API,
+ * for example, positions can be committed, and they can be used to move the subscriber to backwards or forwards
+ * within channels. A {@link Position} is serializable so they can be stored and recovered to later reset a subscriber
+ * to a desired position. Positions are {@link Comparable} so positions for elements can be used to determine whether
+ * how two elements related to each other within a channel.
  *
  * @param <V>  the value type
  *
@@ -50,15 +76,49 @@ public interface Publisher<V>
     /**
      * Asynchronously publish the specified value to the topic.
      * <p>
-     * {@link CompletableFuture#cancel(boolean) Cancellation} of the returned future
-     * is best effort and is not guaranteed to stop the corresponding publication of the value.
+     * {@link CompletableFuture#cancel(boolean) Cancellation} of the returned future is best
+     * effort and is not guaranteed to stop the corresponding publication of the value, for example
+     * example the request may already be on the wire and being processed on a storage member.
      *
      * @param value  the value to add to the topic
      *
-     * @return  a {@link CompletableFuture} which can be used to identify
-     *          when the value has been delivered to the topic
+     * @return  a {@link CompletableFuture} which can be used to identify when the value has been
+     *          delivered to the topic
+     *
+     * @deprecated Use {@link Publisher#publish(Object)} which returns metadata about the published value
+     *
+     * @throws IllegalStateException if this Publisher is closed or the parent topic
+     *                               has been released or destroyed
      */
-    public CompletableFuture<Void> send(V value);
+    @Deprecated
+    public default CompletableFuture<Void> send(V value)
+        {
+        return publish(value).thenAccept(_void -> {});
+        }
+
+    /**
+     * Asynchronously publish the specified value to the topic.
+     * <p>
+     * {@link CompletableFuture#cancel(boolean) Cancellation} of the returned future is best
+     * effort and is not guaranteed to stop the corresponding publication of the value, for example
+     * example the request may already be on the wire and being processed on a storage member.
+     * <p>
+     * Published messages will be recieved by subscribers in order determined by the {@link OrderBy} option used to
+     * create this {@link Publisher}.
+     * Message ordering can also be controlled by publishing values that implement the {@link Orderable} interface,
+     * in which case the order identifier provided by the {@link Orderable} value will override any ordering
+     * configured for the {@link Publisher}.
+     *
+     * @param value  the value to add to the topic
+     *
+     * @return  a {@link CompletableFuture} containing the {@link Status}, which can be
+     *          used to identify when the value has been delivered to the topic and the position
+     *          it was added to the topic
+     *
+     * @throws IllegalStateException if this Publisher is closed or the parent topic has been released
+     *                               or destroyed
+     */
+    public CompletableFuture<Status> publish(V value);
 
     /**
      * Return the {@link FlowControl} object governing this publisher.
@@ -84,7 +144,7 @@ public interface Publisher<V>
      * <p>
      * This is a blocking method and will wait until all outstanding
      * {@link CompletableFuture}s returned from previous calls
-     * to {@link #send(Object)} have completed before returning.
+     * to {@link #publish(Object)} have completed before returning.
      */
     @Override
     public void close();
@@ -95,6 +155,49 @@ public interface Publisher<V>
      * @param action  the action to execute
      */
     public void onClose(Runnable action);
+
+    /**
+     * Returns the number of channels in the underlying {@link NamedTopic} that can be published to.
+     *
+     * @return the number of channels in the underlying {@link NamedTopic} that can be published to
+     */
+    public int getChannelCount();
+
+    /**
+     * Returns the underlying {@link NamedTopic} that this {@link Publisher} publishes to.
+     *
+     * @return the underlying {@link NamedTopic} that this {@link Publisher} publishes to
+     */
+    public NamedTopic<V> getNamedTopic();
+
+    /**
+     * Specifies whether or not the {@link Publisher} is active.
+     *
+     * @return true if the NamedCache is active; false otherwise
+     */
+    public boolean isActive();
+
+    // ----- inner interface: ElementMetadata -------------------------------
+
+    /**
+     * The status for a successfully published element.
+     */
+    public interface Status
+        {
+        /**
+         * Returns the channel that the element was published to.
+         *
+         * @return the channel that the element was published to
+         */
+        public int getChannel();
+
+        /**
+         * Returns the {@link Position} in the channel that the element was published to.
+         *
+         * @return the {@link Position} in the channel that the element was published to
+         */
+        public Position getPosition();
+        }
 
     // ----- inner interface: Option ----------------------------------------
 
@@ -110,40 +213,40 @@ public interface Publisher<V>
      *    </tr>
      *    <tr>
      *       <td valign="top">{@link OnFailure#Stop}</td>
-     *       <td valign="top">Default. If an individual {@link #send} invocation fails then stop any further publishing and close the {@link Publisher}.</td>
+     *       <td valign="top">Default. If an individual {@link #publish} invocation fails then stop any further publishing and close the {@link Publisher}.</td>
      *     </tr>
      *     <tr>
      *       <td valign="top">{@link OnFailure#Continue}</td>
-     *       <td valign="top">If an individual {@link #send} invocation fails then skip that value and continue to publish other values.</td>
+     *       <td valign="top">If an individual {@link #publish} invocation fails then skip that value and continue to publish other values.</td>
      *     </tr>
      *     <tr>
      *       <td valign="top">{@link FailOnFull FailOnFull.enabled()}</td>
      *       <td valign="top">When the storage size of the unprocessed values on the topic exceed a configured <tt>high-units</tt>,
-     *       the {@link CompletableFuture} returned from the {@link #send} invocation should complete exceptionally.
+     *       the {@link CompletableFuture} returned from the {@link #publish} invocation should complete exceptionally.
      *       <br>Overrides the default to block completing until the operation completes when space becomes available.
      *     </tr>
      *     <tr>
      *       <td valign="top">{@link OrderBy#thread()}</td>
-     *       <td valign="top">Default. Ensure that all {@link #send values sent} from
+     *       <td valign="top">Default. Ensure that all {@link #publish values sent} from
      *                        the same thread are stored sequentially.</td>
      *      </tr>
      *      <tr>
      *        <td valign="top">{@link OrderBy#none()}</td>
-     *        <td valign="top">Enforce no specific ordering between {@link #send sent values} allowing
+     *        <td valign="top">Enforce no specific ordering between {@link #publish sent values} allowing
      *        for the greatest level of parallelism</td>
      *      </tr>
      *      <tr>
      *       <td valign="top">{@link OrderBy#id(int)}</td>
-     *       <td valign="top">Ensure ordering of {@link #send sent values} across
+     *       <td valign="top">Ensure ordering of {@link #publish sent values} across
      *       all threads which share the same id.</td>
      *     </tr>
      *     <tr>
      *     <td valign="top">{@link OrderBy#value(ToIntFunction)}</td>
-     *       <td valign="top">Compute the unit-of-order based on the applying this method on {@link #send sent value}</td>
+     *       <td valign="top">Compute the unit-of-order based on the applying this method on {@link #publish sent value}</td>
      *     </tr>
      *     <tr>
      *     <td valign="top">{@link OrderBy#value(Remote.ToIntFunction)}</td>
-     *       <td valign="top">Compute the unit-of-order based on the applying this method on {@link #send sent value}</td>
+     *       <td valign="top">Compute the unit-of-order based on the applying this method on {@link #publish sent value}</td>
      *     </tr>
      *  </table>
      */
@@ -155,13 +258,13 @@ public interface Publisher<V>
 
     /**
      * This option controls how a {@link Publisher} handles a failure of an individual
-     * {@link #send} call.
+     * {@link #publish} call.
      */
     public enum OnFailure
             implements Option<Object>
         {
         /**
-         * If an individual {@link #send} fails then stop any further
+         * If an individual {@link #publish} fails then stop any further
          * publishing and close the {@link Publisher}.
          * <p>
          * This option will maintain order as when a failure occurs no other
@@ -171,7 +274,7 @@ public interface Publisher<V>
         Stop,
 
         /**
-         * If an individual {@link #send(Object)} fails then skip that value and
+         * If an individual {@link #publish(Object)} fails then skip that value and
          * continue to publish other values.
          * <p>
          * This option will not guarantee to maintain order as when a failure
@@ -184,7 +287,7 @@ public interface Publisher<V>
 
     /**
      * The FailOnFull option indicates that the {@link CompletableFuture} returned
-     * from the {@link #send} operation should complete exceptionally
+     * from the {@link #publish} operation should complete exceptionally
      * upon identifying that the topic is or has become full.  Without this option the
      * future will not complete until more space becomes available.
      */
@@ -233,6 +336,25 @@ public interface Publisher<V>
         protected static final FailOnFull INSTANCE = new FailOnFull();
         }
 
+    // ---- inner class: Orderable ------------------------------------------
+
+    /**
+     * Orderable represents a value published by {@link Publisher} that has a natural
+     * ordering.
+     * <p>
+     * Calling {@link Publisher} publish methods with values that implement {@link Orderable}
+     * will use the order identifier returned by {@link Orderable#getOrderId()} to determine
+     * ordering instead of any ordering configured for the publisher by its {@link OrderBy}
+     * option. This is similar to using the {@link OrderByValue} option but offers more
+     * flexibility over a hard coded publisher option.
+     */
+    public static interface Orderable
+        {
+        public int getOrderId();
+        }
+
+    // ---- inner class: OrderBy --------------------------------------------
+
     /**
      * The OrderBy option specifies the ordering of async operations with respect
      * to one another.  The default unit-of-order is {@link #thread} which ensures
@@ -268,7 +390,7 @@ public interface Publisher<V>
         // ---- static factory methods --------------------------------------
 
         /**
-         * Return an OrderBy that will ensure that all {@link #send values sent} from
+         * Return an OrderBy that will ensure that all {@link #publish values sent} from
          * the same thread are stored sequentially.
          *
          * @return the default, thread-based ordering
@@ -281,7 +403,7 @@ public interface Publisher<V>
 
         /**
          * Return an OrderBy that will enforce no specific ordering between
-         * {@link #send sent values} allowing for the greatest level of parallelism.
+         * {@link #publish sent values} allowing for the greatest level of parallelism.
          *
          * @return the OrderBy which does not enforce ordering
          */
@@ -291,8 +413,13 @@ public interface Publisher<V>
             }
 
         /**
-         * Return an OrderBy that will ensure ordering of {@link #send sent values} across
+         * Return an OrderBy that will ensure ordering of {@link #publish sent values} across
          * all threads which share the same id.
+         * <p>
+         * This option effectively publishes all messages to a single channel, the exact channel
+         * used is the specified {@code nOrderId} modulo the number of channels in the topic.
+         * Therefore a channel number can be used as the {@code nOrderId} parameter to ensure
+         * publishing to a specific channel.
          *
          * @param nOrderId  the unit-of-order
          *
@@ -305,7 +432,7 @@ public interface Publisher<V>
             }
 
         /**
-         * Return an OrderBy which will compute the unit-of-order based on the {@link #send sent value}.
+         * Return an OrderBy which will compute the unit-of-order based on the {@link #publish sent value}.
          *
          * @param supplierOrderId  the function that should be used to determine
          *                         order id from the sent value.
@@ -319,7 +446,7 @@ public interface Publisher<V>
             }
 
         /**
-         * Return an OrderBy which will compute the unit-of-order based on the {@link #send sent value}.
+         * Return an OrderBy which will compute the unit-of-order based on the {@link #publish sent value}.
          *
          * @param supplierOrderId  the function that should be used to determine
          *                         order id from the sent value.
@@ -337,8 +464,8 @@ public interface Publisher<V>
     // ----- inner class: OrderByThread -------------------------------------
 
     /**
-     * {@link OrderBy} option which ensures that a sequence of {@link #send sent values} issued by a single thread will
-     * complete in order.
+     * {@link OrderBy} option which ensures that a sequence of {@link #publish sent values} issued by a single
+     * thread will complete in order.
      *
      * @param <V>  the value type
      */
@@ -393,7 +520,7 @@ public interface Publisher<V>
     // ----- inner class: OrderByNone ---------------------------------------
 
     /**
-     * {@link OrderBy} option enforces no specific ordering between {@link #send sent values} allowing
+     * {@link OrderBy} option enforces no specific ordering between {@link #publish sent values} allowing
      * for the greatest level of parallelism.
      *
      * @param <V>  the value type
@@ -446,7 +573,7 @@ public interface Publisher<V>
     // ----- inner class: OrderById -----------------------------------------
 
     /**
-     * {@link OrderBy} option ensures ordering of {@link #send sent values} across
+     * {@link OrderBy} option ensures ordering of {@link #publish sent values} across
      * all threads which share the same {@link #getOrderId(Object) orderId}.
      *
      * @param <V>  the value type
@@ -505,8 +632,8 @@ public interface Publisher<V>
     // ----- inner class: OrderByValue --------------------------------------
 
     /**
-     * {@link OrderBy} option which computes the unit-of-order based on applying
-     * {@link #OrderByValue(ToIntFunction) constructor's} {@link ToIntFunction orderIdFunction parameter} on {@link #send sent value}.
+     * {@link OrderBy} option which computes the unit-of-order based on applying {@link #OrderByValue(ToIntFunction)
+     * constructor's} {@link ToIntFunction orderIdFunction parameter} on {@link #publish sent value}.
      *
      * @param <V>  the value type
      */
@@ -525,9 +652,7 @@ public interface Publisher<V>
         @Override
         public int getOrderId(V value)
             {
-            {
             return m_orderIdFunction.applyAsInt(value);
-            }
             }
 
         @Override

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -14,6 +14,17 @@
       <topic-name>simple-persistent-topic-*</topic-name>
       <scheme-name>simple-persistence-topic-scheme</scheme-name>
       <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>simple-persistent-retained-topic-*</topic-name>
+      <scheme-name>simple-persistence-topic-scheme</scheme-name>
+      <value-type>String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>retain-values</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
     </topic-mapping>
     <topic-mapping>
       <topic-name>simple-transient-topic-*</topic-name>
@@ -45,6 +56,7 @@
         <class-name>topics.AbstractSimplePersistenceTopicTests$QuorumPolicy</class-name>
       </partitioned-quorum-policy-scheme>
       <autostart>true</autostart>
+      <retain-consumed>{retain-values false}</retain-consumed>
     </paged-topic-scheme>
 
     <paged-topic-scheme>

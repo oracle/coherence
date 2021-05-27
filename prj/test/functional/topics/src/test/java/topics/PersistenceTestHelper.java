@@ -425,7 +425,7 @@ public class PersistenceTestHelper
             {
             for (int i = 0; i < cMax; i++)
                 {
-                publisher.send(i);
+                publisher.publish(i);
                 }
             publisher.flush().join();
             }

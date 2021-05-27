@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -60,6 +60,7 @@ import com.tangosol.coherence.config.xml.processor.CustomizableBinaryStoreManage
 import com.tangosol.coherence.config.xml.processor.CustomizableBuilderProcessor;
 import com.tangosol.coherence.config.xml.processor.DefaultsProcessor;
 import com.tangosol.coherence.config.xml.processor.DeltaCompressorProcessor;
+import com.tangosol.coherence.config.xml.processor.ElementCalculatorProcessor;
 import com.tangosol.coherence.config.xml.processor.EvictionPolicyProcessor;
 import com.tangosol.coherence.config.xml.processor.ExecutorProcessor;
 import com.tangosol.coherence.config.xml.processor.HttpAcceptorDependenciesProcessor;
@@ -211,6 +212,7 @@ public class CacheConfigNamespaceHandler
         registerProcessor(ConfigurationProcessor.class);
         registerProcessor(DefaultsProcessor.class);
         registerProcessor(DeltaCompressorProcessor.class);
+        registerProcessor(ElementCalculatorProcessor.class);
         registerProcessor(ExecutorProcessor.class);
         registerProcessor(EvictionPolicyProcessor.class);
         registerProcessor(HttpAcceptorDependenciesProcessor.class);

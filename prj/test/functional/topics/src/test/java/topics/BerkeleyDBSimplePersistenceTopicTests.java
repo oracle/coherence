@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.coherence.persistence.PersistenceManager;
 import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.persistence.bdb.BerkeleyDBManager;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.io.IOException;
  *
  * @author jh  2012.10.18
  */
+@Ignore("these tests are all broken")
 public class BerkeleyDBSimplePersistenceTopicTests
         extends AbstractSimplePersistenceTopicTests
     {

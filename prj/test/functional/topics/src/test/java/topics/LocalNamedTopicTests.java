@@ -21,7 +21,7 @@ import com.tangosol.config.expression.NullParameterResolver;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
-import com.tangosol.internal.net.topic.impl.paged.model.Position;
+import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManager;
@@ -61,7 +61,6 @@ import org.junit.After;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -73,22 +72,25 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
 import static com.tangosol.net.topic.Subscriber.Name.of;
+
 import static org.hamcrest.CoreMatchers.is;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author jk 2015.06.30
  */
+@SuppressWarnings("unchecked")
 @RunWith(Parameterized.class)
 public class LocalNamedTopicTests
         extends AbstractNamedTopicTests
@@ -147,7 +149,7 @@ public class LocalNamedTopicTests
         }
 
     @After
-    public void cleanupTests() throws Exception
+    public void cleanupTests()
         {
         if (m_topic != null)
             {
@@ -162,34 +164,32 @@ public class LocalNamedTopicTests
         {
         NamedTopic<String>  topic    = ensureTopic();
 
-        Subscriber subscriber = topic.createSubscriber();
-        assertTrue(subscriber.isActive());
+        Subscriber<String> subscriber = topic.createSubscriber();
+        assertThat(subscriber.isActive(), is(true));
         subscriber.close();
-        assertFalse(subscriber.isActive());
+        assertThat(subscriber.isActive(), is(false));
         }
 
 
     @Test(expected = IllegalStateException.class)
     public void testClosedSubscriberReceive()
-        throws ExecutionException, InterruptedException
         {
         NamedTopic<String>  topic    = ensureTopic();
 
         Subscriber<String> subscriber = topic.createSubscriber(CompleteOnEmpty.enabled());
         subscriber.close();
-        assertFalse(subscriber.isActive());
+        assertThat(subscriber.isActive(), is(false));
         subscriber.receive();
         }
 
     @Test(expected = IllegalStateException.class)
     public void testClosedPublisherSend()
-        throws ExecutionException, InterruptedException
         {
         NamedTopic<String>  topic    = ensureTopic();
 
         Publisher<String> publisher = topic.createPublisher();
         publisher.close();
-        publisher.send("never sent");
+        publisher.publish("never sent");
         }
 
     @Test
@@ -198,11 +198,11 @@ public class LocalNamedTopicTests
         final AtomicBoolean fRan = new AtomicBoolean(false);
 
         NamedTopic<String> topic      = ensureTopic();
-        Subscriber         subscriber = topic.createSubscriber();
+        Subscriber<String> subscriber = topic.createSubscriber();
 
         subscriber.onClose(() -> {fRan.set(true); throw new IllegalStateException("validate onClose throwing unhandled exception is handled");});
         subscriber.close();
-        assertTrue(fRan.get());
+        assertThat(fRan.get(), is(true));
         }
 
     @Test
@@ -211,23 +211,22 @@ public class LocalNamedTopicTests
         final AtomicBoolean fRan = new AtomicBoolean(false);
 
         NamedTopic<String> topic     = ensureTopic();
-        Publisher          publisher = topic.createPublisher();
+        Publisher<String>  publisher = topic.createPublisher();
 
         publisher.onClose(() -> {fRan.set(true); throw new IllegalStateException("validate onClose throwing unhandled exception is handled");});
         publisher.close();
-        assertTrue(fRan.get());
+        assertThat(fRan.get(), is(true));
         }
 
     @Test
-    @Ignore("Skipped - will be fixed in topics refactoring")
     public void shouldHandleErrorWhenPublishing() throws Exception
         {
         Assume.assumeThat(m_sSerializer, is("pof"));
 
-        NamedTopic<String>  topic    = ensureTopic();
-        int                 cValues  = 20;
-        int                 nError   = 1;
-        CompletableFuture[] aFutures = new CompletableFuture[cValues];
+        NamedTopic<String>     topic    = ensureTopic();
+        int                    cValues  = 20;
+        int                    nError   = 1;
+        CompletableFuture<?>[] aFutures = new CompletableFuture[cValues];
 
         final AtomicBoolean fPublisherClosed  = new AtomicBoolean(false);
 
@@ -241,15 +240,12 @@ public class LocalNamedTopicTests
             {
             publisher.onClose(() -> fPublisherClosed.set(true));
 
-            System.out.print("Publishing");
-
             for (int i=0; i<cValues && !fPublisherClosed.get(); i++)
                 {
                 try
                     {
                     // validate that exception introduced by addErrorInterceptor call is not thrown at site of async send call
-                    aFutures[i] = publisher.send(sPrefix + i);
-                    System.out.print(".");
+                    aFutures[i] = publisher.publish(sPrefix + i);
                     }
                 catch (IllegalStateException e)
                     {
@@ -257,18 +253,17 @@ public class LocalNamedTopicTests
                     // all it means is that second asynchronous send occurred before loop completed and resulted in publisher closing
                     assertThat("should not fail on first publish", i, Matchers.greaterThan(0));
                     assertThat(e.getMessage().contains("This publisher is no longer active"), is(true));
-                    System.out.println("handled IllegalStateException: " + e.getMessage());
-                    System.out.println("Publisher Closed: " + fPublisherClosed.get());
+                    System.err.println("handled IllegalStateException: " + e.getMessage());
+                    System.err.println("Publisher Closed: " + fPublisherClosed.get());
                     break;
                     }
                 }
 
-            System.out.println("");
             publisher.flush().join();
 
             // topic should contain just the first value
-            assertThat(subscriber.receive().get().getValue(), is(sPrefix + 0));
-            assertThat(subscriber.receive().get() == null, is(true));
+            assertThat(subscriber.receive().get(10, TimeUnit.MINUTES).getValue(), is(sPrefix + 0));
+            assertThat(subscriber.receive().get(10, TimeUnit.MINUTES) == null, is(true));
             }
 
         // First add completes as normal
@@ -285,21 +280,14 @@ public class LocalNamedTopicTests
         }
 
 
-    private void assertCompletedNormally(CompletableFuture future)
+    private void assertCompletedNormally(CompletableFuture<?> future)
         {
         assertThat(future.isDone(), is(true));
         assertThat(future.isCompletedExceptionally(), is(false));
         assertThat(future.isCancelled(), is(false));
         }
 
-    private void assertCompletedExceptionally(CompletableFuture future)
-        {
-        assertThat(future.isDone(), is(true));
-        assertThat(future.isCompletedExceptionally(), is(true));
-        assertThat(future.isCancelled(), is(false));
-        }
-
-    private void assertCancelled(CompletableFuture future)
+    private void assertCancelled(CompletableFuture<?> future)
         {
         assertThat(future.isDone(), is(true));
         assertThat(future.isCompletedExceptionally(), is(true));
@@ -307,7 +295,7 @@ public class LocalNamedTopicTests
         }
 
     @Test
-    public void shouldCleanUpSubscribers() throws Exception
+    public void shouldCleanUpSubscribers()
         {
         Assume.assumeThat(m_sSerializer, is("pof"));
 
@@ -323,15 +311,15 @@ public class LocalNamedTopicTests
 
         topic.destroySubscriberGroup("Foo");
 
-        CacheService service = (CacheService) topic.getService();
-        NamedCache cacheSubscribers = service.ensureCache(PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(m_sSerializer), null);
+        CacheService     service = (CacheService) topic.getService();
+        NamedCache<?, ?> cacheSubscribers = service.ensureCache(PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(m_sSerializer), null);
+
         Eventually.assertThat(cacheSubscribers.getCacheName() + " should be empty",
                               invoking(cacheSubscribers).isEmpty(), is(true));
         }
 
     @Test
     public void shouldUseLocalScheme()
-            throws Exception
         {
         ensureTopic();
 
@@ -342,13 +330,13 @@ public class LocalNamedTopicTests
         assertThat(scheme.getStorageScheme().getClass().getName(), is(LocalScheme.class.getName()));
 
 
-        for (PagedTopicCaches.Names names : PagedTopicCaches.Names.values())
+        for (PagedTopicCaches.Names<?, ?> names : PagedTopicCaches.Names.values())
             {
-            String            cacheName = names.cacheNameForTopicName(m_sSerializer);
-            NamedCache        cache     = session.getCache(cacheName, withoutTypeChecking());
-            BackingMapManager manager   = cache.getCacheService().getBackingMapManager();
-            BackingMapContext context   = manager.getContext().getBackingMapContext(cacheName);
-            ObservableMap     map       = context.getBackingMap();
+            String              cacheName = names.cacheNameForTopicName(m_sSerializer);
+            NamedCache<?, ?>    cache     = session.getCache(cacheName, withoutTypeChecking());
+            BackingMapManager   manager   = cache.getCacheService().getBackingMapManager();
+            BackingMapContext   context   = manager.getContext().getBackingMapContext(cacheName);
+            ObservableMap<?, ?> map       = context.getBackingMap();
 
             assertThat(map.getClass().getCanonicalName(), is(LocalCache.class.getCanonicalName()));
             }
@@ -381,11 +369,11 @@ public class LocalNamedTopicTests
         return CACHE_CONFIG_FILE;
         }
 
-    public void addErrorInterceptor(NamedTopic topic, int cMax)
+    public void addErrorInterceptor(NamedTopic<?> topic, int cMax)
         {
         String              sTopicName = topic.getName();
         String              sCacheName = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopicName);
-        NamedCache          cache      = getSession().getCache(sCacheName, withoutTypeChecking());
+        NamedCache<?, ?>    cache      = getSession().getCache(sCacheName, withoutTypeChecking());
         CacheService        service    = cache.getCacheService();
         InterceptorRegistry registry   = service.getBackingMapManager().getCacheFactory().getInterceptorRegistry();
 
@@ -393,11 +381,11 @@ public class LocalNamedTopicTests
                 new ErrorCausingInterceptor(sCacheName, cMax), RegistrationBehavior.IGNORE);
         }
 
-    public void unregisterErrorInterceptor(NamedTopic topic)
+    public void unregisterErrorInterceptor(NamedTopic<?> topic)
         {
         String              sTopicName = topic.getName();
         String              sCacheName = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopicName);
-        NamedCache          cache      = getSession().getCache(sCacheName, withoutTypeChecking());
+        NamedCache<?, ?>    cache      = getSession().getCache(sCacheName, withoutTypeChecking());
         CacheService        service    = cache.getCacheService();
         InterceptorRegistry registry   = service.getBackingMapManager().getCacheFactory().getInterceptorRegistry();
 
@@ -412,7 +400,7 @@ public class LocalNamedTopicTests
      * so if the same operation is retried it will succeed
      */
     public static class ErrorCausingInterceptor
-            implements EventDispatcherAwareInterceptor<EntryEvent<Position,?>>
+            implements EventDispatcherAwareInterceptor<EntryEvent<ContentKey,?>>
         {
         public ErrorCausingInterceptor(String sCacheName, int cMax)
             {
@@ -436,24 +424,24 @@ public class LocalNamedTopicTests
             }
 
         @Override
-        public void onEvent(EntryEvent<Position,?> event)
+        public void onEvent(EntryEvent<ContentKey,?> event)
             {
-            Set<? extends BinaryEntry<Position, ?>> entries = event.getEntrySet();
+            Set<? extends BinaryEntry<ContentKey, ?>> entries = event.getEntrySet();
 
-            for (BinaryEntry<Position, ?> entry : entries)
+            for (BinaryEntry<ContentKey, ?> entry : entries)
                 {
-                if (Position.fromBinary(entry.getBinaryKey(), true).getElement() >= m_cMax && m_fDone.compareAndSet(false, true))
+                if (ContentKey.fromBinary(entry.getBinaryKey(), true).getElement() >= m_cMax && m_fDone.compareAndSet(false, true))
                     {
                     throw new RuntimeException("No!!!");
                     }
                 }
             }
 
-        private String m_sCacheName;
+        private final String m_sCacheName;
 
-        private int m_cMax;
+        private final int m_cMax;
 
-        private AtomicBoolean m_fDone = new AtomicBoolean(false);
+        private final AtomicBoolean m_fDone = new AtomicBoolean(false);
         }
 
     // ----- constants ------------------------------------------------------

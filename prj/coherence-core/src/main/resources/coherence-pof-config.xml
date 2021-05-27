@@ -1252,7 +1252,7 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.coherence.config.builder.StaticFactoryInstanceBuilder</class-name>
     </user-type>
 
-    <!-- com.tangosol.internal.net.topic.impl.paged. package (550-580) -->
+    <!-- com.tangosol.internal.net.topic.impl.paged. package (550-599) -->
 
     <user-type>
       <type-id>550</type-id>
@@ -1396,6 +1396,90 @@ descriptor: pof-config.xsd.
       <type-id>577</type-id>
       <class-name>com.tangosol.net.topic.Subscriber$Name</class-name>
     </user-type>
+
+    <user-type>
+      <type-id>578</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>579</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo$Key</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>580</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.model.PagedPosition</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>581</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>582</type-id>
+      <class-name>com.tangosol.net.topic.Subscriber$CommitResult</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>583</type-id>
+      <class-name>com.tangosol.net.topic.Subscriber$CommitResultStatus</class-name>
+      <serializer>
+         <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>584</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.model.Page$ElementExtractor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>585</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>586</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.agent.SubscriberHeartbeatProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>587</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor$Result</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>588</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>589</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor$Result</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>590</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.model.Page$HeadExtractor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>591</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.model.Page$TailExtractor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>592</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.model.Subscription$HeadExtractor</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>593</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.model.PageElement</class-name>
+    </user-type>
+
 
     <!-- type id reservations for Coherence types not in coherence-pof-config.xml -->
 

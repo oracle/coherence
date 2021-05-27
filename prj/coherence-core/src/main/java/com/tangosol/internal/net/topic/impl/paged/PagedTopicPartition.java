@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,7 +7,9 @@
 package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.base.Converter;
+
 import com.oracle.coherence.common.collections.Arrays;
+
 import com.oracle.coherence.common.util.Duration;
 
 import com.tangosol.coherence.config.Config;
@@ -15,10 +17,15 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor;
+import com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor;
+
 import com.tangosol.internal.net.topic.impl.paged.model.NotificationKey;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
-import com.tangosol.internal.net.topic.impl.paged.model.Position;
+import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
+import com.tangosol.internal.net.topic.impl.paged.model.PageElement;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 
@@ -27,20 +34,32 @@ import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.PartitionedService;
+
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.LocalCache;
+
+import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Position;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.CommitResultStatus;
+import com.tangosol.net.topic.TopicException;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
+import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.MapNotFoundException;
+
+import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +78,7 @@ import java.util.function.Function;
  * @author jk/mf 2015.05.27
  * @since Coherence 14.1.1
  */
+@SuppressWarnings("rawtypes")
 public class PagedTopicPartition
     {
     // ----- constructors ---------------------------------------------------
@@ -157,7 +177,7 @@ public class PagedTopicPartition
         // retain extra pages, thus we only bother to check at the start of a new page.
         cleanupNonDurableSubscribers(peekUsage(nChannel).getAnonymousSubscribers());
 
-        if (!page.isSubscribed() && !getTopicConfiguration().isRetainConsumed())
+        if (!page.isSubscribed() && !getDependencies().isRetainConsumed())
             {
             // there are no subscribers we can simply accept but do not store the content
             // note, we don't worry about this condition when the page is not empty as such a condition
@@ -167,7 +187,7 @@ public class PagedTopicPartition
 
             page.setSealed(true);
             removePageIfNotRetainingElements(nChannel, lPage);
-            return new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, cElements, cbCapPage);
+            return new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, cElements, cbCapPage, 0);
             }
         else if (cbCapServer > 0 && getStorageBytes() >= cbCapServer)
             {
@@ -177,8 +197,8 @@ public class PagedTopicPartition
                 }
 
             // attempt to free up space by having subscribers remove non-full pages, remember we can't
-            // add to them anyway.  To trigger the removal we seal the tail page and then notify the
-            // subscribers, thus causing them to revisit the page and detach from it which will eventually
+            // add to them anyway as we're full. To trigger the removal we seal the tail page and then notify
+            // the subscribers, thus causing them to revisit the page and detach from it which will eventually
             // result in the last subscriber removing the page, freeing up space.
             for (int i = 0, c = getChannelCount(); i < c; ++i)
                 {
@@ -190,10 +210,10 @@ public class PagedTopicPartition
                     pageSeal.setSealed(true);
                     notifyAll(pageSeal.resetInsertionNotifiers());
                     }
-                // else; if there are other full pages and we aren't preventing there removal
+                // else; if there are other full pages and we aren't preventing their removal
                 }
 
-            return new OfferProcessor.Result(OfferProcessor.Result.Status.TopicFull, 0, cbCapPage);
+            return new OfferProcessor.Result(OfferProcessor.Result.Status.TopicFull, 0, cbCapPage, -1);
             }
 
         return null;
@@ -217,7 +237,7 @@ public class PagedTopicPartition
         Page.Key                keyPage       = entry.getKey();
         int                     nChannel      = keyPage.getChannelId();
         long                    lPage         = keyPage.getPageId();
-        Configuration           configuration = getTopicConfiguration();
+        PagedTopic.Dependencies configuration = getDependencies();
         int                     cbCapPage     = configuration.getPageCapacity();
         long                    cbCapServer   = configuration.getServerCapacity();
 
@@ -234,7 +254,7 @@ public class PagedTopicPartition
                 // to avoid this issue.  Ultimately we'll allow ourselves to exceed the local capacity (see TopicFull above)
                 // if need be but this logic ensures that we exceed it as minimally as is possible
 
-                // TODO: base on the current storage rather then estimate, this is especially important if
+                // TODO: base on the current storage rather than estimate, this is especially important if
                 // we've gained partitions will full pages over time from dead members
 
                 // TODO: the publisher could have similar logic to avoid sending overly large batches
@@ -247,7 +267,7 @@ public class PagedTopicPartition
             {
             // The page has been removed or is full so the producer's idea of the tail
             // is out of date and it needs to re-offer to the correct tail page
-            return new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, 0, 0);
+            return new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, 0, 0, -1);
             }
         else if (page.getTail() == Page.EMPTY)
             {
@@ -260,23 +280,31 @@ public class PagedTopicPartition
             }
 
         BackingMapContext            ctxContent    = getBackingMapContext(PagedTopicCaches.Names.CONTENT);
+        NamedTopic.ElementCalculator calculator    = configuration.getElementCalculator();
         long                         cMillisExpiry = configuration.getElementExpiryMillis();
         int                          cbPage        = page.getByteSize();
-        int                          nTail         = page.getTail();
+        int                          nTailStart    = page.getTail();
+        int                          nTail         = nTailStart;
         OfferProcessor.Result.Status status        = OfferProcessor.Result.Status.Success;
         int                          cAccepted     = 0;
+        long                         lTimestamp    = getClusterTime();
 
         // Iterate over all of the elements to be offered until they are
         // all offered or until the page has reached maximum capacity
         for (Iterator<Binary> iter = listElements.iterator(); iter.hasNext() && cbPage < cbCapPage; ++cAccepted)
             {
-            Binary      binElement      = iter.next();
-            Binary      binKey          = Position.toBinary(f_nPartition, nChannel, lPage, ++nTail);
+            Binary      binValue        = iter.next();
+            Binary      binKey          = ContentKey.toBinary(f_nPartition, nChannel, lPage, ++nTail);
             BinaryEntry binElementEntry = (BinaryEntry) ctxContent.getBackingMapEntry(binKey);
 
-            cbPage += binElement.length();
+            cbPage += calculator.calculateUnits(binValue);
 
-            // Set the binary element as the entry value
+            // decorate the value with the position
+            // we do this here rather than on polling as there are likely to be more polls
+            // that publishes so polling will be slightly faster
+            Binary binElement = PageElement.toBinary(nChannel, lPage, nTail, lTimestamp, binValue);
+
+            // Set the decorated binary element as the entry value
             binElementEntry.updateBinaryValue(binElement);
 
             // If the topic is configured with expiry then set this on the element entry
@@ -288,6 +316,14 @@ public class PagedTopicPartition
 
         // Update the tail element pointer for the page
         page.setTail(nTail);
+        // update the tail timestamp for the page
+        page.setTimestampTail(lTimestamp);
+
+        if (nTailStart == Page.EMPTY)
+            {
+            // we added the first element to the page so set the head timestamp
+            page.setTimestampHead(lTimestamp);
+            }
 
         int cbRemainingCapacity;
 
@@ -311,7 +347,7 @@ public class PagedTopicPartition
         // update the page entry with the modified page
         entry.setValue(page);
 
-        return new OfferProcessor.Result(status, cAccepted, cbRemainingCapacity);
+        return new OfferProcessor.Result(status, cAccepted, cbRemainingCapacity, nTailStart + 1);
         }
 
     /**
@@ -401,12 +437,22 @@ public class PagedTopicPartition
             // attach old tail to new tail
             page.adjustReferenceCount(1); // ref from old tail to new page
 
-            enlistPage(nChannel, lTailPrev).setNextPartitionPage(lPage);
+            Page pagePrev = enlistPage(nChannel, lTailPrev);
+            if (pagePrev != null)
+                {
+                pagePrev.setNextPartitionPage(lPage);
+                }
             }
 
         // attach on behalf of waiting subscribers, they will have to find this page on their own
         page.adjustReferenceCount(usage.resetWaitingSubscriberCount());
 
+        long nTime = getClusterTime();
+        page.setTimestampHead(nTime);
+        page.setTimestampTail(nTime);
+
+        // set the new Page's previous page
+        page.setPreviousPartitionPage(lTailPrev);
         entry.setValue(page);
 
         return page;
@@ -459,6 +505,7 @@ public class PagedTopicPartition
      *
      * @param colAnon the anonymous subscribers
      */
+    @SuppressWarnings("unchecked")
     protected void cleanupNonDurableSubscribers(Collection<SubscriberGroupId> colAnon)
         {
         if (colAnon == null || colAnon.isEmpty())
@@ -471,12 +518,7 @@ public class PagedTopicPartition
         for (SubscriberGroupId subscriberGroupId : colAnon)
             {
             Long                    ldtMember = subscriberGroupId.getMemberTimestamp();
-            List<SubscriberGroupId> listPeer  = mapDead.get(ldtMember);
-            if (listPeer == null)
-                {
-                listPeer = new ArrayList<>();
-                mapDead.put(ldtMember, listPeer);
-                }
+            List<SubscriberGroupId> listPeer = mapDead.computeIfAbsent(ldtMember, k -> new ArrayList<>());
             listPeer.add(subscriberGroupId);
             }
 
@@ -526,7 +568,7 @@ public class PagedTopicPartition
      */
     public int getChannelCount()
         {
-        return PagedTopicCaches.getChannelCount(getPartitionCount());
+        return getDependencies().getChannelCount(getPartitionCount());
         }
 
     /**
@@ -538,6 +580,16 @@ public class PagedTopicPartition
         {
         PartitionedService service = ((PartitionedService) f_ctxManager.getCacheService());
         return service.getOwnedPartitions(service.getCluster().getLocalMember()).cardinality();
+        }
+
+    /**
+     * Returns the cluster time (see {@link com.tangosol.net.Cluster#getTimeMillis()}.
+     *
+     * @return the cluster time.
+     */
+    public long getClusterTime()
+        {
+        return f_ctxManager.getCacheService().getCluster().getTimeMillis();
         }
 
     /**
@@ -567,11 +619,25 @@ public class PagedTopicPartition
      *
      * @return  the page or null
      */
-    @SuppressWarnings("unchecked")
     protected Page peekPage(int nChannel, long lPageId)
         {
-        BinaryEntry<Page.Key,Page> entry =  peekBackingMapEntry(PagedTopicCaches.Names.PAGES, toBinaryKey(new Page.Key(nChannel, lPageId)));
+        BinaryEntry<Page.Key,Page> entry = peekPageEntry(nChannel, lPageId);
         return entry == null ? null : entry.getValue();
+        }
+
+    /**
+     * Returns a read-only copy of the specified page entry or {code null} if the
+     * requested page number is (@link {@link Page#NULL_PAGE}.
+     *
+     * @param lPageId  the id of the page
+     *
+     * @return  the page entry or or {code null} if the requested page number is (@link {@link Page#NULL_PAGE}
+     */
+    protected BinaryEntry<Page.Key,Page> peekPageEntry(int nChannel, long lPageId)
+        {
+        return lPageId == Page.NULL_PAGE
+                ? null
+                : peekBackingMapEntry(PagedTopicCaches.Names.PAGES, toBinaryKey(new Page.Key(nChannel, lPageId)));
         }
 
     /**
@@ -604,7 +670,6 @@ public class PagedTopicPartition
      *
      * @return  the enlisted page, or null if it does not exist
      */
-    @SuppressWarnings("unchecked")
     protected Page enlistPage(int nChannel, long lPage)
         {
         return enlistPageEntry(nChannel, lPage).getValue();
@@ -619,9 +684,9 @@ public class PagedTopicPartition
      */
     public boolean removePageIfNotRetainingElements(int nChannel, long lPage)
         {
-        Configuration configuration = getTopicConfiguration();
+        PagedTopic.Dependencies dependencies = getDependencies();
 
-        if (configuration.isRetainConsumed())
+        if (dependencies.isRetainConsumed())
             {
             return false;
             }
@@ -639,7 +704,7 @@ public class PagedTopicPartition
     public boolean removePage(int nChannel, long lPage)
         {
         BinaryEntry<Page.Key, Page> entryPage = enlistPageEntry(nChannel, lPage);
-        Page page      = entryPage.getValue();
+        Page                        page      = entryPage.getValue();
         if (page == null)
             {
             return false;
@@ -648,7 +713,7 @@ public class PagedTopicPartition
         BackingMapContext ctxElem = getBackingMapContext(PagedTopicCaches.Names.CONTENT);
         for (int nPos = page.getTail(); nPos >= 0; --nPos)
             {
-            ctxElem.getBackingMapEntry(Position.toBinary(f_nPartition, nChannel, lPage, nPos)).remove(false);
+            ctxElem.getBackingMapEntry(ContentKey.toBinary(f_nPartition, nChannel, lPage, nPos)).remove(false);
             }
 
         Usage usage = enlistUsage(nChannel);
@@ -660,6 +725,19 @@ public class PagedTopicPartition
         else // must be the head
             {
             usage.setPartitionHead(page.getNextPartitionPage());
+            }
+
+        // if there is a next page remove this page's reference from it
+        long lPageNext = page.getNextPartitionPage();
+        if (lPageNext != Page.NULL_PAGE)
+            {
+            BinaryEntry<Page.Key, Page> entryNext = enlistPageEntry(nChannel, lPage);
+            Page                        pageNext  = entryNext.getValue();
+            if (pageNext != null)
+                {
+                pageNext.adjustReferenceCount(-1);
+                entryNext.setValue(pageNext);
+                }
             }
 
         entryPage.remove(false);
@@ -768,26 +846,32 @@ public class PagedTopicPartition
     /**
      * Ensure the subscription within a partition
      *
-     * @param subscriberGroupId         the subscriber id
+     * @param subscriberGroupId         the subscriber group id
      * @param nPhase                    EnsureSubscriptionProcessor.PHASE_INQUIRE/PIN/ADVANCE
      * @param alSubscriptionHeadGlobal  the page to advance to
      * @param filter                    the subscriber's filter or null
      * @param fnConvert                 the optional subscriber's converter function
+     * @param nSubscriberId             the unique subscriber identifier
+     * @param fReconnect                this is an existing subscriber reconnection
      *
      * @return for INQUIRE we return the currently pinned page, or null if unpinned
      *         for PIN we return the pinned page, or tail if the partition is empty and the former tail is known,
      *              if the partition was never used we return null
      *         for ADVANCE we return the pinned page
      */
+    @SuppressWarnings("unchecked")
     public long[] ensureSubscription(SubscriberGroupId subscriberGroupId,
                                      int               nPhase,
                                      long[]            alSubscriptionHeadGlobal,
                                      Filter            filter,
-                                     Function          fnConvert)
+                                     Function          fnConvert,
+                                     long              nSubscriberId,
+                                     boolean           fReconnect)
         {
-        BackingMapContext ctxSubscriptions = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
-        Configuration     configuration    = getTopicConfiguration();
-        long[]            alResult         = new long[getChannelCount()];
+        BackingMapContext       ctxSubscriptions = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
+        PagedTopic.Dependencies dependencies     = getDependencies();
+        boolean                 fAnonymous       = subscriberGroupId.getMemberTimestamp() != 0;
+        long[]                  alResult         = new long[getChannelCount()];
 
         switch (nPhase)
             {
@@ -804,6 +888,8 @@ public class PagedTopicPartition
             default:
                 break;
             }
+
+        Subscription subscriptionZero = null;
 
         for (int nChannel = 0; nChannel < alResult.length; ++nChannel)
             {
@@ -823,37 +909,40 @@ public class PagedTopicPartition
 
                 if (!Base.equals(subscription.getFilter(), filter))
                     {
-                    // allow new subscriber instances to update the filter
-                    subscription.setFilter(filter);
-                    entrySub.setValue(subscription);
+                    // do not allow new subscriber instances to update the filter
+                    throw new TopicException("Cannot change the Filter in existing Subscriber group \""
+                            + subscriberGroupId.getGroupName() + "\" current="
+                            + subscription.getFilter() + " new=" + filter);
                     }
 
                 if (!Base.equals(subscription.getConverter(), fnConvert))
                     {
-                    // allow new subscriber instances to update the converter function
-                    subscription.setConverter(fnConvert);
-                    entrySub.setValue(subscription);
+                    // do not allow new subscriber instances to update the converter function
+                    throw new TopicException("Cannot change the converter in existing Subscriber group \""
+                            + subscriberGroupId.getGroupName() + "\" current="
+                            + subscription.getFilter() + " new=" + filter);
                     }
 
                 // else; common case (subscription to existing group)
 
-                alResult[nChannel] = subscription.getPosition() == Integer.MAX_VALUE
+                PagedPosition position = subscription.getRollbackPosition();
+                alResult[nChannel] = position.getPage() == Page.EMPTY
                     ? Page.NULL_PAGE // the page has been removed
-                    : subscription.getPage();
+                    : position.getPage();
                 }
             else if (nPhase == EnsureSubscriptionProcessor.PHASE_PIN &&
                      subscription == null) // if non-null another member beat us here in which case the final else will simply return the pinned page
                 {
                 subscription = new Subscription();
 
-                if (subscriberGroupId.getMemberTimestamp() != 0)
+                if (fAnonymous)
                     {
                     // add the anonymous subscriber to the Usage data
                     enlistUsage(nChannel);
                     usage.addAnonymousSubscriber(subscriberGroupId);
                     }
 
-                long lPage = configuration.isRetainConsumed() ? usage.getPartitionHead() : usage.getPartitionTail();
+                long lPage = dependencies.isRetainConsumed() ? usage.getPartitionHead() : usage.getPartitionTail();
                 
                 if (lPage == Page.NULL_PAGE)
                     {
@@ -886,10 +975,10 @@ public class PagedTopicPartition
                      subscription.getSubscriptionHead() == Page.NULL_PAGE)  // the subscription has yet to be fully initialized
                 {
                 // final initialization phase; advance to first page >= lSubscriberHeadGlobal
-
-                long lPage = subscription.getPage();
-                Page page  = lPage == Page.NULL_PAGE ? null : enlistPage(nChannel, lPage);
-                long lHead = usage.getPartitionHead();
+                PagedPosition position = subscription.getRollbackPosition();
+                long          lPage    = position.getPage();
+                Page          page     = lPage == Page.NULL_PAGE ? null : enlistPage(nChannel, lPage);
+                long          lHead    = usage.getPartitionHead();
 
                 if (page == null && lHead != Page.NULL_PAGE)
                     {
@@ -935,7 +1024,7 @@ public class PagedTopicPartition
                     {
                     int nPos;
 
-                    if (configuration.isRetainConsumed())
+                    if (dependencies.isRetainConsumed())
                         {
                         nPos = 0;
                         }
@@ -952,13 +1041,112 @@ public class PagedTopicPartition
                 }
             else // phase already completed
                 {
-                alResult[nChannel] = subscription.getPosition() == Integer.MAX_VALUE
+                PagedPosition position = subscription.getRollbackPosition();
+                alResult[nChannel] = position.getOffset() == Integer.MAX_VALUE
                     ? Page.NULL_PAGE // the page has been removed
-                    : subscription.getPage();
+                    : position.getPage();
                 }
+
+            if (nSubscriberId != 0)
+                {
+                // This is not an anonymous subscriber (i.e. it is part of a group)
+                // Ensure the subscriber is registered and allocated channels. We only do this in channel zero, so as
+                // not to bloat all of the other entries with the subscriber maps
+                if (nChannel == 0)
+                    {
+                    subscriptionZero = subscription;
+                    if (!subscriptionZero.hasSubscriber(nSubscriberId))
+                        {
+                        // this is a new subscriber and is not an anonymous subscriber (nSubscriberId != 0)
+                        subscriptionZero.addSubscriber(nSubscriberId, getChannelCount());
+                        fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
+                        }
+                    }
+
+                // Update the subscription/channel owner as it may have chaned if this is a new subscriber
+                long nOwner = subscriptionZero.getChannelOwner(nChannel);
+                subscription.setOwningSubscriber(nOwner);
+
+                if (fReconnect && nOwner == nSubscriberId)
+                    {
+                    // the subscriber is the channel owner and is reconnecting, so rollback to the last committed position
+                    subscription.rollback();
+                    }
+                }
+            else
+                {
+                // This is an anonymous subscriber.
+                // We do not need to do channel allocation as anonymous subscribers have all channels
+                if (fReconnect)
+                    {
+                    // this is a reconnect so rollback
+                    subscription.rollback();
+                    }
+                }
+            entrySub.setValue(subscription);
             }
 
         return alResult;
+        }
+
+    /**
+     * Close a subscription for a specific subscriber in a subscriber group
+     * <p>
+     * This will trigger a reallocation of channels across any remaining subscribers in the same group.
+     *
+     * @param subscriberGroupId the subscriber group id
+     * @param nSubscriberId     the unique subscriber identifier
+     *
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void closeSubscription(SubscriberGroupId subscriberGroupId, long nSubscriberId)
+        {
+        BackingMapContext ctxSubscriptions = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
+        long[]            alResult         = new long[getChannelCount()];
+
+        Subscription subscriptionZero = null;
+
+        for (int nChannel = 0; nChannel < alResult.length; ++nChannel)
+            {
+            BinaryEntry<Subscription.Key, Subscription> entrySub = (BinaryEntry) ctxSubscriptions.getBackingMapEntry(
+                    toBinaryKey(new Subscription.Key(getPartition(), nChannel, subscriberGroupId)));
+
+            Subscription subscription = entrySub.getValue();
+            if (subscription != null)
+                {
+                // ensure the subscriber is registered and allocated channels
+                // we only do this in channel zero, so as not to bloat all of the other entries with the subscriber maps
+                if (subscriptionZero == null)
+                    {
+                    int cChannel     = getChannelCount();
+                    subscriptionZero = subscription;
+                    subscriptionZero.removeSubscriber(nSubscriberId, cChannel);
+                    entrySub.setValue(subscription);
+                    }
+
+                long nOwner = subscriptionZero.getChannelOwner(nChannel);
+                subscription.setOwningSubscriber(nOwner);
+                entrySub.setValue(subscription);
+                }
+            }
+        }
+
+    /**
+     * Update the heartbeat for a subscriber.
+     *
+     * @param entry  the {@link SubscriberInfo} entry
+     */
+    @SuppressWarnings("rawtypes")
+    public void heartbeat(InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo> entry)
+        {
+        PagedTopic.Dependencies dependencies = getDependencies();
+        SubscriberInfo          info         = entry.isPresent() ? entry.getValue() : new SubscriberInfo();
+        long                    cMillis      = dependencies.getSubscriberTimeoutMillis();
+
+        info.setLastHeartbeat(LocalDateTime.now());
+        info.setTimeoutMillis(cMillis);
+        entry.setValue(info);
+        ((BinaryEntry) entry).expire(cMillis);
         }
 
     /**
@@ -968,11 +1156,13 @@ public class PagedTopicPartition
      * @param lPage              the page to poll from
      * @param cReqValues         the number of elements the subscriber is requesting
      * @param nNotifierId        notification key to notify when transitioning from empty
+     * @param nSubscriberId      the unique identifier of the subscriber
      *
      * @return  the {@link Binary} value polled from the head of the subscriber page
      */
-    @SuppressWarnings("unchecked")
-    public PollProcessor.Result pollFromPageHead(BinaryEntry<Subscription.Key, Subscription> entrySubscription, long lPage, int cReqValues, int nNotifierId)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public PollProcessor.Result pollFromPageHead(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
+                                                 long lPage, int cReqValues, int nNotifierId, long nSubscriberId)
         {
         Subscription.Key keySubscription = entrySubscription.getKey();
         Subscription     subscription    = entrySubscription.getValue();
@@ -982,6 +1172,13 @@ public class PagedTopicPartition
             {
             // the subscriber is unknown but we're allowing that as the client should handle it
             return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null);
+            }
+
+        long nOwner = subscription.getOwningSubscriber();
+        if (nOwner != 0 && nOwner != nSubscriberId)
+            {
+            // the subscriber does not own this channel, it should not have got here but it probably had out of date state
+            return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, Integer.MAX_VALUE, null);
             }
 
         Page page      = peekPage(nChannel, lPage); // we'll later enlist but only if we've exhausted the page
@@ -1010,6 +1207,10 @@ public class PagedTopicPartition
                 // create it so that we can subscribe for notification if necessary
                 // also this keeps overall logic a bit simpler
                 page = ensurePage(nChannel, enlistPageEntry(nChannel, lPage));
+                if (page == null)
+                    {
+                    return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null);
+                    }
                 }
 
             // note we've already attached indirectly, to get here we'd previously exhausted all
@@ -1023,35 +1224,28 @@ public class PagedTopicPartition
         entrySubscription.setValue(subscription); // ensure any subsequent changes will be retained
 
         // find the next entry >= the nPos (note some elements may have expired)
-        int               nPosTail    = page.getTail();
-        BackingMapContext ctxElements = getBackingMapContext(PagedTopicCaches.Names.CONTENT);
-        ArrayList<Binary> listValues  = new ArrayList<>(Math.min(cReqValues, (nPosTail - nPos) + 1));
-        Filter            filter      = subscription.getFilter();
-        Function          fnConvert   = subscription.getConverter();
-        int               cbResult    = 0;
-        final long        cbLimit     = getTopicConfiguration().getMaxBatchSizeBytes();
+        int                nPosTail    = page.getTail();
+        BackingMapContext  ctxElements = getBackingMapContext(PagedTopicCaches.Names.CONTENT);
+        LinkedList<Binary> listValues  = new LinkedList();
+        Filter             filter      = subscription.getFilter();
+        Function           fnConvert   = subscription.getConverter();
+        int                cbResult    = 0;
+        final long         cbLimit     = getDependencies().getMaxBatchSizeBytes();
+
+        Converter<Binary, Object> converterFrom = getValueFromInternalConverter();
+        Converter<Object, Binary> converterTo   = getValueToInternalConverter();
 
         for (; cReqValues > 0 && nPos <= nPosTail && cbResult < cbLimit; ++nPos)
             {
-            Binary      binPosKey    = Position.toBinary(f_nPartition, nChannel, lPage, nPos);
+            Binary      binPosKey    = ContentKey.toBinary(f_nPartition, nChannel, lPage, nPos);
             BinaryEntry entryElement = (BinaryEntry) ctxElements.getReadOnlyEntry(binPosKey);
+            Binary      binValue     = entryElement == null ? null : entryElement.getBinaryValue();
 
-            Binary binValue = entryElement == null ? null : entryElement.getBinaryValue();
             if (binValue != null && (filter == null || InvocableMapHelper.evaluateEntry(filter, entryElement)))
                 {
                 if (fnConvert != null)
                     {
-                    Object oValue     = getValueFromInternalConverter().convert(binValue);
-                    Object oConverted = fnConvert.apply(oValue);
-
-                    if (oConverted == null)
-                        {
-                        binValue = null;
-                        }
-                    else
-                        {
-                        binValue = getValueToInternalConverter().convert(oConverted);
-                        }
+                    binValue = PageElement.fromBinary(binValue, converterFrom).convert(fnConvert, converterTo);
                     }
 
                 if (binValue != null)
@@ -1072,12 +1266,6 @@ public class PagedTopicPartition
 
             long lPageNext = page.getNextPartitionPage();
 
-            // detach from this page and move to next
-            if (page.adjustReferenceCount(-1) == 0)
-                {
-                removePageIfNotRetainingElements(nChannel, lPage);
-                }
-
             if (lPageNext == Page.NULL_PAGE)
                 {
                 // next page for this partition doesn't exist yet, register this subscriber's interest so that
@@ -1090,20 +1278,7 @@ public class PagedTopicPartition
                 {
                 subscription.setPage(lPageNext);
                 subscription.setPosition(0);
-
-                // We've detached from our old page, and now need to attach to the next page.  If we've removed
-                // the old page then we also need to decrement the attach count on the next page.  Thus in the
-                // case of a removal of the old page we have nothing to do as we'd just increment and decrement
-                // the attach count on the next page.
-
-                if (page.isSubscribed()) // check if the old page still has subscribers
-                    {
-                    // we didn't remove the old page, thus we can't take ownership of its ref to the next page
-                    enlistPage(nChannel, lPageNext).adjustReferenceCount(1);
-                    }
-                // else; optimization avoid decrement+increment on next page
                 }
-
             return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, nPos, listValues);
             }
         else
@@ -1116,9 +1291,689 @@ public class PagedTopicPartition
                 // that position is currently empty; register for notification when it is set
                 requestInsertionNotification(enlistPage(nChannel, lPage), nNotifierId, nChannel);
                 }
-
             return new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues);
             }
+        }
+
+    /**
+     * Commit the specified {@link Position} in this subscription.
+     * <p>
+     * The {@link Position} does not have to represent an actual page and offset in this subscription.
+     * The actual position committed will be the position in this subscription that is <= the requested
+     * position.
+     *
+     * @param entrySubscription  the subscription to commit the position in
+     * @param position           the {@link Position} to commit
+     * @param nSubscriberId      the identifier of the {@link Subscriber} performing the commit request
+     *
+     * @return the result fo the commit request
+     */
+    public Subscriber.CommitResult commitPosition(BinaryEntry<Subscription.Key,
+            Subscription> entrySubscription, Position position, long nSubscriberId)
+        {
+        Subscription.Key keySubscription = entrySubscription.getKey();
+        int              nChannel        = keySubscription.getChannelId();
+
+        if (!entrySubscription.isPresent())
+            {
+            // the subscriber group is unknown
+            return new Subscriber.CommitResult(nChannel, position, CommitResultStatus.Rejected,
+                    new IllegalStateException("Unknown subscriber group " + keySubscription.getGroupId()));
+            }
+
+        if (!(position instanceof PagedPosition))
+            {
+            return new Subscriber.CommitResult(nChannel, position, CommitResultStatus.Rejected,
+                    new IllegalArgumentException("Invalid position type"));
+            }
+
+        Subscription  subscription  = entrySubscription.getValue();
+        long          nOwner        = subscription.getOwningSubscriber();
+        boolean       fOwned        = nOwner == nSubscriberId;
+
+        if (!fOwned && getDependencies().isOnlyOwnedCommits())
+            {
+            return new Subscriber.CommitResult(nChannel, position, CommitResultStatus.Rejected,
+                    new IllegalStateException("Attempted to commit a position in an unowned channel"));
+            }
+
+        long          lPage         = subscription.getPage();
+        PagedPosition pagedPosition = (PagedPosition) position;
+        long          lPageCommit   = pagedPosition.getPage();
+        int           nPosCommit    = pagedPosition.getOffset();
+        int           nOffset       = subscription.getPosition();
+
+        if (lPage == Page.NULL_PAGE || (lPage < lPageCommit && nOffset != Integer.MAX_VALUE) || (lPage == lPageCommit && nOffset < nPosCommit))
+            {
+            return new Subscriber.CommitResult(nChannel, position, CommitResultStatus.Rejected,
+                    new IllegalArgumentException("Attempted to commit an unread position"));
+            }
+
+        PagedPosition committedPosition = subscription.getCommittedPosition();
+        if (position.compareTo(committedPosition) <= 0)
+            {
+            // the subscription's commit is already ahead of the requested commit
+            return new Subscriber.CommitResult(nChannel, position, CommitResultStatus.AlreadyCommitted);
+            }
+
+        // At this point the subscription's position is >= the requested commit
+        // The Page to be committed should exist because we do not remove uncommitted pages
+        // The actual Page/offset to commit is the Page and offset in this partition <= the requested commit position.
+
+        // Find the actual position to commit, walk back from the current position to find the page <= commit point
+        // We must find a position as we retain uncommitted pages
+        Page page        = peekPage(nChannel, lPage);
+        long lPageActual = lPage;
+        // walk back down the Page chain...
+        while (page != null && lPageActual > lPageCommit)
+            {
+            long lPrev = page.getPreviousPartitionPage();
+            if (lPrev == Page.NULL_PAGE)
+                {
+                break;
+                }
+            lPageActual = lPrev;
+            page        = peekPage(nChannel, lPageActual);
+            }
+
+        if (page == null)
+            {
+            // the page has been removed so was already committed
+            return new Subscriber.CommitResult(nChannel, position, CommitResultStatus.AlreadyCommitted);
+            }
+
+        // lPageActual is now the page <= the requested commit
+        if (lPageActual == lPageCommit)
+            {
+            // we have the actual committed page
+            if (page.getTail() < nPosCommit)
+                {
+                nPosCommit = page.getTail();
+                }
+            }
+        else if (lPageActual < lPageCommit || page.isSealedAndEmpty())
+            {
+            // the actual page is lower than the requested commit page
+            // or the page is an empty sealed page inserted when a topic became full
+            // so we commit its tail position
+            lPageCommit = lPageActual;
+            nPosCommit  = page.getTail();
+            }
+        else // actual page is higher than the requested page
+            {
+            // nothing to commit
+            return new Subscriber.CommitResult(nChannel, position, CommitResultStatus.NothingToCommit);
+            }
+
+        if (committedPosition.getPage() != Page.NULL_PAGE && committedPosition.compareTo(new PagedPosition(lPageCommit, nPosCommit)) >= 0)
+            {
+            // the subscription's commit is already ahead of the requested commit
+            return new Subscriber.CommitResult(nChannel, position, CommitResultStatus.AlreadyCommitted);
+            }
+
+        // At this point page is the Page to be committed, lPageCommit is the page number and nPosCommit
+        // is the offset within the page to commit
+
+        LinkedList<Long> listPagesDereference = new LinkedList<>();
+        PagedPosition    prevRollbackPosition = subscription.getRollbackPosition();
+        long             lPagePrevRollback    = prevRollbackPosition.getPage();
+        PagedPosition    commitPosition       = new PagedPosition(lPageCommit, nPosCommit);
+        PagedPosition    rollbackPosition;
+
+        if (page.isSealed() && nPosCommit >= page.getTail())
+            {
+            // the committed page is full and sealed and we must have read it
+            // add to the list of pages to be de-referenced
+            listPagesDereference.add(lPageActual);
+
+            long lPageNext = page.getNextPartitionPage();
+
+            // Check whether the page above the current page is a sealed empty page.
+            // These pages are added by publishers when blocked by a full topic.
+            // We need to remove these pages as part of this commit.
+            // There could in theory be multiple of them, though unlikely
+            Page pageNext = lPageNext == Page.EMPTY ? null : peekPage(nChannel, lPageNext);
+            while (pageNext != null && pageNext.isSealed() && pageNext.getTail() == Page.EMPTY)
+                {
+                lPageActual = lPageNext;
+                listPagesDereference.add(lPageActual);
+                lPageNext = pageNext.getNextPartitionPage();
+                pageNext = lPageNext != Page.NULL_PAGE ? peekPage(nChannel, lPageNext) : null;
+                }
+
+            if (lPageNext == Page.NULL_PAGE)
+                {
+                rollbackPosition = new PagedPosition(lPageNext, Integer.MAX_VALUE); // indicator that we're waiting to learn the next page
+                }
+            else
+                {
+                rollbackPosition = new PagedPosition(lPageNext, 0);
+                }
+            }
+        else
+            {
+            rollbackPosition = new PagedPosition(lPageCommit, nPosCommit + 1);
+            }
+
+        subscription.setSubscriptionHead(pagedPosition.getPage());
+
+        subscription.setCommittedPosition(commitPosition, rollbackPosition);
+        entrySubscription.setValue(subscription);
+
+        // Ensure any pages still left in the partition are removed if no longer referenced
+        // Due to the way page reference counting works we remove bottom up, so we need to work out the lowest page
+        // At this point page is the Page being committed, lPageCommit is the page number and nPosCommit is the offset
+
+        long                        lPagePrev = page.getPreviousPartitionPage();
+        BinaryEntry<Page.Key, Page> entry     = peekPageEntry(nChannel, lPagePrev);
+        // walk down the pages but only as far as the previous rollback page
+        // or we get to a page that is already removed
+        while (entry != null && entry.isPresent() && lPagePrev >= lPagePrevRollback)
+            {
+            listPagesDereference.add(entry.getKey().getPageId());
+            lPagePrev = entry.getValue().getPreviousPartitionPage();
+            entry     = lPagePrev > Page.NULL_PAGE ? peekPageEntry(nChannel, lPagePrev) : null;
+            }
+
+        // Walk back up to the committed page adjusting the reference count and possibly removing the page
+        // We do things in this order to ensure that pages are always enlisted bottom up in the same order
+        // so that we do not deadlock with another thread that is also committing and trying to enlist pages
+        if (!listPagesDereference.isEmpty())
+            {
+            long                        lPageFirst       = listPagesDereference.peekFirst();
+            long                        lPageDereference = listPagesDereference.removeLast();
+            BinaryEntry<Page.Key, Page> entryDereference = enlistPageEntry(nChannel, lPageDereference);
+            Page                        pageDereference  = entryDereference.getValue();
+
+            // adjust the reference count of the first page to remove (the lowest page number)
+            if (pageDereference.adjustReferenceCount(-1) == 0)
+                {
+                removePageIfNotRetainingElements(nChannel, entryDereference.getKey().getPageId());
+                }
+
+            if (!pageDereference.isSubscribed())
+                {
+                // we were the last reference to the first page so remove all the other page
+                // that only have a single reference
+                while (!listPagesDereference.isEmpty())
+                    {
+                    lPageDereference = listPagesDereference.removeLast();
+                    entryDereference = enlistPageEntry(nChannel, lPageDereference);
+                    pageDereference  = entryDereference.getValue();
+
+                    if (pageDereference.getReferenceCount() == 1)
+                        {
+                        // there is only one reference to the page, which must be this subscription
+                        removePageIfNotRetainingElements(nChannel, entryDereference.getKey().getPageId());
+                        }
+                    else
+                        {
+                        break;
+                        }
+                    }
+                }
+
+            BinaryEntry<Page.Key, Page> entryFirst = enlistPageEntry(nChannel, lPageFirst);
+            Page                        pageFirst  = entryFirst.isPresent() ? entryFirst.getValue() : null;
+
+            if (pageFirst != null && pageFirst.isSubscribed())
+                {
+                // we didn't remove the first page in the list
+                // so we need to bump the reference count on the next page above this page
+                long lPageNext = pageFirst.getNextPartitionPage();
+                if (lPageNext != Page.NULL_PAGE)
+                    {
+                    enlistPage(nChannel, lPageNext).adjustReferenceCount(1);
+                    }
+                }
+            }
+
+        CommitResultStatus status = fOwned ? CommitResultStatus.Committed : CommitResultStatus.Unowned;
+        return new Subscriber.CommitResult(nChannel, position, status);
+        }
+
+    /**
+     * Move the subscriber to a specified position.
+     *
+     * @param entrySubscription  the subscription entry
+     * @param position           the position to seek to
+     * @param nSubscriberId      the identifier of the seeking subscriber
+     *
+     * @return the result of the seek request
+     */
+    public SeekProcessor.Result seekPosition(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
+                                             PagedPosition position, long nSubscriberId)
+        {
+        Subscription  subscription = entrySubscription.getValue();
+        int           nChannel     = entrySubscription.getKey().getChannelId();
+        long          lPage        = subscription.getPage();
+        long          lPageSeek    = position.getPage();
+        int           nOffsetSeek  = position.getOffset();
+        PagedPosition positionHead;
+        PagedPosition positionSeek;
+
+        if (subscription.getOwningSubscriber() != nSubscriberId)
+            {
+            throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
+            }
+
+        Page page;
+        long lPageRollback;
+
+        if (lPage > lPageSeek)
+            {
+            // this subscription is ahead the requested page, walk back to find the page
+            // in this partition that is >= the page being seeked to
+
+            page = peekPage(nChannel, lPage);
+            lPageRollback = lPage;
+
+            while (page != null)
+                {
+                lPageRollback   = page.getPreviousPartitionPage();
+                if (lPageRollback != Page.NULL_PAGE && lPageRollback >= lPageSeek)
+                    {
+                    lPage = lPageRollback;
+                    page  = peekPage(nChannel, lPage);
+                    }
+                else
+                    {
+                    // no more pages
+                    break;
+                    }
+                }
+
+            // lPage is now first page in this partition >= requested page
+            // lPageNext is the next page or Page.NULL_PAGE if there is no next page
+            // We now need to set the position to the NEXT offset after the seek page/offset
+            // which may mean it is on the next page.
+            }
+        else
+            {
+            // this subscription is behind the required page, walk forward to find the page
+            // in this partition that is >= the page being seeked to
+
+            if (lPage == Page.NULL_PAGE)
+                {
+                // There is no page, the topic is probably totally empty
+                return new SeekProcessor.Result(null, new PagedPosition(0L, 0));
+                }
+
+            page = peekPage(nChannel, lPage);
+            lPageRollback = lPage;
+
+            while (lPageRollback < lPageSeek)
+                {
+                lPageRollback = page.getNextPartitionPage();
+                if (lPageRollback != Page.NULL_PAGE)
+                    {
+                    lPage = lPageRollback;
+                    page  = peekPage(nChannel, lPage);
+                    }
+                else
+                    {
+                    // no more pages
+                    break;
+                    }
+                }
+
+            // lPage is now first page in this partition >= requested page
+            // lPageNext is the next page or Page.NULL_PAGE if there is no next page
+            // We now need to set the position to the NEXT offset after the seek page/offset
+            // which may mean it is on the next page.
+            }
+
+        if (page == null)
+            {
+            // the requested page was removed, so it must have been full and read from
+            subscription.setPage(lPage);
+            subscription.setPosition(Integer.MAX_VALUE);
+            // the result position is the next page after the requested page at offset zero
+            positionHead = new PagedPosition(lPageRollback, 0);
+            positionSeek = new PagedPosition(lPage - 1, Integer.MAX_VALUE);
+            }
+        else if (lPage == lPageSeek)
+            {
+            // lPage is the requested page
+            if (page.isSealed() && nOffsetSeek >= page.getTail())
+                {
+                // we're seeking past the tail of the page and the page is sealed so position on
+                // the next page in this partition at offset zero
+                lPageRollback = page.getNextPartitionPage();
+                if (lPageRollback == Page.NULL_PAGE)
+                    {
+                    // we do not know the next page so position on lPage at offset Integer.MAX_VALUE
+                    subscription.setPage(lPage);
+                    subscription.setPosition(Integer.MAX_VALUE);
+                    }
+                else
+                    {
+                    // we have a next page so position on that at offset zero
+                    subscription.setPage(lPageRollback);
+                    subscription.setPosition(0);
+                    }
+                // the result position is the next page after the requested page at offset zero
+                positionHead = new PagedPosition(lPageSeek + 1, 0);
+                positionSeek = new PagedPosition(lPageSeek, page.getTail());
+                }
+            else
+                {
+                // we can position on the next offset on the requested page
+                subscription.setPage(lPage);
+                subscription.setPosition(nOffsetSeek + 1);
+                // the result position is also the next offset on lPage
+                positionHead = new PagedPosition(lPage, nOffsetSeek + 1);
+                positionSeek = new PagedPosition(lPage, nOffsetSeek);
+                }
+            }
+        else if (lPage < lPageSeek)
+            {
+            // lPage is less than the requested page we need to position on the next page
+            // at offset zero
+            if (page.isSealed())
+                {
+                // lPage is full and sealed, position on offset zero on the next page in this partition
+                lPageRollback = page.getNextPartitionPage();
+                if (lPageRollback == Page.NULL_PAGE)
+                    {
+                    // we do not know what the next page in the partition is,
+                    // so position on lPage at offset Integer.MAX_VALUE
+                    subscription.setPage(lPage);
+                    subscription.setPosition(Integer.MAX_VALUE);
+                    }
+                else
+                    {
+                    // we have a real next page so position at offset zero
+                    subscription.setPage(lPageRollback);
+                    subscription.setPosition(0);
+                    }
+                // the result position is the next page after the requested page at offset zero
+                positionHead = new PagedPosition(lPageSeek + 1, 0);
+                positionSeek = new PagedPosition(lPageSeek, page.getTail());
+                }
+            else
+                {
+                // Page lPage is not sealed so is not full, the requested position is after the
+                // end of the current tail in this partition
+                // we can position on the next offset on the Page lPage
+                subscription.setPage(lPage);
+                int nTail     = page.getTail();
+                int nTailNext = nTail + 1;
+                subscription.setPosition(nTailNext);
+                positionHead = new PagedPosition(lPage, nTailNext);
+                positionSeek = new PagedPosition(lPage, nTail);
+                }
+            }
+        else // lPage > lPageSeek
+            {
+            // Page lPage is after the requested position so position on that page
+            // at offset zero
+            subscription.setPage(lPage);
+            subscription.setPosition(0);
+            // the result position is the next page after the requested page at offset zero
+            positionHead = new PagedPosition(lPage, 0);
+            positionSeek = new PagedPosition(lPage - 1, Integer.MAX_VALUE);
+            }
+
+        // if the commit position is after the new position roll it back too
+        PagedPosition committed = subscription.getCommittedPosition();
+        long          lPageCommitted   = committed.getPage();
+        int           nOffsetCommitted = committed.getOffset();
+        long          lPageSub         = subscription.getPage();
+        int           nOffsetSub       = subscription.getPosition();
+        if (lPageCommitted > lPageSub || (lPageCommitted == lPageSub && nOffsetCommitted > nOffsetSub))
+            {
+            PagedPosition posRollback = new PagedPosition(lPageSub, nOffsetSub);
+            PagedPosition posCommit;
+            if (nOffsetSub == 0)
+                {
+                page = peekPage(nChannel, lPageSub);
+                posCommit = new PagedPosition(page.getPreviousPartitionPage(), page.getTail());
+                }
+            else
+                {
+                posCommit = new PagedPosition(lPageSub, nOffsetSub - 1);
+                }
+            subscription.setCommittedPosition(posCommit, posRollback);
+            }
+
+        // update the cached subscription
+        entrySubscription.setValue(subscription);
+
+        return new SeekProcessor.Result(positionHead, positionSeek);
+        }
+
+    /**
+     * Move the subscriber to a specified position based on a timestamp.
+     * <p>
+     * The position seeked to will be such that the next element polled from the channel
+     * will be have a timestamp <i>greater than</i> the specified timestamp.
+     *
+     * @param entrySubscription  the subscription entry
+     * @param lTimestamp         the timestamp to use to determine the position to seek to
+     * @param nSubscriberId      the identifier of the seeking subscriber
+     *
+     * @return the result of the seek request
+     */
+    public SeekProcessor.Result seekTimestamp(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
+                                              long lTimestamp, long nSubscriberId)
+        {
+        Subscription  subscription = entrySubscription.getValue();
+        int           nChannel     = entrySubscription.getKey().getChannelId();
+        long          lPage        = subscription.getPage();
+        PagedPosition positionHead;
+        PagedPosition positionSeek;
+
+        if (subscription.getOwningSubscriber() != nSubscriberId)
+            {
+            throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
+            }
+
+        if (lPage == Page.NULL_PAGE)
+            {
+            // There is no page for the subscription in this partition
+            return new SeekProcessor.Result(null, new PagedPosition(0L, 0));
+            }
+
+        Page page          = peekPage(nChannel, lPage);
+        int  nMatch        = page == null ? 0 : page.compareTimestamp(lTimestamp);
+        long lPageRollback = lPage;
+
+        if (nMatch > 0)
+            {
+            // this subscription is after the requested timestamp, walk back to find the page
+            // in this partition that contains the timestamp being seeked to
+
+            while (page != null)
+                {
+                lPageRollback = page.getPreviousPartitionPage();
+                nMatch        = page.compareTimestamp(lTimestamp);
+                if (lPageRollback != Page.NULL_PAGE && nMatch >= 0)
+                    {
+                    lPage = lPageRollback;
+                    page  = peekPage(nChannel, lPage);
+                    }
+                else
+                    {
+                    // no more pages
+                    break;
+                    }
+                }
+
+            // lPage is now first page in this partition >= requested timestamp
+            // lPageNext is the next page or Page.NULL_PAGE if there is no next page
+            // We now need to set the position to the NEXT offset after the seek page/offset
+            // which may mean it is on the next page.
+            }
+        else if (nMatch < 0)
+            {
+            // this subscription is before the requested timestamp, walk forward to find the page
+            // in this partition that contains the timestamp being seeked to
+
+            while (page != null)
+                {
+                lPageRollback = page.getNextPartitionPage();
+                nMatch        = page.compareTimestamp(lTimestamp);
+                if (lPageRollback != Page.NULL_PAGE && nMatch < 0)
+                    {
+                    lPage = lPageRollback;
+                    page  = peekPage(nChannel, lPage);
+                    }
+                else
+                    {
+                    // no more pages
+                    break;
+                    }
+                }
+
+            // lPage is now first page in this partition >= requested timestamp
+            // lPageNext is the next page or Page.NULL_PAGE if there is no next page
+            // We now need to set the position to the NEXT offset after the seek page/offset
+            // which may mean it is on the next page.
+            }
+        // else the page contains the timestamp
+
+        if (page == null)
+            {
+            // the requested page was removed, so it must have been full and read from
+            subscription.setPage(lPage);
+            subscription.setPosition(Integer.MAX_VALUE);
+            // the result position is the next page after the requested page at offset zero
+            positionHead = new PagedPosition(lPageRollback, 0);
+            positionSeek = new PagedPosition(lPage - 1, Integer.MAX_VALUE);
+            }
+        else if (nMatch == 0)
+            {
+            // lPage contains the requested timestamp, find the element > the timestamp
+
+            BackingMapContext         ctxElements   = getBackingMapContext(PagedTopicCaches.Names.CONTENT);
+            Converter<Binary, Object> converterFrom = getValueFromInternalConverter();
+            int                       nPos          = 0;
+            long                      lElementTime  = 0;
+
+            for (; nPos < page.getTail() && lElementTime < lTimestamp; nPos++)
+                {
+                Binary         binPosKey    = ContentKey.toBinary(f_nPartition, nChannel, lPage, nPos);
+                BinaryEntry    entryElement = (BinaryEntry) ctxElements.getReadOnlyEntry(binPosKey);
+                PageElement<?> element      = PageElement.fromBinary(entryElement.getBinaryValue(), converterFrom);
+                lElementTime = element.getTimestampMillis();
+                }
+
+            if (nPos >= page.getTail() && page.isSealed())
+                {
+                // we're seeking past the tail of the page and the page is sealed so position on
+                // the next page in this partition at offset zero
+                lPageRollback = page.getNextPartitionPage();
+                if (lPageRollback == Page.NULL_PAGE)
+                    {
+                    // we do not know the next page so position on lPage at offset Integer.MAX_VALUE
+                    subscription.setPage(lPage);
+                    subscription.setPosition(Integer.MAX_VALUE);
+                    }
+                else
+                    {
+                    // we have a next page so position on that at offset zero
+                    subscription.setPage(lPageRollback);
+                    subscription.setPosition(0);
+                    }
+                // the result position is the next page after the requested page at offset zero
+                positionHead = new PagedPosition(lPage + 1, 0);
+                positionSeek = new PagedPosition(lPage, page.getTail());
+                }
+            else
+                {
+                // we can position on the offset on the requested page
+                subscription.setPage(lPage);
+                subscription.setPosition(nPos);
+                // the result position is also the next offset on lPage
+                positionHead = new PagedPosition(lPage, nPos);
+                if (nPos > 0)
+                    {
+                    positionSeek = new PagedPosition(lPage, nPos - 1);
+                    }
+                else
+                    {
+                    long lPagePrev = page.getPreviousPartitionPage();
+                    Page pagePrev  = lPagePrev == Page.EMPTY ? null : peekPage(nChannel, lPagePrev);
+                    int  nTail     = pagePrev == null ? Integer.MAX_VALUE : pagePrev.getTail();
+                    positionSeek   = new PagedPosition(lPagePrev, nTail);
+                    }
+                }
+            }
+        else if (nMatch < 0)
+            {
+            // lPage is less than the requested timestamp we need to position on the next page
+            // at offset zero
+            if (page.isSealed())
+                {
+                // lPage is full and sealed, position on offset zero on the next page in this partition
+                lPageRollback = page.getNextPartitionPage();
+                if (lPageRollback == Page.NULL_PAGE)
+                    {
+                    // we do not know what the next page in the partition is,
+                    // so position on lPage at offset Integer.MAX_VALUE
+                    subscription.setPage(lPage);
+                    subscription.setPosition(Integer.MAX_VALUE);
+                    }
+                else
+                    {
+                    // we have a real next page so position at offset zero
+                    subscription.setPage(lPageRollback);
+                    subscription.setPosition(0);
+                    }
+                // the result position is the next page after the requested page at offset zero
+                positionHead = new PagedPosition(lPage + 1, 0);
+                positionSeek = new PagedPosition(lPage, page.getTail());
+                }
+            else
+                {
+                // Page lPage is not sealed so is not full, the requested position is after the
+                // end of the current tail in this partition
+                // we can position on the next offset on the Page lPage
+                subscription.setPage(lPage);
+                int nTail     = page.getTail();
+                int nTailNext = nTail + 1;
+                subscription.setPosition(nTailNext);
+                positionHead = new PagedPosition(lPage, nTailNext);
+                positionSeek = new PagedPosition(lPage, nTail);
+                }
+            }
+        else // nMatch > 0
+            {
+            // Page lPage is after the requested timestamp so position on that page at offset zero
+            subscription.setPage(lPage);
+            subscription.setPosition(0);
+            // the result position is the next page after the requested page at offset zero
+            positionHead = new PagedPosition(lPage + 1, 0);
+            positionSeek = new PagedPosition(lPage, page.getTail());
+            }
+
+        // if the commit position is after the new position roll it back too
+        PagedPosition committed        = subscription.getCommittedPosition();
+        long          lPageCommitted   = committed.getPage();
+        int           nOffsetCommitted = committed.getOffset();
+        long          lPageSub         = subscription.getPage();
+        int           nOffsetSub       = subscription.getPosition();
+        if (lPageCommitted > lPageSub || (lPageCommitted == lPageSub && nOffsetCommitted > nOffsetSub))
+            {
+            PagedPosition posRollback = new PagedPosition(lPageSub, nOffsetSub);
+            PagedPosition posCommit;
+            if (nOffsetSub == 0)
+                {
+                page = peekPage(nChannel, lPageSub);
+                posCommit = new PagedPosition(page.getPreviousPartitionPage(), page.getTail());
+                }
+            else
+                {
+                posCommit = new PagedPosition(lPageSub, nOffsetSub - 1);
+                }
+            subscription.setCommittedPosition(posCommit, posRollback);
+            }
+
+        // update the cached subscription
+        entrySubscription.setValue(subscription);
+
+        return new SeekProcessor.Result(positionHead, positionSeek);
         }
 
     /**
@@ -1138,6 +1993,9 @@ public class PagedTopicPartition
         if (entry != null)  // entry can be null if topic is destroyed while a poll is in progress
             {
             entry.setValue(Arrays.binaryInsert(entry.getValue(), nChannel));
+            // we expire in half the subscriber timeout time to ensure we see receive requests from waiting subscribers
+            // so that they do not timeout
+            entry.expire(getDependencies().getNotificationTimeout());
             }
         }
 
@@ -1184,15 +2042,15 @@ public class PagedTopicPartition
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Obtain the {@link Configuration} for this topic.
+     * Obtain the {@link PagedTopic.Dependencies} for this topic.
      *
-     * @return the {@link Configuration} for this topic
+     * @return the {@link PagedTopic.Dependencies} for this topic
      */
-    public Configuration getTopicConfiguration()
+    public PagedTopic.Dependencies getDependencies()
         {
         CacheService service = f_ctxManager.getCacheService();
 
-        return service.getResourceRegistry().getResource(Configuration.class, f_sName);
+        return service.getResourceRegistry().getResource(PagedTopic.Dependencies.class, f_sName);
         }
 
     /**
@@ -1282,6 +2140,7 @@ public class PagedTopicPartition
      *
      * @return the binary
      */
+    @SuppressWarnings("unchecked")
     public Binary toBinaryKey(Object o)
         {
         return (Binary) f_ctxManager.getKeyToInternalConverter().convert(o);

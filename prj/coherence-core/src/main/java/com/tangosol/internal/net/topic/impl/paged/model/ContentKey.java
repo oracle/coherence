@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -27,21 +27,21 @@ import java.io.IOException;
  * @author jk 2015.05.16
  * @since Coherence 14.1.1
  */
-// implementation note: Position does not implement Evolvable
+// implementation note: ContentKey does not implement Evolvable
 // because adding fields would affect the "equality"
 // of a key. Used as key in Cache PagedTopicsCaches#CONTENT.
-public class Position
+public class ContentKey
         implements KeyPartitioningStrategy.PartitionAwareKey
     {
     // ----- constructors ---------------------------------------------------
     /**
-     * Create a {@link Position}.
+     * Create a {@link ContentKey}.
      *
      * @param nChannel  the id of the channel
      * @param lPage     the id of the page this key belongs to
      * @param nElement  the id of the element within the page
      */
-    public Position(int nChannel, long lPage, int nElement)
+    public ContentKey(int nChannel, long lPage, int nElement)
         {
         m_nChannel = nChannel;
         m_lPage    = lPage;
@@ -96,7 +96,7 @@ public class Position
         }
 
     /**
-     * Encode a Position into a Binary.
+     * Encode a ContentKey into a Binary.
      *
      * @return the Binary
      */
@@ -106,7 +106,7 @@ public class Position
         }
 
     /**
-     * Encode a Position into a Binary.
+     * Encode a ContentKey into a Binary.
      *
      * @param nPartition  the partition
      * @param nChannel    the channel
@@ -117,7 +117,7 @@ public class Position
      */
     public static Binary toBinary(int nPartition, int nChannel, long lPage, int nElement)
         {
-        // Profiling shows that a significant portion of the server time is spent serializing these very simple Position
+        // Profiling shows that a significant portion of the server time is spent serializing these very simple ContentKey
         // objects.  As such we need it to be as optimal as possible.  The change to using this direct serialization
         // resulted in at 25% performance improvement in the TopicPerformanceTest run over the network (IB) for 1KB values.
 
@@ -135,26 +135,26 @@ public class Position
         }
 
     /**
-     * Decode a Binary into a Position
+     * Decode a Binary into a ContentKey
      *
      * @param bin  the binary
      *
-     * @return the Position
+     * @return the ContentKey
      */
-    public static Position fromBinary(Binary bin)
+    public static ContentKey fromBinary(Binary bin)
         {
         return fromBinary(bin, /*fDecorated*/ false);
         }
 
     /**
-     * Decode a Binary into a Position
+     * Decode a Binary into a ContentKey
      *
-     * @param bin  the binary
+     * @param bin         the binary
      * @param fDecorated  true iff the binary is decorated
      *
-     * @return the Position
+     * @return the ContentKey
      */
-    public static Position fromBinary(Binary bin, boolean fDecorated)
+    public static ContentKey fromBinary(Binary bin, boolean fDecorated)
         {
         try
             {
@@ -171,7 +171,7 @@ public class Position
             long lPage     = in.readPackedLong();
             int  nElement  = in.readPackedInt();
 
-            return new Position(nChannel, lPage, nElement);
+            return new ContentKey(nChannel, lPage, nElement);
             }
         catch (IOException e)
             {
@@ -233,9 +233,9 @@ public class Position
             return false;
             }
 
-        Position position = (Position) o;
+        ContentKey key = (ContentKey) o;
 
-        return m_nChannel == position.m_nChannel && m_lPage == position.m_lPage && m_nElement == position.m_nElement;
+        return m_nChannel == key.m_nChannel && m_lPage == key.m_lPage && m_nElement == key.m_nElement;
         }
 
     @Override
@@ -257,15 +257,15 @@ public class Position
     /**
      * The channel within the topic.
      */
-    private int m_nChannel;
+    private final int m_nChannel;
 
     /**
      * The page id within the channel.
      */
-    private long m_lPage;
+    private final long m_lPage;
 
     /**
      * The element within the page.
      */
-    private int m_nElement;
+    private final int m_nElement;
     }

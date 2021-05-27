@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,9 +11,7 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SparseArray;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import org.mockito.Mockito;
 
@@ -22,59 +20,63 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.verify;
 
 /**
  * @author jk 2015.12.17
  */
+@SuppressWarnings("rawtypes")
 public class BatchingOperationsQueueTest
     {
 
     @Test
-    public void shouldBeActiveOnCreation() throws Exception
+    public void shouldBeActiveOnCreation()
         {
-        BatchingOperationsQueue queue = new BatchingOperationsQueue(functionDummy, 1);
+        BatchingOperationsQueue queue = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
 
         assertThat(queue.isActive(), is(true));
         }
 
     @Test
-    public void shouldReturnFalseFillingFromEmptyQueue() throws Exception
+    public void shouldReturnFalseFillingFromEmptyQueue()
         {
-        BatchingOperationsQueue queue = new BatchingOperationsQueue(functionDummy, 1);
+        BatchingOperationsQueue queue = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
 
         assertThat(queue.fillCurrentBatch(1), is(false));
         }
 
     @Test
-    public void shouldReturnEmptyBatch() throws Exception
+    public void shouldReturnEmptyBatch()
         {
-        BatchingOperationsQueue queue     = new BatchingOperationsQueue(functionDummy, 1);
-        List          listBatch = queue.getCurrentBatchValues();
+        BatchingOperationsQueue queue     = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
+        List                    listBatch = queue.getCurrentBatchValues();
 
         assertThat(listBatch, is(notNullValue()));
         assertThat(listBatch.isEmpty(), is(true));
         }
 
     @Test
-    public void shouldBeCompleteForEmptyQueue() throws Exception
+    public void shouldBeCompleteForEmptyQueue()
         {
-        BatchingOperationsQueue queue = new BatchingOperationsQueue(functionDummy, 1);
+        BatchingOperationsQueue queue = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
 
         assertThat(queue.isBatchComplete(), is(true));
         }
 
     @Test
-    public void shouldCloseEmptyQueue() throws Exception
+    public void shouldCloseEmptyQueue()
         {
-        BatchingOperationsQueue queue = new BatchingOperationsQueue(functionDummy, 1);
+        BatchingOperationsQueue queue = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
 
         queue.close();
 
@@ -82,27 +84,25 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldNotBaAbleToAddToClosedQueue() throws Exception
+    public void shouldNotBaAbleToAddToClosedQueue()
         {
-        BatchingOperationsQueue<Void> queue = new BatchingOperationsQueue<>(functionDummy, 1);
+        BatchingOperationsQueue<Binary, Void> queue = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
 
         queue.close();
 
-        m_expectedException.expect(AssertionException.class);
-
-        queue.add(new Binary());
+        assertThrows(AssertionException.class, () -> queue.add(new Binary()));
         assertThat(queue.getCurrentBatch().isEmpty(), is(true));
         assertThat(queue.getPending().isEmpty(), is(true));
         assertThat(queue.getTrigger().get(), is(BatchingOperationsQueue.TRIGGER_OPEN));
         }
 
     @Test
-    public void shouldCompleteTriggerAndCallFunctionOnAdd() throws Exception
+    public void shouldCompleteTriggerAndCallFunctionOnAdd()
         {
-        AtomicInteger                        intValue     = new AtomicInteger(-1);
-        int                                 cInitial      = 100;
-        BatchingOperationsQueue<Void> queue         = new BatchingOperationsQueue<>(intValue::set, cInitial);
-        AtomicInteger                        futureTrigger = queue.getTrigger();
+        AtomicInteger                         intValue      = new AtomicInteger(-1);
+        int                                   cInitial      = 100;
+        BatchingOperationsQueue<Binary, Void> queue         = new BatchingOperationsQueue<>(intValue::set, cInitial);
+        AtomicInteger                         futureTrigger = queue.getTrigger();
 
         assertThat(futureTrigger.get(), is(BatchingOperationsQueue.TRIGGER_OPEN));
 
@@ -113,41 +113,45 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldAddElementsToPendingListInOrder() throws Exception
+    public void shouldAddElementsToPendingListInOrder()
         {
-        BatchingOperationsQueue<Void> queue = new BatchingOperationsQueue<>(functionDummy, 1);
+        BatchingOperationsQueue<Binary, Void> queue = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
 
         queue.add(new Binary());
         queue.add(new Binary());
         queue.add(new Binary());
         queue.add(new Binary());
 
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
 
         assertThat(listPending.size(), is(4));
 
-        BatchingOperationsQueue<Void>.Element element1 = listPending.poll();
-        BatchingOperationsQueue<Void>.Element element2 = listPending.poll();
-        BatchingOperationsQueue<Void>.Element element3 = listPending.poll();
-        BatchingOperationsQueue<Void>.Element element4 = listPending.poll();
+        BatchingOperationsQueue<Binary, Void>.Element element1 = listPending.poll();
+        BatchingOperationsQueue<Binary, Void>.Element element2 = listPending.poll();
+        BatchingOperationsQueue<Binary, Void>.Element element3 = listPending.poll();
+        BatchingOperationsQueue<Binary, Void>.Element element4 = listPending.poll();
 
+        assertThat(element1, is(notNullValue()));
         assertThat(element1.getValue(), is(new Binary()));
+        assertThat(element2, is(notNullValue()));
         assertThat(element2.getValue(), is(new Binary()));
+        assertThat(element3, is(notNullValue()));
         assertThat(element3.getValue(), is(new Binary()));
+        assertThat(element4, is(notNullValue()));
         assertThat(element4.getValue(), is(new Binary()));
         }
 
 
     @Test
-    public void shouldReturnUncompletedElementsInBatch() throws Exception
+    public void shouldReturnUncompletedElementsInBatch()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -165,15 +169,15 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldNotBeCompleteIfBatchContainsUncompleteElements() throws Exception
+    public void shouldNotBeCompleteIfBatchContainsUncompleteElements()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -187,15 +191,15 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldNotBeCompleteIfBatchContainsAllCompleteElements() throws Exception
+    public void shouldNotBeCompleteIfBatchContainsAllCompleteElements()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -210,10 +214,10 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldBeCompleteIfBatchIsEmpty() throws Exception
+    public void shouldBeCompleteIfBatchIsEmpty()
         {
-        BatchingOperationsQueue<Void> queue     = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue<Void>.Element> listBatch = queue.getCurrentBatch();
+        BatchingOperationsQueue<Binary, Void>                queue     = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch = queue.getCurrentBatch();
 
         listBatch.clear();
 
@@ -221,15 +225,15 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCompleteZeroElementsInCurrentBatch() throws Exception
+    public void shouldCompleteZeroElementsInCurrentBatch()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -247,15 +251,15 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCompleteSpecifiedNumberOfElementsInCurrentBatch() throws Exception
+    public void shouldCompleteSpecifiedNumberOfElementsInCurrentBatch()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -273,15 +277,15 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCompleteAllElementsInCurrentBatch() throws Exception
+    public void shouldCompleteAllElementsInCurrentBatch()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -299,16 +303,16 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCompleteElementsExceptionally() throws Exception
+    public void shouldCompleteElementsExceptionally()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        LongArray<Throwable>                                 aErrors     = new SparseArray<>();
-        Throwable                                            error1      = new RuntimeException("1");
-        Throwable                                            error3      = new RuntimeException("2");
+        BatchingOperationsQueue<Binary, Void>                queue     = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch = queue.getCurrentBatch();
+        BatchingOperationsQueue<Binary, Void>.Element        element1  = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2  = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3  = queue.createElement(new Binary());
+        LongArray<Throwable>                                 aErrors   = new SparseArray<>();
+        Throwable                                            error1    = new RuntimeException("1");
+        Throwable                                            error3    = new RuntimeException("2");
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -328,16 +332,16 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldFillCurrentBatchWithElements() throws Exception
+    public void shouldFillCurrentBatchWithElements()
         {
-        byte ab[] = new byte[1];
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary(ab));
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary(ab));
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary(ab));
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary(ab));
+        byte[]                                               ab          = new byte[1];
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary(ab));
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary(ab));
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary(ab));
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary(ab));
 
         listPending.add(element1);
         listPending.add(element2);
@@ -356,16 +360,16 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldFillCurrentBatchWithZeroNewElementsIfAlreadyFilled() throws Exception
+    public void shouldFillCurrentBatchWithZeroNewElementsIfAlreadyFilled()
         {
         byte[] ab = new byte[1];
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary(ab));
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary(ab));
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary(ab));
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary(ab));
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary(ab));
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary(ab));
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary(ab));
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary(ab));
 
         listPending.add(element1);
         queue.fillCurrentBatch(1);
@@ -386,15 +390,15 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldFillCurrentBatchWithAllPendingElements() throws Exception
+    public void shouldFillCurrentBatchWithAllPendingElements()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listPending.add(element1);
         listPending.add(element2);
@@ -413,16 +417,16 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldRetryOnError() throws Exception
+    public void shouldRetryOnError()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
-        Throwable                                  throwable   = new RuntimeException("No!");
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
+        Throwable                                            throwable   = new RuntimeException("No!");
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -447,16 +451,16 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCompleteAllElementsAndCloseOnError() throws Exception
+    public void shouldCompleteAllElementsAndCloseOnError()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
-        Throwable                                  throwable   = new RuntimeException("No!");
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
+        Throwable                                            throwable   = new RuntimeException("No!");
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -467,7 +471,7 @@ public class BatchingOperationsQueueTest
 
         assertThat(trigger.get(), is(BatchingOperationsQueue.TRIGGER_OPEN));
 
-        BatchingOperationsQueue< Void> spyQueue = Mockito.spy(queue);
+        BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
 
         spyQueue.handleError(throwable, BatchingOperationsQueue.OnErrorAction.Complete);
 
@@ -480,16 +484,16 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCompleteExceptionallyAllElementsAndCloseOnError() throws Exception
+    public void shouldCompleteExceptionallyAllElementsAndCloseOnError()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
-        Throwable                                  throwable   = new RuntimeException("No!");
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
+        Throwable                                            throwable   = new RuntimeException("No!");
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -500,7 +504,7 @@ public class BatchingOperationsQueueTest
 
         assertThat(trigger.get(), is(BatchingOperationsQueue.TRIGGER_OPEN));
 
-        BatchingOperationsQueue< Void> spyQueue = Mockito.spy(queue);
+        BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
 
         spyQueue.handleError(throwable, BatchingOperationsQueue.OnErrorAction.CompleteWithException);
 
@@ -513,23 +517,23 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCompleteExceptionallyIfOnErrorFunctionReturnsNull() throws Exception
+    public void shouldCompleteExceptionallyIfOnErrorFunctionReturnsNull()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
-        Throwable                                  throwable   = new RuntimeException("No!");
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
+        Throwable                                            throwable   = new RuntimeException("No!");
 
         listBatch.add(element1);
         listBatch.add(element2);
         listPending.add(element3);
         listPending.add(element4);
 
-        BatchingOperationsQueue< Void> spyQueue = Mockito.spy(queue);
+        BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
 
         spyQueue.handleError(throwable, null);
 
@@ -542,23 +546,23 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCancelAllElementsAndCloseOnError() throws Exception
+    public void shouldCancelAllElementsAndCloseOnError()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element       element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element       element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element       element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element       element4    = queue.createElement(new Binary());
-        Throwable                                 throwable   = new RuntimeException("No!");
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
+        Throwable                                            throwable   = new RuntimeException("No!");
 
         listBatch.add(element1);
         listBatch.add(element2);
         listPending.add(element3);
         listPending.add(element4);
 
-        BatchingOperationsQueue< Void> spyQueue = Mockito.spy(queue);
+        BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
 
         spyQueue.handleError(throwable, BatchingOperationsQueue.OnErrorAction.Cancel);
 
@@ -571,20 +575,20 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCreateElement() throws Exception
+    public void shouldCreateElement()
         {
-        BatchingOperationsQueue<Void> queue   = new BatchingOperationsQueue<>(functionDummy, 1);
-        BatchingOperationsQueue< Void>.Element element = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>         queue   = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        BatchingOperationsQueue<Binary, Void>.Element element = queue.createElement(new Binary());
 
         assertThat(element.getValue(), is(new Binary()));
         assertThat(element.getFuture(), is(notNullValue()));
         }
 
     @Test
-    public void shouldNotCompleteElementOnCreation() throws Exception
+    public void shouldNotCompleteElementOnCreation()
         {
-        BatchingOperationsQueue<Void> queue   = new BatchingOperationsQueue<>(functionDummy, 1);
-        BatchingOperationsQueue< Void>.Element element = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>         queue   = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        BatchingOperationsQueue<Binary, Void>.Element element = queue.createElement(new Binary());
 
         assertThat(element.isDone(), is(false));
         assertThat(element.getFuture().isDone(), is(false));
@@ -592,10 +596,10 @@ public class BatchingOperationsQueueTest
 
 
     @Test
-    public void shouldCompleteElement() throws Exception
+    public void shouldCompleteElement()
         {
-        BatchingOperationsQueue<Void> queue   = new BatchingOperationsQueue<>(functionDummy, 1);
-        BatchingOperationsQueue< Void>.Element element = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>         queue   = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        BatchingOperationsQueue<Binary, Void>.Element element = queue.createElement(new Binary());
 
         element.complete();
 
@@ -606,11 +610,11 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldCompleteElementExceptionally() throws Exception
+    public void shouldCompleteElementExceptionally()
         {
-        BatchingOperationsQueue<Void> queue     = new BatchingOperationsQueue<>(functionDummy, 1);
-        BatchingOperationsQueue< Void>.Element element   = queue.createElement(new Binary());
-        Throwable                           throwable = new RuntimeException("No!");
+        BatchingOperationsQueue<Binary, Void>         queue     = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        BatchingOperationsQueue<Binary, Void>.Element element   = queue.createElement(new Binary());
+        Throwable                                     throwable = new RuntimeException("No!");
 
         element.completeExceptionally(throwable);
 
@@ -619,22 +623,19 @@ public class BatchingOperationsQueueTest
         assertThat(element.getFuture().isCancelled(), is(false));
         assertThat(element.getFuture().isCompletedExceptionally(), is(true));
 
-        m_expectedException.expect(ExecutionException.class);
-        m_expectedException.expectCause(is(sameInstance(throwable)));
-
-        element.getFuture().get();
+        assertThrows(ExecutionException.class, () -> element.getFuture().get(1, TimeUnit.MINUTES));
         }
 
     @Test
-    public void shouldFlushQueue() throws Exception
+    public void shouldFlushQueue()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -661,15 +662,15 @@ public class BatchingOperationsQueueTest
         }
 
     @Test
-    public void shouldFlushQueueWhenFuturesCompleteExceptionally() throws Exception
+    public void shouldFlushQueueWhenFuturesCompleteExceptionally()
         {
-        BatchingOperationsQueue<Void> queue       = new BatchingOperationsQueue<>(functionDummy, 1);
-        Queue<BatchingOperationsQueue< Void>.Element> listBatch   = queue.getCurrentBatch();
-        Deque<BatchingOperationsQueue< Void>.Element> listPending = queue.getPending();
-        BatchingOperationsQueue< Void>.Element        element1    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element2    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element3    = queue.createElement(new Binary());
-        BatchingOperationsQueue< Void>.Element        element4    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
 
         listBatch.add(element1);
         listBatch.add(element2);
@@ -695,8 +696,5 @@ public class BatchingOperationsQueueTest
         assertThat(future.isCompletedExceptionally(), is(false));
         }
 
-    @Rule
-    public ExpectedException m_expectedException = ExpectedException.none();
-
-    private static Consumer<Integer> functionDummy = (val) -> {};
+    private static final Consumer<Integer> FUNCTION_DUMMY = (val) -> {};
     }

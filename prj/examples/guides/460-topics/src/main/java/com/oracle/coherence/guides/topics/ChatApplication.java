@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,11 +8,8 @@
 package com.oracle.coherence.guides.topics;
 
 import com.tangosol.net.Coherence;
-import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.Session;
-import com.tangosol.net.SessionConfiguration;
 
-import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.Subscriber.Element;
@@ -20,12 +17,13 @@ import com.tangosol.net.topic.Subscriber.Element;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Scanner;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.tangosol.net.ValueTypeAssertion.withType;
+import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 
 /**
  * A driver for the topics tutorial.
@@ -42,38 +40,28 @@ public class ChatApplication implements Runnable {
     /**
      * User Id for the chat.
      */
-    private String userId;
+    private final String userId;
 
     // tag::properties[]
     /**
-     * Topic for public messages.
-     */
-    private NamedTopic<ChatMessage> topicPublic;
-
-    /**
-     * Topic for private messages.
-     */
-    private NamedTopic<ChatMessage> topicPrivate;
-
-    /**
      * Publisher for public messages.
      */
-    private Publisher<ChatMessage> publisherPublic;
+    private final Publisher<ChatMessage> publisherPublic;
 
     /**
      * Publisher for private messages.
      */
-    private Publisher<ChatMessage> publisherPrivate;
+    private final Publisher<ChatMessage> publisherPrivate;
 
     /**
      * Subscriber for public messages.
      */
-    private Subscriber<ChatMessage> subscriberPublic;
+    private final Subscriber<ChatMessage> subscriberPublic;
 
     /**
      * Subscriber for private messages.
      */
-    private Subscriber<ChatMessage> subscriberPrivate;
+    private final Subscriber<ChatMessage> subscriberPrivate;
     // end::properties[]
 
     /**
@@ -84,17 +72,17 @@ public class ChatApplication implements Runnable {
     /**
      * {@link InputStream} to be used for {@link Scanner} input.
      */
-    private InputStream inputStream;
+    private final InputStream inputStream;
 
     /**
      * Number of messages sent.
      */
-    private AtomicInteger messagesSent = new AtomicInteger(0);
+    private final AtomicInteger messagesSent = new AtomicInteger(0);
 
     /**
      * Number of messages received.
      */
-    private AtomicInteger messagesReceived = new AtomicInteger(0);
+    private final AtomicInteger messagesReceived = new AtomicInteger(0);
 
     /**
      * Usage string.
@@ -150,19 +138,17 @@ public class ChatApplication implements Runnable {
         // end::sessionCreate[]
 
         // tag::public[]
-        // create public topic where everyone subscribes as anonymous and gets all messages
-        // sent while they are connected
-        topicPublic = session.getTopic("public-messages", withType(ChatMessage.class));  // <1>
-        publisherPublic = topicPublic.createPublisher();  // <2>
-        subscriberPublic = topicPublic.createSubscriber();  // <3>
+        // create a publisher to publish public messages
+        publisherPublic = session.createPublisher("public-messages");  // <1>
+        // create a subscriber to receive public messages
+        subscriberPublic = session.createSubscriber("public-messages");  // <2>
         // end::public[]
 
         // tag::private[]
-        // create private topic where messages are send to individuals and are via a subscriber group.
-        // Subscribers will get messages sent offline if they have previously connected
-        topicPrivate = session.getTopic("private-messages", withType(ChatMessage.class));  // <1>
-        publisherPrivate = topicPrivate.createPublisher();  // <2>
-        subscriberPrivate = topicPrivate.createSubscriber(Subscriber.Name.of(userId));  // <3>
+        // create a publisher to publish private messages
+        publisherPrivate = session.createPublisher("private-messages");  // <1>
+        // create a subscriber to receive private messages
+        subscriberPrivate = session.createSubscriber("private-messages", inGroup(userId));  // <2>
         // end::private[]
     }
 
@@ -173,17 +159,17 @@ public class ChatApplication implements Runnable {
 
         // tag::subscribers[]
         // subscription for anonymous subscriber/ public messages
-        subscriberPublic.receive().handleAsync((v, err) -> receive(v, err, subscriberPublic));
+        subscriberPublic.receive().handle((v, err) -> receive(v, err, subscriberPublic));
 
         // subscription for subscriber group / private durable messages
-        subscriberPrivate.receive().handleAsync((v, err) -> receive(v, err, subscriberPrivate));
+        subscriberPrivate.receive().handle((v, err) -> receive(v, err, subscriberPrivate));
         // end::subscribers[]
 
         System.out.println("User: " + userId);
 
         // tag::join[]
         // generate a join message and send synchronously
-        publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.JOIN, null)).join();
+        publisherPublic.publish(new ChatMessage(userId, null, ChatMessage.Type.JOIN, null)).join();
         // end::join[]
 
         try {
@@ -199,7 +185,7 @@ public class ChatApplication implements Runnable {
                     // tag::sendPublic[]
                 } else if (line.startsWith("send ")) {
                     // send public message synchronously
-                    publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.MESSAGE, line.substring(5)))
+                    publisherPublic.publish(new ChatMessage(userId, null, ChatMessage.Type.MESSAGE, line.substring(5)))
                             .handle(this::handleSend);  // <1>
                     // end::sendPublic[]
                     // tag::sendPrivate[]
@@ -212,7 +198,7 @@ public class ChatApplication implements Runnable {
                     } else {
                         String user = parts[1];
                         String message = line.replaceAll(parts[0] + " " + parts[1] + " ", "");
-                        publisherPrivate.send(new ChatMessage(userId, user, ChatMessage.Type.MESSAGE, message))
+                        publisherPrivate.publish(new ChatMessage(userId, user, ChatMessage.Type.MESSAGE, message))
                                 .handle(this::handleSend); // <1>
                         // end::sendPrivate[]
                     }
@@ -232,31 +218,34 @@ public class ChatApplication implements Runnable {
     private void cleanup() {
         // generate a leave message
         // tag::leave[]
-        if (topicPublic.isActive()) {
-            publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.LEAVE, null)).join();
+        if (publisherPublic.isActive()) {
+            publisherPublic.publish(new ChatMessage(userId, null, ChatMessage.Type.LEAVE, null)).join();
             publisherPublic.flush().join();
             publisherPublic.close();
+        }
+        if (subscriberPublic.isActive()) {
             subscriberPublic.close();
-            topicPublic.close();
         }
         // end::leave[]
 
-        if (topicPrivate.isActive()) {
+        if (publisherPrivate.isActive()) {
             publisherPrivate.flush().join();
             publisherPrivate.close();
+        }
+        if (subscriberPrivate.isActive()) {
             subscriberPrivate.close();
-            topicPrivate.close();
         }
     }
     // end::cleanup[]
 
     /**
-     * Generate a message to display. If the message returned is null then it should not be displayed.
+     * Generate a message to display, or {@link Optional#empty()} if there is no message to display.
      *
      * @param chatMessage the {@link ChatMessage} to process
-     * @return a message to display or null if none
+     *
+     * @return a message to display, or {@link Optional#empty()} if there is no message to display
      */
-    private String getMessageLog(ChatMessage chatMessage) {
+    private Optional<String> getMessageLog(ChatMessage chatMessage) {
         String fromUserId = chatMessage.getFromUserId();
         String toUserId = chatMessage.getToUserId();
 
@@ -264,7 +253,7 @@ public class ChatApplication implements Runnable {
         // private message not for this user.
         if (fromUserId.equals(userId)
                 || (toUserId != null && !toUserId.equals(userId))) {
-            return null;
+            return Optional.empty();
         }
 
         ChatMessage.Type type = chatMessage.getType();
@@ -283,7 +272,7 @@ public class ChatApplication implements Runnable {
             }
             sb.append(" - ").append(chatMessage.getMessage());
         }
-        return sb.toString();
+        return Optional.of(sb.toString());
     }
 
     // tag::receive[]
@@ -303,13 +292,13 @@ public class ChatApplication implements Runnable {
             }
         } else {
             ChatMessage chatMessage = element.getValue();  // <1>
-            String message = getMessageLog(chatMessage);  // <2>
-            // ensure we don't display a message from ourselves
-            if (message != null) {
-                messagesReceived.incrementAndGet();
-                log(message);
-            }
-            subscriber.receive().handleAsync((v, err) -> receive(v, err, subscriber));  // <1>
+            getMessageLog(chatMessage)                     // <2>
+                .ifPresent(message -> {
+                    messagesReceived.incrementAndGet();
+                    log(message);
+                });
+            element.commit();   // <3>
+            subscriber.receive().handle((v, err) -> receive(v, err, subscriber));  // <4>
         }
         return null;
     }
@@ -317,11 +306,11 @@ public class ChatApplication implements Runnable {
 
     /**
      * Handle a send error
-     * @param v   Void
-     * @param err the {@link Throwable}
+     * @param metadata  metadata for the published element
+     * @param err       the {@link Throwable}
      * @return Void
      */
-    private Void handleSend(Void v, Throwable err) {
+    private Void handleSend(Publisher.Status metadata, Throwable err) {
         if (err == null) {
             messagesSent.incrementAndGet();
         } else {

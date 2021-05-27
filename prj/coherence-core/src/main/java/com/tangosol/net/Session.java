@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,6 +12,8 @@ import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 
 import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.ResourceRegistry;
 
@@ -91,9 +93,84 @@ public interface Session extends AutoCloseable
      *
      * @return a {@link NamedCache}
      *
+     * @since Coherence 14.1.2
+     */
+    default <V> NamedTopic<V> getTopic(String sName)
+        {
+        // this method variant only exists so that callers which don't specify options won't get
+        // a compile time warning about the implicit generic array creation
+        return getTopic(sName, new NamedCollection.Option[0]);
+        }
+
+    /**
+     * Acquire a {@link NamedTopic} using the
+     * specified {@link ValueTypeAssertion}.
+     *
+     * @param sName          the name of the {@link NamedTopic}
+     *
+     * @param <V>  the type of elements for the {@link NamedTopic}
+     *
+     * @return a {@link NamedCache}
+     *
      * @since Coherence 14.1.1
      */
     <V> NamedTopic<V> getTopic(String sName, NamedTopic.Option... options);
+
+    /**
+     * Create a {@link Publisher} that can publish values into a {@link NamedTopic}.
+     *
+     * @param sName  the name of the {@link NamedTopic} the {@link Publisher} will publish to
+     *
+     * @return a {@link Publisher} that can publish values a {@link NamedTopic}
+     */
+    default <V> Publisher<V> createPublisher(String sName)
+        {
+        // this method variant only exists so that callers which don't specify options won't get
+        // a compile time warning about the implicit generic array creation
+        return createPublisher(sName, new Publisher.Option[0]);
+        }
+
+    /**
+     * Create a {@link Publisher} that can publish values into a {@link NamedTopic}.
+     *
+     * @param sName    the name of the {@link NamedTopic} the {@link Publisher} will publish to
+     * @param options  the {@link Publisher.Option}s controlling the {@link Publisher}
+     *
+     * @return a {@link Publisher} that can publish values a {@link NamedTopic}
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    default <V> Publisher<V> createPublisher(String sName, Publisher.Option... options)
+        {
+        return getTopic(sName).createPublisher(options);
+        }
+
+    /**
+     * Create a {@link Subscriber} that can subscribe to a {@link NamedTopic}.
+     *
+     * @param sName  the name of the {@link NamedTopic} the {@link Subscriber} will subscribe to
+     *
+     * @return a {@link Subscriber} that can publish values a {@link NamedTopic}
+     */
+    default <V> Subscriber<V> createSubscriber(String sName)
+        {
+        // this method variant only exists so that callers which don't specify options won't get
+        // a compile time warning about the implicit generic array creation
+        return createSubscriber(sName, new Subscriber.Option[0]);
+        }
+
+    /**
+     * Create a {@link Subscriber} that can subscribe to a {@link NamedTopic}.
+     *
+     * @param sName    the name of the {@link NamedTopic} the {@link Subscriber} will subscribe to
+     * @param options  the {@link Subscriber.Option}s controlling the {@link Subscriber}
+     *
+     * @return a {@link Subscriber} that can publish values a {@link NamedTopic}
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    default <V> Subscriber<V> createSubscriber(String sName, Subscriber.Option... options)
+        {
+        return getTopic(sName).createSubscriber(options);
+        }
 
     /**
      * Return the {@link ResourceRegistry} for this session.

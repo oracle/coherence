@@ -175,9 +175,8 @@ include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[t
 include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=public]
 ----
 +
-<1> Creates the public topic with the type of `ChatMessage.class`
-<2> Creates a publisher to publish messages to the topic
-<3> Creates a subscriber (anonymous) to receive all messages published to the topic
+<1> Creates a publisher to publish messages to the topic
+<2> Creates a subscriber (anonymous) to receive all messages published to the topic
 
 5. Create the *private* Topic, Subscribers and Publishers
 +
@@ -186,9 +185,8 @@ include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[t
 include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[tag=private]
 ----
 +
-<1> Creates the private topic with the type of `ChatMessage.class`
-<2> Creates a publisher to publish messages to the topic
-<3> Creates a subscriber with a subscriber group of the user to receive private messages
+<1> Creates a publisher to publish messages to the topic
+<2> Creates a subscriber with a subscriber group of the user to receive private messages
 
 6. When the application starts, two subscriptions are initiated. One to receive messages from the public topic and one
 to receive messages from the private topic.
@@ -208,8 +206,9 @@ include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[t
 ----
 +
 <1> Retrieve the `ChatMessage`
-<2> Call a method to generate a string representation
-<3> Re-subscribe
+<2> Call a method to generate a string representation of the message and display it
+<3> Commit the element so that we do not receive the message again
+<3> Receive the next message
 
 8. Generate a join message on startup
 +

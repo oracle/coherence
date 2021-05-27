@@ -70,10 +70,11 @@ class NamedTopicProducerIT
     private RequestContextController contextController;
 
     @Test
+    @SuppressWarnings("rawtypes")
     void shouldGetDynamicNamedTopic()
         {
-        Annotation qualifier = Name.Literal.of("numbers");
-        Instance<NamedTopic> instance = weld.select(NamedTopic.class, qualifier);
+        Annotation           qualifier = Name.Literal.of("numbers");
+        Instance<NamedTopic> instance  = weld.select(NamedTopic.class, qualifier);
 
         assertThat(instance.isResolvable(), is(true));
         assertThat(instance.get().getName(), is("numbers"));
@@ -132,8 +133,8 @@ class NamedTopicProducerIT
         Subscriber<String> specificSubscriber = bean.getSpecificSubscriber();
         CompletableFuture<Subscriber.Element<String>> specificFuture = specificSubscriber.receive();
 
-        bean.getDefaultPublisher().send("value-one");
-        bean.getSpecificPublisher().send("value-two");
+        bean.getDefaultPublisher().publish("value-one");
+        bean.getSpecificPublisher().publish("value-two");
 
         Subscriber.Element<String> valueOne = defaultFuture.get(1, TimeUnit.MINUTES);
         Subscriber.Element<String> valueTwo = specificFuture.get(1, TimeUnit.MINUTES);
@@ -283,6 +284,7 @@ class NamedTopicProducerIT
         }
 
     @ApplicationScoped
+    @SuppressWarnings("rawtypes")
     private static class NamedTopicFieldsBean
         {
         @Inject
@@ -321,6 +323,7 @@ class NamedTopicProducerIT
         }
 
     @ApplicationScoped
+    @SuppressWarnings("rawtypes")
     private static class NamedTopicPublisherFieldsBean
         {
         @Inject
@@ -359,6 +362,7 @@ class NamedTopicProducerIT
         }
 
     @ApplicationScoped
+    @SuppressWarnings("rawtypes")
     private static class NamedTopicSubscriberFieldsBean
         {
         @Inject

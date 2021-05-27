@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * Per-partition state associated with paged topics.
@@ -179,6 +180,11 @@ public class Usage
         return (m_cWaitingSubscribers += cAdjust);
         }
 
+    public int getWaitingSubscriberCount()
+        {
+        return m_cWaitingSubscribers;
+        }
+
     /**
      * Reset the waiting subscriber count to zero.
      *
@@ -204,6 +210,11 @@ public class Usage
         // deserialization.
 
         m_anNotifyOnRemove = Arrays.binaryInsert(m_anNotifyOnRemove, nNotifierId);
+        }
+
+    public int[] getRemovalNotifiers()
+        {
+        return m_anNotifyOnRemove;
         }
 
     /**
@@ -232,7 +243,7 @@ public class Usage
         m_lHead                   = in.readLong(1);
         m_lTail                   = in.readLong(2);
         m_lMax                    = in.readLong(3);
-        m_colAnonymousSubscribers = in.readObject(4);
+        m_colAnonymousSubscribers = in.readCollection(4, new HashSet<>());
         m_cWaitingSubscribers     = in.readInt(5);
         m_anNotifyOnRemove        = in.readObject(6);
         }
@@ -245,7 +256,7 @@ public class Usage
         out.writeLong(1, m_lHead);
         out.writeLong(2, m_lTail);
         out.writeLong(3, m_lMax);
-        out.writeObject(4, m_colAnonymousSubscribers);
+        out.writeCollection(4, m_colAnonymousSubscribers);
         out.writeInt(5, m_cWaitingSubscribers);
         out.writeIntArray(6, m_anNotifyOnRemove);
         }
@@ -256,9 +267,15 @@ public class Usage
     public String toString()
         {
         int[] anRemove = m_anNotifyOnRemove;
-        return getClass().getSimpleName() + "(globalTail=" + m_lTailPublication + ", head=" + m_lHead
-                + ", tail=" + m_lTail + ", maxPage=" + m_lMax + ", waitingPubs=" + (anRemove == null ? 0 : anRemove.length)
-                +", waitingSubs=" + m_cWaitingSubscribers + ", anonSubs=" + m_colAnonymousSubscribers + ")";
+        return getClass().getSimpleName()
+                + "(globalTail=" + m_lTailPublication
+                + ", head=" + m_lHead
+                + ", tail=" + m_lTail
+                + ", maxPage=" + m_lMax
+                + ", waitingPubs=" + (anRemove == null ? 0 : anRemove.length)
+                + ", waitingSubs=" + m_cWaitingSubscribers
+                + ", removalNotifiers=" + java.util.Arrays.toString(m_anNotifyOnRemove)
+                + ", anonSubs=" + m_colAnonymousSubscribers + ")";
         }
 
     // ----- inner class: Key -----------------------------------------------
@@ -270,7 +287,7 @@ public class Usage
     // because adding fields would affect the "equality"
     // of a key
     public static class Key
-        implements KeyPartitioningStrategy.PartitionAwareKey, PortableObject
+        implements KeyPartitioningStrategy.PartitionAwareKey, PortableObject, Comparable<Usage.Key>
         {
         /**
          * Deserialization constructor.
@@ -309,6 +326,15 @@ public class Usage
             out.writeInt(1, m_nChannel);
             }
 
+        // ----- Comparable interface ---------------------------------------
+
+        @Override
+        public int compareTo(Key o)
+            {
+            int n = Integer.compare(m_nChannel, o.m_nChannel);
+            return n == 0 ? Integer.compare(m_nPartition, o.m_nPartition) : n;
+            }
+
         // ----- Object interface -------------------------------------------
 
         @Override
@@ -320,7 +346,7 @@ public class Usage
         @Override
         public String toString()
             {
-            return getClass().getName() + "(partition=" + m_nPartition + ", channel=" + m_nChannel + ")";
+            return "UsageKey(partition=" + m_nPartition + ", channel=" + m_nChannel + ")";
             }
 
         @Override

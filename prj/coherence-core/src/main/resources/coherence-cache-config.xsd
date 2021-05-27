@@ -448,10 +448,14 @@
         <xsd:element ref="autostart" minOccurs="0" />
         <xsd:element ref="interceptors" minOccurs="0" />
 
+        <xsd:element ref="channel-count" minOccurs="0"/>
         <xsd:element ref="page-size" minOccurs="0"/>
         <xsd:element ref="expiry-delay" minOccurs="0"/>
         <xsd:element ref="high-units" minOccurs="0"/>
         <xsd:element ref="retain-consumed" minOccurs="0"/>
+        <xsd:element ref="allow-unowned-commits" minOccurs="0"/>
+        <xsd:element ref="subscriber-timeout" minOccurs="0"/>
+        <xsd:element ref="element-calculator" minOccurs="0"/>
 
         <xsd:any namespace="##other" processContents="lax"
                  minOccurs="0" maxOccurs="unbounded" />
@@ -3779,10 +3783,57 @@
         </xsd:annotation>
     </xsd:element>
 
+  <xsd:element name="channel-count" type="coherence-nonNegativeInteger-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        The number of channels in the topic.
+
+        Valid channel counts are positive integers.
+        The default is 0 which suggests to topics to derive its own channel count.
+
+        Channels are a means for introducing scalability when publishing to or consuming data from topics.
+        Setting a low channel count can impede scalability and throughput, as publishers will contend over the fewer
+        channels and subscriber groups are limited at parallelizing consumption based on this number of channels.
+
+        Setting the channel count small reduces the capacity for concurrency, for example, publishers
+        would have more contention as they would all publish to a much smaller number of channels; and
+        subscribers in a group read from a channel, so only having one channel means a group could have
+        no more than one subscriber (although there could be any number of groups).
+
+        Setting the value too large would have an impact on memory and storage use due to the number of
+        data structures that are duplicated on a per-channel basis. This is similar to the pros and cons
+        of different partition counts different partition counts in the distributed-scheme.
+
+        Ideally, for better distribution, the channel count should be a prime. The default channel count
+        is based on the partition count configured for the underlying cache service and will be the next
+        largest prime above the square root of the partition count. For the Coherence default partition
+        count of 257, this gives a default channel count of 17.
+
+        Used in: paged-topic-scheme
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
   <xsd:element name="page-size" type="coherence-integer-memorySize-type">
     <xsd:annotation>
       <xsd:documentation>
-        The page-size element specifies the target page size.
+        The page-size element specifies the desired page size, pages may
+        exceed this size because elements are accepted into a page until
+        the the actual size >= the desired page size. For example, if the
+        page size is 1MB and the page has a number of elements already added
+        so that only 100 bytes remain. The next element offered will still be
+        accepted even if it exceeds 100 bytes in size, causing the total page
+        size to exceed 1 MB.
+
+        The unit of measurement is determined by the element-calculator.
+
+        Valid values are positive integers.
+        Values may include a standard byte oriented magnitude suffix such as
+        (B, KB, MB, GB, TB) in which case the BINARY element-calculator is
+        implied.
+        Values without a byte oriented magnitude suffix will be taken to
+        represent a fixed number of elements per-pages, in which case the
+        FIXED element-calculator is implied.
 
         The default value is 1MB.
 
@@ -3855,6 +3906,105 @@
               Default value is false.
 
               Used in: paged-topic-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="allow-unowned-commits" type="coherence-boolean-type">
+      <xsd:annotation>
+          <xsd:documentation>
+            The allow-unowned-commits element is used to mark whether a topic
+            allows commits of a position in a channel to be made by a subscriber
+            that does not own that channel.
+
+            Setting this flag to true would typically be to allow for subscribers that have just
+            had a channel allocation revoked due to subscriber redistribution to still commit the
+            positions of elements they have just processed. This is on the understanding that the
+            subscriber that the channels have been reallocated to could have also processed the
+            message and be about to (or already have) committed.
+
+            The default value is false to disallow commits of unowned channels as this assumes that
+            that a revoked channel has recently been reallocated to a different subscriber and that
+            subscriber will then read from the last commit and reprocess and commit any uncommitted
+            messages.
+
+            Valid values are true or false.
+            Default value is false.
+
+            Used in: paged-topic-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="subscriber-timeout" type="coherence-time-type">
+      <xsd:annotation>
+          <xsd:documentation>
+              The subscriber-timeout element specifies the maximum
+              time interval allowed between receive requests from a
+              subscriber, in a subscriber group, before that subscriber
+              is considered unresponsive.
+              When a subscriber is timed out the channels allocated
+              to it will automatically be reallocated to any other
+              remaining subscribers within the same group.
+              This stops channels within a topic becoming orphaned,
+              where no subscriber in a group is polling for messages.
+              Subscribers that have polled an empty topic and are waiting for the
+              outstanding receive future to complete when a new value is published
+              will not be timed-out.
+
+              A value of zero will indicate that subscribers never expire.
+
+              The minimum accepted value is one second, values between less than 1s will
+              be rounded up to 1s.
+
+              The value of this element must be in the following
+              format:
+
+              (\d)+((.)(\d)+)?(MS|ms|S|s|M|m|H|h|D|d)?
+
+              where the first
+              non-digits (from left to right) indicate the unit of time
+              duration:
+
+              -MS or ms (milliseconds)
+              -S or s (seconds)
+              -M or m (minutes)
+              -H or h
+              (hours)
+              -D or d (days)
+
+              If the value does not contain a unit, a unit of
+              seconds is assumed.
+              The default value is five minutes.
+
+              Used in: paged-topic-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="element-calculator" type="calculator-type">
+      <xsd:annotation>
+          <xsd:documentation>
+            The element-calculator element contains the element
+            calculator configuration info.
+
+            Valid type values are "FIXED" and "BINARY".
+
+            A element calculator is used to determine the cost (in
+            "units") of a given element in a topic.
+            The FIXED element calculator assigns an equal
+            weight of 1 to all topic elements. The BINARY element
+            calculator assigns an object a weight equal to the
+            number of bytes of memory required to hold the object.
+
+            Alternatively, this element may contain a class-scheme
+            element that specifies a custom element calculator class.
+            The specified class must implement the
+            NamedTopic.ElementCalculator interface.
+
+            Default value is BINARY.
+
+            Used in: paged-topic-scheme
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>

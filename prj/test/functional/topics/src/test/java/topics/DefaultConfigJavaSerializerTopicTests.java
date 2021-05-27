@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,12 +10,14 @@ package topics;
 import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
+import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
@@ -26,6 +28,7 @@ import com.tangosol.net.Session;
 
 import com.tangosol.util.Base;
 
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 /**
@@ -39,6 +42,15 @@ public class DefaultConfigJavaSerializerTopicTests
     public DefaultConfigJavaSerializerTopicTests()
         {
         super("java");
+        }
+
+    // ----- test lifecycle methods -----------------------------------------
+
+    @BeforeClass
+    public static void setup() throws Exception
+        {
+        String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
+        System.setProperty("coherence.localhost", sHost);
         }
 
     // ----- helpers --------------------------------------------------------
@@ -80,12 +92,15 @@ public class DefaultConfigJavaSerializerTopicTests
     public static final String CACHE_CONFIG_FILE = DEFAULT_COHERENCE_CACHE_CONFIG;
 
     @ClassRule
+    public static TestLogs s_testLogs = new TestLogs(DefaultConfigPofSerializerTopicTests.class);
+
+    @ClassRule
     public static CoherenceClusterOrchestration orchestration =
         new CoherenceClusterOrchestration()
             .withOptions(ClusterName.of(DefaultConfigJavaSerializerTopicTests.class.getSimpleName() + "Cluster"),
                 CacheConfig.of(CACHE_CONFIG_FILE),
+                s_testLogs.builder(),
                 Pof.disabled(),
-                SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
                 SystemProperty.of("coherence.management", "all"),
                 SystemProperty.of("coherence.management.remote", "true"),
                 SystemProperty.of("coherence.management.refresh.expiry", "1ms"),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,13 +13,12 @@ import com.tangosol.util.ExternalizableHelper;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author jk 2015.08.24
@@ -28,11 +27,10 @@ public class PollResultTest
     {
     @Test
     public void shouldSerializeUsingPof()
-            throws Exception
         {
         ConfigurablePofContext serializer  = new ConfigurablePofContext("coherence-pof-config.xml");
-        ArrayList<Binary>      list        = new ArrayList<>();
-        PollProcessor.Result toSerialize = new PollProcessor.Result(0, 0, list);
+        LinkedList<Binary>     list        = new LinkedList<>();
+        PollProcessor.Result   toSerialize = new PollProcessor.Result(0, 0, list);
 
         list.add(ExternalizableHelper.toBinary("Foo", serializer));
         list.add(ExternalizableHelper.toBinary("Bar", serializer));
@@ -46,15 +44,14 @@ public class PollResultTest
 
         // validate Evolvable version across pof serialization
         assertThat(result.getDataVersion(), is(toSerialize.getImplVersion()));
-        assertNotNull(result.toString());
+        assertThat(result.toString(), is(notNullValue()));
         }
 
     @Test
-    public void shouldReturnEmptyListIfConstructedWithNullList() throws Exception
+    public void shouldReturnEmptyListIfConstructedWithNullList()
         {
         PollProcessor.Result pollResult = new PollProcessor.Result(0, 0, null);
-
-        List<Binary> elements = pollResult.getElements();
+        Queue<Binary>        elements   = pollResult.getElements();
 
         assertThat(elements, is(notNullValue()));
         assertThat(elements.isEmpty(), is(true));

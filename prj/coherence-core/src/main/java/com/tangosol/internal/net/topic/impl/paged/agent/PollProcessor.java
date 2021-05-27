@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -20,9 +20,8 @@ import com.tangosol.util.InvocableMap;
 
 import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * An {@link com.tangosol.util.InvocableMap.EntryProcessor} for polling
@@ -52,13 +51,15 @@ public class PollProcessor
      * @param lPage             the page to poll from
      * @param cElements         the desired number of elements to poll
      * @param nNotifyPostEmpty  notification key to delete when emptying the empty state, or zero for none
+     * @param nSubscriberId     the unique identifier of the subscriber, or zero for an anonymous subscriber
      */
-    public PollProcessor(long lPage, int cElements, int nNotifyPostEmpty)
+    public PollProcessor(long lPage, int cElements, int nNotifyPostEmpty, long nSubscriberId)
         {
         super(PagedTopicPartition::ensureTopic);
         m_lPage            = lPage;
         m_cElements        = cElements;
         m_nNotifyPostEmpty = nNotifyPostEmpty;
+        m_nSubscriberId    = nSubscriberId;
         }
 
     // ----- AbstractProcessor methods --------------------------------------
@@ -70,8 +71,8 @@ public class PollProcessor
         // that they cannot run concurrently on the same page.  Simply sharing the same association does not ensure
         // this.
 
-        return ensureTopic(entry).pollFromPageHead(
-                (BinaryEntry<Subscription.Key, Subscription>) entry, m_lPage, m_cElements, m_nNotifyPostEmpty);
+        return ensureTopic(entry).pollFromPageHead((BinaryEntry<Subscription.Key, Subscription>) entry, m_lPage,
+                m_cElements, m_nNotifyPostEmpty, m_nSubscriberId);
         }
 
     // ----- EvolvablePortableObject interface ------------------------------
@@ -89,6 +90,10 @@ public class PollProcessor
         m_lPage            = in.readLong(0);
         m_cElements        = in.readInt(1);
         m_nNotifyPostEmpty = in.readInt(2);
+        if (getDataVersion() >= 2)
+            {
+            m_nSubscriberId = in.readLong(3);
+            }
         }
 
     @Override
@@ -98,6 +103,7 @@ public class PollProcessor
         out.writeLong(0, m_lPage);
         out.writeInt(1, m_cElements);
         out.writeInt(2, m_nNotifyPostEmpty);
+        out.writeLong(3, m_nSubscriberId);
         }
 
     // ----- constants ------------------------------------------------------
@@ -105,7 +111,7 @@ public class PollProcessor
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 1;
+    public static final int DATA_VERSION = 2;
 
     // ----- data members ---------------------------------------------------
 
@@ -123,6 +129,11 @@ public class PollProcessor
      * Post empty notification key.
      */
     protected int m_nNotifyPostEmpty;
+
+    /**
+     * The unique identifier of the subscriber.
+     */
+    protected long m_nSubscriberId;
 
     /**
      * A {@link Result} is returned to a consumer as the
@@ -149,13 +160,13 @@ public class PollProcessor
          *
          * @param cElementsRemaining  true iff the target page has been exhausted
          * @param nNext               the index of the next element in the page
-         * @param listElements        the elements to return in this result
+         * @param queueElements        the elements to return in this result
          */
-        public Result(int cElementsRemaining, int nNext, List<Binary> listElements)
+        public Result(int cElementsRemaining, int nNext, Queue<Binary> queueElements)
             {
             m_cElementsRemaining = cElementsRemaining;
             m_nNext              = nNext;
-            m_listElements       = listElements == null ? Collections.emptyList() : listElements;
+            m_queueElements      = queueElements == null ? new LinkedList<>() : queueElements;
             }
 
         // ----- accessor methods -----------------------------------------------
@@ -186,9 +197,9 @@ public class PollProcessor
          *
          * @return  the elements polled from the topic in this result
          */
-        public List<Binary> getElements()
+        public Queue<Binary> getElements()
             {
-            return m_listElements == null ? Collections.emptyList() : m_listElements;
+            return m_queueElements == null ? new LinkedList<>() : m_queueElements;
             }
 
         // ----- EvolvablePortableObject interface --------------------------
@@ -204,7 +215,7 @@ public class PollProcessor
             {
             m_cElementsRemaining = in.readInt(0);
             m_nNext              = in.readInt(1);
-            m_listElements       = in.readCollection(2, new ArrayList<>());
+            m_queueElements      = in.readCollection(2, new LinkedList<>());
             }
 
         @Override
@@ -212,7 +223,7 @@ public class PollProcessor
             {
             out.writeInt(0, m_cElementsRemaining);
             out.writeInt(1, m_nNext);
-            out.writeCollection(2, m_listElements, Binary.class);
+            out.writeCollection(2, m_queueElements, Binary.class);
             }
 
         // ----- object methods -------------------------------------------------
@@ -223,7 +234,7 @@ public class PollProcessor
             return "TopicPollResult(" +
                     "remaining=" + m_cElementsRemaining +
                     ", next=" + m_nNext +
-                    ", retrieved=" + m_listElements +
+                    ", retrieved=" + m_queueElements +
                     ')';
             }
 
@@ -245,6 +256,11 @@ public class PollProcessor
          */
         public static final int UNKNOWN_SUBSCRIBER = -2;
 
+        /**
+         * Special value indicating that the subscriber does not own the channel.
+         */
+        public static final int NOT_ALLOCATED_CHANNEL = -3;
+
         // ----- data members ---------------------------------------------------
 
         /**
@@ -260,8 +276,8 @@ public class PollProcessor
         private int m_nNext;
 
         /**
-         * A list containing the elements retrieved from the topic
+         * A {@link Queue} containing the elements retrieved from the topic
          */
-        private List<Binary> m_listElements;
+        private Queue<Binary> m_queueElements;
         }
     }

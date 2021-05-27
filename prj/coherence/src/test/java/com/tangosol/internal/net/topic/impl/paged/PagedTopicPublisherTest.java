@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,12 +13,14 @@ import com.tangosol.internal.net.topic.impl.paged.model.Page.Key;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 
+import com.tangosol.net.Cluster;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.partition.KeyPartitioningStrategy;
 import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Publisher.Status;
 import com.tangosol.net.topic.Publisher.OrderBy;
-import com.tangosol.net.topic.Publisher.OrderById;
 import com.tangosol.net.topic.Publisher.OrderByValue;
 
 import com.tangosol.util.AsynchronousAgent;
@@ -32,9 +34,7 @@ import com.tangosol.util.SparseArray;
 import com.tangosol.util.processor.AsynchronousProcessor;
 
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -46,6 +46,7 @@ import java.util.Map;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 
 import java.util.function.BiFunction;
 import java.util.function.ToIntFunction;
@@ -54,16 +55,17 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
-import static org.mockito.Matchers.same;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -76,6 +78,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author jk 2015.06.19
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class PagedTopicPublisherTest
     {
     // ----- PagedTopicPublisher tests --------------------------------------
@@ -94,102 +97,84 @@ public class PagedTopicPublisherTest
 
     @Test
     public void shouldNotAllowNullQueueCaches()
-            throws Exception
+           
         {
-        m_expectedException.expect(NullPointerException.class);
-        m_expectedException.expectMessage(is("The PagedTopicCaches parameter cannot be null"));
-
-        new PagedTopicPublisher<String>(null);
+        assertThrows(NullPointerException.class, () -> new PagedTopicPublisher<String>(null, null));
         }
 
     @Test
     public void shouldHaveNameFromTopic()
-            throws Exception
         {
         PagedTopicCaches caches = stubTopicCaches();
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches);
 
         assertThat(publisher.getName(), is(caches.getTopicName()));
         }
 
     @Test
     public void shouldBeEqual()
-            throws Exception
+           
         {
-        PagedTopicCaches caches     = stubTopicCaches();
-        PagedTopicPublisher publisher1 = new PagedTopicPublisher(caches);
-        PagedTopicPublisher publisher2 = new PagedTopicPublisher(caches);
+        PagedTopicCaches    caches     = stubTopicCaches();
+        PagedTopicPublisher publisher1 = new PagedTopicPublisher(null, caches);
+        PagedTopicPublisher publisher2 = new PagedTopicPublisher(null, caches);
 
         assertThat(publisher1.equals(publisher2), is(true));
         }
 
     @Test
-    public void shouldBeActive() throws Exception
+    public void shouldBeActive()
         {
-        PagedTopicCaches caches = stubTopicCaches();
+        PagedTopicCaches        caches = stubTopicCaches();
         BatchingOperationsQueue queue  = mock(BatchingOperationsQueue.class);
 
         when(queue.isActive()).thenReturn(true);
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, queue);
 
         assertThat(publisher.isActive(), is(true));
         }
 
     @Test
-    public void shouldNotBeActiveIfBatchinQueueIsInactive() throws Exception
+    public void shouldNotAllowAddIfInactive()
         {
-        PagedTopicCaches caches = stubTopicCaches();
-        BatchingOperationsQueue queue  = mock(BatchingOperationsQueue.class);
-
-        when(queue.isActive()).thenReturn(false);
-        when(caches.isActive()).thenReturn(true);
-
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue);
-
-        assertThat(publisher.isActive(), is(false));
-        }
-
-    @Test
-    public void shouldNotAllowAddIfInactive() throws Exception
-        {
-        PagedTopicCaches caches = stubTopicCaches();
+        PagedTopicCaches        caches = stubTopicCaches();
         BatchingOperationsQueue queue  = mock(BatchingOperationsQueue.class);
 
         when(queue.isActive()).thenReturn(false);
         when(caches.isActive()).thenReturn(false);
+        when(queue.flush()).thenReturn(CompletableFuture.completedFuture(null));
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, queue);
+        publisher.close();
 
-        m_expectedException.expect(IllegalStateException.class);
-
-        publisher.send("Foo");
+        assertThrows(IllegalStateException.class, () -> publisher.publish("Foo"));
         }
 
     @Test
-    public void shouldAddToBatchingQueue() throws Exception
+    public void shouldAddToBatchingQueue()
         {
-        PagedTopicCaches caches    = mockTopicCaches();
-        BatchingOperationsQueue<Void> queue     = mockBatchingQueue();
-        String                               value     = "Foo";
-        Binary                               binary    = toBinary(value);
+        PagedTopicCaches                        caches = mockTopicCaches();
+        BatchingOperationsQueue<Binary, Status> queue  = mockBatchingQueue();
+        String                                  value  = "Foo";
+        Binary                                  binary = toBinary(value);
 
-        PagedTopicPublisher<String> publisher = new PagedTopicPublisher<>(caches, queue);
+        PagedTopicPublisher<String> publisher = new PagedTopicPublisher(null, caches, queue);
 
-        publisher.send(value);
+        publisher.publish(value);
 
         verify(queue).add(binary);
         }
 
     @Test
-    public void shouldClosePublisher() throws Exception
+    public void shouldClosePublisher()
         {
-        PagedTopicCaches caches    = mockTopicCaches();
-        BatchingOperationsQueue<Void> queue     = mockBatchingQueue();
-        CompletableFuture<Void>              future    = CompletableFuture.completedFuture(null);
-        PagedTopicPublisher<String> publisher = new PagedTopicPublisher<>(caches, queue);
+        PagedTopicCaches                        caches    = mockTopicCaches();
+        BatchingOperationsQueue<Binary, Status> queue     = mockBatchingQueue();
+        CompletableFuture<Void>                 future    = CompletableFuture.completedFuture(null);
+        PagedTopicPublisher<String>             publisher = new PagedTopicPublisher<>(null, caches, queue);
 
         when(queue.flush()).thenReturn(future);
 
@@ -202,13 +187,13 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldRequestFillCurrentBatchWithCorrectValue() throws Exception
+    public void shouldRequestFillCurrentBatchWithCorrectValue()
         {
-        BatchingOperationsQueue<Void>   queue        = mockBatchingQueue();
-        PagedTopicCaches caches       = stubTopicCaches();
-        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(caches, queue);
-        PagedTopicPublisher<String> spyPublisher = Mockito.spy(publisher);
-        CompletableFuture<Void>                future       = CompletableFuture.completedFuture(null);
+        BatchingOperationsQueue<Binary, Status> queue        = mockBatchingQueue();
+        PagedTopicCaches                        caches       = stubTopicCaches();
+        PagedTopicPublisher<String>             publisher    = new PagedTopicPublisher<>(null, caches, queue);
+        PagedTopicPublisher<String>             spyPublisher = Mockito.spy(publisher);
+        CompletableFuture<Void>                 future       = CompletableFuture.completedFuture(null);
 
         doReturn(future).when(spyPublisher).ensurePageId(any(PagedTopicPublisher.Channel.class));
         when(queue.fillCurrentBatch(anyInt())).thenReturn(false);
@@ -219,13 +204,13 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldNotAddToTopicIfCurrentBatchIsEmpty() throws Exception
+    public void shouldNotAddToTopicIfCurrentBatchIsEmpty()
         {
-        BatchingOperationsQueue<Void>   queue        = mockBatchingQueue();
-        PagedTopicCaches caches       = stubTopicCaches();
-        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(caches, queue);
-        PagedTopicPublisher<String> spyPublisher = Mockito.spy(publisher);
-        CompletableFuture<Void>                future       = CompletableFuture.completedFuture(null);
+        BatchingOperationsQueue<Binary, Status> queue        = mockBatchingQueue();
+        PagedTopicCaches                        caches       = stubTopicCaches();
+        PagedTopicPublisher<String>             publisher    = new PagedTopicPublisher<>(null, caches, queue);
+        PagedTopicPublisher<String>             spyPublisher = Mockito.spy(publisher);
+        CompletableFuture<Void>                 future       = CompletableFuture.completedFuture(null);
 
         doReturn(future).when(spyPublisher).ensurePageId(any(PagedTopicPublisher.Channel.class));
         when(queue.fillCurrentBatch(anyInt())).thenReturn(false);
@@ -237,14 +222,14 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldNotAddToTopicIfEnsureTailCompletesExceptionally() throws Exception
+    public void shouldNotAddToTopicIfEnsureTailCompletesExceptionally()
         {
-        BatchingOperationsQueue<Void>   queue        = mockBatchingQueue();
-        PagedTopicCaches caches       = stubTopicCaches();
-        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(caches, queue);
-        PagedTopicPublisher<String> spyPublisher = Mockito.spy(publisher);
-        Throwable                              throwable    = new RuntimeException("No!");
-        CompletableFuture<Void>                future       = new CompletableFuture<>();
+        BatchingOperationsQueue<Binary, Status> queue        = mockBatchingQueue();
+        PagedTopicCaches                        caches       = stubTopicCaches();
+        PagedTopicPublisher<String>             publisher    = new PagedTopicPublisher<>(null, caches, queue);
+        PagedTopicPublisher<String>             spyPublisher = Mockito.spy(publisher);
+        Throwable                               throwable    = new RuntimeException("No!");
+        CompletableFuture<Void>                 future       = new CompletableFuture<>();
 
         future.completeExceptionally(throwable);
 
@@ -259,14 +244,14 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldHandleErrorIfEnsureTailCompletesExceptionally() throws Exception
+    public void shouldHandleErrorIfEnsureTailCompletesExceptionally()
         {
-        BatchingOperationsQueue<Void>   queue        = mockBatchingQueue();
-        PagedTopicCaches caches       = stubTopicCaches();
-        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(caches, queue);
-        PagedTopicPublisher<String> spyPublisher = Mockito.spy(publisher);
-        Throwable                              throwable    = new RuntimeException("No!");
-        CompletableFuture<Void>                future       = new CompletableFuture<>();
+        BatchingOperationsQueue<Binary, Status> queue        = mockBatchingQueue();
+        PagedTopicCaches                        caches       = stubTopicCaches();
+        PagedTopicPublisher<String>             publisher    = new PagedTopicPublisher<>(null, caches, queue);
+        PagedTopicPublisher<String>             spyPublisher = Mockito.spy(publisher);
+        Throwable                               throwable    = new RuntimeException("No!");
+        CompletableFuture<Void>                 future       = new CompletableFuture<>();
 
         future.completeExceptionally(throwable);
 
@@ -279,7 +264,7 @@ public class PagedTopicPublisherTest
         verify(spyPublisher, never()).addInternal(any(PagedTopicPublisher.Channel.class), anyLong());
 
         ArgumentCaptor<Throwable> captor = ArgumentCaptor.forClass(Throwable.class);
-        verify(spyPublisher).handleError(isNull(Void.class), captor.capture());
+        verify(spyPublisher).handleError(isNull(), captor.capture());
 
         Throwable throwableArg = captor.getValue();
         assertThat(throwableArg, is(instanceOf(CompletionException.class)));
@@ -287,16 +272,16 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldAddToPageAndHandleError() throws Exception
+    public void shouldAddToPageAndHandleError()
         {
-        PagedTopicCaches caches = stubTopicCaches();
-        BatchingOperationsQueue<Void> queue         = mockBatchingQueue();
-        List<Binary>                         listBatch     = Collections.singletonList(Binary.NO_BINARY);
+        PagedTopicCaches                        caches     = stubTopicCaches();
+        BatchingOperationsQueue<Binary, Status> queue      = mockBatchingQueue();
+        List<Binary>                            listBatch = Collections.singletonList(Binary.NO_BINARY);
 
         when(queue.getCurrentBatchValues()).thenReturn(listBatch);
 
 
-        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(caches, queue);
+        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(null, caches, queue);
         PagedTopicPublisher<String> spyPublisher = Mockito.spy(publisher);
 
         doNothing().when(spyPublisher).handleOfferCompletion(any(Result.class), any(PagedTopicPublisher.Channel.class), anyLong());
@@ -306,46 +291,51 @@ public class PagedTopicPublisherTest
         ArgumentCaptor<AsynchronousProcessor> captorInvocable = ArgumentCaptor.forClass(AsynchronousProcessor.class);
         verify(caches.Pages).invoke(eq(new Key(0, 19L)), captorInvocable.capture());
 
-        AsynchronousAgent                        processor    = captorInvocable.getValue();
+        AsynchronousAgent         processor    = captorInvocable.getValue();
         CompletableFuture<Result> futureResult = processor.getCompletableFuture();
-        Throwable                                throwable    = new RuntimeException("No!");
+        Throwable                 throwable    = new RuntimeException("No!");
 
         futureResult.completeExceptionally(throwable);
 
         verify(spyPublisher, never()).handleOfferCompletion(any(Result.class), any(PagedTopicPublisher.Channel.class), anyLong());
 
         ArgumentCaptor<Throwable> captorError = ArgumentCaptor.forClass(Throwable.class);
-        verify(spyPublisher).handleError(isNull(Void.class), captorError.capture());
+        verify(spyPublisher).handleError(isNull(), captorError.capture());
 
         Throwable throwableArg = captorError.getValue();
         assertThat(throwableArg, is(sameInstance(throwable)));
         }
 
     @Test
-    public void shouldNotAddToPageIfBatchIsEmpty() throws Exception
+    public void shouldNotAddToPageIfBatchIsEmpty()
         {
         String sTopicName = "TestTopic";
         String sCacheName = PagedTopicCaches.Names.PAGES.cacheNameForTopicName(sTopicName);
 
-        NamedCache<Long, Page>                     cache         = mock(NamedCache.class);
+        NamedCache<Long, Page>                    cache         = mock(NamedCache.class);
         BiFunction<String,ClassLoader,NamedCache> functionCache = mock(BiFunction.class);
         ClassLoader                               loader        = mock(ClassLoader.class);
         DistributedCacheService                   cacheService  = mock(DistributedCacheService.class);
-        BatchingOperationsQueue<Void>             queue         = mockBatchingQueue();
+        BatchingOperationsQueue<Binary, Status>   queue         = mockBatchingQueue();
         List<Binary>                              listBatch     = Collections.emptyList();
         ResourceRegistry                          registry      = new SimpleResourceRegistry();
+        Cluster                                   cluster       = mock(Cluster.class);
+        Member                                    member        = mock(Member.class);
 
-        registry.registerResource(Configuration.class, sTopicName, new Configuration());
+        registry.registerResource(PagedTopic.Dependencies.class, sTopicName, new Configuration());
 
+        when(cacheService.getCluster()).thenReturn(cluster);
         when(cacheService.getResourceRegistry()).thenReturn(registry);
         when(cacheService.getPartitionCount()).thenReturn(257);
         when(cacheService.getContextClassLoader()).thenReturn(loader);
         when(functionCache.apply(anyString(), same(loader))).thenReturn(mock(NamedCache.class));
         when(functionCache.apply(eq(sCacheName), same(loader))).thenReturn(cache);
         when(queue.getCurrentBatchValues()).thenReturn(listBatch);
+        when(cluster.getLocalMember()).thenReturn(member);
+        when(member.getId()).thenReturn(1);
 
         PagedTopicCaches            caches       = new PagedTopicCaches(sTopicName, cacheService, functionCache);
-        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(caches, queue);
+        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(null, caches, queue);
         PagedTopicPublisher<String> spyPublisher = Mockito.spy(publisher);
 
         doNothing().when(spyPublisher).handleOfferCompletion(any(Result.class), any(PagedTopicPublisher.Channel.class), anyLong());
@@ -356,15 +346,15 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldHandleOfferCompletionWhenBactchFullyCompleteAndPageNotSealed() throws Exception
+    public void shouldHandleOfferCompletionWhenBatchFullyCompleteAndPageNotSealed()
         {
-        PagedTopicCaches caches       = mockTopicCaches();
-        BatchingOperationsQueue<Void>        queue        = mockBatchingQueue();
-        long                                 lPage        = 1234L;
-        int                                  cCapacity    = 10;
-        Result result       = new Result(OfferProcessor.Result.Status.Success, 0, cCapacity);
+        PagedTopicCaches                        caches    = mockTopicCaches();
+        BatchingOperationsQueue<Binary, Status> queue     = mockBatchingQueue();
+        long                                    lPage     = 1234L;
+        int                                     cCapacity = 10;
+        Result                                  result    = new Result(OfferProcessor.Result.Status.Success, 0, cCapacity, 19);
 
-        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(caches, queue);
+        PagedTopicPublisher<String> publisher    = new PagedTopicPublisher<>(null, caches, queue);
         PagedTopicPublisher<String> spyPublisher = Mockito.spy(publisher);
 
         when(queue.isBatchComplete()).thenReturn(true);
@@ -376,16 +366,16 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldHandleOfferCompletionWhenBactchFullyCompleteAndPageSealed() throws Exception
+    public void shouldHandleOfferCompletionWhenBatchFullyCompleteAndPageSealed()
         {
-        PagedTopicCaches caches           = mockTopicCaches();
-        BatchingOperationsQueue<Void> queue            = mockBatchingQueue();
-        long                                 lPage          = 1234L;
-        int                                  cCapacity        = 10;
-        OfferProcessor.Result result           = new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, 0, cCapacity);
-        CompletableFuture<Void>              futureNextPage = new CompletableFuture<>();
-        PagedTopicPublisher<String> publisher        = new PagedTopicPublisher<>(caches, queue);
-        PagedTopicPublisher<String> spyPublisher     = Mockito.spy(publisher);
+        PagedTopicCaches                        caches         = mockTopicCaches();
+        BatchingOperationsQueue<Binary, Status> queue          = mockBatchingQueue();
+        long                                    lPage          = 1234L;
+        int                                     cCapacity      = 10;
+        OfferProcessor.Result                   result         = new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, 0, cCapacity, 19);
+        CompletableFuture<Void>                 futureNextPage = new CompletableFuture<>();
+        PagedTopicPublisher<String>             publisher      = new PagedTopicPublisher<>(null, caches, queue);
+        PagedTopicPublisher<String>             spyPublisher   = Mockito.spy(publisher);
 
         when(queue.isBatchComplete()).thenReturn(true);
         doReturn(null).when(spyPublisher).handleError(any(Void.class), any(Throwable.class));
@@ -403,13 +393,13 @@ public class PagedTopicPublisherTest
 
 
     @Test
-    public void shouldHandleErrorAndClose() throws Exception
+    public void shouldHandleErrorAndClose()
         {
-        PagedTopicCaches              caches       = mockTopicCaches();
-        BatchingOperationsQueue<Void> queue        = mockBatchingQueue();
-        Throwable                     throwable    = new RuntimeException("Oops...");
-        PagedTopicPublisher<String>   publisher    = new PagedTopicPublisher<>(caches, queue);
-        PagedTopicPublisher<String>   publisherSpy = Mockito.spy(publisher);
+        PagedTopicCaches                        caches       = mockTopicCaches();
+        BatchingOperationsQueue<Binary, Status> queue        = mockBatchingQueue();
+        Throwable                               throwable    = new RuntimeException("Oops...");
+        PagedTopicPublisher<String>             publisher    = new PagedTopicPublisher<>(null, caches, queue);
+        PagedTopicPublisher<String>             publisherSpy = Mockito.spy(publisher);
 
         doNothing().when(publisherSpy).closeInternal(anyBoolean());
 
@@ -431,33 +421,32 @@ public class PagedTopicPublisherTest
         when(caches.isActive()).thenReturn(true);
         when(queue.flush()).thenReturn(future);
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, queue);
 
-        CompletableFuture futureResult = publisher.flush();
+        publisher.flush().get(1, TimeUnit.MINUTES);
 
         verify(queue, times(caches.getChannelCount())).flush();
         }
 
     @Test
-    public void shouldHandleIndividualErrorsWhenErrorsArrayIsNull() throws Exception
+    public void shouldHandleIndividualErrorsWhenErrorsArrayIsNull()
         {
-        PagedTopicCaches        caches  = stubTopicCaches();
-        BatchingOperationsQueue queue   = mock(BatchingOperationsQueue.class);
-        LongArray<Throwable>    aErrors = null;
+        PagedTopicCaches        caches = stubTopicCaches();
+        BatchingOperationsQueue queue  = mock(BatchingOperationsQueue.class);
 
         when(queue.isActive()).thenReturn(true);
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, queue);
 
-        publisher.handleIndividualErrors(aErrors);
+        publisher.handleIndividualErrors(null);
 
         assertThat(publisher.isActive(), is(true));
         verify(queue, never()).handleError(any(Throwable.class), any(BatchingOperationsQueue.OnErrorAction.class));
         }
 
     @Test
-    public void shouldHandleIndividualErrorsWhenErrorsArrayIsEmpty() throws Exception
+    public void shouldHandleIndividualErrorsWhenErrorsArrayIsEmpty()
         {
         PagedTopicCaches        caches  = stubTopicCaches();
         BatchingOperationsQueue queue   = mock(BatchingOperationsQueue.class);
@@ -466,7 +455,7 @@ public class PagedTopicPublisherTest
         when(queue.isActive()).thenReturn(true);
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, queue);
 
         publisher.handleIndividualErrors(aErrors);
 
@@ -475,7 +464,7 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldHandleIndividualErrorsWhenErrorsArrayHasErrorsAndFailureActionIsDefault() throws Exception
+    public void shouldHandleIndividualErrorsWhenErrorsArrayHasErrorsAndFailureActionIsDefault()
         {
         PagedTopicCaches        caches  = stubTopicCaches();
         BatchingOperationsQueue queue   = mock(BatchingOperationsQueue.class);
@@ -489,7 +478,7 @@ public class PagedTopicPublisherTest
         when(queue.flush()).thenReturn(future);
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, queue);
 
         publisher.handleIndividualErrors(aErrors);
 
@@ -502,7 +491,7 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldHandleIndividualErrorsWhenErrorsArrayHasErrorsAndFailureActionIsStop() throws Exception
+    public void shouldHandleIndividualErrorsWhenErrorsArrayHasErrorsAndFailureActionIsStop()
         {
         PagedTopicCaches        caches  = stubTopicCaches();
         BatchingOperationsQueue queue   = mock(BatchingOperationsQueue.class);
@@ -516,7 +505,7 @@ public class PagedTopicPublisherTest
         when(queue.flush()).thenReturn(future);
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue, Publisher.OnFailure.Stop);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, queue, Publisher.OnFailure.Stop);
 
         publisher.handleIndividualErrors(aErrors);
 
@@ -528,7 +517,7 @@ public class PagedTopicPublisherTest
         }
 
     @Test
-    public void shouldHandleIndividualErrorsWhenErrorsArrayHasErrorsAndFailureActionIsContinue() throws Exception
+    public void shouldHandleIndividualErrorsWhenErrorsArrayHasErrorsAndFailureActionIsContinue()
         {
         PagedTopicCaches        caches  = stubTopicCaches();
         BatchingOperationsQueue queue   = mock(BatchingOperationsQueue.class);
@@ -542,7 +531,7 @@ public class PagedTopicPublisherTest
         when(queue.flush()).thenReturn(future);
         when(caches.isActive()).thenReturn(true);
 
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, queue, Publisher.OnFailure.Continue);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, queue, Publisher.OnFailure.Continue);
 
         publisher.handleIndividualErrors(aErrors);
 
@@ -554,7 +543,7 @@ public class PagedTopicPublisherTest
     public void shouldHavePublisherWithDefaultOrderByOption()
         {
         PagedTopicCaches    caches    = stubTopicCaches();
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches);
 
         // validate that OrderBy.Thread is the default when no Publisher.OrderBy option provided to create Publisher.
         assertThat(publisher.getOrderByOption(), is(OrderBy.thread()));
@@ -564,7 +553,7 @@ public class PagedTopicPublisherTest
     public void shouldHavePublisherWithOrderByThread()
         {
         PagedTopicCaches    caches    = stubTopicCaches();
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, OrderBy.thread());
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, OrderBy.thread());
 
         assertThat(publisher.getOrderByOption(), is(OrderBy.thread()));
         }
@@ -573,7 +562,7 @@ public class PagedTopicPublisherTest
     public void shouldHavePublisherWithOrderByNone()
         {
         PagedTopicCaches    caches    = stubTopicCaches();
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, OrderBy.none());
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, OrderBy.none());
 
         assertThat(publisher.getOrderByOption(), is(OrderBy.none()));
         }
@@ -583,7 +572,7 @@ public class PagedTopicPublisherTest
         {
         PagedTopicCaches    caches    = stubTopicCaches();
         OrderBy<Object>     option    = OrderBy.id(4);
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, option);
+        PagedTopicPublisher publisher = new PagedTopicPublisher(null, caches, option);
 
         assertThat(publisher.getOrderByOption().getOrderId("random-message"), is(option.getOrderId("random-message")));
         assertThat(publisher.getOrderByOption(), is(option));
@@ -592,20 +581,16 @@ public class PagedTopicPublisherTest
     @Test
     public void shouldHavePublisherWithOrderByValue()
         {
-        ToIntFunction<String> getValue = s ->
-            {
-            return Integer.parseInt(s);
-            };
-
-        PagedTopicCaches    caches    = stubTopicCaches();
-        PagedTopicPublisher publisher = new PagedTopicPublisher(caches, OrderBy.value(getValue));
+        ToIntFunction<String> getValue = Integer::parseInt;
+        PagedTopicCaches      caches    = stubTopicCaches();
+        PagedTopicPublisher   publisher = new PagedTopicPublisher(null, caches, OrderBy.value(getValue));
 
         OrderBy option = publisher.getOrderByOption();
         assertTrue(option instanceof OrderByValue);
 
         // simulate published messages have string value of "5" and "7".
-        assertThat(((OrderByValue)option).getOrderId("5"), is(5));
-        assertThat(((OrderByValue)option).getOrderId("7"), is(7));
+        assertThat(option.getOrderId("5"), is(5));
+        assertThat(option.getOrderId("7"), is(7));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -625,14 +610,19 @@ public class PagedTopicPublisherTest
         String                                    sTopicName    = "TestTopic";
         DistributedCacheService                   cacheService  = mock(DistributedCacheService.class);
         KeyPartitioningStrategy                   partitioner   = mock(KeyPartitioningStrategy.class);
+        Cluster                                   cluster       = mock(Cluster.class);
+        Member                                    member        = mock(Member.class);
         ResourceRegistry                          registry      = new SimpleResourceRegistry();
         Map<String,NamedCache>                    mapCaches     = new HashMap<>();
         BiFunction<String,ClassLoader,NamedCache> functionCache = (sName, classLoader) -> mapCaches.get(sName);
 
+        when(cacheService.getCluster()).thenReturn(cluster);
         when(cacheService.getResourceRegistry()).thenReturn(registry);
         when(cacheService.getPartitionCount()).thenReturn(257);
         when(cacheService.getKeyPartitioningStrategy()).thenReturn(partitioner);
-        when(partitioner.getKeyPartition(anyObject())).thenReturn(0);
+        when(cluster.getLocalMember()).thenReturn(member);
+        when(member.getId()).thenReturn(1);
+        when(partitioner.getKeyPartition(any())).thenReturn(0);
 
         for (PagedTopicCaches.Names name : PagedTopicCaches.Names.values())
             {
@@ -645,13 +635,13 @@ public class PagedTopicPublisherTest
         PagedTopicCaches caches    = new PagedTopicCaches(sTopicName, cacheService, functionCache);
         PagedTopicCaches cachesSpy = spy(caches);
 
-        registry.registerResource(Configuration.class, caches.getTopicName(), new Configuration());
+        registry.registerResource(PagedTopic.Dependencies.class, caches.getTopicName(), new Configuration());
 
         return cachesSpy;
         }
 
     @SuppressWarnings("unchecked")
-    public <V,F> BatchingOperationsQueue<F> mockBatchingQueue()
+    public <V,F> BatchingOperationsQueue<V,F> mockBatchingQueue()
         {
         BatchingOperationsQueue queue = mock(BatchingOperationsQueue.class);
 
@@ -667,14 +657,11 @@ public class PagedTopicPublisherTest
 
     public <V> V fromBinary(Binary binary)
         {
-        return (V) ExternalizableHelper.fromBinary(binary, m_serializer);
+        return ExternalizableHelper.fromBinary(binary, m_serializer);
         }
 
 
     // ----- data members ---------------------------------------------------
 
-    private ConfigurablePofContext m_serializer        = new ConfigurablePofContext("coherence-pof-config.xml");
-
-    @Rule
-    public ExpectedException       m_expectedException = ExpectedException.none();
+    private final ConfigurablePofContext m_serializer = new ConfigurablePofContext("coherence-pof-config.xml");
     }

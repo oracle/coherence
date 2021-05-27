@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package topics;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
@@ -66,17 +67,17 @@ public class TopicPublisher
         {
         try (Publisher<String>   publisher = m_topic.createPublisher(m_arOptions))
             {
-            CompletableFuture[] aFutures  = new CompletableFuture[m_nCount];
+            CompletableFuture<Publisher.Status>[] aFutures  = new CompletableFuture[m_nCount];
 
             while (m_nPublished < m_nCount)
                 {
                 String sMessage = m_sPrefix + m_nPublished;
-                CompletableFuture<Void> future = publisher.send(sMessage);
+                CompletableFuture<Publisher.Status> future = publisher.publish(sMessage);
 
                 if (m_fSync)
                     {
-                    future.get();
-                    CacheFactory.log("publisher id: " + publisher.hashCode() + " send message:" + sMessage, Base.LOG_MAX);
+                    Publisher.Status metadata = future.get();
+                    Logger.finest("publisher id: " + publisher.hashCode() + " send message:" + sMessage + " to " + metadata.getPosition());
                     }
                 else
                     {

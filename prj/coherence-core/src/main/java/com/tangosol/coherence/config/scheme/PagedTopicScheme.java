@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,25 +9,32 @@ package com.tangosol.coherence.config.scheme;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.net.InetAddresses;
+
 import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.MemorySize;
 
+import com.tangosol.coherence.config.builder.ElementCalculatorBuilder;
 import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
 import com.tangosol.coherence.config.builder.UnitCalculatorBuilder;
+
 import com.tangosol.coherence.config.unit.Seconds;
 
+import com.tangosol.coherence.config.unit.Units;
+import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.LiteralExpression;
 import com.tangosol.config.expression.NullParameterResolver;
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
+
 import com.tangosol.config.injection.SimpleInjector;
 
 import com.tangosol.internal.net.topic.impl.paged.Configuration;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -39,14 +46,20 @@ import com.tangosol.net.ValueTypeAssertion;
 
 import com.tangosol.net.cache.LocalCache;
 
+import com.tangosol.net.events.annotation.Interceptor;
+
 import com.tangosol.net.security.StorageAccessAuthorizer;
 
+import com.tangosol.net.topic.BinaryElementCalculator;
+import com.tangosol.net.topic.FixedElementCalculator;
 import com.tangosol.net.topic.NamedTopic;
 
+import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.ResourceResolver;
 import com.tangosol.util.ResourceResolverHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -120,6 +133,31 @@ public class PagedTopicScheme
         }
 
     /**
+     * Set the number of channels in the topic.
+     *
+     * @param expr  the number of channels in the topic
+     */
+    @Injectable("channel-count")
+    public void setChannelCount(Expression<Integer> expr)
+        {
+        m_exprChannelCount = expr;
+        }
+
+    /**
+     * Returns the number of channels in the topic, or the {@link PagedTopic#DEFAULT_CHANNEL_COUNT}
+     * value to indicate the topic uses the default channel count.
+     *
+     * @param resolver  the ParameterResolver
+     *
+     * @return the number of channels in the topic, or the {@link PagedTopic#DEFAULT_CHANNEL_COUNT}
+     *         value to indicate the topic uses the default channel count
+     */
+    public int getChannelCount(ParameterResolver resolver)
+        {
+        return m_exprChannelCount.evaluate(resolver);
+        }
+
+    /**
      * Set the {@link BackingMapScheme} which builds the backing map for
      * the internal caches used to implement this scheme.
      *
@@ -140,9 +178,9 @@ public class PagedTopicScheme
      *
      * @return the page size
      */
-    public int getPageSize(ParameterResolver resolver)
+    public Units getPageSize(ParameterResolver resolver)
         {
-        return (int) m_exprPageSize.evaluate(resolver).getByteCount();
+        return m_exprPageSize.evaluate(resolver);
         }
 
     /**
@@ -151,7 +189,7 @@ public class PagedTopicScheme
      * @param expr  the page high units expression
      */
     @Injectable("page-size")
-    public void setPageSize(Expression<MemorySize> expr)
+    public void setPageSize(Expression<Units> expr)
         {
         m_exprPageSize = expr;
         }
@@ -282,6 +320,81 @@ public class PagedTopicScheme
         m_exprRetainConsumed = expr;
         }
 
+    /**
+     * Returns {@code true} if the topic allows commits for a position in a channel by
+     * subscribers that do not own the channel.
+     *
+     * @param resolver  the ParameterResolver
+     *
+     * @return {@code true} if the topic allows commits for a position in a channel by
+     *         subscribers that do not own the channel
+     */
+    public boolean isAllowUnownedCommits(ParameterResolver resolver)
+        {
+        Boolean fRetain = m_exprAllowUnownedCommits.evaluate(resolver);
+        return fRetain != null && fRetain;
+        }
+
+    /**
+     * Set the flag that indicates whether the topic allows commits for a position in a
+     * channel by subscribers that do not own the channel
+     *
+     * @param expr  {@code true} if the topic allows commits for a position in a channel by
+     *              subscribers that do not own the channel or {@code false} to only accept
+     *              commits from channel owners
+     */
+    @Injectable("allow-unowned-commits")
+    public void setAllowUnownedCommits(Expression<Boolean> expr)
+        {
+        m_exprAllowUnownedCommits = expr;
+        }
+
+    /**
+     * Returns the subscriber timeout value.
+     *
+     * @param resolver  the ParameterResolver
+     *
+     * @return the subscriber timeout value
+     */
+    public Seconds getSubscriberTimeout(ParameterResolver resolver)
+        {
+        return m_exprSubscriberTimeout.evaluate(resolver);
+        }
+
+    /**
+     * Set the subscriber timeout value.
+     *
+     * @param expr  the expression representing the timeout value for subscribers
+     */
+    @Injectable("subscriber-timeout")
+    public void setSubscriberTimeout(Expression<Seconds> expr)
+        {
+        m_exprSubscriberTimeout = expr == null
+                ? new LiteralExpression<>(PagedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS)
+                : expr;
+        }
+
+    /**
+     * Return the ElementCalculatorBuilder used to build a ElementCalculator.
+     *
+     * @return the element calculator
+     */
+    public ElementCalculatorBuilder getElementCalculatorBuilder()
+        {
+        return m_bldrElementCalculator;
+        }
+
+    /**
+     * Set the ElementCalculatorBuilder.
+     *
+     * @param builder  the ElementCalculatorBuilder
+     */
+    @Injectable("element-calculator")
+    public void setElementCalculatorBuilder(ElementCalculatorBuilder builder)
+        {
+        m_bldrElementCalculator = builder;
+        }
+
     @Override
     @Injectable("interceptors")
     public void setEventInterceptorBuilders(List<NamedEventInterceptorBuilder> listBuilders)
@@ -289,9 +402,30 @@ public class PagedTopicScheme
         super.setEventInterceptorBuilders(listBuilders);
         }
 
+    @Override
+    public List<NamedEventInterceptorBuilder> getEventInterceptorBuilders()
+        {
+        List<NamedEventInterceptorBuilder> list = super.getEventInterceptorBuilders();
+        if (list == null)
+            {
+            list = new ArrayList<>();
+            }
+
+        // add the subscriber expiry interceptor
+        NamedEventInterceptorBuilder builder = new NamedEventInterceptorBuilder();
+        builder.setOrder(Interceptor.Order.HIGH);
+        builder.setName("$SubscriberExpiry$");
+        builder.setRegistrationBehavior(RegistrationBehavior.REPLACE);
+        builder.setCustomBuilder((resolver, loader, listParameters) -> new PagedTopicSubscriber.TimeoutInterceptor());
+
+        list.add(builder);
+        return list;
+        }
+
     // ----- ServiceScheme methods ------------------------------------------
 
     @Override
+    @SuppressWarnings("rawtypes")
     public <V> NamedTopic realize(ValueTypeAssertion<V> typeConstraint,
                                   ParameterResolver resolver, Dependencies deps)
         {
@@ -316,17 +450,17 @@ public class PagedTopicScheme
      */
     public CacheService ensureConfiguredService(ParameterResolver resolver, Dependencies deps)
         {
-        ClassLoader      loader        = deps.getClassLoader();
-        String           sTopicName    = PagedTopicCaches.Names.getTopicName(deps.getCacheName());
-        CacheService     service       = getOrEnsureService(deps);
-        ResourceRegistry registry      = service.getResourceRegistry();
-        Configuration    configuration = registry.getResource(Configuration.class, sTopicName);
+        ClassLoader             loader       = deps.getClassLoader();
+        String                  sTopicName   = PagedTopicCaches.Names.getTopicName(deps.getCacheName());
+        CacheService            service      = getOrEnsureService(deps);
+        ResourceRegistry        registry     = service.getResourceRegistry();
+        PagedTopic.Dependencies dependencies = registry.getResource(PagedTopic.Dependencies.class, sTopicName);
 
-        if (configuration == null)
+        if (dependencies == null)
             {
-            configuration = createConfiguration(resolver, loader);
+            dependencies = createConfiguration(resolver, loader);
 
-            registry.registerResource(Configuration.class, sTopicName, configuration);
+            registry.registerResource(PagedTopic.Dependencies.class, sTopicName, dependencies);
             }
 
         return service;
@@ -364,26 +498,24 @@ public class PagedTopicScheme
             }
         }
 
-
     /**
-     * Create a {@link Configuration} based on the values contained in this scheme.
+     * Create a {@link PagedTopic.Dependencies} based on the values contained in this scheme.
      *
      * @param resolver  the {@link ParameterResolver} to use to resolve configuration values
      * @param loader    the {@link ClassLoader} to use
      *
-     * @return  a {@link Configuration} based on the values contained in this scheme
+     * @return  a {@link PagedTopic.Dependencies} based on the values contained in this scheme
      */
-    public Configuration createConfiguration(ParameterResolver resolver, ClassLoader loader)
+    public PagedTopic.Dependencies createConfiguration(ParameterResolver resolver, ClassLoader loader)
         {
         // enable topic-mapping init-params to be injected into PagedTopicScheme.
         // still need to support DistributedTopics Service Parameters in future.
-        SimpleInjector injector = new SimpleInjector();
+        SimpleInjector   injector         = new SimpleInjector();
         ResourceResolver resourceResolver = ResourceResolverHelper.resourceResolverFrom(PagedTopicScheme.class, this);
 
         injector.inject(this, ResourceResolverHelper.resourceResolverFrom(resourceResolver, resourceResolver));
 
         long    cbServer           = getHighUnits(resolver);
-        int     cbPage             = getPageSize(resolver);
         long    expiryDelayMillis  = LocalCache.DEFAULT_EXPIRE;
         Seconds expiryDelaySeconds = getExpiryDelay(resolver);
         boolean fRetainConsumed    = isRetainConsumed(resolver);
@@ -412,14 +544,48 @@ public class PagedTopicScheme
             nMaxBatchSizeBytes = Integer.MAX_VALUE;
             }
 
+        Units   pageSize    = getPageSize(resolver);
+        long    cbPage      = pageSize.getUnitCount();
+        boolean fBinarySize = pageSize.isMemorySize();
+
+        if (cbPage <= 0)
+            {
+            // if page size not set use the calculators page size
+            cbPage      = PagedTopic.DEFAULT_PAGE_CAPACITY_BYTES;
+            fBinarySize = true;
+            }
+        else if (cbPage > Integer.MAX_VALUE)
+            {
+            cbPage = Integer.MAX_VALUE;
+            }
+
+        NamedTopic.ElementCalculator calculatorDefault = fBinarySize
+                ? BinaryElementCalculator.INSTANCE
+                : FixedElementCalculator.INSTANCE;
+
+        ElementCalculatorBuilder     calculatorBuilder = getElementCalculatorBuilder();
+        NamedTopic.ElementCalculator calculator        = calculatorBuilder == null
+                ? calculatorDefault
+                : calculatorBuilder.realize(resolver, loader, null);
+
+        if (pageSize.isMemorySize() && calculator instanceof FixedElementCalculator)
+            {
+            throw new ConfigurationException("Cannot use the FIXED element calculator with a memory (or default) page-size",
+                    "When using a FIXED element calculator a page-size without a memory-unit suffix must be specified");
+            }
 
         Configuration configuration = new Configuration();
 
         configuration.setServerCapacity(cbServer);
-        configuration.setPageCapacity(cbPage);
+        configuration.setPageCapacity((int) cbPage);
         configuration.setElementExpiryMillis(expiryDelayMillis);
-        configuration.setMaxBatchSizeBytes(Math.min(cbPage, nMaxBatchSizeBytes));
+        configuration.setMaxBatchSizeBytes(Math.min((int) cbPage, nMaxBatchSizeBytes));
         configuration.setRetainConsumed(fRetainConsumed);
+        configuration.setElementCalculator(calculator);
+        configuration.setChannelCount(getChannelCount(resolver));
+        configuration.setAllowUnownedCommits(isAllowUnownedCommits(resolver));
+        configuration.setSubscriberTimeoutMillis(getSubscriberTimeout(resolver).as(Duration.Magnitude.MILLI));
+
         Logger.finer("PagedTopicScheme configuration: " + configuration);
         return configuration;
         }
@@ -431,11 +597,14 @@ public class PagedTopicScheme
      *
      * @return the builder for the unit calculator
      */
+    @SuppressWarnings("unchecked")
     private UnitCalculatorBuilder getUnitCalculatorBuilder(ParameterResolver resolver)
         {
         UnitCalculatorBuilder bldr = new UnitCalculatorBuilder();
         Parameter             parm = resolver.resolve("unit-calculator");
-        Expression<String>    expr = parm == null ? new LiteralExpression<>("BINARY") : parm.evaluate(resolver).as(Expression.class);
+        Expression<String>    expr = parm == null
+                ? new LiteralExpression<>("BINARY")
+                : parm.evaluate(resolver).as(Expression.class);
 
         bldr.setUnitCalculatorType(expr);
 
@@ -457,9 +626,14 @@ public class PagedTopicScheme
     // ----- data members ---------------------------------------------------
 
     /**
+     * The number of channels in the topic.
+     */
+    private Expression<Integer> m_exprChannelCount = new LiteralExpression<>(PagedTopic.DEFAULT_CHANNEL_COUNT);
+
+    /**
      * The page capacity
      */
-    private Expression<MemorySize> m_exprPageSize = new LiteralExpression<>(new MemorySize(Configuration.DEFAULT_PAGE_CAPACITY_BYTES));
+    private Expression<Units> m_exprPageSize = new LiteralExpression<>(new Units(new MemorySize(PagedTopic.DEFAULT_PAGE_CAPACITY_BYTES)));
 
     /**
      * The high-units
@@ -491,4 +665,19 @@ public class PagedTopicScheme
      * Zero indicates no timeout.
      */
     private Expression<Seconds> m_exprExpiryDelay = new LiteralExpression<>(new Seconds(0));
+
+    /**
+     * The subscriber timeout value.
+     */
+    private Expression<Seconds> m_exprSubscriberTimeout = new LiteralExpression<>(PagedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS);
+
+    /**
+     * The allow unowned commits flag.
+     */
+    private Expression<Boolean> m_exprAllowUnownedCommits = new LiteralExpression<>(Boolean.FALSE);
+
+    /**
+     * The {@link ElementCalculatorBuilder}.
+     */
+    private ElementCalculatorBuilder m_bldrElementCalculator;
     }

@@ -8,11 +8,12 @@ package com.tangosol.internal.net.topic.impl.paged;
 
 import com.tangosol.internal.net.topic.impl.paged.model.NotificationKey;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
-import com.tangosol.internal.net.topic.impl.paged.model.Position;
+import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
-
-import com.tangosol.internal.util.Primes;
 
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Serializer;
@@ -22,19 +23,28 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.cache.TypeAssertion;
 import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Position;
 
+import com.tangosol.util.Aggregators;
+import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.HashHelper;
+import com.tangosol.util.InvocableMap;
+import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.aggregator.GroupAggregator;
+import com.tangosol.util.extractor.EntryExtractor;
+import com.tangosol.util.extractor.ReflectionExtractor;
 
 import java.io.Closeable;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.tangosol.net.cache.TypeAssertion.withTypes;
 
@@ -45,6 +55,7 @@ import static com.tangosol.net.cache.TypeAssertion.withTypes;
  * @author jk 2015.06.19
  * @since Coherence 14.1.1
  */
+@SuppressWarnings("rawtypes")
 public class PagedTopicCaches
     implements Closeable, ClassLoaderAware
     {
@@ -68,6 +79,7 @@ public class PagedTopicCaches
      * @param cacheService   the {@link CacheService} owning the underlying caches
      * @param functionCache  the function to invoke to obtain each underlying cache
      */
+    @SuppressWarnings("unchecked")
     public PagedTopicCaches(String sName, CacheService cacheService,
                             BiFunction<String, ClassLoader, NamedCache> functionCache)
         {
@@ -91,15 +103,17 @@ public class PagedTopicCaches
 
         Pages         = functionCache.apply(Names.PAGES.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
         Data          = functionCache.apply(Names.CONTENT.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
-        Subscriptions = functionCache.apply(Names.SUBSCRIPTIONS.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
+        Subscribers   = functionCache.apply(Names.SUBSCRIBERS.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
         Notifications = functionCache.apply(Names.NOTIFICATIONS.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
-        Usages = functionCache.apply(Names.USAGE.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
+        Usages        = functionCache.apply(Names.USAGE.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
+        Subscriptions = functionCache.apply(Names.SUBSCRIPTIONS.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
 
         Set<NamedCache> setCaches = f_setCaches = new HashSet<>();
 
         setCaches.add(Pages);
         setCaches.add(Data);
         setCaches.add(Subscriptions);
+        setCaches.add(Subscribers);
         setCaches.add(Notifications);
         setCaches.add(Usages);
         }
@@ -218,30 +232,7 @@ public class PagedTopicCaches
      */
     public int getChannelCount()
         {
-        return getChannelCount(getPartitionCount());
-        }
-
-    /**
-     * Compute the channel count based on the supplied partition count.
-     *
-     * @param cPartitions the partition count
-     *
-     * @return the channel count based on the supplied partition count
-     */
-    public static int getChannelCount(int cPartitions)
-        {
-        return Math.min(cPartitions, Primes.next((int) Math.sqrt(cPartitions)));
-        }
-
-    /**
-     * Generate a new non-zero NotifierId.
-     *
-     * @return the NotifierId
-     */
-    public int newNotifierId()
-        {
-        // avoid 0 as it is used to indicate that notification is disabled (on the publisher)
-        return 1 + ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
+        return getDependencies().getChannelCount(getPartitionCount());
         }
 
     /**
@@ -285,14 +276,128 @@ public class PagedTopicCaches
         }
 
     /**
-     * Return the Configuration.
+     * Return the {@link PagedTopic.Dependencies}.
      *
-     * @return the configuration
+     * @return the {@link PagedTopic.Dependencies}
      */
-    public Configuration getConfiguration()
+    public PagedTopic.Dependencies getDependencies()
         {
         return f_cacheService.getResourceRegistry()
-            .getResource(Configuration.class, getTopicName());
+            .getResource(PagedTopic.Dependencies.class, getTopicName());
+        }
+
+    /**
+     * Returns the {@link Usage.Key} for the {@link Usage} entry that tracks the topic's tail for
+     * a given channel.
+     * <p>
+     * We don't just use partition zero as that would concentrate extra load on a single partitions
+     * when there are many channels.
+     *
+     * @param nChannel  the channel number
+     *
+     * @return the {@link Usage.Key} for the {@link Usage} entry that tracks the topic's head and tail
+     */
+    public Usage.Key getUsageSyncKey(int nChannel)
+        {
+        int nPart = Math.abs((HashHelper.hash(f_sTopicName.hashCode(), nChannel) % getPartitionCount()));
+        return new Usage.Key(nPart, nChannel);
+        }
+
+    /**
+     * Returns a {@link Map} of channel numbers to the latest {@link Position} committed
+     * for that channel. If a channel has had zero commits it will be missing
+     * from the map's keySet.
+     *
+     * @param subscriberGroupId  the {@link SubscriberGroupId identifier} of the subscriber
+     *                           group to obtain the commits for
+     *
+     * @return {@code true} if the specified {@link Position} has been committed in the
+     *         specified channel
+     */
+    public Map<Integer, Position> getLastCommitted(SubscriberGroupId subscriberGroupId)
+        {
+        ValueExtractor<Subscription.Key, Integer>           extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], EntryExtractor.KEY);
+        ValueExtractor<Subscription.Key, SubscriberGroupId> extractorGroup   = new ReflectionExtractor<>("getGroupId", new Object[0], EntryExtractor.KEY);
+        Filter<Subscription.Key>                            filter           = Filters.equal(extractorGroup, subscriberGroupId);
+        Filter<PagedPosition>                               filterPosition   = Filters.not(Filters.equal(PagedPosition::getPage, Page.NULL_PAGE));
+
+        InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregatorPosn
+                = Aggregators.comparableMax(Subscription::getCommittedPosition);
+
+        // Aggregate the subscription commits and remove any null values from the returned map
+        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPosn, filterPosition))
+                .entrySet()
+                .stream()
+                .filter(e -> e.getKey() != Page.EMPTY && e.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+    /**
+     * Returns a {@link Map} of the {@link Position} of the head for each channel for a subscriber group.
+     *
+     * @param subscriberGroupId  the {@link SubscriberGroupId identifier} of the subscriber
+     *                           group to obtain the heads for
+     *
+     * @return a {@link Map} of the {@link Position} of the head for each channel for a subscriber group
+     */
+    public Map<Integer, Position> getHeads(SubscriberGroupId subscriberGroupId, long nSubscriberId)
+        {
+        ValueExtractor<Subscription.Key, Integer>           extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], EntryExtractor.KEY);
+        ValueExtractor<Subscription.Key, SubscriberGroupId> extractorGroup   = new ReflectionExtractor<>("getGroupId", new Object[0], EntryExtractor.KEY);
+        Filter<Subscription.Key>                            filter           = Filters.equal(extractorGroup, subscriberGroupId);
+        Filter<PagedPosition>                               filterPosition   = Filters.not(Filters.equal(PagedPosition::getPage, Page.NULL_PAGE));
+
+        InvocableMap.EntryAggregator<Subscription.Key, Subscription, PagedPosition> aggregatorPosn
+                = Aggregators.comparableMin(new Subscription.HeadExtractor(nSubscriberId));
+
+        // Aggregate the subscription commits and remove any null values from the returned map
+        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPosn, filterPosition))
+                .entrySet()
+                .stream()
+                .filter(e -> e.getKey() != Page.EMPTY && e.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+    /**
+     * Returns a {@link Map} of the {@link Position} of the head for each channel.
+     *
+     * @return a {@link Map} of the {@link Position} of the head for each channel
+     */
+    public Map<Integer, Position> getHeads()
+        {
+        ValueExtractor<Page.Key, Integer> extractorChannel
+                = new ReflectionExtractor<>("getChannelId", new Object[0], EntryExtractor.KEY);
+
+        InvocableMap.EntryAggregator<Page.Key, Page, Position> aggregatorTail
+                = Aggregators.comparableMin(Page.HeadExtractor.INSTANCE);
+
+        return Pages.aggregate(GroupAggregator.createInstance(extractorChannel, aggregatorTail));
+        }
+
+    /**
+     * Returns a {@link Map} of the {@link Position} of the tail for each channel.
+     *
+     * @return a {@link Map} of the {@link Position} of the tail for each channel
+     */
+    public Map<Integer, Position> getTails()
+        {
+        ValueExtractor<Page.Key, Integer> extractorChannel
+                = new ReflectionExtractor<>("getChannelId", new Object[0], EntryExtractor.KEY);
+
+        InvocableMap.EntryAggregator<Page.Key, Page, Position> aggregatorTail
+                = Aggregators.comparableMax(Page.TailExtractor.INSTANCE);
+
+        return Pages.aggregate(GroupAggregator.createInstance(extractorChannel, aggregatorTail));
+        }
+
+    /**
+     * Returns the {@link NamedTopic.ElementCalculator} to use to calculate message sizes.
+     *
+     * @return the {@link NamedTopic.ElementCalculator} to use to calculate message sizes
+     */
+    public NamedTopic.ElementCalculator getElementCalculator()
+        {
+        return getDependencies().getElementCalculator();
         }
 
     // ----- object methods -------------------------------------------------
@@ -333,6 +438,7 @@ public class PagedTopicCaches
      *
      * @param fDestroy  true to destroy, false to release
      */
+    @SuppressWarnings("rawtypes")
     private void close(boolean fDestroy)
         {
         Consumer<NamedCache> function = fDestroy ? NamedCache::destroy : NamedCache::release;
@@ -343,7 +449,7 @@ public class PagedTopicCaches
                 {
                 if (f_setCaches != null)
                     {
-                    f_setCaches.stream().forEach(function);
+                    f_setCaches.forEach(function);
                     f_setCaches = null;
                     }
                 }
@@ -375,12 +481,17 @@ public class PagedTopicCaches
     /**
      * The cache that holds the topic elements.
      */
-    public final NamedCache<Position, Object> Data;
+    public final NamedCache<ContentKey, Object> Data;
 
     /**
      * The cache that holds the topic subscriber partitions.
      */
     public final NamedCache<Subscription.Key, Subscription> Subscriptions;
+
+    /**
+     * The cache that holds the topic subscriber information.
+     */
+    public final NamedCache<SubscriberInfo.Key, SubscriberInfo> Subscribers;
 
     /**
      * The cache that is used to notify blocked publishers and subscribers that they topic is no longer full/empty.
@@ -605,8 +716,8 @@ public class PagedTopicCaches
          *
          * Use of no prefix rather than METACACHE_PREFIX since it is being used to filter out internal topic meta caches.
          */
-        public static final Names<Position,Object> CONTENT =
-            new Names<>("content", "$topic$", Position.class, Object.class, Names.Storage.Data);
+        public static final Names<ContentKey,Object> CONTENT =
+            new Names<>("content", "$topic$", ContentKey.class, Object.class, Names.Storage.Data);
 
         /**
          * The cache that holds the topic pages.
@@ -622,6 +733,14 @@ public class PagedTopicCaches
             new Names<>("subscriptions", METACACHE_PREFIX + "$subscriptions$",
                 Subscription.Key.class, Subscription.class,
                 Names.Storage.MetaData);
+
+        /**
+         * The cache that holds subscriber information.
+         */
+        public static final Names<SubscriberInfo.Key,SubscriberInfo> SUBSCRIBERS =
+            new Names<>("subscribers", METACACHE_PREFIX + "$subscribers$",
+                        SubscriberInfo.Key.class, SubscriberInfo.class,
+                        Names.Storage.MetaData);
 
         /**
          * The cache used for notifying publishers and subscribers of full/empty events

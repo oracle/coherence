@@ -1,25 +1,23 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package topics;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.Subscriber.Element;
 
 import com.tangosol.util.Base;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author jk 2015.07.01
@@ -52,11 +50,11 @@ public class TopicSubscriber
     @Override
     public void run()
         {
-        long   duration = 0;
+        long duration = 0;
 
         try
             {
-            long   start = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
 
             while(duration < m_nTimeout && m_nConsumed < m_nExpected)
                 {
@@ -64,13 +62,12 @@ public class TopicSubscriber
                     {
                     CompletableFuture<Element<String>> future  = m_subscriber.receive();
                     Element<String>                    element = future.get(m_nTimeout, TimeUnit.MILLISECONDS);
-
                     if (element != null && element.getValue() != null)
                         {
                         if (m_fVerifyOrder)
                             {
+                            Logger.finest("subscriber id: " + m_subscriber.hashCode() + " consumed message order for " + element.getValue() + " expecting " + m_sPrefix + m_nConsumed + " position=" + element.getPosition());
                             assertThat("subscriber verifying published order", element.getValue(), is(m_sPrefix + m_nConsumed));
-                            CacheFactory.log("subscriber id: " + m_subscriber.hashCode() + " consumed message order for " + element.getValue(), Base.LOG_MAX);
                             }
                         m_nConsumed++;
                         }

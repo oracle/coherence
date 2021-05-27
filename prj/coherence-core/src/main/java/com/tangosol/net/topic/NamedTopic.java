@@ -9,6 +9,9 @@ package com.tangosol.net.topic;
 
 import com.tangosol.net.NamedCollection;
 
+import com.tangosol.util.Binary;
+import com.tangosol.util.ClassHelper;
+
 import java.util.Set;
 
 /**
@@ -20,7 +23,7 @@ import java.util.Set;
  * each subscriber group of the topic. Each value of a subscriber group is only consumed by one {@link Subscriber subscriber group member}.
  * Thus each subscriber group in effect behaves like a queue over the topic data.
  * <p>
- * Once {@link Publisher#send published}, a value will be retained by the topic until it has either
+ * Once {@link Publisher#publish published}, a value will be retained by the topic until it has either
  * expired or has been {@link Subscriber#receive received} by all {@link Subscriber.Name subscriber group(s)}
  * and direct topic {@link Subscriber}(s) which were registered prior to it being published.
  * The ordering of values within the topic is dependent on the {@link Publisher.OrderBy} option.
@@ -49,6 +52,7 @@ import java.util.Set;
  * @see Publisher
  * @see Subscriber
  */
+@SuppressWarnings("unchecked")
 public interface NamedTopic<V>
         extends NamedCollection
     {
@@ -137,5 +141,46 @@ public interface NamedTopic<V>
         // to avoid cumbersome caller exception handling;
         // default is a no-op.
         return false;
+        }
+
+    /**
+     * Returns the number of channels that this topic has.
+     *
+     *  @return the number of channels that this topic has
+     */
+    public int getChannelCount();
+
+    // ----- inner interface: ElementCalculator -----------------------------
+
+    /**
+     * A unit calculator is an object that can calculate the cost of
+     * storing an element in a topic.
+     */
+    interface ElementCalculator
+        {
+        /**
+         * Calculate cost for the specified element.
+         *
+         * @param binElement  the element value (in serialized Binary form) to evaluate for unit cost
+         *
+         * @return an integer value 0 or greater, with a larger value
+         *         signifying a higher cost
+         *
+         * @throws IllegalArgumentException if the specified object type
+         *         cannot be processed by this calculator
+         */
+        int calculateUnits(Binary binElement);
+
+        /**
+         * Obtain the name of the unit calculator. This is intended to be
+         * human readable for use in a monitoring tool; examples include
+         * "SimpleMemoryCalculator" and "BinaryMemoryCalculator".
+         *
+         * @return the name of the unit calculator
+         */
+        default String getName()
+            {
+            return ClassHelper.getSimpleName(getClass());
+            }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,6 +11,8 @@ import com.oracle.coherence.common.collections.Arrays;
 import com.tangosol.internal.util.Primes;
 
 import com.tangosol.io.AbstractEvolvable;
+
+import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -18,9 +20,19 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.partition.KeyPartitioningStrategy;
 
+import com.tangosol.net.topic.Position;
+
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.ValueExtractor;
+
+import com.tangosol.util.extractor.ChainedExtractor;
+import com.tangosol.util.extractor.EntryExtractor;
 
 import java.io.IOException;
+
+import java.util.Map;
 
 /**
  * This class represents information about a page in a topic.
@@ -69,6 +81,26 @@ public class Page
         }
 
     /**
+     * Obtain the id of the previous page in this partition or NULL_PAGE if unknown
+     *
+     * @return the id of the previous page
+     */
+    public long getPreviousPartitionPage()
+        {
+        return m_lPrevPage;
+        }
+
+    /**
+     * Set the id of the previous page in this partition.
+     *
+     * @param lPage the previous page
+     */
+    public void setPreviousPartitionPage(long lPage)
+        {
+        m_lPrevPage = lPage;
+        }
+
+    /**
      * Obtain the current tail of this page.
      *
      * @return the current tail of this page
@@ -109,6 +141,76 @@ public class Page
         }
 
     /**
+     * Return the timestamp of the first element in the page.
+     *
+     * @return the timestamp of the first element in the page
+     */
+    public long getHeadTimestamp()
+        {
+        return m_lTimestampHead;
+        }
+
+    /**
+     * Set the timestamp of the first element in the page.
+     *
+     * @param lTimestamp  the timestamp of the first element in the page
+     */
+    public void setTimestampHead(long lTimestamp)
+        {
+        m_lTimestampHead = lTimestamp;
+        }
+
+    /**
+     * Return the timestamp of the last element in the page.
+     *
+     * @return the timestamp of the last element in the page
+     */
+    public long getTailTimestamp()
+        {
+        return m_lTimestampTail;
+        }
+
+    /**
+     * Set the timestamp of the last element in the page.
+     *
+     * @param lTimestamp  the timestamp of the last element in the page
+     */
+    public void setTimestampTail(long lTimestamp)
+        {
+        m_lTimestampTail = lTimestamp;
+        }
+
+    /**
+     * Compares the timestamps for the head and tail elements of this page with the specified
+     * timestamp.
+     *
+     * @param lTimestamp  the timestamp to check
+     *
+     * @return a value of zero if the timestamp falls between the head and tail timestamps,
+     *         a value less than zero if this page timestamps are less than the timestamp,
+     *         or a value greater than zero if this page's timestamps are greater than the
+     *         specified timestamp.
+     */
+    public int compareTimestamp(long lTimestamp)
+        {
+        if (m_lTimestampHead > lTimestamp)
+            {
+            // this page is after the specified timestamp
+            return 1;
+            }
+        else if (m_lTimestampTail < lTimestamp)
+            {
+            // this page is before the specified timestamp
+            return -1;
+            }
+        else
+            {
+            // the timestamp falls within this page's timestamps
+            return 0;
+            }
+        }
+
+    /**
      * Determine whether this {@link Page} is accepting offers
      * of new elements or is sealed an no longer accepting offers.
      *
@@ -118,6 +220,21 @@ public class Page
     public boolean isSealed()
         {
         return m_fSealed;
+        }
+
+    /**
+     * Determine whether this {@link Page} is sealed and empty.
+     * <p>
+     * Empty, sealed, pages are typically inserted by publish requests when is size limited
+     * topic is full. Removal of this page on a commit will then trigger notifications to
+     * blocked {@link com.tangosol.net.topic.Publisher publishers} that they can attempt to
+     * publish more messages.
+     *
+     * @return true if this {@link Page} is sealed and empty
+     */
+    public boolean isSealedAndEmpty()
+        {
+        return m_fSealed && m_nTail == Page.EMPTY;
         }
 
     /**
@@ -190,6 +307,16 @@ public class Page
         }
 
     /**
+     * Returns this {@link Page pages} reference count.
+     *
+     * @return this {@link Page pages} reference count
+     */
+    public int getReferenceCount()
+        {
+        return m_cRefs;
+        }
+
+    /**
      * Return true if the page has subscribers.
      *
      * @return true iff there are attached subscribers
@@ -238,6 +365,12 @@ public class Page
         m_cb          = in.readInt(3);
         m_anNotifiers = in.readIntArray(4);
         m_cRefs       = in.readInt(5);
+        if (getImplVersion() >= 2)
+            {
+            m_lPrevPage = in.readLong(6);
+            m_lTimestampHead = in.readLong(7);
+            m_lTimestampTail = in.readLong(8);
+            }
         }
 
     @Override
@@ -250,6 +383,9 @@ public class Page
         out.writeInt(3, m_cb);
         out.writeIntArray(4, m_anNotifiers);
         out.writeInt(5, m_cRefs);
+        out.writeLong(6, m_lPrevPage);
+        out.writeLong(7, m_lTimestampHead);
+        out.writeLong(8, m_lTimestampTail);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -262,7 +398,8 @@ public class Page
     public String toString()
         {
         int[] anNotify = m_anNotifiers;
-        return ClassHelper.getSimpleName(getClass()) + "(next=" + m_lNextPage + ", tail=" + m_nTail
+        return ClassHelper.getSimpleName(getClass()) + "(next=" + m_lNextPage + ", prev=" + m_lPrevPage
+                + ", tail=" + m_nTail + " headTime=" + m_lTimestampHead + " tailTime=" + m_lTimestampTail
                 + ", bytes=" + m_cb + ", sealed=" + m_fSealed + ", refs=" + m_cRefs
                 + ", waiting=" + (anNotify == null ? 0 : anNotify.length) + ')';
         }
@@ -280,7 +417,7 @@ public class Page
     // because adding fields would affect the "equality"
     // of a key
     public static class Key
-        implements KeyPartitioningStrategy.PartitionAwareKey, PortableObject
+        implements KeyPartitioningStrategy.PartitionAwareKey, PortableObject, Comparable<Page.Key>
         {
         // ----- Constructors -----------------------------------------------
 
@@ -329,6 +466,19 @@ public class Page
         public int getPartitionId()
             {
             return mapPageToPartition(m_nChannel, m_lPage);
+            }
+
+        // ----- Comparable methods -----------------------------------------
+
+        @Override
+        public int compareTo(Key other)
+            {
+            int n = Integer.compare(m_nChannel, other.m_nChannel);
+            if (n == 0)
+                {
+                n = Long.compare(m_lPage, other.m_lPage);
+                }
+            return n;
             }
 
         // ----- Object methods ---------------------------------------------
@@ -418,6 +568,98 @@ public class Page
         protected long m_lPage;
         }
 
+    // ----- inner class HeadExtractor --------------------------------------
+
+    /**
+     * An {@link EntryExtractor} that can extract the head position from a {@link Page}.
+     */
+    public static class HeadExtractor
+            extends EntryExtractor
+            implements PortableObject
+        {
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Object extractFromEntry(Map.Entry entry)
+            {
+            return new PagedPosition(((Page.Key) entry.getKey()).getPageId(), 0);
+            }
+
+        /**
+         * A singleton instance of {@link HeadExtractor}.
+         */
+        @SuppressWarnings("unchecked")
+        public static ValueExtractor<Map.Entry<Page.Key, Page>, Position> INSTANCE = new HeadExtractor();
+        }
+
+    // ----- inner class TailExtractor --------------------------------------
+
+    /**
+     * An {@link EntryExtractor} that can extract the tail position from a {@link Page}.
+     */
+    public static class TailExtractor
+            extends EntryExtractor
+            implements PortableObject
+        {
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Object extractFromEntry(Map.Entry entry)
+            {
+            return new PagedPosition(((Page.Key) entry.getKey()).getPageId(), ((Page) entry.getValue()).getTail());
+            }
+
+        /**
+         * A singleton instance of {@link TailExtractor}.
+         */
+        @SuppressWarnings("unchecked")
+        public static ValueExtractor<Map.Entry<Page.Key, Page>, Position> INSTANCE = new TailExtractor();
+        }
+
+    // ----- inner class ElementExtractor -----------------------------------
+
+    /**
+     * An {@link EntryExtractor} that can extract an {@link com.tangosol.net.topic.Subscriber.Element}
+     * from the topic content cache.
+     * <p>
+     * This requires a custom extractor because the cache values are not actually serialized elements,
+     * they are just custom {@link com.tangosol.util.Binary} instances.
+     *
+     * @param <V>  the type of the element's value
+     */
+    public static class ElementExtractor<V>
+            extends EntryExtractor
+            implements PortableObject
+        {
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Subscriber.Element<V> extractFromEntry(Map.Entry entry)
+            {
+            BinaryEntry<?, ?> binaryEntry = (BinaryEntry) entry;
+            return PageElement.fromBinary(binaryEntry.getBinaryValue(), binaryEntry.getSerializer());
+            }
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Object extract(Object oTarget)
+            {
+            return extractFromEntry((Map.Entry) oTarget);
+            }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        public static <V, E> ValueExtractor<V, E> chained(ValueExtractor<Subscriber.Element<V>, E> extractor)
+            {
+            return new ChainedExtractor<>(new ElementExtractor<>(), extractor);
+            }
+
+        @SuppressWarnings("unchecked")
+        public static <V> ValueExtractor<Object, Subscriber.Element<V>> instance()
+            {
+            return (ElementExtractor<V>) INSTANCE;
+            }
+
+        private static final ElementExtractor<?> INSTANCE = new ElementExtractor<>();
+        }
+
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -433,7 +675,7 @@ public class Page
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 1;
+    public static final int DATA_VERSION = 2;
 
     // ----- data members ---------------------------------------------------
 
@@ -441,6 +683,11 @@ public class Page
      * The id of the next page in this partition, or NULL_PAGE if unknown
      */
     protected long m_lNextPage = NULL_PAGE;
+
+    /**
+     * The id of the previous page in this partition, or NULL_PAGE if unknown
+     */
+    protected long m_lPrevPage = NULL_PAGE;
 
     /**
      * The id of the current tail element of this {@link Page}
@@ -466,4 +713,14 @@ public class Page
      * The set of notifiers to notify after an insert into the page
      */
     protected int[] m_anNotifiers;
+
+    /**
+     * The timestamp of the first element in the page.
+     */
+    protected long m_lTimestampHead;
+
+    /**
+     * The timestamp of the last element in the page.
+     */
+    protected long m_lTimestampTail;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@ import com.tangosol.coherence.config.scheme.LocalScheme;
 import com.tangosol.coherence.config.scheme.NamedTopicScheme;
 import com.tangosol.coherence.config.scheme.PagedTopicScheme;
 
-import com.tangosol.internal.net.topic.impl.paged.Configuration;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
 import com.tangosol.net.CacheService;
@@ -78,7 +78,7 @@ public class SchemeSelectionTopicTests
 
         assertNotNull(topic);
 
-        Configuration config = getTopicConfig("topic-dist-backing-local1");
+        PagedTopic.Dependencies config = getTopicDependencies("topic-dist-backing-local1");
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(config.getPageCapacity(), is(10));
@@ -107,7 +107,7 @@ public class SchemeSelectionTopicTests
 
         assertNotNull(topic);
 
-        Configuration config = getTopicConfig(TOPIC_NAME);
+        PagedTopic.Dependencies config = getTopicDependencies(TOPIC_NAME);
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(config.getPageCapacity(), is(10));
@@ -140,7 +140,7 @@ public class SchemeSelectionTopicTests
 
         assertNotNull(topic);
 
-        Configuration config = getTopicConfig("topic-dist-defaults");
+        PagedTopic.Dependencies config = getTopicDependencies("topic-dist-defaults");
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(config.getPageCapacity(), is(1024*1024));
@@ -167,7 +167,7 @@ public class SchemeSelectionTopicTests
 
         assertNotNull(topic);
 
-        Configuration config = getTopicConfig("all-defaulted-topic");
+        PagedTopic.Dependencies config = getTopicDependencies("all-defaulted-topic");
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(config.getPageCapacity(), is(1024*1024));
@@ -199,7 +199,7 @@ public class SchemeSelectionTopicTests
                 CacheService.TYPE_DISTRIBUTED);
         assertNotNull(topic);
 
-        Configuration config = getTopicConfig("same");
+        PagedTopic.Dependencies config = getTopicDependencies("same");
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(false, is(config.isRetainConsumed()));
@@ -224,7 +224,7 @@ public class SchemeSelectionTopicTests
 
         assertNotNull(topic);
 
-        Configuration config = getTopicConfig(COLLECTION_NAME);
+        PagedTopic.Dependencies config = getTopicDependencies(COLLECTION_NAME);
 
         assertThat(config.getElementExpiryMillis(), is(21 * 1000L));
         assertThat(config.isRetainConsumed(), is(true));
@@ -249,7 +249,7 @@ public class SchemeSelectionTopicTests
 
         assertNotNull(topic);
 
-        Configuration config = getTopicConfig(COLLECTION_NAME);
+        PagedTopic.Dependencies config = getTopicDependencies(COLLECTION_NAME);
 
         assertThat(config.getPageCapacity(), is(20));
 
@@ -338,7 +338,7 @@ public class SchemeSelectionTopicTests
             {
             try
                 {
-                publisher.send(sPrefix + i).get();
+                publisher.publish(sPrefix + i).get();
                 }
             catch (InterruptedException | ExecutionException e)
                 {
@@ -382,14 +382,14 @@ public class SchemeSelectionTopicTests
         return topic;
         }
 
-    private Configuration getTopicConfig(String sCollectionName)
+    private PagedTopic.Dependencies getTopicDependencies(String sCollectionName)
         {
-        NamedTopicScheme scheme = m_eccf.getCacheConfig().findSchemeByTopicName(sCollectionName);
-        String            serviceName = scheme.getServiceName();
-        CacheService     service  = (CacheService) m_eccf.ensureService(serviceName);
-        ResourceRegistry registry = service.getResourceRegistry();
+        NamedTopicScheme scheme      = m_eccf.getCacheConfig().findSchemeByTopicName(sCollectionName);
+        String           serviceName = scheme.getServiceName();
+        CacheService     service     = (CacheService) m_eccf.ensureService(serviceName);
+        ResourceRegistry registry    = service.getResourceRegistry();
 
-        return registry.getResource(Configuration.class, sCollectionName);
+        return registry.getResource(PagedTopic.Dependencies.class, sCollectionName);
         }
 
     private <E> NamedTopic<E> getNamedTopic(String sTopicName, Class<E> clsElement)
