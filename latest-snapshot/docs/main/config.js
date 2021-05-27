@@ -130,6 +130,58 @@ function createRoutes(){
             component: loadPage('docs-core-05_repository', '/docs/core/05_repository', {})
         },
         {
+            path: '/docs/topics/01_introduction',
+            meta: {
+                h1: 'Introduction to Coherence Topics',
+                title: 'Introduction to Coherence Topics',
+                h1Prefix: null,
+                description: 'Coherence Topics',
+                keywords: 'coherence, topics, streaming, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-topics-01_introduction', '/docs/topics/01_introduction', {})
+        },
+        {
+            path: '/docs/topics/02_configuring_topics',
+            meta: {
+                h1: 'Configure Coherence Topics',
+                title: 'Configure Coherence Topics',
+                h1Prefix: null,
+                description: 'Coherence Topics',
+                keywords: 'coherence, topics, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-topics-02_configuring_topics', '/docs/topics/02_configuring_topics', {})
+        },
+        {
+            path: '/docs/topics/03_publishers',
+            meta: {
+                h1: 'Publishers',
+                title: 'Publishers',
+                h1Prefix: null,
+                description: 'Coherence Topics Publishers',
+                keywords: 'coherence, topics, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-topics-03_publishers', '/docs/topics/03_publishers', {})
+        },
+        {
+            path: '/docs/topics/04_subscribers',
+            meta: {
+                h1: 'Subscribers',
+                title: 'Subscribers',
+                h1Prefix: null,
+                description: 'Coherence Topics Subscribers',
+                keywords: 'coherence, topics, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-topics-04_subscribers', '/docs/topics/04_subscribers', {})
+        },
+        {
             path: '/coherence-cdi-server/README',
             meta: {
                 h1: 'Coherence CDI',
@@ -497,6 +549,17 @@ function createNav(){
                                 { href: '/docs/core/03_parallel_recovery', title: 'Parallel Recovery' },
                                 { href: '/docs/core/04_portable_types', title: 'Portable Types' },
                                 { href: '/docs/core/05_repository', title: 'Repository API' }
+                            ]
+                        },
+                        {
+                            title: 'Topics (Messaging)',
+                            action: 'forward_to_inbox',
+                            group: '/topics',
+                            items: [
+                                { href: '/docs/topics/01_introduction', title: 'Introduction to Coherence Topics' },
+                                { href: '/docs/topics/02_configuring_topics', title: 'Configure Coherence Topics' },
+                                { href: '/docs/topics/03_publishers', title: 'Publishers' },
+                                { href: '/docs/topics/04_subscribers', title: 'Subscribers' }
                             ]
                         },
                         {

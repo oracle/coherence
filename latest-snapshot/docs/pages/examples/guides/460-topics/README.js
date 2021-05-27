@@ -348,34 +348,24 @@ Topics, Subscribers and Publishers
 lang="java"
 
 >/**
- * Topic for public messages.
- */
-private NamedTopic&lt;ChatMessage&gt; topicPublic;
-
-/**
- * Topic for private messages.
- */
-private NamedTopic&lt;ChatMessage&gt; topicPrivate;
-
-/**
  * Publisher for public messages.
  */
-private Publisher&lt;ChatMessage&gt; publisherPublic;
+private final Publisher&lt;ChatMessage&gt; publisherPublic;
 
 /**
  * Publisher for private messages.
  */
-private Publisher&lt;ChatMessage&gt; publisherPrivate;
+private final Publisher&lt;ChatMessage&gt; publisherPrivate;
 
 /**
  * Subscriber for public messages.
  */
-private Subscriber&lt;ChatMessage&gt; subscriberPublic;
+private final Subscriber&lt;ChatMessage&gt; subscriberPublic;
 
 /**
  * Subscriber for private messages.
  */
-private Subscriber&lt;ChatMessage&gt; subscriberPrivate;</markup>
+private final Subscriber&lt;ChatMessage&gt; subscriberPrivate;</markup>
 
 </li>
 <li>
@@ -407,16 +397,14 @@ Create the <strong>public</strong> Topic, Subscribers and Publishers
 <markup
 lang="java"
 
->// create public topic where everyone subscribes as anonymous and gets all messages
-// sent while they are connected
-topicPublic = session.getTopic("public-messages", withType(ChatMessage.class));  <span class="conum" data-value="1" />
-publisherPublic = topicPublic.createPublisher();  <span class="conum" data-value="2" />
-subscriberPublic = topicPublic.createSubscriber();  <span class="conum" data-value="3" /></markup>
+>// create a publisher to publish public messages
+publisherPublic = session.createPublisher("public-messages");  <span class="conum" data-value="1" />
+// create a subscriber to receive public messages
+subscriberPublic = session.createSubscriber("public-messages");  <span class="conum" data-value="2" /></markup>
 
 <ul class="colist">
-<li data-value="1">Creates the public topic with the type of <code>ChatMessage.class</code></li>
-<li data-value="2">Creates a publisher to publish messages to the topic</li>
-<li data-value="3">Creates a subscriber (anonymous) to receive all messages published to the topic</li>
+<li data-value="1">Creates a publisher to publish messages to the topic</li>
+<li data-value="2">Creates a subscriber (anonymous) to receive all messages published to the topic</li>
 </ul>
 </li>
 <li>
@@ -424,16 +412,14 @@ Create the <strong>private</strong> Topic, Subscribers and Publishers
 <markup
 lang="java"
 
->// create private topic where messages are send to individuals and are via a subscriber group.
-// Subscribers will get messages sent offline if they have previously connected
-topicPrivate = session.getTopic("private-messages", withType(ChatMessage.class));  <span class="conum" data-value="1" />
-publisherPrivate = topicPrivate.createPublisher();  <span class="conum" data-value="2" />
-subscriberPrivate = topicPrivate.createSubscriber(Subscriber.Name.of(userId));  <span class="conum" data-value="3" /></markup>
+>// create a publisher to publish private messages
+publisherPrivate = session.createPublisher("private-messages");  <span class="conum" data-value="1" />
+// create a subscriber to receive private messages
+subscriberPrivate = session.createSubscriber("private-messages", inGroup(userId));  <span class="conum" data-value="2" /></markup>
 
 <ul class="colist">
-<li data-value="1">Creates the private topic with the type of <code>ChatMessage.class</code></li>
-<li data-value="2">Creates a publisher to publish messages to the topic</li>
-<li data-value="3">Creates a subscriber with a subscriber group of the user to receive private messages</li>
+<li data-value="1">Creates a publisher to publish messages to the topic</li>
+<li data-value="2">Creates a subscriber with a subscriber group of the user to receive private messages</li>
 </ul>
 </li>
 <li>
@@ -443,10 +429,10 @@ to receive messages from the private topic.
 lang="java"
 
 >// subscription for anonymous subscriber/ public messages
-subscriberPublic.receive().handleAsync((v, err) -&gt; receive(v, err, subscriberPublic));
+subscriberPublic.receive().handle((v, err) -&gt; receive(v, err, subscriberPublic));
 
 // subscription for subscriber group / private durable messages
-subscriberPrivate.receive().handleAsync((v, err) -&gt; receive(v, err, subscriberPrivate));</markup>
+subscriberPrivate.receive().handle((v, err) -&gt; receive(v, err, subscriberPrivate));</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">We are just using the default ForkJoin pool for this example but handleAsync can accept and <code>Executor</code> which would be better practice.</p>
@@ -473,21 +459,22 @@ public Void receive(Element&lt;ChatMessage&gt; element, Throwable throwable, Sub
         }
     } else {
         ChatMessage chatMessage = element.getValue();  <span class="conum" data-value="1" />
-        String message = getMessageLog(chatMessage);  <span class="conum" data-value="2" />
-        // ensure we don't display a message from ourselves
-        if (message != null) {
-            messagesReceived.incrementAndGet();
-            log(message);
-        }
-        subscriber.receive().handleAsync((v, err) -&gt; receive(v, err, subscriber));  <span class="conum" data-value="1" />
+        getMessageLog(chatMessage)                     <span class="conum" data-value="2" />
+            .ifPresent(message -&gt; {
+                messagesReceived.incrementAndGet();
+                log(message);
+            });
+        element.commit();   <span class="conum" data-value="3" />
+        subscriber.receive().handle((v, err) -&gt; receive(v, err, subscriber));  <span class="conum" data-value="4" />
     }
     return null;
 }</markup>
 
 <ul class="colist">
 <li data-value="1">Retrieve the <code>ChatMessage</code></li>
-<li data-value="2">Call a method to generate a string representation</li>
-<li data-value="3">Re-subscribe</li>
+<li data-value="2">Call a method to generate a string representation of the message and display it</li>
+<li data-value="3">Commit the element so that we do not receive the message again</li>
+<li data-value="4">Receive the next message</li>
 </ul>
 </li>
 <li>
@@ -496,7 +483,7 @@ Generate a join message on startup
 lang="java"
 
 >// generate a join message and send synchronously
-publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.JOIN, null)).join();</markup>
+publisherPublic.publish(new ChatMessage(userId, null, ChatMessage.Type.JOIN, null)).join();</markup>
 
 </li>
 <li>
@@ -506,7 +493,7 @@ lang="java"
 
 >} else if (line.startsWith("send ")) {
     // send public message synchronously
-    publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.MESSAGE, line.substring(5)))
+    publisherPublic.publish(new ChatMessage(userId, null, ChatMessage.Type.MESSAGE, line.substring(5)))
             .handle(this::handleSend);  <span class="conum" data-value="1" /></markup>
 
 <ul class="colist">
@@ -527,7 +514,7 @@ lang="java"
     } else {
         String user = parts[1];
         String message = line.replaceAll(parts[0] + " " + parts[1] + " ", "");
-        publisherPrivate.send(new ChatMessage(userId, user, ChatMessage.Type.MESSAGE, message))
+        publisherPrivate.publish(new ChatMessage(userId, user, ChatMessage.Type.MESSAGE, message))
                 .handle(this::handleSend); <span class="conum" data-value="1" /></markup>
 
 <ul class="colist">
@@ -541,19 +528,21 @@ lang="java"
 
 >private void cleanup() {
     // generate a leave message
-    if (topicPublic.isActive()) {
-        publisherPublic.send(new ChatMessage(userId, null, ChatMessage.Type.LEAVE, null)).join();
+    if (publisherPublic.isActive()) {
+        publisherPublic.publish(new ChatMessage(userId, null, ChatMessage.Type.LEAVE, null)).join();
         publisherPublic.flush().join();
         publisherPublic.close();
+    }
+    if (subscriberPublic.isActive()) {
         subscriberPublic.close();
-        topicPublic.close();
     }
 
-    if (topicPrivate.isActive()) {
+    if (publisherPrivate.isActive()) {
         publisherPrivate.flush().join();
         publisherPrivate.close();
+    }
+    if (subscriberPrivate.isActive()) {
         subscriberPrivate.close();
-        topicPrivate.close();
     }
 }</markup>
 
