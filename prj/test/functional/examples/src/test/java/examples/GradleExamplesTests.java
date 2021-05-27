@@ -24,6 +24,7 @@ import com.tangosol.run.xml.XmlHelper;
 import common.AbstractTestInfrastructure;
 import org.junit.Assume;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -46,6 +47,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *
  * @author Jonathan Knight  2021.02.02
  */
+@Disabled("Temporarily  disable due to Gradle test not getting correct dependencies")
 class GradleExamplesTests
     {
     @BeforeAll
