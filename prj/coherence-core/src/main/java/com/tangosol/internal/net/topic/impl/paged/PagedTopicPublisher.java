@@ -25,8 +25,12 @@ import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.FlowControl;
+import com.tangosol.net.MemberEvent;
+import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.RequestIncompleteException;
@@ -45,6 +49,8 @@ import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListenerSupport;
+import com.tangosol.util.ServiceEvent;
+import com.tangosol.util.ServiceListener;
 import com.tangosol.util.SparseArray;
 import com.tangosol.util.TaskDaemon;
 
@@ -843,6 +849,10 @@ public class PagedTopicPublisher<V>
         try
             {
             m_caches.Data.addMapListener(f_listenerDeactivation);
+
+            CacheService cacheService = m_caches.getCacheService();
+            cacheService.addMemberListener(f_listenerService);
+            cacheService.addServiceListener(f_listenerService);
             }
         catch (RuntimeException e)
             {
@@ -938,6 +948,53 @@ public class PagedTopicPublisher<V>
             }
         }
 
+    // ----- inner class: TopicServiceListener ------------------------------
+
+    protected class TopicServiceListener
+            implements ServiceListener, MemberListener
+        {
+        @Override
+        public void memberJoined(MemberEvent evt)
+            {
+            }
+
+        @Override
+        public void memberLeaving(MemberEvent evt)
+            {
+            }
+
+        @Override
+        public void memberLeft(MemberEvent evt)
+            {
+            boolean                 fLocal   = evt.isLocal();
+            DistributedCacheService service  = (DistributedCacheService) evt.getService();
+            int                     cStorage = service.getOwnershipEnabledMembers().size();
+            System.err.println();
+            }
+
+        @Override
+        public void serviceStarting(ServiceEvent evt)
+            {
+            }
+
+        @Override
+        public void serviceStarted(ServiceEvent evt)
+            {
+            }
+
+        @Override
+        public void serviceStopping(ServiceEvent evt)
+            {
+            System.err.println();
+            }
+
+        @Override
+        public void serviceStopped(ServiceEvent evt)
+            {
+            System.err.println();
+            }
+        }
+
     // ----- inner class: FlushMode ----------------------------------------
 
     /**
@@ -979,7 +1036,11 @@ public class PagedTopicPublisher<V>
         /**
          * The publisher is closed.
          */
-        Closed
+        Closed,
+        /**
+         * The publisher is disconnected from storage.
+         */
+        Disconnected
         }
 
     // ----- inner class: PublishedMetadata --------------------------------
@@ -1188,6 +1249,11 @@ public class PagedTopicPublisher<V>
      * The NamedCache deactivation listener.
      */
     private final NamedCacheDeactivationListener f_listenerDeactivation = new DeactivationListener();
+
+    /**
+     * The topic service listener.
+     */
+    private final TopicServiceListener f_listenerService = new TopicServiceListener();
 
     /**
      * A {@link List} of actions to run when this publisher closes.
