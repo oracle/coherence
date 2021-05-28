@@ -25,6 +25,8 @@ import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
+import com.tangosol.io.Serializer;
+import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.io.pof.reflect.SimplePofPath;
 
 import com.tangosol.net.CacheFactory;
@@ -2298,10 +2300,14 @@ listLog.add("Received (3): NULL");
 
     private void testThrottlePublisher(NamedTopic<String> topic, Subscriber<String> subscriber) throws Exception
         {
+        Serializer serializer = topic.getService().getSerializer();
+        Assume.assumeThat("Skipping if not using POF due to inconsistent serialized sizes breaking calculation in assertion",
+                          serializer, is(instanceOf(ConfigurablePofContext.class)));
+
         PagedTopic.Dependencies      dependencies = getDependencies(topic);
         NamedTopic.ElementCalculator calculator   = dependencies.getElementCalculator();
         AtomicLong                   cReq         = new AtomicLong();
-        int                          cbValue      = calculator.calculateUnits(ExternalizableHelper.toBinary( "Element-" + 100, topic.getService().getSerializer()));
+        int                          cbValue      = calculator.calculateUnits(ExternalizableHelper.toBinary("Element-" + 0, serializer));
         long                         nHigh        = (dependencies.getMaxBatchSizeBytes() * 3) / cbValue;
 
         Thread thread = new Thread(() ->
@@ -2325,7 +2331,7 @@ listLog.add("Received (3): NULL");
 
         for (int i = 0; i < nHigh * 100; ++i)
             {
-            subscriber.receive().get(); // .get() makes subscriber slower then publisher
+            subscriber.receive().get().commit(); // make subscriber slower then publisher
             assertThat(cReq.get(), lessThanOrEqualTo(nHigh + cbValue));
             }
         }
