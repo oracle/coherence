@@ -17,7 +17,7 @@ import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.PartitionedService;
 
 import com.tangosol.net.partition.DefaultVersionedPartitions;
@@ -148,13 +148,13 @@ public class DurableEventsTests
         {
         final String CACHE_NAME = "foo";
 
-        NamedCache<Integer, String> cache = getNamedCache(CACHE_NAME);
+        NamedMap<Integer, String> cache = getNamedCache(CACHE_NAME);
 
         Eventually.assertDeferred(
-                () -> ((PartitionedService) cache.getCacheService()).getOwnershipEnabledMembers().size(),
+                () -> ((PartitionedService) cache.getService()).getOwnershipEnabledMembers().size(),
                 is(SERVERS));
 
-        waitForBalanced(cache.getCacheService());
+        waitForBalanced(cache.getService());
         }
 
     /**
@@ -168,7 +168,7 @@ public class DurableEventsTests
 
         final String CACHE_NAME = "foo";
 
-        NamedCache<Integer, String> cache = getNamedCache(CACHE_NAME);
+        NamedMap<Integer, String> cache = getNamedCache(CACHE_NAME);
         try
             {
             List<MapEvent> listEvents = Collections.synchronizedList(new ArrayList<>());
@@ -184,7 +184,7 @@ public class DurableEventsTests
             // insert 5 versions of the same entry on a remote node
             member.invoke(() ->
                 {
-                NamedCache<Integer, String> cacheFoo = CacheFactory.getCache(CACHE_NAME);
+                NamedMap<Integer, String> cacheFoo = CacheFactory.getCache(CACHE_NAME);
 
                 for (int i = 0, c = 5; i < c; ++i)
                     {
@@ -201,7 +201,7 @@ public class DurableEventsTests
             // insert 5 more versions of the same entry on a remote node
             member.invoke(() ->
                 {
-                NamedCache<Integer, String> cacheFoo = CacheFactory.getCache(CACHE_NAME);
+                NamedMap<Integer, String> cacheFoo = CacheFactory.getCache(CACHE_NAME);
 
                 for (int i = 5, c = 10; i < c; ++i)
                     {
@@ -236,7 +236,7 @@ public class DurableEventsTests
 
         final String CACHE_NAME = "bar";
 
-        NamedCache<Integer, Integer> cache = getNamedCache(CACHE_NAME);
+        NamedMap<Integer, Integer> cache = getNamedCache(CACHE_NAME);
         try
             {
             List<MapEvent> listEvents = Collections.synchronizedList(new ArrayList<>());
@@ -253,7 +253,7 @@ public class DurableEventsTests
             // insert 5 versions of the same entry on a remote node
             member.invoke(() ->
                 {
-                NamedCache<Integer, Integer> cacheFoo = CacheFactory.getCache(CACHE_NAME);
+                NamedMap<Integer, Integer> cacheFoo = CacheFactory.getCache(CACHE_NAME);
 
                 // update keys 5-20 5 times
                 for (int i = 1; i <= 5; i++)
@@ -273,7 +273,7 @@ public class DurableEventsTests
             // insert 5 more versions of the same entry on a remote node
             member.invoke(() ->
                 {
-                NamedCache<Integer, Integer> cacheFoo = CacheFactory.getCache(CACHE_NAME);
+                NamedMap<Integer, Integer> cacheFoo = CacheFactory.getCache(CACHE_NAME);
 
                 // update keys 5-20 5 times
                 for (int i = 1; i <= 5; i++)
@@ -307,7 +307,7 @@ public class DurableEventsTests
     @Test
     public void testAdvancedClient()
         {
-        NamedCache<Integer, String> cache = getNamedCache("foo");
+        NamedMap<Integer, String> cache = getNamedCache("foo");
         try
             {
             for (int i = 0; i < 10; ++i)
@@ -340,12 +340,12 @@ public class DurableEventsTests
     @Test
     public void testAdvancedFilterClient()
         {
-        NamedCache<Integer, Integer> cache = getNamedCache("bar");
+        NamedMap<Integer, Integer> cache = getNamedCache("bar");
         try
             {
             Filter filter = Filters.greaterEqual(ValueExtractor.identity(), 10);
 
-            PartitionVersionTracker<Integer> tracker = new PartitionVersionTracker<>((PartitionedService) cache.getCacheService());
+            PartitionVersionTracker<Integer> tracker = new PartitionVersionTracker<>((PartitionedService) cache.getService());
 
             Set<Integer> setKeys      = IntStream.range(5, 10).boxed().collect(Collectors.toSet());
             Set<Integer> setKeysMatch = IntStream.range(10, 20).boxed().collect(Collectors.toSet());
@@ -433,9 +433,9 @@ public class DurableEventsTests
      *
      * @param cache  the cache hosted by the service to stop
      */
-    protected void causeServiceDisruption(NamedCache cache)
+    protected void causeServiceDisruption(NamedMap cache)
         {
-        CacheService serviceSafe = cache.getCacheService();
+        CacheService serviceSafe = cache.getService();
         try
             {
             Method       methRunningService = serviceSafe.getClass().getMethod("getRunningService");
@@ -478,7 +478,7 @@ public class DurableEventsTests
         public Integer call()
                 throws Exception
             {
-            NamedCache<K, String> cache = CacheFactory.getCache(m_sCacheName);
+            NamedMap<K, String> cache = CacheFactory.getCache(m_sCacheName);
 
             int i = m_of;
             for (int c = i + m_cData; i < c; ++i)

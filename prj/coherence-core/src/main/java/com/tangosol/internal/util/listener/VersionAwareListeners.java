@@ -6,7 +6,7 @@
  */
 package com.tangosol.internal.util.listener;
 
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.PartitionedService;
 
 import com.tangosol.net.partition.DefaultVersionedPartitions;
@@ -27,7 +27,7 @@ import java.util.function.Consumer;
  * <ol>
  *     <li>Tracking the version from the {@link #createListener(MapListener)
  *     current version}</li>
- *     <li>Tracking the version from the {@link #createListener(MapListener, long, Object, NamedCache)
+ *     <li>Tracking the version from the {@link #createListener(MapListener, long, Object, NamedMap)
  *     provided version for a given key}</li>
  *     <li>Tracking the version from the {@link #createListener(MapListener, long, int)
  *     provided version for a given partition}</li>
@@ -76,15 +76,13 @@ public class VersionAwareListeners
      *         if the provided listener is {@link MapListener#isVersionAware()
      *         version aware}
      */
-    public static <K,V> MapListener<K, V> createListener(MapListener<K, V> listener, long lVersion, K key, NamedCache<K, V> cache)
+    public static <K,V> MapListener<K, V> createListener(MapListener<K, V> listener, long lVersion, K key, NamedMap<K, V> cache)
         {
-        PartitionedService service = (PartitionedService) cache.getCacheService();
+        PartitionedService service = (PartitionedService) cache.getService();
         int iPart = service.getKeyPartitioningStrategy().getKeyPartition(key);
 
         return createListener(listener, lVersion, iPart);
         }
-
-
 
     /**
      * Return a {@link MapListener} that implements {@link VersionAwareMapListener}
