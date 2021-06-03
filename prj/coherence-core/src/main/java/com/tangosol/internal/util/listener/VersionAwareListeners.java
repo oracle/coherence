@@ -14,10 +14,12 @@ import com.tangosol.net.partition.VersionAwareMapListener;
 import com.tangosol.net.partition.VersionedPartitions;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.LongArray;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.PrimitiveSparseArray;
+import com.tangosol.util.SparseArray;
 
 import java.util.function.Consumer;
 
@@ -171,11 +173,6 @@ public class VersionAwareListeners
             return listener;
             }
 
-        // TODO: we MUST initialize the wrapper listener with the relevant starting
-        //       versions in case a restart occurs prior to receiving any events
-        //       for that partition, as we will end up getting the tip which could
-        //       miss events that occurred during the restart
-
         return listener.isSynchronous() || listener instanceof MapListenerSupport.SynchronousListener
             ? new DefaultVersionedSynchronousListener<>(listener, versions)
             : new DefaultVersionedListener<>(listener, versions);
@@ -290,20 +287,111 @@ public class VersionAwareListeners
          */
         protected void process(MapEvent<K, V> event, Consumer<MapEvent<K, V>> delegate)
             {
-            long lEventVersion = event.getVersion();
-            long lPart         = event.getPartition();
+            long lEventVersion    = event.getVersion();
+            int  iPart            = event.getPartition();
+            long lExpectedVersion = getCurrentVersion(iPart);
 
-            if (lEventVersion >= getCurrentVersion(lPart))
+            if (lExpectedVersion <= VersionAwareMapListener.HEAD)
                 {
+                // accept this event as the first event (for the associated partition,
+                // dropping previous events and recording gaps for future events
+                lExpectedVersion = lEventVersion;
+                }
+
+            long lPartVersion = encodePartitionVersion(iPart, lEventVersion);
+            if (lEventVersion >= lExpectedVersion && !f_laProcessedEvents.exists(lPartVersion))
+                {
+                // process the event
                 try
                     {
                     delegate.accept(event);
                     }
                 finally
                     {
-                    setCurrentVersion(lPart, lEventVersion + 1);
+                    boolean fExpected = lEventVersion == lExpectedVersion;
+                    if (fExpected)
+                        {
+                        removeProcessed(iPart, lEventVersion);
+                        }
+                    else
+                        {
+                        synchronized (f_laProcessedEvents)
+                            {
+                            f_laProcessedEvents.set(lPartVersion, null);
+                            }
+
+                        // check if we received an event that is larger than the gap threshold
+                        if (lEventVersion - lExpectedVersion > GAP_THRESHOLD)
+                            {
+                            // count all processed events
+                            int  cProcessed = 0;
+                            long lNextPart  = encodePartitionVersion(iPart + 1, 0L);
+                            for (LongArray.Iterator iter = f_laProcessedEvents.iterator(encodePartitionVersion(iPart, 0L));
+                                 iter.hasNext(); )
+                                {
+                                iter.next();
+
+                                if (iter.getIndex() >= lNextPart)
+                                    {
+                                    break;
+                                    }
+
+                                cProcessed++;
+                                }
+
+                            // if we are really have surpassed the gap threshold
+                            // then start dropping events
+                            if (cProcessed >= GAP_THRESHOLD)
+                                {
+                                removeProcessed(iPart, lExpectedVersion);
+                                }
+                            }
+                        }
                     }
                 }
+            // else - skip
+            }
+
+        /**
+         * Remove all processed events greater than the provided event version.
+         *
+         * @param iPart          the partition
+         * @param lEventVersion  the event version
+         */
+        protected void removeProcessed(int iPart, long lEventVersion)
+            {
+            long lExpectedVersion     = lEventVersion + 1;
+            long lExpectedPartVersion = encodePartitionVersion(iPart, lExpectedVersion);
+
+            synchronized (f_laProcessedEvents)
+                {
+                long    lMinPartVersion = f_laProcessedEvents.ceilingIndex(encodePartitionVersion(iPart, 0L));
+                boolean fWrap           = lMinPartVersion < lExpectedPartVersion;
+                for (LongArray.Iterator iter = f_laProcessedEvents.iterator(lExpectedPartVersion); iter.hasNext(); )
+                    {
+                    iter.next();
+
+                    long    lPartVersion = iter.getIndex();
+                    boolean fPartsMatch  = decodePartition(lPartVersion) == iPart;
+                    if (lPartVersion != lExpectedPartVersion || !fPartsMatch)
+                        {
+                        if (!fWrap || fPartsMatch)
+                            {
+                            break;
+                            }
+
+                        iter                 = f_laProcessedEvents.iterator(lMinPartVersion);
+                        lExpectedPartVersion = lMinPartVersion;
+                        fWrap                = false;
+                        }
+                    //else
+                    iter.remove();
+                    lExpectedPartVersion++;
+                    lExpectedVersion++; // increment the non truncated version
+                    }
+                }
+
+            setCurrentVersion(iPart, lExpectedVersion);
             }
 
         // ----- internal methods -------------------------------------------
@@ -331,12 +419,90 @@ public class VersionAwareListeners
             f_partVersions.setPartitionVersion((int) lPart, lVersion);
             }
 
+        // ----- static helpers ---------------------------------------------
+
+        /**
+         * Return a long with both the provided partition and version encoded.
+         *
+         * @param iPart     the partition to encode
+         * @param lVersion  the version to encode
+         *
+         * @return a long with both the provided partition and version encoded
+         */
+        protected static long encodePartitionVersion(int iPart, long lVersion)
+            {
+            // we only hold the lower 40-bits / 5 bytes of the version as we
+            // do not need to support gaps of that size.
+            // there is a potential for versions to roll over this boundary
+            // and therefore versions stored are *not* comparable and can only
+            // be used for direct retrieval and removal
+
+            return ((long) iPart << SHIFT_PARTITION) |
+                    (lVersion & MASK_VERSION); // drop the upper 24-bits
+            }
+
+        /**
+         * Return the partition in the provided encoded partition & version.
+         *
+         * @param lPartVersion  the partition & version
+         *
+         * @return the partition
+         */
+        protected static int decodePartition(long lPartVersion)
+            {
+            return (int) (lPartVersion >> SHIFT_PARTITION);
+            }
+
+        /**
+         * Return a potentially lossy version that was encoded in the provided
+         * partition & version.
+         *
+         * @param lPartVersion  the partition & version
+         *
+         * @return a potentially lossy version
+         */
+        protected static long decodeVersion(long lPartVersion)
+            {
+            return lPartVersion & MASK_VERSION; // drop the upper 24-bits
+            }
+
+        // ----- constants --------------------------------------------------
+
+        /**
+         * The number of shits required to encode (or decode) the partition
+         * from an encoded partition & version.
+         */
+        protected static final int SHIFT_PARTITION = 40;
+
+        /**
+         * The number of shits required to encode (or decode) the version
+         * from an encoded partition & version.
+         */
+        protected static final int SHIFT_VERSION = 0;
+
+        /**
+         * A bit-mask that can be applied to an encoded partition & version
+         * to realize the potentially lossy version.
+         */
+        protected static final long MASK_VERSION = 0xFFFFFFFFFFL;
+
+        /**
+         * A threshold to allow gaps in MapEvent versions. Surpassing this threshold
+         * results in events being dropped.
+         */
+        protected static final int GAP_THRESHOLD = 0xFFFF;
+
         // ----- data members -----------------------------------------------
 
         /**
          * A data structure to track partition -> version.
          */
         protected final DefaultVersionedPartitions f_partVersions;
+
+        /**
+         * A LongArray of received events.
+         */
+        protected final LongArray f_laProcessedEvents = new SparseArray();
         }
 
     // ----- inner class: DefaultVersionedSynchronousListener ---------------
