@@ -67,6 +67,12 @@
       <artifactId>jaeger-client</artifactId>
     </dependency>
 
+    <!-- slf4j -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+    </dependency>
+
     <!-- test dependencies -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
