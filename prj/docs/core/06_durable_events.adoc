@@ -33,9 +33,9 @@ of the associated service.
 
 [NOTE]
 ====
-Each `NamedMap` is associated to a Service and typically this service is a `PartitionedService`
+Each `NamedMap` is associated to a `Service` and typically this service is a `PartitionedService`
 therefore provides distributed storage and partitioned/sharded access. The remaining
-description of MapEvent Guarantees will assume the use of a `PartitionedService`
+description of `MapEvent` guarantees will assume the use of a `PartitionedService`
 and therefore providing resilience to process, machine, rack, or site failure.
 ====
 
@@ -62,15 +62,15 @@ such that the product has not attempted to address it.
 The aforementioned guarantee of MapEvent delivery are all valid under the assumption
 that the member, that has registered for MapEvents, does *not* leave the service.
 If it does leave the associated service then these guarantees no longer apply.
-This can be problematic under a few contexts and has led to the need deliver a
-more general feature of event replay.
+This can be problematic under a few contexts (described below) and has led to
+the need deliver a more general feature of event replay.
 
 ==== Abnormal Service Termination
 
 While it is rare, there are some scenarios that result in abnormal service
 termination. This has affected Coherence users by causing references to ``Service``s
-or ``NamedMap``s to become invalid and therefore unusable. Instead of having the
-numerous applications and internal call sites from being defensive to these invalid handles,
+or ``NamedMap``s to become invalid and therefore unusable. Instead of having
+numerous applications, and internal call sites, be defensive to these invalid handles
 Coherence chose to introduce a 'safe' layer between the call site and the raw/internal
 service. The 'safe' layer remains valid when services abnormally terminate and
 additionally may cause the underlying service to restart.
