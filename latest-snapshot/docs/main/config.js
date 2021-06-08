@@ -130,6 +130,19 @@ function createRoutes(){
             component: loadPage('docs-core-05_repository', '/docs/core/05_repository', {})
         },
         {
+            path: '/docs/core/06_durable_events',
+            meta: {
+                h1: 'Durable Events',
+                title: 'Durable Events',
+                h1Prefix: null,
+                description: 'A feature that ensures events are never lost',
+                keywords: 'coherence, events, persistence, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-06_durable_events', '/docs/core/06_durable_events', {})
+        },
+        {
             path: '/docs/topics/01_introduction',
             meta: {
                 h1: 'Introduction to Coherence Topics',
@@ -548,7 +561,8 @@ function createNav(){
                                 { href: '/docs/core/02_bootstrap', title: 'Bootstrap API' },
                                 { href: '/docs/core/03_parallel_recovery', title: 'Parallel Recovery' },
                                 { href: '/docs/core/04_portable_types', title: 'Portable Types' },
-                                { href: '/docs/core/05_repository', title: 'Repository API' }
+                                { href: '/docs/core/05_repository', title: 'Repository API' },
+                                { href: '/docs/core/06_durable_events', title: 'Durable Events' }
                             ]
                         },
                         {
