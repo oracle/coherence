@@ -171,6 +171,7 @@ public class DurableEventsTests
         NamedMap<Integer, String> cache = getNamedCache(CACHE_NAME);
         try
             {
+            // tag::simple-registration[]
             List<MapEvent> listEvents = Collections.synchronizedList(new ArrayList<>());
 
             MapListener<Integer, String> listener = new SimpleMapListener<Integer, String>()
@@ -178,6 +179,7 @@ public class DurableEventsTests
                     .versioned();
 
             cache.addMapListener(listener, 1, false);
+            // end::simple-registration[]
 
             CoherenceClusterMember member = findServer();
 
