@@ -734,7 +734,7 @@ lang="bash"
 <ul class="colist">
 <li data-value="1">Insert event from new GOLD customer id 2</li>
 <li data-value="2">Update event changing customer type from BRONZE to GOLD for customer id 1</li>
-<li data-value="3">Update event chaging cusstomer type from GOLD to BRONZE for customer id 2</li>
+<li data-value="3">Update event changing customer type from GOLD to BRONZE for customer id 2</li>
 </ul>
 </div>
 
