@@ -24,9 +24,9 @@ of the associated service.</p>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
-<p ><p>Each <code>NamedMap</code> is associated to a Service and typically this service is a <code>PartitionedService</code>
+<p ><p>Each <code>NamedMap</code> is associated to a <code>Service</code> and typically this service is a <code>PartitionedService</code>
 therefore provides distributed storage and partitioned/sharded access. The remaining
-description of MapEvent Guarantees will assume the use of a <code>PartitionedService</code>
+description of <code>MapEvent</code> guarantees will assume the use of a <code>PartitionedService</code>
 and therefore providing resilience to process, machine, rack, or site failure.</p>
 </p>
 </div>
@@ -55,16 +55,16 @@ such that the product has not attempted to address it.</p>
 <p>The aforementioned guarantee of MapEvent delivery are all valid under the assumption
 that the member, that has registered for MapEvents, does <strong>not</strong> leave the service.
 If it does leave the associated service then these guarantees no longer apply.
-This can be problematic under a few contexts and has led to the need deliver a
-more general feature of event replay.</p>
+This can be problematic under a few contexts (described below) and has led to
+the need deliver a more general feature of event replay.</p>
 
 
 <h4 id="_abnormal_service_termination">Abnormal Service Termination</h4>
 <div class="section">
 <p>While it is rare, there are some scenarios that result in abnormal service
 termination. This has affected Coherence users by causing references to <code>Service</code>s
-or <code>NamedMap</code>s to become invalid and therefore unusable. Instead of having the
-numerous applications and internal call sites from being defensive to these invalid handles,
+or <code>NamedMap</code>s to become invalid and therefore unusable. Instead of having
+numerous applications, and internal call sites, be defensive to these invalid handles
 Coherence chose to introduce a 'safe' layer between the call site and the raw/internal
 service. The 'safe' layer remains valid when services abnormally terminate and
 additionally may cause the underlying service to restart.</p>
