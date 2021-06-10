@@ -23,7 +23,7 @@ A comprehensive overview of MapEvents in terms of the call back interface in
 addition to the registration mechanisms is provided in the
 {commercial-docs-base-url}/develop-applications/using-map-events.html[official documentation].
 However, it is worth drawing attention to some of the guarantees offered by MapEvents
-to provide context of why the DurableEvents feature is useful.
+to provide context of why the Durable Events feature is useful.
 
 === MapEvent Guarantees
 
@@ -87,7 +87,7 @@ is the approach taken for ``ContinuousQueryCache``s.
 Coherence Extend provides a means for a client to connect to a cluster via a
 conduit referred to as a proxy. An extend client wraps up the intended request,
 forwards to a proxy which executes said request with the results either streamed
-back to the client or sent as a single response. There are many reason why one
+back to the client or sent as a single response. There are many reasons why one
 would chose using extend over being a member of the cluster; further documentation
 on extend can be found {commercial-docs-base-url}/develop-remote-clients/introduction-coherenceextend.html[here].
 
@@ -99,7 +99,7 @@ not observing MapEvents that had occurred at the source due to the proxy leaving
 the associated service or the extend client reconnecting to a different proxy
 and therefore re-registering the listener.
 
-Once again, there are means to workaround this situation by observing the proxy
+Once again, there are means to work around this situation by observing the proxy
 disconnect / re-connect and causing a re-synchronization of extend client and
 the source. However, extend proxy failover is a significantly more likely event
 and has been raised by Coherence users.
@@ -108,10 +108,10 @@ and has been raised by Coherence users.
 
 A logical client receiving MapEvents may experience a process restart and it
 may be desirable to continue receiving MapEvents after the last received event,
-opposed to only events after registration. For example, a client may be responsible
-for updating some auxiliary system by applying the contents of each MapEvent
-to that system. Additionally it may be tracking the last received events and
-therefore _could_ inform the source of the last event it received. A capable
+opposed to only receiving events after registration. For example, a client may be
+responsible for updating some auxiliary system by applying the contents of each
+MapEvent to that system. Additionally, it may be tracking the last received events
+and therefore _could_ inform the source of the last event it received. A capable
 source could replay all events that were missed.
 
 === Generic Event Replay
@@ -141,7 +141,7 @@ are tracking ``MapEvent``s. For example:
 1. Start a storage server that is tracking events:
 [source,bash]
 ----
-$ java -Dcoherence.distributed.persistence.events.dir=/tmp/events-dir -jar coherence.jar
+$ java -Dcoherence.distributed.persistence.mode=actice -Dcoherence.distributed.persistence.events.dir=/tmp/events-dir -jar coherence.jar
 ----
 2. Start a client that registers a version aware `MapEvent` listener. A snippet
 taken from a functional test in the repo has been provided below:
@@ -160,9 +160,9 @@ interface directly. Implementors must return an implementation of {javadoc-root}
 which will be interrogated by Coherence upon registration either directly due
 to a call to `NamedMap.addMapListener` or indirectly due to a service restart.
 These versions are sent to the relevant storage servers and if a version is returned for
-a partition Coherence will return all known versions larger than the specified
-version. Additionally, certain formal constants are defined to allow a client
-to request storage servers to send:
+a partition Coherence will return all known versions larger than or equal to
+the specified version. Additionally, certain formal constants are defined to
+allow a client to request storage servers to send:
 
 * all known events
 * current head and all future events (previously known as priming events)
@@ -176,7 +176,7 @@ For example, when registering a `MapListener` against a specific key only ``MapE
 for said key will be received by this `MapListener` and therefore only versions
 for the associated partition will be tracked. The `VersionedPartitions` returned
 by this `VersionAwareMapListener` will only return a version for a single partition.
-However this is worth being aware of if you do implement your own `VersionAwareMapListener`
+However, this is worth being aware of if you do implement your own `VersionAwareMapListener`
 or `VersionedPartitions` data structure.
 ====
 
