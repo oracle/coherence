@@ -60,10 +60,15 @@ import java.util.stream.IntStream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
+import static com.tangosol.util.MapEvent.ENTRY_INSERTED;
+import static com.tangosol.util.MapEvent.ENTRY_UPDATED;
+
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeThat;
 
@@ -393,6 +398,73 @@ public class DurableEventsTests
             // we expect to see 6 versions per partition as the versions that
             // are replayed are inclusive to the version that is sent
             Eventually.assertDeferred(listEvents::size, is(cCount));
+            }
+        finally
+            {
+            cache.truncate(); // committed to all members
+            cache.destroy();  // sent to the senior synchronously
+            }
+        }
+
+    /**
+     * A test case to ensure that the correct event types and old/new values are returned based upon
+     * an insert, update or delete.
+     */
+    @Test
+    public void testAdvancedClientDisconnectedEventTypes()
+        {
+        final String CACHE_NAME = "foo";
+        NamedMap<Integer, String> cache = getNamedCache(CACHE_NAME);
+        try
+            {
+            CoherenceClusterMember member = findServer();
+            assertEquals(0, cache.size());
+            // cause disconnect
+            causeServiceDisruption(cache);
+    
+            // insert, update and delete
+            member.invoke(() ->
+                {
+                NamedMap<Integer, String> cacheFoo = CacheFactory.getCache(CACHE_NAME);
+    
+                cacheFoo.put(1, "Initial Value");
+                cacheFoo.put(1, "Updated Value");
+                cacheFoo.remove(1);
+                return null;
+                });
+    
+            // invoke an operation on cache that will result in the cache being restarted
+            cache.size();
+    
+            Eventually.assertDeferred(cache::size, is(0));
+    
+            List<MapEvent> listEvents = Collections.synchronizedList(new ArrayList<>());
+            MapListener<Integer, String> listener = VersionAwareListeners.createListener(
+                    new SimpleMapListener<Integer, String>().addEventHandler(listEvents::add),
+                    1L, 1, cache);
+            cache.addMapListener(listener, 1, false);
+            Eventually.assertDeferred(listEvents::size, is(3));
+    
+            for (int i = 0; i < 3; i++)
+                {
+                MapEvent mapEvent = listEvents.get(i);
+                int eventType = mapEvent.getId();
+                if (eventType == ENTRY_UPDATED)
+                    {
+                    assertNotNull(mapEvent.getOldValue());
+                    assertNotNull(mapEvent.getNewValue());
+                    }
+                else if (eventType == ENTRY_INSERTED)
+                    {
+                    assertNotNull(mapEvent.getNewValue());
+                    assertNull(mapEvent.getOldValue());
+                    }
+                else // ENTRY_DELETED
+                    {
+                    assertNull(mapEvent.getNewValue());
+                    assertNotNull(mapEvent.getOldValue());
+                    }
+                }
             }
         finally
             {
