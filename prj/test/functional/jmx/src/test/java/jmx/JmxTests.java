@@ -36,6 +36,8 @@ import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.BinaryEntry;
 
+import com.tangosol.util.Filter;
+import com.tangosol.util.filter.EqualsFilter;
 import common.AbstractFunctionalTest;
 
 import java.beans.ConstructorProperties;
@@ -76,6 +78,7 @@ import javax.management.NotificationListener;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
+import data.Person;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -780,6 +783,61 @@ public class JmxTests
          finally
              {
              stopCacheServer("ManagedNode");
+             AbstractFunctionalTest._shutdown();
+             }
+         }
+
+    /**
+     * Test Index Build Duration
+     */
+    @Test
+     public void testIndexBuildDuration()
+         {
+         CacheFactory.shutdown();
+
+         System.setProperty("tangosol.coherence.management","all");
+         System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+         System.setProperty("tangosol.coherence.management.remote","true");
+
+         AbstractFunctionalTest._startup();
+
+         MBeanServer serverJMX = MBeanHelper.findMBeanServer();
+         Cluster     cluster   = CacheFactory.getCluster();
+
+         assertTrue(cluster.isRunning());
+         assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
+
+         NamedCache<Integer, Person> cache = CacheFactory.getCache("dist-cache");
+         for (int i = 0; i < 1000; i++)
+         {
+             cache.put(i, new Person("1234" + i, "John", "Doe", 1919, "5678", new String[]{"11", "22"}));
+         }
+         cache.addIndex(Person::getBirthYear);
+
+         // Ensure index is built
+         Filter filter = new EqualsFilter<>(Person::getBirthYear, 1919);
+         cache.entrySet(filter);
+
+         String       sService  = cache.getCacheService().getInfo().getServiceName();
+         int          iNodeId   = CacheFactory.getCluster().getLocalMember().getId();
+         try
+             {
+             ObjectName oBeanName =
+                     new ObjectName("Coherence:type=StorageManager,service="
+                             + sService
+                             + ",cache="
+                             + cache.getCacheName()
+                             + ",nodeId="
+                             + iNodeId);
+             Eventually.assertThat(invoking(serverJMX, MBeanServer.class).getAttribute(oBeanName, "IndexingTotalMillis"),
+                     not( 0));
+             }
+         catch (Exception e)
+             {
+             fail(e.getMessage());
+             }
+         finally
+             {
              AbstractFunctionalTest._shutdown();
              }
          }

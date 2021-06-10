@@ -28,7 +28,6 @@ import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.management.AnnotatedStandardMBean;
-import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 
 import com.tangosol.net.metrics.MBeanMetric;
@@ -354,6 +353,7 @@ public class MetricsSupportTests
                                     mapTags,
                                     "Coherence.Service.EventBacklog",
                                     "Coherence.Service.EventCount",
+                                    "Coherence.Service.IndexingTotalMillis",
                                     "Coherence.Service.MemberCount",
                                     "Coherence.Service.MessagesLocal",
                                     "Coherence.Service.MessagesReceived",
@@ -442,6 +442,7 @@ public class MetricsSupportTests
                                     mapTags,
                                     "Coherence.Service.EventBacklog",
                                     "Coherence.Service.EventCount",
+                                    "Coherence.Service.IndexingTotalMillis",
                                     "Coherence.Service.MemberCount",
                                     "Coherence.Service.MessagesLocal",
                                     "Coherence.Service.MessagesReceived",
@@ -517,6 +518,7 @@ public class MetricsSupportTests
                                     mapTags,
                                     "Coherence.StorageManager.EventsDispatched",
                                     "Coherence.StorageManager.EvictionCount",
+                                    "Coherence.StorageManager.IndexingTotalMillis",
                                     "Coherence.StorageManager.IndexTotalUnits",
                                     "Coherence.StorageManager.InsertCount",
                                     "Coherence.StorageManager.ListenerFilterCount",
