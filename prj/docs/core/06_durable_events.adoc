@@ -139,13 +139,16 @@ does require a complementing server-side configuration in which the storage serv
 are tracking ``MapEvent``s. For example:
 
 1. Start a storage server that is tracking events:
++
 [source,bash]
 ----
 $ java -Dcoherence.distributed.persistence.mode=actice -Dcoherence.distributed.persistence.events.dir=/tmp/events-dir -jar coherence.jar
 ----
+
 2. Start a client that registers a version aware `MapEvent` listener. A snippet
 taken from a functional test in the repo has been provided below:
-[source,java]
++
+[source,java,indent=0]
 ----
 include::../../test/functional/persistence/src/test/java/persistence/events/DurableEventsTests.java[tag=simple-registration]
 ----
