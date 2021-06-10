@@ -22,14 +22,28 @@ making them simple to build as stand-alone projects without needing to build the
 .Put Get and Remove
 [link=examples/guides/100-put-get-remove/README.adoc]
 --
-A guide showing basic CRUD `put`, `get`, and `remove` operations on a `NamedMap`.
+This guide walks you through basic CRUD `put`, `get`, and `remove` operations on a `NamedMap`.
+--
+
+[CARD]
+.Built-in Aggregators
+[link=examples/guides/120-built-in-aggregators/README.adoc]
+--
+This guide walks you through how to use built-in aggregators within Coherence.
+--
+VersionAwareMapListener
+[CARD]
+.Custom Aggregators
+[link=examples/guides/121-custom-aggregators/README.adoc]
+--
+This guide walks you through how to create custom aggregators within Coherence.
 --
 
 [CARD]
 .Topics
 [link=examples/guides/460-topics/README.adoc]
 --
-A guide to using Caching Data Stores
+This guide walks you through how to use Topics within Coherence
 --
 
 [CARD]
