@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,15 +9,13 @@ package com.tangosol.internal.net.topic.impl.paged;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.topic.NamedTopic;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import static org.junit.Assert.assertThat;
-
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -26,104 +24,89 @@ import static org.mockito.Mockito.when;
 /**
  * @author jk 2015.06.22
  */
-@SuppressWarnings("unchecked")
 public class NamedTopicImplTest
     {
     @Test
-    public void shouldNotCreateProducerIfNotActive() throws Exception
+    public void shouldNotCreateProducerIfNotActive()
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
 
-        when(topic.isActive()).thenReturn(false);
+        when(caches.isActive()).thenReturn(false);
 
-        NamedTopic<String> queue = new PagedTopic<>(topic);
+        NamedTopic<String> topic = new PagedTopic<>(caches);
 
-        m_expectedException.expect(IllegalStateException.class);
-
-        queue.createPublisher();
+        assertThrows(IllegalStateException.class, topic::createPublisher);
         }
 
     @Test
     public void shouldDestroyQueueIfCachesActive()
-            throws Exception
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
 
-        when(topic.isActive()).thenReturn(true);
+        when(caches.isActive()).thenReturn(true);
 
-        PagedTopic<String> queue = new PagedTopic<>(topic);
+        PagedTopic<String> topic = new PagedTopic<>(caches);
 
-        queue.destroy();
-
-        verify(topic).destroy();
+        topic.destroy();
+        verify(caches).destroy();
         }
 
     @Test
     public void shouldCloseQueue()
-            throws Exception
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
 
-        when(topic.isActive()).thenReturn(true);
+        when(caches.isActive()).thenReturn(true);
 
-        PagedTopic<String> queue = new PagedTopic<>(topic);
+        PagedTopic<String> topic = new PagedTopic<>(caches);
 
-
-        queue.close();
-
-        verify(topic).close();
+        topic.close();
+        verify(caches).release();
         }
 
     @Test
     public void shouldNotCloseInactiveCaches()
-            throws Exception
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
 
-        when(topic.isActive()).thenReturn(false);
+        when(caches.isActive()).thenReturn(false);
 
-        PagedTopic<String> queue = new PagedTopic<>(topic);
+        PagedTopic<String> topic = new PagedTopic<>(caches);
 
-
-        queue.close();
-
-        verify(topic, never()).close();
+        topic.close();
+        verify(caches, never()).release();
         }
 
     @Test
     public void shouldCloseQueueUsingRelease()
-            throws Exception
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
 
-        when(topic.isActive()).thenReturn(true);
+        when(caches.isActive()).thenReturn(true);
 
-        PagedTopic<String> queue = new PagedTopic<>(topic);
+        PagedTopic<String> topic = new PagedTopic<>(caches);
 
-        queue.release();
-
-        verify(topic).close();
+        topic.release();
+        verify(caches).release();
         }
 
     @Test
     public void shouldReturnService()
-            throws Exception
         {
-        PagedTopicCaches topic = mock(PagedTopicCaches.class);
+        PagedTopicCaches caches = mock(PagedTopicCaches.class);
         CacheService cacheService  = mock(CacheService.class);
 
-        when(topic.isActive()).thenReturn(true);
-        when(topic.getCacheService()).thenReturn(cacheService);
+        when(caches.isActive()).thenReturn(true);
+        when(caches.getCacheService()).thenReturn(cacheService);
 
-        PagedTopic<String> queue = new PagedTopic<>(topic);
+        PagedTopic<String> topic = new PagedTopic<>(caches);
 
-        assertThat(queue.getService(), is(sameInstance(cacheService)));
-        assertThat(queue.getService(), is(sameInstance(cacheService)));
+        assertThat(topic.getService(), is(sameInstance(cacheService)));
+        assertThat(topic.getService(), is(sameInstance(cacheService)));
         }
 
     @Test
     public void shouldReturnQueueName()
-            throws Exception
         {
         PagedTopicCaches topic = mock(PagedTopicCaches.class);
 
@@ -137,7 +120,6 @@ public class NamedTopicImplTest
 
     @Test
     public void shouldBeActive()
-            throws Exception
         {
         PagedTopicCaches topic = mock(PagedTopicCaches.class);
 
@@ -150,7 +132,6 @@ public class NamedTopicImplTest
 
     @Test
     public void shouldBeInactive()
-            throws Exception
         {
         PagedTopicCaches topic = mock(PagedTopicCaches.class);
 
@@ -160,7 +141,4 @@ public class NamedTopicImplTest
 
         assertThat(queue.isActive(), is(false));
         }
-
-    @Rule
-    public ExpectedException m_expectedException = ExpectedException.none();
     }

@@ -47,7 +47,6 @@ import com.tangosol.net.topic.TopicException;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
-import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMapHelper;
@@ -771,6 +770,7 @@ public class PagedTopicPartition
      *
      * @param subscriberGroupId  the subscriber
      */
+    @SuppressWarnings("unchecked")
     public void removeSubscription(SubscriberGroupId subscriberGroupId)
         {
         BackingMapContext ctxSubscriptions = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
@@ -846,13 +846,8 @@ public class PagedTopicPartition
     /**
      * Ensure the subscription within a partition
      *
-     * @param subscriberGroupId         the subscriber group id
-     * @param nPhase                    EnsureSubscriptionProcessor.PHASE_INQUIRE/PIN/ADVANCE
-     * @param alSubscriptionHeadGlobal  the page to advance to
-     * @param filter                    the subscriber's filter or null
-     * @param fnConvert                 the optional subscriber's converter function
-     * @param nSubscriberId             the unique subscriber identifier
-     * @param fReconnect                this is an existing subscriber reconnection
+     * @param subscriberGroupId  the subscriber group id
+     * @param processor          the {@link EnsureSubscriptionProcessor} containing the subscription attributes
      *
      * @return for INQUIRE we return the currently pinned page, or null if unpinned
      *         for PIN we return the pinned page, or tail if the partition is empty and the former tail is known,
@@ -860,18 +855,30 @@ public class PagedTopicPartition
      *         for ADVANCE we return the pinned page
      */
     @SuppressWarnings("unchecked")
-    public long[] ensureSubscription(SubscriberGroupId subscriberGroupId,
-                                     int               nPhase,
-                                     long[]            alSubscriptionHeadGlobal,
-                                     Filter            filter,
-                                     Function          fnConvert,
-                                     long              nSubscriberId,
-                                     boolean           fReconnect)
+    public long[] ensureSubscription(SubscriberGroupId subscriberGroupId, EnsureSubscriptionProcessor processor)
         {
-        BackingMapContext       ctxSubscriptions = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
-        PagedTopic.Dependencies dependencies     = getDependencies();
-        boolean                 fAnonymous       = subscriberGroupId.getMemberTimestamp() != 0;
-        long[]                  alResult         = new long[getChannelCount()];
+        int                     nPhase                   = processor.getPhase();
+        long[]                  alSubscriptionHeadGlobal = processor.getPages();
+        Filter                  filter                   = processor.getFilter();
+        Function                fnConvert                = processor.getConverter();
+        long                    nSubscriberId            = processor.getSubscriberId();
+        boolean                 fReconnect               = processor.isReconnect();
+        boolean                 fCreateGroupOnly         = processor.isCreateGroupOnly();
+        BackingMapContext       ctxSubscriptions         = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
+        PagedTopic.Dependencies dependencies             = getDependencies();
+        boolean                 fAnonymous               = subscriberGroupId.getMemberTimestamp() != 0;
+        long[]                  alResult                 = new long[getChannelCount()];
+
+
+        if (fCreateGroupOnly)
+            {
+            if (fAnonymous)
+                {
+                throw new IllegalArgumentException("Cannot specify create group only action for an anonymous subscriber");
+                }
+            // cannot be a reconnect and group creation only
+            fReconnect = false;
+            }
 
         switch (nPhase)
             {
@@ -907,7 +914,7 @@ public class PagedTopicPartition
                     return null;
                     }
 
-                if (!Base.equals(subscription.getFilter(), filter))
+                if (filter != null && !Base.equals(subscription.getFilter(), filter))
                     {
                     // do not allow new subscriber instances to update the filter
                     throw new TopicException("Cannot change the Filter in existing Subscriber group \""
@@ -915,7 +922,7 @@ public class PagedTopicPartition
                             + subscription.getFilter() + " new=" + filter);
                     }
 
-                if (!Base.equals(subscription.getConverter(), fnConvert))
+                if (fnConvert != null && !Base.equals(subscription.getConverter(), fnConvert))
                     {
                     // do not allow new subscriber instances to update the converter function
                     throw new TopicException("Cannot change the converter in existing Subscriber group \""
@@ -1047,42 +1054,46 @@ public class PagedTopicPartition
                     : position.getPage();
                 }
 
-            if (nSubscriberId != 0)
+            if (!fCreateGroupOnly)
                 {
-                // This is not an anonymous subscriber (i.e. it is part of a group)
-                // Ensure the subscriber is registered and allocated channels. We only do this in channel zero, so as
-                // not to bloat all of the other entries with the subscriber maps
-                if (nChannel == 0)
+                if (nSubscriberId != 0)
                     {
-                    subscriptionZero = subscription;
-                    if (!subscriptionZero.hasSubscriber(nSubscriberId))
+                    // This is not an anonymous subscriber (i.e. it is part of a group)
+                    // Ensure the subscriber is registered and allocated channels. We only do this in channel zero, so as
+                    // not to bloat all of the other entries with the subscriber maps
+                    if (nChannel == 0)
                         {
-                        // this is a new subscriber and is not an anonymous subscriber (nSubscriberId != 0)
-                        subscriptionZero.addSubscriber(nSubscriberId, getChannelCount());
-                        fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
+                        subscriptionZero = subscription;
+                        if (!subscriptionZero.hasSubscriber(nSubscriberId))
+                            {
+                            // this is a new subscriber and is not an anonymous subscriber (nSubscriberId != 0)
+                            subscriptionZero.addSubscriber(nSubscriberId, getChannelCount());
+                            fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
+                            }
+                        }
+
+                    // Update the subscription/channel owner as it may have chaned if this is a new subscriber
+                    long nOwner = subscriptionZero.getChannelOwner(nChannel);
+                    subscription.setOwningSubscriber(nOwner);
+
+                    if (fReconnect && nOwner == nSubscriberId)
+                        {
+                        // the subscriber is the channel owner and is reconnecting, so rollback to the last committed position
+                        subscription.rollback();
                         }
                     }
-
-                // Update the subscription/channel owner as it may have chaned if this is a new subscriber
-                long nOwner = subscriptionZero.getChannelOwner(nChannel);
-                subscription.setOwningSubscriber(nOwner);
-
-                if (fReconnect && nOwner == nSubscriberId)
+                else
                     {
-                    // the subscriber is the channel owner and is reconnecting, so rollback to the last committed position
-                    subscription.rollback();
+                    // This is an anonymous subscriber.
+                    // We do not need to do channel allocation as anonymous subscribers have all channels
+                    if (fReconnect)
+                        {
+                        // this is a reconnect so rollback
+                        subscription.rollback();
+                        }
                     }
                 }
-            else
-                {
-                // This is an anonymous subscriber.
-                // We do not need to do channel allocation as anonymous subscribers have all channels
-                if (fReconnect)
-                    {
-                    // this is a reconnect so rollback
-                    subscription.rollback();
-                    }
-                }
+
             entrySub.setValue(subscription);
             }
 

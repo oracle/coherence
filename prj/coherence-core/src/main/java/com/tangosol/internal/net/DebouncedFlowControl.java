@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -131,6 +131,26 @@ public class DebouncedFlowControl
     public DebouncedFlowControl decrementBacklog()
         {
         return adjustBacklog(-1);
+        }
+
+    /**
+     * Returns the limit below which the backlog is considered normal.
+     *
+     * @return the limit below which the backlog is considered normal
+     */
+    public long getNormalLimit()
+        {
+        return f_lLimitNormal;
+        }
+
+    /**
+     * Returns the limit above which the flow control is considered backlogged.
+     *
+     * @return the limit above which the flow control is considered backlogged
+     */
+    public long getExcessiveLimit()
+        {
+        return f_lLimitExcessive;
         }
 
     // ----- AbstractFlowControl interface ----------------------------------

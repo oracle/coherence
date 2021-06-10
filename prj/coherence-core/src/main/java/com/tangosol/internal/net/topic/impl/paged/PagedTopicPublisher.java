@@ -15,47 +15,39 @@ import com.oracle.coherence.common.util.Options;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.DebouncedFlowControl;
-import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
-import com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor;
-import com.tangosol.internal.net.topic.impl.paged.agent.TailAdvancer;
-import com.tangosol.internal.net.topic.impl.paged.agent.TopicInitialiseProcessor;
 import com.tangosol.internal.net.topic.impl.paged.model.NotificationKey;
-import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
-import com.tangosol.internal.net.topic.impl.paged.model.Usage;
+
+import com.tangosol.internal.util.DaemonPool;
+import com.tangosol.internal.util.Daemons;
+import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 
 import com.tangosol.net.Cluster;
 import com.tangosol.net.FlowControl;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.PartitionedService;
-import com.tangosol.net.RequestIncompleteException;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
 
 import com.tangosol.io.Serializer;
 
-import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.InvocableMapHelper;
-import com.tangosol.util.LongArray;
-import com.tangosol.util.MapEvent;
-import com.tangosol.util.MapListenerSupport;
-import com.tangosol.util.SparseArray;
-import com.tangosol.util.TaskDaemon;
+import com.tangosol.util.MapListener;
 
 import com.tangosol.util.filter.InKeySetFilter;
 
+import com.tangosol.util.listener.SimpleMapListener;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -80,8 +72,7 @@ import static com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisher.Flu
  * @since Coherence 14.1.1
  */
 public class PagedTopicPublisher<V>
-        implements Publisher<V>,
-            MapListenerSupport.SynchronousListener<NotificationKey, int[]>
+        implements Publisher<V>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -89,43 +80,32 @@ public class PagedTopicPublisher<V>
      * Create a {@link PagedTopicPublisher}.
      *
      * @param pagedTopicCaches  the {@link PagedTopicCaches} managing this topic's caches
-     * @param options           the {@link Option}s controlling this {@link PagedTopicPublisher}
+     * @param opts           the {@link Option}s controlling this {@link PagedTopicPublisher}
      */
     @SafeVarargs
-    public PagedTopicPublisher(NamedTopic<V> topic, PagedTopicCaches pagedTopicCaches, Option<? super V>... options)
-        {
-        this(topic, pagedTopicCaches, null, options);
-        }
-
-    /**
-     * Create a {@link PagedTopicPublisher}.
-     *
-     * @param pagedTopicCaches  the {@link PagedTopicCaches} managing this topic's caches
-     * @param elementQueue      the batching queue (non-null for testing purposes)
-     * @param options           the {@link Option}s controlling this {@link PagedTopicPublisher}
-     */
-    @SuppressWarnings("unchecked")
-    protected PagedTopicPublisher(NamedTopic<V> topic, PagedTopicCaches pagedTopicCaches,
-            BatchingOperationsQueue<Binary, Status> elementQueue, Option<? super V>... options)
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public PagedTopicPublisher(NamedTopic<V> topic, PagedTopicCaches pagedTopicCaches, Option<? super V>... opts)
         {
         m_caches = Objects.requireNonNull(pagedTopicCaches,"The PagedTopicCaches parameter cannot be null");
         m_topic  = topic;
 
         registerDeactivationListener();
 
-        Serializer serializer = pagedTopicCaches.getSerializer();
-        Cluster    cluster    = m_caches.getCacheService().getCluster();
+        Serializer      serializer = pagedTopicCaches.getSerializer();
+        Cluster         cluster    = m_caches.getCacheService().getCluster();
+        Options<Option> options    = Options.from(Option.class, opts);
+
         f_nId                 = createId(System.identityHashCode(this), cluster.getLocalMember().getId());
         f_convValueToBinary   = (value) -> ExternalizableHelper.toBinary(value, serializer);
         f_sTopicName          = pagedTopicCaches.getTopicName();
-        f_options             = Options.from(Option.class, options);
-        f_nNotifyPostFull     = f_options.contains(FailOnFull.class) ? 0 : System.identityHashCode(this);
-        f_funcOrder           = computeOrderByOption(f_options);
+        f_nNotifyPostFull     = options.contains(FailOnFull.class) ? 0 : System.identityHashCode(this);
+        f_funcOrder           = computeOrderByOption(options);
+        f_onFailure           = options.get(OnFailure.class);
 
         long cbBatch  = m_caches.getDependencies().getMaxBatchSizeBytes();
         int  cChannel = pagedTopicCaches.getChannelCount();
 
-        f_aChannel          = new Channel[cChannel];
+        f_aChannel          = new PagedTopicChannelPublisher[cChannel];
         f_setOfferedChannel = new BitSet(cChannel);
 
         DebouncedFlowControl backlog = new DebouncedFlowControl(
@@ -133,28 +113,31 @@ public class PagedTopicPublisher<V>
                 (l) -> new MemorySize(Math.abs(l)).toString()); // attempt to always have at least one batch worth
         f_flowControl = backlog;
 
-        f_daemon = new TaskDaemon("Publisher-" + m_caches.getTopicName() + "-" + f_nId);
-        f_daemon.start();
+        DefaultDaemonPoolDependencies dependencies = new DefaultDaemonPoolDependencies();
+        dependencies.setName("Publisher-" + m_caches.getTopicName() + "-" + f_nId);
+        dependencies.setThreadCountMin(1);
+        dependencies.setThreadCount(1);
+        dependencies.setThreadCountMax(Integer.MAX_VALUE);
 
-        NamedTopic.ElementCalculator calculator = m_caches.getElementCalculator();
+        f_daemon = Daemons.newDaemonPool(dependencies);
+        f_daemon.start();
 
         for (int nChannel = 0; nChannel < cChannel; ++nChannel)
             {
-            Channel channel = f_aChannel[nChannel] = new Channel();
-
-            channel.batchingQueue = elementQueue == null
-                    ? new BatchingOperationsQueue<>((c) -> addQueuedElements(channel, c), 1, backlog,
-                                calculator::calculateUnits, BatchingOperationsQueue.Executor.daemonPool(f_daemon))
-                    : elementQueue;
-
-            channel.keyUsageSync = m_caches.getUsageSyncKey(nChannel);
+            f_aChannel[nChannel]
+                    = new PagedTopicChannelPublisher(f_nId, nChannel, m_caches, f_nNotifyPostFull, backlog, f_daemon);
             }
+
+        f_listenerNotification = new SimpleMapListener<NotificationKey, int[]>()
+                            .addDeleteHandler(evt -> onNotification(evt.getOldValue()))
+                            .synchronous()
+                            .versioned();
 
         if (f_nNotifyPostFull != 0)
             {
             // register a publisher listener in each partition, we do this even if the config isn't declared
             // with high-units as the server may have an alternate config
-            pagedTopicCaches.Notifications.addMapListener(this, new InKeySetFilter<>(/*filter*/ null,
+            pagedTopicCaches.Notifications.addMapListener(f_listenerNotification, new InKeySetFilter<>(/*filter*/ null,
                     pagedTopicCaches.getPartitionNotifierSet(f_nNotifyPostFull)), /*fLite*/ false);
             }
 
@@ -170,17 +153,19 @@ public class PagedTopicPublisher<V>
      */
     public boolean isActive()
         {
-        return m_state == State.Active;
+        return m_state == State.Active || m_state == State.Disconnected;
         }
 
     // ----- NamedTopic.Publisher methods -----------------------------------
-
 
     @Override
     public CompletableFuture<Status> publish(V value)
         {
         ensureActive();
-        return getChannel(value).batchingQueue.add(f_convValueToBinary.convert(value));
+        PagedTopicChannelPublisher channel = ensureChannelPublisher(value);
+        CompletableFuture<Status>  future  = channel.publish(f_convValueToBinary.convert(value));
+        future.handleAsync((status, error) -> handlePublished(error, channel.getChannel()));
+        return future;
         }
 
     @Override
@@ -213,7 +198,7 @@ public class PagedTopicPublisher<V>
     @Override
     public int getChannelCount()
         {
-        return f_aChannel.length;
+        return m_topic.getChannelCount();
         }
 
     @Override
@@ -235,40 +220,16 @@ public class PagedTopicPublisher<V>
         }
 
     /**
-     * Obtain the current {@link OrderBy} option for this {@link PagedTopicPublisher}.
+     * Method called to notify this publisher that space is now available in a previously full topic.
      *
-     * @return the OrderByOption.
+     * @param anChannel  the free channels
      */
-    OrderBy<V> getOrderByOption()
+    protected void onNotification(int[] anChannel)
         {
-        return f_funcOrder;
-        }
-
-    // ----- MapListener methods --------------------------------------------
-
-    @Override
-    public void entryInserted(MapEvent<NotificationKey, int[]> evt)
-        {
-        }
-
-    @Override
-    public void entryUpdated(MapEvent<NotificationKey, int[]> evt)
-        {
-        }
-
-    @Override
-    public void entryDeleted(MapEvent<NotificationKey, int[]> evt)
-        {
-        ++m_cNotify;
-
-        for (int nChannel : evt.getOldValue())
+        for (int nChannel : anChannel)
             {
-            Channel channel = f_aChannel[nChannel];
-            if (channel.batchingQueue.resume())
-                {
-                ++m_cWait;
-                addQueuedElements(f_aChannel[nChannel], 1);
-                }
+            PagedTopicChannelPublisher channel = f_aChannel[nChannel];
+            channel.onNotification();
             }
         }
 
@@ -307,55 +268,100 @@ public class PagedTopicPublisher<V>
             return getClass().getSimpleName() + "(inactive)";
             }
 
-        long cOffersNow   = m_cOffers;
-        long cAcceptedNow = m_cAccepted;
-        long cMissesNow   = m_cMisses;
-        long cWaitNow     = m_cWait;
-        long cNotifyNow   = m_cNotify;
-
-        long cOffers   = cOffersNow   - m_cOffersLast;
-        long cAccepted = cAcceptedNow - m_cAcceptedLast;
-        long cMisses   = cMissesNow   - m_cMissesLast;
-        long cWait     = cWaitNow     - m_cWaitsLast;
-        long cNotify   = cNotifyNow   - m_cNotifyLast;
-
-        m_cOffersLast   = cOffersNow;
-        m_cAcceptedLast = cAcceptedNow;
-        m_cMissesLast   = cMissesNow;
-        m_cWaitsLast    = cWaitNow;
-        m_cNotifyLast   = cNotifyNow;
-
         int cChannels = f_setOfferedChannel.cardinality();
-        String sChannels = f_setOfferedChannel.toString();
-        f_setOfferedChannel.clear();
 
-        return getClass().getSimpleName() + "(topic=" + caches.getTopicName() +
-                ", id=" + f_nId +
-                ", orderBy=" + f_funcOrder +
-                ", backlog=" + f_flowControl +
-                ", channels=" + sChannels + cChannels +
-                ", batchSize=" + (cAccepted / Math.max(1, cOffers - cMisses)) +
-                ", hitRate=" + ((cOffers - cMisses) * 100 / Math.max(1, cOffers)) + "%" +
-                ", waitNotifyRate=" + (cWait * 100 / Math.max(1, cOffers)) + "/" + (cNotify * 100 / Math.max(1, cOffers)) + "%" +
-                ")";
+        StringBuilder buf = new StringBuilder(getClass().getSimpleName())
+                .append("(topic=").append(caches.getTopicName())
+                .append(", id=").append(f_nId)
+                .append(", orderBy=").append(f_funcOrder)
+                .append(", backlog=").append(f_flowControl)
+                .append(", channels=").append(cChannels);
+
+
+        if (!f_setOfferedChannel.isEmpty())
+            {
+            for (PagedTopicChannelPublisher channel : f_aChannel)
+                {
+                int nChannel = channel.getChannel();
+                if (f_setOfferedChannel.get(nChannel))
+                    {
+                    buf.append("  ").append(nChannel).append(": ").append(channel);
+                    }
+                }
+            f_setOfferedChannel.clear();
+            }
+
+        return buf.toString();
         }
 
     // ----- helper methods -------------------------------------------------
 
+
     /**
-     * Returns the {@link Channel} to publish a value to.
+     * Handle a publish request completion
+     */
+    protected Void handlePublished(Throwable error, int nChannel)
+        {
+        f_setOfferedChannel.set(nChannel);
+        if (error != null)
+            {
+            switch (f_onFailure)
+                {
+                case Stop:
+                    // Stop the publisher.
+                    closeInternal(false);
+                    break;
+                case Continue:
+                    // Do nothing as the individual errors will
+                    // already have been handled
+                    break;
+                }
+            }
+        return null;
+        }
+
+    /**
+     * Returns the {@link PagedTopicChannelPublisher} to publish a value to.
      *
      * @param value  the value to publish
      *
-     * @return the {@link Channel} to publish a value to
+     * @return the {@link PagedTopicChannelPublisher} to publish a value to
      */
-    private Channel getChannel(V value)
+    private PagedTopicChannelPublisher ensureChannelPublisher(V value)
         {
-        int nChannel = value instanceof Orderable
+        int nOrder = value instanceof Orderable
                 ? ((Orderable) value).getOrderId()
                 : f_funcOrder.getOrderId(value);
 
-        return f_aChannel[Base.mod(nChannel, f_aChannel.length)];
+        int nChannel = Base.mod(nOrder, f_aChannel.length);
+        PagedTopicChannelPublisher publisher = f_aChannel[nChannel];
+
+        if (!publisher.isActive())
+            {
+            // This publisher has failed/closed
+
+            if (f_onFailure == OnFailure.Stop)
+                {
+                // The error action is to Stop, so we should be closed
+                closeInternal(false);
+                throw new IllegalStateException("This publisher is no longer active");
+                }
+
+            synchronized (this)
+                {
+                // create a new publisher for the closed channel
+                publisher = f_aChannel[nChannel];
+                if (!publisher.isActive())
+                    {
+                    m_caches.ensureConnected();
+                    Logger.info("Restarting publisher for channel " + nChannel + " topic " + m_caches.getTopicName() + " publisher " + f_nId);
+                    publisher = f_aChannel[nChannel] = new PagedTopicChannelPublisher(f_nId, nChannel, m_caches,
+                            f_nNotifyPostFull, f_flowControl, f_daemon);
+                    }
+                }
+            }
+
+        return publisher;
         }
 
     /**
@@ -416,14 +422,17 @@ public class PagedTopicPublisher<V>
                 // unregister the publisher listener in each partition
                 PagedTopicCaches caches = m_caches;
 
-                caches.Notifications.removeMapListener(this, new InKeySetFilter<>(/*filter*/ null,
-                        caches.getPartitionNotifierSet(f_nNotifyPostFull)));
+                if (caches.Notifications.isActive())
+                    {
+                    Set<NotificationKey> setKeys = caches.getPartitionNotifierSet(f_nNotifyPostFull);
+                    caches.Notifications.removeMapListener(f_listenerNotification, new InKeySetFilter<>(/*filter*/ null, setKeys));
+                    }
                 }
 
-            // close the queues
-            for (Channel channel : f_aChannel)
+            // Stop the channel publishers
+            for (PagedTopicChannelPublisher channel : f_aChannel)
                 {
-                channel.batchingQueue.close();
+                channel.stop();
                 }
 
             // flush this publisher to wait for all of the outstanding
@@ -442,6 +451,12 @@ public class PagedTopicPublisher<V>
             catch (ExecutionException | InterruptedException e)
                 {
                 // ignore
+                }
+
+            // Close the channel publishers
+            for (PagedTopicChannelPublisher channel : f_aChannel)
+                {
+                channel.close();
                 }
             }
         finally
@@ -462,7 +477,7 @@ public class PagedTopicPublisher<V>
                     }
                 });
 
-            f_daemon.stop(true);
+            f_daemon.shutdown();
             m_state = State.Closed;
             }
         }
@@ -489,360 +504,22 @@ public class PagedTopicPublisher<V>
      */
     private CompletableFuture<Void> flushInternal(FlushMode mode)
         {
-        String sDescription = null;
-        switch (mode)
+        CompletableFuture<?>[] aFuture = new CompletableFuture[f_aChannel.length];
+        for (int i = 0; i < aFuture.length; ++i)
             {
-            case FLUSH_DESTROY:
-                sDescription = "Topic " + f_sTopicName + " was destroyed";
-
-            case FLUSH_CLOSE_EXCEPTIONALLY:
-                if (sDescription == null)
-                    {
-                    sDescription = "Force Close of Publisher " + hashCode() + " for topic " + f_sTopicName;
-                    }
-
-                Throwable error = new RequestIncompleteException(sDescription);
-                Arrays.stream(f_aChannel)
-                    .forEach(channel -> channel.batchingQueue.handleError(error,
-                        BatchingOperationsQueue.OnErrorAction.CompleteWithException));
-
-                return CompletableFuture.completedFuture(null);
-
-            case FLUSH:
-            default:
-                CompletableFuture<?>[] aFuture = new CompletableFuture[f_aChannel.length];
-
-                for (int i = 0; i < aFuture.length; ++i)
-                    {
-                    aFuture[i] = f_aChannel[i].batchingQueue.flush();
-                    }
-                return CompletableFuture.allOf(aFuture);
+            aFuture[i] = f_aChannel[i].flush(mode);
             }
-        }
-
-    /**
-     * Offer the batched elements from the channel to the topic.
-     *
-     * @param channel        the channel
-     * @param cbMaxElements  the maximum number of bytes to offer
-     */
-    protected void addQueuedElements(Channel channel, int cbMaxElements)
-        {
-        // Fill the current batch with the specified number of elements
-        if (channel.batchingQueue.fillCurrentBatch(cbMaxElements))
-            {
-            // There are elements in the queue so process them by
-            // first ensuring the page id is set
-            ensurePageId(channel)
-                    .thenAccept((_void) -> addInternal(channel, channel.lTail))
-                    .handle(this::handleError);
-            }
-        }
-
-    /**
-     * Asynchronously add elements to the specified page.
-     *
-     * @param channel  the channel
-     * @param lPageId  the id of the page to offer the elements to
-     */
-    protected void addInternal(Channel channel, long lPageId)
-        {
-        List<Binary> listBinary = channel.batchingQueue.getCurrentBatchValues();
-
-        // If the list is empty (which would probably be due to the
-        // application code calling cancel on the futures) the we
-        // do not need to do anything else
-        if (listBinary.isEmpty())
-            {
-            return;
-            }
-
-        Page.Key keyPage = new Page.Key(channel.keyUsageSync.getChannelId(), lPageId);
-        int      nPart   = ((PartitionedService) m_caches.getCacheService())
-                .getKeyPartitioningStrategy().getKeyPartition(keyPage);
-
-        PagedTopicCaches caches = m_caches;
-        InvocableMapHelper.invokeAsync(caches.Pages, keyPage, caches.getUnitOfOrder(nPart),
-                new OfferProcessor(listBinary, f_nNotifyPostFull, false),
-                (result, e) ->
-                    {
-                    if (e == null)
-                        {
-                        handleOfferCompletion(result, channel, lPageId);
-                        }
-                    else
-                        {
-                        handleError(null, e);
-                        }
-                    }
-                );
-        }
-
-    /**
-     * Handle completion of a {@link CompletableFuture} linked to an async execution of
-     * a {@link OfferProcessor}.
-     *
-     * @param result   the result returned from the {@link OfferProcessor}
-     * @param channel  the channel
-     * @param lPageId  the id of the page offered to
-     */
-    protected void handleOfferCompletion(OfferProcessor.Result result, Channel channel, long lPageId)
-        {
-        // Complete the offered elements
-        LongArray<Throwable> aErrors   = result.getErrors();
-        LongArray<Status>    aMetadata = new SparseArray<>();
-        int                  cAccepted = result.getAcceptedCount();
-        int                  nChannel  = channel.keyUsageSync.getChannelId();
-
-        ++m_cOffers;
-        m_cAccepted += cAccepted;
-
-        if (cAccepted == 0)
-            {
-            ++m_cMisses;
-            }
-
-        f_setOfferedChannel.set(nChannel);
-
-        if (f_nNotifyPostFull == 0 && result.getStatus() == OfferProcessor.Result.Status.TopicFull)
-            {
-            int       ceBatch = channel.batchingQueue.getCurrentBatch().size();
-            Throwable error   = new IllegalStateException("the topic is at capacity"); // java.util.Queue.add throws ISE so we do to
-
-            if (aErrors == null)
-                {
-                aErrors = new SparseArray<>();
-                }
-
-            while (cAccepted < ceBatch)
-                {
-                ++cAccepted;
-                aErrors.add(error);
-                }
-            }
-        else
-            {
-            int nOffset = result.getOffset();
-            for (long i = 0; i < result.getAcceptedCount(); i++)
-                {
-                if (aErrors == null || aErrors.get(i) == null)
-                    {
-                    aMetadata.set(i, new PublishedStatus(nChannel, lPageId, nOffset++));
-                    }
-                }
-            }
-
-        channel.batchingQueue.completeElements(cAccepted, aErrors, aMetadata);
-
-        // If there are any errors
-        handleIndividualErrors(aErrors);
-
-        // we need to handle offer completions until actually closed to
-        // allow for flushing during close
-        if (m_state != State.Closed)
-            {
-            switch (result.getStatus())
-                {
-                case PageSealed:
-                    moveToNextPage(channel, lPageId)
-                            .thenRun(() -> addQueuedElements(channel, result.getPageCapacity()))
-                            .handle(PagedTopicPublisher.this::handleError);
-                    break;
-
-                case TopicFull:
-                    if (f_nNotifyPostFull != 0)
-                        {
-                        channel.batchingQueue.pause();
-                        break;
-                        }
-                    // else; fall through
-
-                default:
-                    addQueuedElements(channel, result.getPageCapacity());
-                    break;
-                }
-            }
-        // else; if the error handler closed the publisher there is nothing else to do
-        }
-
-    /**
-     * Process the array of exceptions associated with an offer.
-     *
-     * @param aErrors the error array
-     */
-    protected void handleIndividualErrors(LongArray<Throwable> aErrors)
-        {
-        if (aErrors == null || aErrors.isEmpty())
-            {
-            return;
-            }
-
-        OnFailure onFailure = f_options.get(OnFailure.class);
-
-        switch (onFailure)
-            {
-            case Stop:
-                // Stop the publisher.
-                // The handleError method will do the appropriate thing.
-                Throwable throwable = aErrors.get(aErrors.getFirstIndex());
-                handleError(VOID, throwable);
-                break;
-            case Continue:
-                // Do nothing as the individual errors will
-                // already have been handled
-                break;
-            }
-        }
-
-    /**
-     * Obtain the page id for a given channel creating and initialising a the page id if required.
-     *
-     * @param channel  the channel
-     *
-     * @return the future page id
-     */
-    protected CompletableFuture<Long> ensurePageId(Channel channel)
-        {
-        if (channel.futurePageId == null)
-            {
-            return initializePageId(channel);
-            }
-
-        return channel.futurePageId;
-        }
-
-    /**
-     * Initialise the page id instance if it does not already exist.
-     *
-     * @param channel  the channel
-     *
-     * @return the future page id
-     */
-    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    private CompletableFuture<Long> initializePageId(Channel channel)
-        {
-        synchronized (channel)
-            {
-            if (channel.futurePageId == null)
-                {
-                channel.futurePageId = InvocableMapHelper.invokeAsync(m_caches.Usages, channel.keyUsageSync,
-                                                                      m_caches.getUnitOfOrder(channel.keyUsageSync.getPartitionId()),
-                                                                      new TopicInitialiseProcessor());
-                }
-
-            return channel.futurePageId;
-            }
-        }
-
-    /**
-     * Asynchronously obtain the next page ID to offer to after the
-     * specified page ID.
-     *
-     * @param lPage  the current page ID
-     *
-     * @return  A {@link CompletableFuture} that will, on completion, contain the
-     *          next page ID, or if the topic is full the current page ID
-     */
-    protected CompletableFuture<Long> moveToNextPage(Channel channel, long lPage)
-        {
-        CompletableFuture<Long> futureResult;
-        long                    lPageCurrent = channel.lTail;
-
-        if (lPageCurrent > lPage)
-            {
-            // The ID has already been moved on from the specified value
-            // (presumably by another thread) so we just return the current value
-            return CompletableFuture.completedFuture(lPageCurrent);
-            }
-
-        synchronized (channel)
-            {
-            // Get the current value in case it has changed
-            lPageCurrent = channel.lTail;
-
-            // Verify that we have not already moved the page between
-            // the last check and the synchronize
-            if (lPageCurrent > lPage)
-                {
-                return CompletableFuture.completedFuture(lPageCurrent);
-                }
-
-            // Check that there is not already a move in progress
-            futureResult = channel.futureMovePage;
-            if (futureResult == null)
-                {
-                channel.futureMovePage = futureResult = InvocableMapHelper.invokeAsync(
-                        m_caches.Usages, channel.keyUsageSync, m_caches.getUnitOfOrder(channel.keyUsageSync.getPartitionId()),
-                        new TailAdvancer(lPage + 1), (result, e) ->
-                              {
-                              if (e == null)
-                                  {
-                                  updatePageId(channel, result);
-                                  }
-                              else
-                                  {
-                                  handleError(result, e);
-                                  }
-                              });
-                }
-
-            return futureResult;
-            }
-        }
-
-    /**
-     * Handle completion of an async entry processor that updates the page id.
-     *
-     * @param lPageNew the updated page id value returned from the processor
-     */
-    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    protected void updatePageId(Channel channel, long lPageNew)
-        {
-        if (channel.lTail < lPageNew)
-            {
-            synchronized (channel)
-                {
-                if (channel.lTail < lPageNew)
-                    {
-                    channel.lTail = lPageNew;
-                    }
-                }
-            }
-
-        channel.futureMovePage = null;
-        }
-
-    /**
-     * Handle the specified error.
-     *
-     * @param throwable  the error to handle
-     */
-    protected <R> R handleError(R result, Throwable throwable)
-        {
-        if (throwable != null)
-            {
-            // call the BatchingOperationsQueue's error handler to cancel all
-            // outstanding elements.
-            for (Channel channel : f_aChannel)
-                {
-                channel.batchingQueue.handleError(throwable, BatchingOperationsQueue.OnErrorAction.Cancel);
-                }
-
-            closeInternal(false);
-            }
-
-        return result;
+        return CompletableFuture.allOf(aFuture);
         }
 
     /**
      * Instantiate and register a DeactivationListener with the topic data cache.
      */
-    @SuppressWarnings("unchecked")
     protected void registerDeactivationListener()
         {
         try
             {
-            m_caches.Data.addMapListener(f_listenerDeactivation);
+            m_caches.addListener(f_listenerDeactivation);
             }
         catch (RuntimeException e)
             {
@@ -853,12 +530,11 @@ public class PagedTopicPublisher<V>
     /**
      * Unregister cache deactivation listener.
      */
-    @SuppressWarnings("unchecked")
     protected void unregisterDeactivationListener()
         {
         try
             {
-            m_caches.Data.removeMapListener(f_listenerDeactivation);
+            m_caches.removeListener(f_listenerDeactivation);
             }
         catch (RuntimeException e)
             {
@@ -879,62 +555,43 @@ public class PagedTopicPublisher<V>
         return (nMemberId << 32) | (nNotificationId & 0xFFFFFFFFL);
         }
 
-    // ----- inner class: Channel -------------------------------------------
-
-    /**
-     * Channel is a record which represents the state of a channel as known
-     * by this publisher.
-     */
-    protected static class Channel
-        {
-        /**
-         * The key for the Usage object which maintains the channel's tail.
-         */
-        Usage.Key keyUsageSync;
-
-        /**
-         * The {@link BatchingOperationsQueue} controlling the batches of add operations.
-         */
-        BatchingOperationsQueue<Binary, Status> batchingQueue;
-
-        /**
-         * The tail for this channel
-         */
-        volatile long lTail = -1;
-
-        /**
-         * The {@link CompletableFuture} that will be complete when the
-         * page ID is updated.
-         */
-        volatile CompletableFuture<Long> futurePageId;
-
-        /**
-         * The {@link CompletableFuture} that will complete when the current page increment
-         * operation completes. This value will be null if no page increment operation is in
-         * progress.
-         */
-        CompletableFuture<Long> futureMovePage;
-        }
-
     // ----- inner class: DeactivationListener ------------------------------
 
     /**
-     * A {@link NamedCacheDeactivationListener} to detect the subscribed topic
-     * being destroyed.
+     * A {@link PagedTopicCaches.Listener} to detect the subscribed topic
+     * being released, destroyed or disconnected.
      */
     protected class DeactivationListener
-            extends AbstractMapListener
-            implements NamedCacheDeactivationListener
+            implements PagedTopicCaches.Listener
         {
         @Override
-        @SuppressWarnings("rawtypes")
-        public void entryDeleted(MapEvent evt)
+        public void onConnect()
+            {
+            }
+
+        @Override
+        public void onDisconnect()
+            {
+            }
+
+        @Override
+        public void onDestroy()
             {
             // destroy/disconnect event
             Logger.fine("Detected destroy of topic "
                              + f_sTopicName + ", closing publisher "
                              + PagedTopicPublisher.this);
             closeInternal(true);
+            }
+
+        @Override
+        public void onRelease()
+            {
+            // destroy/disconnect event
+            Logger.fine("Detected release of topic "
+                             + f_sTopicName + ", closing publisher "
+                             + PagedTopicPublisher.this);
+            closeInternal(false);
             }
         }
 
@@ -979,7 +636,11 @@ public class PagedTopicPublisher<V>
         /**
          * The publisher is closed.
          */
-        Closed
+        Closed,
+        /**
+         * The publisher is disconnected from storage.
+         */
+        Disconnected
         }
 
     // ----- inner class: PublishedMetadata --------------------------------
@@ -1025,7 +686,7 @@ public class PagedTopicPublisher<V>
         public String toString()
             {
             return "PublishedStatus(" +
-                    " channel=" + f_nChannel +
+                    "channel=" + f_nChannel +
                     ", position=" + f_position +
                     ')';
             }
@@ -1067,11 +728,6 @@ public class PagedTopicPublisher<V>
     // ----- constants ------------------------------------------------------
 
     /**
-     * A constant to use to make it obvious when methods are returning Void.
-     */
-    private static final Void VOID = null;
-
-    /**
      * Publisher close timeout on first flush attempt. After this time is exceeded, all outstanding asynchronous operations will be completed exceptionally.
      */
     public static final long CLOSE_TIMEOUT_SECS = TimeUnit.MILLISECONDS.toSeconds(Base.parseTime(Config.getProperty("coherence.topic.publisher.close.timeout", "30s"), Base.UNIT_S));
@@ -1099,12 +755,6 @@ public class PagedTopicPublisher<V>
     private final String f_sTopicName;
 
     /**
-     * The {@link Options} controlling this {@link PagedTopicPublisher}'s operation.
-     */
-    @SuppressWarnings("rawtypes")
-    private final Options<Publisher.Option> f_options;
-
-    /**
      * The converter that will convert values being offered to {@link Binary} instances.
      */
     private final Converter<V, Binary> f_convValueToBinary;
@@ -1122,62 +772,12 @@ public class PagedTopicPublisher<V>
     /**
      * The publisher flow control.
      */
-    private final FlowControl f_flowControl;
+    private final DebouncedFlowControl f_flowControl;
 
     /**
      * Channel array.
      */
-    protected final Channel[] f_aChannel;
-
-    /**
-     * The number of times an offer was made
-     */
-    private long m_cOffers;
-
-    /**
-     * The last value of m_cOffers used within {@link #toString} stats.
-     */
-    private long m_cOffersLast;
-
-    /**
-     * The number of accepted items.
-     */
-    private long m_cAccepted;
-
-    /**
-     * The last value of m_cAccepted used within {@link #toString} stats.
-     */
-    private long m_cAcceptedLast;
-
-    /**
-     * The number of times no elements were accepted from an offer
-     */
-    private long m_cMisses;
-
-    /**
-     * The last value of m_cMisses used within {@link #toString} stats.
-     */
-    private long m_cMissesLast;
-
-    /**
-     * The number of this this publisher has waited.
-     */
-    private long m_cWait;
-
-    /**
-     * The last value of m_cWait used within {@link #toString} stats.
-     */
-    private long m_cWaitsLast;
-
-    /**
-     * The number of times this publisher was notified.
-     */
-    private long m_cNotify;
-
-    /**
-     * The last value of m_cNotify used within {@link #toString} stats.
-     */
-    private long m_cNotifyLast;
+    protected final PagedTopicChannelPublisher[] f_aChannel;
 
     /**
      * The set of channels which elements have been offered to since the last @{link #toString} call.
@@ -1187,7 +787,12 @@ public class PagedTopicPublisher<V>
     /**
      * The NamedCache deactivation listener.
      */
-    private final NamedCacheDeactivationListener f_listenerDeactivation = new DeactivationListener();
+    private final DeactivationListener f_listenerDeactivation = new DeactivationListener();
+
+    /**
+     * The listener used to notify this publisher that previously full topics now have more space.
+     */
+    private final MapListener<NotificationKey, int[]> f_listenerNotification;
 
     /**
      * A {@link List} of actions to run when this publisher closes.
@@ -1195,12 +800,17 @@ public class PagedTopicPublisher<V>
     private final List<Runnable> f_listOnCloseActions = new ArrayList<>();
 
     /**
-     * The {@link TaskDaemon} used to complete published message futures so that they are not on the service thread.
+     * The {@link DaemonPool} used to complete published message futures so that they are not on the service thread.
      */
-    private final TaskDaemon f_daemon;
+    private final DaemonPool f_daemon;
 
     /**
      * A unique identifier for this publisher.
      */
     private final long f_nId;
+
+    /**
+     * The action to take when a publish request fails.
+     */
+    private final OnFailure f_onFailure;
     }

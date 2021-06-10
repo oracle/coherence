@@ -11,8 +11,10 @@ import com.tangosol.net.NamedCollection;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.Filter;
 
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * NamedTopic represents a topic entity for publish/subscribe messaging.
@@ -99,6 +101,31 @@ public interface NamedTopic<V>
         // a compile time warning about the implicit generic array creation
         return createSubscriber(new Subscriber.Option[0]);
         }
+
+    /**
+     * Ensure that the specified subscriber group exists for this topic.
+     *
+     * @param sName  the name of the subscriber group
+     *
+     * @throws IllegalStateException if the subscriber group already exists with a different filter
+     *                               or converter function
+     */
+    public default void ensureSubscriberGroup(String sName)
+        {
+        ensureSubscriberGroup(sName, null, null);
+        }
+
+    /**
+     * Ensure that the specified subscriber group exists for this topic.
+     *
+     * @param sName        the name of the subscriber group
+     * @param filter       the {@link Filter} used to filter messages to be received by subscribers in the group
+     * @param fnConverter  the {@link Function} used to convert messages to be received by subscribers in the group
+     *
+     * @throws IllegalStateException if the subscriber group already exists with a different filter
+     *                               or converter function
+     */
+    public void ensureSubscriberGroup(String sName, Filter<?> filter, Function<?, ?> fnConverter);
 
     /**
      * Destroy the {@link Subscriber.Name named} subscriber group for the associated topic.

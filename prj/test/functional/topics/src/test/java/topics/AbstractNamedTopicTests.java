@@ -15,6 +15,8 @@ import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
 import com.oracle.coherence.common.base.NonBlocking;
 
+import com.tangosol.internal.net.DebouncedFlowControl;
+
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
@@ -26,12 +28,13 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.io.Serializer;
-import com.tangosol.io.pof.ConfigurablePofContext;
+
 import com.tangosol.io.pof.reflect.SimplePofPath;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.FlowControl;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
@@ -48,6 +51,7 @@ import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
 import com.tangosol.net.topic.Subscriber.Element;
 import com.tangosol.net.topic.TopicException;
+import com.tangosol.net.topic.TopicPublisherException;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
@@ -134,7 +138,6 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static com.oracle.bedrock.testsupport.deferred.Eventually.assertDeferred;
 
-import static com.tangosol.net.topic.Subscriber.Name.of;
 import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -207,41 +210,43 @@ public abstract class AbstractNamedTopicTests
         {
         Session            session       = getSession();
         String             sTopicName    = m_sSerializer;
-        Subscriber<String> subscriberD   = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "d")));
-        Subscriber<String> subscriberA   = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "a")));
-        Subscriber<String> subscriberLen = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(String::length, 1)));
 
-        CompletableFuture<Void> future;
-
-        try (Publisher<String> publisher = session.createPublisher(sTopicName))
+        try (Subscriber<String> subscriberD   = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "d")));
+             Subscriber<String> subscriberA   = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "a")));
+             Subscriber<String> subscriberLen = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(String::length, 1))))
             {
-            publisher.publish("a").thenAccept(v -> System.out.println("**** Published a"));
-            publisher.publish("zoo").thenAccept(v -> System.out.println("**** Published zoo"));
-            publisher.publish("b").thenAccept(v -> System.out.println("**** Published b"));
-            publisher.publish("c").thenAccept(v -> System.out.println("**** Published c"));
-            publisher.publish("d").thenAccept(v -> System.out.println("**** Published d"));
-            publisher.publish("e").thenAccept(v -> System.out.println("**** Published e"));
-            future = publisher.publish("f").thenAccept(v -> System.out.println("**** Published f"));
-            publisher.getFlowControl().flush();
+            CompletableFuture<Void> future;
+
+            try (Publisher<String> publisher = session.createPublisher(sTopicName))
+                {
+                publisher.publish("a").thenAccept(v -> System.out.println("**** Published a"));
+                publisher.publish("zoo").thenAccept(v -> System.out.println("**** Published zoo"));
+                publisher.publish("b").thenAccept(v -> System.out.println("**** Published b"));
+                publisher.publish("c").thenAccept(v -> System.out.println("**** Published c"));
+                publisher.publish("d").thenAccept(v -> System.out.println("**** Published d"));
+                publisher.publish("e").thenAccept(v -> System.out.println("**** Published e"));
+                publisher.publish("f").thenAccept(v -> System.out.println("**** Published f"));
+                future = publisher.flush();
+                }
+
+            // wait upto one minute for the future
+            future.get(2, TimeUnit.MINUTES);
+
+            assertThat(future.isCompletedExceptionally(), is(false));
+
+            assertThat(subscriberD.receive().get().getValue(), is("zoo"));
+            assertThat(subscriberD.receive().get().getValue(), is("e"));
+            assertThat(subscriberD.receive().get().getValue(), is("f"));
+
+            assertThat(subscriberA.receive().get().getValue(), is("zoo"));
+            assertThat(subscriberA.receive().get().getValue(), is("b"));
+            assertThat(subscriberA.receive().get().getValue(), is("c"));
+            assertThat(subscriberA.receive().get().getValue(), is("d"));
+            assertThat(subscriberA.receive().get().getValue(), is("e"));
+            assertThat(subscriberA.receive().get().getValue(), is("f"));
+
+            assertThat(subscriberLen.receive().get().getValue(), is("zoo"));
             }
-
-        // wait upto one minute for the future
-        future.get(2, TimeUnit.MINUTES);
-
-        assertThat(future.isCompletedExceptionally(), is(false));
-
-        assertThat(subscriberD.receive().get().getValue(), is("zoo"));
-        assertThat(subscriberD.receive().get().getValue(), is("e"));
-        assertThat(subscriberD.receive().get().getValue(), is("f"));
-
-        assertThat(subscriberA.receive().get().getValue(), is("zoo"));
-        assertThat(subscriberA.receive().get().getValue(), is("b"));
-        assertThat(subscriberA.receive().get().getValue(), is("c"));
-        assertThat(subscriberA.receive().get().getValue(), is("d"));
-        assertThat(subscriberA.receive().get().getValue(), is("e"));
-        assertThat(subscriberA.receive().get().getValue(), is("f"));
-
-        assertThat(subscriberLen.receive().get().getValue(), is("zoo"));
         }
 
     @Test
@@ -365,8 +370,8 @@ public abstract class AbstractNamedTopicTests
         String  sTopicName = m_sSerializer;
 
         try (Publisher<String>  publisher     = session.createPublisher(sTopicName);
-             Subscriber<String> subscriberFoo = session.createSubscriber(sTopicName, of("Foo"), Subscriber.CompleteOnEmpty.enabled());
-             Subscriber<String> subscriberBar = session.createSubscriber(sTopicName, of("Bar"), Subscriber.CompleteOnEmpty.enabled()))
+             Subscriber<String> subscriberFoo = session.createSubscriber(sTopicName, inGroup("Foo"), Subscriber.CompleteOnEmpty.enabled());
+             Subscriber<String> subscriberBar = session.createSubscriber(sTopicName, inGroup("Bar"), Subscriber.CompleteOnEmpty.enabled()))
             {
             for (int i = 0; i < nCount; i++)
                 {
@@ -429,37 +434,44 @@ public abstract class AbstractNamedTopicTests
     public void shouldFillAndEmptyOneByOne()
             throws Exception
         {
-        int                nCount        = 1000;
-        NamedTopic<String> topic         = ensureTopic();
-        Publisher<String>  publisher     = topic.createPublisher();
-        Subscriber<String> subscriberFoo = topic.createSubscriber(of("Foo"), Subscriber.CompleteOnEmpty.enabled());
-        Subscriber<String> subscriberBar = topic.createSubscriber(of("Bar"), Subscriber.CompleteOnEmpty.enabled());
+        int                nCount = 1000;
+        NamedTopic<String> topic  = ensureTopic();
 
-        for (int i = 0; i < nCount; i++)
+        try (Publisher<String>  publisher     = topic.createPublisher();
+             Subscriber<String> subscriberFoo = topic.createSubscriber(inGroup("Foo"), Subscriber.CompleteOnEmpty.enabled());
+             Subscriber<String> subscriberBar = topic.createSubscriber(inGroup("Bar"), Subscriber.CompleteOnEmpty.enabled()))
             {
-            if (i % 100 == 0)
+            assertThat(publisher, is(notNullValue()));
+            assertThat(subscriberFoo, is(notNullValue()));
+            assertThat(subscriberBar, is(notNullValue()));
+
+            for (int i = 0; i < nCount; i++)
                 {
-                System.out.print("X");
+                if (i % 100 == 0)
+                    {
+                    System.out.print("X");
+                    }
+                else if (i % 10 == 0)
+                    {
+                    System.out.print(".");
+                    }
+
+                String sElement = "Element-" + i;
+
+                CompletableFuture<Status> future = publisher.publish(sElement);
+                assertThat(future, is(notNullValue()));
+                future.get(1, TimeUnit.MINUTES);
+
+                assertThat(subscriberFoo.receive().get(10, TimeUnit.SECONDS).getValue(), is(sElement));
+                assertThat(subscriberBar.receive().get(10, TimeUnit.SECONDS).getValue(), is(sElement));
+
+                assertThat(subscriberFoo.receive().get(10, TimeUnit.SECONDS), is(nullValue()));
+                assertThat(subscriberBar.receive().get(10, TimeUnit.SECONDS), is(nullValue()));
                 }
-            else if (i % 10 == 0)
-                {
-                System.out.print(".");
-                }
 
-            String sElement = "Element-" + i;
-
-            publisher.publish(sElement).get(1, TimeUnit.MINUTES);
-
-            assertThat(subscriberFoo.receive().get(10, TimeUnit.SECONDS).getValue(), is(sElement));
-            assertThat(subscriberBar.receive().get(10, TimeUnit.SECONDS).getValue(), is(sElement));
-
-            assertThat(subscriberFoo.receive().get(10, TimeUnit.SECONDS), is(nullValue()));
-            assertThat(subscriberBar.receive().get(10, TimeUnit.SECONDS), is(nullValue()));
+            assertThat("Subscriber 'Foo' should see empty topic", subscriberFoo.receive().get(), is(nullValue()));
+            assertThat("Subscriber 'Bar' should see empty topic", subscriberBar.receive().get(), is(nullValue()));
             }
-
-        publisher.close();
-
-        assertThat("Subscriber 'Bar' should see empty topic", subscriberBar.receive().get(), is(nullValue()));
         }
 
     @Test
@@ -547,8 +559,8 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic       = publisher.getTopic();
         int                nCount      = publisher.getCount();
         String             sPrefix     = publisher.getPrefix();
-        TopicSubscriber    subscriber1 = new TopicSubscriber(topic.createSubscriber(of("Foo")), sPrefix, nCount, 2, TimeUnit.MINUTES, false, fVerifyOrder);
-        TopicSubscriber    subscriber2 = new TopicSubscriber(topic.createSubscriber(of("Bar")), sPrefix, nCount, 2, TimeUnit.MINUTES, false, fVerifyOrder);
+        TopicSubscriber    subscriber1 = new TopicSubscriber(topic.createSubscriber(inGroup("Foo")), sPrefix, nCount, 2, TimeUnit.MINUTES, false, fVerifyOrder);
+        TopicSubscriber    subscriber2 = new TopicSubscriber(topic.createSubscriber(inGroup("Bar")), sPrefix, nCount, 2, TimeUnit.MINUTES, false, fVerifyOrder);
 
         Future<?> futurePublisher = m_executorService.submit(publisher);
         Future<?> futureSubscriber1 = m_executorService.submit(subscriber1);
@@ -572,8 +584,8 @@ public abstract class AbstractNamedTopicTests
     public void shouldPublishAndReceive() throws Exception
         {
         NamedTopic<String> topic         = ensureTopic();
-        Subscriber<String> subscriberFoo = topic.createSubscriber(of("Foo"));
-        Subscriber<String> subscriberBar = topic.createSubscriber(of("Bar"));
+        Subscriber<String> subscriberFoo = topic.createSubscriber(inGroup("Foo"));
+        Subscriber<String> subscriberBar = topic.createSubscriber(inGroup("Bar"));
 
         try (Publisher<String> publisher = topic.createPublisher())
             {
@@ -659,9 +671,9 @@ public abstract class AbstractNamedTopicTests
     public void shouldPublishAndReceiveBatch() throws Exception
         {
         NamedTopic<String> topic           = ensureTopic();
-        Subscriber<String> subscriberOne   = topic.createSubscriber(of("One"));
-        Subscriber<String> subscriberTwo   = topic.createSubscriber(of("Two"));
-        Subscriber<String> subscriberThree = topic.createSubscriber(of("Three"));
+        Subscriber<String> subscriberOne   = topic.createSubscriber(inGroup("One"));
+        Subscriber<String> subscriberTwo   = topic.createSubscriber(inGroup("Two"));
+        Subscriber<String> subscriberThree = topic.createSubscriber(inGroup("Three"));
 
         try (Publisher<String> publisher = topic.createPublisher())
             {
@@ -683,9 +695,9 @@ public abstract class AbstractNamedTopicTests
     public void shouldPublishAndReceiveBatchFromEmptyTopic() throws Exception
         {
         NamedTopic<String> topic           = ensureTopic();
-        Subscriber<String> subscriberOne   = topic.createSubscriber(of("One"), Subscriber.CompleteOnEmpty.enabled());
-        Subscriber<String> subscriberTwo   = topic.createSubscriber(of("Two"), Subscriber.CompleteOnEmpty.enabled());
-        Subscriber<String> subscriberThree = topic.createSubscriber(of("Three"), Subscriber.CompleteOnEmpty.enabled());
+        Subscriber<String> subscriberOne   = topic.createSubscriber(inGroup("One"), Subscriber.CompleteOnEmpty.enabled());
+        Subscriber<String> subscriberTwo   = topic.createSubscriber(inGroup("Two"), Subscriber.CompleteOnEmpty.enabled());
+        Subscriber<String> subscriberThree = topic.createSubscriber(inGroup("Three"), Subscriber.CompleteOnEmpty.enabled());
 
         List<Element<String>> elementsOne   = subscriberOne.receive(1).get();
         List<Element<String>> elementsTwo   = subscriberTwo.receive(2).get();
@@ -701,8 +713,8 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String> topic = ensureTopic();
 
-        try (Subscriber<String> subscriber1 = topic.createSubscriber(of("test"));
-             Subscriber<String> subscriber2 = topic.createSubscriber(of("test")))
+        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("test"));
+             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("test")))
             {
             int[] channels1 = subscriber1.getChannels();
             int[] channels2 = subscriber2.getChannels();
@@ -746,7 +758,7 @@ public abstract class AbstractNamedTopicTests
         List<Subscriber<String>> listSubscriber = new ArrayList<>();
         for (int i = 0; i < cChannel; i++)
             {
-            listSubscriber.add(topic.createSubscriber(of("test-commits"), Subscriber.CompleteOnEmpty.enabled()));
+            listSubscriber.add(topic.createSubscriber(inGroup("test-commits"), Subscriber.CompleteOnEmpty.enabled()));
             }
 
         try
@@ -1121,7 +1133,7 @@ public abstract class AbstractNamedTopicTests
         List<Subscriber<String>> listSubscriber = new ArrayList<>();
         for (int i = 0; i < cChannel; i++)
             {
-            listSubscriber.add(topic.createSubscriber(of("test-commits"), Subscriber.CompleteOnEmpty.enabled()));
+            listSubscriber.add(topic.createSubscriber(inGroup("test-commits"), Subscriber.CompleteOnEmpty.enabled()));
             }
 
         try
@@ -1246,8 +1258,8 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<Customer> topic         = ensureCustomerTopic(m_sSerializer + "-customer-1");
         Publisher<Customer>  publisher     = topic.createPublisher();
-        Subscriber<Customer> subscriberFoo = topic.createSubscriber(of("Foo"));
-        Subscriber<Customer> subscriberBar = topic.createSubscriber(of("Bar"));
+        Subscriber<Customer> subscriberFoo = topic.createSubscriber(inGroup("Foo"));
+        Subscriber<Customer> subscriberBar = topic.createSubscriber(inGroup("Bar"));
 
         Customer customer = new Customer("Mr Smith", 25, AddressExternalizableLite.getRandomAddress());
         try
@@ -1278,8 +1290,8 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<Customer> topic         = ensureCustomerTopic(m_sSerializer + "-customer-2");
         Publisher<Customer>  publisher     = topic.createPublisher();
-        Subscriber<Customer> subscriberFoo = topic.createSubscriber(of("Foo"));
-        Subscriber<Customer> subscriberBar = topic.createSubscriber(of("Bar"));
+        Subscriber<Customer> subscriberFoo = topic.createSubscriber(inGroup("Foo"));
+        Subscriber<Customer> subscriberBar = topic.createSubscriber(inGroup("Bar"));
 
         Customer customer = m_sSerializer.equals("pof") ?
             new CustomerPof("Mr Smith", 25, AddressPof.getRandomAddress()) :
@@ -1341,11 +1353,11 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-4");
 
-        topic.createSubscriber(of("durableSubscriber"), CompleteOnEmpty.enabled(),
+        topic.createSubscriber(inGroup("durableSubscriber"), CompleteOnEmpty.enabled(),
                 Subscriber.Filtered.by(new GreaterEqualsFilter<>(new UniversalExtractor<>("id"), 12)));
 
         assertThrows(TopicException.class, () ->
-                topic.createSubscriber(of("durableSubscriber"), CompleteOnEmpty.enabled(),
+                topic.createSubscriber(inGroup("durableSubscriber"), CompleteOnEmpty.enabled(),
                         Subscriber.Filtered.by(new LessFilter<>(new UniversalExtractor<>("id"), 12))));
         }
 
@@ -1401,10 +1413,10 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<Customer> topic               = ensureCustomerTopic(m_sSerializer + "-customer-6");
 
-        topic.createSubscriber(of("durable-subscriber-3"), Subscriber.Convert.using(Customer::getAddress));
+        topic.createSubscriber(inGroup("durable-subscriber-3"), Subscriber.Convert.using(Customer::getAddress));
 
         assertThrows(TopicException.class, () ->
-                topic.createSubscriber(of("durable-subscriber-3"), Subscriber.Convert.using(Customer::getId)));
+                topic.createSubscriber(inGroup("durable-subscriber-3"), Subscriber.Convert.using(Customer::getId)));
         }
 
     @Test
@@ -1631,7 +1643,7 @@ public abstract class AbstractNamedTopicTests
         String             sPrefix     = "Element-";
         TopicPublisher     publisher   = new TopicPublisher(topic, sPrefix, nCount, true);
         Subscriber<String> subscriberPin = topic.createSubscriber();
-        Subscriber<String> subscriber = topic.createSubscriber(Subscriber.Name.of("Foo"));
+        Subscriber<String> subscriber = topic.createSubscriber(Subscriber.Name.inGroup("Foo"));
 
         publisher.run();
 
@@ -1704,7 +1716,7 @@ public abstract class AbstractNamedTopicTests
 
         // Subscribe: validate topic-mapping configured subscriber-group "durable-subscriber"
         @SuppressWarnings("unused")
-        TopicSubscriber subscriber = new TopicSubscriber(topic.createSubscriber(of("durable-subscriber")), sPrefix, nCount, 3, TimeUnit.MINUTES, true);
+        TopicSubscriber subscriber = new TopicSubscriber(topic.createSubscriber(inGroup("durable-subscriber")), sPrefix, nCount, 3, TimeUnit.MINUTES, true);
 
         topic.destroySubscriberGroup("durable-subscriber");
         CacheService service = (CacheService) topic.getService();
@@ -1730,8 +1742,8 @@ public abstract class AbstractNamedTopicTests
         String             sPrefix     = "Element-";
         TopicPublisher     publisher   = new TopicPublisher(topic, sPrefix, nCount, true);
 
-        TopicSubscriber subscriber1 = new TopicSubscriber(topic.createSubscriber(of("Foo")), sPrefix, nCount, 3, TimeUnit.MINUTES, true);
-        TopicSubscriber subscriber2 = new TopicSubscriber(topic.createSubscriber(of("Bar")), sPrefix, nCount, 3, TimeUnit.MINUTES, true);
+        TopicSubscriber subscriber1 = new TopicSubscriber(topic.createSubscriber(inGroup("Foo")), sPrefix, nCount, 3, TimeUnit.MINUTES, true);
+        TopicSubscriber subscriber2 = new TopicSubscriber(topic.createSubscriber(inGroup("Bar")), sPrefix, nCount, 3, TimeUnit.MINUTES, true);
 
         publisher.run();
 
@@ -1804,7 +1816,7 @@ public abstract class AbstractNamedTopicTests
 
         TopicAssertions.assertPublishedOrder(topic, nCount, "Element-");
 
-        Subscriber<String> subscriber = topic.createSubscriber(of("one"));
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("one"));
 
         for (int i = 0; i<nCount; i++)
             {
@@ -1818,7 +1830,7 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic       = ensureTopic();
         String             sPrefix     = "Element-";
         int                nCount      = 123;
-        Subscriber<String> subscriber1 = topic.createSubscriber(of("one"));
+        Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("one"));
 
         try (Publisher<String> publisher = topic.createPublisher())
             {
@@ -1836,7 +1848,7 @@ public abstract class AbstractNamedTopicTests
             }
 
         // create subscriber two
-        Subscriber<String> subscriber2 = topic.createSubscriber(of("one"));
+        Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("one"));
         // close subscriber one so that two gets everything
         subscriber1.close();
 
@@ -1897,10 +1909,10 @@ public abstract class AbstractNamedTopicTests
 
         NamedTopic<String> topic        = ensureTopic();
         String             sPrefix      = "Element-";
-        int                nCount       = 200;
-        Subscriber<String> subscriber1  = topic.createSubscriber(of("one"), Subscriber.CompleteOnEmpty.enabled());
-        Subscriber<String> subscriber2  = topic.createSubscriber(of("one"), Subscriber.CompleteOnEmpty.enabled());
-        Subscriber<String> subscriber3  = topic.createSubscriber(of("one"), Subscriber.CompleteOnEmpty.enabled());
+        int                nCount       = 300;
+        Subscriber<String> subscriber1  = topic.createSubscriber(inGroup("one"), Subscriber.CompleteOnEmpty.enabled());
+        Subscriber<String> subscriber2  = topic.createSubscriber(inGroup("one"), Subscriber.CompleteOnEmpty.enabled());
+        Subscriber<String> subscriber3  = topic.createSubscriber(inGroup("one"), Subscriber.CompleteOnEmpty.enabled());
         Element<String>    element;
         int                cChannel;
 
@@ -1923,7 +1935,7 @@ public abstract class AbstractNamedTopicTests
                     {
                     String sMsg = sPrefix + c + "-" + i;
                     list.add(sMsg);
-                    Status metadata = publisher.publish(sMsg).get();
+                    Status metadata = publisher.publish(sMsg).get(1, TimeUnit.MINUTES);
                     listLog.add("Sent: " + sMsg + " to " + metadata.getPosition());
                     }
 
@@ -1978,6 +1990,8 @@ public abstract class AbstractNamedTopicTests
         // Wait for the channels to all be reallocated
         // In real life we don't do this as we do not guarantee once only but we need to do
         // this for the test to be stable
+        Eventually.assertDeferred(() -> subscriber2.getChannels().length, is(not(0)));
+        Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(is(not(0))));
         Eventually.assertDeferred(() -> subscriber2.getChannels().length + subscriber3.getChannels().length, is(cChannel));
 
         // read some messages with remaining subscribers, but do not commit anything
@@ -2026,7 +2040,7 @@ public abstract class AbstractNamedTopicTests
             element = subscriber3.receive().get();
             if (element == null)
                 {
-listLog.add("Received (3): NULL");
+                listLog.add("Received (3): NULL");
                 break;
                 }
             listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
@@ -2066,7 +2080,7 @@ listLog.add("Received (3): NULL");
         {
         NamedTopic<String> topic = ensureTopic();
         Publisher<String> publisher = topic.createPublisher();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"));
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"));
 
         Future<Subscriber.Element<String>> future = subscriber.receive();
         assertThat(future.isDone(), is(false));
@@ -2084,8 +2098,8 @@ listLog.add("Received (3): NULL");
         {
         NamedTopic<String> topic = ensureTopic();
 
-        try(Subscriber<String> subscriber1 = topic.createSubscriber(of("subscriber"));
-            Subscriber<String> subscriber2 = topic.createSubscriber(of("subscriber")))
+        try(Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("subscriber"));
+            Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("subscriber")))
             {
             int[] channels1 = subscriber1.getChannels();
             int[] channels2 = subscriber2.getChannels();
@@ -2110,7 +2124,7 @@ listLog.add("Received (3): NULL");
         {
         NamedTopic<String> topic = ensureTopic();
         Publisher<String> publisher = topic.createPublisher();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"));
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"));
 
         publisher.publish("blah");
         assertThat(subscriber.receive().get().getValue(), is("blah"));
@@ -2138,8 +2152,8 @@ listLog.add("Received (3): NULL");
 
         assertThat(topic.getSubscriberGroups().isEmpty(), is(true));
 
-        try (Subscriber<String> subFoo = topic.createSubscriber(Subscriber.Name.of("foo"));
-             Subscriber<String> subBar = topic.createSubscriber(Subscriber.Name.of("bar")))
+        try (Subscriber<String> subFoo = topic.createSubscriber(Subscriber.Name.inGroup("foo"));
+             Subscriber<String> subBar = topic.createSubscriber(Subscriber.Name.inGroup("bar")))
             {
             assertThat(topic.getSubscriberGroups(), is(new ImmutableArrayList(new String[]{"foo", "bar"}).getSet()));
 
@@ -2154,7 +2168,7 @@ listLog.add("Received (3): NULL");
     public void shouldCancelWaitOnClose() throws Exception
         {
         NamedTopic<String> topic = ensureTopic();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"));
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"));
 
         Future<Subscriber.Element<String>> future = subscriber.receive();
         Thread.sleep(100); // allow subscriber to enter wait state
@@ -2166,7 +2180,7 @@ listLog.add("Received (3): NULL");
     public void shouldNotWaitOnEmptyTopic() throws Exception
         {
         NamedTopic<String> topic = ensureTopic();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"), Subscriber.CompleteOnEmpty.enabled());
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"), Subscriber.CompleteOnEmpty.enabled());
 
         Future<Subscriber.Element<String>> future = subscriber.receive();
 
@@ -2180,7 +2194,7 @@ listLog.add("Received (3): NULL");
         {
         NamedTopic<String> topic = ensureTopic();
 
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"), Subscriber.CompleteOnEmpty.enabled());
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"), Subscriber.CompleteOnEmpty.enabled());
 
         try (Publisher<String> publisher = topic.createPublisher())
             {
@@ -2199,59 +2213,62 @@ listLog.add("Received (3): NULL");
     @Test
     public void shouldThrottleSubscribers() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"));
+        NamedTopic<String> topic    = ensureTopic();
         AtomicLong         cPending = new AtomicLong();
         AtomicLong         cReceive = new AtomicLong();
         long               nHigh    = CacheFactory.getCluster().getDependencies().getPublisherCloggedCount();
 
-        Thread thread = new Thread(() ->
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
             {
-            while (cReceive.get() < nHigh * 2) // over aggressively schedule requests until we've received everything, i.e. depend on flow-control
+            DebouncedFlowControl flowControl = (DebouncedFlowControl) subscriber.getFlowControl();
+            long                 nMaxBacklog = flowControl.getExcessiveLimit();
+
+            Thread thread = new Thread(() ->
                 {
-                cPending.incrementAndGet();
-                subscriber.receive().handle((Element<String> v, Throwable t) ->
+                while (cReceive.get() < nHigh * 2) // over aggressively schedule requests until we've received everything, i.e. depend on flow-control
+                   {
+                   cPending.incrementAndGet();
+                   subscriber.receive().handle((Element<String> v, Throwable t) ->
+                       {
+                       cPending.decrementAndGet();
+                       if (t == null)
+                           {
+                           cReceive.incrementAndGet();
+                           }
+                       return v;
+                       });
+                   }
+                });
+
+            thread.start();
+
+            while (cPending.get() < nHigh) // wait for subscriber to build up a backlog
+                {
+                //noinspection BusyWait
+                Thread.sleep(1);
+                }
+
+            try (Publisher<String> publisher = topic.createPublisher())
+                {
+                for (int i = 0; i < nHigh * 2; ++i)
                     {
-                    cPending.decrementAndGet();
-                    if (t == null)
-                        {
-                        cReceive.incrementAndGet();
-                        }
-                    return v;
-                    });
+                    publisher.publish("Element-" + i).get(1, TimeUnit.MINUTES); // .get() makes publisher slower then subscriber
+                    assertThat(flowControl.getBacklog(), is(lessThanOrEqualTo(nMaxBacklog)));
+                    }
                 }
-            });
 
-        thread.start();
-
-        while (cPending.get() < nHigh) // wait for subscriber to build up a backlog
-            {
-            //noinspection BusyWait
-            Thread.sleep(1);
-            }
-
-        try (Publisher<String> publisher = topic.createPublisher())
-            {
-            for (int i = 0; i < nHigh * 2; ++i)
+            while (cReceive.get() < nHigh * 2)
                 {
-                publisher.publish("Element-" + i).get(1, TimeUnit.MINUTES); // .get() makes publisher slower then subscriber
-                assertThat(cPending.get(), lessThanOrEqualTo(nHigh + 4));
+                //noinspection BusyWait
+                Thread.sleep(1);
                 }
+
+            thread.interrupt(); // the thread may be blocked on flow control
+            thread.join();
+
+            assertThat(flowControl.getBacklog(), is(lessThanOrEqualTo(nMaxBacklog)));
+            assertThat(cReceive.get(), is(nHigh * 2));
             }
-
-        while (cReceive.get() < nHigh * 2)
-            {
-            //noinspection BusyWait
-            Thread.sleep(1);
-            }
-
-        thread.interrupt(); // the thread may be blocked on flow control
-        thread.join();
-
-        assertThat(cReceive.get(), is(nHigh * 2));
-        assertThat(cPending.get(), lessThanOrEqualTo(nHigh + 4));
-
-        subscriber.close();
         }
 
     @Test
@@ -2261,7 +2278,7 @@ listLog.add("Received (3): NULL");
             getCoherenceCacheConfig().compareTo(CUSTOMIZED_CACHE_CONFIG), is(0));
 
         NamedTopic<String> topic = ensureTopic();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"));
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"));
         int                cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
         long               nHigh = (getDependencies(topic).getMaxBatchSizeBytes() * 3) / cbValue;
 
@@ -2277,62 +2294,35 @@ listLog.add("Received (3): NULL");
         }
 
     @Test
-    public void shouldThrottlePublisherWhenSubscriberIsGrouped() throws Exception
+    public void shouldThrottlePublisher() throws Exception
         {
         Assume.assumeThat("Skip throttle test for default cache config",
             getCoherenceCacheConfig().compareTo(CUSTOMIZED_CACHE_CONFIG), is(0));
 
-        NamedTopic<String> topic      = ensureTopic();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"));
-        testThrottlePublisher(topic, subscriber);
-        }
-
-    @Test
-    public void shouldThrottlePublisherWhenSubscriberIsAnonymous() throws Exception
-        {
-        Assume.assumeThat("Skip throttle test for default cache config",
-            getCoherenceCacheConfig().compareTo(CUSTOMIZED_CACHE_CONFIG), is(0));
-
-        NamedTopic<String> topic      = ensureTopic();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"));
-        testThrottlePublisher(topic, subscriber);
-        }
-
-    private void testThrottlePublisher(NamedTopic<String> topic, Subscriber<String> subscriber) throws Exception
-        {
-        Serializer serializer = topic.getService().getSerializer();
-        Assume.assumeThat("Skipping if not using POF due to inconsistent serialized sizes breaking calculation in assertion",
-                          serializer, is(instanceOf(ConfigurablePofContext.class)));
-
+        NamedTopic<String>           topic        = ensureTopic();
         PagedTopic.Dependencies      dependencies = getDependencies(topic);
         NamedTopic.ElementCalculator calculator   = dependencies.getElementCalculator();
-        AtomicLong                   cReq         = new AtomicLong();
-        int                          cbValue      = calculator.calculateUnits(ExternalizableHelper.toBinary("Element-" + 0, serializer));
-        long                         nHigh        = (dependencies.getMaxBatchSizeBytes() * 3) / cbValue;
+        Serializer                   serializer   = topic.getService().getSerializer();
+        int                          cbValue      = calculator.calculateUnits(ExternalizableHelper.toBinary("Element-" + 999, serializer));
 
-        Thread thread = new Thread(() ->
+        try (Publisher<String>  publisher = topic.createPublisher())
             {
-            try (Publisher<String>  publisher = topic.createPublisher())
+            DebouncedFlowControl flowControl = (DebouncedFlowControl) publisher.getFlowControl();
+            long                 nExcessive  = flowControl.getExcessiveLimit();
+            int                  cMessage    = (int) nExcessive / cbValue;
+            long                 nMaxBacklog = nExcessive + cbValue; // the max backlog is the excessive limit plus one message
+
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
                 {
-                for (int i = 0; i < nHigh * 100; ++i)
+                for (int i = 0; i < cMessage * 100; ++i)
                     {
-                    cReq.incrementAndGet();
-                    publisher.publish("Element-" + i)
-                            .handle((Status m, Throwable t) ->
-                                  {
-                                  cReq.decrementAndGet();
-                                  return m;
-                                  });
+                    assertThat(flowControl.getBacklog(), is(lessThan(nMaxBacklog)));
+                    publisher.publish("Element-" + i);
                     }
-                }
-            });
+                });
 
-        thread.start();
-
-        for (int i = 0; i < nHigh * 100; ++i)
-            {
-            subscriber.receive().get().commit(); // make subscriber slower then publisher
-            assertThat(cReq.get(), lessThanOrEqualTo(nHigh + cbValue));
+            // will throw if the backlog is too big or it takes more than five minutes - which is a crazy amount of time
+            future.get(5, TimeUnit.MINUTES);
             }
         }
 
@@ -2421,7 +2411,7 @@ listLog.add("Received (3): NULL");
         Assume.assumeThat("Test only applies when paged-topic-scheme has per server capacity of " + SERVER_CAPACITY + " configured",
                           getDependencies(topic).getServerCapacity(), is(SERVER_CAPACITY));
 
-        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(of("subscriber")))
+        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
             {
             int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
             long nHigh   = SERVER_CAPACITY / cbValue; // from config
@@ -2437,8 +2427,10 @@ listLog.add("Received (3): NULL");
             catch (CompletionException e)
                 {
                 // expected
-                assertThat(e.getCause() instanceof IllegalStateException, is(true));
-                assertThat(e.getCause().getMessage().contains("topic is at capacity"), is(true));
+                assertThat(e.getCause(), is(instanceOf(TopicPublisherException.class)));
+                Throwable cause = e.getCause().getCause();
+                assertThat(cause, is(instanceOf(IllegalStateException.class)));
+                assertThat(cause.getMessage().contains("topic is at capacity"), is(true));
                 }
             }
         }
@@ -2453,7 +2445,7 @@ listLog.add("Received (3): NULL");
         Assume.assumeThat("Test only applies when paged-topic-scheme has per server capacity of " + SERVER_CAPACITY + " configured",
                           getDependencies(topic).getServerCapacity(), is(SERVER_CAPACITY));
 
-        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(of("subscriber")))
+        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
             {
             int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
             long nHigh   = SERVER_CAPACITY / cbValue; // from config
@@ -2469,8 +2461,10 @@ listLog.add("Received (3): NULL");
             catch (CompletionException e)
                 {
                 // expected
-                assertThat(e.getCause() instanceof IllegalStateException, is(true));
-                assertThat(e.getCause().getMessage().contains("topic is at capacity"), is(true));
+                assertThat(e.getCause(), is(instanceOf(TopicPublisherException.class)));
+                Throwable cause = e.getCause().getCause();
+                assertThat(cause, is(instanceOf(IllegalStateException.class)));
+                assertThat(cause.getMessage().contains("topic is at capacity"), is(true));
                 }
 
             try (Publisher<String> publisherA = topic.createPublisher())
@@ -2490,12 +2484,12 @@ listLog.add("Received (3): NULL");
         Assume.assumeThat("Skip throttle test for default cache config",
             getCoherenceCacheConfig().compareTo(CUSTOMIZED_CACHE_CONFIG), is(0));
 
-        NamedTopic<String> topic = ensureTopic();
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"));
-        AtomicLong         cReq = new AtomicLong();
-        long               cMax = 0;
-        int                cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
-        long               nHigh = (getDependencies(topic).getMaxBatchSizeBytes() * 3) / cbValue;
+        NamedTopic<String> topic      = ensureTopic();
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"));
+        AtomicLong         cReq       = new AtomicLong();
+        long               cMax       = 0;
+        int                cbValue    = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
+        long               nHigh      = (getDependencies(topic).getMaxBatchSizeBytes() * 3) / cbValue;
 
         try (Publisher<String> publisher = topic.createPublisher();
              @SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
@@ -2520,7 +2514,7 @@ listLog.add("Received (3): NULL");
         Assume.assumeThat("Test only applies when paged-topic-scheme has non-zero expiry configured",
                           getDependencies(topic).getElementExpiryMillis() != 0, is(true));
 
-        Subscriber<String> subscriber = topic.createSubscriber(of("subscriber"), Subscriber.CompleteOnEmpty.enabled());
+        Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"), Subscriber.CompleteOnEmpty.enabled());
         String             sPrefix    = "Element-";
         int                nCount     = 20;
 
@@ -2546,7 +2540,7 @@ listLog.add("Received (3): NULL");
     public void shouldStartSecondSubscriberFromCorrectPosition() throws Exception
         {
         NamedTopic<String> topic       = ensureTopic();
-        Subscriber<String> subscriber1 = topic.createSubscriber(of("Foo"));
+        Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("Foo"));
         String             sPrefix     = "Element-";
         int                nCount      = 100;
 
@@ -2568,7 +2562,7 @@ listLog.add("Received (3): NULL");
 
         subscriber1.close();
         
-        Subscriber<String> subscriber2 = topic.createSubscriber(of("Foo"));
+        Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("Foo"));
 
         for ( ; i<50; i++)
             {
@@ -2609,7 +2603,7 @@ listLog.add("Received (3): NULL");
             {
             publisher.publish(sPrefix + 1).join();
 
-            Subscriber<String> subscriber1 = topic.createSubscriber(Subscriber.Name.of("foo"));
+            Subscriber<String> subscriber1 = topic.createSubscriber(Subscriber.Name.inGroup("foo"));
 
             Future<Subscriber.Element<String>> future = subscriber1.receive();
 
@@ -2628,7 +2622,7 @@ listLog.add("Received (3): NULL");
             // ensure that a new member to the group doesn't reset the groups position in the topic, i.e. this subscriber
             // instance can see items created before it joined the group, as position is defined by the group not the
             // instance
-            Subscriber<String> subscriber2 = topic.createSubscriber(Subscriber.Name.of("foo"));
+            Subscriber<String> subscriber2 = topic.createSubscriber(Subscriber.Name.inGroup("foo"));
             // close subscriber-1, which should reposition back to the last committed element-2, so the next read is element-3
             subscriber1.close();
 

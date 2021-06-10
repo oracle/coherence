@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
+import com.tangosol.net.topic.TopicPublisherException;
 import com.tangosol.util.AssertionException;
 import com.tangosol.util.Binary;
 import com.tangosol.util.LongArray;
@@ -30,6 +31,8 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.junit.Assert.assertThrows;
+
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -42,7 +45,7 @@ public class BatchingOperationsQueueTest
     @Test
     public void shouldBeActiveOnCreation()
         {
-        BatchingOperationsQueue queue = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
+        BatchingOperationsQueue<?, ?> queue = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
 
         assertThat(queue.isActive(), is(true));
         }
@@ -50,7 +53,7 @@ public class BatchingOperationsQueueTest
     @Test
     public void shouldReturnFalseFillingFromEmptyQueue()
         {
-        BatchingOperationsQueue queue = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
+        BatchingOperationsQueue<?, ?> queue = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
 
         assertThat(queue.fillCurrentBatch(1), is(false));
         }
@@ -58,8 +61,8 @@ public class BatchingOperationsQueueTest
     @Test
     public void shouldReturnEmptyBatch()
         {
-        BatchingOperationsQueue queue     = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
-        List                    listBatch = queue.getCurrentBatchValues();
+        BatchingOperationsQueue<?, ?> queue     = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        List                          listBatch = queue.getCurrentBatchValues();
 
         assertThat(listBatch, is(notNullValue()));
         assertThat(listBatch.isEmpty(), is(true));
@@ -68,7 +71,7 @@ public class BatchingOperationsQueueTest
     @Test
     public void shouldBeCompleteForEmptyQueue()
         {
-        BatchingOperationsQueue queue = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
+        BatchingOperationsQueue<?, ?> queue = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
 
         assertThat(queue.isBatchComplete(), is(true));
         }
@@ -76,7 +79,7 @@ public class BatchingOperationsQueueTest
     @Test
     public void shouldCloseEmptyQueue()
         {
-        BatchingOperationsQueue queue = new BatchingOperationsQueue(FUNCTION_DUMMY, 1);
+        BatchingOperationsQueue<?, ?> queue = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
 
         queue.close();
 
@@ -240,7 +243,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(0, null);
+        queue.completeElements(0, null, TopicPublisherException.createFactory(null));
 
         assertThat(element1.isDone(), is(false));
         assertThat(element2.isDone(), is(false));
@@ -266,7 +269,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(2, null);
+        queue.completeElements(2, null, TopicPublisherException.createFactory(null));
 
         assertThat(element1.isDone(), is(true));
         assertThat(element2.isDone(), is(true));
@@ -292,7 +295,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(3, null);
+        queue.completeElements(3, null, TopicPublisherException.createFactory(null));
 
         assertThat(element1.isDone(), is(true));
         assertThat(element2.isDone(), is(true));
@@ -321,7 +324,7 @@ public class BatchingOperationsQueueTest
         aErrors.set(0, error1);
         aErrors.set(2, error3);
 
-        queue.completeElements(3, aErrors);
+        queue.completeElements(3, aErrors, TopicPublisherException.createFactory(null));
 
         assertThat(element1.isDone(), is(true));
         assertThat(element1.getFuture().isCompletedExceptionally(), is(true));
@@ -437,7 +440,7 @@ public class BatchingOperationsQueueTest
 
         assertThat(trigger.get(), is(BatchingOperationsQueue.TRIGGER_OPEN));
 
-        queue.handleError(throwable, BatchingOperationsQueue.OnErrorAction.Retry);
+        queue.handleError((bin, err) -> throwable, BatchingOperationsQueue.OnErrorAction.Retry);
 
         assertThat(trigger.get(), is(BatchingOperationsQueue.TRIGGER_CLOSED));
 
@@ -448,6 +451,39 @@ public class BatchingOperationsQueueTest
         assertThat(listPending.poll(), is(sameInstance(element2)));
         assertThat(listPending.poll(), is(sameInstance(element3)));
         assertThat(listPending.poll(), is(sameInstance(element4)));
+        }
+
+    @Test
+    public void shouldCompleteAllElementsWithoutCloseOnError()
+        {
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
+        Throwable                                            throwable   = new RuntimeException("No!");
+
+        listBatch.add(element1);
+        listBatch.add(element2);
+        listPending.add(element3);
+        listPending.add(element4);
+
+        AtomicInteger trigger = queue.getTrigger();
+
+        assertThat(trigger.get(), is(BatchingOperationsQueue.TRIGGER_OPEN));
+
+        BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
+
+        spyQueue.handleError((bin, err) -> throwable, BatchingOperationsQueue.OnErrorAction.Complete);
+
+        verify(spyQueue, never()).close();
+
+        assertThat(element1.getFuture().isDone(), is(true));
+        assertThat(element2.getFuture().isDone(), is(true));
+        assertThat(element3.getFuture().isDone(), is(true));
+        assertThat(element4.getFuture().isDone(), is(true));
         }
 
     @Test
@@ -473,7 +509,7 @@ public class BatchingOperationsQueueTest
 
         BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
 
-        spyQueue.handleError(throwable, BatchingOperationsQueue.OnErrorAction.Complete);
+        spyQueue.handleError((bin, err) -> throwable, BatchingOperationsQueue.OnErrorAction.CompleteAndClose);
 
         verify(spyQueue).close();
 
@@ -481,6 +517,39 @@ public class BatchingOperationsQueueTest
         assertThat(element2.getFuture().isDone(), is(true));
         assertThat(element3.getFuture().isDone(), is(true));
         assertThat(element4.getFuture().isDone(), is(true));
+        }
+
+    @Test
+    public void shouldCompleteExceptionallyAllElementsWithoutCloseOnError()
+        {
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
+        Throwable                                            throwable   = new RuntimeException("No!");
+
+        listBatch.add(element1);
+        listBatch.add(element2);
+        listPending.add(element3);
+        listPending.add(element4);
+
+        AtomicInteger trigger = queue.getTrigger();
+
+        assertThat(trigger.get(), is(BatchingOperationsQueue.TRIGGER_OPEN));
+
+        BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
+
+        spyQueue.handleError((bin, err) -> throwable, BatchingOperationsQueue.OnErrorAction.CompleteWithException);
+
+        verify(spyQueue, never()).close();
+
+        assertThat(element1.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element2.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element3.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element4.getFuture().isCompletedExceptionally(), is(true));
         }
 
     @Test
@@ -506,7 +575,7 @@ public class BatchingOperationsQueueTest
 
         BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
 
-        spyQueue.handleError(throwable, BatchingOperationsQueue.OnErrorAction.CompleteWithException);
+        spyQueue.handleError((bin, err) -> throwable, BatchingOperationsQueue.OnErrorAction.CompleteWithExceptionAndClose);
 
         verify(spyQueue).close();
 
@@ -535,9 +604,38 @@ public class BatchingOperationsQueueTest
 
         BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
 
-        spyQueue.handleError(throwable, null);
+        spyQueue.handleError((bin, err) -> throwable, null);
 
-        verify(spyQueue).close();
+        verify(spyQueue, never()).close();
+
+        assertThat(element1.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element2.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element3.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element4.getFuture().isCompletedExceptionally(), is(true));
+        }
+
+    @Test
+    public void shouldCancelAllElementsWithoutCloseOnError()
+        {
+        BatchingOperationsQueue<Binary, Void>                queue       = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
+        Queue<BatchingOperationsQueue<Binary, Void>.Element> listBatch   = queue.getCurrentBatch();
+        Deque<BatchingOperationsQueue<Binary, Void>.Element> listPending = queue.getPending();
+        BatchingOperationsQueue<Binary, Void>.Element        element1    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element2    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element3    = queue.createElement(new Binary());
+        BatchingOperationsQueue<Binary, Void>.Element        element4    = queue.createElement(new Binary());
+        Throwable                                            throwable   = new RuntimeException("No!");
+
+        listBatch.add(element1);
+        listBatch.add(element2);
+        listPending.add(element3);
+        listPending.add(element4);
+
+        BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
+
+        spyQueue.handleError((bin, err) -> throwable, BatchingOperationsQueue.OnErrorAction.Cancel);
+
+        verify(spyQueue, never()).close();
 
         assertThat(element1.getFuture().isCompletedExceptionally(), is(true));
         assertThat(element2.getFuture().isCompletedExceptionally(), is(true));
@@ -564,14 +662,14 @@ public class BatchingOperationsQueueTest
 
         BatchingOperationsQueue<Binary, Void> spyQueue = Mockito.spy(queue);
 
-        spyQueue.handleError(throwable, BatchingOperationsQueue.OnErrorAction.Cancel);
+        spyQueue.handleError((bin, err) -> throwable, BatchingOperationsQueue.OnErrorAction.CancelAndClose);
 
         verify(spyQueue).close();
 
-        assertThat(element1.getFuture().isCancelled(), is(true));
-        assertThat(element2.getFuture().isCancelled(), is(true));
-        assertThat(element3.getFuture().isCancelled(), is(true));
-        assertThat(element4.getFuture().isCancelled(), is(true));
+        assertThat(element1.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element2.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element3.getFuture().isCompletedExceptionally(), is(true));
+        assertThat(element4.getFuture().isCompletedExceptionally(), is(true));
         }
 
     @Test
@@ -616,7 +714,7 @@ public class BatchingOperationsQueueTest
         BatchingOperationsQueue<Binary, Void>.Element element   = queue.createElement(new Binary());
         Throwable                                     throwable = new RuntimeException("No!");
 
-        element.completeExceptionally(throwable);
+        element.completeExceptionally(throwable, TopicPublisherException.createFactory(null));
 
         assertThat(element.isDone(), is(true));
         assertThat(element.getFuture().isDone(), is(true));
@@ -681,16 +779,16 @@ public class BatchingOperationsQueueTest
 
         assertThat(future.isDone(), is(false));
 
-        element1.completeExceptionally(new RuntimeException("No!"));
+        element1.completeExceptionally(new RuntimeException("No!"), TopicPublisherException.createFactory(null));
         assertThat(future.isDone(), is(false));
 
-        element2.completeExceptionally(new RuntimeException("No!"));
+        element2.completeExceptionally(new RuntimeException("No!"), TopicPublisherException.createFactory(null));
         assertThat(future.isDone(), is(false));
 
-        element3.completeExceptionally(new RuntimeException("No!"));
+        element3.completeExceptionally(new RuntimeException("No!"), TopicPublisherException.createFactory(null));
         assertThat(future.isDone(), is(false));
 
-        element4.completeExceptionally(new RuntimeException("No!"));
+        element4.completeExceptionally(new RuntimeException("No!"), TopicPublisherException.createFactory(null));
         assertThat(future.isDone(), is(true));
         assertThat(future.isCancelled(), is(false));
         assertThat(future.isCompletedExceptionally(), is(false));

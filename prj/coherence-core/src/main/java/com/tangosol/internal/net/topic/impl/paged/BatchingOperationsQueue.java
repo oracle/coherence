@@ -6,8 +6,6 @@
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
-import com.oracle.coherence.common.base.Logger;
-
 import com.oracle.coherence.common.base.NonBlocking;
 
 import com.tangosol.internal.net.DebouncedFlowControl;
@@ -31,6 +29,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
@@ -237,28 +236,21 @@ public class BatchingOperationsQueue<V, R>
     /**
      * Handle the error that occurred processing the current batch.
      *
-     * @param throwable  the error that occurred
-     * @param action     the action to take to handle the error
+     * @param function  the function to create the actual error to complete the future with
+     * @param action    the action to take to handle the error
      */
-    public void handleError(Throwable throwable, OnErrorAction action)
+    public void handleError(BiFunction<Throwable, V, Throwable> function, OnErrorAction action)
         {
         Gate<?> gate = getGate();
         gate.close(-1);
 
         try
             {
-            Deque<Element> queueCurrent   = getCurrentBatch();
-            Deque<Element> queuePending   = getPending();
+            boolean fClose = false;
 
             if (action == null)
                 {
                 action = OnErrorAction.CompleteWithException;
-                }
-
-            if (throwable != null)
-                {
-                Logger.finest("Topic batching queue caught asynchronous error "
-                        + throwable.getClass().getName() + " - action is " + action + " message: " + throwable.getMessage());
                 }
 
             switch(action)
@@ -266,6 +258,7 @@ public class BatchingOperationsQueue<V, R>
                 case Retry:
                     // Move uncompleted elements in the current batch back to the
                     // front of the pending queue - in the same order
+                    Deque<Element> queueCurrent = getCurrentBatch();
                     while(!queueCurrent.isEmpty())
                         {
                         Element element = queueCurrent.pollLast();
@@ -274,7 +267,7 @@ public class BatchingOperationsQueue<V, R>
                         if (!element.isDone())
                             {
                             f_backlog.adjustBacklog(cb);
-                            queuePending.offerFirst(element);
+                            getPending().offerFirst(element);
                             }
                         }
 
@@ -283,31 +276,25 @@ public class BatchingOperationsQueue<V, R>
                     triggerOperations(f_cbInitialBatch);
                     break;
 
+                case CompleteAndClose:
+                    fClose = true;
                 case Complete:
-                    // Complete all of the futures in both queues
-                    Stream.concat(queueCurrent.stream(), queuePending.stream())
-                            .filter(((Predicate<Element>) Element::isDone).negate())
-                            .forEach(Element::complete);
-
-                    close();
+                    // Complete all of the futures
+                    doErrorAction(Element::complete, fClose);
                     break;
 
+                case CompleteWithExceptionAndClose:
+                    fClose = true;
                 case CompleteWithException:
-                    // Complete exceptionally all of the futures in both queues
-                    Stream.concat(queueCurrent.stream(), queuePending.stream())
-                            .filter(((Predicate<Element>) Element::isDone).negate())
-                            .forEach((element) -> element.completeExceptionally(throwable));
-
-                    close();
+                    // Complete exceptionally all of the futures in the current queue
+                    doErrorAction(e -> e.completeExceptionally(null, function), fClose);
                     break;
 
+                case CancelAndClose:
+                    fClose = true;
                 case Cancel:
-                    // Cancel all of the futures in both queues
-                    Stream.concat(queueCurrent.stream(), queuePending.stream())
-                            .filter(((Predicate<Element>)Element::isDone).negate())
-                            .forEach(e -> e.cancel(null, throwable));
-
-                    close();
+                    // Cancel all of the futures in the current queue
+                    doErrorAction(e -> e.cancel(function, null), fClose);
                     break;
                 }
             }
@@ -318,45 +305,16 @@ public class BatchingOperationsQueue<V, R>
         }
 
     /**
-     * Complete all requests with {@code null}.
+     * Cancel all requests and close the queue.
      */
-    public void completeAll()
+    public void cancelAllAndClose(String sReason, BiFunction<Throwable, V, Throwable> function)
         {
         Gate<?> gate = getGate();
         gate.close(-1);
 
         try
             {
-            Deque<Element> queueCurrent   = getCurrentBatch();
-            Deque<Element> queuePending   = getPending();
-
-            // Complete all of the futures in both queues
-            Stream.concat(queueCurrent.stream(), queuePending.stream())
-                    .filter(((Predicate<Element>) Element::isDone).negate())
-                    .forEach(Element::complete);
-            }
-        finally
-            {
-            gate.open();
-            }
-        }
-
-    /**
-     * Cancel all requests.
-     */
-    public void cancelAll(String sReason, Throwable error)
-        {
-        Gate<?> gate = getGate();
-        gate.close(-1);
-
-        try
-            {
-            Deque<Element> queueCurrent   = getCurrentBatch();
-            Deque<Element> queuePending   = getPending();
-
-            Stream.concat(queueCurrent.stream(), queuePending.stream())
-                    .filter(((Predicate<Element>)Element::isDone).negate())
-                    .forEach(e -> e.cancel(sReason, error));
+            doErrorAction(e -> e.cancel(function, sReason), true);
             }
         finally
             {
@@ -485,6 +443,15 @@ public class BatchingOperationsQueue<V, R>
 
     /**
      * If a batch of operations is not already in progress then
+     * trigger a new batch of operations.
+     */
+    protected void triggerOperations()
+        {
+        triggerOperations(Math.max(f_cbInitialBatch, 1));
+        }
+
+    /**
+     * If a batch of operations is not already in progress then
      * trigger a new batch of operations using the specified
      * batch size.
      *
@@ -500,6 +467,7 @@ public class BatchingOperationsQueue<V, R>
             }
         }
 
+
     /**
      * Complete the first n {@link Element Elements} in the current batch.
      * <p>
@@ -509,9 +477,9 @@ public class BatchingOperationsQueue<V, R>
      * @param cComplete  the number of {@link Element}s to complete
      * @param aErrors    the errors related to individual elements (may be null)
      */
-    public void completeElements(int cComplete, LongArray<Throwable> aErrors)
+    public void completeElements(int cComplete, LongArray<Throwable> aErrors, BiFunction<Throwable, V, Throwable> function)
         {
-        completeElements(cComplete, aErrors, NullImplementation.getLongArray());
+        completeElements(cComplete, aErrors, NullImplementation.getLongArray(), function);
         }
 
     /**
@@ -524,7 +492,7 @@ public class BatchingOperationsQueue<V, R>
      * @param aErrors    the errors related to individual elements (may be null)
      * @param aValues    the values to use to complete the elements
      */
-    public void completeElements(int cComplete, LongArray<Throwable> aErrors, LongArray<R> aValues)
+    public void completeElements(int cComplete, LongArray<Throwable> aErrors, LongArray<R> aValues, BiFunction<Throwable, V, Throwable> function)
         {
         Queue<Element> queueCurrent = getCurrentBatch();
 
@@ -551,7 +519,7 @@ public class BatchingOperationsQueue<V, R>
                         }
                     else
                         {
-                        element.completeExceptionally(error);
+                        element.completeExceptionally(error, function);
                         }
                     }
                 }
@@ -597,6 +565,20 @@ public class BatchingOperationsQueue<V, R>
         return f_lockTrigger;
         }
 
+    // ----- object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        return "BatchingOperationsQueue(" +
+                "current=" + getCurrentBatch().size() +
+                ", pending=" + getPending().size() +
+                ", trigger=" + triggerToString(getTrigger().get()) +
+                ", backlog=" + f_backlog +
+                ')';
+        }
+
+
     // ----- helper methods -------------------------------------------------
 
     /**
@@ -610,6 +592,66 @@ public class BatchingOperationsQueue<V, R>
         Base.azzert(isActive(), "This batching queue is no longer active");
         }
 
+    /**
+     * Poll all of the elements from the queue and pass any non-done elements
+     * to the consumer.
+     *
+     * @param action  the consumer to process non-done elements
+     * @param fClose  {@code true} to close the queues
+     */
+    protected void doErrorAction(Consumer<Element> action, boolean fClose)
+        {
+        Deque<Element> current = getCurrentBatch();
+        Deque<Element> pending = getPending();
+
+        if (!current.isEmpty() || !pending.isEmpty())
+            {
+            Stream.concat(current.stream(), pending.stream())
+                    .forEach(element ->
+                             {
+                             if (!element.isDone())
+                                 {
+                                 action.accept(element);
+                                 }
+                             });
+
+            m_cbCurrentBatch = 0;
+
+            try (@SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
+                {
+                // must do this in a non-blocking try block in case we're backlogged
+                long lBacklog = pending.stream()
+                        .map(element -> f_backlogCalculator.applyAsLong(element.getValue()))
+                        .mapToLong(Long::longValue)
+                        .sum();
+
+                f_backlog.adjustBacklog(-lBacklog);
+                }
+            }
+
+        if (fClose)
+            {
+            close();
+            }
+        else
+            {
+            resetTrigger();
+            }
+        }
+
+    private String triggerToString(int n)
+        {
+        switch (n)
+            {
+            case TRIGGER_OPEN:
+                return "TRIGGER_OPEN";
+            case TRIGGER_CLOSED:
+                return "TRIGGER_CLOSED";
+            case TRIGGER_WAIT:
+                return "TRIGGER_WAIT";
+            }
+        return "TRIGGER_UNKNOWN";
+        }
     // ----- inner class: Element -------------------------------------------
 
     /**
@@ -679,40 +721,48 @@ public class BatchingOperationsQueue<V, R>
         /**
          * Complete this element's {@link CompletableFuture}.
          *
-         * @param value  the value to use to complete the future
+         * @param result  the value to use to complete the future
          */
-        public void complete(R value)
+        public void complete(R result)
             {
             if (!m_fDone)
                 {
                 m_fDone = true;
-                f_executor.complete(f_future, value);
+                f_executor.complete(f_future, result);
                 }
             }
 
         /**
-         * Complete exceptionally this element's {@link CompletableFuture}
+         * Complete exceptionally this element's {@link CompletableFuture}.
+         *
+         * @param throwable  the error that occurred
+         * @param function   the function to use to create the actual error to complete the future with
          */
-        public void completeExceptionally(Throwable throwable)
+        public void completeExceptionally(Throwable throwable, BiFunction<Throwable, V, Throwable> function)
             {
             if (!m_fDone)
                 {
                 m_fDone = true;
-                f_executor.completeExceptionally(f_future, throwable);
+                f_executor.completeExceptionally(f_future, function.apply(throwable, f_value));
                 }
             }
 
         /**
          * Cancel this element's {@link CompletableFuture}.
          *
-         * @param sReason  an optional cancellation reason
-         * @param error    an optional cancellation error
+         * @param function  a function to create an exception
+         * @param sReason   an optional cancellation reason
          */
-        public void cancel(String sReason, Throwable error)
+        public void cancel(BiFunction<Throwable, V, Throwable> function, String sReason)
             {
             if (!m_fDone)
                 {
-                f_executor.cancel(f_future, sReason, error);
+                CancellationException exception = sReason != null && !sReason.isEmpty()
+                    ? new CancellationException(sReason)
+                    : new CancellationException();
+
+                Throwable throwable = function == null ? exception : function.apply(exception, f_value);
+                f_executor.completeExceptionally(f_future, throwable);
                 }
             }
 
@@ -756,16 +806,37 @@ public class BatchingOperationsQueue<V, R>
         Complete,
 
         /**
+         * Complete the {@link CompletableFuture}s associated with the
+         * failed operation and all outstanding pending futures and close
+         * this {@link BatchingOperationsQueue}.
+         */
+        CompleteAndClose,
+
+        /**
          * Complete exceptionally the {@link CompletableFuture}s associated
          * with the failed operation and all outstanding pending futures.
          */
         CompleteWithException,
 
         /**
+         * Complete exceptionally the {@link CompletableFuture}s associated
+         * with the failed operation and all outstanding pending futures and
+         * close this {@link BatchingOperationsQueue}.
+         */
+        CompleteWithExceptionAndClose,
+
+        /**
          * Cancel the {@link CompletableFuture}s associated with the
          * failed operation and all outstanding pending futures.
          */
         Cancel,
+
+        /**
+         * Cancel the {@link CompletableFuture}s associated with the
+         * failed operation and all outstanding pending futures and
+         * close this {@link BatchingOperationsQueue}.
+         */
+        CancelAndClose,
         }
 
     // ----- inner interface Executor ---------------------------------------
@@ -817,27 +888,6 @@ public class BatchingOperationsQueue<V, R>
             }
 
         /**
-         * Cancel the future.
-         *
-         * @param future   the {@link CompletableFuture} to complete
-         * @param sReason  an optional cancellation reason
-         * @param error    an optional cancellation cause
-         */
-        default <R> void cancel(CompletableFuture<R> future, String sReason, Throwable error)
-            {
-            CancellationException exception = sReason != null && !sReason.isEmpty()
-                ? new CancellationException(sReason)
-                : new CancellationException();
-
-            if (error != null)
-                {
-                exception.initCause(error);
-                }
-
-            execute(() -> future.completeExceptionally(exception));
-            }
-
-        /**
          * Return an {@link Executor} that completes futures
          * on the calling thread.
          *
@@ -856,9 +906,9 @@ public class BatchingOperationsQueue<V, R>
          * @param daemon  the {@link TaskDaemon} that executes the tasks
          *
          * @return an {@link Executor} that completes futures
-         *         using a {@link DaemonPool}.
+         *         using a {@link TaskDaemon}.
          */
-        static Executor daemonPool(TaskDaemon daemon)
+        static Executor fromTaskDaemon(TaskDaemon daemon)
             {
             return daemon::executeTask;
             }

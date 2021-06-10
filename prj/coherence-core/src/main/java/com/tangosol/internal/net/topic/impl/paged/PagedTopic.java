@@ -23,6 +23,7 @@ import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.Filter;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.PartitionedFilter;
 
@@ -32,6 +33,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.Subscription.Key;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -76,8 +78,14 @@ public class PagedTopic<V>
     public <U> Subscriber<U> createSubscriber(Subscriber.Option<? super V, U>... options)
         {
         ensureActive();
-
+        f_pagedTopicCaches.ensureConnected();
         return new PagedTopicSubscriber<>(this, f_pagedTopicCaches, options);
+        }
+
+    @Override
+    public void ensureSubscriberGroup(String sName, Filter<?> filter, Function<?, ?> fnConverter)
+        {
+        f_pagedTopicCaches.ensureSubscriberGroup(sName, filter, fnConverter);
         }
 
     @Override
@@ -143,7 +151,7 @@ public class PagedTopic<V>
         {
         if (f_pagedTopicCaches.isActive())
             {
-            f_pagedTopicCaches.close();
+            f_pagedTopicCaches.release();
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -25,17 +25,14 @@ public class SubscriberGroupBuilder<V>
     // ----- SubscriberGroupBuilder methods ---------------------------------
 
     /**
-     * Realize a durable {@link Subscriber} for the named group.
+     * Realize a durable subscriber group.
      *
      * @param topic     topic to create subscriber for
      * @param resolver  resolve values containing parameter macros within this builder
-     *
-     * @return {@link Subscriber}
      */
-    @SuppressWarnings("unchecked")
-    public Subscriber<V> realize(NamedTopic<V> topic, ParameterResolver resolver)
+    public void realize(NamedTopic<V> topic, ParameterResolver resolver)
         {
-        return topic.createSubscriber(Subscriber.Name.of(getSubscriberGroupName(resolver)));
+        topic.ensureSubscriberGroup(getSubscriberGroupName(resolver));
         }
 
     /**

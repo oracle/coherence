@@ -235,7 +235,7 @@ public class LocalNamedTopicTests
 
         String sPrefix = "Element-";
 
-        try (Publisher<String>  publisher = topic.createPublisher();
+        try (Publisher<String>  publisher = topic.createPublisher(Publisher.OrderBy.id(0));
              Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
             {
             publisher.onClose(() -> fPublisherClosed.set(true));
@@ -259,7 +259,8 @@ public class LocalNamedTopicTests
                     }
                 }
 
-            publisher.flush().join();
+            CompletableFuture<Void> futureFlush = publisher.flush();
+            futureFlush.join();
 
             // topic should contain just the first value
             assertThat(subscriber.receive().get(10, TimeUnit.MINUTES).getValue(), is(sPrefix + 0));
@@ -274,7 +275,7 @@ public class LocalNamedTopicTests
             {
             if (aFutures[i] != null)
                 {
-                assertCancelled(aFutures[i]);
+                assertCompletedExceptionally(aFutures[i]);
                 }
             }
         }
@@ -292,6 +293,13 @@ public class LocalNamedTopicTests
         assertThat(future.isDone(), is(true));
         assertThat(future.isCompletedExceptionally(), is(true));
         assertThat(future.isCancelled(), is(true));
+        }
+
+    private void assertCompletedExceptionally(CompletableFuture<?> future)
+        {
+        assertThat(future.isDone(), is(true));
+        assertThat(future.isCompletedExceptionally(), is(true));
+        assertThat(future.isCancelled(), is(false));
         }
 
     @Test

@@ -62,16 +62,17 @@ public class EnsureSubscriptionProcessor
      * @param fReconnect     {@code true} if this is a subscriber reconnection
      */
     public EnsureSubscriptionProcessor(int nPhase, long[] alPage, Filter<?> filter, Function<?, ?> fnConvert,
-                                       long nSubscriberId, boolean fReconnect)
+                                       long nSubscriberId, boolean fReconnect, boolean fCreateGroupOnly)
         {
         super(PagedTopicPartition::ensureTopic);
 
-        m_nPhase        = nPhase;
-        m_alPage        = alPage;
-        m_filter        = filter;
-        m_fnConvert     = fnConvert;
-        m_nSubscriberId = nSubscriberId;
-        m_fReconnect    = fReconnect;
+        m_nPhase           = nPhase;
+        m_alPage           = alPage;
+        m_filter           = filter;
+        m_fnConvert        = fnConvert;
+        m_nSubscriberId    = nSubscriberId;
+        m_fReconnect       = fReconnect;
+        m_fCreateGroupOnly = fCreateGroupOnly;
         }
 
     // ----- AbstractProcessor methods --------------------------------------
@@ -81,8 +82,7 @@ public class EnsureSubscriptionProcessor
         {
         try
             {
-            long[] alPage = ensureTopic(entry).ensureSubscription(entry.getKey().getGroupId(),
-                    m_nPhase, m_alPage, m_filter, m_fnConvert, m_nSubscriberId, m_fReconnect);
+            long[] alPage = ensureTopic(entry).ensureSubscription(entry.getKey().getGroupId(), this);
             return new Result(alPage, null);
             }
         catch (Throwable thrown)
@@ -95,6 +95,43 @@ public class EnsureSubscriptionProcessor
                 }
             return new Result(null, thrown);
             }
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    public int getPhase()
+        {
+        return m_nPhase;
+        }
+
+    public long[] getPages()
+        {
+        return m_alPage;
+        }
+
+    public Filter<?> getFilter()
+        {
+        return m_filter;
+        }
+
+    public Function<?, ?> getConverter()
+        {
+        return m_fnConvert;
+        }
+
+    public long getSubscriberId()
+        {
+        return m_nSubscriberId;
+        }
+
+    public boolean isReconnect()
+        {
+        return m_fReconnect;
+        }
+
+    public boolean isCreateGroupOnly()
+        {
+        return m_fCreateGroupOnly;
         }
 
     // ----- EvolvablePortableObject interface ------------------------------
@@ -116,8 +153,9 @@ public class EnsureSubscriptionProcessor
         m_fnConvert = in.readObject(3);
         if (nVersion >= 2)
             {
-            m_nSubscriberId = in.readLong(4);
-            m_fReconnect    = in.readBoolean(5);
+            m_nSubscriberId    = in.readLong(4);
+            m_fReconnect       = in.readBoolean(5);
+            m_fCreateGroupOnly = in.readBoolean(6);
             }
         }
 
@@ -131,6 +169,7 @@ public class EnsureSubscriptionProcessor
         out.writeObject(3, m_fnConvert);
         out.writeObject(4, m_nSubscriberId);
         out.writeBoolean(5, m_fReconnect);
+        out.writeBoolean(6, m_fCreateGroupOnly);
         }
 
     // ----- constants ------------------------------------------------------
@@ -315,7 +354,7 @@ public class EnsureSubscriptionProcessor
         /**
          * The evolvable data version.
          */
-        public static final int DATA_VERSION = 1;
+        public static final int DATA_VERSION = 2;
 
         // ----- data members -----------------------------------------------
 
@@ -328,6 +367,11 @@ public class EnsureSubscriptionProcessor
          * Any error that occurred ensuring the subscription.
          */
         private Throwable m_error;
+
+        /**
+         * The name of the topic.
+         */
+        private String m_sTopicName;
         }
 
     // ----- data members ---------------------------------------------------
@@ -361,4 +405,9 @@ public class EnsureSubscriptionProcessor
      * A flag indicating that this is a reconnect.
      */
     private boolean m_fReconnect;
+
+    /**
+     * A flag indicating that this is only a subscriber group creation.
+     */
+    private boolean m_fCreateGroupOnly;
     }

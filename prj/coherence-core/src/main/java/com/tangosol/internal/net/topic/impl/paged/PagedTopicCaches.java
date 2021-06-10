@@ -6,6 +6,15 @@
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
+import com.oracle.coherence.common.base.Exceptions;
+import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
+
+import com.tangosol.internal.net.NamedCacheDeactivationListener;
+
+import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
+
 import com.tangosol.internal.net.topic.impl.paged.model.NotificationKey;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
@@ -19,31 +28,43 @@ import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheService;
+import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.MemberEvent;
+import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.PartitionedService;
+
 import com.tangosol.net.cache.TypeAssertion;
+
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 
+import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Aggregators;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.HashHelper;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.InvocableMapHelper;
+import com.tangosol.util.MapEvent;
 import com.tangosol.util.ValueExtractor;
+
 import com.tangosol.util.aggregator.GroupAggregator;
+
 import com.tangosol.util.extractor.EntryExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
-import java.io.Closeable;
-
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.ExecutionException;
+
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
+
 import java.util.stream.Collectors;
 
 import static com.tangosol.net.cache.TypeAssertion.withTypes;
@@ -57,7 +78,7 @@ import static com.tangosol.net.cache.TypeAssertion.withTypes;
  */
 @SuppressWarnings("rawtypes")
 public class PagedTopicCaches
-    implements Closeable, ClassLoaderAware
+    implements ClassLoaderAware
     {
     // ----- constructors ---------------------------------------------------
 
@@ -79,7 +100,6 @@ public class PagedTopicCaches
      * @param cacheService   the {@link CacheService} owning the underlying caches
      * @param functionCache  the function to invoke to obtain each underlying cache
      */
-    @SuppressWarnings("unchecked")
     public PagedTopicCaches(String sName, CacheService cacheService,
                             BiFunction<String, ClassLoader, NamedCache> functionCache)
         {
@@ -98,24 +118,15 @@ public class PagedTopicCaches
             functionCache = cacheService::ensureCache;
             }
 
-        f_sTopicName   = sName;
-        f_cacheService = cacheService;
+        f_sTopicName        = sName;
+        f_cacheService      = cacheService;
+        f_sCacheServiceName = cacheService.getInfo().getServiceName();
+        f_cPartition        = ((DistributedCacheService) cacheService).getPartitionCount();
+        f_functionCache     = functionCache;
 
-        Pages         = functionCache.apply(Names.PAGES.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
-        Data          = functionCache.apply(Names.CONTENT.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
-        Subscribers   = functionCache.apply(Names.SUBSCRIBERS.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
-        Notifications = functionCache.apply(Names.NOTIFICATIONS.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
-        Usages        = functionCache.apply(Names.USAGE.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
-        Subscriptions = functionCache.apply(Names.SUBSCRIPTIONS.cacheNameForTopicName(sName), f_cacheService.getContextClassLoader());
+        initializeCaches();
 
-        Set<NamedCache> setCaches = f_setCaches = new HashSet<>();
-
-        setCaches.add(Pages);
-        setCaches.add(Data);
-        setCaches.add(Subscriptions);
-        setCaches.add(Subscribers);
-        setCaches.add(Notifications);
-        setCaches.add(Usages);
+        m_state = State.Active;
         }
 
     // ----- TopicCaches methods --------------------------------------
@@ -131,11 +142,19 @@ public class PagedTopicCaches
         }
 
     /**
-     * Destory the PagedTopicCaches.
+     * Destroy the PagedTopicCaches.
+     */
+    public void release()
+        {
+        releaseOrDestroy(/* destroy */ false);
+        }
+
+    /**
+     * Destroy the PagedTopicCaches.
      */
     public void destroy()
         {
-        close(/* destroy */ true);
+        releaseOrDestroy(/* destroy */ true);
         }
 
     /**
@@ -146,7 +165,7 @@ public class PagedTopicCaches
      */
     public boolean isActive()
         {
-        return Pages.isActive();
+        return !Pages.isDestroyed() && !Pages.isReleased();
         }
 
     /**
@@ -171,12 +190,42 @@ public class PagedTopicCaches
         return Pages.isReleased();
         }
 
-    // ----- Closeable methods ----------------------------------------------
-
-    @Override
-    public void close()
+    public synchronized void addListener(Listener listener)
         {
-        close(/* destroy */ false);
+        ensureListeners();
+        m_mapListener.put(listener, Boolean.TRUE);
+        }
+
+    public synchronized void removeListener(Listener listener)
+        {
+        m_mapListener.remove(listener);
+        }
+
+    public void ensureConnected()
+        {
+        if (m_state == State.Disconnected)
+            {
+            synchronized (this)
+                {
+                if (m_state == State.Disconnected)
+                    {
+                    m_state = State.Active;
+                    f_setCaches.forEach(NamedCache::size);
+                    Set<Listener> setListener = m_mapListener.keySet();
+                    for (Listener listener : setListener)
+                        {
+                        try
+                            {
+                            listener.onConnect();
+                            }
+                        catch (Throwable t)
+                            {
+                            Logger.err(t);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
     // ----- ClassLoaderAware methods ---------------------------------------
@@ -212,7 +261,7 @@ public class PagedTopicCaches
      */
     public int getBasePage()
         {
-        return Math.abs(f_sTopicName.hashCode() % getPartitionCount());
+        return Math.abs(f_sTopicName.hashCode() % f_cPartition);
         }
 
     /**
@@ -222,7 +271,7 @@ public class PagedTopicCaches
      */
     public int getPartitionCount()
         {
-        return ((PartitionedService) f_cacheService).getPartitionCount();
+        return f_cPartition;
         }
 
     /**
@@ -232,7 +281,7 @@ public class PagedTopicCaches
      */
     public int getChannelCount()
         {
-        return getDependencies().getChannelCount(getPartitionCount());
+        return getDependencies().getChannelCount(f_cPartition);
         }
 
     /**
@@ -245,7 +294,7 @@ public class PagedTopicCaches
     public Set<NotificationKey> getPartitionNotifierSet(int nNotifier)
         {
         Set<NotificationKey> setKey = new HashSet<>();
-        for (int i = 0, c = getPartitionCount(); i < c; ++i)
+        for (int i = 0; i < f_cPartition; ++i)
             {
             setKey.add(new NotificationKey(i, nNotifier));
             }
@@ -299,7 +348,7 @@ public class PagedTopicCaches
      */
     public Usage.Key getUsageSyncKey(int nChannel)
         {
-        int nPart = Math.abs((HashHelper.hash(f_sTopicName.hashCode(), nChannel) % getPartitionCount()));
+        int nPart = Math.abs((HashHelper.hash(f_sTopicName.hashCode(), nChannel) % f_cPartition));
         return new Usage.Key(nPart, nChannel);
         }
 
@@ -400,6 +449,186 @@ public class PagedTopicCaches
         return getDependencies().getElementCalculator();
         }
 
+    /**
+     * Ensure the specified subscriber group exists.
+     *
+     * @param sName        the name of the group
+     * @param filter       the filter to use to filter messages received by the group
+     * @param fnConverter  the converter function to convert the messages received by the group
+     */
+    protected void ensureSubscriberGroup(String sName, Filter<?> filter, Function<?, ?> fnConverter)
+        {
+        SubscriberGroupId subscriberGroupId = SubscriberGroupId.withName(sName);
+        initializeSubscription(subscriberGroupId, 1, filter, fnConverter, false, true, false);
+        }
+
+    /**
+     * Initialise a subscription.
+     *
+     * @param subscriberGroupId  the subscriber group identifier
+     * @param nSubscriberId      the subscriber identifier
+     * @param filter             the filter to use to filter messages received by the subscription
+     * @param fnConverter        the converter function to convert the messages received by the subscription
+     * @param fReconnect         {@code true} if this is a reconnection
+     * @param fCreateGroupOnly   {@code true} if this is to only create a subscriber group
+     * @param fDisconnected      {@code true} if this is an existing disconnected subscription
+     *
+     * @return the pages that are the heads of the channels
+     */
+    protected long[] initializeSubscription(SubscriberGroupId subscriberGroupId,
+                                            long              nSubscriberId,
+                                            Filter<?>         filter,
+                                            Function<?, ?>    fnConverter,
+                                            boolean           fReconnect,
+                                            boolean           fCreateGroupOnly,
+                                            boolean           fDisconnected)
+        {
+        try
+            {
+            int     cChannel = getChannelCount();
+            String  sName    = subscriberGroupId.getGroupName();
+
+            Set<Subscription.Key> setSubKeys = new HashSet<>(f_cPartition);
+            for (int i = 0; i < f_cPartition; ++i)
+                {
+                // Note: we ensure against channel 0 in each partition, and it will in turn initialize all channels
+                setSubKeys.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
+                }
+
+            // outside of any lock discover if pages are already pinned.  Note that since we don't
+            // hold a lock, this is only useful if the group was already fully initialized (under lock) earlier.
+            // Otherwise there is no guarantee that there isn't gaps in our pinned pages.
+            // check results to verify if initialization has already completed
+            EnsureSubscriptionProcessor processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_INQUIRE, null, filter,  fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
+            Collection<EnsureSubscriptionProcessor.Result> results = sName == null
+                ? null
+                : InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
+                            key -> getUnitOfOrder(key.getPartitionId()), processor).get().values();
+
+            Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
+
+            long[] alHead = new long[cChannel];
+            if (colPages == null || colPages.contains(null) || fDisconnected)
+                {
+                alHead = initialiseSubscriptionPages(subscriberGroupId, nSubscriberId, filter, fnConverter, fReconnect, fCreateGroupOnly, setSubKeys);
+                }
+            else
+                {
+                // all partitions were already initialized, min is our head
+                for (int nChannel = 0; nChannel < cChannel; ++nChannel)
+                    {
+                    final int finChan = nChannel;
+                    alHead[nChannel] = colPages.stream().mapToLong((alResult) -> alResult[finChan])
+                        .min().orElse(Page.NULL_PAGE);
+                    }
+                }
+
+            return alHead;
+            }
+        catch (InterruptedException | ExecutionException e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Initialise the head pages for the subscriber.
+     *
+     * @param subscriberGroupId  the subscriber group identifier
+     * @param setSubKeys  the set of {@link Subscription.Key keys} to use to initialise the subscription pages
+     *
+     * @return an array of head pages
+     *
+     * @throws InterruptedException if any asynchronous operations are interrupted
+     * @throws ExecutionException if any asynchronous operations fail
+     */
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    protected long[] initialiseSubscriptionPages(SubscriberGroupId     subscriberGroupId,
+                                                 long                  nSubscriberId,
+                                                 Filter<?>             filter,
+                                                 Function<?, ?>        fnConverter,
+                                                 boolean               fReconnect,
+                                                 boolean               fCreateGroupOnly,
+                                                 Set<Subscription.Key> setSubKeys)
+            throws InterruptedException, ExecutionException
+        {
+        String sGroupName = subscriberGroupId.getGroupName();
+
+        // The subscription doesn't exist in at least some partitions, create it under lock. A lock is used only
+        // to protect against concurrent create/destroy/create resulting an gaps in the pinned pages.  Specifically
+        // it would be safe for multiple subscribers to concurrently "create" the subscription, it is only unsafe
+        // if there is also a concurrent destroy as this could result in gaps in the pinned pages.
+        if (sGroupName != null)
+            {
+            Subscriptions.lock(subscriberGroupId, -1);
+            }
+
+        try
+            {
+            EnsureSubscriptionProcessor processor
+                    = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_PIN, null,
+                                                      filter, fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
+
+            Collection<EnsureSubscriptionProcessor.Result> results = InvocableMapHelper.invokeAllAsync(
+                    Subscriptions, setSubKeys, key -> getUnitOfOrder(key.getPartitionId()), processor)
+                .get().values();
+
+            Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
+
+            PagedTopic.Dependencies dependencies = getDependencies();
+            int                     cChannel      = getChannelCount();
+            long                    lPageBase     = getBasePage();
+            long[]                  alHead        = new long[cChannel];
+
+            // mapPages now reflects pinned pages
+            for (int nChannel = 0; nChannel < cChannel; ++nChannel)
+                {
+                final int finChan = nChannel;
+
+                if (fReconnect || dependencies.isRetainConsumed())
+                    {
+                    // select lowest page in each channel as our channel heads
+                    alHead[nChannel] = colPages.stream()
+                        .mapToLong((alPage) -> Math.max(alPage[finChan], lPageBase))
+                        .min()
+                        .getAsLong();
+                    }
+                else
+                    {
+                    // select highest page in each channel as our channel heads
+                    alHead[nChannel] = colPages.stream()
+                        .mapToLong((alPage) -> Math.max(alPage[finChan], lPageBase))
+                        .max()
+                        .getAsLong();
+                    }
+                }
+
+            // finish the initialization by having subscription in all partitions advance to our selected heads
+            processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_ADVANCE, alHead, filter, fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
+            InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
+                    key -> getUnitOfOrder(key.getPartitionId()), processor).join();
+
+            return alHead;
+            }
+        finally
+            {
+            if (sGroupName != null)
+                {
+                Subscriptions.unlock(subscriberGroupId);
+                }
+            }
+        }
+
+    /**
+     * Return an immutable set of all the caches for the topic.
+     *
+     * @return an immutable set of all the caches for the topic
+     */
+    public Set<NamedCache> getCaches()
+        {
+        return Collections.unmodifiableSet(f_setCaches);
+        }
+
     // ----- object methods -------------------------------------------------
 
     @Override
@@ -428,20 +657,96 @@ public class PagedTopicCaches
     @Override
     public String toString()
         {
-        return "TopicCaches(name='" + f_sTopicName + ")";
+        return "TopicCaches(name='" + f_sTopicName
+                + ", service=" + f_sCacheServiceName
+                + ", state=" + m_state
+                + ")";
         }
 
     // ----- helper methods -------------------------------------------------
 
+    @SuppressWarnings("unchecked")
+    private synchronized void initializeCaches()
+        {
+        f_cacheService.start();
+
+        ClassLoader loader = f_cacheService.getContextClassLoader();
+
+        Pages               = f_functionCache.apply(Names.PAGES.cacheNameForTopicName(f_sTopicName), loader);
+        Data                = f_functionCache.apply(Names.CONTENT.cacheNameForTopicName(f_sTopicName), loader);
+        Subscribers         = f_functionCache.apply(Names.SUBSCRIBERS.cacheNameForTopicName(f_sTopicName), loader);
+        Notifications       = f_functionCache.apply(Names.NOTIFICATIONS.cacheNameForTopicName(f_sTopicName), loader);
+        Usages              = f_functionCache.apply(Names.USAGE.cacheNameForTopicName(f_sTopicName), loader);
+        Subscriptions       = f_functionCache.apply(Names.SUBSCRIPTIONS.cacheNameForTopicName(f_sTopicName), loader);
+
+        Set<NamedCache> setCaches = f_setCaches = new HashSet<>();
+
+        setCaches.add(Pages);
+        setCaches.add(Data);
+        setCaches.add(Subscriptions);
+        setCaches.add(Subscribers);
+        setCaches.add(Notifications);
+        setCaches.add(Usages);
+
+        ensureListeners();
+        }
+
+    @SuppressWarnings("unchecked")
+    private synchronized void ensureListeners()
+        {
+        DeactivationListener listener = m_deactivationListener;
+        Pages.addMapListener(listener);
+        f_cacheService.addMemberListener(listener);
+        }
+
+    @SuppressWarnings("unchecked")
+    private synchronized void removeListeners()
+        {
+        DeactivationListener listener = m_deactivationListener;
+        if (Pages.isActive())
+            {
+            Pages.removeMapListener(listener);
+            }
+        f_cacheService.removeMemberListener(listener);
+        }
+
     /**
-     * Close the PagedTopicCaches.
+     * Release or destroy the PagedTopicCaches.
      *
      * @param fDestroy  true to destroy, false to release
      */
-    @SuppressWarnings("rawtypes")
-    private void close(boolean fDestroy)
+    private void releaseOrDestroy(boolean fDestroy)
         {
-        Consumer<NamedCache> function = fDestroy ? NamedCache::destroy : NamedCache::release;
+        if (!isActive())
+            {
+            return;
+            }
+
+        m_state = fDestroy ? State.Destroyed : State.Released;
+
+        Consumer<NamedCache> function    = fDestroy ? this::destroyCache : this::releaseCache;
+        Set<Listener>        setListener = m_mapListener.keySet();
+
+        for (Listener listener : setListener)
+            {
+            try
+                {
+                if (fDestroy)
+                    {
+                    listener.onDestroy();
+                    }
+                else
+                    {
+                    listener.onRelease();
+                    }
+                }
+            catch (Throwable t)
+                {
+                Logger.err(t);
+                }
+            }
+
+        removeListeners();
 
         if (f_setCaches != null)
             {
@@ -456,52 +761,47 @@ public class PagedTopicCaches
             }
         }
 
-    // ----- data members ---------------------------------------------------
+    private void destroyCache(NamedCache<?, ?> cache)
+        {
+        if (cache.isActive())
+            {
+            cache.destroy();
+            }
+        }
 
-    /**
-     * The topic name.
-     */
-    protected final String f_sTopicName;
+    private void releaseCache(NamedCache<?, ?> cache)
+        {
+        if (cache.isActive())
+            {
+            cache.release();
+            }
+        }
 
-    /**
-     * The cache service.
-     */
-    protected final CacheService f_cacheService;
-
-    /**
-     * The caches which back the topic.
-     */
-    protected Set<NamedCache> f_setCaches;
-
-    /**
-     * The cache that holds the topic pages.
-     */
-    public final NamedCache<Page.Key, Page> Pages;
-
-    /**
-     * The cache that holds the topic elements.
-     */
-    public final NamedCache<ContentKey, Object> Data;
-
-    /**
-     * The cache that holds the topic subscriber partitions.
-     */
-    public final NamedCache<Subscription.Key, Subscription> Subscriptions;
-
-    /**
-     * The cache that holds the topic subscriber information.
-     */
-    public final NamedCache<SubscriberInfo.Key, SubscriberInfo> Subscribers;
-
-    /**
-     * The cache that is used to notify blocked publishers and subscribers that they topic is no longer full/empty.
-     */
-    public final NamedCache<NotificationKey, int[]> Notifications;
-
-    /**
-     * The cache that holds the highest used topic pages for a cache partition.
-     */
-    public final NamedCache<Usage.Key, Usage> Usages;
+    void disconnected()
+        {
+        if (m_state == State.Active)
+            {
+            synchronized (this)
+                {
+                if (m_state == State.Active)
+                    {
+                    m_state = State.Disconnected;
+                    Set<Listener> setListener = m_mapListener.keySet();
+                    for (Listener listener : setListener)
+                        {
+                        try
+                            {
+                            listener.onDisconnect();
+                            }
+                        catch (Throwable t)
+                            {
+                            Logger.err(t);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
     // ----- inner class: Names ---------------------------------------------
 
@@ -792,4 +1092,184 @@ public class PagedTopicCaches
          */
         private final Storage f_storage;
         }
+
+    // ----- inner class: DeactivationListener ------------------------------
+
+    /**
+     * A listener to detect the topic caches being deactivated due to release, destroy,
+     * service shutdown or all storage members departing.
+     */
+    class DeactivationListener
+            extends AbstractMapListener
+            implements NamedCacheDeactivationListener, MemberListener
+        {
+        @Override
+        @SuppressWarnings("rawtypes")
+        public void entryDeleted(MapEvent evt)
+            {
+            // destroy/disconnect event
+            NamedCache cache      = (NamedCache) evt.getMap();
+            boolean    fReleased  = cache.isReleased();
+            boolean    fDestroyed = cache.isDestroyed();
+
+            if (fReleased || fDestroyed)
+                {
+                String sReason = fReleased ? "release" : "destroy";
+                Logger.fine("Detected " + sReason + " of topic " + f_sTopicName);
+                PagedTopicCaches.this.releaseOrDestroy(fDestroyed);
+                }
+            }
+
+        @Override
+        public void memberLeft(MemberEvent evt)
+            {
+            DistributedCacheService service = (DistributedCacheService) evt.getService();
+            if (evt.isLocal())
+                {
+                Logger.fine("Detected local member disconnect in service " + PagedTopicCaches.this);
+                disconnected();
+                }
+            else if (service.getOwnershipEnabledMembers().isEmpty())
+                {
+                Logger.fine("Detected loss of all storage members in service " + PagedTopicCaches.this);
+                disconnected();
+                }
+            }
+
+        @Override
+        public void memberJoined(MemberEvent evt)
+            {
+            }
+
+        @Override
+        public void memberLeaving(MemberEvent evt)
+            {
+            }
+
+        @Override
+        public boolean equals(Object oThat)
+            {
+            return oThat instanceof DeactivationListener && hashCode() == oThat.hashCode();
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return System.identityHashCode(this);
+            }
+        }
+
+    // ----- inner interface: Listener --------------------------------------
+
+    /**
+     * A listener that can be registered with a {@link PagedTopicCaches} instance
+     * to be notified of disconnection events.
+     */
+    public interface Listener
+        {
+        /**
+         * The caches have been disconnected.
+         */
+        void onDisconnect();
+
+        /**
+         * The caches have been connected.
+         */
+        void onConnect();
+
+        /**
+         * The caches have been destroyed.
+         */
+        void onDestroy();
+
+        /**
+         * The caches have been released.
+         */
+        void onRelease();
+        }
+
+    // ----- inner enum: State ----------------------------------------------
+
+    public enum State
+        {
+        Active,
+        Released,
+        Destroyed,
+        Disconnected,
+        Closed
+        }
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The topic name.
+     */
+    protected final String f_sTopicName;
+
+    /**
+     * The cache service.
+     */
+    protected final CacheService f_cacheService;
+
+    /**
+     * The cache service name (mainly used in logging but calls to serv,ce.getInfo().getServiceName()
+     * can trigger a service restart - which is not always desirable).
+     */
+    protected final String f_sCacheServiceName;
+
+    /**
+     * The current state of this {@link PagedTopicCaches}.
+     */
+    private volatile State m_state;
+
+    /**
+     * The number of partitions in the cache service.
+     */
+    protected final int f_cPartition;
+
+    /**
+     * The caches which back the topic.
+     */
+    protected Set<NamedCache> f_setCaches;
+
+    /**
+     * The cache that holds the topic pages.
+     */
+    public NamedCache<Page.Key, Page> Pages;
+
+    /**
+     * The cache that holds the topic elements.
+     */
+    public NamedCache<ContentKey, Object> Data;
+
+    /**
+     * The cache that holds the topic subscriber partitions.
+     */
+    public NamedCache<Subscription.Key, Subscription> Subscriptions;
+
+    /**
+     * The cache that holds the topic subscriber information.
+     */
+    public NamedCache<SubscriberInfo.Key, SubscriberInfo> Subscribers;
+
+    /**
+     * The cache that is used to notify blocked publishers and subscribers that they topic is no longer full/empty.
+     */
+    public NamedCache<NotificationKey, int[]> Notifications;
+
+    /**
+     * The cache that holds the highest used topic pages for a cache partition.
+     */
+    public NamedCache<Usage.Key, Usage> Usages;
+
+    private final BiFunction<String, ClassLoader, NamedCache> f_functionCache;
+
+    /**
+     * The deactivation listener used to detect topic destroy and service restarts.
+     */
+    private final DeactivationListener m_deactivationListener = new DeactivationListener();
+
+    /**
+     * The {@link Listener} instances to be notified of connection and disconnection events.
+     */
+    private final Map<Listener, Object> m_mapListener = new ConcurrentHashMap<>();
     }

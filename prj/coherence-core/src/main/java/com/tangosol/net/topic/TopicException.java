@@ -32,6 +32,17 @@ public class TopicException
      */
     public TopicException(Throwable cause)
         {
-        super(cause.getMessage(), cause);
+        this(cause.getMessage(), cause);
+        }
+
+    /**
+     * Create a {@link TopicException}.
+     *
+     * @param sMessage  the error message
+     * @param cause     the root cause exception
+     */
+    public TopicException(String sMessage, Throwable cause)
+        {
+        super(sMessage, cause);
         }
     }
