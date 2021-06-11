@@ -1859,6 +1859,8 @@ public class OldCache
             while (iterEvict.hasNext())
                 {
                 Entry entry = (Entry) getEntryInternal(iterEvict.next());
+
+                iterEvict.remove(); // COH-23644 - remove the reference to the key
                 if (entry != null && entry.isEvictable() &&
                     removeEvicted(entry) &&
                     --cMinEntries <= 0 && m_cCurUnits < cMaxUnits)
