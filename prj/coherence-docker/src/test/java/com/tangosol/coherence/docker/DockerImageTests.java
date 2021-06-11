@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -133,7 +133,7 @@ public class DockerImageTests
         }
 
     @Test
-    public void shouldStartDefaultCacheServer()
+    public void shouldStartCacheFactoryConsole()
         {
         verifyTestAssumptions();
 
@@ -259,7 +259,6 @@ public class DockerImageTests
                         .detached()
                         .volume(fileArgsDir.getAbsolutePath() + ":/args")
                         .publishAll(),
-                Argument.of("server"),
                 new DumpLogsOnClose(),
                 ContainerCloseBehaviour.remove()))
             {
@@ -449,6 +448,13 @@ public class DockerImageTests
             return false;
             }
 
+        String sImage  = IMAGE_NAME;
+        String sDocker = "docker.io/";
+        if (sImage.startsWith(sDocker))
+            {
+            sImage = sImage.substring(sDocker.length());
+            }
+
         Platform platform = LocalPlatform.get();
 
         CapturingApplicationConsole console = new CapturingApplicationConsole();
@@ -457,7 +463,7 @@ public class DockerImageTests
                                                Argument.of("images"),
                                                Argument.of("--format"),
                                                Argument.of("{{.Repository}}:{{.Tag}}"),
-                                               Argument.of(IMAGE_NAME),
+                                               Argument.of(sImage),
                                                Console.of(console)))
             {
 
@@ -471,7 +477,7 @@ public class DockerImageTests
 
         Queue<String> lines = console.getCapturedOutputLines();
 
-        return lines.contains(IMAGE_NAME);
+        return lines.contains(sImage);
         }
 
     /**
@@ -678,7 +684,7 @@ public class DockerImageTests
     public static final int METRICS_PORT = Integer.getInteger("port.metrics", MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT);
     public static final int EXTEND_PORT = Integer.getInteger("port.extend",20000);
 
-    public static final String STARTED_MESSAGE = "Started DefaultCacheServer";
+    public static final String STARTED_MESSAGE = "Started Coherence server";
 
     // ----- data members ---------------------------------------------------
 
