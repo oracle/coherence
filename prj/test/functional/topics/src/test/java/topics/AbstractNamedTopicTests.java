@@ -183,6 +183,7 @@ public abstract class AbstractNamedTopicTests
     public void beforeEach()
         {
         System.err.println(">>>>> Starting test: " + m_testName.getMethodName());
+        m_nSuffix.getAndIncrement();
         }
 
     @After
@@ -194,6 +195,12 @@ public abstract class AbstractNamedTopicTests
                 {
                 m_topic.destroy();
                 m_topic = null;
+                m_sTopicName = null;
+                }
+            else if (m_sTopicName != null)
+                {
+                NamedTopic<?> topic = getSession().getTopic(m_sTopicName);
+                topic.destroy();
                 }
             }
         catch (Throwable e)
@@ -208,8 +215,8 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldFilter() throws Exception
         {
-        Session            session       = getSession();
-        String             sTopicName    = m_sSerializer;
+        Session session    = getSession();
+        String  sTopicName = ensureTopicName();
 
         try (Subscriber<String> subscriberD   = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "d")));
              Subscriber<String> subscriberA   = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "a")));
@@ -219,13 +226,13 @@ public abstract class AbstractNamedTopicTests
 
             try (Publisher<String> publisher = session.createPublisher(sTopicName))
                 {
-                publisher.publish("a").thenAccept(v -> System.out.println("**** Published a"));
-                publisher.publish("zoo").thenAccept(v -> System.out.println("**** Published zoo"));
-                publisher.publish("b").thenAccept(v -> System.out.println("**** Published b"));
-                publisher.publish("c").thenAccept(v -> System.out.println("**** Published c"));
-                publisher.publish("d").thenAccept(v -> System.out.println("**** Published d"));
-                publisher.publish("e").thenAccept(v -> System.out.println("**** Published e"));
-                publisher.publish("f").thenAccept(v -> System.out.println("**** Published f"));
+                publisher.publish("a").thenAccept(v -> System.err.println("**** Published a"));
+                publisher.publish("zoo").thenAccept(v -> System.err.println("**** Published zoo"));
+                publisher.publish("b").thenAccept(v -> System.err.println("**** Published b"));
+                publisher.publish("c").thenAccept(v -> System.err.println("**** Published c"));
+                publisher.publish("d").thenAccept(v -> System.err.println("**** Published d"));
+                publisher.publish("e").thenAccept(v -> System.err.println("**** Published e"));
+                publisher.publish("f").thenAccept(v -> System.err.println("**** Published f"));
                 future = publisher.flush();
                 }
 
@@ -282,7 +289,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldCreateTopicNoValueTypeAssertionOption()
         {
         Session            session = getSession();
-        String             sName   = m_sSerializer + "-raw-test";
+        String             sName   = ensureTopicName(m_sSerializer + "-raw-test");
         NamedTopic<String> topic   = session.getTopic(sName);
 
         populate(topic.createPublisher(), 20);
@@ -294,7 +301,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldCreateAndDestroyTopic()
         {
         Session                  session = getSession();
-        String                   sName   = m_sSerializer + "-test";
+        String                   sName   = ensureTopicName(m_sSerializer + "-test");
         final NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
 
         try (Publisher<String> publisher = topic.createPublisher())
@@ -323,7 +330,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldCreateAndReleaseTopic()
         {
         Session                  session = getSession();
-        String                   sName   = m_sSerializer + "-test";
+        String                   sName   = ensureTopicName(m_sSerializer + "-test");
         final NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
 
         try (Publisher<String> publisher = topic.createPublisher())
@@ -342,8 +349,9 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldRunOnPublisherClose()
         {
-        AtomicBoolean fRan      = new AtomicBoolean(false);
-        Publisher     publisher = getSession().createPublisher(m_sSerializer);
+        AtomicBoolean fRan       = new AtomicBoolean(false);
+        String        sTopicName = ensureTopicName();
+        Publisher     publisher  = getSession().createPublisher(sTopicName);
 
         publisher.onClose(() -> fRan.set(true));
         publisher.close();
@@ -354,7 +362,8 @@ public abstract class AbstractNamedTopicTests
     public void shouldRunOnSubscriberClose()
         {
         AtomicBoolean fRan       = new AtomicBoolean(false);
-        Subscriber    subscriber = getSession().createSubscriber(m_sSerializer);
+        String        sTopicName = ensureTopicName();
+        Subscriber    subscriber = getSession().createSubscriber(sTopicName);
 
         subscriber.onClose(() -> fRan.set(true));
         subscriber.close();
@@ -367,7 +376,7 @@ public abstract class AbstractNamedTopicTests
         {
         int     nCount     = 1000;
         Session session    = getSession();
-        String  sTopicName = m_sSerializer;
+        String  sTopicName = ensureTopicName();
 
         try (Publisher<String>  publisher     = session.createPublisher(sTopicName);
              Subscriber<String> subscriberFoo = session.createSubscriber(sTopicName, inGroup("Foo"), Subscriber.CompleteOnEmpty.enabled());
@@ -478,7 +487,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldHaveCorrectMetadataOnElements() throws Exception
         {
         Session session    = getSession();
-        String  sTopicName = m_sSerializer;
+        String  sTopicName = ensureTopicName();
 
         try (Subscriber<String> subscriber = session.createSubscriber(sTopicName))
             {
@@ -4198,11 +4207,25 @@ public abstract class AbstractNamedTopicTests
         {
         if (m_topic == null)
             {
-            String sName = m_sSerializer + "-" + m_nSuffix.getAndIncrement();
+            String sName = ensureTopicName();
             m_topic = getSession().getTopic(sName, ValueTypeAssertion.withType(String.class));
             }
 
         return (NamedTopic<String>) m_topic;
+        }
+
+    protected synchronized String ensureTopicName()
+        {
+        return ensureTopicName(m_sSerializer);
+        }
+
+    protected synchronized String ensureTopicName(String sPrefix)
+        {
+        if (m_sTopicName == null)
+            {
+            m_sTopicName = sPrefix + "-" + m_nSuffix.getAndIncrement();
+            }
+        return m_sTopicName;
         }
 
     protected PagedTopic.Dependencies getDependencies(NamedTopic<?> topic)
@@ -4214,7 +4237,8 @@ public abstract class AbstractNamedTopicTests
         {
         if (m_topic == null)
             {
-            m_topic = getSession().getTopic(m_sSerializer + "-raw");
+            String sName = ensureTopicName(m_sSerializer + "-raw");
+            m_topic = getSession().getTopic(sName);
             }
 
         return (NamedTopic<V>) m_topic;
@@ -4359,6 +4383,7 @@ public abstract class AbstractNamedTopicTests
 
     protected String               m_sSerializer;
     protected NamedTopic<?>        m_topic;
+    protected String               m_sTopicName;
     protected AtomicInteger        m_nSuffix = new AtomicInteger();
     protected NamedTopic<Customer> m_topicCustomer;
     protected ExecutorService      m_executorService = Executors.newFixedThreadPool(4);

@@ -89,7 +89,8 @@ public class NamedTopicTests
     @Test
     public void shouldDestroy() throws Exception
         {
-        NamedTopic<String> topic = getSession().getTopic(m_sSerializer + "-topic-foo");
+        String             sTopicName = ensureTopicName(m_sSerializer + "-topic-foo");
+        NamedTopic<String> topic      = getSession().getTopic(sTopicName);
 
         Subscriber<String> foo = topic.createSubscriber(Subscriber.Name.of("foo"));
 
