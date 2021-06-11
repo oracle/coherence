@@ -20,9 +20,16 @@ then
   buildah pull "docker-daemon:${IMAGE_NAME}-arm64"
 fi
 
-# Cut the registry from the front of the image name e.g. docker.io/foo/bar:1.0 becomes foo/bar:1.0
-# This is because Buildah's local name of an image uses "localhost" for the registry
-IMAGE_SUFFIX=$(echo "${IMAGE_NAME}" | cut -d"/" -f2-10)
+# If the registry is docker.io then cut the registry from the front of the image name
+# e.g. docker.io/foo/bar:1.0 becomes foo/bar:1.0
+# This is because Buildah's local name of an image cuts docker.io from the name
+REGISTRY=$(echo "${IMAGE_NAME}" | cut -d"/" -f1)
+if [ "${REGISTRY}" == "docker.io" ]
+then
+  IMAGE_SUFFIX=$(echo "${IMAGE_NAME}" | cut -d"/" -f2-10)
+else
+  IMAGE_SUFFIX="${IMAGE_NAME}"
+fi
 LOCAL_NAME="localhost/${IMAGE_SUFFIX}"
 
 buildah images
@@ -33,5 +40,6 @@ buildah manifest add --arch arm64 --os linux "${IMAGE_NAME}" "${LOCAL_NAME}-arm6
 buildah manifest inspect "${IMAGE_NAME}"
 
 buildah manifest push --all -f v2s2 "${IMAGE_NAME}" "docker://${IMAGE_NAME}"
+
 
 
