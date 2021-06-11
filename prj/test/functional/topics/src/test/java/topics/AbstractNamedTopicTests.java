@@ -34,7 +34,6 @@ import com.tangosol.io.pof.reflect.SimplePofPath;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.DistributedCacheService;
-import com.tangosol.net.FlowControl;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
@@ -201,6 +200,7 @@ public abstract class AbstractNamedTopicTests
                 {
                 NamedTopic<?> topic = getSession().getTopic(m_sTopicName);
                 topic.destroy();
+                m_sTopicName = null;
                 }
             }
         catch (Throwable e)
@@ -4248,9 +4248,11 @@ public abstract class AbstractNamedTopicTests
         {
         if (m_topic != null)
             {
-            m_topic.destroy();
+            assertThat(m_topic.getName(), is(sTopicName + "-" + m_nSuffix.get()));
+            return (NamedTopic<String>) m_topic;
             }
-        return (NamedTopic<String>) (m_topic = getSession().getTopic(sTopicName, ValueTypeAssertion.withType(String.class)));
+        String sName = ensureTopicName(sTopicName);
+        return (NamedTopic<String>) (m_topic = getSession().getTopic(sName, ValueTypeAssertion.withType(String.class)));
         }
 
     protected synchronized NamedTopic<Customer> ensureCustomerTopic(String sTopicName)
