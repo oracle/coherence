@@ -223,8 +223,6 @@ public abstract class AbstractNamedTopicTests
              Subscriber<String> subscriberA   = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "a")));
              Subscriber<String> subscriberLen = session.createSubscriber(sTopicName, Subscriber.Filtered.by(new GreaterFilter<>(String::length, 1))))
             {
-            CompletableFuture<Void> future;
-
             try (Publisher<String> publisher = session.createPublisher(sTopicName))
                 {
                 publisher.publish("a").thenAccept(v -> System.err.println("**** Published a"));
@@ -234,13 +232,12 @@ public abstract class AbstractNamedTopicTests
                 publisher.publish("d").thenAccept(v -> System.err.println("**** Published d"));
                 publisher.publish("e").thenAccept(v -> System.err.println("**** Published e"));
                 publisher.publish("f").thenAccept(v -> System.err.println("**** Published f"));
-                future = publisher.flush();
+
+                CompletableFuture<Void> future = publisher.flush();
+                // wait upto one minute for the future
+                future.get(2, TimeUnit.MINUTES);
+                assertThat(future.isCompletedExceptionally(), is(false));
                 }
-
-            // wait upto one minute for the future
-            future.get(2, TimeUnit.MINUTES);
-
-            assertThat(future.isCompletedExceptionally(), is(false));
 
             assertThat(subscriberD.receive().get().getValue(), is("zoo"));
             assertThat(subscriberD.receive().get().getValue(), is("e"));
@@ -2860,17 +2857,19 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 10001; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
-            }
+            publisher.flush().get(2, TimeUnit.MINUTES);
 
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            }
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -2922,6 +2921,8 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 500; i++)
@@ -2930,11 +2931,11 @@ public abstract class AbstractNamedTopicTests
                 futurePublish.get(2, TimeUnit.MINUTES);
                 Thread.sleep(20);
                 }
-            publisher.flush();
-            }
+            publisher.flush().get(2, TimeUnit.MINUTES);
 
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            }
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3085,17 +3086,19 @@ public abstract class AbstractNamedTopicTests
 
         // publish a some messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 20; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
-            }
+            publisher.flush().get(2, TimeUnit.MINUTES);
 
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            }
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3152,17 +3155,19 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 10019; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
-            }
+            publisher.flush().get(2, TimeUnit.MINUTES);
 
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            }
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3229,17 +3234,18 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < cMsg; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
+            publisher.flush().get(2, TimeUnit.MINUTES);
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             }
-
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3281,20 +3287,24 @@ public abstract class AbstractNamedTopicTests
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       i;
+        Status                    status;
+        PagedPosition             positionLast;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (i = 0; i < cMsg; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
-            }
+            publisher.flush().get(2, TimeUnit.MINUTES);
 
-        Status status = futurePublish.get(2, TimeUnit.MINUTES);
-        // Get the position of the last message
-        PagedPosition positionLast = (PagedPosition) status.getPosition();
-        // Get the channel messages were published to
-        int nChannel = status.getChannel();
+            status = futurePublish.get(2, TimeUnit.MINUTES);
+            // Get the position of the last message
+            positionLast = (PagedPosition) status.getPosition();
+            // Get the channel messages were published to
+            nChannel = status.getChannel();
+            }
 
         // get the last Page of the topic
         Page page  = caches.Pages.get(new Page.Key(nChannel, positionLast.getPage()));
@@ -3354,17 +3364,18 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < cMsg; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
+            publisher.flush().get(2, TimeUnit.MINUTES);
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             }
-
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3406,17 +3417,18 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 10001; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
+            publisher.flush().get(2, TimeUnit.MINUTES);
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             }
-
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3477,17 +3489,18 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 10001; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
+            publisher.flush().get(2, TimeUnit.MINUTES);
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             }
-
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3560,17 +3573,18 @@ public abstract class AbstractNamedTopicTests
             {
             // publish a lot os messages so we have multiple pages spread over all of the partitions
             CompletableFuture<Status> futurePublish = null;
+            int                       nChannel;
+
             try (Publisher<String> publisher = topic.createPublisher())
                 {
                 for (int i = 0; i < 10001; i++)
                     {
                     futurePublish = publisher.publish("element-" + i);
                     }
-                publisher.flush();
+                publisher.flush().get(2, TimeUnit.MINUTES);
+                // Get the channel messages were published to
+                nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
                 }
-
-            // Get the channel messages were published to
-            int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
 
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
@@ -3633,17 +3647,18 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 10019; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
+            publisher.flush().get(2, TimeUnit.MINUTES);
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             }
-
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3716,17 +3731,18 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 10019; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
+            publisher.flush().get(2, TimeUnit.MINUTES);
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             }
-
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3785,17 +3801,18 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel;
+
         try (Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 10019; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
-            publisher.flush();
+            publisher.flush().get(2, TimeUnit.MINUTES);
+            // Get the channel messages were published to
+            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             }
-
-        // Get the channel messages were published to
-        int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
