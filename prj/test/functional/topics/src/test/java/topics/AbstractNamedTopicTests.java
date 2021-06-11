@@ -462,8 +462,8 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic  = ensureTopic();
 
         try (Publisher<String>  publisher     = topic.createPublisher();
-             Subscriber<String> subscriberFoo = topic.createSubscriber(inGroup("Foo"), Subscriber.CompleteOnEmpty.enabled());
-             Subscriber<String> subscriberBar = topic.createSubscriber(inGroup("Bar"), Subscriber.CompleteOnEmpty.enabled()))
+             Subscriber<String> subscriberFoo = topic.createSubscriber(inGroup("Foo"));
+             Subscriber<String> subscriberBar = topic.createSubscriber(inGroup("Bar")))
             {
             assertThat(publisher, is(notNullValue()));
             assertThat(subscriberFoo, is(notNullValue()));
@@ -488,13 +488,7 @@ public abstract class AbstractNamedTopicTests
 
                 assertThat(subscriberFoo.receive().get(10, TimeUnit.SECONDS).getValue(), is(sElement));
                 assertThat(subscriberBar.receive().get(10, TimeUnit.SECONDS).getValue(), is(sElement));
-
-                assertThat(subscriberFoo.receive().get(10, TimeUnit.SECONDS), is(nullValue()));
-                assertThat(subscriberBar.receive().get(10, TimeUnit.SECONDS), is(nullValue()));
                 }
-
-            assertThat("Subscriber 'Foo' should see empty topic", subscriberFoo.receive().get(), is(nullValue()));
-            assertThat("Subscriber 'Bar' should see empty topic", subscriberBar.receive().get(), is(nullValue()));
             }
         }
 
@@ -2014,17 +2008,17 @@ public abstract class AbstractNamedTopicTests
             // read some messages with all subscribers, but do not commit anything
             for (int i = 0; i<19; i++)
                 {
-                element = subscriber1.receive().get();
+                element = subscriber1.receive().get(1, TimeUnit.MINUTES);
                 listLog.add("Received (1): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits1.put(element.getChannel(), element.getPosition());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
-                element = subscriber2.receive().get();
+                element = subscriber2.receive().get(1, TimeUnit.MINUTES);
                 listLog.add("Received (2): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits2.put(element.getChannel(), element.getPosition());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
-                element = subscriber3.receive().get();
+                element = subscriber3.receive().get(1, TimeUnit.MINUTES);
                 listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits3.put(element.getChannel(), element.getPosition());
@@ -2032,11 +2026,11 @@ public abstract class AbstractNamedTopicTests
                 }
 
             // commit all commit maps
-            subscriber1.commit(commits1);
+            subscriber1.commitAsync(commits1).get(1, TimeUnit.MINUTES);
             commits1.clear();
-            subscriber2.commit(commits2);
+            subscriber2.commitAsync(commits2).get(1, TimeUnit.MINUTES);
             commits1.clear();
-            subscriber3.commit(commits3);
+            subscriber3.commitAsync(commits3).get(1, TimeUnit.MINUTES);
             commits3.clear();
 
             // read some more messages with subscriber 1, but do not commit anything
@@ -2059,28 +2053,34 @@ public abstract class AbstractNamedTopicTests
             // read some messages with remaining subscribers, but do not commit anything
             for (int i = 0; i<19; i++)
                 {
-                element = subscriber2.receive().get();
-                listLog.add("Received (2): " + element.getValue() + " from " + element.getPosition());
-                mapReceived.get(element.getChannel()).add(element.getValue());
-                commits2.put(element.getChannel(), element.getPosition());
-                assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
-                element = subscriber3.receive().get();
-                listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
-                mapReceived.get(element.getChannel()).add(element.getValue());
-                commits3.put(element.getChannel(), element.getPosition());
-                assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
+                element = subscriber2.receive().get(1, TimeUnit.MINUTES);
+                if (element != null)
+                    {
+                    listLog.add("Received (2): " + element.getValue() + " from " + element.getPosition());
+                    mapReceived.get(element.getChannel()).add(element.getValue());
+                    commits2.put(element.getChannel(), element.getPosition());
+                    assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
+                    }
+                element = subscriber3.receive().get(1, TimeUnit.MINUTES);
+                if (element != null)
+                    {
+                    listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
+                    mapReceived.get(element.getChannel()).add(element.getValue());
+                    commits3.put(element.getChannel(), element.getPosition());
+                    assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
+                    }
                 }
 
             // commit remaining subscribers
-            subscriber2.commit(commits2);
+            subscriber2.commitAsync(commits2).get(1, TimeUnit.MINUTES);
             commits2.clear();
-            subscriber3.commit(commits3);
+            subscriber3.commitAsync(commits3).get(1, TimeUnit.MINUTES);
             commits3.clear();
 
             // read some more messages with subscriber 2, but do not commit anything
             for (int i = 0; i<19; i++)
                 {
-                element = subscriber2.receive().get();
+                element = subscriber2.receive().get(1, TimeUnit.MINUTES);
                 if (element == null)
                     {
                     break;
@@ -2099,7 +2099,7 @@ public abstract class AbstractNamedTopicTests
             // read all messages left using subscriber 3
             while (true)
                 {
-                element = subscriber3.receive().get();
+                element = subscriber3.receive().get(1, TimeUnit.MINUTES);
                 if (element == null)
                     {
                     listLog.add("Received (3): NULL");
