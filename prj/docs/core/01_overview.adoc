@@ -32,7 +32,7 @@ Recover data from Coherence's Persistence mechanism in parallel.
 
 [CARD]
 .Portable Types
-[icon=fa-sitemap,link=docs/core/04_portable_types.adoc]
+[icon=settings_ethernet,link=docs/core/04_portable_types.adoc]
 --
 Implement versioned data classes that can evolve over time.
 --
@@ -42,6 +42,13 @@ Implement versioned data classes that can evolve over time.
 [icon=fa-sitemap,link=docs/core/05_repository.adoc]
 --
 Higher level, DDD-friendly data access API.
+--
+
+[CARD]
+.Durable Events
+[icon=fa-backward,link=docs/core/06_durable_events.adoc]
+--
+On demand event replay.
 --
 
 ====

@@ -31,7 +31,6 @@ This guide walks you through basic CRUD `put`, `get`, and `remove` operations on
 --
 This guide walks you through how to use built-in aggregators within Coherence.
 --
-VersionAwareMapListener
 [CARD]
 .Custom Aggregators
 [link=examples/guides/121-custom-aggregators/README.adoc]
@@ -58,6 +57,13 @@ This guide walks you through how to use near caching within Coherence
 [link=examples/guides/140-client-events/README.adoc]
 --
 This guide walks you through how to use client events within Coherence
+--
+
+[CARD]
+.Durable Events
+[link=examples/guides/145-durable-events/README.adoc]
+--
+This guide walks you through how to use durable events within Coherence
 --
 
 [CARD]

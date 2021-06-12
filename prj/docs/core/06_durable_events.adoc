@@ -205,4 +205,4 @@ ready:
 
 === Get Started
 
-To get started please take a look at our guides and tutorials.
+To get started please take a look at our <<examples/guides/145-durable-events/README.adoc#, guide on Durable Events>>.

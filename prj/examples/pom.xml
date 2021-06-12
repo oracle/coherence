@@ -31,6 +31,7 @@
     <module>guides/121-custom-aggregators</module>
     <module>guides/130-near-caching</module>
     <module>guides/140-client-events</module>
+    <module>guides/145-durable-events</module>
     <module>guides/190-cache-stores</module>
     <module>guides/460-topics</module>
     <module>tutorials/500-graphql/initial</module>
