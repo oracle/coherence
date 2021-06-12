@@ -2402,27 +2402,26 @@ public abstract class AbstractNamedTopicTests
         try (Publisher<String>  publisher  = topic.createPublisher();
              Subscriber<String> subscriber = topic.createSubscriber())
             {
-
-            AtomicLong    cReq       = new AtomicLong();
-            String        sRand      = Base.getRandomString(64, 64, true);
-            int           cbValue    = ExternalizableHelper.toBinary(sRand, topic.getService().getSerializer()).length();
-            long          nHigh      = (topic.getService().getInfo().getServiceMembers().size() + 1) * SERVER_CAPACITY /*in config*/ / cbValue;
-            int           cBacklogs  = 0;
-            AtomicInteger cValues    = new AtomicInteger();
+            String        sRand     = Base.getRandomString(64, 64, true);
+            int           cbValue   = ExternalizableHelper.toBinary(sRand, topic.getService().getSerializer()).length();
+            long          nHigh     = (topic.getService().getInfo().getServiceMembers().size() + 1) * SERVER_CAPACITY /*in config*/ / cbValue;
+            int           cBacklogs = 0;
+            AtomicInteger cValues   = new AtomicInteger();
 
             try (@SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
                 {
                 for (int i = 0; i < nHigh * 2; ++i)
                     {
-                    cValues.incrementAndGet();
-                    cReq.incrementAndGet();
+                    long                    ldtStart = System.currentTimeMillis();
+                    CompletableFuture<Void> future   = publisher.publish(sRand)
+                            .handle((status, err) ->
+                                {
+                                System.err.println("Published message " + status.getChannel() + " " + status.getPosition());
+                                return null;
+                                });
 
-                    long ldtStart = System.currentTimeMillis();
-                    CompletableFuture<Void> future = publisher.publish(sRand).handle((Status m, Throwable t) ->
-                                                                                     {
-                                                                                     cReq.decrementAndGet();
-                                                                                     return null;
-                                                                                     });
+                    cValues.incrementAndGet();
+
                     try
                         {
                         publisher.getFlowControl().flush();
@@ -2435,11 +2434,12 @@ public abstract class AbstractNamedTopicTests
                         CompletableFuture futureDrain = null;
                         for (int c = cValues.get(); c > 0; --c)
                             {
-                            futureDrain = subscriber.receive().whenComplete((r, e) ->
-                                                                            {
-                                                                            cValues.decrementAndGet();
-                                                                            r.commit();
-                                                                            });
+                            futureDrain = subscriber.receive()
+                                    .whenComplete((r, e) ->
+                                        {
+                                        cValues.decrementAndGet();
+                                        r.commit();
+                                        });
                             }
 
                         if (futureDrain != null)
@@ -2447,20 +2447,16 @@ public abstract class AbstractNamedTopicTests
                             subscriber.getFlowControl().flush();
                             futureDrain.get(2, TimeUnit.MINUTES);
                             }
-                        future.get();
+                        future.get(2, TimeUnit.MINUTES);
                         long cMillis = System.currentTimeMillis() - ldtStart;
-                        if (cMillis > PagedTopicPartition.PUBLISHER_NOTIFICATION_EXPIRY_MILLIS)
-                            {
-                            // apparently we've relied on notification expiry which isn't meant to be used
-                            // here, that is basically just to cover partition movement giving us more space.
-                            fail("timeout after PUBLISHER_NOTIFICATION_EXPIRY_MILLIS " + cMillis);
-                            }
+
+                        // assert that we've not relied on notification expiry which isn't meant to be used
+                        // here, that is basically just to cover partition movement giving us more space.
+                        assertThat("timeout after PUBLISHER_NOTIFICATION_EXPIRY_MILLIS " + cMillis,
+                                   cMillis, is(lessThan(PagedTopicPartition.PUBLISHER_NOTIFICATION_EXPIRY_MILLIS)));
+                        break;
                         }
                     }
-                }
-            finally
-                {
-                publisher.close();
                 }
 
             assertThat(cBacklogs, greaterThan(0)); // ensure we hit a backlog at least once
