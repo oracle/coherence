@@ -79,7 +79,33 @@ making them simple to build as stand-alone projects without needing to build the
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>A guide showing basic CRUD <code>put</code>, <code>get</code>, and <code>remove</code> operations on a <code>NamedMap</code>.</p>
+<p>This guide walks you through basic CRUD <code>put</code>, <code>get</code>, and <code>remove</code> operations on a <code>NamedMap</code>.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/guides/120-built-in-aggregators/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Built-in Aggregators</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>This guide walks you through how to use built-in aggregators within Coherence.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/guides/121-custom-aggregators/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Custom Aggregators</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>This guide walks you through how to create custom aggregators within Coherence.</p>
 </v-card-text>
 </v-card>
 </v-flex>
@@ -92,7 +118,7 @@ making them simple to build as stand-alone projects without needing to build the
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>A guide to using Caching Data Stores</p>
+<p>This guide walks you through how to use Topics within Coherence</p>
 </v-card-text>
 </v-card>
 </v-flex>
@@ -119,6 +145,19 @@ making them simple to build as stand-alone projects without needing to build the
 <v-card-text class="caption">
 <p></p>
 <p>This guide walks you through how to use client events within Coherence</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/guides/145-durable-events/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Durable Events</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>This guide walks you through how to use durable events within Coherence</p>
 </v-card-text>
 </v-card>
 </v-flex>

@@ -13,7 +13,7 @@ in addition to allowing customers to build truly event driven systems.</p>
 addition to the registration mechanisms is provided in the
 <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/using-map-events.html">official documentation</a>.
 However, it is worth drawing attention to some of the guarantees offered by MapEvents
-to provide context of why the DurableEvents feature is useful.</p>
+to provide context of why the Durable Events feature is useful.</p>
 
 
 <h3 id="_mapevent_guarantees">MapEvent Guarantees</h3>
@@ -83,7 +83,7 @@ is the approach taken for <code>ContinuousQueryCache</code>s.</p>
 <p>Coherence Extend provides a means for a client to connect to a cluster via a
 conduit referred to as a proxy. An extend client wraps up the intended request,
 forwards to a proxy which executes said request with the results either streamed
-back to the client or sent as a single response. There are many reason why one
+back to the client or sent as a single response. There are many reasons why one
 would chose using extend over being a member of the cluster; further documentation
 on extend can be found <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-remote-clients/introduction-coherenceextend.html">here</a>.</p>
 
@@ -95,7 +95,7 @@ not observing MapEvents that had occurred at the source due to the proxy leaving
 the associated service or the extend client reconnecting to a different proxy
 and therefore re-registering the listener.</p>
 
-<p>Once again, there are means to workaround this situation by observing the proxy
+<p>Once again, there are means to work around this situation by observing the proxy
 disconnect / re-connect and causing a re-synchronization of extend client and
 the source. However, extend proxy failover is a significantly more likely event
 and has been raised by Coherence users.</p>
@@ -106,10 +106,10 @@ and has been raised by Coherence users.</p>
 <div class="section">
 <p>A logical client receiving MapEvents may experience a process restart and it
 may be desirable to continue receiving MapEvents after the last received event,
-opposed to only events after registration. For example, a client may be responsible
-for updating some auxiliary system by applying the contents of each MapEvent
-to that system. Additionally it may be tracking the last received events and
-therefore <em>could</em> inform the source of the last event it received. A capable
+opposed to only receiving events after registration. For example, a client may be
+responsible for updating some auxiliary system by applying the contents of each
+MapEvent to that system. Additionally, it may be tracking the last received events
+and therefore <em>could</em> inform the source of the last event it received. A capable
 source could replay all events that were missed.</p>
 
 </div>
@@ -172,30 +172,28 @@ are tracking <code>MapEvent</code>s. For example:</p>
 <ol style="margin-left: 15px;">
 <li>
 Start a storage server that is tracking events:
+<markup
+lang="bash"
+
+>$ java -Dcoherence.distributed.persistence.mode=actice -Dcoherence.distributed.persistence.events.dir=/tmp/events-dir -jar coherence.jar</markup>
 
 </li>
-</ol>
-<div class="listing">
-<pre>$ java -Dcoherence.distributed.persistence.events.dir=/tmp/events-dir -jar coherence.jar</pre>
-</div>
-
-<ol style="margin-left: 15px;">
 <li>
 Start a client that registers a version aware <code>MapEvent</code> listener. A snippet
 taken from a functional test in the repo has been provided below:
+<markup
+lang="java"
+
+>List&lt;MapEvent&gt; listEvents = Collections.synchronizedList(new ArrayList&lt;&gt;());
+
+MapListener&lt;Integer, String&gt; listener = new SimpleMapListener&lt;Integer, String&gt;()
+        .addEventHandler(listEvents::add)
+        .versioned();
+
+cache.addMapListener(listener, 1, false);</markup>
 
 </li>
 </ol>
-<div class="listing">
-<pre>            List&lt;MapEvent&gt; listEvents = Collections.synchronizedList(new ArrayList&lt;&gt;());
-
-            MapListener&lt;Integer, String&gt; listener = new SimpleMapListener&lt;Integer, String&gt;()
-                    .addEventHandler(listEvents::add)
-                    .versioned();
-
-            cache.addMapListener(listener, 1, false);</pre>
-</div>
-
 <p>The above registration results in the client receiving events and tracking the
 latest version per partition. Upon abnormal service restart the client will
 automatically re-register itself and request versions after the last received
@@ -206,9 +204,9 @@ interface directly. Implementors must return an implementation of <a id="" title
 which will be interrogated by Coherence upon registration either directly due
 to a call to <code>NamedMap.addMapListener</code> or indirectly due to a service restart.
 These versions are sent to the relevant storage servers and if a version is returned for
-a partition Coherence will return all known versions larger than the specified
-version. Additionally, certain formal constants are defined to allow a client
-to request storage servers to send:</p>
+a partition Coherence will return all known versions larger than or equal to
+the specified version. Additionally, certain formal constants are defined to
+allow a client to request storage servers to send:</p>
 
 <ul class="ulist">
 <li>
@@ -232,7 +230,7 @@ For example, when registering a <code>MapListener</code> against a specific key 
 for said key will be received by this <code>MapListener</code> and therefore only versions
 for the associated partition will be tracked. The <code>VersionedPartitions</code> returned
 by this <code>VersionAwareMapListener</code> will only return a version for a single partition.
-However this is worth being aware of if you do implement your own <code>VersionAwareMapListener</code>
+However, this is worth being aware of if you do implement your own <code>VersionAwareMapListener</code>
 or <code>VersionedPartitions</code> data structure.</p>
 </p>
 </div>
@@ -284,7 +282,7 @@ ready:</p>
 
 <h3 id="_get_started">Get Started</h3>
 <div class="section">
-<p>To get started please take a look at our guides and tutorials.</p>
+<p>To get started please take a look at our <router-link to="/examples/guides/145-durable-events/README">guide on Durable Events</router-link>.</p>
 
 </div>
 </div>

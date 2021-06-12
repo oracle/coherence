@@ -364,6 +364,32 @@ function createRoutes(){
             component: loadPage('examples-guides-100-put-get-remove-README', '/examples/guides/100-put-get-remove/README', {})
         },
         {
+            path: '/examples/guides/120-built-in-aggregators/README',
+            meta: {
+                h1: 'Built-In Aggregators',
+                title: 'Built-In Aggregators',
+                h1Prefix: null,
+                description: 'Coherence Guides Aggregations',
+                keywords: 'coherence, java, documentation, aggregation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-guides-120-built-in-aggregators-README', '/examples/guides/120-built-in-aggregators/README', {})
+        },
+        {
+            path: '/examples/guides/121-custom-aggregators/README',
+            meta: {
+                h1: 'Custom Aggregators',
+                title: 'Custom Aggregators',
+                h1Prefix: null,
+                description: 'Coherence Guides Aggregations',
+                keywords: 'coherence, java, documentation, aggregation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-guides-121-custom-aggregators-README', '/examples/guides/121-custom-aggregators/README', {})
+        },
+        {
             path: '/examples/guides/130-near-caching/README',
             meta: {
                 h1: 'Near Caching',
@@ -388,6 +414,19 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('examples-guides-140-client-events-README', '/examples/guides/140-client-events/README', {})
+        },
+        {
+            path: '/examples/guides/145-durable-events/README',
+            meta: {
+                h1: 'Durable Events',
+                title: 'Durable Events',
+                h1Prefix: null,
+                description: 'Coherence Guides Durable Events',
+                keywords: 'coherence, java, documentation, durable events',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-guides-145-durable-events-README', '/examples/guides/145-durable-events/README', {})
         },
         {
             path: '/examples/guides/190-cache-stores/README',
@@ -649,8 +688,11 @@ function createNav(){
                             items: [
                                 { href: '/examples/guides/000-overview', title: 'Guides Overview' },
                                 { href: '/examples/guides/100-put-get-remove/README', title: 'Put Get and Remove Operations' },
+                                { href: '/examples/guides/120-built-in-aggregators/README', title: 'Built-In Aggregators' },
+                                { href: '/examples/guides/121-custom-aggregators/README', title: 'Custom Aggregators' },
                                 { href: '/examples/guides/130-near-caching/README', title: 'Near Caching' },
                                 { href: '/examples/guides/140-client-events/README', title: 'Client Events' },
+                                { href: '/examples/guides/145-durable-events/README', title: 'Durable Events' },
                                 { href: '/examples/guides/190-cache-stores/README', title: 'Cache Stores' },
                                 { href: '/examples/guides/460-topics/README', title: 'Topics' }
                             ]
