@@ -1968,13 +1968,14 @@ public abstract class AbstractNamedTopicTests
         Element<String>    element;
         int                cChannel;
 
-        try (Subscriber<String> subscriber1  = topic.createSubscriber(inGroup("one"), Subscriber.CompleteOnEmpty.enabled());
-             Subscriber<String> subscriber2  = topic.createSubscriber(inGroup("one"), Subscriber.CompleteOnEmpty.enabled());
-             Subscriber<String> subscriber3  = topic.createSubscriber(inGroup("one"), Subscriber.CompleteOnEmpty.enabled()))
+        try (Subscriber<String> subscriber1  = topic.createSubscriber(inGroup("one"));
+             Subscriber<String> subscriber2  = topic.createSubscriber(inGroup("one"));
+             Subscriber<String> subscriber3  = topic.createSubscriber(inGroup("one")))
             {
             Map<Integer, List<String>> mapReceived = new ConcurrentHashMap<>();
             Map<Integer, List<String>> mapSent     = new ConcurrentHashMap<>();
             AtomicInteger              nOrder      = new AtomicInteger();
+            int                        cMessages   = 0;
 
             // publish to all of the channels to ensure all subscribers have messages
             try (Publisher<String> publisher = topic.createPublisher(OrderBy.value(v -> nOrder.get())))
@@ -1993,6 +1994,7 @@ public abstract class AbstractNamedTopicTests
                         list.add(sMsg);
                         Status metadata = publisher.publish(sMsg).get(2, TimeUnit.MINUTES);
                         listLog.add("Sent: " + sMsg + " to " + metadata.getPosition());
+                        cMessages++;
                         }
 
                     mapSent.put(c, list);
@@ -2000,10 +2002,11 @@ public abstract class AbstractNamedTopicTests
                     }
                 }
 
-            Set<ChannelPosition>   setPosn  = new HashSet<>();
-            Map<Integer, Position> commits1 = new HashMap<>();
-            Map<Integer, Position> commits2 = new HashMap<>();
-            Map<Integer, Position> commits3 = new HashMap<>();
+            Set<ChannelPosition>   setPosn   = new HashSet<>();
+            Map<Integer, Position> commits1  = new HashMap<>();
+            Map<Integer, Position> commits2  = new HashMap<>();
+            Map<Integer, Position> commits3  = new HashMap<>();
+            int                    cRecieved = 0;
 
             // read some messages with all subscribers, but do not commit anything
             for (int i = 0; i<19; i++)
@@ -2023,6 +2026,7 @@ public abstract class AbstractNamedTopicTests
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits3.put(element.getChannel(), element.getPosition());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
+                cRecieved += 3;
                 }
 
             // commit all commit maps
@@ -2054,21 +2058,16 @@ public abstract class AbstractNamedTopicTests
             for (int i = 0; i<19; i++)
                 {
                 element = subscriber2.receive().get(1, TimeUnit.MINUTES);
-                if (element != null)
-                    {
-                    listLog.add("Received (2): " + element.getValue() + " from " + element.getPosition());
-                    mapReceived.get(element.getChannel()).add(element.getValue());
-                    commits2.put(element.getChannel(), element.getPosition());
-                    assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
-                    }
+                listLog.add("Received (2): " + element.getValue() + " from " + element.getPosition());
+                mapReceived.get(element.getChannel()).add(element.getValue());
+                commits2.put(element.getChannel(), element.getPosition());
+                assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
                 element = subscriber3.receive().get(1, TimeUnit.MINUTES);
-                if (element != null)
-                    {
-                    listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
-                    mapReceived.get(element.getChannel()).add(element.getValue());
-                    commits3.put(element.getChannel(), element.getPosition());
-                    assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
-                    }
+                listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
+                mapReceived.get(element.getChannel()).add(element.getValue());
+                commits3.put(element.getChannel(), element.getPosition());
+                assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
+                cRecieved += 2;
                 }
 
             // commit remaining subscribers
@@ -2081,11 +2080,7 @@ public abstract class AbstractNamedTopicTests
             for (int i = 0; i<19; i++)
                 {
                 element = subscriber2.receive().get(1, TimeUnit.MINUTES);
-                if (element == null)
-                    {
-                    break;
-                    }
-//            listLog.add("Received (2): (No Commit) " + element.getValue() + " from " + element.getPosition());
+                listLog.add("Received (2): (No Commit) " + element.getValue() + " from " + element.getPosition());
                 }
 
             // close subscriber 2 - it's channels will be reallocated
@@ -2097,17 +2092,13 @@ public abstract class AbstractNamedTopicTests
             Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(cChannel));
 
             // read all messages left using subscriber 3
-            while (true)
+            while (cRecieved < cMessages)
                 {
                 element = subscriber3.receive().get(1, TimeUnit.MINUTES);
-                if (element == null)
-                    {
-                    listLog.add("Received (3): NULL");
-                    break;
-                    }
                 listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
+                cRecieved++;
                 }
 
             for (int i = 0; i < mapSent.size(); i++)
