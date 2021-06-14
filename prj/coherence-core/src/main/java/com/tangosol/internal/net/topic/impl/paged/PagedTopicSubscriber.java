@@ -1254,9 +1254,19 @@ public class PagedTopicSubscriber<V>
             }
 
         // reset revoked channel heads - we'll re-sync if they are reallocated
-        setRevoked.forEach(c -> f_aChannel[c].m_lHead = Page.NULL_PAGE);
-        // re-sync added channel heads
-        setNew.forEach(c -> scheduleHeadIncrement(f_aChannel[c], Page.NULL_PAGE));
+        setRevoked.forEach(c ->
+            {
+            Channel channel = f_aChannel[c];
+            channel.m_lHead  = Page.NULL_PAGE;
+            channel.m_fEmpty = false;
+            });
+        // re-sync added channel heads and reset empty flag
+        setNew.forEach(c ->
+           {
+           Channel channel = f_aChannel[c];
+           channel.m_fEmpty = false;
+           scheduleHeadIncrement(channel, Page.NULL_PAGE);
+           });
         }
 
     /**
