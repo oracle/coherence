@@ -835,9 +835,9 @@ public class PagedTopicSubscriber<V>
 
         if (isActive() && !queueValuesPrefetched.isEmpty())
             {
-            LongArray      aValues = new SparseArray<>();
+            LongArray          aValues = new SparseArray<>();
             CommittableElement element = queueValuesPrefetched.peek();
-            if (element == null || element.isEmpty())
+            if (element != null && element.isEmpty())
                 {
                 // we're empty, remove the empty/null element from the pre-fetch queue
                 queueValuesPrefetched.poll();
@@ -864,7 +864,7 @@ public class PagedTopicSubscriber<V>
                         {
                         element = queueValuesPrefetched.poll();
                         // ensure we still own the channel
-                        if (element != null && isOwner(element.getChannel()))
+                        if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
                             {
                             aValues.add(element);
                             }
@@ -877,7 +877,7 @@ public class PagedTopicSubscriber<V>
                             {
                             element = queueValuesPrefetched.poll();
                             // ensure we still own the channel
-                            if (isOwner(element.getChannel()))
+                            if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
                                 {
                                 list.add(element);
                                 }

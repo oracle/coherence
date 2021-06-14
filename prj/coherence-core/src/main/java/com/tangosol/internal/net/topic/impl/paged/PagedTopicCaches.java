@@ -165,7 +165,8 @@ public class PagedTopicCaches
      */
     public boolean isActive()
         {
-        return !Pages.isDestroyed() && !Pages.isReleased();
+        State state = m_state;
+        return state == State.Active || state == State.Disconnected;
         }
 
     /**
@@ -722,40 +723,46 @@ public class PagedTopicCaches
             return;
             }
 
-        m_state = fDestroy ? State.Destroyed : State.Released;
-
-        Consumer<NamedCache> function    = fDestroy ? this::destroyCache : this::releaseCache;
-        Set<Listener>        setListener = m_mapListener.keySet();
-
-        for (Listener listener : setListener)
+        synchronized (this)
             {
-            try
+            if (isActive())
                 {
-                if (fDestroy)
-                    {
-                    listener.onDestroy();
-                    }
-                else
-                    {
-                    listener.onRelease();
-                    }
-                }
-            catch (Throwable t)
-                {
-                Logger.err(t);
-                }
-            }
+                m_state = fDestroy ? State.Destroyed : State.Released;
 
-        removeListeners();
+                Consumer<NamedCache> function    = fDestroy ? this::destroyCache : this::releaseCache;
+                Set<Listener>        setListener = m_mapListener.keySet();
 
-        if (f_setCaches != null)
-            {
-            synchronized (this)
-                {
+                for (Listener listener : setListener)
+                    {
+                    try
+                        {
+                        if (fDestroy)
+                            {
+                            listener.onDestroy();
+                            }
+                        else
+                            {
+                            listener.onRelease();
+                            }
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
+
+                removeListeners();
+
                 if (f_setCaches != null)
                     {
-                    f_setCaches.forEach(function);
-                    f_setCaches = null;
+                    synchronized (this)
+                        {
+                        if (f_setCaches != null)
+                            {
+                            f_setCaches.forEach(function);
+                            f_setCaches = null;
+                            }
+                        }
                     }
                 }
             }
