@@ -17,7 +17,7 @@
   <name>Coherence Guides - Built-In Aggregators</name>
 
   <properties>
-    <revision>21.06-SNAPSHOT</revision>
+    <revision>21.12-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${revision}</coherence.version>
