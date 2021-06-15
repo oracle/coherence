@@ -8,9 +8,9 @@
 :description: A feature that ensures events are never lost
 :keywords: coherence, events, persistence, documentation
 
-// DO NOT remove this header - it might look like a duplicate of the header above, but
-// both they serve a purpose, and the docs will look wrong if it is removed.
-== Durable Events
+// DO NOT remove this header - this is the page header while the above is
+// used for the top navigation bar
+== Durable Events (experimental)
 
 Coherence has provided the ability for clients to asynchronously observe data
 changes for almost two decades. This has proven to be an incredibly powerful
