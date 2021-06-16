@@ -10,6 +10,7 @@ import com.tangosol.net.topic.TopicPublisherException;
 import com.tangosol.util.AssertionException;
 import com.tangosol.util.Binary;
 import com.tangosol.util.LongArray;
+import com.tangosol.util.NullImplementation;
 import com.tangosol.util.SparseArray;
 
 import org.junit.Test;
@@ -243,7 +244,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(0, null, TopicPublisherException.createFactory(null));
+        queue.completeElements(0, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null));
 
         assertThat(element1.isDone(), is(false));
         assertThat(element2.isDone(), is(false));
@@ -269,7 +270,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(2, null, TopicPublisherException.createFactory(null));
+        queue.completeElements(2, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null));
 
         assertThat(element1.isDone(), is(true));
         assertThat(element2.isDone(), is(true));
@@ -295,7 +296,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(3, null, TopicPublisherException.createFactory(null));
+        queue.completeElements(3, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null));
 
         assertThat(element1.isDone(), is(true));
         assertThat(element2.isDone(), is(true));
@@ -324,7 +325,7 @@ public class BatchingOperationsQueueTest
         aErrors.set(0, error1);
         aErrors.set(2, error3);
 
-        queue.completeElements(3, aErrors, TopicPublisherException.createFactory(null));
+        queue.completeElements(3, aErrors, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null));
 
         assertThat(element1.isDone(), is(true));
         assertThat(element1.getFuture().isCompletedExceptionally(), is(true));
@@ -699,7 +700,7 @@ public class BatchingOperationsQueueTest
         BatchingOperationsQueue<Binary, Void>         queue   = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
         BatchingOperationsQueue<Binary, Void>.Element element = queue.createElement(new Binary());
 
-        element.complete();
+        element.complete(null);
 
         assertThat(element.isDone(), is(true));
         assertThat(element.getFuture().isDone(), is(true));
@@ -744,16 +745,16 @@ public class BatchingOperationsQueueTest
 
         assertThat(future.isDone(), is(false));
 
-        element1.complete();
+        element1.complete(null);
         assertThat(future.isDone(), is(false));
 
-        element2.complete();
+        element2.complete(null);
         assertThat(future.isDone(), is(false));
 
-        element3.complete();
+        element3.complete(null);
         assertThat(future.isDone(), is(false));
 
-        element4.complete();
+        element4.complete(null);
         assertThat(future.isDone(), is(true));
         assertThat(future.isCancelled(), is(false));
         assertThat(future.isCompletedExceptionally(), is(false));

@@ -2012,16 +2012,19 @@ public abstract class AbstractNamedTopicTests
             for (int i = 0; i<19; i++)
                 {
                 element = subscriber1.receive().get(1, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
                 listLog.add("Received (1): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits1.put(element.getChannel(), element.getPosition());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
                 element = subscriber2.receive().get(1, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
                 listLog.add("Received (2): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits2.put(element.getChannel(), element.getPosition());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
                 element = subscriber3.receive().get(1, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
                 listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits3.put(element.getChannel(), element.getPosition());
@@ -2041,6 +2044,7 @@ public abstract class AbstractNamedTopicTests
             for (int i = 0; i<19; i++)
                 {
                 element = subscriber1.receive().get();
+                assertThat(element, is(notNullValue()));
                 listLog.add("Received (1): (No Commit) " + element.getValue() + " from " + element.getPosition());
                 }
 
@@ -2058,11 +2062,13 @@ public abstract class AbstractNamedTopicTests
             for (int i = 0; i<19; i++)
                 {
                 element = subscriber2.receive().get(1, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
                 listLog.add("Received (2): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits2.put(element.getChannel(), element.getPosition());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
                 element = subscriber3.receive().get(1, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
                 listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits3.put(element.getChannel(), element.getPosition());
@@ -2080,6 +2086,7 @@ public abstract class AbstractNamedTopicTests
             for (int i = 0; i<19; i++)
                 {
                 element = subscriber2.receive().get(1, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
                 listLog.add("Received (2): (No Commit) " + element.getValue() + " from " + element.getPosition());
                 }
 
@@ -2095,6 +2102,7 @@ public abstract class AbstractNamedTopicTests
             while (cRecieved < cMessages)
                 {
                 element = subscriber3.receive().get(1, TimeUnit.MINUTES);
+                assertThat(element, is(notNullValue()));
                 listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
