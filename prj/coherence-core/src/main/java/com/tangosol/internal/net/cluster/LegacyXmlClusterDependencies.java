@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -784,8 +784,14 @@ public class LegacyXmlClusterDependencies
 
         // construct a "cluster-discovery" address provider based on WKA or MC address; see TcpInitiator.onDependencies
         AddressProviderFactory factoryCluster;
-        if (createWkaAddressProvider(xml.getSafeElement("unicast-listener").getSafeElement("well-known-addresses")) == null)
+        XmlElement xmlWKA = xml.getSafeElement("unicast-listener").getSafeElement("well-known-addresses");
+        if (createWkaAddressProvider(xmlWKA) == null)
             {
+            if (isWkaPresent(xmlWKA))
+                {
+                throw new IllegalArgumentException("Unresolvable WKA address(s) " + xmlWKA);
+                }
+
             ListBasedAddressProviderBuilder factoryMulticast = new ListBasedAddressProviderBuilder();
             factoryMulticast.add(getGroupAddress().getHostAddress(), getGroupPort());
             factoryCluster = factoryMulticast;
@@ -1073,5 +1079,42 @@ public class LegacyXmlClusterDependencies
                 }
             }
         throw new IllegalArgumentException("Invalid mode " + sName);
+        }
+
+    /**
+     * Return true if a WKA list is configured.
+     *
+     * @return true if a WKA list is configured
+     */
+    private boolean isWkaPresent(XmlElement xmlConfig)
+        {
+        if (xmlConfig != null)
+            {
+            for (XmlElement xmlAddr : (List<XmlElement>) xmlConfig.getElementList())
+                {
+                String sAddr;
+                switch (xmlAddr.getName())
+                    {
+                    case "socket-address":
+                        sAddr = xmlAddr.getSafeElement("address").getString().trim();
+                        break;
+
+                    case "host-address":
+                    case "address":
+                        sAddr = xmlAddr.getString().trim();
+                        break;
+
+                    default:
+                        continue;
+                    }
+
+                if (!sAddr.isEmpty())
+                    {
+                    return true;
+                    }
+                }
+            }
+
+        return false;
         }
     }
