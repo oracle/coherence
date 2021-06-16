@@ -64,7 +64,6 @@ import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
-import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ServiceEvent;
 import com.tangosol.util.ServiceListener;
 import com.tangosol.util.SparseArray;
@@ -837,6 +836,7 @@ public class PagedTopicSubscriber<V>
             {
             LongArray          aValues = new SparseArray<>();
             CommittableElement element = queueValuesPrefetched.peek();
+
             if (element != null && element.isEmpty())
                 {
                 // we're empty, remove the empty/null element from the pre-fetch queue
@@ -846,11 +846,11 @@ public class PagedTopicSubscriber<V>
                     Request request = queueBatch.get(cValues);
                     if (!request.isBatch())
                         {
-                        aValues.add(null);
+                        aValues.set(cValues, null);
                         }
                     else
                         {
-                        aValues.add(Collections.emptyList());
+                        aValues.set(cValues, Collections.emptyList());
                         }
                     cValues++;
                     }
@@ -860,16 +860,7 @@ public class PagedTopicSubscriber<V>
                 while (m_nState == STATE_CONNECTED && cValues < cRequest && !queueValuesPrefetched.isEmpty())
                     {
                     Request request = queueBatch.get(cValues);
-                    if (!request.isBatch())
-                        {
-                        element = queueValuesPrefetched.poll();
-                        // ensure we still own the channel
-                        if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
-                            {
-                            aValues.add(element);
-                            }
-                        }
-                    else
+                    if (request.isBatch())
                         {
                         int cElement = request.getElementCount();
                         List<CommittableElement> list = new ArrayList<>();
@@ -882,12 +873,20 @@ public class PagedTopicSubscriber<V>
                                 list.add(element);
                                 }
                             }
-                        aValues.add(list);
+                        aValues.set(cValues++, list);
                         }
-                    cValues++;
+                    else
+                        {
+                        element = queueValuesPrefetched.poll();
+                        // ensure we still own the channel
+                        if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
+                            {
+                            aValues.set(cValues++, element);
+                            }
+                        }
                     }
                 }
-            queueRequest.completeElements(cValues, NullImplementation.getLongArray(), aValues, (err, value) -> new TopicException(err));
+            queueRequest.completeElements(cValues, aValues, (err, value) -> new TopicException(err));
             }
         }
 

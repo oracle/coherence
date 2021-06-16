@@ -280,7 +280,7 @@ public class BatchingOperationsQueue<V, R>
                     fClose = true;
                 case Complete:
                     // Complete all of the futures
-                    doErrorAction(Element::complete, fClose);
+                    doErrorAction(e -> e.complete(null), fClose);
                     break;
 
                 case CompleteWithExceptionAndClose:
@@ -467,19 +467,15 @@ public class BatchingOperationsQueue<V, R>
             }
         }
 
-
     /**
      * Complete the first n {@link Element Elements} in the current batch.
-     * <p>
-     * If any element in the current batch has a corresponding error
-     * in the errors array then it will be completed exceptionally.
      *
      * @param cComplete  the number of {@link Element}s to complete
-     * @param aErrors    the errors related to individual elements (may be null)
+     * @param aValues    the values to use to complete the elements
      */
-    public void completeElements(int cComplete, LongArray<Throwable> aErrors, BiFunction<Throwable, V, Throwable> function)
+    public void completeElements(int cComplete, LongArray<R> aValues, BiFunction<Throwable, V, Throwable> function)
         {
-        completeElements(cComplete, aErrors, NullImplementation.getLongArray(), function);
+        completeElements(cComplete, NullImplementation.getLongArray(), aValues, function);
         }
 
     /**
@@ -707,18 +703,6 @@ public class BatchingOperationsQueue<V, R>
             }
 
         /**
-         * Complete this element's {@link CompletableFuture} with a {@link null} value.
-         */
-        public void complete()
-            {
-            if (!m_fDone)
-                {
-                m_fDone = true;
-                f_executor.complete(f_future);
-                }
-            }
-
-        /**
          * Complete this element's {@link CompletableFuture}.
          *
          * @param result  the value to use to complete the future
@@ -853,16 +837,6 @@ public class BatchingOperationsQueue<V, R>
          * @param runnable the task to complete.
          */
         void execute(Runnable runnable);
-
-        /**
-         * Complete the future with a {@code null} value.
-         *
-         * @param future  the {@link CompletableFuture} to complete
-         */
-        default void complete(CompletableFuture<?> future)
-            {
-            complete(future, null);
-            }
 
         /**
          * Complete the future with a value.
