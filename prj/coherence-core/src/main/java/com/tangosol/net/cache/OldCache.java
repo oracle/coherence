@@ -1325,7 +1325,7 @@ public class OldCache
     /**
     * Specify whether incremental eviction is enabled.
     *
-    * @param fIncrementalEvict  pass true toe enable incremental eviction;
+    * @param fIncrementalEvict  pass true to enable incremental eviction;
     *                           false to disable incremental eviction
     *
     * @since Coherence 3.5
