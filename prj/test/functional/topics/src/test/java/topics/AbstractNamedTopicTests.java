@@ -25,6 +25,7 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.io.Serializer;
@@ -239,18 +240,18 @@ public abstract class AbstractNamedTopicTests
                 assertThat(future.isCompletedExceptionally(), is(false));
                 }
 
-            assertThat(subscriberD.receive().get().getValue(), is("zoo"));
-            assertThat(subscriberD.receive().get().getValue(), is("e"));
-            assertThat(subscriberD.receive().get().getValue(), is("f"));
+            assertThat(subscriberD.receive().get(1, TimeUnit.MINUTES).getValue(), is("zoo"));
+            assertThat(subscriberD.receive().get(1, TimeUnit.MINUTES).getValue(), is("e"));
+            assertThat(subscriberD.receive().get(1, TimeUnit.MINUTES).getValue(), is("f"));
 
-            assertThat(subscriberA.receive().get().getValue(), is("zoo"));
-            assertThat(subscriberA.receive().get().getValue(), is("b"));
-            assertThat(subscriberA.receive().get().getValue(), is("c"));
-            assertThat(subscriberA.receive().get().getValue(), is("d"));
-            assertThat(subscriberA.receive().get().getValue(), is("e"));
-            assertThat(subscriberA.receive().get().getValue(), is("f"));
+            assertThat(subscriberA.receive().get(1, TimeUnit.MINUTES).getValue(), is("zoo"));
+            assertThat(subscriberA.receive().get(1, TimeUnit.MINUTES).getValue(), is("b"));
+            assertThat(subscriberA.receive().get(1, TimeUnit.MINUTES).getValue(), is("c"));
+            assertThat(subscriberA.receive().get(1, TimeUnit.MINUTES).getValue(), is("d"));
+            assertThat(subscriberA.receive().get(1, TimeUnit.MINUTES).getValue(), is("e"));
+            assertThat(subscriberA.receive().get(1, TimeUnit.MINUTES).getValue(), is("f"));
 
-            assertThat(subscriberLen.receive().get().getValue(), is("zoo"));
+            assertThat(subscriberLen.receive().get(1, TimeUnit.MINUTES).getValue(), is("zoo"));
             }
         }
 
@@ -270,17 +271,17 @@ public abstract class AbstractNamedTopicTests
                 publisher.publish("55555");
                 }
 
-            assertThat(subscriber1.receive().get().getValue(), is(1));
-            assertThat(subscriber1.receive().get().getValue(), is(22));
-            assertThat(subscriber1.receive().get().getValue(), is(333));
-            assertThat(subscriber1.receive().get().getValue(), is(4444));
-            assertThat(subscriber1.receive().get().getValue(), is(55555));
+            assertThat(subscriber1.receive().get(1, TimeUnit.MINUTES).getValue(), is(1));
+            assertThat(subscriber1.receive().get(1, TimeUnit.MINUTES).getValue(), is(22));
+            assertThat(subscriber1.receive().get(1, TimeUnit.MINUTES).getValue(), is(333));
+            assertThat(subscriber1.receive().get(1, TimeUnit.MINUTES).getValue(), is(4444));
+            assertThat(subscriber1.receive().get(1, TimeUnit.MINUTES).getValue(), is(55555));
 
-            assertThat(subscriber2.receive().get().getValue(), is(1));
-            assertThat(subscriber2.receive().get().getValue(), is(2));
-            assertThat(subscriber2.receive().get().getValue(), is(3));
-            assertThat(subscriber2.receive().get().getValue(), is(4));
-            assertThat(subscriber2.receive().get().getValue(), is(5));
+            assertThat(subscriber2.receive().get(1, TimeUnit.MINUTES).getValue(), is(1));
+            assertThat(subscriber2.receive().get(1, TimeUnit.MINUTES).getValue(), is(2));
+            assertThat(subscriber2.receive().get(1, TimeUnit.MINUTES).getValue(), is(3));
+            assertThat(subscriber2.receive().get(1, TimeUnit.MINUTES).getValue(), is(4));
+            assertThat(subscriber2.receive().get(1, TimeUnit.MINUTES).getValue(), is(5));
             }
         }
 
@@ -426,12 +427,12 @@ public abstract class AbstractNamedTopicTests
                     }
 
                 String sExpected = "Element-" + i;
-                String sElement  = subscriberFoo.receive().get().getValue();
+                String sElement  = subscriberFoo.receive().get(1, TimeUnit.MINUTES).getValue();
 
                 assertThat(sElement, is(sExpected));
                 }
 
-            assertThat("Subscriber 'Foo' should see empty topic", subscriberFoo.receive().get(), is(nullValue()));
+            assertThat("Subscriber 'Foo' should see empty topic", subscriberFoo.receive().get(1, TimeUnit.MINUTES), is(nullValue()));
 
             for (int i = 0; i < nCount; i++)
                 {
@@ -445,12 +446,12 @@ public abstract class AbstractNamedTopicTests
                     }
 
                 String sExpected = "Element-" + i;
-                String sElement  = subscriberBar.receive().get().getValue();
+                String sElement  = subscriberBar.receive().get(1, TimeUnit.MINUTES).getValue();
 
                 assertThat(sElement, is(sExpected));
                 }
 
-            assertThat("Subscriber 'Bar' should see empty topic", subscriberBar.receive().get(), is(nullValue()));
+            assertThat("Subscriber 'Bar' should see empty topic", subscriberBar.receive().get(1, TimeUnit.MINUTES), is(nullValue()));
             }
         }
 
@@ -588,9 +589,9 @@ public abstract class AbstractNamedTopicTests
             Future<?> futureSubscriber1 = m_executorService.submit(topicSubscriber1);
             Future<?> futureSubscriber2 = m_executorService.submit(topicSubscriber2);
 
-            futurePublisher.get();
-            futureSubscriber1.get();
-            futureSubscriber2.get();
+            futurePublisher.get(1, TimeUnit.MINUTES);
+            futureSubscriber1.get(1, TimeUnit.MINUTES);
+            futureSubscriber2.get(1, TimeUnit.MINUTES);
 
             assertThat(publisher.getPublished(), is(nCount));
             assertThat(topicSubscriber1.getConsumedCount(), is(nCount));
@@ -708,9 +709,9 @@ public abstract class AbstractNamedTopicTests
                 publisher.publish("Element-2").join();
                 }
 
-            List<Element<String>> elementsOne   = subscriberOne.receive(1).get();
-            List<Element<String>> elementsTwo   = subscriberTwo.receive(2).get();
-            List<Element<String>> elementsThree = subscriberThree.receive(3).get();
+            List<Element<String>> elementsOne   = subscriberOne.receive(1).get(1, TimeUnit.MINUTES);
+            List<Element<String>> elementsTwo   = subscriberTwo.receive(2).get(1, TimeUnit.MINUTES);
+            List<Element<String>> elementsThree = subscriberThree.receive(3).get(1, TimeUnit.MINUTES);
 
             assertThat(elementsOne.size(), is(1));
             assertThat(elementsTwo.size(), is(2));
@@ -727,9 +728,9 @@ public abstract class AbstractNamedTopicTests
              Subscriber<String> subscriberTwo   = topic.createSubscriber(inGroup("Two"), Subscriber.CompleteOnEmpty.enabled());
              Subscriber<String> subscriberThree = topic.createSubscriber(inGroup("Three"), Subscriber.CompleteOnEmpty.enabled()))
             {
-            List<Element<String>> elementsOne   = subscriberOne.receive(1).get();
-            List<Element<String>> elementsTwo   = subscriberTwo.receive(2).get();
-            List<Element<String>> elementsThree = subscriberThree.receive(3).get();
+            List<Element<String>> elementsOne   = subscriberOne.receive(1).get(1, TimeUnit.MINUTES);
+            List<Element<String>> elementsTwo   = subscriberTwo.receive(2).get(1, TimeUnit.MINUTES);
+            List<Element<String>> elementsThree = subscriberThree.receive(3).get(1, TimeUnit.MINUTES);
 
             assertThat(elementsOne.size(), is(0));
             assertThat(elementsTwo.size(), is(0));
@@ -1295,8 +1296,8 @@ public abstract class AbstractNamedTopicTests
             try
                 {
                 publisher.publish(customer).join();
-                assertThat(subscriberFoo.receive().get().getValue().equals(customer), is(true));
-                assertThat(subscriberBar.receive().get().getValue().equals(customer), is(true));
+                assertThat(subscriberFoo.receive().get(1, TimeUnit.MINUTES).getValue().equals(customer), is(true));
+                assertThat(subscriberBar.receive().get(1, TimeUnit.MINUTES).getValue().equals(customer), is(true));
 
                 if (m_sSerializer.equals("pof"))
                     {
@@ -1328,9 +1329,9 @@ public abstract class AbstractNamedTopicTests
             Customer customer = m_sSerializer.equals("pof") ?
                     new CustomerPof("Mr Smith", 25, AddressPof.getRandomAddress()) :
                     new CustomerExternalizableLite("Mr Smith", 25, AddressExternalizableLite.getRandomAddress());
-            assertThat(publisher.publish(customer).get(), is(Matchers.notNullValue()));
-            assertThat(subscriberFoo.receive().get().getValue().equals(customer), is(true));
-            assertThat(subscriberBar.receive().get().getValue().equals(customer), is(true));
+            assertThat(publisher.publish(customer).get(1, TimeUnit.MINUTES), is(Matchers.notNullValue()));
+            assertThat(subscriberFoo.receive().get(1, TimeUnit.MINUTES).getValue().equals(customer), is(true));
+            assertThat(subscriberBar.receive().get(1, TimeUnit.MINUTES).getValue().equals(customer), is(true));
             }
         }
 
@@ -1358,21 +1359,21 @@ public abstract class AbstractNamedTopicTests
 
             for (Customer cust : list)
                 {
-                assertThat(publisher.publish(cust).get(), is(notNullValue()));
+                assertThat(publisher.publish(cust).get(1, TimeUnit.MINUTES), is(notNullValue()));
                 }
 
             int cSubscriberDReceive = 0;
-            for (CompletableFuture<Element<Customer>> future = subscriberD.receive(); future.get() != null ; future = subscriberD.receive(), cSubscriberDReceive++)
+            for (CompletableFuture<Element<Customer>> future = subscriberD.receive(); future.get(1, TimeUnit.MINUTES) != null ; future = subscriberD.receive(), cSubscriberDReceive++)
                 {
-                Customer customer = future.get().getValue();
+                Customer customer = future.get(1, TimeUnit.MINUTES).getValue();
                 assertThat(customer.getId(), greaterThanOrEqualTo(12));
                 }
             assertThat(cSubscriberDReceive, is(13));
 
             int cSubscriberAReceive = 0;
-            for (CompletableFuture<Element<Customer>> future = subscriberA.receive(); future.get() != null ; future = subscriberA.receive(), cSubscriberAReceive++)
+            for (CompletableFuture<Element<Customer>> future = subscriberA.receive(); future.get(1, TimeUnit.MINUTES) != null ; future = subscriberA.receive(), cSubscriberAReceive++)
                 {
-                Customer customer = future.get().getValue();
+                Customer customer = future.get(1, TimeUnit.MINUTES).getValue();
                 assertThat(customer.getId(), lessThan(12));
                 }
             assertThat(cSubscriberAReceive, is(12));
@@ -1502,25 +1503,25 @@ public abstract class AbstractNamedTopicTests
                 }
 
             int cSubscriberMAReceive = 0;
-            for (CompletableFuture<Element<Customer>> future = subscriberMA.receive(); future.get() != null ; future = subscriberMA.receive(), cSubscriberMAReceive++)
+            for (CompletableFuture<Element<Customer>> future = subscriberMA.receive(); future.get(1, TimeUnit.MINUTES) != null ; future = subscriberMA.receive(), cSubscriberMAReceive++)
                 {
-                Customer customer = future.get().getValue();
+                Customer customer = future.get(1, TimeUnit.MINUTES).getValue();
                 assertThat(customer.getAddress().getState(), is("MA"));
                 }
             assertThat("number of customers in MA", cSubscriberMAReceive, is(cMA));
 
             int cSubscriberCAReceive = 0;
-            for (CompletableFuture<Element<Customer>> future = subscriberCA.receive(); future.get() != null ; future = subscriberCA.receive(), cSubscriberCAReceive++)
+            for (CompletableFuture<Element<Customer>> future = subscriberCA.receive(); future.get(1, TimeUnit.MINUTES) != null ; future = subscriberCA.receive(), cSubscriberCAReceive++)
                 {
-                Customer customer = future.get().getValue();
+                Customer customer = future.get(1, TimeUnit.MINUTES).getValue();
                 assertThat(customer.getAddress().getState(), is("CA"));
                 }
             assertThat("number of customers in CA", cSubscriberCAReceive, is(cCA));
 
             int cSubscriberMAAddress = 0;
-            for (CompletableFuture<Element<Address>> future = subscriberMAAddress.receive(); future.get() != null ; future = subscriberMAAddress.receive(), cSubscriberMAAddress++)
+            for (CompletableFuture<Element<Address>> future = subscriberMAAddress.receive(); future.get(1, TimeUnit.MINUTES) != null ; future = subscriberMAAddress.receive(), cSubscriberMAAddress++)
                 {
-                Address address = future.get().getValue();
+                Address address = future.get(1, TimeUnit.MINUTES).getValue();
                 assertThat(address.getState(), is("MA"));
                 }
             assertThat("number of customer addresses in MA", cSubscriberMAAddress, is(cMA));
@@ -1637,7 +1638,7 @@ public abstract class AbstractNamedTopicTests
                     aFutures[i] = publisher.publish(sElement);
                     }
 
-                CompletableFuture.allOf(aFutures).get();
+                CompletableFuture.allOf(aFutures).get(1, TimeUnit.MINUTES);
 
                 TopicAssertions.assertPublishedOrder(topic, cOffers, sPrefix);
                 }
@@ -1659,8 +1660,8 @@ public abstract class AbstractNamedTopicTests
             Future<?> futurePub1 = m_executorService.submit(publisher1);
             Future<?> futurePub2 = m_executorService.submit(publisher2);
 
-            futurePub1.get();
-            futurePub2.get();
+            futurePub1.get(1, TimeUnit.MINUTES);
+            futurePub2.get(1, TimeUnit.MINUTES);
 
             assertThat(publisher1.getPublished(), is(nCount));
             assertThat(publisher2.getPublished(), is(nCount));
@@ -1698,7 +1699,7 @@ public abstract class AbstractNamedTopicTests
 
             for (int i=0; i<aFutures.length; i++)
                 {
-                Subscriber.Element<String> element = aFutures[i].get();
+                Subscriber.Element<String> element = aFutures[i].get(1, TimeUnit.MINUTES);
                 assertThat(element, is(notNullValue()));
                 assertThat(element.getValue(), is(sPrefix + i));
                 }
@@ -1802,8 +1803,8 @@ public abstract class AbstractNamedTopicTests
             Future<?> futureSubscriber1 = m_executorService.submit(topicSubscriber1);
             Future<?> futureSubscriber2 = m_executorService.submit(topicSubscriber2);
 
-            futureSubscriber1.get();
-            futureSubscriber2.get();
+            futureSubscriber1.get(1, TimeUnit.MINUTES);
+            futureSubscriber2.get(1, TimeUnit.MINUTES);
 
             assertThat(topicSubscriber1.getConsumedCount(), is(nCount));
             assertThat(topicSubscriber2.getConsumedCount(), is(nCount));
@@ -1824,7 +1825,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i=0; i<nCount; i++)
                 {
-                publisher.publish(sPrefix + i).get();
+                publisher.publish(sPrefix + i).get(1, TimeUnit.MINUTES);
                 }
             }
 
@@ -1834,7 +1835,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i=0; i<nCount; i++)
                 {
-                assertThat(subscriber1.receive().get().getValue(), is(sPrefix + i));
+                assertThat(subscriber1.receive().get(1, TimeUnit.MINUTES).getValue(), is(sPrefix + i));
                 }
             }
 
@@ -1842,7 +1843,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i=0; i<nCount; i++)
                 {
-                assertThat(subscriber2.receive().get().getValue(), is(sPrefix + i));
+                assertThat(subscriber2.receive().get(1, TimeUnit.MINUTES).getValue(), is(sPrefix + i));
                 }
             }
         }
@@ -1872,7 +1873,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i = 0; i<nCount; i++)
                 {
-                assertThat(subscriber.receive().get().getValue(), is(sPrefix + i));
+                assertThat(subscriber.receive().get(1, TimeUnit.MINUTES).getValue(), is(sPrefix + i));
                 }
             }
         }
@@ -1895,7 +1896,7 @@ public abstract class AbstractNamedTopicTests
             // read everything with subscriber one but do not commit anything
             for (int i = 0; i<nCount; i++)
                 {
-                Element<String> element = subscriber1.receive().get();
+                Element<String> element = subscriber1.receive().get(1, TimeUnit.MINUTES);
                 assertThat(element.getValue(), is(sPrefix + i));
                 }
 
@@ -1908,7 +1909,7 @@ public abstract class AbstractNamedTopicTests
                 // should be able to re-read everything with subscriber two as one did zero commits
                 for (int i = 0; i<nCount; i++)
                     {
-                    assertThat(subscriber2.receive().get().getValue(), is(sPrefix + i));
+                    assertThat(subscriber2.receive().get(1, TimeUnit.MINUTES).getValue(), is(sPrefix + i));
                     }
                 }
             }
@@ -2043,7 +2044,7 @@ public abstract class AbstractNamedTopicTests
             // read some more messages with subscriber 1, but do not commit anything
             for (int i = 0; i<19; i++)
                 {
-                element = subscriber1.receive().get();
+                element = subscriber1.receive().get(1, TimeUnit.MINUTES);
                 assertThat(element, is(notNullValue()));
                 listLog.add("Received (1): (No Commit) " + element.getValue() + " from " + element.getPosition());
                 }
@@ -2150,7 +2151,7 @@ public abstract class AbstractNamedTopicTests
 
             publisher.publish("blah");
 
-            assertThat(future.get().getValue(), is("blah"));
+            assertThat(future.get(1, TimeUnit.MINUTES).getValue(), is("blah"));
             }
         }
 
@@ -2189,14 +2190,14 @@ public abstract class AbstractNamedTopicTests
              Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
             {
             publisher.publish("blah");
-            assertThat(subscriber.receive().get().getValue(), is("blah"));
+            assertThat(subscriber.receive().get(1, TimeUnit.MINUTES).getValue(), is("blah"));
 
             Future<Subscriber.Element<String>> future = subscriber.receive();
             assertThat(future.isDone(), is(false));
 
             publisher.publish("blah blah");
 
-            assertThat(future.get().getValue(), is("blah blah"));
+            assertThat(future.get(1, TimeUnit.MINUTES).getValue(), is("blah blah"));
             }
         }
 
@@ -2247,7 +2248,7 @@ public abstract class AbstractNamedTopicTests
             {
             Future<Subscriber.Element<String>> future = subscriber.receive();
 
-            assertThat(future.get(), is(nullValue()));
+            assertThat(future.get(1, TimeUnit.MINUTES), is(nullValue()));
             }
         }
 
@@ -2263,11 +2264,11 @@ public abstract class AbstractNamedTopicTests
                 publisher.publish("blah").join();
                 }
 
-            assertThat(subscriber.receive().get().getValue(), is("blah"));
+            assertThat(subscriber.receive().get(1, TimeUnit.MINUTES).getValue(), is("blah"));
 
             Future<Subscriber.Element<String>> future = subscriber.receive();
 
-            assertThat(future.get(), is(nullValue()));
+            assertThat(future.get(1, TimeUnit.MINUTES), is(nullValue()));
             }
         }
 
@@ -2588,9 +2589,9 @@ public abstract class AbstractNamedTopicTests
 
                 Thread.sleep(3000);
 
-                assertThat(subscriber.receive().get(), is(nullValue()));
+                assertThat(subscriber.receive().get(1, TimeUnit.MINUTES), is(nullValue()));
 
-                publisher.publish("Element-Last").get();
+                publisher.publish("Element-Last").get(1, TimeUnit.MINUTES);
                 }
 
             String sValue = subscriber.receive().get(10, TimeUnit.SECONDS).getValue();
@@ -2619,7 +2620,7 @@ public abstract class AbstractNamedTopicTests
             int i = 0;
             for ( ; i<25; i++)
                 {
-                Element<String> element = subscriber1.receive().get();
+                Element<String> element = subscriber1.receive().get(1, TimeUnit.MINUTES);
                 assertThat(element.getValue(), is(sPrefix + i));
                 assertThat(element.commit().isSuccess(), is(true));
                 }
@@ -2630,7 +2631,7 @@ public abstract class AbstractNamedTopicTests
                 {
                 for ( ; i<50; i++)
                     {
-                    assertThat(subscriber2.receive().get().getValue(), is(sPrefix + i));
+                    assertThat(subscriber2.receive().get(1, TimeUnit.MINUTES).getValue(), is(sPrefix + i));
                     }
                 }
             }
@@ -2654,7 +2655,7 @@ public abstract class AbstractNamedTopicTests
 
             publisher.publish(sPrefix + 2);
 
-            assertThat(future.get().getValue(), is(sPrefix + 2));
+            assertThat(future.get(1, TimeUnit.MINUTES).getValue(), is(sPrefix + 2));
             }
         }
 
@@ -2675,13 +2676,13 @@ public abstract class AbstractNamedTopicTests
                 publisher.publish(sPrefix + 2);
                 publisher.publish(sPrefix + 3);
 
-                Element<String> element = future.get();
+                Element<String> element = future.get(1, TimeUnit.MINUTES);
                 assertThat(element.getValue(), is(sPrefix + 2));
 
                 // commit element-2
                 element.commit();
                 // receieve element-3
-                element = subscriber1.receive().get();
+                element = subscriber1.receive().get(1, TimeUnit.MINUTES);
                 assertThat(element.getValue(), is(sPrefix + 3));
 
                 // ensure that a new member to the group doesn't reset the groups position in the topic, i.e. this subscriber
@@ -2719,10 +2720,10 @@ public abstract class AbstractNamedTopicTests
 
             try (Publisher<String> publisher = topic.createPublisher())
                 {
-                publisher.publish(element).get();
+                publisher.publish(element).get(1, TimeUnit.MINUTES);
                 }
 
-            String sValue = subscriber.receive().get().getValue();
+            String sValue = subscriber.receive().get(1, TimeUnit.MINUTES).getValue();
 
             assertThat(sValue, is(element));
             }
@@ -2746,12 +2747,12 @@ public abstract class AbstractNamedTopicTests
 
             try (Publisher<String> publisher = topic.createPublisher())
                 {
-                publisher.publish("element-1").get();
-                publisher.publish(element).get();
+                publisher.publish("element-1").get(1, TimeUnit.MINUTES);
+                publisher.publish(element).get(1, TimeUnit.MINUTES);
                 }
 
-            String sValue1 = subscriber.receive().get().getValue();
-            String sValue2 = subscriber.receive().get().getValue();
+            String sValue1 = subscriber.receive().get(1, TimeUnit.MINUTES).getValue();
+            String sValue2 = subscriber.receive().get(1, TimeUnit.MINUTES).getValue();
 
             assertThat(sValue1, is("element-1"));
 
@@ -4253,9 +4254,9 @@ public abstract class AbstractNamedTopicTests
             {
             try
                 {
-                publisher.publish("Element-" + i).get();
+                publisher.publish("Element-" + i).get(1, TimeUnit.MINUTES);
                 }
-            catch (InterruptedException | ExecutionException e)
+            catch (InterruptedException | ExecutionException | TimeoutException e)
                 {
                 throw Base.ensureRuntimeException(e);
                 }
@@ -4271,9 +4272,9 @@ public abstract class AbstractNamedTopicTests
             {
             try
                 {
-                publisher.publish(new String(bytes)).get();
+                publisher.publish(new String(bytes)).get(1, TimeUnit.MINUTES);
                 }
-            catch (InterruptedException | ExecutionException e)
+            catch (InterruptedException | ExecutionException | TimeoutException e)
                 {
                 throw Base.ensureRuntimeException(e);
                 }
