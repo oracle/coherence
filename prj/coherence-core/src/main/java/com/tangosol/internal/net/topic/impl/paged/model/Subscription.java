@@ -9,6 +9,7 @@ package com.tangosol.internal.net.topic.impl.paged.model;
 import com.tangosol.internal.util.Primes;
 
 import com.tangosol.io.AbstractEvolvable;
+
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -22,11 +23,9 @@ import com.tangosol.util.ValueExtractor;
 
 import java.io.IOException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -36,8 +35,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import java.util.function.Function;
-
-import java.util.stream.Collectors;
 
 /**
  * Subscriber group data for a particular cache partition.
@@ -167,7 +164,7 @@ public class Subscription
      *
      * @return the filter
      */
-    public Filter getFilter()
+    public Filter<?> getFilter()
         {
         return m_filter;
         }
@@ -533,7 +530,7 @@ public class Subscription
     /**
      * Refresh the channel allocations.
      * <p>
-     * A consistent hashing alogorithm is used to ensure that the same allocation is
+     * A consistent hashing algorithm is used to ensure that the same allocation is
      * made across cluster members without needing central coordination.
      * <p>
      * The algorithm used will ensure that subscribers are allocated at least one channel, apart
@@ -545,7 +542,7 @@ public class Subscription
      *
      * @param setSubscriber  the set of subscribers
      * @param cChannel       the number of channels to allocate
-     * @param mapRing        the consisten hash ring to use to allocate subscribers
+     * @param mapRing        the consistent hash ring to use to allocate subscribers
      */
     private void refresh(SortedSet<Long> setSubscriber, int cChannel, SortedMap<Integer, Long> mapRing)
         {

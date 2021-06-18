@@ -33,13 +33,17 @@ import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.PartitionedService;
 import com.tangosol.net.cache.TypeAssertion;
 
+import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 
+import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Aggregators;
+import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.HashHelper;
@@ -52,6 +56,8 @@ import com.tangosol.util.aggregator.GroupAggregator;
 
 import com.tangosol.util.extractor.EntryExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.filter.AlwaysFilter;
+import com.tangosol.util.filter.PartitionedFilter;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -448,6 +454,45 @@ public class PagedTopicCaches
     public NamedTopic.ElementCalculator getElementCalculator()
         {
         return getDependencies().getElementCalculator();
+        }
+
+    /**
+     * Returns the identifiers for all the subscribers belonging to a subscriber group.
+     * <p>
+     * There is no guarantee that all of the subscribers are actually still active. If a subscriber
+     * process exits without closing the subscriber, the identifier remains in the cache until it
+     * is timed-out.
+     *
+     * @param sSubscriberGroup  the subscriber group name to get subscribers for
+     *
+     * @return the identifiers for all the subscribers belonging to a subscriber group
+     */
+    public Set<SubscriberInfo.Key> getSubscribers(String sSubscriberGroup)
+        {
+        ReflectionExtractor<SubscriberInfo.Key, SubscriberGroupId> extractor
+                = new ReflectionExtractor<>("getGroupId", new Object[0], EntryExtractor.KEY);
+
+        return Subscribers.keySet(Filters.equal(extractor, SubscriberGroupId.withName(sSubscriberGroup)));
+        }
+
+    /**
+     * Return the set of {@link Subscriber.Name named} subscriber group(s) and statically configured subscriber-group(s).
+     *
+     * @return the set of named subscriber groups.
+     */
+    public Set<String> getSubscriberGroups()
+        {
+        int          cParts  = ((PartitionedService) Subscriptions.getCacheService()).getPartitionCount();
+        PartitionSet setPart = new PartitionSet(cParts);
+
+        setPart.add(Base.getRandom().nextInt(cParts));
+
+        Set<Subscription.Key> setSubs = Subscriptions.keySet(new PartitionedFilter<>(AlwaysFilter.INSTANCE(), setPart));
+
+        return setSubs.stream()
+                .filter((key) -> key.getGroupId().getMemberTimestamp() == 0)
+                .map((key) -> key.getGroupId().getGroupName())
+                .collect(Collectors.toSet());
         }
 
     /**
