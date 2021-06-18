@@ -13,28 +13,19 @@ import com.tangosol.internal.util.Primes;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.PartitionedService;
 import com.tangosol.net.Service;
-
-import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
-import com.tangosol.util.filter.AlwaysFilter;
-import com.tangosol.util.filter.PartitionedFilter;
 
 import com.tangosol.io.ClassLoaderAware;
-
-import com.tangosol.internal.net.topic.impl.paged.model.Subscription.Key;
 
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * An implementation of a {@link NamedTopic} which provides global ordering.
@@ -102,16 +93,7 @@ public class PagedTopic<V>
     @Override
     public Set<String> getSubscriberGroups()
         {
-        int cParts = ((PartitionedService) f_pagedTopicCaches.Subscriptions.getCacheService()).getPartitionCount();
-        PartitionSet setPart = new PartitionSet(cParts);
-        setPart.add(Base.getRandom().nextInt(cParts));
-        Set<Key> setSubs = f_pagedTopicCaches.Subscriptions
-                .keySet(new PartitionedFilter<>(AlwaysFilter.INSTANCE(), setPart));
-
-        return setSubs.stream()
-                .filter((key) -> key.getGroupId().getMemberTimestamp() == 0)
-                .map((key) -> key.getGroupId().getGroupName())
-                .collect(Collectors.toSet());
+        return f_pagedTopicCaches.getSubscriberGroups();
         }
 
     @Override
@@ -239,7 +221,7 @@ public class PagedTopic<V>
 
     // ----- inner interface: Dependencies ----------------------------------
 
-    public static interface Dependencies
+    public interface Dependencies
         {
         /**
          * Returns the number of channels in the topic, or {@link #DEFAULT_CHANNEL_COUNT}
@@ -250,7 +232,7 @@ public class PagedTopic<V>
          *
          * @return the number of channels in the topic
          */
-        public int getChannelCount(int cPartition);
+        int getChannelCount(int cPartition);
 
         /**
          * Compute the channel count based on the supplied partition count.
@@ -259,7 +241,7 @@ public class PagedTopic<V>
          *
          * @return the channel count based on the supplied partition count
          */
-        public static int computeChannelCount(int cPartitions)
+        static int computeChannelCount(int cPartitions)
             {
             return Math.min(cPartitions, Primes.next((int) Math.sqrt(cPartitions)));
             }
@@ -269,28 +251,28 @@ public class PagedTopic<V>
          *
          * @return the capacity
          */
-        public int getPageCapacity();
+        int getPageCapacity();
 
         /**
          * Get maximum capacity for a server.
          *
          * @return return the capacity or zero if unlimited.
          */
-        public long getServerCapacity();
+        long getServerCapacity();
 
         /**
          * Obtain the expiry delay to apply to elements in ths topic.
          *
          * @return  the expiry delay to apply to elements in ths topic
          */
-        public long getElementExpiryMillis();
+        long getElementExpiryMillis();
 
         /**
          * Return the maximum size of a batch.
          *
          * @return the max batch size
          */
-        public long getMaxBatchSizeBytes();
+        long getMaxBatchSizeBytes();
 
         /**
          * Returns {@code true} if this topic retains messages after they have been committed
@@ -301,7 +283,7 @@ public class PagedTopic<V>
          *         or {@code false} if messages are removed after all known subscribers have
          *         committed them
          */
-        public boolean isRetainConsumed();
+        boolean isRetainConsumed();
 
         /**
          * Returns number of milliseconds within which a subscriber must issue a heartbeat or
@@ -309,14 +291,14 @@ public class PagedTopic<V>
          *
          * @return number of milliseconds within which a subscriber must issue a heartbeat
          */
-        public long getSubscriberTimeoutMillis();
+        long getSubscriberTimeoutMillis();
 
         /**
          * Returns the timeout that a subscriber will use when waiting for its first allocation of channels.
          *
          * @return the timeout that a subscriber will use when waiting for its first allocation of channels
          */
-        public long getNotificationTimeout();
+        long getNotificationTimeout();
 
         /**
          * Returns {@code true} if the topic allows commits of a position in a channel to be
@@ -325,7 +307,7 @@ public class PagedTopic<V>
          * @return {@code true} if the topic allows commits of a position in a channel to be
          *         made by subscribers that do not own the channel
          */
-        public boolean isAllowUnownedCommits();
+        boolean isAllowUnownedCommits();
 
         /**
          * Returns {@code true} if the topic only allows commits of a position in a channel to be
@@ -334,14 +316,14 @@ public class PagedTopic<V>
          * @return {@code true} if the topic only allows commits of a position in a channel to be
          *         made by subscribers that own the channel
          */
-        public boolean isOnlyOwnedCommits();
+        boolean isOnlyOwnedCommits();
 
         /**
          * Return the calculator used to calculate element sizes.
          *
          * @return the calculator used to calculate element sizes
          */
-        public NamedTopic.ElementCalculator getElementCalculator();
+        NamedTopic.ElementCalculator getElementCalculator();
         }
 
     // ----- constants ------------------------------------------------------

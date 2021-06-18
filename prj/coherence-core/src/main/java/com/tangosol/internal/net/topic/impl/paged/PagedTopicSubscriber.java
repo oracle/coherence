@@ -401,19 +401,7 @@ public class PagedTopicSubscriber<V>
 
             if (position == null || position instanceof PagedPosition)
                 {
-                PagedPosition        pagedPosition = (PagedPosition) position;
-                SeekProcessor.Result result        = seekInternal(nChannel, pagedPosition);
-                PagedPosition        positionHead  = result.getHead();
-                PagedPosition        seekPosition  = result.getSeekPosition();
-
-                if (positionHead != null)
-                    {
-                    f_aChannel[nChannel].m_lHead = positionHead.getPage();
-                    f_aChannel[nChannel].m_nNext = positionHead.getOffset();
-                    }
-
-                m_queueValuesPrefetched.removeIf(e -> e.getChannel() == nChannel);
-                return seekPosition == null ? PagedPosition.NULL_POSITION : seekPosition;
+                return seekChannel(nChannel, (PagedPosition) position);
                 }
             else
                 {
@@ -464,18 +452,9 @@ public class PagedTopicSubscriber<V>
             Map<Integer, Position> mapResult    = new HashMap<>();
             for (Map.Entry<Integer, PagedPosition> entry : mapSeek.entrySet())
                 {
-                int                  nChannel      = entry.getKey();
-                SeekProcessor.Result result        = seekInternal(nChannel, entry.getValue());
-                PagedPosition        positionHead  = result.getHead();
-                PagedPosition        seekPosition  = result.getSeekPosition();
-
-                if (positionHead != null)
-                    {
-                    f_aChannel[nChannel].m_lHead = positionHead.getPage();
-                    f_aChannel[nChannel].m_nNext = positionHead.getOffset();
-                    }
-
-                m_queueValuesPrefetched.removeIf(e -> e.getChannel() == nChannel);
+                int                  nChannel     = entry.getKey();
+                SeekProcessor.Result result       = seekInternal(nChannel, entry.getValue());
+                Position             seekPosition = updateSeekedChannel(nChannel, result);
                 mapResult.put(nChannel, seekPosition);
                 }
             return mapResult;
@@ -533,19 +512,7 @@ public class PagedTopicSubscriber<V>
                 // we are not at the head of a page so seek to the page and previous offset
                 positionSeek = new PagedPosition(position.getPage(), nOffset - 1);
                 }
-
-            SeekProcessor.Result result        = seekInternal(nChannel, positionSeek);
-            PagedPosition        positionHead  = result.getHead();
-            PagedPosition        seekPosition  = result.getSeekPosition();
-
-            if (positionHead != null)
-                {
-                f_aChannel[nChannel].m_lHead = positionHead.getPage();
-                f_aChannel[nChannel].m_nNext = positionHead.getOffset();
-                }
-
-            m_queueValuesPrefetched.removeIf(e -> e.getChannel() == nChannel);
-            return seekPosition == null ? PagedPosition.NULL_POSITION : seekPosition;
+            return seekChannel(nChannel, positionSeek);
             }
         finally
             {
@@ -680,7 +647,6 @@ public class PagedTopicSubscriber<V>
      * @throws InterruptedException if the wait for channel allocation is interrupted
      * @throws ExecutionException if the wait for channel allocation fails
      */
-    @SuppressWarnings("unchecked")
     protected synchronized void initialise() throws InterruptedException, ExecutionException
         {
         ensureActive();
@@ -779,7 +745,7 @@ public class PagedTopicSubscriber<V>
             heartbeat();
             complete(queueRequest);
 
-            int nChannel = m_nChannel;
+            int nChannel = ensureOwnedChannel();
             if (!queueRequest.isBatchComplete() && nChannel >= 0)
                 {
                 // we have emptied the pre-fetch queue but the batch has more in it, so fetch more
@@ -946,6 +912,28 @@ public class PagedTopicSubscriber<V>
             future.completeExceptionally(thrown);
             return future;
             }
+        }
+
+    private Position seekChannel(int nChannel, PagedPosition pagedPosition)
+        {
+        SeekProcessor.Result result       = seekInternal(nChannel, pagedPosition);
+        Position             seekPosition = updateSeekedChannel(nChannel, result);
+        return seekPosition == null ? PagedPosition.NULL_POSITION : seekPosition;
+        }
+
+    private Position updateSeekedChannel(int nChannel, SeekProcessor.Result result)
+        {
+        PagedPosition positionHead = result.getHead();
+        PagedPosition seekPosition = result.getSeekPosition();
+
+        if (positionHead != null)
+            {
+            f_aChannel[nChannel].m_lHead = positionHead.getPage();
+            f_aChannel[nChannel].m_nNext = positionHead.getOffset();
+            }
+
+        m_queueValuesPrefetched.removeIf(e -> e.getChannel() == nChannel);
+        return seekPosition;
         }
 
     /**
@@ -1255,15 +1243,17 @@ public class PagedTopicSubscriber<V>
         // reset revoked channel heads - we'll re-sync if they are reallocated
         setRevoked.forEach(c ->
             {
-            Channel channel = f_aChannel[c];
-            channel.m_lHead  = Page.NULL_PAGE;
-            channel.m_fEmpty = false;
+            Channel channel      = f_aChannel[c];
+            channel.m_lHead      = Page.NULL_PAGE;
+            channel.m_fEmpty     = false;
+            channel.m_fContended = false;
             });
         // re-sync added channel heads and reset empty flag
         setNew.forEach(c ->
            {
-           Channel channel = f_aChannel[c];
-           channel.m_fEmpty = false;
+           Channel channel      = f_aChannel[c];
+           channel.m_fEmpty     = false;
+           channel.m_fContended = false;
            scheduleHeadIncrement(channel, Page.NULL_PAGE);
            });
         }
@@ -1322,9 +1312,9 @@ public class PagedTopicSubscriber<V>
         do
             {
             nChannel = m_listenerChannelAllocation.nextChannel(nChannel);
-            if (nChannel == -1)
+            if (nChannel == -1 || m_listenerChannelAllocation.getChannelCount() <= 1)
                 {
-                // we have no channel allocation
+                // we have zero or one channel allocation so just return the channel
                 return nChannel;
                 }
 
@@ -1344,6 +1334,20 @@ public class PagedTopicSubscriber<V>
         return fContention
             ? f_listChannelsContended.get(0).subscriberPartitionSync.getChannelId()
             : nChannelStart;
+        }
+
+    /**
+     * Return the current channel to poll, ensuring this subscriber owns the channel.
+     *
+     * @return the current channel to poll
+     */
+    protected int ensureOwnedChannel()
+        {
+        if (m_listenerChannelAllocation.isOwned(m_nChannel))
+            {
+            return m_nChannel;
+            }
+        return nextChannel(m_nChannel);
         }
 
     /**
@@ -1553,20 +1557,11 @@ public class PagedTopicSubscriber<V>
 
                 try
                     {
-                    if (!fDestroyed)
-                        {
-                        // caches have not been destroyed so we're just closing this subscriber
-                        unregisterDeactivationListener();
-                        unregisterChannelAllocationListener();
-                        unregisterNotificationListener();
-                        notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, f_nId);
-                        }
-
                     f_queueReceiveOrders.close();
                     f_queueReceiveOrders.cancelAllAndClose("Subscriber has been closed", null);
 
-                    // flush this publisher to wait for all of the outstanding
-                    // add operations to complete (or to be cancelled if we're destroying)
+                    // flush this subscriber to wait for all of the outstanding
+                    // operations to complete (or to be cancelled if we're destroying)
                     try
                         {
                         flushInternal(fDestroyed ? FlushMode.FLUSH_DESTROY : FlushMode.FLUSH).get(CLOSE_TIMEOUT_SECS, TimeUnit.SECONDS);
@@ -1580,6 +1575,15 @@ public class PagedTopicSubscriber<V>
                     catch (ExecutionException | InterruptedException e)
                         {
                         // ignore
+                        }
+
+                    if (!fDestroyed)
+                        {
+                        // caches have not been destroyed so we're just closing this subscriber
+                        unregisterDeactivationListener();
+                        unregisterChannelAllocationListener();
+                        unregisterNotificationListener();
+                        notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, f_nId);
                         }
 
                     if (!fDestroyed && f_subscriberGroupId.getMemberTimestamp() != 0)
@@ -1742,7 +1746,7 @@ public class PagedTopicSubscriber<V>
         // as the callbacks assume we're fully initialized
         if (f_caches.Notifications.isActive())
             {
-            Filter<Object> filter = createNotifiactionListenerFilter();
+            Filter<Object> filter = createNotificationListenerFilter();
             f_caches.Notifications.addMapListener(f_listenerNotification, filter, /*fLite*/ false);
             }
         }
@@ -1753,12 +1757,12 @@ public class PagedTopicSubscriber<V>
         // un-register the subscriber listener in each partition
         if (f_caches.Notifications.isActive())
             {
-            Filter<Object> filter = createNotifiactionListenerFilter();
+            Filter<Object> filter = createNotificationListenerFilter();
             f_caches.Notifications.removeMapListener(f_listenerNotification, filter);
             }
         }
 
-    private Filter<Object> createNotifiactionListenerFilter()
+    private Filter<Object> createNotificationListenerFilter()
         {
         return new InKeySetFilter<>(/*filter*/ null, f_caches.getPartitionNotifierSet(f_nNotificationId));
         }
@@ -1849,7 +1853,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the cluster member id from the subscriber id
      */
-    static int memberIdFromId(long nId)
+    public static int memberIdFromId(long nId)
         {
         return (int) (nId >> 32);
         }
@@ -2260,6 +2264,16 @@ public class PagedTopicSubscriber<V>
             }
 
         /**
+         * Returns the number of owned channels.
+         *
+         * @return the number of owned channels
+         */
+        public int getChannelCount()
+            {
+            return m_aChannel.length;
+            }
+
+        /**
          * Returns the next channel after the specified channel to try to receive from.
          *
          * @param nChannel  the current channel
@@ -2273,6 +2287,12 @@ public class PagedTopicSubscriber<V>
                 {
                 return -1;
                 }
+
+            if (aChannel.length == 1)
+                {
+                return aChannel[0];
+                }
+
             int i = 0;
             for ( ; i < aChannel.length; i++)
                 {
@@ -2387,7 +2407,10 @@ public class PagedTopicSubscriber<V>
             Subscription subscription = evt.getNewValue();
             if (subscription.hasSubscriber(f_nId))
                 {
-                List<Integer> list = Arrays.stream(subscription.getChannels(f_nId, f_caches.getChannelCount())).boxed().collect(Collectors.toList());
+                List<Integer> list = Arrays.stream(subscription.getChannels(f_nId, f_caches.getChannelCount()))
+                        .boxed()
+                        .collect(Collectors.toList());
+
                 updateChannels(list, false);
                 }
             else if (isActive() && !f_fAnonymous && !isDisconnected())

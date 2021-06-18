@@ -25,7 +25,6 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
-import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.io.Serializer;
@@ -1385,14 +1384,14 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-4");
 
-        try (Subscriber<Customer> subscriber = topic.createSubscriber(inGroup("durableSubscriber"), CompleteOnEmpty.enabled(),
-                Subscriber.Filtered.by(new GreaterEqualsFilter<>(new UniversalExtractor<>("id"), 12))))
+        try (@SuppressWarnings("unused")
+             Subscriber<Customer> subscriber = topic.createSubscriber(inGroup("durableSubscriber"), CompleteOnEmpty.enabled(),
+                        Subscriber.Filtered.by(new GreaterEqualsFilter<>(new UniversalExtractor<>("id"), 12))))
             {
             assertThrows(TopicException.class, () ->
                     topic.createSubscriber(inGroup("durableSubscriber"), CompleteOnEmpty.enabled(),
                                Subscriber.Filtered.by(new LessFilter<>(new UniversalExtractor<>("id"), 12))));
             }
-
         }
 
     @Test
@@ -1449,8 +1448,9 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-6");
 
-        try (Subscriber<Serializable> subscriber = topic.createSubscriber(inGroup("durable-subscriber-3"),
-                    Subscriber.Convert.using(Customer::getAddress)))
+        try (@SuppressWarnings("unused")
+             Subscriber<Serializable> subscriber = topic.createSubscriber(inGroup("durable-subscriber-3"),
+                        Subscriber.Convert.using(Customer::getAddress)))
             {
             assertThrows(TopicException.class, () ->
                     topic.createSubscriber(inGroup("durable-subscriber-3"), Subscriber.Convert.using(Customer::getId)));
@@ -1655,7 +1655,7 @@ public abstract class AbstractNamedTopicTests
         TopicPublisher     publisher1 = new TopicPublisher(topic, "1-" + sPrefix, nCount, true);
         TopicPublisher     publisher2 = new TopicPublisher(topic, "2-" + sPrefix, nCount, true);
 
-        try (Subscriber<String> subscriberPin = topic.createSubscriber())
+        try (@SuppressWarnings("unused")Subscriber<String> subscriberPin = topic.createSubscriber())
             {
             Future<?> futurePub1 = m_executorService.submit(publisher1);
             Future<?> futurePub2 = m_executorService.submit(publisher2);
@@ -1679,7 +1679,7 @@ public abstract class AbstractNamedTopicTests
         String             sPrefix     = "Element-";
         TopicPublisher     publisher   = new TopicPublisher(topic, sPrefix, nCount, true);
 
-        try (Subscriber<String> subscriberPin = topic.createSubscriber();
+        try (@SuppressWarnings("unused") Subscriber<String> subscriberPin = topic.createSubscriber();
              Subscriber<String> subscriber = topic.createSubscriber(Subscriber.Name.inGroup("Foo")))
             {
             publisher.run();
@@ -1961,7 +1961,7 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldReceiveNonCommittedElementsAsSubscribersComeAndGo() throws Exception
         {
-        List<String> listLog = new ArrayList<>(20000);
+        ListLogger listLog = new ListLogger();
 
         NamedTopic<String> topic        = ensureTopic();
         String             sPrefix      = "Element-";
@@ -2008,6 +2008,10 @@ public abstract class AbstractNamedTopicTests
             Map<Integer, Position> commits2  = new HashMap<>();
             Map<Integer, Position> commits3  = new HashMap<>();
             int                    cRecieved = 0;
+
+            System.err.println("Subscriber 1 has channels " + Arrays.toString(subscriber1.getChannels()));
+            System.err.println("Subscriber 2 has channels " + Arrays.toString(subscriber2.getChannels()));
+            System.err.println("Subscriber 3 has channels " + Arrays.toString(subscriber3.getChannels()));
 
             // read some messages with all subscribers, but do not commit anything
             for (int i = 0; i<19; i++)
@@ -2059,6 +2063,9 @@ public abstract class AbstractNamedTopicTests
             Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(is(not(0))));
             Eventually.assertDeferred(() -> subscriber2.getChannels().length + subscriber3.getChannels().length, is(cChannel));
 
+            System.err.println("Subscriber 2 has channels " + Arrays.toString(subscriber2.getChannels()));
+            System.err.println("Subscriber 3 has channels " + Arrays.toString(subscriber3.getChannels()));
+
             // read some messages with remaining subscribers, but do not commit anything
             for (int i = 0; i<19; i++)
                 {
@@ -2099,6 +2106,8 @@ public abstract class AbstractNamedTopicTests
             // this for the test to be stable
             Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(cChannel));
 
+            System.err.println("Subscriber 3 has channels " + Arrays.toString(subscriber3.getChannels()));
+
             // read all messages left using subscriber 3
             while (cRecieved < cMessages)
                 {
@@ -2131,10 +2140,11 @@ public abstract class AbstractNamedTopicTests
                             listLog.add("Missing: " + listSent.get(r));
                             }
                         }
-                    listLog.forEach(System.err::println);
+                    listLog.getLog().forEach(System.err::println);
                     }
                 assertThat(mapReceived.get(i), is(mapSent.get(i)));
                 }
+            System.err.println("***** Done, closing...");
             }
         }
 
@@ -2552,7 +2562,7 @@ public abstract class AbstractNamedTopicTests
         int                cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
         long               nHigh   = (getDependencies(topic).getMaxBatchSizeBytes() * 3) / cbValue;
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
             {
             try (Publisher<String> publisher = topic.createPublisher();
                  @SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
@@ -4449,6 +4459,28 @@ public abstract class AbstractNamedTopicTests
         // ----- data members -----------------------------------------------
 
         private volatile String m_sName;
+        }
+
+    static class ListLogger
+        {
+        void add(String s)
+            {
+            m_listLog.add(s);
+            if (m_fLog)
+                {
+                System.err.println(s);
+                }
+            }
+
+        ArrayList<String> getLog()
+            {
+            return m_listLog;
+            }
+
+        private final ArrayList<String> m_listLog = new ArrayList<>(20000);
+
+        @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
+        private boolean m_fLog = false;
         }
 
     // ----- constants ------------------------------------------------------
