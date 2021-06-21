@@ -1156,6 +1156,11 @@
             "title": "Portable Types"
         },
         {
+            "location": "/docs/topics/05_persistence",
+            "text": " Coherence topics store data in caches, and as such the Coherence persistence feature can be used to persist that data to disc. As well as the actual topic message data, the metadata associated with a topic will also be stored in caches. This data tracks information such as the head and tail of a topic, it also tracks subscriber groups and subscriber lifetimes. When persistence has been enabled, the metadata caches will also be persisted. Both active and on-demand persistence will work with topics, and in fact, a recommendation is to use active persistence, as data loss can severely impact topic functionality. Warning Care must be taken if recovering cache data from a persistence snapshot. A snapshot of topics caches will also contain metadata for the topic, this includes the commits, heads and tails for subscribers and subscriber groups. When recovering a snapshot for a Coherence topics cache service, all the metadata will also be recovered. This will reset the state of subscribers and subscriber groups, as well as topic heads, and tails, which may affect publishers. When recovering a snapshot it is important that no subscribers and publishers have been connected. Publishers and subscribers have their own state and on recovery this state will be out of date with the actual topic state in the topic metadata. This can cause subscribers to read the wrong data, or a publisher to attempt to publish to the wrong position. This may not immediately be apparent as it may not cause an exception to be thrown so data could be corrupted. ",
+            "title": "Topics and Persistence"
+        },
+        {
             "location": "/docs/topics/01_introduction",
             "text": " Note Topics was first introduced in 14.1.1.0 and was considerable enhanced to improve message delivery guarantees in CE 21.06. Whilst the changes made in 21.06 are API compatible, the underlying data-structures and entry processors used are not backwards compatible, meaning that a rolling upgrade of a cluster using Topics from 14.1.1.0 (or CE version prior to 21.06) upgrading to CE 21.06 will not work. ",
             "title": "Version Compatibility"

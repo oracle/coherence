@@ -195,6 +195,19 @@ function createRoutes(){
             component: loadPage('docs-topics-04_subscribers', '/docs/topics/04_subscribers', {})
         },
         {
+            path: '/docs/topics/05_persistence',
+            meta: {
+                h1: 'Topics and Persistence',
+                title: 'Topics and Persistence',
+                h1Prefix: null,
+                description: 'Coherence Topics Persistence',
+                keywords: 'coherence, topics, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-topics-05_persistence', '/docs/topics/05_persistence', {})
+        },
+        {
             path: '/coherence-cdi-server/README',
             meta: {
                 h1: 'Coherence CDI',
@@ -612,7 +625,8 @@ function createNav(){
                                 { href: '/docs/topics/01_introduction', title: 'Introduction to Coherence Topics' },
                                 { href: '/docs/topics/02_configuring_topics', title: 'Configure Coherence Topics' },
                                 { href: '/docs/topics/03_publishers', title: 'Publishers' },
-                                { href: '/docs/topics/04_subscribers', title: 'Subscribers' }
+                                { href: '/docs/topics/04_subscribers', title: 'Subscribers' },
+                                { href: '/docs/topics/05_persistence', title: 'Topics and Persistence' }
                             ]
                         },
                         {
