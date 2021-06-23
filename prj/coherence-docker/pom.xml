@@ -23,7 +23,7 @@
 
   <properties>
     <docker.registry>docker.io/oraclecoherence</docker.registry>
-    <docker.image.name>${docker.registry}/coherence:${project.version}</docker.image.name>
+    <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
     <docker.image.arch>amd64</docker.image.arch>
 
     <!--
