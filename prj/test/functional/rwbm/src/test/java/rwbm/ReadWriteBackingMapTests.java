@@ -8,12 +8,18 @@
 package rwbm;
 
 
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.coherence.config.CustomClasses;
 import com.tangosol.internal.util.processor.CacheProcessors;
-import com.tangosol.net.BackingMapManagerContext;
-import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.Member;
+import com.tangosol.net.NamedCache;
+import com.tangosol.net.PartitionedService;
+
+import com.tangosol.net.cache.BinaryEntryStore;
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.LocalCache;
@@ -65,7 +71,7 @@ import common.TestBinaryCacheStore;
 import common.TestBinaryCacheStore.ExpireProcessor;
 import common.TestCacheStore;
 import common.TestHelper;
-
+import common.TestNonBlockingStore;
 
 import data.Person;
 
@@ -88,8 +94,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 
 import static org.hamcrest.CoreMatchers.*;
 
@@ -98,6 +106,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 
@@ -112,8 +121,8 @@ public class ReadWriteBackingMapTests
     // ----- constructors ---------------------------------------------------
 
     /**
-    * Default constructor.
-    */
+     * Default constructor.
+     */
     public ReadWriteBackingMapTests()
         {
         super(FILE_CFG_CACHE);
@@ -123,8 +132,8 @@ public class ReadWriteBackingMapTests
     // ----- test lifecycle -------------------------------------------------
 
     /**
-    * Initialize the test class.
-    */
+     * Initialize the test class.
+     */
     @BeforeClass
     public static void _startup()
         {
@@ -139,9 +148,9 @@ public class ReadWriteBackingMapTests
     // ----- test methods ---------------------------------------------------
 
     /**
-    * Test the behavior of put() on a ReadWriteBackingMap with a
-    * write-batch-factor of one.
-    */
+     * Test the behavior of put() on a ReadWriteBackingMap with a
+     * write-batch-factor of one.
+     */
     @Test
     public void putWithWriteBatchFactorOne()
         {
@@ -151,11 +160,11 @@ public class ReadWriteBackingMapTests
 
     private void putWithWriteBatchFactorOne(String sCacheName)
         {
-        NamedCache          cache   = getNamedCache(sCacheName);
-        ReadWriteBackingMap rwbm    = getReadWriteBackingMap(cache);
-        AbstractTestStore   store   = getStore(cache);
-        ObservableMap       map     = store.getStorageMap();
-        long                cMillis = rwbm.getWriteBehindSeconds() * 1000L;
+        NamedCache cache = getNamedCache(sCacheName);
+        ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
+        AbstractTestStore store = getStore(cache);
+        ObservableMap map = store.getStorageMap();
+        long cMillis = rwbm.getWriteBehindSeconds() * 1000L;
 
         // assert RWBM configuration
         assertTrue("write-batch-factor != 0.0", rwbm.getWriteBatchFactor() == 0.0);
@@ -191,9 +200,9 @@ public class ReadWriteBackingMapTests
         }
 
     /**
-    * Test the behavior of put() on a ReadWriteBackingMap with a
-    * write-batch-factor of one half.
-    */
+     * Test the behavior of put() on a ReadWriteBackingMap with a
+     * write-batch-factor of one half.
+     */
     @Test
     public void putWithWriteBatchFactorOneHalf()
         {
@@ -203,11 +212,11 @@ public class ReadWriteBackingMapTests
 
     private void putWithWriteBatchFactorOneHalf(String sCacheName)
         {
-        NamedCache          cache   = getNamedCache(sCacheName);
-        ReadWriteBackingMap rwbm    = getReadWriteBackingMap(cache);
-        AbstractTestStore   store   = getStore(cache);
-        ObservableMap       map     = store.getStorageMap();
-        long                cMillis = rwbm.getWriteBehindSeconds() * 1000L;
+        NamedCache cache = getNamedCache(sCacheName);
+        ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
+        AbstractTestStore store = getStore(cache);
+        ObservableMap map = store.getStorageMap();
+        long cMillis = rwbm.getWriteBehindSeconds() * 1000L;
 
         // assert RWBM configuration
         assertTrue("write-batch-factor != 0.0", rwbm.getWriteBatchFactor() == 0.0);
@@ -267,9 +276,9 @@ public class ReadWriteBackingMapTests
         }
 
     /**
-    * Test the behavior of put() on a ReadWriteBackingMap with a
-    * write-batch-factor of zero.
-    */
+     * Test the behavior of put() on a ReadWriteBackingMap with a
+     * write-batch-factor of zero.
+     */
     @Test
     public void putWithWriteBatchFactorZero()
         {
@@ -279,11 +288,11 @@ public class ReadWriteBackingMapTests
 
     private void putWithWriteBatchFactorZero(String sCacheName)
         {
-        NamedCache          cache   = getNamedCache(sCacheName);
-        ReadWriteBackingMap rwbm    = getReadWriteBackingMap(cache);
-        AbstractTestStore   store   = getStore(cache);
-        ObservableMap       map     = store.getStorageMap();
-        long                cMillis = rwbm.getWriteBehindSeconds() * 1000L;
+        NamedCache cache = getNamedCache(sCacheName);
+        ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
+        AbstractTestStore store = getStore(cache);
+        ObservableMap map = store.getStorageMap();
+        long cMillis = rwbm.getWriteBehindSeconds() * 1000L;
 
         // assert RWBM configuration
         assertTrue("write-batch-factor != 0.0", rwbm.getWriteBatchFactor() == 0.0);
@@ -311,9 +320,9 @@ public class ReadWriteBackingMapTests
         }
 
     /**
-    * Test the behavior of put() on a ReadWriteBackingMap with a
-    * write-batch-factor of zero and a high latency CacheStore.
-    */
+     * Test the behavior of put() on a ReadWriteBackingMap with a
+     * write-batch-factor of zero and a high latency CacheStore.
+     */
     @Test
     public void writeBehindWithLongStore()
         {
@@ -323,12 +332,12 @@ public class ReadWriteBackingMapTests
 
     private void writeBehindWithLongStore(String sCacheName)
         {
-        NamedCache          cache   = getNamedCache(sCacheName);
-        ReadWriteBackingMap rwbm    = getReadWriteBackingMap(cache);
-        AbstractTestStore   store   = getStore(cache);
-        ObservableMap       map     = store.getStorageMap();
-        long                cMillis = rwbm.getWriteBehindSeconds() * 1000L;
-        Object              sValue;
+        NamedCache cache = getNamedCache(sCacheName);
+        ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
+        AbstractTestStore store = getStore(cache);
+        ObservableMap map = store.getStorageMap();
+        long cMillis = rwbm.getWriteBehindSeconds() * 1000L;
+        Object sValue;
 
         // assert RWBM configuration
         assertTrue("write-batch-factor != 0.0", rwbm.getWriteBatchFactor() == 0.0);
@@ -363,8 +372,8 @@ public class ReadWriteBackingMapTests
             cache.clear();
             assertEquals("Failed to clear", 0, map.size());
 
-            int cEntries = rwbm.getWriteMaxBatchSize()*3;
-            Map mapTemp  = new HashMap();
+            int cEntries = rwbm.getWriteMaxBatchSize() * 3;
+            Map mapTemp = new HashMap();
             for (int i = 0; i < cEntries; i++)
                 {
                 mapTemp.put(i, i);
@@ -380,9 +389,9 @@ public class ReadWriteBackingMapTests
         }
 
     /**
-    * Test the behavior of the ReadWriteBackingMap$WriteThread while calling
-    * destroy().
-    */
+     * Test the behavior of the ReadWriteBackingMap$WriteThread while calling
+     * destroy().
+     */
     @Test
     public void writeBehindDuringDestroy() throws Exception
         {
@@ -393,13 +402,13 @@ public class ReadWriteBackingMapTests
     private void writeBehindDuringDestroy(String sCacheName) throws Exception
         {
         Method method = ReadWriteBackingMap.class.getDeclaredMethod("getWriteThread");
-        List   listThreads = new ArrayList(10);
+        List listThreads = new ArrayList(10);
 
         method.setAccessible(true);
         for (int i = 0; i < 10; ++i)
             {
-            NamedCache          cache = getNamedCache(sCacheName);
-            ReadWriteBackingMap rwbm  = getReadWriteBackingMap(cache);
+            NamedCache cache = getNamedCache(sCacheName);
+            ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
 
             Object oDaemon = method.invoke(rwbm, ClassHelper.VOID);
             assertTrue(oDaemon instanceof Daemon);
@@ -421,8 +430,8 @@ public class ReadWriteBackingMapTests
         }
 
     /**
-    * Test the requeue behavior.
-    */
+     * Test the requeue behavior.
+     */
     @Test
     public void writeBehindDuringRequeue() throws Exception
         {
@@ -432,11 +441,11 @@ public class ReadWriteBackingMapTests
 
     private void writeBehindDuringRequeue(String sCacheName) throws Exception
         {
-        NamedCache          cache   = getNamedCache(sCacheName);
-        ReadWriteBackingMap rwbm    = getReadWriteBackingMap(cache);
-        AbstractTestStore   store   = getStore(cache);
-        ObservableMap       map     = store.getStorageMap();
-        long                cMillis = rwbm.getWriteBehindSeconds() * 1000L;
+        NamedCache cache = getNamedCache(sCacheName);
+        ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
+        AbstractTestStore store = getStore(cache);
+        ObservableMap map = store.getStorageMap();
+        long cMillis = rwbm.getWriteBehindSeconds() * 1000L;
 
         // reset the storage map
         map.clear();
@@ -497,7 +506,7 @@ public class ReadWriteBackingMapTests
             {
             // prime the cache contents
             Map mapContents = new HashMap();
-            for (int i = 0 ; i < 200; i++)
+            for (int i = 0; i < 200; i++)
                 {
                 mapContents.put("Key" + i, "Value" + i);
                 }
@@ -526,6 +535,181 @@ public class ReadWriteBackingMapTests
 
             // verify the store loadAll() method was called
             verifyStoreStats("readThroughBasic-" + sCacheName, store, 0, 0, 0, 1, 0, 0);
+            }
+        finally
+            {
+            cache.destroy();
+            }
+        }
+
+    /**
+     * Test non-blocking failover in the middle of a put
+     */
+    @Test
+    public void testNonBlockingFailover()
+        {
+        String sCacheName = "dist-rwbm-nonblocking";
+        NamedCache cache = getNamedCache(sCacheName);
+        AbstractTestStore store = getStore(cache);
+        ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
+        BackingMapManagerContext ctx = cache.getCacheService().getBackingMapManager().getContext();
+        Converter convDown = ctx.getKeyToInternalConverter();
+        int nPartitions = ((PartitionedService) cache.getCacheService()).getPartitionCount();
+        int cOwned = 0;
+        int cTotal = 10;
+
+        cache.clear();
+        store.getStorageMap().clear();
+
+        String sServerName = "storage1";
+        CoherenceClusterMember clusterMember1 = startCacheServer(sServerName, "UnavailableTimeLogging", "rwbm-cache-config.xml");
+        waitForServer(clusterMember1);
+        waitForBalanced(cache.getCacheService());
+
+        for (int i = 0; i < cTotal; i++)
+            {
+            boolean own = ctx.isKeyOwned(ExternalizableHelper.toBinary("Key" + i));
+            if (own)
+                {
+                cache.put("Key" + i, "Failover" + i);
+                cOwned++;
+                }
+            else
+                {
+                cache.put("Key" + i, "DontOwn" + i);
+                }
+            }
+
+        // stop second member and check that restore/index build gets triggered for partitions coming back
+        stopCacheServer("storage1");
+        // wait for server to stop
+        Eventually.assertDeferred(() -> cache.getCacheService().getCluster().getMemberSet().size(),
+                                  Matchers.is(1), within(5, TimeUnit.MINUTES));
+
+        PartitionedService service = (PartitionedService) cache.getCacheService();
+        Member member = service.getCluster().getLocalMember();
+        // wait for re-distribution
+        Eventually.assertThat(invoking(service).getOwnedPartitions(member).cardinality(), is(nPartitions));
+
+        assertTrue(store.getStorageMap().size() == cOwned);
+
+        // wait for failover to happen
+        definiteSleep(30000);
+
+        assertTrue(store.getStorageMap().size() == cTotal);
+        }
+
+    /**
+     * Test basic async CacheStore functionality.
+     */
+    @Test
+    public void readAsyncBasic()
+        {
+        String sCacheName = "dist-rwbm-nonblocking";
+
+        NamedCache cache = getNamedCache(sCacheName);
+        try
+            {
+            cache.clear();
+            AbstractTestStore store = getStore(cache);
+            store.resetStats();
+
+            // prime the store contents
+            Map mapContents = new HashMap();
+            for (int i = 0; i < 200; i++)
+                {
+                mapContents.put("Key" + i, "Value" + i);
+                }
+            store.getStorageMap().putAll(mapContents);
+
+            // test load()
+            assertEquals(0, cache.size());
+            for (Object oEntry : mapContents.entrySet())
+                {
+                Map.Entry entry = (Map.Entry) oEntry;
+                assertEquals(entry.getValue(), cache.get(entry.getKey()));
+                }
+
+            // verify the store load() method was called the expected number of times
+            verifyStoreStats("readAsyncBasic-" + sCacheName, store, mapContents.size(), 0, 0, 0, 0, 0);
+
+            // reset
+            cache.clear();
+            store.getStorageMap().putAll(mapContents);
+            store.resetStats();
+
+            // test loadAll()
+            assertEquals(0, cache.size());
+            assertEquals(mapContents, cache.getAll(mapContents.keySet()));
+
+            // verify the store loadAll() method was called
+            verifyStoreStats("readAsyncBasic-" + sCacheName, store, 0, 0, 0, 1, 0, 0);
+
+            // test store not calling onNext/onError
+            // clear store cache contents
+            store.getStorageMap().clear();
+
+            assertEquals(null, cache.get("someKey"));
+            cache.get("IllegalState");
+
+            Base.sleep(3000);
+
+            assertEquals("IllegalStateException", store.getStorageMap().get("IllegalState"));
+            }
+        finally
+            {
+            cache.destroy();
+            }
+        }
+
+    /**
+    * Test async CacheStore functionality with exceptions.
+    */
+    @Test
+    public void readAllAsyncException()
+        {
+        readAllAsyncException(false);
+        readAllAsyncException(true);
+        }
+
+    public void readAllAsyncException(boolean fGlobal)
+        {
+        String     sCacheName = "dist-rwbm-nonblocking";
+        NamedCache cache      = getNamedCache(sCacheName);
+        String     errorKey   = "Key87";
+        try
+            {
+            cache.clear();
+            AbstractTestStore store = getStore(cache);
+            store.resetStats();
+
+            if (!fGlobal)
+                {
+                store.setFailureKeyLoadAll(errorKey);
+                }
+
+            String sValue = fGlobal ? "Exception" : "Value";
+
+            // prime the cache contents
+            Map mapContents = new HashMap();
+            for (int i = 0 ; i < 200; i++)
+                {
+                mapContents.put("Key" + i, sValue + i);
+                }
+            store.getStorageMap().putAll(mapContents);
+
+            if (fGlobal)
+                {
+                assertThrows(RuntimeException.class, () -> cache.getAll(mapContents.keySet()));
+                }
+            else
+                {
+                Map resultMap = cache.getAll(mapContents.keySet());
+
+                assertEquals(store.getStorageMap().size() - 1, cache.size());
+                mapContents.remove(errorKey);
+                assertEquals(mapContents, resultMap);
+                }
             }
         finally
             {
@@ -568,6 +752,143 @@ public class ReadWriteBackingMapTests
 
         verifyStoreStats("writeThroughBasic-" + sCacheName, store, 0, mapData.size(), 0, 0, 0, 0);
         assertThat(mapStorage.size(), is(mapData.size()));
+        }
+
+    /**
+     * Test basic write non-blocking store functionality.
+     */
+    @Test
+    public void writeAsyncPutBasic() throws Exception
+        {
+        String sCacheName = "dist-rwbm-nonblocking";
+
+        NamedCache cache = getNamedCache(sCacheName);
+
+        Map<String,String> mapData = new HashMap<>();
+        for (int i = 0 ; i < 200; i++)
+            {
+            mapData.put("Key" + i, "Value" + i);
+            }
+
+        AbstractTestStore store = getStore(cache);
+        ObservableMap mapStorage = store.getStorageMap();
+        mapStorage.clear();
+        store.resetStats();
+
+        // Individual puts should call store() on CacheStore
+        for (Map.Entry<String,String> entry : mapData.entrySet())
+            {
+            cache.put(entry.getKey(), entry.getValue());
+            }
+
+        // wait for async operations to finish
+        definiteSleep(10000);
+
+        verifyStoreStats("writeAsyncBasic-" + sCacheName, store, 0, mapData.size(), 0, 0, 0, 0);
+        assertThat(mapStorage.size(), is(mapData.size()));
+        }
+
+    /**
+     * Test basic write non-blocking store functionality, putAll
+     */
+    @Test
+    public void writeAsyncPutAllBasic() throws Exception
+        {
+        NamedCache cache = getNamedCache("dist-rwbm-nonblocking-putall");
+        cache.clear();
+
+        Map<String,String> mapData = new HashMap<>();
+        for (int i = 0 ; i < 50; i++)
+            {
+            mapData.put("Key" + i, "Value" + i);
+            }
+
+        AbstractTestStore store = getStore(cache);
+        ObservableMap mapStorage = store.getStorageMap();
+        mapStorage.clear();
+        store.resetStats();
+
+        // cache.putAll() should call storeAll on CacheStore
+        cache.putAll(mapData);
+
+        Eventually.assertDeferred(mapStorage::size, is(mapData.size()));
+        }
+
+    /**
+     * Test write non-blocking store functionality, partial putAll by store
+     */
+    @Test
+    public void writeAsyncPutAllPartial() throws Exception
+        {
+        NamedCache cache = getNamedCache("dist-rwbm-nonblocking-putall");
+        cache.clear();
+
+        Map<String,String> mapData = new HashMap<>();
+        for (int i = 0 ; i < 50; i++)
+            {
+            mapData.put("Key" + i, "Partial" + i);
+            }
+
+        AbstractTestStore store = getStore(cache);
+        ObservableMap mapStorage = store.getStorageMap();
+        mapStorage.clear();
+        store.resetStats();
+
+        // cache.putAll() should call storeAll on CacheStore
+        cache.putAll(mapData);
+
+        Eventually.assertDeferred(mapStorage::size, is(mapData.size() - 10));
+        }
+
+    /**
+     * Test basic write non-blocking store functionality, putAll with global exception
+     */
+    @Test
+    public void writeAsyncPutAllException() throws Exception
+        {
+        writeAsyncPutAllException(false);
+        writeAsyncPutAllException(true);
+        }
+
+    public void writeAsyncPutAllException(boolean fGlobal) throws Exception
+        {
+        NamedCache cache = getNamedCache("dist-rwbm-nonblocking-putall");
+        cache.clear();
+
+        Map<String,String> mapData = new HashMap<>();
+        for (int i = 0 ; i < 50; i++)
+            {
+            if (fGlobal)
+                {
+                mapData.put("Key" + i, "Exception" + i);
+                }
+            else
+                {
+                mapData.put("Key" + i, "Value" + i);
+                }
+            }
+
+        AbstractTestStore store = getStore(cache);
+        ObservableMap mapStorage = store.getStorageMap();
+        mapStorage.clear();
+        store.resetStats();
+
+        if (!fGlobal)
+            {
+            store.setFailureKeyStoreAll("Key32");
+            }
+
+        // cache.putAll() should call storeAll on CacheStore
+        cache.putAll(mapData);
+
+        if (fGlobal)
+            {
+            Eventually.assertDeferred(mapStorage::size, is(0));
+            }
+        else
+            {
+            Eventually.assertDeferred(mapStorage::size, is(mapData.size() - 1));
+            }
         }
 
     @Test
@@ -1000,6 +1321,8 @@ public class ReadWriteBackingMapTests
         {
         testRemoveSynthetic("dist-rwbm-wt");
         testRemoveSynthetic("dist-rwbm-wt-bin");
+
+        testRemoveSynthetic("dist-rwbm-nb-nonpc");
         }
 
     private void testRemoveSynthetic(String sCacheName)
@@ -1040,6 +1363,8 @@ public class ReadWriteBackingMapTests
         {
         testUpdateSynthetic("dist-rwbm-wt");
         testUpdateSynthetic("dist-rwbm-wt-bin");
+
+        testUpdateSynthetic("dist-rwbm-nb-nonpc");
         }
 
     private void testUpdateSynthetic(String sCacheName)
@@ -1085,6 +1410,8 @@ public class ReadWriteBackingMapTests
         {
         testUpdateBinarySynthetic("dist-rwbm-wt");
         testUpdateBinarySynthetic("dist-rwbm-wt-bin");
+
+        testUpdateBinarySynthetic("dist-rwbm-nb-nonpc");
         }
 
     private void testUpdateBinarySynthetic(String sCacheName)
@@ -1158,11 +1485,21 @@ public class ReadWriteBackingMapTests
         testCacheStoreRemove("dist-rwbm-wb-bin", true);
         }
 
+    /**
+     * Test the behaviour of put() when write-behind binary store removes the entry.
+     */
+    @Test
+    public void testCacheStoreRemoveOnAsyncPut()
+        {
+        testCacheStoreRemove("dist-rwbm-nb-nonpc", false);
+        testCacheStoreRemove("dist-rwbm-nb-nonpc", true);
+        }
+
     private void testCacheStoreRemove(String sCacheName, boolean fUsePutAll)
         {
         String               testName    = "testCacheStoreRemove-" + sCacheName + (fUsePutAll ? "-PutAll" : "Put");
         NamedCache           cache       = getNamedCache(sCacheName);
-        TestBinaryCacheStore store       = (TestBinaryCacheStore) getStore(cache);
+        AbstractTestStore    store       = getStore(cache);
         ReadWriteBackingMap  rwbm        = getReadWriteBackingMap(cache);
         long                 cDelay      = rwbm.isWriteBehind() ?  rwbm.getWriteBehindMillis() + 500 : 0;
         LocalCache           mapInternal = (LocalCache) rwbm.getInternalCache();
@@ -1171,7 +1508,14 @@ public class ReadWriteBackingMapTests
         store.getStorageMap().clear();
         store.resetStats();
 
-        store.setProcessor(TestBinaryCacheStore.REMOVING_PROCESSOR);
+        if (store instanceof TestBinaryCacheStore)
+            {
+            ((TestBinaryCacheStore) store).setProcessor(TestBinaryCacheStore.REMOVING_PROCESSOR);
+            }
+        else
+            {
+            ((TestNonBlockingStore) store).setProcessor(TestNonBlockingStore.REMOVING_PROCESSOR);
+            }
         try
             {
             cache.put(0, 0);
@@ -1241,6 +1585,12 @@ public class ReadWriteBackingMapTests
         testCacheStoreRevert("dist-rwbm-wb-bin", false);
         }
 
+    @Test
+    public void testCacheStoreRevertOnPutWithNonBlocking()
+        {
+        testCacheStoreRevert("dist-rwbm-nonblocking", false);
+        }
+
     /**
     * Test the behaviour of putAll() when write-behind binary store reverts the entry.
     */
@@ -1254,12 +1604,26 @@ public class ReadWriteBackingMapTests
         {
         String               testName = "testCacheStoreRevert-" + sCacheName + (fUsePutAll ? "-PutAll" : "Put");
         NamedCache           cache    = getNamedCache(sCacheName);
-        TestBinaryCacheStore store    = (TestBinaryCacheStore) getStore(cache);
+        AbstractTestStore    store    = getStore(cache);
+        TestBinaryCacheStore binStore = null;
+        TestNonBlockingStore nbStore  = null;
         ReadWriteBackingMap  rwbm     = getReadWriteBackingMap(cache);
         long                 cDelay   = rwbm.isWriteBehind() ? rwbm.getWriteBehindMillis() + 500 : 0;
 
         cache.clear();
-        store.getStorageMap().clear();
+
+        if (store instanceof BinaryEntryStore)
+            {
+            binStore = (TestBinaryCacheStore) store;
+            binStore.getStorageMap().clear();
+            }
+        else
+            {
+            // add delay for NB store, so actual storing goes through
+            nbStore = (TestNonBlockingStore) store;
+            nbStore.getStorageMap().clear();
+            cDelay = 5000;
+            }
 
         Map<Integer,Integer> mapInitial = mapOfIntegers(10);
         updateCache(cache, mapInitial, fUsePutAll);
@@ -1270,7 +1634,15 @@ public class ReadWriteBackingMapTests
             definiteSleep(cDelay);
             }
 
-        store.setProcessor(TestBinaryCacheStore.REVERTING_PROCESSOR);
+        if (store instanceof BinaryEntryStore)
+            {
+            binStore.setProcessor(TestBinaryCacheStore.REVERTING_PROCESSOR);
+            }
+        else
+            {
+            nbStore.setProcessor(TestNonBlockingStore.REVERTING_PROCESSOR);
+            }
+
         try
             {
             Map<Integer,Integer> mapUpdate = mapOfIntegers(10, 0, 10);
@@ -1296,7 +1668,8 @@ public class ReadWriteBackingMapTests
 
     /**
     * Test the behaviour of updating the binary via a PofUpdater for both
-    * write-through and write-behind using put() and putAll() to update the cache.
+    * write-through, write-behind and non-blocking using put() and putAll()
+    * to update the cache.
     */
     @Test
     public void testCacheStoreUpdateOnWriteThroughPut()
@@ -1322,11 +1695,23 @@ public class ReadWriteBackingMapTests
         testCacheStoreUpdate("dist-rwbm-wb-bin-pof", true);
         }
 
+    @Test
+    public void testCacheStoreUpdateOnWriteAsyncPut()
+        {
+        testCacheStoreUpdate("dist-rwbm-nonblocking-pof", false);
+        }
+
+    @Test
+    public void testCacheStoreUpdateOnWriteAsyncPutAll()
+        {
+        testCacheStoreUpdate("dist-rwbm-nonblocking-pof", true);
+        }
+
     private void testCacheStoreUpdate(String sCacheName, boolean fUsePutAll)
         {
         String               testName = "testCacheStoreUpdate-" + sCacheName + (fUsePutAll ? "-PutAll" : "Put");
         NamedCache           cache    = getNamedCache(sCacheName);
-        TestBinaryCacheStore store    = (TestBinaryCacheStore) getStore(cache);
+        AbstractTestStore    store    = getStore(cache);
         ReadWriteBackingMap  rwbm     = getReadWriteBackingMap(cache);
         long                 cDelay   = rwbm.isWriteBehind() ? rwbm.getWriteBehindMillis() + 500 : 0;
         Converter            convDown = cache.getCacheService()
@@ -1336,15 +1721,32 @@ public class ReadWriteBackingMapTests
         store.getStorageMap().clear();
         store.resetStats();
 
-        store.setProcessor(new AbstractProcessor()
+        if (store instanceof TestBinaryCacheStore)
             {
-            public Object process(Entry entry)
+            ((TestBinaryCacheStore) store).setProcessor(new AbstractProcessor()
                 {
-                entry.update(new PofUpdater(Person.MOTHER_SSN), "STORED");
+                public Object process(Entry entry)
+                    {
+                    entry.update(new PofUpdater(Person.MOTHER_SSN), "STORED");
 
-                return null;
-                }
-            });
+                    return null;
+                    }
+                });
+            }
+        else
+            {
+            ((TestNonBlockingStore) store).setProcessor(new AbstractProcessor()
+                {
+                public Object process(Entry entry)
+                    {
+                    entry.update(new PofUpdater(Person.MOTHER_SSN), "STORED");
+
+                    return null;
+                    }
+                });
+            // non-blocking needs delay
+            cDelay = 3000L;
+            }
 
         try
             {
@@ -1361,7 +1763,6 @@ public class ReadWriteBackingMapTests
                 {
                 Eventually.assertThat(testName,
                     invoking(this).getPerson(cache, i).getMotherId(), is("STORED"));
-
                 if (cDelay > 0)
                     {
                     boolean hasDeco = ExternalizableHelper.isDecorated((Binary)

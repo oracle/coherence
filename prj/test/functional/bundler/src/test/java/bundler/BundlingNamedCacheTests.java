@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -14,8 +14,10 @@ import com.tangosol.net.cache.ReadWriteBackingMap;
 
 import com.oracle.coherence.common.base.Blocking;
 import common.AbstractFunctionalTest;
+import common.AbstractTestStore;
 import common.TestBinaryCacheStore;
 import common.TestHelper;
+import common.TestNonBlockingStore;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -66,6 +68,7 @@ public class BundlingNamedCacheTests
         testConcurrentPut("dist-test");
         testConcurrentPut("dist-test-rwbm");
         testConcurrentPut("dist-test-rwbm-bin");
+        testConcurrentPut("dist-test-rwbm-bin-nb");
         }
 
     /**
@@ -99,19 +102,36 @@ public class BundlingNamedCacheTests
         }
 
     /**
-     * Test concurrent put operations with a BinaryEntryStore that modifies the
-     * entries during store() operation.
+     * Test concurrent put operations with a BinaryEntryStore or NonBlockingStore
+     * that modifies the entries during store() operation.
      */
     @Test
     public void testConcurrentPut_BinaryEntryStore_Modify()
         {
-        final NamedCache cache  = getNamedCache("dist-test-rwbm-bin");
+        testConcurrentPut_BinaryEntryStore_Modify("dist-test-rwbm-bin");
+        testConcurrentPut_BinaryEntryStore_Modify("dist-test-rwbm-bin-nb");
+        }
+
+    public void testConcurrentPut_BinaryEntryStore_Modify(String sCacheName)
+        {
+        final NamedCache cache  = getNamedCache(sCacheName);
         final int        COUNT  = 1000;
         final Object     oValue = "value";
 
-        TestBinaryCacheStore store  = getBinaryEntryStore(cache);
+        Object store = getBinaryEntryStore(cache);
+        TestBinaryCacheStore binaryStore = null;
+        TestNonBlockingStore nonBlockingStore = null;
 
-        store.setStoreValue(oValue);
+        if (store instanceof TestBinaryCacheStore)
+            {
+            binaryStore = (TestBinaryCacheStore) store;
+            binaryStore.setStoreValue(oValue);
+            }
+        else if (store instanceof TestNonBlockingStore)
+            {
+            nonBlockingStore = (TestNonBlockingStore) store;
+            nonBlockingStore.setStoreValue(oValue);
+            }
 
         Runnable task = new Runnable()
             {
@@ -132,7 +152,14 @@ public class BundlingNamedCacheTests
         testCacheContent(cache, THREADS*COUNT, oValue);
         cache.clear();
 
-        store.setStoreValue(null);
+        if (store instanceof TestBinaryCacheStore)
+            {
+            binaryStore.setStoreValue(null);
+            }
+        else if (store instanceof TestNonBlockingStore)
+            {
+            nonBlockingStore.setStoreValue(null);
+            }
         }
 
     /**
@@ -144,6 +171,7 @@ public class BundlingNamedCacheTests
         testConcurrentPutAll("dist-test");
         testConcurrentPutAll("dist-test-rwbm");
         testConcurrentPutAll("dist-test-rwbm-bin");
+        testConcurrentPutAll("dist-test-rwbm-bin-nb");
         }
 
     /**
@@ -191,13 +219,30 @@ public class BundlingNamedCacheTests
     @Test
     public void testConcurrentPutAll_BinaryEntryStore_Modify()
         {
-        final NamedCache cache  = getNamedCache("dist-test-rwbm-bin");
+        testConcurrentPutAll_BinaryEntryStore_Modify("dist-test-rwbm-bin");
+        testConcurrentPutAll_BinaryEntryStore_Modify("dist-test-rwbm-bin-nb");
+        }
+
+    public void testConcurrentPutAll_BinaryEntryStore_Modify(String sCacheName)
+        {
+        final NamedCache cache  = getNamedCache(sCacheName);
         final int        COUNT  = 1000;
         final Object     oValue = "value";
 
-        TestBinaryCacheStore store  = getBinaryEntryStore(cache);
+        Object store = getBinaryEntryStore(cache);
+        TestBinaryCacheStore binaryStore = null;
+        TestNonBlockingStore nonBlockingStore = null;
 
-        store.setStoreValue(oValue);
+        if (store instanceof TestBinaryCacheStore)
+            {
+            binaryStore = (TestBinaryCacheStore) store;
+            binaryStore.setStoreValue(oValue);
+            }
+        else if (store instanceof TestNonBlockingStore)
+            {
+            nonBlockingStore = (TestNonBlockingStore) store;
+            nonBlockingStore.setStoreValue(oValue);
+            }
 
         Runnable task = new Runnable()
             {
@@ -226,7 +271,14 @@ public class BundlingNamedCacheTests
         testCacheContent(cache, THREADS*COUNT, oValue);
         cache.clear();
 
-        store.setStoreValue(null);
+        if (store instanceof TestBinaryCacheStore)
+            {
+            binaryStore.setStoreValue(null);
+            }
+        else if (store instanceof TestNonBlockingStore)
+            {
+            nonBlockingStore.setStoreValue(null);
+            }
         }
 
     /**
@@ -238,6 +290,7 @@ public class BundlingNamedCacheTests
         testConcurrentGet("dist-test");
         testConcurrentGet("dist-test-rwbm");
         testConcurrentGet("dist-test-rwbm-bin");
+        testConcurrentGet("dist-test-rwbm-bin-nb");
         }
 
     /**
@@ -297,6 +350,7 @@ public class BundlingNamedCacheTests
         testConcurrentGetAll("dist-test");
         testConcurrentGetAll("dist-test-rwbm");
         testConcurrentGetAll("dist-test-rwbm-bin");
+        testConcurrentGetAll("dist-test-rwbm-bin-nb");
         }
 
     /**
@@ -342,6 +396,76 @@ public class BundlingNamedCacheTests
         resetSemaphore();
         runParallel(task, THREADS);
         cache.clear();
+        }
+
+    /**
+     * Test non-blocking store with incomplete result set due to exception
+     */
+    @Test
+    public void testReadAllAsyncException()
+        {
+        NamedCache cache      = getNamedCache("dist-test-rwbm-bin-nb");
+        String     errorKey   = "Key87";
+        try
+            {
+            cache.clear();
+            AbstractTestStore store = getStore(cache);
+            store.resetStats();
+
+            store.setFailureKeyLoadAll(errorKey);
+
+            // prime the cache contents
+            Map mapContents = new HashMap();
+            for (int i = 0 ; i < 200; i++)
+                {
+                mapContents.put("Key" + i, "Value" + i);
+                }
+            store.getStorageMap().putAll(mapContents);
+
+            Map resultMap = cache.getAll(mapContents.keySet());
+
+            assertEquals(store.getStorageMap().size() - 1, cache.size());
+            mapContents.remove(errorKey);
+            assertEquals(mapContents, resultMap);
+            }
+        finally
+            {
+            cache.destroy();
+            }
+        }
+
+    /**
+     * Return the AbstractTestStore for the given NamedCache.
+     *
+     * @param cache  the NamedCache
+     *
+     * @throws IllegalArgumentException if a CacheStore could not be found
+     */
+    protected AbstractTestStore getStore(NamedCache cache)
+        {
+        ReadWriteBackingMap.StoreWrapper wrapper =
+                getReadWriteBackingMap(cache).getCacheStore();
+
+        return (AbstractTestStore) wrapper.getStore();
+        }
+
+    /**
+     * Return the ReadWriteBackingMap for the given NamedCache.
+     *
+     * @param cache  the NamedCache
+     *
+     * @throws IllegalArgumentException if a ReadWriteBackingMap could not be
+     *         be found
+     */
+    protected ReadWriteBackingMap getReadWriteBackingMap(NamedCache cache)
+        {
+        Map map = TestHelper.getBackingMap(cache);
+        if (map instanceof ReadWriteBackingMap)
+            {
+            return (ReadWriteBackingMap) map;
+            }
+
+        throw new IllegalArgumentException();
         }
 
     /**
@@ -493,15 +617,15 @@ public class BundlingNamedCacheTests
      * @throws IllegalArgumentException if a TestBinaryCacheStore could not be
      *         be found
      */
-    protected TestBinaryCacheStore getBinaryEntryStore(NamedCache cache)
+    protected Object getBinaryEntryStore(NamedCache cache)
         {
         ReadWriteBackingMap.StoreWrapper wrapper =
             ((ReadWriteBackingMap) TestHelper.getBackingMap(cache)).getCacheStore();
 
         Object store = wrapper.getStore();
-        if (store instanceof TestBinaryCacheStore)
+        if (store instanceof TestBinaryCacheStore || store instanceof TestNonBlockingStore)
             {
-            return (TestBinaryCacheStore) store;
+            return store;
             }
 
         throw new IllegalArgumentException();
