@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.cache.BinaryEntryStore;
 import com.tangosol.net.cache.CacheLoader;
 import com.tangosol.net.cache.LocalCache;
+import com.tangosol.net.cache.NonBlockingEntryStore;
 import com.tangosol.net.cache.ReadWriteBackingMap;
 
 import com.tangosol.util.Base;
@@ -28,6 +29,13 @@ import java.util.Map;
 public class EvictingRWBM
         extends ReadWriteBackingMap
     {
+    public EvictingRWBM(BackingMapManagerContext ctxService, ObservableMap mapInternal, Map mapMisses,
+                        NonBlockingEntryStore binaryStore, boolean fReadOnly, int cWriteBehindSeconds,
+                        double dflRefreshAheadFactor)
+        {
+        super(ctxService, mapInternal, mapMisses, binaryStore, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor);
+        }
+
     public EvictingRWBM(BackingMapManagerContext ctxService, ObservableMap mapInternal, Map mapMisses,
                         BinaryEntryStore binaryStore, boolean fReadOnly, int cWriteBehindSeconds,
                         double dflRefreshAheadFactor)

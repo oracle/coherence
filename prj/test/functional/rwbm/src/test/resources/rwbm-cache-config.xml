@@ -152,6 +152,46 @@
       <cache-name>dist-rwbm-interceptor</cache-name>
       <scheme-name>distributed-rwbm-interceptor</scheme-name>
     </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-nb-nonpc</cache-name>
+      <scheme-name>distributed-rwbm-nb-nonpc</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestNonBlockingStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-nonblocking</cache-name>
+      <scheme-name>distributed-rwbm-nonblocking</scheme-name>
+      <init-params>
+      <init-param>
+        <param-name>store</param-name>
+        <param-value>common.TestNonBlockingStore</param-value>
+      </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-nonblocking-putall</cache-name>
+      <scheme-name>distributed-rwbm-nonblocking</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestNonBlockingStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-nonblocking-pof</cache-name>
+      <scheme-name>distributed-rwbm-nonblocking-pof</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestNonBlockingStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -597,6 +637,89 @@
           </instance>
         </interceptor>
       </interceptors>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-nb-nonpc</scheme-name>
+      <service-name>DistributedCache</service-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-nonblocking</scheme-name>
+      <service-name>DistributedCache</service-name>
+      <partition-count system-property="pc">10</partition-count>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <read-write-backing-map-scheme>
+
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>common.TestNonBlockingStore</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-nonblocking-pof</scheme-name>
+      <service-name>PofDistributedCache</service-name>
+
+      <serializer>
+        <instance>
+          <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>test-pof-config.xml</param-value>
+            </init-param>
+          </init-params>
+        </instance>
+      </serializer>
+
+      <thread-count-max>1</thread-count-max>
+      <thread-count-min>1</thread-count-min>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
     </distributed-scheme>
 
   </caching-schemes>

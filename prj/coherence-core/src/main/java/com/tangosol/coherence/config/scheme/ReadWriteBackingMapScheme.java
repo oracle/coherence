@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -28,6 +28,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.BinaryEntryStore;
 import com.tangosol.net.cache.CacheLoader;
 import com.tangosol.net.cache.LocalCache;
+import com.tangosol.net.cache.NonBlockingEntryStore;
 import com.tangosol.net.cache.ReadWriteBackingMap;
 import com.tangosol.net.partition.PartitionAwareBackingMap;
 import com.tangosol.net.partition.ReadWriteSplittingBackingMap;
@@ -89,9 +90,10 @@ public class ReadWriteBackingMapScheme
         Object store = bldrCacheStore == null ? null : bldrCacheStore.realize(resolver, dependencies);
 
         // init the binary store variable
-        BinaryEntryStore storeBinary = null;
+        BinaryEntryStore      storeBinary            = null;
+        NonBlockingEntryStore storeNonBlockingBinary = null;
 
-        if (store instanceof BinaryEntryStore)
+        if (store instanceof BinaryEntryStore || store instanceof NonBlockingEntryStore)
             {
             // If the store implements the BinaryEntryStore interface, use it.
             // The only exception from that rule is the SCHEME_REMOTE_CACHE case,
@@ -100,7 +102,14 @@ public class ReadWriteBackingMapScheme
             if (!(store instanceof NamedCache && store instanceof ClassLoaderAware
                 && ((ClassLoaderAware) store).getContextClassLoader() != NullImplementation.getClassLoader()))
                 {
-                storeBinary = (BinaryEntryStore) store;
+                if (store instanceof BinaryEntryStore)
+                    {
+                    storeBinary = (BinaryEntryStore) store;
+                    }
+                else
+                    {
+                    storeNonBlockingBinary = (NonBlockingEntryStore) store;
+                    }
                 }
             }
 
@@ -120,7 +129,7 @@ public class ReadWriteBackingMapScheme
         // create the internal ReadWriteBackingMap or a custom map.
         if (bldrCustom == null)
             {
-            if (storeBinary == null)
+            if (storeBinary == null && storeNonBlockingBinary == null)
                 {
                 CacheLoader storeObject = (CacheLoader) store;
 
@@ -128,6 +137,20 @@ public class ReadWriteBackingMapScheme
                        ? instantiateReadWriteSplittingBackingMap(contextBmm, (PartitionAwareBackingMap) mapInternal,
                              mapMisses, storeObject, fReadOnly, cWriteBehindSec, dflRefreshAheadFactor)
                        : instantiateReadWriteBackingMap(contextBmm, mapInternal, mapMisses, storeObject, fReadOnly,
+                             cWriteBehindSec, dflRefreshAheadFactor);
+                }
+            else if (storeNonBlockingBinary != null)
+                {
+                if (cWriteBehindSec != 0)
+                    {
+                    Base.log("Write-behind configured with a non-blocking store implementation. Disabling write-behind.");
+                    cWriteBehindSec = 0;
+                    }
+
+                rwbm = fSplitting
+                        ? instantiateReadWriteSplittingBackingMap(contextBmm, (PartitionAwareBackingMap) mapInternal,
+                             mapMisses, storeNonBlockingBinary, fReadOnly, cWriteBehindSec, dflRefreshAheadFactor)
+                        : instantiateReadWriteBackingMap(contextBmm, mapInternal, mapMisses, storeNonBlockingBinary, fReadOnly,
                              cWriteBehindSec, dflRefreshAheadFactor);
                 }
             else
@@ -624,6 +647,49 @@ public class ReadWriteBackingMapScheme
         }
 
     /**
+     * Construct a ReadWriteBackingMap using the specified parameters.
+     * <p>
+     * This method exposes a corresponding ReadWriteBackingMap
+     * {@link ReadWriteBackingMap#ReadWriteBackingMap(BackingMapManagerContext,
+     * ObservableMap, Map, BinaryEntryStore, boolean, int, double) constructor}
+     * and is provided for the express purpose of allowing its override.
+     *
+     * @param context               the context provided by the CacheService
+     *                              which is using this backing map
+     * @param mapInternal           the ObservableMap used to store the data
+     *                              internally in this backing map
+     * @param mapMisses             the Map used to cache CacheStore misses
+     *                              (optional)
+     * @param storeBinary           the NonBlockingEntryStore responsible for the
+     *                              persistence of the cached data (optional)
+     * @param fReadOnly             pass true is the specified loader is in fact
+     *                              a CacheStore that needs to be used only for
+     *                              read operations; changes to the cache will
+     *                              not be persisted
+     * @param cWriteBehindSeconds   number of seconds to write if there is a
+     *                              CacheStore; zero disables write-behind
+     *                              caching, which (combined with !fReadOnly)
+     *                              implies write-through
+     * @param dflRefreshAheadFactor the interval before an entry expiration time
+     *                              (expressed as a percentage of the internal
+     *                              cache expiration interval) during which an
+     *                              asynchronous load request for the
+     *                              entry will be scheduled; zero disables
+     *                              refresh-ahead; only applicable when
+     *                              the <tt>mapInternal</tt> parameter is an
+     *                              instance of {@link com.tangosol.net.cache.ConfigurableCacheMap}
+     *
+     * @return the instantiated {@link ReadWriteBackingMap}
+     */
+    protected ReadWriteBackingMap instantiateReadWriteBackingMap(BackingMapManagerContext context,
+        ObservableMap mapInternal, Map mapMisses, NonBlockingEntryStore storeBinary, boolean fReadOnly,
+        int cWriteBehindSeconds, double dflRefreshAheadFactor)
+        {
+        return new ReadWriteBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly, cWriteBehindSeconds,
+                dflRefreshAheadFactor);
+        }
+
+        /**
      * Construct a ReadWriteSplittingBackingMap using the specified parameters.
      * <p>
      * This method exposes a corresponding ReadWriteSplittingBackingMap
@@ -710,6 +776,49 @@ public class ReadWriteBackingMapScheme
         }
 
     /**
+     * Construct a ReadWriteSplittingBackingMap using the specified parameters.
+     * <p>
+     * This method exposes a corresponding ReadWriteSplittingBackingMap
+     * {@link ReadWriteSplittingBackingMap#ReadWriteSplittingBackingMap(BackingMapManagerContext,
+     * PartitionAwareBackingMap, Map, BinaryEntryStore, boolean, int, double) constructor}
+     * and is provided for the express purpose of allowing its override.
+     *
+     * @param context               the context provided by the CacheService
+     *                              which is using this backing map
+     * @param mapInternal           the ObservableMap used to store the data
+     *                              internally in this backing map
+     * @param mapMisses             the Map used to cache CacheStore misses
+     *                              (optional)
+     * @param storeBinary           the NonBlockingEntryStore responsible for the
+     *                              persistence of the cached data (optional)
+     * @param fReadOnly             pass true is the specified loader is in fact
+     *                              a CacheStore that needs to be used only for
+     *                              read operations; changes to the cache will
+     *                              not be persisted
+     * @param cWriteBehindSeconds   number of seconds to write if there is a
+     *                              CacheStore; zero disables write-behind
+     *                              caching, which (combined with !fReadOnly)
+     *                              implies write-through
+     * @param dflRefreshAheadFactor the interval before an entry expiration time
+     *                              (expressed as a percentage of the internal
+     *                              cache expiration interval) during which an
+     *                              asynchronous load request for the
+     *                              entry will be scheduled; zero disables
+     *                              refresh-ahead; only applicable when
+     *                              the <tt>mapInternal</tt> parameter is an
+     *                              instance of {@link com.tangosol.net.cache.ConfigurableCacheMap}
+     *
+     * @return the instantiated {@link ReadWriteSplittingBackingMap}
+     */
+    protected ReadWriteSplittingBackingMap instantiateReadWriteSplittingBackingMap(BackingMapManagerContext context,
+        PartitionAwareBackingMap mapInternal, Map mapMisses, NonBlockingEntryStore storeBinary, boolean fReadOnly,
+        int cWriteBehindSeconds, double dflRefreshAheadFactor)
+        {
+        return new ReadWriteSplittingBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly,
+                cWriteBehindSeconds, dflRefreshAheadFactor);
+        }
+
+        /**
      * {@inheritDoc}
      */
     @Override

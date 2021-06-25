@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -47,6 +47,7 @@ import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.RecyclingLinkedList;
 import com.tangosol.util.SafeHashMap;
+import com.tangosol.util.SafeHashSet;
 import com.tangosol.util.SegmentedConcurrentMap;
 import com.tangosol.util.SimpleEnumerator;
 import com.tangosol.util.SimpleMapEntry;
@@ -71,6 +72,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
 * Backing Map implementation that provides a size-limited cache of a
@@ -103,7 +107,7 @@ public class ReadWriteBackingMap
     public ReadWriteBackingMap(BackingMapManagerContext ctxService,
             ObservableMap mapInternal, Map mapMisses, CacheLoader loader)
         {
-        init(ctxService, mapInternal, mapMisses, loader, null, true, 0, 0.0);
+        init(ctxService, mapInternal, mapMisses, loader, null, null, true, 0, 0.0);
         }
 
     /**
@@ -138,7 +142,7 @@ public class ReadWriteBackingMap
             Map mapMisses, CacheLoader loader, boolean fReadOnly, int cWriteBehindSeconds,
             double dflRefreshAheadFactor)
         {
-        init(ctxService, mapInternal, mapMisses, loader, null, fReadOnly,
+        init(ctxService, mapInternal, mapMisses, loader, null, null, fReadOnly,
              cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
@@ -175,12 +179,12 @@ public class ReadWriteBackingMap
             Map mapMisses, BinaryEntryStore storeBinary, boolean fReadOnly, int cWriteBehindSeconds,
             double dflRefreshAheadFactor)
         {
-        init(ctxService, mapInternal, mapMisses, null, storeBinary, fReadOnly,
+        init(ctxService, mapInternal, mapMisses, null, storeBinary, null, fReadOnly,
              cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
     /**
-    * Initialize the ReadWriteBackingMap.
+    * Construct a ReadWriteBackingMap based on a NonBlockingEntryStore.
     *
     * @param ctxService             the context provided by the CacheService
     *                               which is using this backing map
@@ -188,9 +192,8 @@ public class ReadWriteBackingMap
     *                               internally in this backing map
     * @param mapMisses              the Map used to cache CacheStore misses
     *                               (optional)
-    * @param loader                 the object responsible for the persistence
-    *                               of the cached data (optional)
-    * @param storeBinary            the BinaryEntryStore to wrap
+    * @param storeBinary            the NonBlockingEntryStore responsible for the
+    *                               persistence of the cached data (optional)
     * @param fReadOnly              pass true is the specified loader is in fact
     *                               a CacheStore that needs to be used only for
     *                               read operations; changes to the cache will
@@ -207,24 +210,68 @@ public class ReadWriteBackingMap
     *                               refresh-ahead; only applicable when
     *                               the <tt>mapInternal</tt> parameter is an
     *                               instance of {@link ConfigurableCacheMap}
+    * @since Coherence 21.06
+    */
+    public ReadWriteBackingMap(BackingMapManagerContext ctxService, ObservableMap mapInternal,
+           Map mapMisses, NonBlockingEntryStore storeBinary, boolean fReadOnly, int cWriteBehindSeconds,
+           double dflRefreshAheadFactor)
+        {
+        init(ctxService, mapInternal, mapMisses, null, null, storeBinary, fReadOnly,
+                cWriteBehindSeconds, dflRefreshAheadFactor);
+        }
+
+    /**
+    * Initialize the ReadWriteBackingMap.
+    *
+    * @param ctxServic              the context provided by the CacheService
+    *                               which is using this backing map
+    * @param mapInternal            the ObservableMap used to store the data
+    *                               internally in this backing map
+    * @param mapMisses              the Map used to cache CacheStore misses
+    *                               (optional)
+    * @param loader                 the object responsible for the
+    *                               persistence of the cached data (optional)
+    * @param storeBinary            the BinaryEntryStore to wrap (mutually
+    *                               exclusive with storeNonBlocking)
+    * @param storeNonBlocking       the NonBlockingEntryStore to wrap
+    *                               (mutually exclusive with storeBinary)
+    * @param fReadOnly              pass true is the specified loader is in
+    *                               fact a CacheStore that needs to be used
+    *                               only for read operations; changes to the
+    *                               cache will not be persisted
+    * @param cWriteBehindSeconds    number of seconds to write if there is a
+    *                               CacheStore; zero disables write-behind
+    *                               caching, which (combined with !fReadOnly)
+    *                               implies write-through
+    * @param dflRefreshAheadFactor  the interval before an entry expiration
+    *                               time (expressed as a percentage of the
+    *                               internal cache expiration interval)
+    *                               during which an asynchronous load request
+    *                               for the entry will be scheduled; zero
+    *                               disables refresh-ahead; only applicable
+    *                               when the <tt>mapInternal</tt> parameter
+    *                               is an instance of
+    *                               {@link ConfigurableCacheMap}
     */
     private void init(BackingMapManagerContext ctxService, ObservableMap mapInternal,
-            Map mapMisses, CacheLoader loader, BinaryEntryStore storeBinary,
+            Map mapMisses, CacheLoader loader, BinaryEntryStore storeBinary, NonBlockingEntryStore storeNonBlocking,
             boolean fReadOnly, int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
         m_ctxService = ctxService;
 
         configureInternalCache(mapInternal);
 
-        if (loader != null || storeBinary != null)
+        if (loader != null || storeBinary != null || storeNonBlocking != null)
             {
             // the misses map is only applicable when there is a valid store
             m_mapMisses = mapMisses;
 
             if (loader == null)
                 {
-                configureCacheStore(
-                    instantiateCacheStoreWrapper(storeBinary), fReadOnly);
+                configureCacheStore(storeBinary == null
+                        ? instantiateCacheStoreWrapper(storeNonBlocking)
+                        : instantiateCacheStoreWrapper(storeBinary),
+                    fReadOnly);
                 }
             else if (loader instanceof CacheStore)
                 {
@@ -665,6 +712,29 @@ public class ReadWriteBackingMap
             updateThreadName(getReadThread(), sCacheName);
             updateThreadName(getWriteThread(), sCacheName);
             }
+        }
+
+    /**
+    * Return the size of the write-behind queue if configured, or the
+    * number of pending writes of the non-blocking store, if configured.
+    * Return -1 if neither.
+    *
+    * @return number of pending writes
+    */
+    public int getPendingWrites()
+        {
+        if (isWriteBehind())
+            {
+            return getWriteQueue().size();
+            }
+
+        StoreWrapper store = getCacheStore();
+        if (store != null && !store.isBlocking())
+            {
+            return (int) store.f_cPendingAsyncStoreOps.get();
+            }
+
+        return -1;
         }
 
     // ----- Map interface --------------------------------------------------
@@ -1440,8 +1510,19 @@ public class ReadWriteBackingMap
 
                 if (queue == null)
                     {
-                    if (fOwned)
+                    boolean fDecorated = !fOwned && !store.isBlocking() &&
+                                 ExternalizableHelper.isDecorated((Binary) oValue,
+                                    BackingMapManagerContext.DECO_STORE);
+                    if (fOwned || fDecorated)
                         {
+                        if (!store.isBlocking() && !fDecorated)
+                            {
+                            // non-blocking entry store;
+                            // decorate the entry with a "store deferred" flag
+                            oValue = ExternalizableHelper.decorate((Binary) oValue,
+                                BackingMapManagerContext.DECO_STORE, BIN_STORE_PENDING);
+                            }
+
                         Entry entry =
                             instantiateEntry(oKey, oValue, mapInternal.get(oKey), cMillis);
 
@@ -2690,25 +2771,25 @@ public class ReadWriteBackingMap
         // ----- data members -------------------------------------------
 
         /**
-        * The key that is being loaded by the refresh-ahead thread.
-        */
-        private Object    m_oKey;
-
-        /**
-        * The result of the load operation.
-        */
-        private Object  m_oValue;
-
-        /**
         * Flag that indicates whether or not the load operation has completed.
         */
-        private boolean m_fComplete;
+        private volatile boolean m_fComplete;
 
         /**
         * Flag that indicates whether or not the load operation has been
         * canceled.
         */
-        private boolean m_fCanceled;
+        private volatile boolean m_fCanceled;
+
+        /**
+        * The key that is being loaded by the refresh-ahead thread.
+        */
+        private Object m_oKey;
+
+        /**
+        * The result of the load operation.
+        */
+        private Object m_oValue;
 
         /**
         * A Throwable associated with a canceled operation.
@@ -2970,6 +3051,16 @@ public class ReadWriteBackingMap
             {
             getKeyMap().clear();
             getKeyList().clear();
+            }
+
+        /**
+        * Return the length of the queue.
+        *
+        * @return the length of the queue
+        */
+        public int size()
+            {
+            return getKeyList().size();
             }
 
         /**
@@ -4685,6 +4776,21 @@ public class ReadWriteBackingMap
         }
 
     /**
+    * Factory pattern: Instantiate a StoreWrapper wrapper around the
+    * passed NonBlockingEntryStore. (Supports NonBlockingEntryStore extension
+    * by delegation pattern.)
+    *
+    * @param store  the NonBlockingEntryStore to wrap
+    *
+    * @return the StoreWrapper wrapper that can supplement and override the
+    *         operations of the supplied BinaryEntryStore
+    */
+    protected StoreWrapper instantiateCacheStoreWrapper(NonBlockingEntryStore store)
+        {
+        return new NonBlockingEntryStoreWrapper(store);
+        }
+
+    /**
     * Abstract wrapper around a cache store to allow operations to be
     * overridden and extended.
     *
@@ -4786,7 +4892,7 @@ public class ReadWriteBackingMap
         */
         public long getLoadOps()
             {
-            return m_cLoadOps;
+            return f_cLoadOps.get();
             }
 
         /**
@@ -4796,7 +4902,7 @@ public class ReadWriteBackingMap
         */
         public long getLoadFailures()
             {
-            return m_cLoadFailures;
+            return f_cLoadFailures.get();
             }
 
         /**
@@ -4806,7 +4912,7 @@ public class ReadWriteBackingMap
         */
         public long getLoadMillis()
             {
-            return m_cLoadMillis;
+            return f_cLoadMillis.get();
             }
 
         /**
@@ -4816,7 +4922,7 @@ public class ReadWriteBackingMap
         */
         public long getStoreOps()
             {
-            return m_cStoreOps;
+            return f_cStoreOps.get();
             }
 
         /**
@@ -4826,7 +4932,7 @@ public class ReadWriteBackingMap
         */
         public long getStoreFailures()
             {
-            return m_cStoreFailures;
+            return f_cStoreFailures.get();
             }
 
         /**
@@ -4836,7 +4942,7 @@ public class ReadWriteBackingMap
         */
         public long getStoreMillis()
             {
-            return m_cStoreMillis;
+            return f_cStoreMillis.get();
             }
 
         /**
@@ -4876,8 +4982,8 @@ public class ReadWriteBackingMap
         */
         public long getAverageBatchSize()
             {
-            long cOps = m_cStoreOps;
-            return cOps > 0L ? m_cStoreEntries / cOps : 0L;
+            long cOps = getStoreOps();
+            return cOps > 0L ? f_cStoreEntries.get() / cOps : 0L;
             }
 
         /**
@@ -4887,8 +4993,8 @@ public class ReadWriteBackingMap
         */
         public long getAverageLoadMillis()
             {
-            long cOps = m_cLoadOps;
-            return cOps > 0L ? m_cLoadMillis / cOps : 0L;
+            long cOps = getLoadOps();
+            return cOps > 0L ? f_cLoadMillis.get() / cOps : 0L;
             }
 
         /**
@@ -4898,8 +5004,8 @@ public class ReadWriteBackingMap
         */
         public long getAverageStoreMillis()
             {
-            long cOps = m_cStoreOps;
-            return cOps > 0L ? m_cStoreMillis / cOps : 0L;
+            long cOps = getStoreOps();
+            return cOps > 0L ? f_cStoreMillis.get() / cOps : 0L;
             }
 
         /**
@@ -4914,17 +5020,29 @@ public class ReadWriteBackingMap
             }
 
         /**
+        * Determine the number of pending non-blocking store operations.
+        *
+        * @return the number of pending non-blocking store operations
+        */
+        public long getPendingAsyncStoreOps()
+            {
+            return f_cPendingAsyncStoreOps.get();
+            }
+
+        /**
         * Reset the CacheStore statistics.
         */
         public void resetStatistics()
             {
-            m_cLoadOps       = 0L;
-            m_cLoadFailures  = 0L;
-            m_cLoadMillis    = 0L;
-            m_cStoreOps      = 0L;
-            m_cStoreEntries  = 0L;
-            m_cStoreFailures = 0L;
-            m_cStoreMillis   = 0L;
+            f_cLoadOps.set(0L);
+            f_cLoadFailures.set(0L);
+            f_cLoadMillis.set(0L);
+            f_cStoreOps.set(0L);
+            f_cStoreEntries.set(0L);
+            f_cStoreFailures.set(0L);
+            f_cStoreMillis.set(0L);
+            f_cPendingAsyncStoreOps.set(0L);
+
             m_cEraseOps      = 0L;
             m_cEraseFailures = 0L;
             m_cEraseMillis   = 0L;
@@ -5046,6 +5164,16 @@ public class ReadWriteBackingMap
             m_fEraseAllSupported = fSupported;
             }
 
+        /**
+        * Determine if the wrapped store implements blocking operations.
+        *
+        * @return true if the operations are blocking
+        */
+        public boolean isBlocking()
+            {
+            return true;
+            }
+
         // ----- pseudo CacheStore interface ----------------------------
 
         /**
@@ -5072,11 +5200,11 @@ public class ReadWriteBackingMap
                 }
             finally
                 {
-                ++m_cLoadOps;
+                f_cLoadOps.incrementAndGet();
                 long lElapsed = getSafeTimeMillis() - lStart;
                 if (lElapsed != 0L)
                     {
-                    m_cLoadMillis += lElapsed;
+                    f_cLoadMillis.addAndGet(lElapsed);
                     }
                 }
             }
@@ -5106,11 +5234,11 @@ public class ReadWriteBackingMap
                 }
             finally
                 {
-                ++m_cLoadOps;
+                f_cLoadOps.incrementAndGet();
                 long lElapsed = getSafeTimeMillis() - lStart;
                 if (lElapsed != 0L)
                     {
-                    m_cLoadMillis += lElapsed;
+                    f_cLoadMillis.addAndGet(lElapsed);
                     }
                 }
             }
@@ -5138,19 +5266,27 @@ public class ReadWriteBackingMap
             catch (RuntimeException e)
                 {
                 fSuccess = false;
-                ++m_cStoreFailures;
+                f_cStoreFailures.incrementAndGet();
                 onStoreFailure(binEntry, e);
                 }
             finally
                 {
-                ++m_cStoreOps;
-                ++m_cStoreEntries;
-                long lElapsed = getSafeTimeMillis() - lStart;
-                if (lElapsed != 0L)
+                // defer to onNext() for non-blocking stores
+                if (isBlocking())
                     {
-                    m_cStoreMillis += lElapsed;
+                    f_cStoreOps.incrementAndGet();
+                    f_cStoreEntries.incrementAndGet();
+                    binEntry.stopTracking();
+                    long lElapsed = getSafeTimeMillis() - lStart;
+                    if (lElapsed != 0L)
+                        {
+                        f_cStoreMillis.addAndGet(lElapsed);
+                        }
                     }
-                binEntry.stopTracking();
+                else
+                    {
+                    f_cPendingAsyncStoreOps.incrementAndGet();
+                    }
                 }
 
             boolean fAsynch = getWriteQueue() != null;
@@ -5202,17 +5338,24 @@ public class ReadWriteBackingMap
             catch (RuntimeException e)
                 {
                 fSuccess = false;
-                ++m_cStoreFailures;
-                onStoreAllFailure(setBinEntries, e);
+                f_cStoreFailures.incrementAndGet();
+                onStoreAllFailure(setBinEntries, e, isBlocking());
                 }
             finally
                 {
-                ++m_cStoreOps;
-                m_cStoreEntries += cEntries;
-                long lElapsed = getSafeTimeMillis() - lStart;
-                if (lElapsed != 0L)
+                if (isBlocking())
                     {
-                    m_cStoreMillis += lElapsed;
+                    f_cStoreOps.incrementAndGet();
+                    f_cStoreEntries.addAndGet(cEntries);
+                    long lElapsed = getSafeTimeMillis() - lStart;
+                    if (lElapsed != 0L)
+                        {
+                        f_cStoreMillis.addAndGet(lElapsed);
+                        }
+                    }
+                else
+                    {
+                    f_cPendingAsyncStoreOps.incrementAndGet();
                     }
                 }
 
@@ -5314,8 +5457,8 @@ public class ReadWriteBackingMap
             boolean       fSync       = getWriteQueue() == null;
 
             // Ensure that the key is owned and the entry is locked before doing
-            // the replace operation.  Write-through operations are guaranteed
-            // to have the entry locked and partition pinned.
+            // the replace operation.  Write-through or non-blocking operations
+            // are guaranteed to have the entry locked and partition pinned.
             //
             // Note: there exists a small race condition here between the isKeyOwned()
             //       check and the put to the backing-map, where it is possible for
@@ -5409,7 +5552,21 @@ public class ReadWriteBackingMap
         */
         protected void onLoadFailure(Object oKeyReal, Exception e)
             {
-            if (isRethrowExceptions())
+            onLoadFailure(oKeyReal, e, /*fThrow*/true);
+            }
+
+        /**
+        * Logs a store load() failure. This method is intended to be
+        * overwritten if a particular store can fail and the backing
+        * map must take action based on it.
+        *
+        * @param oKeyReal  the key
+        * @param e         the exception
+        * @param fThrow    the caller can bubble up exceptions
+        */
+        protected void onLoadFailure(Object oKeyReal, Exception e, boolean fThrow)
+            {
+            if (isRethrowExceptions() && fThrow)
                 {
                 throw ensureRuntimeException(e, "Failed to load key=\""
                         + oKeyReal + "\"");
@@ -5431,7 +5588,21 @@ public class ReadWriteBackingMap
         */
         protected void onLoadAllFailure(Collection colKeys, Exception e)
             {
-            if (isRethrowExceptions())
+            onLoadAllFailure(colKeys, e, /*fThrow*/true);
+            }
+
+        /**
+        * Logs a store loadAll() failure. This method is intended to be
+        * overwritten if a particular store can fail and the backing
+        * map must take action based on it.
+        *
+        * @param colKeys  colKeys a collection of keys in external form to load
+        * @param e        the exception
+        * @param fThrow   the caller can bubble up exceptions
+        */
+        protected void onLoadAllFailure(Collection colKeys, Exception e, boolean fThrow)
+            {
+            if (isRethrowExceptions() && fThrow)
                 {
                 throw ensureRuntimeException(e, "Failed to load keys=\""
                         + colKeys + "\"");
@@ -5453,6 +5624,20 @@ public class ReadWriteBackingMap
         */
         protected void onStoreFailure(Entry entry, Exception e)
             {
+            onStoreFailure(entry, e, /*fThrow*/true);
+            }
+
+        /**
+        * Logs a store store() failure. This method is intended to be
+        * overwritten if a particular store can fail and the backing
+        * map must take action based on it.
+        *
+        * @param entry   the entry
+        * @param e       the exception
+        * @param fThrow  whether the store mode supports exceptions
+        */
+        protected void onStoreFailure(Entry entry, Exception e, boolean fThrow)
+            {
             WriteQueue  queue       = getWriteQueue();
             WriteThread writeThread = getWriteThread();
             int         cThreshold  = getWriteRequeueThreshold();
@@ -5473,9 +5658,10 @@ public class ReadWriteBackingMap
             if (queue == null || Thread.currentThread() != writeThread.getThread())
                 {
                 // if write-behind is disabled or the store operation was
-                // synchronous (i.e. not performed by the write-behind thread),
+                // synchronous (i.e. not performed by the write-behind thread)
+                // or the store is non blocking,
                 // either log or rethrow the exception
-                if (isRethrowExceptions())
+                if (isRethrowExceptions() && fThrow)
                     {
                     throw ensureRuntimeException(e, sMsg);
                     }
@@ -5508,6 +5694,20 @@ public class ReadWriteBackingMap
         */
         protected void onStoreAllFailure(Set setBinEntries, Exception e)
             {
+            onStoreAllFailure(setBinEntries, e, /*fThrow*/true);
+            }
+
+        /**
+        * Logs a store storeAll() failure. This method is intended to be
+        * overwritten if a particular store can fail and the backing
+        * map must take action based on it.
+        *
+        * @param setBinEntries  set of {@link Entry Entries}
+        * @param e              the exception
+        * @param fThrow         whether the store mode supports exceptions
+        */
+        protected void onStoreAllFailure(Set setBinEntries, Exception e, boolean fThrow)
+            {
             WriteQueue  queue       = getWriteQueue();
             WriteThread writeThread = getWriteThread();
             int         cThreshold  = getWriteRequeueThreshold();
@@ -5528,9 +5728,10 @@ public class ReadWriteBackingMap
             if (queue == null || Thread.currentThread() != writeThread.getThread())
                 {
                 // if write-behind is disabled or the storeAll operation was
-                // synchronous (i.e. not performed by the write-behind thread),
+                // synchronous (i.e. not performed by the write-behind thread)
+                // or the store is non blocking,
                 // either log or rethrow the exception
-                if (isRethrowExceptions())
+                if (isRethrowExceptions() && fThrow)
                     {
                     throw ensureRuntimeException(e, sMsg);
                     }
@@ -5798,37 +5999,42 @@ public class ReadWriteBackingMap
         /**
         * The number of Load operations.
         */
-        protected volatile long m_cLoadOps;
+        protected final AtomicLong f_cLoadOps              = new AtomicLong();
 
         /**
         * The number of Load failures.
         */
-        protected volatile long m_cLoadFailures;
+        protected final AtomicLong f_cLoadFailures         = new AtomicLong();
 
         /**
         * The cumulative time spent on Load operations.
         */
-        protected volatile long m_cLoadMillis;
+        protected final AtomicLong f_cLoadMillis           = new AtomicLong();
 
         /**
         * The number of Store operations.
         */
-        protected volatile long m_cStoreOps;
+        protected final AtomicLong f_cStoreOps             = new AtomicLong();
 
         /**
         * The total number of entries written in Store operations.
         */
-        protected volatile long m_cStoreEntries;
+        protected final AtomicLong f_cStoreEntries         = new AtomicLong();
 
         /**
         * The number of Store failures.
         */
-        protected volatile long m_cStoreFailures;
+        protected final AtomicLong f_cStoreFailures        = new AtomicLong();
 
         /**
         * The cumulative time spent on Store operations.
         */
-        protected volatile long m_cStoreMillis;
+        protected final AtomicLong f_cStoreMillis          = new AtomicLong();
+
+        /**
+        * The number of pending non-blocking store operations.
+        */
+        protected final AtomicLong f_cPendingAsyncStoreOps = new AtomicLong();
 
         /**
         * The number of Erase operations.
@@ -6006,7 +6212,7 @@ public class ReadWriteBackingMap
                 // if it is desirable at this point for the load to truly
                 // fail, then the onLoadFailure method should throw an
                 // exception
-                ++m_cLoadFailures;
+                f_cLoadFailures.incrementAndGet();
                 try
                     {
                     onLoadFailure(oKey, e);
@@ -6062,7 +6268,7 @@ public class ReadWriteBackingMap
                 // if it is desirable at this point for the load to truly
                 // fail, then the onLoadFailure method should throw an
                 // exception
-                ++m_cLoadFailures;
+                f_cLoadFailures.incrementAndGet();
                 try
                     {
                     onLoadFailure(colKeysReal, e);
@@ -6324,6 +6530,740 @@ public class ReadWriteBackingMap
         private CacheStore m_store;
         }
 
+    // ----- inner class: NonBlockingEntryStoreWrapper ----------------------
+
+    /**
+    * A wrapper around the original NonBlockingEntryStore to allow operations
+    * to be overridden and extended.
+    */
+    public class NonBlockingEntryStoreWrapper
+            extends StoreWrapper
+        {
+        // ----- constructors -------------------------------------------
+
+        /**
+        * Construct a NonBlockingEntryStoreWrapper.
+        *
+        * @param store  the NonBlockingEntryStore to wrap
+        */
+        public NonBlockingEntryStoreWrapper(NonBlockingEntryStore store)
+            {
+            azzert(store != null);
+
+            f_storeNonBlocking = store;
+            }
+
+        // ----- StoreWrapper -------------------------------------------
+
+        /**
+        * {@inheritDoc}
+        */
+        public AbstractBundler instantiateLoadBundler()
+            {
+            return new AbstractBinaryEntryBundler()
+                {
+                /**
+                * A pass through to the underlying loadAll operation.
+                */
+                protected void bundle(Set setEntries)
+                    {
+                    for (Iterator iter = setEntries.iterator(); iter.hasNext(); )
+                        {
+                        Entry entry = (Entry) iter.next();
+
+                        // remove from read queue if refresh ahead is configured
+                        if (isRefreshAhead())
+                            {
+                            getReadQueue().remove(entry.getBinaryKey());
+                            }
+                        }
+
+                    LoadOperationObserver observer = new LoadOperationObserver(setEntries.size());
+
+                    getNonBlockingEntryStore().loadAll(setEntries, observer);
+
+                    // block until non-blocking operation completes
+                    observer.waitForCompleted();
+                    }
+
+                /**
+                * A pass through to the underlying load operation.
+                */
+                protected void unbundle(BinaryEntry binEntry)
+                    {
+                    // remove from read queue if refresh ahead is configured
+                    if (isRefreshAhead())
+                        {
+                        getReadQueue().remove(binEntry.getBinaryKey());
+                        }
+
+                    LoadOperationObserver observer = new LoadOperationObserver();
+
+                    getNonBlockingEntryStore().load(binEntry, observer);
+
+                    // block until non-blocking operation completes
+                    observer.waitForCompleted();
+                    }
+                };
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        public AbstractBundler instantiateStoreBundler()
+            {
+            return new AbstractBinaryEntryBundler()
+                {
+                /**
+                * A pass through to the underlying storeAll operation.
+                */
+                protected void bundle(Set setEntries)
+                    {
+                    getNonBlockingEntryStore().storeAll(setEntries, new StoreOperationObserver(setEntries));
+                    }
+
+                /**
+                * A pass through to the underlying store operation.
+                */
+                protected void unbundle(BinaryEntry binEntry)
+                    {
+                    getNonBlockingEntryStore().store(binEntry, new StoreOperationObserver());
+                    }
+                };
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        public AbstractBundler instantiateEraseBundler()
+            {
+            return new AbstractBinaryEntryBundler()
+                {
+                /**
+                * A pass through to the underlying eraseAll operation.
+                */
+                protected void bundle(Set setEntries)
+                    {
+                    getNonBlockingEntryStore().eraseAll(setEntries);
+                    }
+
+                /**
+                * A pass through to the underlying erase operation.
+                */
+                protected void unbundle(BinaryEntry binEntry)
+                    {
+                    getNonBlockingEntryStore().erase(binEntry);
+                    }
+                };
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        protected Entry loadInternal(Object binKey)
+            {
+            Entry binEntry = instantiateEntry(binKey, null, null);
+
+            try
+                {
+                AbstractBinaryEntryBundler bundler =
+                        (AbstractBinaryEntryBundler) m_loadBundler;
+
+                if (bundler == null)
+                    {
+                    // assume that the caller has the key locked in the control map
+                    // block the current thread until LoadObserver.(onNext | onError) is called
+
+                    // remove from read queue if refresh ahead is configured
+                    if (isRefreshAhead())
+                        {
+                        getReadQueue().remove(binKey);
+                        }
+
+                    LoadOperationObserver observer = new LoadOperationObserver();
+
+                    getNonBlockingEntryStore().load(binEntry, observer);
+
+                    observer.waitForCompleted();
+
+                    putToInternalCache((Entry) binEntry);
+                    }
+                else
+                    {
+                    bundler.process(binEntry);
+                    }
+                return binEntry;
+                }
+            catch (RuntimeException e)
+                {
+                // if it is desirable at this point for the load to truly
+                // fail, then the onLoadFailure method should throw an
+                // exception
+                f_cLoadFailures.incrementAndGet();
+                // load is synchronous unlike other NonBlocking calls
+                onLoadFailure(binKey, e);
+                return null;
+                }
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        protected Set loadAllInternal(Set setBinKey)
+            {
+            Set setEntries = new HashSet(setBinKey.size());
+            Set setLoaded  = null;
+
+            for (Object oKey : setBinKey)
+                {
+                setEntries.add(instantiateEntry(oKey, null, null));
+
+                // remove from read queue if refresh ahead is configured
+                if (isRefreshAhead())
+                    {
+                    getReadQueue().remove(oKey);
+                    }
+                }
+
+            try
+                {
+                AbstractBinaryEntryBundler bundler =
+                        (AbstractBinaryEntryBundler) m_loadBundler;
+
+                if (bundler == null)
+                    {
+                    LoadOperationObserver observer = new LoadOperationObserver(setBinKey.size());
+                    getNonBlockingEntryStore().loadAll(setEntries, observer);
+
+                    // wait for all entries to come back or err out
+                    observer.waitForCompleted();
+
+                    return observer.getProcessedEntries();
+                    }
+                else
+                    {
+                    bundler.processAll(setEntries);
+
+                    return setEntries;
+                    }
+                }
+            catch (RuntimeException e)
+                {
+                // if it is desirable at this point for the load to truly
+                // fail, then the onLoadAllFailure method should throw an
+                // exception
+                f_cLoadFailures.incrementAndGet();
+                // loadAll is synchronous unlike other NonBlocking calls
+                onLoadAllFailure(setBinKey, e);
+                return Collections.EMPTY_SET;
+                }
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        protected void storeInternal(Entry binEntry)
+            {
+            azzert(!isReadOnly());
+
+            binEntry.startTracking();
+
+            AbstractBinaryEntryBundler bundler =
+                    (AbstractBinaryEntryBundler) m_storeBundler;
+
+            if (bundler == null)
+                {
+                getNonBlockingEntryStore().store(binEntry, new StoreOperationObserver());
+                }
+            else
+                {
+                bundler.process(binEntry);
+                }
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        protected void storeAllInternal(Set setBinEntries)
+            {
+            azzert(!isReadOnly());
+
+            for (Object o : setBinEntries)
+                {
+                ((Entry) o).startTracking();
+                }
+            StoreOperationObserver observer = new StoreOperationObserver(setBinEntries);
+
+            AbstractBinaryEntryBundler bundler =
+                    (AbstractBinaryEntryBundler) m_storeBundler;
+
+            if (bundler == null)
+                {
+                getNonBlockingEntryStore().storeAll(setBinEntries, observer);
+                }
+            else
+                {
+                bundler.processAll(setBinEntries);
+                }
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        protected void eraseInternal(Entry binEntry)
+            {
+            azzert(!isReadOnly());
+
+            AbstractBinaryEntryBundler bundler =
+                    (AbstractBinaryEntryBundler) m_eraseBundler;
+
+            if (bundler == null)
+                {
+                getNonBlockingEntryStore().erase(binEntry);
+                }
+            else
+                {
+                bundler.process(binEntry);
+                }
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        protected void eraseAllInternal(Set setBinEntries)
+            {
+            azzert(!isReadOnly());
+
+            AbstractBinaryEntryBundler bundler =
+                    (AbstractBinaryEntryBundler) m_eraseBundler;
+
+            if (bundler == null)
+                {
+                getNonBlockingEntryStore().eraseAll(setBinEntries);
+                }
+            else
+                {
+                bundler.processAll(setBinEntries);
+                }
+            }
+
+        /**
+        * {@inheritDoc}
+        */
+        public Object getStore()
+            {
+            return getNonBlockingEntryStore();
+            }
+
+        // ----- accessors --------------------------------------------------
+
+        /**
+        * The wrapped NonBlockingEntryStore.
+        *
+        * @return the underlying NonBlockingEntryStore this CacheStoreWrapper wraps
+        */
+        public NonBlockingEntryStore getNonBlockingEntryStore()
+            {
+            return f_storeNonBlocking;
+            }
+
+        // ----- Object overrides -------------------------------------------
+
+        /**
+        * Return a String representation of the NonBlockingEntryStoreWrapper
+        * object that will be used as a part of the write-behind thread name.
+        *
+        * @return a String representation of the CacheStoreWrapper object
+        */
+        public String toString()
+            {
+            return "NonBlockingEntryStoreWrapper(" +
+                   f_storeNonBlocking.getClass().getName() + ')';
+            }
+
+        /**
+        * Determine if the wrapped store implements blocking operations.
+        *
+        * @return true if the operations are blocking
+        */
+        public boolean isBlocking()
+            {
+            return false;
+            }
+
+        // ----- inner class: LoadOperationObserver ---------------------
+
+        /**
+        * Callbacks invoked by NonBlockingEntryStore implementation to handle
+        * the result of load operations.
+        */
+        public class LoadOperationObserver
+                implements StoreObserver
+            {
+            // ----- constructors -------------------------------------------
+
+            /**
+            * Default constructor
+            */
+            public LoadOperationObserver()
+                {
+                this(null, 1);
+                }
+
+            /**
+            * Constructor for loadAll() code path.
+            *
+            * @param cEntries  countdown gate for synchronization
+            */
+            public LoadOperationObserver(int cEntries)
+                {
+                this(new SafeHashSet(), cEntries);
+                }
+
+            /**
+             * Private constructor.
+             *
+             * @param setProcessed  set that will contain successfully processed
+             *                      entries
+             * @param cEntries      countdown gate for synchronization
+             */
+            private LoadOperationObserver(Set setProcessed, int cEntries)
+                {
+                f_setProcessedEntries = setProcessed;
+                f_setEntriesInError   = new SafeHashSet();
+                f_counterEntries      = new AtomicInteger(cEntries);
+                }
+
+            /**
+            * {@inheritDoc}
+            */
+            public void onNext(BinaryEntry binEntry)
+                {
+                completeSync(binEntry, null);
+
+                if (f_setProcessedEntries != null)
+                    {
+                    f_setProcessedEntries.add(binEntry);
+                    }
+                }
+
+            /**
+            * {@inheritDoc}
+            */
+            public void onError(BinaryEntry binEntry, Exception exception)
+                {
+                setThrowable(exception);
+
+                completeSync(binEntry, exception);
+
+                f_setEntriesInError.add(binEntry);
+                }
+
+            /**
+             * {@inheritDoc}
+             */
+            public void onComplete()
+                {
+                f_counterEntries.set(-1);
+                synchronized (f_counterEntries)
+                    {
+                    f_counterEntries.notify();
+                    }
+                }
+
+            // ----- helpers ------------------------------------------------
+
+            /**
+            * Common code with onNext/onError for synchronization processing.
+            *
+            * @param binEntry   entry being handled
+            * @param exception  exception to be relayed, if set
+            */
+            private void completeSync(BinaryEntry binEntry, Exception exception)
+                {
+                // the thread that called store.load or store.loadAll owns the
+                // lock for this key and would have installed a countdown gate
+
+                // prevent from calling sync for the same entry more than once
+                if (f_setProcessedEntries != null &&
+                    f_setProcessedEntries.contains(binEntry) ||
+                    f_setEntriesInError.contains(binEntry))
+                    {
+                    return;
+                    }
+
+                if (f_counterEntries.get() == -1)
+                    {
+                    throw new IllegalStateException("A method was called on an already closed StoreObserver");
+                    }
+
+                if (f_counterEntries.decrementAndGet() == 0)
+                    {
+                    onComplete();
+                    }
+                }
+
+            /**
+            * Synchronize loadInternal or loadAllInternal with responses.
+            *
+            * @throws RuntimeException upon interruption
+            */
+            protected void waitForCompleted()
+                {
+                try
+                    {
+                    synchronized (f_counterEntries)
+                        {
+                        while (f_counterEntries.get() > 0)
+                            {
+                            Blocking.wait(f_counterEntries);
+                            }
+                        }
+                    }
+                catch (InterruptedException ie)
+                    {
+                    // load/loadAll failed, not much else to do...
+                    throw Base.ensureRuntimeException(ie);
+                    }
+
+                // rethrow exception if there is one and no entry was processed
+                if (f_setProcessedEntries != null &&
+                    f_setProcessedEntries.size() == 0 &&
+                    getThrowable() != null)
+                    {
+                    throw Base.ensureRuntimeException(getThrowable());
+                    }
+                }
+
+            // ----- accessors ----------------------------------------------
+
+            /**
+            * Set of entries successfully processed in loadAll().
+            *
+            * @return set of good entries
+            */
+            protected Set getProcessedEntries()
+                {
+                return f_setProcessedEntries;
+                }
+
+            /**
+            * Exception to be returned to caller.
+            *
+            * @return the exception
+            */
+            private Throwable getThrowable()
+                {
+                return m_error;
+                }
+
+            /**
+            * Sets the exception to return to the caller.
+            *
+            * @param throwable  exception being set
+            */
+            private void setThrowable(Throwable error)
+                {
+                m_error = error;
+                }
+
+            // ----- data members -------------------------------------------
+
+            /**
+            * A count for the number of entries being stored.
+            * Note: this is used as a semaphore for loading threads.
+            */
+            private final AtomicInteger f_counterEntries;
+
+            /**
+            * Holds the set of entries that were successfully processed.
+            */
+            private final Set f_setProcessedEntries;
+
+            /**
+            * Holds the set of entries that were in error.
+            */
+            private final Set f_setEntriesInError;
+
+            /**
+            * Exception encountered during load.
+            */
+            private Throwable m_error;
+            }
+
+        // ----- inner class: StoreOperationObserver --------------------
+
+        /**
+        * Callbacks invoked by NonBlockingEntryStore implementer to handle
+        * the result of store operations.
+        */
+        public class StoreOperationObserver
+                implements StoreObserver
+            {
+            // ----- constructors -------------------------------------------
+
+            /**
+            * Default constructor.
+            */
+            public StoreOperationObserver()
+                {
+                this(null);
+                }
+
+            /**
+            * Constructor with initial set of entries to be stored.
+            *
+            * @param setEntries  the entries that need storing
+            */
+            public StoreOperationObserver(Set setEntries)
+                {
+                f_ldtStartTime   = getSafeTimeMillis();
+                f_setUnProcessed = new SafeHashSet();
+                if (setEntries != null)
+                    {
+                    f_setUnProcessed.addAll(setEntries);
+                    }
+                }
+
+            /**
+            * {@inheritDoc}
+            */
+            public void onNext(BinaryEntry binEntry)
+                {
+                Entry         entry      = (Entry) binEntry;
+                ConcurrentMap mapControl = getControlMap();
+                Object        binKey     = binEntry.getBinaryKey();
+
+                f_counterProcessed.incrementAndGet();
+
+                if (getContext().isKeyOwned(binKey) && mapControl.lock(binKey, 100L))
+                    {
+                    try
+                        {
+                        replace(entry);
+                        getSetUnProcessed().remove(binEntry);
+                        }
+                    finally
+                        {
+                        entry.stopTracking();
+
+                        mapControl.unlock(binKey);
+                        }
+                    }
+                }
+
+            /**
+            * {@inheritDoc}
+            */
+            public void onError(BinaryEntry binEntry, Exception exception)
+                {
+                Entry         entry      = (Entry) binEntry;
+                ConcurrentMap mapControl = getControlMap();
+                Object        binKey     = binEntry.getBinaryKey();
+
+                f_counterProcessed.incrementAndGet();
+                f_cStoreFailures.incrementAndGet();
+                onStoreFailure(entry, exception, false);
+
+                if (getContext().isKeyOwned(binKey) && mapControl.lock(binKey, 100L))
+                    {
+                    try
+                        {
+                        replace(entry);
+                        getSetUnProcessed().remove(binEntry);
+                        }
+                    finally
+                        {
+                        mapControl.unlock(binKey);
+                        }
+                    }
+                }
+
+            /**
+             * {@inheritDoc}
+             */
+            public void onComplete()
+                {
+                // go through entries not processed by onNext/onError
+                ConcurrentMap mapControl = getControlMap();
+
+                // no entry was processed, onNext | onError were never called
+                // treat as error
+                if (f_counterProcessed.get() == 0)
+                    {
+                    f_cStoreFailures.incrementAndGet();
+                    }
+
+                f_cStoreOps.incrementAndGet();
+                f_cStoreEntries.addAndGet(f_counterProcessed.get());
+
+                long lElapsed = getSafeTimeMillis() - f_ldtStartTime;
+                if (lElapsed != 0L)
+                    {
+                    f_cStoreMillis.addAndGet(lElapsed);
+                    }
+
+                f_cPendingAsyncStoreOps.decrementAndGet();
+
+                // process (remove decoration for) any entries for which the non-blocking store
+                // did not notify the StoreObserver.(onNext | onError)
+                for (Iterator iter = getSetUnProcessed().iterator(); iter.hasNext(); )
+                    {
+                    Entry  entry  = (Entry) iter.next();
+                    Object binKey = entry.getBinaryKey();
+                    if (getContext().isKeyOwned(binKey) && mapControl.lock(binKey, 100L))
+                        {
+                        try
+                            {
+                            replace(entry);
+                            }
+                        finally
+                            {
+                            entry.stopTracking();
+
+                            mapControl.unlock(binKey);
+                            }
+                        }
+                    }
+                }
+
+            // ----- accessors ----------------------------------------------
+
+            /**
+            * Provides the set of entries resulting in errors.
+            *
+            * @return entries in error
+            */
+            private Set getSetUnProcessed()
+                {
+                return f_setUnProcessed;
+                }
+
+            // ----- data members -------------------------------------------
+
+            /**
+            * Start time for operation duration calculation.
+            */
+            private final long f_ldtStartTime;
+
+            /**
+            * Counter of entries seen in onNext and onError.
+            */
+            private final AtomicInteger f_counterProcessed = new AtomicInteger();
+
+            /**
+            * Set of entries in error.
+            */
+            private final Set f_setUnProcessed;
+            }
+
+        // ----- data members -------------------------------------------
+
+        /**
+        * The wrapped NonBlockingEntryStore.
+        */
+        private NonBlockingEntryStore f_storeNonBlocking;
+        }
 
     // ----- inner class: BinaryEntryStoreWrapper ---------------------------
 
@@ -6451,7 +7391,7 @@ public class ReadWriteBackingMap
                 // if it is desirable at this point for the load to truly
                 // fail, then the onLoadFailure method should throw an
                 // exception
-                ++m_cLoadFailures;
+                f_cLoadFailures.incrementAndGet();
                 onLoadFailure(binKey, e);
                 return null;
                 }
@@ -6487,7 +7427,7 @@ public class ReadWriteBackingMap
                 // if it is desirable at this point for the load to truly
                 // fail, then the onLoadFailure method should throw an
                 // exception
-                ++m_cLoadFailures;
+                f_cLoadFailures.incrementAndGet();
                 onLoadAllFailure(setBinKey, e);
                 return Collections.EMPTY_SET;
                 }

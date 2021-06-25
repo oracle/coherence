@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.tangosol.net.BackingMapManagerContext;
 
 import com.tangosol.net.cache.BinaryEntryStore;
 import com.tangosol.net.cache.CacheLoader;
+import com.tangosol.net.cache.NonBlockingEntryStore;
 import com.tangosol.net.cache.ReadWriteBackingMap;
 
 import com.tangosol.util.ObservableMap;
@@ -119,6 +120,52 @@ public class ReadWriteSplittingBackingMap
         {
         super(ctxService, (ObservableMap) mapInternal, mapMisses, storeBinary,
                 fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor);
+        }
+
+
+    /**
+    * Construct a ReadWriteSplittingBackingMap based on a BinaryEntryStore.
+    *
+    * @param ctxService             the context provided by the CacheService
+    *                               which is using this backing map
+    * @param mapInternal            the PartitionAwareBackingMap used to store
+    *                               the data internally in this backing map;
+    *                               it must implement the ObservableMap
+    *                               interface
+    * @param mapMisses              the Map used to cache CacheStore misses
+    *                               (optional)
+    * @param storeNonBlockingBinary the NonBlockingEntryStore responsible for
+    *                               the persistence of the cached data
+    *                               (optional)
+    * @param fReadOnly              pass true is the specified loader is in
+    *                               fact a CacheStore that needs to be used
+    *                               only for read operations; changes to the
+    *                               cache will not be persisted
+    * @param cWriteBehindSeconds    number of seconds to write if there is a
+    *                               CacheStore; zero disables write-behind
+    *                               caching, which (combined with !fReadOnly)
+    *                               implies write-through
+    * @param dflRefreshAheadFactor  the interval before an entry expiration
+    *                               time (expressed as a percentage of the
+    *                               internal cache expiration interval) during
+    *                               which an asynchronous load request for the
+    *                               entry will be scheduled; zero disables
+    *                               refresh-ahead; only applicable when
+    *                               the <tt>mapInternal</tt> parameter is an
+    *                               instance of
+    *                               {@link com.tangosol.net.cache.LocalCache}
+    */
+    public ReadWriteSplittingBackingMap(
+            BackingMapManagerContext ctxService,
+            PartitionAwareBackingMap mapInternal,
+            Map                      mapMisses,
+            NonBlockingEntryStore    storeNonBlockingBinary,
+            boolean                  fReadOnly,
+            int                      cWriteBehindSeconds,
+            double                   dflRefreshAheadFactor)
+        {
+            super(ctxService, (ObservableMap) mapInternal, mapMisses, storeNonBlockingBinary,
+                    fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -33,6 +33,18 @@ Cache Configuration used for the bundler test suite.
         <init-param>
           <param-name>store</param-name>
           <param-value>common.TestBinaryCacheStore</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <!-- with ReadWriteBackingMap/NonBlockingEntryStore -->
+    <cache-mapping>
+      <cache-name>dist-test-rwbm-bin-nb</cache-name>
+      <scheme-name>bundled-partitioned-rwbm</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>store</param-name>
+          <param-value>common.TestNonBlockingStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
