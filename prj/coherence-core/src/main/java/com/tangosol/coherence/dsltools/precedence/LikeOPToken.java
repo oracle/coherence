@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,7 +13,7 @@ import com.tangosol.coherence.dsltools.termtrees.Terms;
 
 /**
 * LikeOPToken is used to parse a SQL like statement.
-* Example "key()like 'key\_%' escape '\'
+* Example "key() like 'key\_%' escape '\'
 *
 * @author bbc  2011.05.23
 */
@@ -46,7 +46,7 @@ public class LikeOPToken
         }
 
 
-    // ----- Operator Presidence API ----------------------------------------
+    // ----- Operator Precedence API ----------------------------------------
 
     /**
     * {@inheritDoc}
@@ -66,7 +66,7 @@ public class LikeOPToken
         else
             {
             return newAST(getLedASTName(),
-                getId(), leftNode, at[0]);       	
+                getId(), leftNode, at[0]);
             }
         }
     }

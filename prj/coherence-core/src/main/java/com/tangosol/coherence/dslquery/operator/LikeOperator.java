@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -33,6 +33,14 @@ public class LikeOperator
         super("like", true);
         }
 
+    /**
+     * Construct a LikeOperator.
+     */
+    protected LikeOperator(String sSymbol, boolean fConditional, String... asAlias)
+        {
+        super(sSymbol, fConditional, asAlias);
+        }
+
     // ----- BaseOperator methods -------------------------------------------
 
     @Override
@@ -43,10 +51,10 @@ public class LikeOperator
             Object[] ao      = (Object[]) oRight;
             char     cEscape = ((String) ao[1]).charAt(0);
 
-            return new LikeFilter((ValueExtractor) oLeft, (String) ao[0], cEscape, false);
+            return new LikeFilter((ValueExtractor) oLeft, (String) ao[0], cEscape, isIgnoreCase());
             }
 
-        return new LikeFilter((ValueExtractor) oLeft, (String) oRight, (char) 0, false);
+        return new LikeFilter((ValueExtractor) oLeft, (String) oRight, (char) 0, isIgnoreCase());
         }
 
     @Override
@@ -57,6 +65,18 @@ public class LikeOperator
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Returns {@code true} if the {@link LikeFilter} should be case-insensitive, otherwise returns
+     * {@code false}.
+     *
+     * @return the {@code LikeOperator} is case-sensitive, therefore this returns {@code false}
+     * @since 21.06
+     */
+    protected boolean isIgnoreCase()
+        {
+        return false;
+        }
 
     /**
      * An instance of the LikeOperator.

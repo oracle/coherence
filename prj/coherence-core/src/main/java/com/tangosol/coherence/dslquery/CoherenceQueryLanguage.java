@@ -48,6 +48,7 @@ import com.tangosol.coherence.dslquery.operator.DivisionOperator;
 import com.tangosol.coherence.dslquery.operator.EqualsOperator;
 import com.tangosol.coherence.dslquery.operator.GreaterEqualsOperator;
 import com.tangosol.coherence.dslquery.operator.GreaterOperator;
+import com.tangosol.coherence.dslquery.operator.ILikeOperator;
 import com.tangosol.coherence.dslquery.operator.InOperator;
 import com.tangosol.coherence.dslquery.operator.LessEqualsOperator;
 import com.tangosol.coherence.dslquery.operator.LessOperator;
@@ -424,6 +425,7 @@ public class CoherenceQueryLanguage
         addOperatorInternal(map, LessEqualsOperator.INSTANCE);        // <=
         addOperatorInternal(map, LessOperator.INSTANCE);              // <
         addOperatorInternal(map, LikeOperator.INSTANCE);              // like
+        addOperatorInternal(map, ILikeOperator.INSTANCE);             // ilike
         addOperatorInternal(map, NotEqualsOperator.INSTANCE);         // !=
         addOperatorInternal(map, OrOperator.INSTANCE);                // ||
         addOperatorInternal(map, XorOperator.INSTANCE);               // xor
