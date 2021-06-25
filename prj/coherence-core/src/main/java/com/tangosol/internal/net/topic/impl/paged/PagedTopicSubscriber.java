@@ -1309,6 +1309,8 @@ public class PagedTopicSubscriber<V>
         // at most once per pass over all other channels unless the channel is contended, in which case we don't
         // select it until we've had a sufficient number of hits
 
+        int cMax  = m_listenerChannelAllocation.getChannelCount();
+        int cIter = 0;
         do
             {
             nChannel = m_listenerChannelAllocation.nextChannel(nChannel);
@@ -1324,8 +1326,9 @@ public class PagedTopicSubscriber<V>
                 {
                 return nChannel;
                 }
+            cIter++;
             }
-        while (nChannel != nChannelStart);
+        while (nChannel != nChannelStart && cIter <= cMax);
 
         // we didn't find any non-empty uncontested channels and ended up back at our start channel.
         // the start channel wasn't selected in the loop thus it is either empty or contended.
