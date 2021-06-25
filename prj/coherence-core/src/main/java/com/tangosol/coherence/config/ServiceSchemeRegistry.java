@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -84,8 +84,10 @@ public class ServiceSchemeRegistry
         else if (m_mapServiceSchemesBySchemeName.containsKey(scheme.getSchemeName()))
             {
             throw new IllegalArgumentException(String.format(
-                "Attempted to register or redefine a service scheme called <scheme-name>%s</scheme-name> that already exists with %s",
-                scheme.getSchemeName(), scheme.toString()));
+                "Attempted to define multiple service schemes of <scheme-name>%s</scheme-name>.\n" +
+                "Defined %s, Invalid duplicate %s.", scheme.getSchemeName(),
+                describeServiceScheme(m_mapServiceSchemesBySchemeName.get(scheme.getSchemeName())),
+                describeServiceScheme(scheme)));
             }
         else
             {
@@ -144,6 +146,22 @@ public class ServiceSchemeRegistry
     public int size()
         {
         return m_mapServiceSchemesBySchemeName.size();
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    private static String describeServiceScheme(ServiceScheme scheme)
+        {
+        StringBuilder sb = new StringBuilder();
+
+        if (scheme != null)
+            {
+            sb.append("ServiceScheme scheme-name=").append(scheme.getSchemeName());
+            sb.append(" service-name=").append(scheme.getServiceName());
+            sb.append(" service type=").append(scheme.getServiceType());
+            }
+
+        return sb.toString();
         }
 
     // ----- data members ---------------------------------------------------
