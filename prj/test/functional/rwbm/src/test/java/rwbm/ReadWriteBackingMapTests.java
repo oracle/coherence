@@ -652,7 +652,7 @@ public class ReadWriteBackingMapTests
             assertEquals(null, cache.get("someKey"));
             cache.get("IllegalState");
 
-            Base.sleep(3000);
+            definiteSleep(3000);
 
             assertEquals("IllegalStateException", store.getStorageMap().get("IllegalState"));
             }
@@ -1387,6 +1387,13 @@ public class ReadWriteBackingMapTests
 
         store.getStatsMap().clear();
 
+        if (sCacheName.equals("dist-rwbm-nb-nonpc"))
+            {
+            // async stores: race condition between end of putAll() and invokeAll()
+            // give a chance to storeAll() and onNext() to go through
+            definiteSleep(2000);
+            }
+
         cache.invokeAll(map.keySet(), new CustomProcessor12());
 
         assertEquals("testUpdateSynthetic-" + sCacheName, 10, store.getStorageMap().size());
@@ -1434,6 +1441,13 @@ public class ReadWriteBackingMapTests
         assertEquals("testUpdateBinarySynthetic-" + sCacheName, 10, mapInternal.size());
 
         store.getStatsMap().clear();
+
+        if (sCacheName.equals("dist-rwbm-nb-nonpc"))
+            {
+            // async stores: race condition between end of putAll() and invokeAll()
+            // give a chance to storeAll() and onNext() to go through
+            definiteSleep(2000);
+            }
 
         cache.invokeAll(map.keySet(), new CustomProcessor13());
 
