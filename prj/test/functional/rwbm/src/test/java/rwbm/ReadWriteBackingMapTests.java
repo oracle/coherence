@@ -1394,7 +1394,8 @@ public class ReadWriteBackingMapTests
 
         for (int i = 0; i < 10; i++)
             {
-            assertEquals(-i, cache.get(i));
+            final int I = i;
+            Eventually.assertDeferred(() -> cache.get(I), is(-i));
             }
 
         verifyStoreStats("testUpdateSynthetic-" + sCacheName, store, 0, 0, 0, 0, 0, 0);
@@ -1441,7 +1442,8 @@ public class ReadWriteBackingMapTests
 
         for (int i = 0; i < 10; i++)
             {
-            assertEquals(-i, cache.get(i));
+            int I = i;
+            Eventually.assertDeferred(() -> cache.get(I), is(-i));
             }
 
         verifyStoreStats("testUpdateBinarySynthetic-" + sCacheName, store, 0, 0, 0, 0, 0, 0);
