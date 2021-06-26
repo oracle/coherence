@@ -1382,7 +1382,7 @@ public class ReadWriteBackingMapTests
 
         cache.putAll(map);
 
-        assertEquals("testUpdateSynthetic-" + sCacheName, 10, store.getStorageMap().size());
+        Eventually.assertDeferred(() -> store.getStorageMap().size(), is(map.size()));
         assertEquals("testUpdateSynthetic-" + sCacheName, 10, mapInternal.size());
 
         store.getStatsMap().clear();
@@ -1430,7 +1430,7 @@ public class ReadWriteBackingMapTests
 
         cache.putAll(map);
 
-        assertEquals("testUpdateBinarySynthetic-" + sCacheName, 10, store.getStorageMap().size());
+        Eventually.assertDeferred(() -> store.getStorageMap().size(), is(map.size()));
         assertEquals("testUpdateBinarySynthetic-" + sCacheName, 10, mapInternal.size());
 
         store.getStatsMap().clear();
