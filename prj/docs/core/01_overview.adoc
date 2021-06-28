@@ -51,5 +51,12 @@ Higher level, DDD-friendly data access API.
 On demand event replay.
 --
 
+[CARD]
+.Non-Blocking Data Sources
+[icon=extension,link=docs/core/08_non_blocking.adoc]
+--
+Integration with data sources with non-blocking APIs
+--
+
 ====
 
