@@ -143,6 +143,32 @@ function createRoutes(){
             component: loadPage('docs-core-06_durable_events', '/docs/core/06_durable_events', {})
         },
         {
+            path: '/docs/core/07_partition_events_logging',
+            meta: {
+                h1: 'Partition Events Logging',
+                title: 'Partition Events Logging',
+                h1Prefix: null,
+                description: 'Logging of events that render partitions unavailable',
+                keywords: 'coherence, partition, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-07_partition_events_logging', '/docs/core/07_partition_events_logging', {})
+        },
+        {
+            path: '/docs/core/08_non_blocking',
+            meta: {
+                h1: 'Non Blocking Data Sources',
+                title: 'Non Blocking Data Sources',
+                h1Prefix: null,
+                description: 'Integration with data sources with a non-blocking API',
+                keywords: 'coherence, partition, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-08_non_blocking', '/docs/core/08_non_blocking', {})
+        },
+        {
             path: '/docs/topics/01_introduction',
             meta: {
                 h1: 'Introduction to Coherence Topics',
@@ -614,7 +640,9 @@ function createNav(){
                                 { href: '/docs/core/03_parallel_recovery', title: 'Parallel Recovery' },
                                 { href: '/docs/core/04_portable_types', title: 'Portable Types' },
                                 { href: '/docs/core/05_repository', title: 'Repository API' },
-                                { href: '/docs/core/06_durable_events', title: 'Durable Events' }
+                                { href: '/docs/core/06_durable_events', title: 'Durable Events' },
+                                { href: '/docs/core/07_partition_events_logging', title: 'Partition Events Logging' },
+                                { href: '/docs/core/08_non_blocking', title: 'Non Blocking Data Sources' }
                             ]
                         },
                         {
