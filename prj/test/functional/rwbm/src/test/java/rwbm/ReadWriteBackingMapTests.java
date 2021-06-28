@@ -1340,10 +1340,17 @@ public class ReadWriteBackingMapTests
 
         cache.putAll(map);
 
-        assertEquals("testRemoveSynthetic-" + sCacheName, 10, store.getStorageMap().size());
+        Eventually.assertDeferred(() -> store.getStorageMap().size(), is(map.size()));
         assertEquals("testRemoveSynthetic-" + sCacheName, 10, mapInternal.size());
 
         store.getStatsMap().clear();
+
+        if (sCacheName.equals("dist-rwbm-nb-nonpc"))
+            {
+            // async stores: race condition between end of putAll() and invokeAll()
+            // give a chance to storeAll() and onNext() to go through
+            definiteSleep(2000);
+            }
 
         cache.invokeAll(map.keySet(), new CustomProcessor11());
 
