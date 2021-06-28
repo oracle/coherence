@@ -30,14 +30,14 @@ lang="xml"
 >    &lt;dependency&gt;
       &lt;groupId&gt;io.helidon.microprofile.config&lt;/groupId&gt;
       &lt;artifactId&gt;helidon-microprofile-config&lt;/artifactId&gt;
-      &lt;version&gt;2.2.1&lt;/version&gt;
+      &lt;version&gt;2.3.1&lt;/version&gt;
     &lt;/dependency&gt;
 
     &lt;!-- optional: add it if you want YAML config file support --&gt;
     &lt;dependency&gt;
       &lt;groupId&gt;io.helidon.config&lt;/groupId&gt;
       &lt;artifactId&gt;helidon-config-yaml&lt;/artifactId&gt;
-      &lt;version&gt;2.2.1&lt;/version&gt;
+      &lt;version&gt;2.3.1&lt;/version&gt;
     &lt;/dependency&gt;</markup>
 
 </div>
