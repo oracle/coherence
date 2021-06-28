@@ -52,6 +52,13 @@ On demand event replay.
 --
 
 [CARD]
+.Partition Events Logging
+[icon=import_contacts,link=docs/core/07_partition_events_logging.adoc]
+--
+Logging of events that render partitions unavailable.
+--
+
+[CARD]
 .Non-Blocking Data Sources
 [icon=extension,link=docs/core/08_non_blocking.adoc]
 --
