@@ -360,6 +360,29 @@ public class PagedTopicCaches
         }
 
     /**
+     * Returns {@code true} if a subscriber in the specified group has committed the specified {@link Position}
+     * in the specified channel.
+     *
+     * @param groupId    the subscriber group identifier
+     * @param nChannel  the channel identifier
+     * @param position  the {@link Position} to check
+     *
+     * @return {@code true} if a subscriber in the specified group has committed the specified {@link Position}
+     *         in the specified channel; or {@code false} if the position is not committed or the subscriber
+     *         group does not exist
+     */
+    public boolean isCommitted(SubscriberGroupId groupId, int nChannel, Position position)
+        {
+        if (position instanceof PagedPosition && nChannel >= 0 && nChannel < getChannelCount())
+            {
+            Map<Integer, Position> map          = getLastCommitted(groupId);
+            Position               posCommitted = map.get(nChannel);
+            return posCommitted != null && posCommitted.compareTo(position) >= 0;
+            }
+        return false;
+        }
+
+    /**
      * Returns a {@link Map} of channel numbers to the latest {@link Position} committed
      * for that channel. If a channel has had zero commits it will be missing
      * from the map's keySet.
