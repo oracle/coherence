@@ -1150,7 +1150,6 @@ public abstract class AbstractNamedTopicTests
         int                      cChannel       = topic.getChannelCount();
         List<Subscriber<String>> listSubscriber = new ArrayList<>();
 
-
         try
             {
             for (int i = 0; i < cChannel; i++)
@@ -1158,24 +1157,25 @@ public abstract class AbstractNamedTopicTests
                 listSubscriber.add(topic.createSubscriber(inGroup("test-commits"), Subscriber.CompleteOnEmpty.enabled()));
                 }
 
-            // count the number of subscribers with zero channels
-            long count = listSubscriber.stream()
-                    .filter(s -> s.getChannels().length == 0)
-                    .count();
-            // there should be zero
-            assertThat("not all subscribers have channels", count, is(not(0)));
+            // Channel allocation is async so we need to wait until all subscribers have one channel and
+            // all channels are allocated to a subscriber
+            Eventually.assertDeferred(() -> subscribersHaveDistinctChannels(listSubscriber), is(true));
 
             Map<Integer, Position> mapHeadsStart = new HashMap<>();
             for (Subscriber<String> subscriber : listSubscriber)
                 {
-                Map<Integer, Position> map      = subscriber.getHeads();
                 int                    nChannel = subscriber.getChannels()[0];
+                Map<Integer, Position> map      = subscriber.getHeads();
+                assertThat("Heads already contains " + nChannel, mapHeadsStart.containsKey(nChannel), is(false));
                 assertThat(map, is(notNullValue()));
                 assertThat(map.size(), is(1));
                 Position position = map.get(nChannel);
                 assertThat(position, is(notNullValue()));
                 mapHeadsStart.put(nChannel, position);
                 }
+
+            // should have a head for each channel
+            assertThat(mapHeadsStart.size(), is(cChannel));
 
             // no tails yet
             for (Subscriber<String> subscriber : listSubscriber)
@@ -1241,6 +1241,20 @@ public abstract class AbstractNamedTopicTests
             {
             listSubscriber.forEach(Subscriber::close);
             }
+        }
+
+    protected boolean subscribersHaveDistinctChannels(List<Subscriber<String>> listSubscriber)
+        {
+        Map<Integer, Integer> mapChannel = new HashMap<>();
+        for (Subscriber<String> subscriber : listSubscriber)
+            {
+            int[] aChannel = subscriber.getChannels();
+            for (int nChannel : aChannel)
+                {
+                mapChannel.compute(nChannel, (k, v) -> v == null ? 1 : v + 1);
+                }
+            }
+        return mapChannel.values().stream().noneMatch(v -> v != 1);
         }
 
     protected Map<Integer, Position[]> populateAllChannels(NamedTopic<String> topic, int cMsgPerChannel) throws Exception
