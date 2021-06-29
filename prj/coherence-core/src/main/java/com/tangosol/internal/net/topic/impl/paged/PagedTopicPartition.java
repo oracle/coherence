@@ -932,10 +932,12 @@ public class PagedTopicPartition
 
                 // else; common case (subscription to existing group)
 
-                PagedPosition position = subscription.getRollbackPosition();
-                alResult[nChannel] = position.getPage() == Page.EMPTY
-                    ? Page.NULL_PAGE // the page has been removed
-                    : position.getPage();
+                PagedPosition headPosition = subscription.getHeadPosition();
+                // if the head page is Page.EMPTY then nothing has been polled yet, so use the subscription
+                // head, else use the rollback head
+                alResult[nChannel] = headPosition.getPage() == Page.EMPTY
+                    ? subscription.getSubscriptionHead()
+                    : subscription.getRollbackPosition().getPage();
                 }
             else if (nPhase == EnsureSubscriptionProcessor.PHASE_PIN &&
                      subscription == null) // if non-null another member beat us here in which case the final else will simply return the pinned page

@@ -745,27 +745,17 @@ public abstract class AbstractNamedTopicTests
         try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("test"));
              Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("test")))
             {
-            int[] channels1 = subscriber1.getChannels();
-            int[] channels2 = subscriber2.getChannels();
-
-            OrderBy<String> orderBy = OrderBy.value(s ->
-                    "one".equals(s) || "three".equals(s)
-                        ? channels1[0]
-                        : channels2[0]);
-
-            try (Publisher<String> publisher = topic.createPublisher(orderBy))
+            // publish to all channels so that both subscriber get something
+            try (Publisher<String> publisher = topic.createPublisher(OrderBy.roundRobin()))
                 {
-                publisher.publish("one").join();
-                publisher.publish("two").join();
-                publisher.publish("three").join();
-                publisher.publish("four").join();
+                for (int i = 0; i < topic.getChannelCount(); i++)
+                    {
+                    publisher.publish("element-" + i).get(1, TimeUnit.MINUTES);
+                    }
                 }
 
             Element<String> element1 = subscriber1.receive().get(2, TimeUnit.MINUTES);
             Element<String> element2 = subscriber2.receive().get(2, TimeUnit.MINUTES);
-
-            assertThat(element1.getValue(), is("one"));
-            assertThat(element2.getValue(), is("two"));
 
             Subscriber.CommitResult resultFoo = subscriber1.commit(element2.getChannel(), element2.getPosition());
             Subscriber.CommitResult resultBar = subscriber2.commit(element1.getChannel(), element1.getPosition());
@@ -1256,11 +1246,9 @@ public abstract class AbstractNamedTopicTests
     protected Map<Integer, Position[]> populateAllChannels(NamedTopic<String> topic, int cMsgPerChannel) throws Exception
         {
         int             cChannel = topic.getChannelCount();
-        AtomicInteger   nChannel = new AtomicInteger();
-        OrderBy<String> orderBy  = OrderBy.value(s -> nChannel.getAndIncrement());
 
         Map<Integer,Position[]> mapHeadTail = new HashMap<>();
-        try (Publisher<String> publisher = topic.createPublisher(orderBy))
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.roundRobin()))
             {
             for (int i = 0; i < cMsgPerChannel; i++)
                 {
@@ -2173,21 +2161,35 @@ public abstract class AbstractNamedTopicTests
         try(Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("subscriber"));
             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("subscriber")))
             {
-            int[] channels1 = subscriber1.getChannels();
-            int[] channels2 = subscriber2.getChannels();
-
-            OrderBy<String> orderBy = OrderBy.value(s -> "one".equals(s) ? channels1[0] : channels2[0]);
-
-            Publisher<String> publisher = topic.createPublisher(orderBy);
-
             Future<Subscriber.Element<String>> future1 = subscriber1.receive();
             Future<Subscriber.Element<String>> future2 = subscriber2.receive();
 
-            publisher.publish("one").join();
-            publisher.publish("two").join();
+            // should eventually stop polling when all owned channels have been determined to be empty
+            long start     = System.currentTimeMillis();
+            long polls     = ((PagedTopicSubscriber<String>) subscriber1).getPolls();
+            long pollsPrev = -1;
+            while (polls != pollsPrev)
+                {
+                long now = System.currentTimeMillis();
+                assertThat("Timed out waiting for the subscriber to stop polling",
+                           start - now, is(lessThan(TimeUnit.MINUTES.toMillis(2))));
+                Thread.sleep(10);
+                pollsPrev = polls;
+                polls = ((PagedTopicSubscriber<String>) subscriber1).getPolls();
+                }
 
-            assertThat(future1.get(2, TimeUnit.MINUTES).getValue(), is("one"));
-            assertThat(future2.get(2, TimeUnit.MINUTES).getValue(), is("two"));
+            // publish to all channels so that both subscriber get something
+            try (Publisher<String> publisher = topic.createPublisher(OrderBy.roundRobin()))
+                {
+                for (int i = 0; i < topic.getChannelCount(); i++)
+                    {
+                    publisher.publish("element-" + i).get(1, TimeUnit.MINUTES);
+                    }
+                }
+
+            // Both subscribers should have received notifications and re-poll for messages
+            future1.get(2, TimeUnit.MINUTES);
+            future2.get(2, TimeUnit.MINUTES);
             }
         }
 
@@ -2295,19 +2297,20 @@ public abstract class AbstractNamedTopicTests
             DebouncedFlowControl flowControl = (DebouncedFlowControl) subscriber.getFlowControl();
             long                 nMaxBacklog = flowControl.getExcessiveLimit();
 
+            long cMessage = nHigh * 2;
             Thread thread = new Thread(() ->
                 {
-                while (cReceive.get() < nHigh * 2) // over aggressively schedule requests until we've received everything, i.e. depend on flow-control
+                while (cReceive.get() < cMessage) // over aggressively schedule requests until we've received everything, i.e. depend on flow-control
                    {
                    cPending.incrementAndGet();
-                   subscriber.receive().handle((Element<String> v, Throwable t) ->
+                   subscriber.receive().handle((Element<String> element, Throwable t) ->
                        {
                        cPending.decrementAndGet();
                        if (t == null)
                            {
                            cReceive.incrementAndGet();
                            }
-                       return v;
+                       return element;
                        });
                    }
                 });
@@ -2322,24 +2325,28 @@ public abstract class AbstractNamedTopicTests
 
             try (Publisher<String> publisher = topic.createPublisher())
                 {
-                for (int i = 0; i < nHigh * 2; ++i)
+                for (int i = 0; i < cMessage; ++i)
                     {
                     publisher.publish("Element-" + i).get(2, TimeUnit.MINUTES); // .get() makes publisher slower then subscriber
                     assertThat(flowControl.getBacklog(), is(lessThanOrEqualTo(nMaxBacklog)));
                     }
                 }
 
-            while (cReceive.get() < nHigh * 2)
+            long start = System.currentTimeMillis();
+            while (cReceive.get() < cMessage)
                 {
                 //noinspection BusyWait
                 Thread.sleep(1);
+                long now = System.currentTimeMillis();
+                assertThat("Timed out - received " + cReceive.get() + " out of " + cMessage,
+                           now - start, is(lessThan(10000L)));
                 }
 
             thread.interrupt(); // the thread may be blocked on flow control
             thread.join();
 
             assertThat(flowControl.getBacklog(), is(lessThanOrEqualTo(nMaxBacklog)));
-            assertThat(cReceive.get(), is(nHigh * 2));
+            assertThat(cReceive.get(), is(cMessage));
             }
         }
 
@@ -2426,7 +2433,7 @@ public abstract class AbstractNamedTopicTests
                     CompletableFuture<Void> future   = publisher.publish(sRand)
                             .handle((status, err) ->
                                 {
-                                System.err.println("Published message " + status.getChannel() + " " + status.getPosition());
+                                //System.err.println("Published message " + status.getChannel() + " " + status.getPosition());
                                 return null;
                                 });
 

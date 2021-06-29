@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToIntFunction;
 
 /**
@@ -459,6 +460,17 @@ public interface Publisher<V>
             return new OrderByValue<>(supplierOrderId);
             }
 
+        /**
+         * Return an OrderBy which will compute the unit-of-order such that each message
+         * is published to the next channel in a round robin order.
+         *
+         * @return an OrderBy which will compute the unit-of-order such that each message
+         *         is published to the next channel in a round robin order.
+         */
+        public static <V> OrderBy<V> roundRobin()
+            {
+            return new OrderByRoundRobin<>();
+            }
         }
 
     // ----- inner class: OrderByThread -------------------------------------
@@ -690,6 +702,32 @@ public interface Publisher<V>
         /**
         * A function used to compute the unit-of-order from the value type V.
         */
-        private ToIntFunction<? super V> m_orderIdFunction;
+        protected ToIntFunction<? super V> m_orderIdFunction;
+        }
+
+    // ----- inner class: OrderByValue --------------------------------------
+
+    /**
+     * {@link OrderBy} option which computes the unit-of-order such that each message is sent
+     * to the next channel in a round robin order.
+     *
+     * @param <V>  the value type
+     */
+    public static class OrderByRoundRobin<V>
+            extends OrderByValue<V>
+        {
+        public OrderByRoundRobin()
+            {
+            m_orderIdFunction = this::getOrder;
+            }
+
+        private int getOrder(V ignored)
+            {
+            return m_nOrder.accumulateAndGet(1, (x, y) -> x == Integer.MAX_VALUE ? 0 : x + 1);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private AtomicInteger m_nOrder = new AtomicInteger();
         }
     }
