@@ -4,7 +4,7 @@
 
 engine:
   asciidoctor:
-    images-dir: "docs/images"
+    imagesdir: "docs/images"
     libraries:
       - "asciidoctor-diagram"
     attributes:
