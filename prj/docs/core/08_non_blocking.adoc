@@ -39,7 +39,7 @@ The diagrams below illustrate the flow from the initial request, to the invocati
 
 * for a `get()` operation inducing a load:
 
-image:/docs/images/08_non_blocking_load.png[link="/docs/images/08_non_blocking_load.png",width=80%]
+image::08_non_blocking_load.png[width=80%]
 
 <1> the application calls `get()` on entry `A` that is not in the cache yet.
 <2> a request goes to the storage member that owns the entry, in this instance JVM2. Entry ownership, and thus partition ownership, is determined algorithmically based on the raw (or binary) value of the key and the number of partitions the associated partitioned service is configured with.
@@ -56,7 +56,7 @@ Note that although the data source operation can be performed asynchronously and
 ----
 * for a `put()` operation:
 
-image:/docs/images/08_non_blocking_store.png[link="/docs/images/08_non_blocking_store.png",width=80%]
+image::08_non_blocking_store.png[width=80%]
 
 <1> the application calls `put()` on entry `A` with value `A`.
 <2> the entry is stored on the owning member.
