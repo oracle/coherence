@@ -17,7 +17,7 @@
   <name>Coherence Guides - Cache Stores</name>
 
   <properties>
-    <revision>21.06</revision>
+    <revision>21.06-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
