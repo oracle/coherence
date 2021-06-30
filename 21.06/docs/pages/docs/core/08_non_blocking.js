@@ -33,7 +33,7 @@ lang="java"
 
 </li>
 </ul>
-<p><img src="/docs/images/08_non_blocking_load.png" alt="08 non blocking load"width="80%" />
+<p><img src="docs/images/08_non_blocking_load.png" alt="08 non blocking load"width="80%" />
 </p>
 
 <ul class="colist">
@@ -55,7 +55,7 @@ Note that although the data source operation can be performed asynchronously and
 
 </li>
 </ul>
-<p><img src="/docs/images/08_non_blocking_store.png" alt="08 non blocking store"width="80%" />
+<p><img src="docs/images/08_non_blocking_store.png" alt="08 non blocking store"width="80%" />
 </p>
 
 <ul class="colist">
