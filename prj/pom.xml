@@ -81,6 +81,10 @@
       <name>Chinmay Patel</name>
       <url>https://github.com/chpatel3</url>
     </developer>
+    <developer>
+      <name>Maurice Gamanho</name>
+      <url>https://github.com/mgamanho</url>
+    </developer>
   </developers>
 
   <distributionManagement>
