@@ -1146,46 +1146,24 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldGetHeadsAndTails() throws Exception
         {
-        NamedTopic<String>       topic          = ensureTopic();
-        int                      cChannel       = topic.getChannelCount();
-        List<Subscriber<String>> listSubscriber = new ArrayList<>();
+        NamedTopic<String> topic    = ensureTopic();
+        int                cChannel = topic.getChannelCount();
 
-        try
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("test-commits"), CompleteOnEmpty.enabled()))
             {
-            for (int i = 0; i < cChannel; i++)
-                {
-                listSubscriber.add(topic.createSubscriber(inGroup("test-commits"), Subscriber.CompleteOnEmpty.enabled()));
-                }
-
-            // Channel allocation is async so we need to wait until all subscribers have one channel and
-            // all channels are allocated to a subscriber
-            Eventually.assertDeferred(() -> subscribersHaveDistinctChannels(listSubscriber), is(true));
-
-            Map<Integer, Position> mapHeadsStart = new HashMap<>();
-            for (Subscriber<String> subscriber : listSubscriber)
-                {
-                int                    nChannel = subscriber.getChannels()[0];
-                Map<Integer, Position> map      = subscriber.getHeads();
-                assertThat("Heads already contains " + nChannel, mapHeadsStart.containsKey(nChannel), is(false));
-                assertThat(map, is(notNullValue()));
-                assertThat(map.size(), is(1));
-                Position position = map.get(nChannel);
-                assertThat(position, is(notNullValue()));
-                mapHeadsStart.put(nChannel, position);
-                }
+            int                    nChannel      = subscriber.getChannels()[0];
+            Map<Integer, Position> mapHeadsStart = subscriber.getHeads();
+            assertThat(mapHeadsStart, is(notNullValue()));
+            assertThat(mapHeadsStart.size(), is(cChannel));
 
             // should have a head for each channel
             assertThat(mapHeadsStart.size(), is(cChannel));
 
             // no tails yet
-            for (Subscriber<String> subscriber : listSubscriber)
-                {
-                Map<Integer, Position> map      = subscriber.getTails();
-                int                    nChannel = subscriber.getChannels()[0];
-                assertThat(map, is(notNullValue()));
-                assertThat(map.size(), is(1));
-                assertThat(map.get(nChannel), is(mapHeadsStart.get(nChannel)));
-                }
+            Map<Integer, Position> map = subscriber.getTails();
+            assertThat(map, is(notNullValue()));
+            assertThat(map.size(), is(cChannel));
+            assertThat(map, is(mapHeadsStart));
 
             // add data
             int                      cMsgPerChannel = 100;
@@ -1194,52 +1172,39 @@ public abstract class AbstractNamedTopicTests
             Map<Integer, Position>   mapActualTails = mapHeadTail.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()[1]));
 
             // should have no heads until first poll
-            for (Subscriber<String> subscriber : listSubscriber)
-                {
-                Map<Integer, Position> map      = subscriber.getHeads();
-                int                    nChannel = subscriber.getChannels()[0];
-                assertThat(map, is(notNullValue()));
-                assertThat(map.size(), is(1));
-                assertThat(map.get(nChannel), is(mapHeadsStart.get(nChannel)));
-                }
+            map = subscriber.getHeads();
+            assertThat(map, is(notNullValue()));
+            assertThat(map.size(), is(cChannel));
+            assertThat(map, is(mapHeadsStart));
 
             // should have tails
-            for (Subscriber<String> subscriber : listSubscriber)
-                {
-                Map<Integer, Position> map      = subscriber.getTails();
-                int                    nChannel = subscriber.getChannels()[0];
-                assertThat(map, is(notNullValue()));
-                assertThat(map.size(), is(1));
-                assertThat(map.get(nChannel), is(mapActualTails.get(nChannel)));
-                }
+            map = subscriber.getTails();
+            assertThat(map, is(notNullValue()));
+            assertThat(map.size(), is(cChannel));
+            assertThat(map, is(mapActualTails));
 
-            // read some messages
-            Random random = new Random(System.currentTimeMillis());
-            for (Subscriber<String> subscriber : listSubscriber)
+            // read all messages
+            Subscriber.Element<String> element = subscriber.receive().get(2, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            Subscriber.Element<String> elementCommit = element;
+            while (element != null)
                 {
-                Subscriber.Element<String> element = null;
-                int                        cPoll   = random.nextInt(cMsgPerChannel / 2) + 1;
-                for (int i = 0; i < cPoll; i++)
+                element = subscriber.receive().get(2, TimeUnit.MINUTES);
+                if (element != null)
                     {
-                    element = subscriber.receive().get(2, TimeUnit.MINUTES);
+                    elementCommit = element;
                     }
-                assertThat(element, is(notNullValue()));
-                element.commit();
                 }
+            elementCommit.commit();
 
             // should have heads greater than initial heads
-            for (Subscriber<String> subscriber : listSubscriber)
+            map = subscriber.getHeads();
+            assertThat(map, is(notNullValue()));
+            assertThat(map.size(), is(cChannel));
+            for (int c = 1; c < cChannel; c++)
                 {
-                Map<Integer, Position> map      = subscriber.getHeads();
-                int                    nChannel = subscriber.getChannels()[0];
-                assertThat(map, is(notNullValue()));
-                assertThat(map.size(), is(1));
-                assertThat(map.get(nChannel).compareTo(mapActualHeads.get(nChannel)), is(greaterThan(0)));
+                assertThat(map.get(nChannel), is(greaterThan(mapActualHeads.get(c))));
                 }
-            }
-        finally
-            {
-            listSubscriber.forEach(Subscriber::close);
             }
         }
 
