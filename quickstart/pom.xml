@@ -16,7 +16,7 @@
     <version>1.0.0</version>
 
     <properties>
-        <version.lib.coherence>20.06</version.lib.coherence>
+        <version.lib.coherence>21.06</version.lib.coherence>
         <version.plugin.jib>2.4.0</version.plugin.jib>
     </properties>
 
