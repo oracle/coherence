@@ -1243,10 +1243,20 @@ public abstract class AbstractNamedTopicTests
             }
         }
 
-    protected boolean subscribersHaveDistinctChannels(List<Subscriber<String>> listSubscriber)
+    /**
+     * Returns {@code true} if all the subscribers in the specified list are allocated a distinct
+     * set of channels.
+     *
+     * @param listSubscriber  the subscribers to verify
+     * @param <V>             the type of value subscribed to
+     *
+     * @return {@code true} if all the subscribers in the specified list are allocated a distinct
+     *         set of channels
+     */
+    protected <V> boolean subscribersHaveDistinctChannels(List<Subscriber<V>> listSubscriber)
         {
         Map<Integer, Integer> mapChannel = new HashMap<>();
-        for (Subscriber<String> subscriber : listSubscriber)
+        for (Subscriber subscriber : listSubscriber)
             {
             int[] aChannel = subscriber.getChannels();
             for (int nChannel : aChannel)
@@ -1931,6 +1941,10 @@ public abstract class AbstractNamedTopicTests
                 {
                 listSubscriber.add(topic.createSubscriber(inGroup("test"), Subscriber.CompleteOnEmpty.enabled()));
                 }
+
+            // Channel allocation is async so we need to wait until all subscribers have one channel and
+            // all channels are allocated to a subscriber
+            Eventually.assertDeferred(() -> subscribersHaveDistinctChannels(listSubscriber), is(true));
 
             // publish one message per channel
             try (Publisher<OrderableMessage<String>> publisher = topic.createPublisher())
