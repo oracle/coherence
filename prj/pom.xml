@@ -842,6 +842,7 @@
                 <systemPropertyVariables>
                   <bedrock.profile.coverage>auto</bedrock.profile.coverage>
                   <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco-ut.exec</jacoco-agent.destfile>
+                  <coherence.lambdas>static</coherence.lambdas>
                 </systemPropertyVariables>
                 <excludes>
                   <exclude>**/StreamTest.java</exclude>
@@ -860,6 +861,7 @@
                 <systemPropertyVariables>
                   <bedrock.profile.coverage>auto</bedrock.profile.coverage>
                   <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco-it.exec</jacoco-agent.destfile>
+                  <coherence.lambdas>static</coherence.lambdas>
                 </systemPropertyVariables>
                 <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
               </configuration>
