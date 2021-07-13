@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,7 +10,7 @@ import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
-import com.tangosol.internal.util.invoke.Lambdas;
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -79,7 +79,14 @@ public class RemotableTests
     @Test
     public void testRemotableClass()
         {
-        Assume.assumeTrue("skip test using an instance of AbstractRemotable if dynamic lambdas disabled", Lambdas.isDynamicLambdas());
+        String sLambdas = Config.getProperty("coherence.lambdas");
+        String sMode    = Config.getProperty("coherence.mode", "dev");
+
+        boolean fDynamic = sLambdas == null
+                           ? !sMode.equalsIgnoreCase("prod")
+                           : sLambdas.equalsIgnoreCase("dynamic");
+
+        Assume.assumeTrue("skip test using an instance of AbstractRemotable if dynamic lambdas disabled", fDynamic);
         super.testRemotableClass();
         }
     }

@@ -6299,6 +6299,11 @@ public abstract class ExternalizableHelper
     public static final boolean USE_POF_STREAMS;
 
     /**
+     * Option: Use either <code>static</code> or <code>dynamic</code> lambda serialization.
+     */
+    public static final String LAMBDA_SERIALIZATION;
+
+    /**
      * Option: Configurable ObjectStreamFactory.
      */
     public static ObjectStreamFactory s_streamfactory;
@@ -6332,6 +6337,7 @@ public abstract class ExternalizableHelper
         XmlBeanClassCache   cache    = null;
         int                 cbMax    = 0;
         boolean             fPof     = false;
+        String              sLambda  = "";
         ObjectStreamFactory factory  = null;
 
         try
@@ -6437,6 +6443,8 @@ public abstract class ExternalizableHelper
             cbMax = (int) parseMemorySize(sMax, POWER_0);
 
             fPof = xml.getSafeElement("enable-pof-serialization").getBoolean(fPof);
+
+            sLambda = xml.getSafeElement("lambdas-serialization").getString("");
             }
         catch (Throwable e) {}
 
@@ -6445,6 +6453,7 @@ public abstract class ExternalizableHelper
         XMLBEAN_CLASS_CACHE      = cache;
         MAX_BUFFER               = cbMax;
         USE_POF_STREAMS          = fPof;
+        LAMBDA_SERIALIZATION     = sLambda;
         s_streamfactory          = factory;
 
         //  initialize method handles for potential JEP-290 checks

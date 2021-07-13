@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -28,7 +28,13 @@ public class LambdaTestCluster extends CoherenceClusterOrchestration
         this.withOptions(SystemProperty.of("coherence.nameservice.address",
                 LocalPlatform.get().getLoopbackAddress().getHostAddress()))
             .withOptions(LocalHost.only())
-            .withOptions(SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
-                Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
+            .withBuilderOptions(SystemProperty.of("coherence.lambdas",
+                                                  Config.getProperty("coherence.lambdas")),
+                                SystemProperty.of("coherence.mode",
+                                                  Config.getProperty("coherence.mode", "dev")))
+            .withOptions(SystemProperty.of("coherence.lambdas",
+                                           Config.getProperty("coherence.lambdas")),
+                         SystemProperty.of("coherence.mode",
+                                           Config.getProperty("coherence.mode", "dev")));
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,13 +10,14 @@ package lambda;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
+import com.tangosol.net.CacheFactory;
 import common.SystemPropertyIsolation;
 
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author jf  2020.07.27
@@ -27,8 +28,13 @@ public class LambdasSerializationModeInvalidValueTest
     public void ensureInvalidLambdasSerializationModeDefaulted()
         {
         System.setProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, "InvalidValue");
-        assertTrue("ensure dynamic is default mode", Lambdas.isDynamicLambdas());
-        assertFalse("ensure statis is not default lambdas serialization mode", Lambdas.isStaticLambdas());
+
+        boolean fProductionMode = CacheFactory.getLicenseMode().equalsIgnoreCase("prod");
+        
+        assertThat("ensure default mode by checking if coherence running in production mode",
+                   Lambdas.isDynamicLambdas(), is(!fProductionMode));
+        assertThat("ensure default mode by checking if coherence running in production mode",
+                   Lambdas.isStaticLambdas(), is(fProductionMode));
         }
 
     /**

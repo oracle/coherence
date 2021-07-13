@@ -56,9 +56,6 @@
   <!-- *** WARNING *** all cluster nodes must use the same setting -->
   <enable-pof-serialization system-property="coherence.pof.enabled">false</enable-pof-serialization>
 
-  <!-- configure lambdas serialization mode to either "dynamic" or "static".
-       Default value is not specified since it is calculated based on
-       the value of coherence mode: "static" for production mode and
-       "dynamic" for eval/dev mode -->
-  <lambdas-serialization system-property="coherence.lambdas"></lambdas-serialization>
+  <!-- removed system property and explicitly set lambdas-serialization mode to dynamic for test case -->
+  <lambdas-serialization>dynamic</lambdas-serialization>
 </config>

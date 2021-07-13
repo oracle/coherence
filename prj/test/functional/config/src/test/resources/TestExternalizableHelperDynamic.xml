@@ -23,24 +23,24 @@
 
   <!-- the following section configures the XmlBean optimization -->
   <xmlbean-class-cache-config>
-      <!-- if deploying Coherence in CLASSPATH and deploying application
-           classes within a hot-redeployable archive (e.g. ".ear"), set this
-           to true -->
-      <classloader-aware>false</classloader-aware>
+    <!-- if deploying Coherence in CLASSPATH and deploying application
+         classes within a hot-redeployable archive (e.g. ".ear"), set this
+         to true -->
+    <classloader-aware>false</classloader-aware>
 
-      <!-- if you are providing a custom XmlBean Class cache, the name
-           of the class that implements the XmlBeanClassCache interface
-           is specified here -->
-      <!-- *** WARNING *** all cluster nodes must use the same setting -->
-      <cache-class></cache-class>
+    <!-- if you are providing a custom XmlBean Class cache, the name
+         of the class that implements the XmlBeanClassCache interface
+         is specified here -->
+    <!-- *** WARNING *** all cluster nodes must use the same setting -->
+    <cache-class></cache-class>
 
-      <!-- list your XmlBean classes here; the following are examples
-           that you must replace with your own class names -->
-      <!-- *** WARNING *** all cluster nodes must use the same list -->
-      <xmlbean-list>
-          <xmlbean-class>com.tangosol.tests.xml.Address</xmlbean-class>
-          <xmlbean-class>com.tangosol.tests.xml.Contact</xmlbean-class>
-      </xmlbean-list>
+    <!-- list your XmlBean classes here; the following are examples
+         that you must replace with your own class names -->
+    <!-- *** WARNING *** all cluster nodes must use the same list -->
+    <xmlbean-list>
+      <xmlbean-class>com.tangosol.tests.xml.Address</xmlbean-class>
+      <xmlbean-class>com.tangosol.tests.xml.Contact</xmlbean-class>
+    </xmlbean-list>
   </xmlbean-class-cache-config>
 
   <!-- specifies the size limit of byte array buffers that could be used
@@ -56,9 +56,6 @@
   <!-- *** WARNING *** all cluster nodes must use the same setting -->
   <enable-pof-serialization system-property="coherence.pof.enabled">false</enable-pof-serialization>
 
-  <!-- configure lambdas serialization mode to either "dynamic" or "static".
-       Default value is not specified since it is calculated based on
-       the value of coherence mode: "static" for production mode and
-       "dynamic" for eval/dev mode -->
-  <lambdas-serialization system-property="coherence.lambdas"></lambdas-serialization>
+  <!-- removed system property and explicitly set lambdas-serialization mode to dynamic for test case -->
+  <lambdas-serialization>dynamic</lambdas-serialization>
 </config>

@@ -19,6 +19,10 @@ import com.tangosol.internal.util.invoke.lambda.MethodReferenceIdentity;
 import com.tangosol.internal.util.invoke.lambda.AnonymousLambdaIdentity;
 import com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo;
 
+import com.tangosol.net.CacheFactory;
+
+import com.tangosol.util.ExternalizableHelper;
+
 import com.tangosol.util.extractor.ReflectionExtractor;
 
 import java.io.Serializable;
@@ -299,7 +303,7 @@ public abstract class Lambdas
      */
     public static boolean isDynamicLambdas()
         {
-        return LAMBDAS_SERIALIZATION_MODE == SerializationMode.DYNAMIC;
+        return ensureSerializationMode() == SerializationMode.DYNAMIC;
         }
 
     /**
@@ -311,7 +315,65 @@ public abstract class Lambdas
      */
     public static boolean isStaticLambdas()
         {
-        return LAMBDAS_SERIALIZATION_MODE == SerializationMode.STATIC;
+        return ensureSerializationMode() == SerializationMode.STATIC;
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Return the lambdas serialization mode of {@link ExternalizableHelper#LAMBDA_SERIALIZATION}.
+     * <p>
+     * If not explicitly configured in {@link ExternalizableHelper} configuration file
+     * or set by system property {@link #LAMBDAS_SERIALIZATION_MODE_PROPERTY},
+     * the default is computed based on the {@link CacheFactory#getLicenseMode() coherence mode}.
+     * In production mode, the default is {@link SerializationMode#STATIC};
+     * otherwise, in dev/eval mode, the default is {@link SerializationMode#DYNAMIC}.
+     *
+     * @return the lambdas serialization mode
+     *
+     * @since Coherence 21.12
+     */
+    protected static SerializationMode ensureSerializationMode()
+        {
+        String            sLambda = ExternalizableHelper.LAMBDA_SERIALIZATION;
+        SerializationMode mode    = null;
+        String            sMsg    = null;
+
+        if (LAMBDAS_SERIALIZATION_MODE == null)
+            {
+            synchronized (LAMBDAS_SERIALIZATION_MODE_PROPERTY)
+                {
+                if (LAMBDAS_SERIALIZATION_MODE == null)
+                    {
+                    try
+                        {
+                        if (!sLambda.isEmpty())
+                            {
+                            mode = SerializationMode.valueOf(sLambda.toUpperCase());
+                            }
+                        }
+                    catch (IllegalArgumentException e)
+                        {
+                        sMsg = "System property \"coherence.lambdas\" or ExternalizableHelper.xml config element \"lambdas-serialization\"" +
+                               " is set to invalid value of \"" + sLambda + "\"; valid values are: \"static\" or \"dynamic\". ";
+                        }
+
+                    if (mode == null)
+                        {
+                        // no explicit lambda serialization configured, compute default based on whether coherence production mode
+                        mode = CacheFactory.getLicenseMode().equalsIgnoreCase("prod")
+                                                    ? SerializationMode.STATIC
+                                                    : SerializationMode.DYNAMIC;
+                        if (sMsg != null)
+                            {
+                            Logger.err(sMsg + "Reverting to default lambdas serialization mode of " + mode + ".");
+                            }
+                        }
+                    LAMBDAS_SERIALIZATION_MODE = mode;
+                    }
+                }
+            }
+        return LAMBDAS_SERIALIZATION_MODE;
         }
 
     // ----- inner enum: SerializationMode ----------------------------------
@@ -351,44 +413,16 @@ public abstract class Lambdas
 
     /**
      * Specifies {@link SerializationMode} used for lambdas.
-     * System property {@link #LAMBDAS_SERIALIZATION_MODE_PROPERTY} configures this setting.
-     * The default configuration {@link SerializationMode#DYNAMIC} enables dynamic lambdas serialization.
      *
+     * @see #ensureSerializationMode()
      * @since 14.1.1.0.2
      */
-    protected static final SerializationMode LAMBDAS_SERIALIZATION_MODE;
+    private static volatile SerializationMode LAMBDAS_SERIALIZATION_MODE = null;
 
     private static final Set<String> EXTRACTOR_INTERFACES;
 
     static
         {
-        String            sPropValue = null;
-        SerializationMode mode       = SerializationMode.DYNAMIC;
-        try
-            {
-            sPropValue = Config.getProperty(LAMBDAS_SERIALIZATION_MODE_PROPERTY, SerializationMode.DYNAMIC.name());
-            mode       = SerializationMode.valueOf(sPropValue.toUpperCase());
-            }
-        catch (IllegalArgumentException e)
-            {
-            StringBuilder sbValues = new StringBuilder("[");
-
-            for (SerializationMode m : SerializationMode.values())
-                {
-                sbValues.append(m).append("|");
-                }
-            sbValues.setCharAt(sbValues.length() - 1, ']');
-
-            final String            f_sPropValue = sPropValue;
-            final SerializationMode f_mode       = mode;
-
-            Logger.warn(() ->
-                "System property \"" + LAMBDAS_SERIALIZATION_MODE_PROPERTY + "\" is set to invalid value of \"" + f_sPropValue + "\"" +
-                    "; valid values are: " + sbValues.toString() +
-                    ". Reverting to default mode of " + f_mode.name() + ".");
-            }
-        LAMBDAS_SERIALIZATION_MODE = mode;
-
         EXTRACTOR_INTERFACES = Stream.of(
                     "com/tangosol/util/ValueExtractor",
                     "com/tangosol/util/function/Remote$Function",

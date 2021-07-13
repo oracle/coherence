@@ -44,4 +44,18 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- needed to ensure ExternalizableHelper static initializer is run
+               between lambdas serialization test that are setting various
+               system properties to test different configurations -->
+          <reuseForks>false</reuseForks>
+        </configuration>
+    </plugin>
+    </plugins>
+  </build>
 </project>

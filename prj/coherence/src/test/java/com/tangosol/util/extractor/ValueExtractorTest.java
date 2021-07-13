@@ -4,10 +4,11 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.util;
+package com.tangosol.util.extractor;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.PofExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
@@ -18,6 +19,7 @@ import data.pof.PersonLite;
 
 import java.lang.reflect.Method;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.tangosol.util.extractor.AbstractExtractor.KEY;

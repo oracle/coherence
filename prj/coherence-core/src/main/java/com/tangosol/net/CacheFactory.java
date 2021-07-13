@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -820,6 +820,19 @@ public abstract class CacheFactory
     public static XmlElement getDistributedCacheConfig()
         {
         return getServiceConfig(CacheService.TYPE_DISTRIBUTED);
+        }
+
+    /**
+    * Returns the value of <code>license-mode</code> child element of <code>license-config</code> element in
+    * the operational configuration.
+    *
+    * @return configured license mode of either <code>eval</code>, <code>dev</code> or <code>prod</code>
+    *
+    * @since Coherence 21.12
+    */
+    public static String getLicenseMode()
+        {
+        return getServiceConfig("$License").getSafeElement("license-mode").getString();
         }
 
     /**
