@@ -253,7 +253,7 @@ full functionality works correctly in Helidon&#8217;s MicroProfile GraphQL imple
 </div>
 <p><strong>Coherence Bootstrap</strong></p>
 
-<p>The <code>Bootstrap</code> class is used to initialize the Coherence and includes the following <code>NamedMaps</code>:</p>
+<p>The <code>Bootstrap</code> class is used to initialize Coherence and includes the following <code>NamedMaps</code>:</p>
 
 <markup
 lang="java"
@@ -325,7 +325,7 @@ lang="text"
 Customer{customerId=1, name='Billy Joel', email='billy@billyjoel.com', address='Address 1', balance=0.0}
 Customer{customerId=4, name='Tom Jones', email='tom@jones.com', address='Address 4', balance=0.0}
 Customer{customerId=2, name='James Brown', email='soul@jamesbrown.net', address='Address 2', balance=100.0}
-Customer{customerId=3, name='John Williams', email='john@statware.com', address='Address 3', balance=0.0}
+Customer{customerId=3, name='John Williams', email='john@starwars.com', address='Address 3', balance=0.0}
 ===ORDERS===
 ....</markup>
 
@@ -521,7 +521,7 @@ lang="json"
         "customerId": 3,
         "name": "John Williams",
         "address": "Address 3",
-        "email": "john@statware.com",
+        "email": "john@starwars.com",
         "balance": 0
       }
     ]
@@ -824,7 +824,7 @@ lang="json"
         "orderTotal": "$7,946.81",
         "customer": {
           "name": "John Williams",
-          "email": "john@statware.com"
+          "email": "john@starwars.com"
         },
 ...</markup>
 
@@ -1648,7 +1648,7 @@ lang="bash"
 <markup
 lang="bash"
 
->./mvnw clean package</markup>
+>./mvnw exec:exec</markup>
 
 <ul class="ulist">
 <li>
