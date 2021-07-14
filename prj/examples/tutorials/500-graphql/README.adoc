@@ -111,7 +111,7 @@ full functionality works correctly in Helidon's MicroProfile GraphQL implementat
 
 **Coherence Bootstrap**
 
-The `Bootstrap` class is used to initialize the Coherence and includes the following `NamedMaps`:
+The `Bootstrap` class is used to initialize Coherence and includes the following `NamedMaps`:
 
 [source,java,indent=0]
 ----
@@ -148,7 +148,7 @@ Coherence has started and the following to show the data was loaded:
 Customer{customerId=1, name='Billy Joel', email='billy@billyjoel.com', address='Address 1', balance=0.0}
 Customer{customerId=4, name='Tom Jones', email='tom@jones.com', address='Address 4', balance=0.0}
 Customer{customerId=2, name='James Brown', email='soul@jamesbrown.net', address='Address 2', balance=100.0}
-Customer{customerId=3, name='John Williams', email='john@statware.com', address='Address 3', balance=0.0}
+Customer{customerId=3, name='John Williams', email='john@starwars.com', address='Address 3', balance=0.0}
 ===ORDERS===
 ....
 ----
@@ -296,7 +296,7 @@ query customers {
         "customerId": 3,
         "name": "John Williams",
         "address": "Address 3",
-        "email": "john@statware.com",
+        "email": "john@starwars.com",
         "balance": 0
       }
     ]
@@ -528,7 +528,7 @@ query orders {
         "orderTotal": "$7,946.81",
         "customer": {
           "name": "John Williams",
-          "email": "john@statware.com"
+          "email": "john@starwars.com"
         },
 ...
 ----
