@@ -2158,14 +2158,14 @@ public abstract class AbstractNamedTopicTests
             Future<Subscriber.Element<String>> future2 = subscriber2.receive();
 
             // should eventually stop polling when all owned channels have been determined to be empty
-            long start     = System.currentTimeMillis();
+            long start     = Base.getSafeTimeMillis();
             long polls     = ((PagedTopicSubscriber<String>) subscriber1).getPolls();
             long pollsPrev = -1;
             while (polls != pollsPrev)
                 {
-                long now = System.currentTimeMillis();
+                long now = Base.getSafeTimeMillis();
                 assertThat("Timed out waiting for the subscriber to stop polling",
-                           start - now, is(lessThan(TimeUnit.MINUTES.toMillis(2))));
+                           now - start, is(lessThan(TimeUnit.MINUTES.toMillis(2))));
                 Thread.sleep(10);
                 pollsPrev = polls;
                 polls = ((PagedTopicSubscriber<String>) subscriber1).getPolls();
