@@ -1125,7 +1125,7 @@ include::../../internal/includes/simple-build.adoc[tag=text]
 
 [source,bash]
 ----
-./mvnw clean package
+./mvnw exec:exec
 ----
 
 * Run with Gradle
