@@ -218,7 +218,7 @@ public class BerkeleyDBWriteBehindPersistenceTests
                     long  lMax      = (long) getMbeanAttribute(sService, clusterMember1.getLocalMemberId(), "PersistenceLatencyMax");
                     float flAverage = (float) getMbeanAttribute(sService, clusterMember1.getLocalMemberId(), "PersistenceLatencyAverage");
                     assertTrue("The max latency is too big! " + lMax, lMax >= 0 && lMax < 60000);
-                    assertTrue("The average latency is too big! " + flAverage, flAverage >0 && flAverage < 60000);
+                    assertTrue("The average latency is too big! " + flAverage, flAverage >= 0 && flAverage < 60000);
                     }
                 }
             else
