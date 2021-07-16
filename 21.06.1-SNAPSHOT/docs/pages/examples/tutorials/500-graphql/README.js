@@ -49,6 +49,10 @@ and <router-link to="/coherence-cdi-server/README">Coherence CDI</router-link>.<
 <p><router-link to="#add-a-dynamic-where-clause" @click.native="this.scrollFix('#add-a-dynamic-where-clause')">Add a Dynamic Where Clause</router-link></p>
 
 </li>
+<li>
+<p><router-link to="#access-metrics" @click.native="this.scrollFix('#access-metrics')">Access Metrics</router-link></p>
+
+</li>
 </ul>
 </li>
 <li>
@@ -196,7 +200,7 @@ lang="xml"
   &lt;/dependencies&gt;
 &lt;/dependencyManagement&gt;</markup>
 
-<p><code>helidon-microprofile-cdi</code> and <code>coherence-cdi-server</code> are also included:</p>
+<p><code>helidon-microprofile-cdi</code>, <code>coherence-cdi-server</code> and <code>helidon-microprofile-metrics</code> are also included:</p>
 
 <markup
 lang="xml"
@@ -205,9 +209,15 @@ lang="xml"
   &lt;groupId&gt;io.helidon.microprofile.cdi&lt;/groupId&gt;
   &lt;artifactId&gt;helidon-microprofile-cdi&lt;/artifactId&gt;
 &lt;/dependency&gt;
+
 &lt;dependency&gt;
   &lt;groupId&gt;${coherence.group.id}&lt;/groupId&gt;
   &lt;artifactId&gt;coherence-cdi-server&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+  &lt;groupId&gt;io.helidon.microprofile.metrics&lt;/groupId&gt;
+  &lt;artifactId&gt;helidon-microprofile-metrics&lt;/artifactId&gt;
 &lt;/dependency&gt;</markup>
 
 <p>The POM also includes the <code>jandex-maven-plugin</code> to build an index, which is required by Helidon&#8217;s implementation.</p>
@@ -434,10 +444,14 @@ lang="java"
  */
 @Query
 @Description("Displays customers")
+@Counted <span class="conum" data-value="1" />
 public Collection&lt;Customer&gt; getCustomers() {
     return customers.values();
 }</markup>
 
+<ul class="colist">
+<li data-value="1">Include the <code>@Counted</code> microprofile metrics annotation to count the number of invocations</li>
+</ul>
 <div class="admonition note">
 <p class="admonition-inline">Ensure you import the <code>Query</code> and <code>Description</code> annotations from <code>org.eclipse.microprofile.graphql</code></p>
 </div>
@@ -539,10 +553,14 @@ Add the following code to <code>CustomerApi</code> to create a query to return a
 lang="java"
 
 >@Query("displayOrders")
+@Timed <span class="conum" data-value="1" />
 public Collection&lt;Order&gt; getOrders() {
     return orders.values();
     }</markup>
 
+<ul class="colist">
+<li data-value="1">Include the <code>@Timed</code> microprofile metrics annotation to time the query</li>
+</ul>
 <div class="admonition note">
 <p class="admonition-inline">In this case we are overriding the default name for the query, which would be <code>orders</code>, with <code>displayOrders</code>.</p>
 </div>
@@ -738,7 +756,7 @@ also be able to return any attributes for the customer customer. Conversely it w
 order details for a customer.</p>
 
 <p>We can achieve this using Coherence by making the class implement <code>Injectable</code>. When the class is
-deserialized on the client, any <code>@Inject</code> statements are processed and we will use this to inject the <code>NamedMap</code> for
+deserialized on the client, any <code>@Inject</code> statements are processed, and we will use this to inject the <code>NamedMap</code> for
 customer and use to retrieve the customer details if required.</p>
 
 <p><strong>Return the Customer for the Order</strong></p>
@@ -766,7 +784,7 @@ private transient NamedMap&lt;Integer, Customer&gt; customers;</markup>
 
 </li>
 <li>
-Finally add the <code>getCustomer</code> method.
+Finally, add the <code>getCustomer</code> method.
 <markup
 lang="java"
 
@@ -855,7 +873,7 @@ private transient NamedMap&lt;Integer, Order&gt; orders;</markup>
 
 </li>
 <li>
-Finally add the <code>getOrders</code> method to get the orders for the current customer
+Finally, add the <code>getOrders</code> method to get the orders for the current customer
 by specifying a Coherence filter.
 <markup
 lang="java"
@@ -948,6 +966,7 @@ lang="java"
  * @return the new {@link Customer}
  */
 @Mutation
+@Timed <span class="conum" data-value="1" />
 public Customer createCustomer(@Name("customer") Customer customer) {
     if (customers.containsKey(customer.getCustomerId())) {
         throw new IllegalArgumentException("Customer " + customer.getCustomerId() + " already exists");
@@ -957,6 +976,9 @@ public Customer createCustomer(@Name("customer") Customer customer) {
     return customers.get(customer.getCustomerId());
 }</markup>
 
+<ul class="colist">
+<li data-value="1">Include the <code>@Timed</code> microprofile metrics annotation to time the mutation</li>
+</ul>
 <p>In the above code we throw an <code>IllegalArgumentException</code> if the customer already exists. By default in
 the MicroProfile GraphQL specification, messages from unchecked exceptions are hidden from
 the client and "Server Error" is returned. In this case we have overridden this behaviour
@@ -1109,6 +1131,7 @@ lang="java"
  * @throws CustomerNotFoundException if the {@link Customer} was not found
  */
 @Mutation
+@Timed <span class="conum" data-value="1" />
 public Order createOrder(@Name("customerId") int customerId,
                          @Name("orderId") int orderId)
         throws CustomerNotFoundException {
@@ -1125,6 +1148,9 @@ public Order createOrder(@Name("customerId") int customerId,
     return orders.get(orderId);
 }</markup>
 
+<ul class="colist">
+<li data-value="1">Include the <code>@Timed</code> microprofile metrics annotation to time the mutation</li>
+</ul>
 <div class="admonition note">
 <p class="admonition-inline">The validation ensures that we have a valid customer and the order id does not already exist.</p>
 </div>
@@ -1314,6 +1340,7 @@ lang="java"
  * @throws OrderNotFoundException the the {@link Order} was not found
  */
 @Mutation
+@Timed  <span class="conum" data-value="1" />
 public Order addOrderLineToOrder(@Name("orderId") int orderId,
                                  @Name("orderLine") OrderLine orderLine)
         throws OrderNotFoundException {
@@ -1333,6 +1360,9 @@ public Order addOrderLineToOrder(@Name("orderId") int orderId,
 
 }</markup>
 
+<ul class="colist">
+<li data-value="1">Include the <code>@Timed</code> microprofile metrics annotation to time the mutation</li>
+</ul>
 </li>
 <li>
 Create a new checked exception called <code>OrderNotFoundException</code> in the api package.
@@ -1470,7 +1500,7 @@ Experiment with invalid order id and customer id as input.
 
 <h3 id="add-a-dynamic-where-clause">Add a Dynamic Where Clause</h3>
 <div class="section">
-<p>Finally we will enhance the orders query and add a dynamic where clause.</p>
+<p>Finally, we will enhance the orders query and add a dynamic where clause.</p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -1489,6 +1519,7 @@ lang="java"
  * if the where clause is null
  */
 @Query("displayOrders")
+@Timed
 public Collection&lt;Order&gt; getOrders(@Name("whereClause") String whereClause) {
     try {
         Filter filter = whereClause == null
@@ -1593,6 +1624,53 @@ lang="json"
 
 </li>
 </ol>
+</div>
+
+<h3 id="access-metrics">Access Metrics</h3>
+<div class="section">
+<p>As we can see from the above examples, metrics can be easily enabled for queries and mutations by
+including the <code>@Counted</code> or <code>@Timed</code> annotations. After running a number of queries and mutations
+you can access the metrics end point using the following curl command:</p>
+
+<markup
+lang="bash"
+
+>curl http://localhost:7001/metrics
+
+...
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total counter
+# HELP application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total 1
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_rate_per_second gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_rate_per_second 0.04518212759472706
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_one_min_rate_per_second gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_one_min_rate_per_second 0.028248726311583667
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_five_min_rate_per_second gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_five_min_rate_per_second 0.006448405864180696
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_fifteen_min_rate_per_second gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_fifteen_min_rate_per_second 0.0021976788366558607
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_mean_seconds gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_mean_seconds 0.029887348916693847
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_max_seconds gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_max_seconds 0.05066102
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_min_seconds gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_min_seconds 0.008799724
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_stddev_seconds gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_stddev_seconds 0.02093005933932174
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds summary
+# HELP application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds_count 2
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.5"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.75"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.95"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.98"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.99"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.999"} 0.05066102
+...</markup>
+
+<div class="admonition note">
+<p class="admonition-inline">The output has been truncated for readability.</p>
+</div>
 </div>
 
 <h3 id="run-the-completed-tutorial">Run the Completed Tutorial</h3>
@@ -1728,7 +1806,7 @@ query ordersWithWhereClause2 {
   displayOrders(whereClause: "orderTotal &gt; 4000.0 and customerId = 1") {
     orderId
     orderTotal
-    customerI
+    customerId
     customer {
       name
     }
