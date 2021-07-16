@@ -25,6 +25,7 @@
     <coherence.hibernate.cache.store.version>2.0.0</coherence.hibernate.cache.store.version>
     <hsqldb.version>2.5.1</hsqldb.version>
     <hibernate.version>5.4.27.Final</hibernate.version>
+    <r2dbc-h2.version>1.0.0.M7</r2dbc-h2.version>
 
     <java.version>1.8</java.version>
     <java.version.release>8</java.version.release>
@@ -62,6 +63,12 @@
     </dependency>
 
     <!-- test dependencies -->
+
+    <dependency>
+      <groupId>io.r2dbc</groupId>
+      <artifactId>r2dbc-h2</artifactId>
+      <version>${r2dbc-h2.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>com.oracle.coherence.hibernate</groupId>

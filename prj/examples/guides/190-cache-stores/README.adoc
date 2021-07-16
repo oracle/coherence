@@ -20,7 +20,12 @@ web services, packaged applications and file systems; however, databases are the
 As shorthand, "database" is used to describe any back-end data source. Effective caches must
 support both intensive read-only and read/write operations, and for read/write operations,
 the cache and database must be kept fully synchronized. To accomplish caching of data sources,
-Coherence supports Read-Through, Write-Through, Refresh-Ahead and Write-Behind caching.
+Coherence supports Read-Through, Write-Through, Refresh-Ahead and Write-Behind caching. Coherence also
+supports {javadoc-root}/com/tangosol/net/cache/BinaryEntryStore.html[BinaryEntryStore] which provides access to the serialized form of entries for
+data sources capable of manipulating those. A variant of `BinaryEntryStore` is
+the {javadoc-root}/com/tangosol/net/cache/NonBlockingEntryStore.html[NonBlockingEntryStore]
+which, besides providing access to entries in their {javadoc-root}/com/tangosol/util/BinaryEntry.html[BinaryEntry] form,
+integrates with data sources with non-blocking APIs such as R2DBC or Kafka.
 
 See the {commercial-docs-base-url}/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600[Coherence Documentation]
 for detailed information on Cache Stores.
@@ -38,6 +43,7 @@ for detailed information on Cache Stores.
 * <<hsqldb-cache-store, HSQLDb Cache Store Example>>
 * <<expiring-hsqldb-cache-store, Refresh Ahead Expiring HSQLDb Cache Store Example>>
 * <<write-behind-hsqldb-cache-store, Write Behind HSQLDb Cache Store Example>>
+* <<h2-non-blocking-entry-store, H2 R2DBC Non Blocking Entry Store Example>>
 * <<pluggable, Pluggable Cache Stores>>
 * <<summary, Summary>>
 * <<see-also, See Also>>
@@ -578,7 +584,7 @@ NOTE: Notice the time to retrieve the entry is significantly reduced: `(thread=m
 [#write-behind-hsqldb-cache-store]
 === Write Behind HSQLDb Cache Store Example
 
-In this final HSQLDb cache store example, we use the `CustomerWriteBehind` cache which has a write delay of 10 seconds.
+In this HSQLDb cache store example, we use the `CustomerWriteBehind` cache which has a write delay of 10 seconds.
 
 *Review the Cache Configuration*
 
@@ -626,6 +632,67 @@ load.
 OR
 <Info> (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 10 entries
+----
+
+[#h2-non-blocking-entry-store]
+=== H2 R2DBC Non Blocking Entry Store Example
+
+In this H2 R2DBC cache store example, we use the `H2Person` cache which implements the `NonBlockingEntryStore` for non-blocking APIs
+and access to entries in their serialized (`BinaryEntry`) form.
+
+*Review the Cache Configuration*
+
+The `h2r2dbc-entry-store-cache-config.xml` below shows the `H2Person` cache specifying the class name of the `NonBlockingEntryStore` implementation.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/h2r2dbc-entry-store-cache-config.xml[tag=nonBlocking]
+----
+
+*Run the Unit Test*
+
+Next we will run the `H2R2DBCEntryStoreTest` unit test below and observe the behaviour.
+
+1. Start and confirm NamedMap and database contents.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/H2R2DBCEntryStoreTest.java[tag=initial]
+----
+
+2. Insert 1 person using a `put` operation and confirm the data is in the cache.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/H2R2DBCEntryStoreTest.java[tag=insert]
+----
+
+3. Delete a couple records and verify the state of the cache.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/H2R2DBCEntryStoreTest.java[tag=remove]
+----
+
+4. Insert 10 persons using a `putAll` operation and confirm the data is in the cache. The actual database operations take place in parallel.s
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/cachestores/H2R2DBCEntryStoreTest.java[tag=insertmulti]
+----
++
+NOTE: You should see messages indicating activity on the store side:
+[source,bash,indent=0]
+----
+2021-06-29 15:01:36.365/5.583 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore load key: 101
+2021-06-29 15:01:36.495/5.713 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore store
+2021-06-29 15:01:36.501/5.720 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore erase
+2021-06-29 15:01:36.504/5.722 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): Rows updated: 1
+2021-06-29 15:01:36.507/5.726 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore erase
+2021-06-29 15:01:36.508/5.727 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): Rows updated: 1
+2021-06-29 15:01:36.509/5.728 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore load key: 101
+2021-06-29 15:01:36.512/5.730 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): Could not find row for key: 101
+2021-06-29 15:01:36.515/5.734 Oracle Coherence GE 14.1.2.0.0 <Info> (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore storeAll
 ----
 
 [#pluggable]
