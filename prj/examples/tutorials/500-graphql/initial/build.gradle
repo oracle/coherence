@@ -26,6 +26,7 @@ dependencies {
   	implementation platform("io.helidon:helidon-bom:${helidonVersion}")
 
 	implementation ("io.helidon.microprofile.cdi:helidon-microprofile-cdi")
+    implementation ("io.helidon.microprofile.metrics:helidon-microprofile-metrics")
 	implementation "${coherenceGroupId}:coherence"
 	implementation "${coherenceGroupId}:coherence-cdi-server"
 

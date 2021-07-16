@@ -26,6 +26,8 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 
 
 /**
@@ -61,6 +63,7 @@ public class CustomerApi {
      */
     @Query
     @Description("Displays customers")
+    @Counted // <1>
     public Collection<Customer> getCustomers() {
         return customers.values();
     }
@@ -77,6 +80,7 @@ public class CustomerApi {
      * if the where clause is null
      */
     @Query("displayOrders")
+    @Timed
     public Collection<Order> getOrders(@Name("whereClause") String whereClause) {
         try {
             Filter filter = whereClause == null
@@ -99,6 +103,7 @@ public class CustomerApi {
      * @return the new {@link Customer}
      */
     @Mutation
+    @Timed // <1>
     public Customer createCustomer(@Name("customer") Customer customer) {
         if (customers.containsKey(customer.getCustomerId())) {
             throw new IllegalArgumentException("Customer " + customer.getCustomerId() + " already exists");
@@ -121,6 +126,7 @@ public class CustomerApi {
      * @throws CustomerNotFoundException if the {@link Customer} was not found
      */
     @Mutation
+    @Timed // <1>
     public Order createOrder(@Name("customerId") int customerId,
                              @Name("orderId") int orderId)
             throws CustomerNotFoundException {
@@ -150,6 +156,7 @@ public class CustomerApi {
      * @throws OrderNotFoundException the the {@link Order} was not found
      */
     @Mutation
+    @Timed  // <1>
     public Order addOrderLineToOrder(@Name("orderId") int orderId,
                                      @Name("orderLine") OrderLine orderLine)
             throws OrderNotFoundException {
