@@ -10,7 +10,12 @@ web services, packaged applications and file systems; however, databases are the
 <p>As shorthand, "database" is used to describe any back-end data source. Effective caches must
 support both intensive read-only and read/write operations, and for read/write operations,
 the cache and database must be kept fully synchronized. To accomplish caching of data sources,
-Coherence supports Read-Through, Write-Through, Refresh-Ahead and Write-Behind caching.</p>
+Coherence supports Read-Through, Write-Through, Refresh-Ahead and Write-Behind caching. Coherence also
+supports <a id="" title="" target="_blank" href="https://coherence.community/21.06/api/java//com/tangosol/net/cache/BinaryEntryStore.html">BinaryEntryStore</a> which provides access to the serialized form of entries for
+data sources capable of manipulating those. A variant of <code>BinaryEntryStore</code> is
+the <a id="" title="" target="_blank" href="https://coherence.community/21.06/api/java//com/tangosol/net/cache/NonBlockingEntryStore.html">NonBlockingEntryStore</a>
+which, besides providing access to entries in their <a id="" title="" target="_blank" href="https://coherence.community/21.06/api/java//com/tangosol/util/BinaryEntry.html">BinaryEntry</a> form,
+integrates with data sources with non-blocking APIs such as R2DBC or Kafka.</p>
 
 <p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600">Coherence Documentation</a>
 for detailed information on Cache Stores.</p>
@@ -62,6 +67,10 @@ for detailed information on Cache Stores.</p>
 </li>
 <li>
 <p><router-link to="#write-behind-hsqldb-cache-store" @click.native="this.scrollFix('#write-behind-hsqldb-cache-store')">Write Behind HSQLDb Cache Store Example</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#h2-non-blocking-entry-store" @click.native="this.scrollFix('#h2-non-blocking-entry-store')">H2 R2DBC Non Blocking Entry Store Example</router-link></p>
 
 </li>
 <li>
@@ -1090,7 +1099,23 @@ Start and confirm NamedMap and database contents.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=initial]</markup>
+>@BeforeAll
+public static void startup() throws SQLException {
+    _startup("Customer");
+    reloadCustomersDB();
+}
+
+@Test
+public void testHSqlDbCacheStore() throws SQLException {
+    try {
+        NamedMap&lt;Integer, Customer&gt; namedMap = getSession()
+                .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class)); <span class="conum" data-value="2" />
+
+        // cache should be empty
+        assertEquals(0, namedMap.size());
+
+        // Customer table should contain the correct number of customers
+        assertEquals(MAX_CUSTOMERS, getCustomerDBCount());</markup>
 
 </li>
 <li>
@@ -1098,7 +1123,16 @@ Issue an initial get on the NamedMap and validate the object is read from the ca
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load1]</markup>
+>long start = System.nanoTime();
+// issue a get and it will load the existing customer
+Customer customer = namedMap.get(1);
+long     duration = System.nanoTime() - start;
+Logger.info(getDurationMessage(duration, "read-through"));
+
+assertEquals(1, namedMap.size());
+assertNotNull(customer);
+assertEquals(1, customer.getId());
+assertEquals("Customer 1", customer.getName());</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will see a message similar to the following indicating the time to retrieve a NamedMap entry that is not in the cache.
@@ -1110,7 +1144,11 @@ Issue a second get, the entry will be retrieved directly from memory and not the
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load2]</markup>
+>// issue a get again and it should be quicker
+start = System.nanoTime();
+customer = namedMap.get(1);
+duration = System.nanoTime() - start;
+Logger.info(getDurationMessage(duration, "no read-through"));</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will see a message similar to the following indicating the time to retrieve a NamedMap entry is significantly quicker.
@@ -1122,7 +1160,15 @@ Remove and entry from the NamedMap and the value should be removed from the unde
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=remove]</markup>
+>// remove a customer number 1
+namedMap.remove(1);
+
+// we should have one less customer in the database
+assertEquals(MAX_CUSTOMERS - 1, getCustomerDBCount());
+assertNull(namedMap.get(1));
+
+// customer should not exist in DB
+assertNull(getCustomerFromDB(1));</markup>
 
 </li>
 <li>
@@ -1130,7 +1176,19 @@ Issue a get for another customer and then update the customer details.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=update]</markup>
+>// Load customer 2
+Customer customer2 = namedMap.get(2);
+assertNotNull(customer2);
+
+// update customer 2 with "New Address"
+namedMap.compute(2, (k, v)-&gt;{
+    v.setAddress("New Address");
+    return v;
+});
+
+// customer should have new address in cache and DB
+assertEquals("New Address", namedMap.get(2).getAddress());
+assertEquals("New Address", getCustomerFromDB(2).getAddress());</markup>
 
 </li>
 <li>
@@ -1138,7 +1196,14 @@ Add a new customer and ensure it is created in the database. Then remove the sam
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=addRemove]</markup>
+>// add a new customer 1010
+namedMap.put(101, new Customer(101, "Customer Name 101", "Customer address 101", 20000));
+assertTrue(namedMap.containsKey(101));
+assertEquals("Customer address 101", getCustomerFromDB(101).getAddress());
+
+namedMap.remove(101);
+assertFalse(namedMap.containsKey(101));
+assertNull(getCustomerFromDB(101));</markup>
 
 </li>
 <li>
@@ -1146,7 +1211,20 @@ Clear the NamedMap and show how to preload the data from the cache store.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=loadData]</markup>
+>// clean the cache and reset the database
+namedMap.clear();
+reloadCustomersDB();
+
+assertEquals(0, namedMap.size());
+
+// demonstrate loading the cache from the current contents of the DB
+// this can be done many ways but for this exercise you could fetch all the
+// customer id' from the DB but as we know there are 1..100 we can pretend we have.
+Set&lt;Integer&gt; keySet = IntStream.rangeClosed(1, 100).boxed().collect(Collectors.toSet());
+namedMap.invokeAll(keySet, new PreloadRequest&lt;&gt;());
+
+// cache should be fully primed
+assertEquals(MAX_CUSTOMERS, namedMap.size());</markup>
 
 </li>
 </ol>
@@ -1208,7 +1286,23 @@ Start and confirm NamedMap and database contents.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=initial]</markup>
+>@BeforeAll
+public static void startup() throws SQLException {
+    _startup("CustomerExpiring");
+    reloadCustomersDB();
+}
+
+@Test
+public void testHSQLDbCacheStore() throws SQLException {
+    try {
+        NamedMap&lt;Integer, Customer&gt; namedMap = getSession()
+                .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class)); <span class="conum" data-value="2" />
+
+        // cache should be empty
+        assertEquals(0, namedMap.size());
+
+        // Customer table should contain the correct number of customers
+        assertEquals(MAX_CUSTOMERS, getCustomerDBCount());</markup>
 
 </li>
 <li>
@@ -1216,7 +1310,14 @@ Issue a get for customer 1 and log the time to load
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough1]</markup>
+>// expiry delay is setup to 20s for the cache and refresh ahead is 0.5 which
+// means that after 10s if the entry is read the old value is returned but after which a
+// refresh is done which means that subsequents reads will be fast as the new value is already present
+long start = System.nanoTime();
+Customer customer = namedMap.get(1);
+long duration = System.nanoTime() - start;
+Logger.info(getDurationMessage(duration, "read-through"));
+assertEquals(1, customer.getId());</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">Notice the initial read through time similar to the following in the log: <code>(thread=main, member=1): Time for read-through 19.129 ms</code></p>
@@ -1227,7 +1328,12 @@ Update the credit limit to 10000 in the database for customer 1 and ensure that 
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough2]</markup>
+>// update the database
+updateCustomerCreditLimitInDB(1, 10000);
+
+// sleep for 11 seconds get the cache entry, we should still get the original value
+Base.sleep(11000L);
+assertEquals(5000, namedMap.get(1).getCreditLimit());</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">The get within the 10 seconds (20s * 0.5), will cause an asynchronous refresh-ahead.</p>
@@ -1238,7 +1344,13 @@ Wait for 10 seconds and then retrieve the customer object which has been updated
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough3]</markup>
+>// wait for another 10 seconds and the refresh-ahead should have completed
+Base.sleep(10000L);
+
+start = System.nanoTime();
+customer = namedMap.get(1);
+duration = System.nanoTime() - start;
+Logger.info(getDurationMessage(duration, "after refresh-ahead"));</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">Notice the time to retrieve the entry is significantly reduced: <code>(thread=main, member=1): Time for after refresh-ahead 1.116 ms</code></p>
@@ -1249,7 +1361,7 @@ lang="java"
 
 <h3 id="write-behind-hsqldb-cache-store">Write Behind HSQLDb Cache Store Example</h3>
 <div class="section">
-<p>In this final HSQLDb cache store example, we use the <code>CustomerWriteBehind</code> cache which has a write delay of 10 seconds.</p>
+<p>In this HSQLDb cache store example, we use the <code>CustomerWriteBehind</code> cache which has a write delay of 10 seconds.</p>
 
 <p><strong>Review the Cache Configuration</strong></p>
 
@@ -1280,7 +1392,22 @@ Start and confirm NamedMap and database contents. In this example we are not pre
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=initial]</markup>
+>@BeforeAll
+public static void startup() throws SQLException {
+    _startup("CustomerWriteBehind");
+}
+
+@Test
+public void testHsqlDbCacheStore() throws SQLException {
+    try {
+        NamedMap&lt;Integer, Customer&gt; namedMap = getSession()
+                .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class));
+
+        // cache should be empty
+        assertEquals(0, namedMap.size());
+
+        // Customer table should contain no customers
+        assertEquals(0, getCustomerDBCount());</markup>
 
 </li>
 <li>
@@ -1288,7 +1415,15 @@ Insert 10 customers using an efficient <code>putAll</code> operation and confirm
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=insert]</markup>
+>// add 10 customers
+Map&lt;Integer, Customer&gt; map = new HashMap&lt;&gt;();
+for (int i = 1; i &lt;= 100; i++) {
+    map.put(i, new Customer(i, "Name " + i, "Address " + i, i *  1000));
+}
+namedMap.putAll(map);
+
+// initial check of the database should return 0 as we have write-delay set
+assertEquals(0, getCustomerDBCount());</markup>
 
 </li>
 <li>
@@ -1296,7 +1431,11 @@ Wait till after the write-delay has passed and confirm that the customers are in
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=wait]</markup>
+>// sleep for 15 seconds and the database should be populated as write-delay has elapsed
+Base.sleep(15000L);
+
+// Issuing Eventually assertThat in case of heavily loaded machine
+Eventually.assertThat(invoking(this).getCustomerDBCount(), is(100));</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will notice that you should see messages indicating 100 entries have been written. You may also see multiple writes as the data will be added in different partitions.
@@ -1312,6 +1451,133 @@ load.</p>
 OR
 &lt;Info&gt; (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 10 entries</pre>
+</div>
+
+</div>
+
+<h3 id="h2-non-blocking-entry-store">H2 R2DBC Non Blocking Entry Store Example</h3>
+<div class="section">
+<p>In this H2 R2DBC cache store example, we use the <code>H2Person</code> cache which implements the <code>NonBlockingEntryStore</code> for non-blocking APIs
+and access to entries in their serialized (<code>BinaryEntry</code>) form.</p>
+
+<p><strong>Review the Cache Configuration</strong></p>
+
+<p>The <code>h2r2dbc-entry-store-cache-config.xml</code> below shows the <code>H2Person</code> cache specifying the class name of the <code>NonBlockingEntryStore</code> implementation.</p>
+
+<markup
+lang="xml"
+
+>&lt;caching-scheme-mapping&gt;
+  &lt;cache-mapping&gt;
+    &lt;cache-name&gt;H2Person&lt;/cache-name&gt;
+    &lt;scheme-name&gt;distributed-h2r2dbc&lt;/scheme-name&gt;
+  &lt;/cache-mapping&gt;
+&lt;/caching-scheme-mapping&gt;
+
+&lt;caching-schemes&gt;
+  &lt;distributed-scheme&gt;
+    &lt;scheme-name&gt;distributed-h2r2dbc&lt;/scheme-name&gt;
+    &lt;backing-map-scheme&gt;
+      &lt;read-write-backing-map-scheme&gt;
+        &lt;internal-cache-scheme&gt;
+          &lt;local-scheme&gt;&lt;/local-scheme&gt;
+        &lt;/internal-cache-scheme&gt;
+
+        &lt;cachestore-scheme&gt;
+          &lt;class-scheme&gt;
+            &lt;class-name&gt;com.oracle.coherence.guides.cachestores.H2R2DBCEntryStore&lt;/class-name&gt;
+          &lt;/class-scheme&gt;
+        &lt;/cachestore-scheme&gt;
+      &lt;/read-write-backing-map-scheme&gt;
+    &lt;/backing-map-scheme&gt;
+    &lt;autostart&gt;true&lt;/autostart&gt;
+  &lt;/distributed-scheme&gt;
+&lt;/caching-schemes&gt;</markup>
+
+<p><strong>Run the Unit Test</strong></p>
+
+<p>Next we will run the <code>H2R2DBCEntryStoreTest</code> unit test below and observe the behaviour.</p>
+
+<ol style="margin-left: 15px;">
+<li>
+Start and confirm NamedMap and database contents.
+<markup
+lang="java"
+
+>@BeforeAll
+public static void startup() throws SQLException
+    {
+    createTable();
+
+    startupCoherence("h2r2dbc-entry-store-cache-config.xml");
+    }
+
+/**
+ * Performs some cache manipulations.
+ */
+@Test
+public void testNonBlockingEntryStore()
+    {
+    NamedMap&lt;Long, Person&gt; namedMap = getSession()
+            .getMap("H2Person", TypeAssertion.withTypes(Long.class, Person.class));
+
+    Person person1 = namedMap.get(Long.valueOf(101));
+    assertEquals("Robert", person1.getFirstname());</markup>
+
+</li>
+<li>
+Insert 1 person using a <code>put</code> operation and confirm the data is in the cache.
+<markup
+lang="java"
+
+>Person person2 = new Person(Long.valueOf(102), 40, "Tony", "Soprano");
+namedMap.put(Long.valueOf(102), person2);
+
+Person person3 = namedMap.get(Long.valueOf(102));
+assertEquals("Tony", person3.getFirstname());</markup>
+
+</li>
+<li>
+Delete a couple records and verify the state of the cache.
+<markup
+lang="java"
+
+>namedMap.remove(Long.valueOf(101));
+namedMap.remove(Long.valueOf(102));
+assertEquals(null, namedMap.get(Long.valueOf(101)));
+assertEquals(null, namedMap.get(Long.valueOf(102)));</markup>
+
+</li>
+<li>
+Insert 10 persons using a <code>putAll</code> operation and confirm the data is in the cache. The actual database operations take place in parallel.s
+<markup
+lang="java"
+
+>Map&lt;Long, Person&gt; map = new HashMap&lt;&gt;();
+for (int i = 1; i &lt;= 10; i++)
+    {
+    map.put(Long.valueOf(i), new Person(Long.valueOf(i), 20 + i, "firstname" + i, "lastname" + i));
+    }
+namedMap.putAll(map);
+Person person5 = namedMap.get(Long.valueOf(5));
+assertEquals("firstname5", person5.getFirstname());
+assertEquals(10, namedMap.size());</markup>
+
+<div class="admonition note">
+<p class="admonition-inline">You should see messages indicating activity on the store side:</p>
+</div>
+</li>
+</ol>
+<div class="listing">
+<pre>2021-06-29 15:01:36.365/5.583 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore load key: 101
+2021-06-29 15:01:36.495/5.713 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore store
+2021-06-29 15:01:36.501/5.720 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore erase
+2021-06-29 15:01:36.504/5.722 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): Rows updated: 1
+2021-06-29 15:01:36.507/5.726 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore erase
+2021-06-29 15:01:36.508/5.727 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): Rows updated: 1
+2021-06-29 15:01:36.509/5.728 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore load key: 101
+2021-06-29 15:01:36.512/5.730 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): Could not find row for key: 101
+2021-06-29 15:01:36.515/5.734 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore storeAll</pre>
 </div>
 
 </div>

@@ -33,8 +33,13 @@ lang="java"
 
 </li>
 </ul>
-<p><img src="docs/images/08_non_blocking_load.png" alt="08 non blocking load"width="80%" />
-</p>
+
+
+<v-card>
+<v-card-text class="overflow-y-hidden" >
+<img src="docs/images/08_non_blocking_load.png" alt="08 non blocking load"width="80%" />
+</v-card-text>
+</v-card>
 
 <ul class="colist">
 <li data-value="1">the application calls <code>get()</code> on entry <code>A</code> that is not in the cache yet.</li>
@@ -55,8 +60,13 @@ Note that although the data source operation can be performed asynchronously and
 
 </li>
 </ul>
-<p><img src="docs/images/08_non_blocking_store.png" alt="08 non blocking store"width="80%" />
-</p>
+
+
+<v-card>
+<v-card-text class="overflow-y-hidden" >
+<img src="docs/images/08_non_blocking_store.png" alt="08 non blocking store"width="80%" />
+</v-card-text>
+</v-card>
 
 <ul class="colist">
 <li data-value="1">the application calls <code>put()</code> on entry <code>A</code> with value <code>A</code>.</li>
@@ -109,6 +119,9 @@ Once the associated entry has been successfully written the implementer must cal
 
 <h3 id="_how_to_use">How to Use</h3>
 <div class="section">
+<p>Below is a summary of the tasks required in order to use the feature.
+To get started, please check the <router-link :to="{path: '/examples/guides/190-cache-stores/README', hash: '#h2-non-blocking-entry-store'}">guide for non blocking stores</router-link>.</p>
+
 
 <h4 id="_configuration">Configuration</h4>
 <div class="section">
