@@ -29,6 +29,7 @@ dependencies {
     // tag::mpGraphql[]
 	implementation ("io.helidon.microprofile.graphql:helidon-microprofile-graphql-server")
     // end::mpGraphql[]
+    implementation ("io.helidon.microprofile.metrics:helidon-microprofile-metrics")
 
 	implementation "${coherenceGroupId}:coherence"
 	implementation "${coherenceGroupId}:coherence-cdi-server"

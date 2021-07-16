@@ -26,6 +26,7 @@ and xref:coherence-cdi-server/README.adoc[Coherence CDI].
 ** <<inject-related-objects, Inject Related Objects>>
 ** <<add-mutations, Add Mutations>>
 ** <<add-a-dynamic-where-clause, Add a Dynamic Where Clause>>
+** <<access-metrics, Access Metrics>>
 * <<run-the-completed-tutorial, Run the Completed Tutorial>>
 * <<summary, Summary>>
 * <<see-also, See Also>>
@@ -84,7 +85,7 @@ POMs as shown below:
 include::initial/pom.xml[tag=deps1]
 ----
 
-`helidon-microprofile-cdi` and `coherence-cdi-server` are also included:
+`helidon-microprofile-cdi`, `coherence-cdi-server` and `helidon-microprofile-metrics` are also included:
 
 [source,xml,indent=0]
 ----
@@ -220,6 +221,7 @@ include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/Custo
 ----
 include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=getCustomers]
 ----
+<1> Include the `@Counted` microprofile metrics annotation to count the number of invocations
 +
 NOTE: Ensure you import the `Query` and `Description` annotations from `org.eclipse.microprofile.graphql`
 
@@ -311,10 +313,12 @@ query customers {
 [source,java,indent=0]
 ----
 @Query("displayOrders")
+@Timed // <1>
 public Collection<Order> getOrders() {
     return orders.values();
     }
 ----
+<1> Include the `@Timed` microprofile metrics annotation to time the query
 +
 NOTE: In this case we are overriding the default name for the query, which would be `orders`, with `displayOrders`.
 +
@@ -461,7 +465,7 @@ also be able to return any attributes for the customer customer. Conversely it w
 order details for a customer.
 
 We can achieve this using Coherence by making the class implement `Injectable`. When the class is
-deserialized on the client, any `@Inject` statements are processed and we will use this to inject the `NamedMap` for
+deserialized on the client, any `@Inject` statements are processed, and we will use this to inject the `NamedMap` for
 customer and use to retrieve the customer details if required.
 
 **Return the Customer for the Order**
@@ -480,7 +484,7 @@ include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Ord
 include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Order.java[tag=namedMap]
 ----
 
-3. Finally add the `getCustomer` method.
+3. Finally, add the `getCustomer` method.
 +
 [source,java,indent=0]
 ----
@@ -549,7 +553,7 @@ include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Cus
 include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/model/Customer.java[tag=namedMap]
 ----
 
-3. Finally add the `getOrders` method to get the orders for the current customer
+3. Finally, add the `getOrders` method to get the orders for the current customer
 by specifying a Coherence filter.
 +
 [source,java,indent=0]
@@ -622,6 +626,7 @@ In this section we will add mutations to create or update data.
 ----
 include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=createCustomer]
 ----
+<1> Include the `@Timed` microprofile metrics annotation to time the mutation
 + 
 In the above code we throw an `IllegalArgumentException` if the customer already exists. By default in
 the MicroProfile GraphQL specification, messages from unchecked exceptions are hidden from
@@ -747,6 +752,7 @@ createCustomer(customer: CustomerInput): Customer
 ----
 include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=createOrder]
 ----
+<1> Include the `@Timed` microprofile metrics annotation to time the mutation
 +
 NOTE: The validation ensures that we have a valid customer and the order id does not already exist.
 
@@ -904,6 +910,7 @@ This shows the following message from the `IllegalArgumentException`:
 ----
 include::complete/src/main/java/com/oracle/coherence/tutorials/graphql/api/CustomerApi.java[tag=addOrderLineToOrder]
 ----
+<1> Include the `@Timed` microprofile metrics annotation to time the mutation
 
 2. Create a new checked exception called `OrderNotFoundException` in the api package.
 +
@@ -1013,7 +1020,7 @@ And the result of the new order line.
 [#add-a-dynamic-where-clause]
 === Add a Dynamic Where Clause
 
-Finally we will enhance the orders query and add a dynamic where clause.
+Finally, we will enhance the orders query and add a dynamic where clause.
 
 1. Update the `getOrders` method in the `CustomerApi` to add the where clause and pass this to the `QuerHelper` to
 generate the Coherence `Filter`. The code will ask return an error message if the where clause is invalid.
@@ -1109,6 +1116,52 @@ query ordersWithWhereClause2 {
 }
 ----
 
+[#access-metrics]
+=== Access Metrics
+
+As we can see from the above examples, metrics can be easily enabled for queries and mutations by
+including the `@Counted` or `@Timed` annotations. After running a number of queries and mutations
+you can access the metrics end point using the following curl command:
+
+[source,bash]
+----
+curl http://localhost:7001/metrics
+
+...
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total counter
+# HELP application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total 1
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_rate_per_second gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_rate_per_second 0.04518212759472706
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_one_min_rate_per_second gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_one_min_rate_per_second 0.028248726311583667
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_five_min_rate_per_second gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_five_min_rate_per_second 0.006448405864180696
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_fifteen_min_rate_per_second gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_fifteen_min_rate_per_second 0.0021976788366558607
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_mean_seconds gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_mean_seconds 0.029887348916693847
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_max_seconds gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_max_seconds 0.05066102
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_min_seconds gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_min_seconds 0.008799724
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_stddev_seconds gauge
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_stddev_seconds 0.02093005933932174
+# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds summary
+# HELP application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds_count 2
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.5"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.75"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.95"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.98"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.99"} 0.05066102
+application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.999"} 0.05066102
+...
+----
+
+NOTE: The output has been truncated for readability.
+
+
 [#run-the-completed-tutorial]
 === Run the Completed Tutorial
 
@@ -1200,7 +1253,7 @@ query ordersWithWhereClause2 {
   displayOrders(whereClause: "orderTotal > 4000.0 and customerId = 1") {
     orderId
     orderTotal
-    customerI
+    customerId
     customer {
       name
     }
