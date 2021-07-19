@@ -119,6 +119,9 @@ Once the associated entry has been successfully written the implementer must cal
 
 <h3 id="_how_to_use">How to Use</h3>
 <div class="section">
+<p>Below is a summary of the tasks required in order to use the feature.
+To get started, please check the <router-link :to="{path: '/examples/guides/190-cache-stores/README', hash: '#h2-non-blocking-entry-store'}">guide for non blocking stores</router-link>.</p>
+
 
 <h4 id="_configuration">Configuration</h4>
 <div class="section">
