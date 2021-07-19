@@ -97,6 +97,9 @@ The `NonBlockingEntryStore` interface is provided the `BinaryEntry` that represe
 
 === How to Use
 
+Below is a summary of the tasks required in order to use the feature.
+To get started, please check the <<examples/guides/190-cache-stores/README.adoc#h2-non-blocking-entry-store, guide for non blocking stores>>.
+
 ==== Configuration
 
 To specify a non-blocking cache store implementation, provide the implementation class name within the read-write-backing-map-scheme as shown below.
