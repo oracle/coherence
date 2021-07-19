@@ -10,7 +10,12 @@ web services, packaged applications and file systems; however, databases are the
 <p>As shorthand, "database" is used to describe any back-end data source. Effective caches must
 support both intensive read-only and read/write operations, and for read/write operations,
 the cache and database must be kept fully synchronized. To accomplish caching of data sources,
-Coherence supports Read-Through, Write-Through, Refresh-Ahead and Write-Behind caching.</p>
+Coherence supports Read-Through, Write-Through, Refresh-Ahead and Write-Behind caching. Coherence also
+supports <a id="" title="" target="_blank" href="https://coherence.community/21.06.1-SNAPSHOT/api/java//com/tangosol/net/cache/BinaryEntryStore.html">BinaryEntryStore</a> which provides access to the serialized form of entries for
+data sources capable of manipulating those. A variant of <code>BinaryEntryStore</code> is
+the <a id="" title="" target="_blank" href="https://coherence.community/21.06.1-SNAPSHOT/api/java//com/tangosol/net/cache/NonBlockingEntryStore.html">NonBlockingEntryStore</a>
+which, besides providing access to entries in their <a id="" title="" target="_blank" href="https://coherence.community/21.06.1-SNAPSHOT/api/java//com/tangosol/util/BinaryEntry.html">BinaryEntry</a> form,
+integrates with data sources with non-blocking APIs such as R2DBC or Kafka.</p>
 
 <p>See the <a id="" title="" target="_blank" href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/caching-data-sources.html#GUID-9FAD1BFB-5063-4995-B0A7-3C6F9C64F600">Coherence Documentation</a>
 for detailed information on Cache Stores.</p>
@@ -62,6 +67,10 @@ for detailed information on Cache Stores.</p>
 </li>
 <li>
 <p><router-link to="#write-behind-hsqldb-cache-store" @click.native="this.scrollFix('#write-behind-hsqldb-cache-store')">Write Behind HSQLDb Cache Store Example</router-link></p>
+
+</li>
+<li>
+<p><router-link to="#h2-non-blocking-entry-store" @click.native="this.scrollFix('#h2-non-blocking-entry-store')">H2 R2DBC Non Blocking Entry Store Example</router-link></p>
 
 </li>
 <li>
@@ -1249,7 +1258,7 @@ lang="java"
 
 <h3 id="write-behind-hsqldb-cache-store">Write Behind HSQLDb Cache Store Example</h3>
 <div class="section">
-<p>In this final HSQLDb cache store example, we use the <code>CustomerWriteBehind</code> cache which has a write delay of 10 seconds.</p>
+<p>In this HSQLDb cache store example, we use the <code>CustomerWriteBehind</code> cache which has a write delay of 10 seconds.</p>
 
 <p><strong>Review the Cache Configuration</strong></p>
 
@@ -1312,6 +1321,133 @@ load.</p>
 OR
 &lt;Info&gt; (thread=WriteBehindThread:CacheStoreWrapper(com.oracle.coherence.guides.cachestores.HSQLDbCacheStore):DistributedCache:CustomerWriteBehind, member=1):
    Ran storeAll on 10 entries</pre>
+</div>
+
+</div>
+
+<h3 id="h2-non-blocking-entry-store">H2 R2DBC Non Blocking Entry Store Example</h3>
+<div class="section">
+<p>In this H2 R2DBC cache store example, we use the <code>H2Person</code> cache which implements the <code>NonBlockingEntryStore</code> for non-blocking APIs
+and access to entries in their serialized (<code>BinaryEntry</code>) form.</p>
+
+<p><strong>Review the Cache Configuration</strong></p>
+
+<p>The <code>h2r2dbc-entry-store-cache-config.xml</code> below shows the <code>H2Person</code> cache specifying the class name of the <code>NonBlockingEntryStore</code> implementation.</p>
+
+<markup
+lang="xml"
+
+>&lt;caching-scheme-mapping&gt;
+  &lt;cache-mapping&gt;
+    &lt;cache-name&gt;H2Person&lt;/cache-name&gt;
+    &lt;scheme-name&gt;distributed-h2r2dbc&lt;/scheme-name&gt;
+  &lt;/cache-mapping&gt;
+&lt;/caching-scheme-mapping&gt;
+
+&lt;caching-schemes&gt;
+  &lt;distributed-scheme&gt;
+    &lt;scheme-name&gt;distributed-h2r2dbc&lt;/scheme-name&gt;
+    &lt;backing-map-scheme&gt;
+      &lt;read-write-backing-map-scheme&gt;
+        &lt;internal-cache-scheme&gt;
+          &lt;local-scheme&gt;&lt;/local-scheme&gt;
+        &lt;/internal-cache-scheme&gt;
+
+        &lt;cachestore-scheme&gt;
+          &lt;class-scheme&gt;
+            &lt;class-name&gt;com.oracle.coherence.guides.cachestores.H2R2DBCEntryStore&lt;/class-name&gt;
+          &lt;/class-scheme&gt;
+        &lt;/cachestore-scheme&gt;
+      &lt;/read-write-backing-map-scheme&gt;
+    &lt;/backing-map-scheme&gt;
+    &lt;autostart&gt;true&lt;/autostart&gt;
+  &lt;/distributed-scheme&gt;
+&lt;/caching-schemes&gt;</markup>
+
+<p><strong>Run the Unit Test</strong></p>
+
+<p>Next we will run the <code>H2R2DBCEntryStoreTest</code> unit test below and observe the behaviour.</p>
+
+<ol style="margin-left: 15px;">
+<li>
+Start and confirm NamedMap and database contents.
+<markup
+lang="java"
+
+>@BeforeAll
+public static void startup() throws SQLException
+    {
+    createTable();
+
+    startupCoherence("h2r2dbc-entry-store-cache-config.xml");
+    }
+
+/**
+ * Performs some cache manipulations.
+ */
+@Test
+public void testNonBlockingEntryStore()
+    {
+    NamedMap&lt;Long, Person&gt; namedMap = getSession()
+            .getMap("H2Person", TypeAssertion.withTypes(Long.class, Person.class));
+
+    Person person1 = namedMap.get(Long.valueOf(101));
+    assertEquals("Robert", person1.getFirstname());</markup>
+
+</li>
+<li>
+Insert 1 person using a <code>put</code> operation and confirm the data is in the cache.
+<markup
+lang="java"
+
+>Person person2 = new Person(Long.valueOf(102), 40, "Tony", "Soprano");
+namedMap.put(Long.valueOf(102), person2);
+
+Person person3 = namedMap.get(Long.valueOf(102));
+assertEquals("Tony", person3.getFirstname());</markup>
+
+</li>
+<li>
+Delete a couple records and verify the state of the cache.
+<markup
+lang="java"
+
+>namedMap.remove(Long.valueOf(101));
+namedMap.remove(Long.valueOf(102));
+assertEquals(null, namedMap.get(Long.valueOf(101)));
+assertEquals(null, namedMap.get(Long.valueOf(102)));</markup>
+
+</li>
+<li>
+Insert 10 persons using a <code>putAll</code> operation and confirm the data is in the cache. The actual database operations take place in parallel.s
+<markup
+lang="java"
+
+>Map&lt;Long, Person&gt; map = new HashMap&lt;&gt;();
+for (int i = 1; i &lt;= 10; i++)
+    {
+    map.put(Long.valueOf(i), new Person(Long.valueOf(i), 20 + i, "firstname" + i, "lastname" + i));
+    }
+namedMap.putAll(map);
+Person person5 = namedMap.get(Long.valueOf(5));
+assertEquals("firstname5", person5.getFirstname());
+assertEquals(10, namedMap.size());</markup>
+
+<div class="admonition note">
+<p class="admonition-inline">You should see messages indicating activity on the store side:</p>
+</div>
+</li>
+</ol>
+<div class="listing">
+<pre>2021-06-29 15:01:36.365/5.583 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore load key: 101
+2021-06-29 15:01:36.495/5.713 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore store
+2021-06-29 15:01:36.501/5.720 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore erase
+2021-06-29 15:01:36.504/5.722 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): Rows updated: 1
+2021-06-29 15:01:36.507/5.726 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore erase
+2021-06-29 15:01:36.508/5.727 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): Rows updated: 1
+2021-06-29 15:01:36.509/5.728 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore load key: 101
+2021-06-29 15:01:36.512/5.730 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): Could not find row for key: 101
+2021-06-29 15:01:36.515/5.734 Oracle Coherence GE 14.1.2.0.0 &lt;Info&gt; (thread=DistributedCacheWorker:0x0000:5, member=1): H2R2DBCEntryStore storeAll</pre>
 </div>
 
 </div>
