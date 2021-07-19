@@ -1632,44 +1632,88 @@ lang="json"
 including the <code>@Counted</code> or <code>@Timed</code> annotations. After running a number of queries and mutations
 you can access the metrics end point using the following curl command:</p>
 
+<div class="admonition note">
+<p class="admonition-inline">The base metrics endpoint is <code><a id="" title="" target="_blank" href="http://localhost:7001/metrics">http://localhost:7001/metrics</a></code>, but we have added the <code>/application</code> path to restrict the metrics returned.</p>
+</div>
 <markup
 lang="bash"
 
->curl http://localhost:7001/metrics
+>curl -H 'Accept: application/json' http://127.0.0.1:7001/metrics/application | jq
 
-...
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total counter
-# HELP application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getCustomers_total 1
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_rate_per_second gauge
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_rate_per_second 0.04518212759472706
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_one_min_rate_per_second gauge
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_one_min_rate_per_second 0.028248726311583667
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_five_min_rate_per_second gauge
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_five_min_rate_per_second 0.006448405864180696
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_fifteen_min_rate_per_second gauge
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_fifteen_min_rate_per_second 0.0021976788366558607
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_mean_seconds gauge
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_mean_seconds 0.029887348916693847
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_max_seconds gauge
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_max_seconds 0.05066102
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_min_seconds gauge
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_min_seconds 0.008799724
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_stddev_seconds gauge
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_stddev_seconds 0.02093005933932174
-# TYPE application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds summary
-# HELP application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds_count 2
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.5"} 0.05066102
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.75"} 0.05066102
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.95"} 0.05066102
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.98"} 0.05066102
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.99"} 0.05066102
-application_com_oracle_coherence_tutorials_graphql_api_CustomerApi_getOrders_seconds{quantile="0.999"} 0.05066102
-...</markup>
+{
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.addOrderLineToOrder": {
+    "count": 1,
+    "meanRate": 0.020786416474669184,
+    "oneMinRate": 0.014712537947741825,
+    "fiveMinRate": 0.0032510706679223173,
+    "fifteenMinRate": 0.0011018917421948848,
+    "min": 63082260,
+    "max": 63082260,
+    "mean": 63082260,
+    "stddev": 0,
+    "p50": 63082260,
+    "p75": 63082260,
+    "p95": 63082260,
+    "p98": 63082260,
+    "p99": 63082260,
+    "p999": 63082260
+  },
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.createCustomer": {
+    "count": 1,
+    "meanRate": 0.02078651489493201,
+    "oneMinRate": 0.013536188363841833,
+    "fiveMinRate": 0.0031973351962583784,
+    "fifteenMinRate": 0.001095787094460976,
+    "min": 4184923,
+    "max": 4184923,
+    "mean": 4184923,
+    "stddev": 0,
+    "p50": 4184923,
+    "p75": 4184923,
+    "p95": 4184923,
+    "p98": 4184923,
+    "p99": 4184923,
+    "p999": 4184923
+  },
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.createOrder": {
+    "count": 1,
+    "meanRate": 0.020786437087696893,
+    "oneMinRate": 0.014712537947741825,
+    "fiveMinRate": 0.0032510706679223173,
+    "fifteenMinRate": 0.0011018917421948848,
+    "min": 5411268,
+    "max": 5411268,
+    "mean": 5411268,
+    "stddev": 0,
+    "p50": 5411268,
+    "p75": 5411268,
+    "p95": 5411268,
+    "p98": 5411268,
+    "p99": 5411268,
+    "p999": 5411268
+  },
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.getCustomers": 1,
+  "com.oracle.coherence.tutorials.graphql.api.CustomerApi.getOrders": {
+    "count": 3,
+    "meanRate": 0.06235852925082789,
+    "oneMinRate": 0.04423984338571901,
+    "fiveMinRate": 0.009754115099857198,
+    "fifteenMinRate": 0.003305709235676515,
+    "min": 6507371,
+    "max": 47080043,
+    "mean": 20945553.135424484,
+    "stddev": 19245930.056725293,
+    "p50": 7014199,
+    "p75": 47080043,
+    "p95": 47080043,
+    "p98": 47080043,
+    "p99": 47080043,
+    "p999": 47080043
+  }
+}</markup>
 
 <div class="admonition note">
-<p class="admonition-inline">The output has been truncated for readability.</p>
+<p class="admonition-inline"><code>jq</code> has been used to format the JSON output. This can be downloaded from <a id="" title="" target="_blank" href="https://stedolan.github.io/jq/download/">https://stedolan.github.io/jq/download/</a> or you can format the output with an alternate utility.</p>
 </div>
 </div>
 
