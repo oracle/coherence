@@ -27,10 +27,12 @@
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    <maven.depdency.plugin.version>3.1.2</maven.depdency.plugin.version>
     <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
     <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
+    <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
     <maven.gmaven.plugin.version>1.5</maven.gmaven.plugin.version>
-    <maven.shade.plugin.version>3.2.0</maven.shade.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
     <junit.jupiter.version>5.7.0</junit.jupiter.version>
@@ -158,66 +160,42 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven.surefire.plugin.version}</version>
       </plugin>
-
-      <!-- Create a new property "actual.coherence.version" for the manifest
-   by replacing '-' with '.' -->
-      <plugin>
-        <groupId>org.codehaus.gmaven</groupId>
-        <artifactId>gmaven-plugin</artifactId>
-        <version>${maven.gmaven.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>add-dynamic-properties</id>
-            <phase>initialize</phase>
-            <goals>
-              <goal>execute</goal>
-            </goals>
-            <configuration>
-              <source>
-                properties = project.properties
-                version = properties.getProperty("coherence.version")
-                properties.
-                    setProperty("actual.coherence.version",
-                                version.replaceAll('-', '.'))
-              </source>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>${maven.shade.plugin.version}</version>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven.jar.plugin.version}</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>libs</classpathPrefix>
+              <mainClass>com.oracle.coherence.guides.topics.ChatApplication</mainClass>
+              <useUniqueVersions>false</useUniqueVersions>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven.depdency.plugin.version}</version>
         <executions>
           <execution>
-            <phase>package</phase>
+            <id>copy-libs</id>
+            <phase>prepare-package</phase>
             <goals>
-              <goal>shade</goal>
+              <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <transformers>
-                <transformer
-                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>
-                    com.oracle.coherence.guides.topics.ChatApplication
-                  </mainClass>
-                  <manifestEntries>
-                    <Implementation-GroupId>com.oracle.coherence
-                    </Implementation-GroupId>
-                    <Implementation-Description>Demonstration
-                    </Implementation-Description>
-                    <Implementation-Vendor>Oracle</Implementation-Vendor>
-                    <Implementation-Version>${actual.coherence.version}
-                    </Implementation-Version>
-                    <Implementation-Build>demo</Implementation-Build>
-                    <Specification-Vendor>Oracle</Specification-Vendor>
-                    <Specification-Version>${actual.coherence.version}
-                    </Specification-Version>
-                  </manifestEntries>
-                </transformer>
-              </transformers>
+              <outputDirectory>${project.build.directory}/libs</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeScope>runtime</includeScope>
+              <excludeScope>test</excludeScope>
             </configuration>
           </execution>
         </executions>
