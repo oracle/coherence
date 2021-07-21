@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -24,6 +24,9 @@ import javax.cache.CacheException;
 
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
+
+import static com.tangosol.util.ExternalizableHelper.FMT_NULL;
+
 
 /**
  * A Coherence-based {@link javax.cache.processor.EntryProcessorResult}.
@@ -96,14 +99,42 @@ public class CoherenceEntryProcessorResult<T>
             }
         }
 
+    // ----- helpers -----------------------------------------------------------
+
+    /**
+     * Return true if inspection of {@link Binary} content identifies null.
+     *
+     * @param bin  binary object
+     *
+     * @return iff binary object resolves to null
+     */
+    private static boolean isNull(Binary bin)
+        {
+        return bin != null && bin.length() == 1 && bin.byteAt(0) == FMT_NULL;
+        }
+
     // ----- ExternalizableLite interface -----------------------------------
 
     @Override
     public void readExternal(DataInput in)
             throws IOException
         {
-        m_oResult   = (T) ExternalizableHelper.readObject(in);
-        m_exception = (Exception) ExternalizableHelper.fromBinary(new Binary(in));
+        m_oResult = (T) ExternalizableHelper.readObject(in);
+
+        Binary binEx = new Binary(in);
+
+        // start version 2 format processing
+        try
+            {
+            // when 2nd field is non-null, deserialize 3rd field as an object
+            m_exception = isNull(binEx) ? null : ExternalizableHelper.readObject(in);
+            }
+        catch (IOException e)
+            {
+            // backwards compatibility mode with version 1 format of writeExternal(DataOutput)
+            // generate a replacement exception when 3rd field is missing
+            m_exception = new RuntimeException("EntryProcessor terminated abnormally");
+            }
         }
 
     @Override
@@ -112,6 +143,12 @@ public class CoherenceEntryProcessorResult<T>
         {
         ExternalizableHelper.writeObject(out, m_oResult);
         ExternalizableHelper.toBinary(m_exception).writeExternal(out);
+
+        // version 2 format: write optional 3rd field as an object
+        if (m_exception != null)
+            {
+            ExternalizableHelper.writeObject(out, m_exception);
+            }
         }
 
     // ----- PortableObject interface ---------------------------------------
