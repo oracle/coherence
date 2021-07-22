@@ -1254,8 +1254,101 @@ public class ReadWriteBackingMap
             }
         }
 
-
     // ----- internal -------------------------------------------------------
+
+    /**
+    *  Remove the collection of keys from this ReadWriteBackingMap.
+    *  <p>
+    *  This method will ensure the configured CacheStore.eraseAll method is
+    *  called with all owned keys in addition to removing the relevant entries
+    *  from the internal Map.
+    *
+    * @param colKeys  a collection of keys to remove, that may be in the map
+    *
+    * @return true if any of the provided keys were successfully removed from
+    *         this map
+    */
+    protected boolean removeAll(Collection colKeys)
+        {
+        StoreWrapper  store      = getCacheStore();
+        ConcurrentMap mapControl = getControlMap();
+        boolean       fRemoved   = false;
+
+        try
+            {
+            Map        mapMisses   = getMissesCache();
+            Map        mapInternal = getInternalCache();
+            Set<Entry> setEntries  = new HashSet<>(colKeys.size());
+
+            BackingMapManagerContext ctx = getContext();
+            for (Object oKey : colKeys)
+                {
+                mapControl.lock(oKey, -1L);
+
+                // clear the key from the misses cache
+                if (mapMisses != null)
+                    {
+                    mapMisses.remove(oKey);
+                    }
+
+                cancelOutstandingReads(oKey);
+
+                if (store != null)
+                    {
+                    // whether entry exists or not, erase/eraseAll
+                    // needs to be called: fetch existing value or use null
+                    Object oValue = getCachedOrPending(oKey);
+
+                    boolean fOwned = ctx.isKeyOwned(oKey);
+
+                    // remove from the store only if is a read/write store
+                    if (!isReadOnly())
+                        {
+                        removeFromWriteQueue(oKey);
+
+                        if (fOwned)
+                            {
+                            setEntries.add(instantiateEntry(oKey, oValue, mapInternal.get(oKey), 0L));
+                            }
+                        }
+                    }
+                }
+
+            if (!setEntries.isEmpty())
+                {
+                SubSet     setEntriesFailed = new SubSet(setEntries);
+                Set<Entry> setSuccess       = null;
+                try
+                    {
+                    if (store != null)
+                        {
+                        store.eraseAll(setEntriesFailed);
+                        }
+                    setSuccess = setEntries;
+                    }
+                catch (Throwable e)
+                    {
+                    setSuccess = setEntriesFailed.getRemoved();
+                    throw Base.ensureRuntimeException(e);
+                    }
+                finally
+                    {
+                    fRemoved = !setSuccess.isEmpty();
+                    }
+                }
+
+            return fRemoved;
+            }
+        finally
+            {
+            for (Object oKey : colKeys)
+                {
+                getInternalCache().remove(oKey);
+
+                mapControl.unlock(oKey);
+                }
+            }
+        }
 
     /**
     * Add the key and value pair to the internal cache in such a way that the
@@ -1992,6 +2085,19 @@ public class ReadWriteBackingMap
             // in the same way as by the remove's behavior
             map.removeInternal(o, true);
             return fExists;
+            }
+
+        /**
+        * Removes the provided collection from this Set of keys by removing
+        * the associated entries from the underlying Map.
+        *
+        * @param colKeys  objects to be removed from this set, if present
+        *
+        * @return true if the Map was modified as a result of this call
+        */
+        public boolean removeAll(Collection colKeys)
+            {
+            return ReadWriteBackingMap.this.removeAll(colKeys);
             }
 
         /**

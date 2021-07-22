@@ -1227,7 +1227,7 @@ public class ReadWriteBackingMapTests
         testRemoveProcessor("a3) ", cache, store, processor, listEvents,
                             new EventVerifier(new int[] { MapEvent.ENTRY_INSERTED,
                                                           MapEvent.ENTRY_DELETED }),
-                            10, 0, 10, 0, 0, 0, 0);
+                            10, 0, 2, 0, 0, 1, 0);
 
         // a4) Read (Preload) - Evict
         testRemoveProcessor("a4) ", cache, store, new CustomProcessor1(sCacheName), listEvents,
@@ -1246,7 +1246,7 @@ public class ReadWriteBackingMapTests
         testRemoveProcessor("a6) ", cache, store, new CustomProcessor3(sCacheName), listEvents,
                             new EventVerifier(new int[] { MapEvent.ENTRY_INSERTED,
                                                           MapEvent.ENTRY_DELETED }),
-                            10, 0, 10, 0, 0, 0, 0);
+                            10, 0, 2, 0, 0, 1, 0);
 
         // a7) Evict before Read (Preload)
         for (int i = 0; i < 10; i++)
@@ -1279,7 +1279,7 @@ public class ReadWriteBackingMapTests
         // but REMOVE events are not generated
         testRemoveProcessor("b1) ", cache, store, new CustomProcessor7(sCacheName), listEvents,
                             new EventVerifier(new int[] { }),
-                            0, 0, 10, 0, 0, 0, 0);
+                            0, 0, 2, 0, 0, 1, 0);
 
         // b2) Evict before Update
         for (int i = 0; i < 10; i++)
@@ -1298,7 +1298,7 @@ public class ReadWriteBackingMapTests
             }
         testRemoveProcessor("b3) ", cache, store, new CustomProcessor9(sCacheName), listEvents,
                             new EventVerifier(new int[] { MapEvent.ENTRY_DELETED}),
-                            0, 0, 10, 0, 0, 0, 10);
+                            0, 0, 2, 0, 0, 1, 10);
 
         // b4) Evict after Update
         for (int i = 0; i < 10; i++)
@@ -1358,6 +1358,88 @@ public class ReadWriteBackingMapTests
         assertEquals("testRemoveSynthetic-" + sCacheName, 0, mapInternal.size());
         // Verify no interactions with CacheStore
         verifyStoreStats("testRemoveSynthetic-" + sCacheName, store, 0, 0, 0, 0, 0, 0);
+
+        cache.destroy();
+        }
+
+    @Test
+    public void testRemoveAll()
+        {
+        testRemoveAll("dist-rwbm-wt");
+        testRemoveAll("dist-rwbm-wt-bin");
+
+        testRemoveAll("dist-rwbm-nb-nonpc");
+        }
+
+    private void testRemoveAll(String sCacheName)
+        {
+        NamedCache          cache = getNamedCache(sCacheName);
+        AbstractTestStore   store = getStore(cache);
+        ReadWriteBackingMap rwbm  = getReadWriteBackingMap(cache);
+        LocalCache          mapInternal = (LocalCache) rwbm.getInternalCache();
+
+        cache.clear();
+        store.getStorageMap().clear();
+        store.resetStats();
+
+        Map<Integer,Integer> map = mapOfIntegers(10);
+
+        // test invokeAll
+        cache.putAll(map);
+
+        store.getStatsMap().clear();
+
+        if (sCacheName.equals("dist-rwbm-nb-nonpc"))
+            {
+            // async stores: race condition between end of putAll() and invokeAll()
+            // give a chance to storeAll() and onNext() to go through
+            definiteSleep(2000);
+            }
+
+        cache.invokeAll(map.keySet(), new ConditionalRemove(AlwaysFilter.INSTANCE));
+
+        assertEquals("testRemoveAll-" + sCacheName, 0, store.getStorageMap().size());
+        assertEquals("testRemoveAll-" + sCacheName, 0, mapInternal.size());
+        // Verify interactions with CacheStore
+        verifyStoreStats("testRemoveAll-" + sCacheName, store, 0, 0, 0, 0, 0, 1);
+
+        // test removeAll() on keySet()
+        cache.putAll(map);
+
+        store.getStatsMap().clear();
+
+        if (sCacheName.equals("dist-rwbm-nb-nonpc"))
+            {
+            // async stores: race condition between end of putAll() and invokeAll()
+            // give a chance to storeAll() and onNext() to go through
+            definiteSleep(2000);
+            }
+
+        cache.keySet().removeAll(map.keySet());
+
+        assertEquals("testRemoveAll-" + sCacheName, 0, store.getStorageMap().size());
+        assertEquals("testRemoveAll-" + sCacheName, 0, mapInternal.size());
+        // Verify interactions with CacheStore
+        verifyStoreStats("testRemoveAll-" + sCacheName, store, 0, 0, 0, 0, 0, 1);
+
+        // test removeAll() on entrySet()
+        cache.putAll(map);
+
+        store.getStatsMap().clear();
+
+        if (sCacheName.equals("dist-rwbm-nb-nonpc"))
+            {
+            // async stores: race condition between end of putAll() and invokeAll()
+            // give a chance to storeAll() and onNext() to go through
+            definiteSleep(2000);
+            }
+
+        cache.entrySet().removeAll(map.entrySet());
+
+        assertEquals("testRemoveAll-" + sCacheName, 0, store.getStorageMap().size());
+        assertEquals("testRemoveAll-" + sCacheName, 0, mapInternal.size());
+        // Verify interactions with CacheStore
+        verifyStoreStats("testRemoveAll-" + sCacheName, store, 0, 0, 0, 0, 0, 1);
 
         cache.destroy();
         }
