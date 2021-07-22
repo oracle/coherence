@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1154,8 +1154,16 @@ public final class Binary
             }
 
         int    cb = in.readInt();
-        byte[] ab = new byte[cb];
-        in.readFully(ab);
+        byte[] ab;
+        if (cb < ExternalizableHelper.CHUNK_THRESHOLD)
+            {
+            ab = new byte[cb];
+            in.readFully(ab);
+            }
+        else
+            {
+            ab = ExternalizableHelper.readLargeByteArray(in, cb);
+            }
 
         m_ab = ab;
         m_cb = cb;
