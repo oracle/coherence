@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.HashHelper;
 
 import java.io.DataInput;
@@ -121,13 +122,8 @@ public class LongBag
     public void readExternal(DataInput in)
             throws IOException
         {
-        int    c = m_c = in.readInt();
-        long[] a = new long[c];
-        for (int i = 0; i < c; ++i)
-            {
-            a[i] = in.readLong();
-            }
-        m_a = a;
+        m_a = ExternalizableHelper.readLongArray(in);
+        m_c = m_a.length;
         }
 
     @Override

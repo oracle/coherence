@@ -184,7 +184,10 @@ public class RemoteConstructor<T>
         {
         m_definition = ExternalizableHelper.readObject(in);
 
-        Object[] aoArgs = m_aoArgs = new Object[ExternalizableHelper.readInt(in)];
+        int cArgs = ExternalizableHelper.readInt(in);
+        Base.azzert(cArgs < 256, "Unexpected number of constructor arguments.");
+
+        Object[] aoArgs = m_aoArgs = new Object[cArgs];
         for (int i = 0; i < aoArgs.length; i++)
             {
             aoArgs[i] = ExternalizableHelper.readObject(in);

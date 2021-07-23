@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,10 +7,11 @@
 package com.tangosol.internal.util;
 
 import com.tangosol.io.ExternalizableLite;
-
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
+
+import com.tangosol.util.Base;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -119,13 +120,12 @@ public class DoubleBag
     public void readExternal(DataInput in)
             throws IOException
         {
-        int      c = m_c = in.readInt();
-        double[] a = new double[c];
-        for (int i = 0; i < c; ++i)
-            {
-            a[i] = in.readDouble();
-            }
-        m_a = a;
+        int c = m_c = in.readInt();
+
+        m_a = c <= 0 ? new double[0] :
+                    c < 0x7FFFFFF >> 3
+                        ? readDoubleArray(in, c)
+                        : readLargeDoubleArray(in, c);
         }
 
     @Override
@@ -245,6 +245,59 @@ public class DoubleBag
         return a;
         }
 
+    /**
+     * Read an array of doubles for the specified length from a DataInput stream.
+     *
+     * @param in  a DataInput stream to read from
+     * @param c   length to read
+     *
+     * @return an array of ints
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    private double[] readDoubleArray(DataInput in, int c)
+            throws IOException
+        {
+        double[] ad = new double[c];
+        for (int i = 0; i < c; i++)
+            {
+            ad[i] = in.readDouble();
+            }
+
+        return ad;
+        }
+
+    /**
+     * Read an array of doubles with larger length.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of doubles
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    private double[] readLargeDoubleArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int      cBatchMax = 0x3FFFFFF >> 3;
+        int      cBatch    = cLength / cBatchMax + 1;
+        double[] aMerged   = null;
+        int      cRead     = 0;
+        int      cAllocate = cBatchMax;
+
+        double[] ad;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            ad      = readDoubleArray(in, cAllocate);
+            aMerged = Base.mergeDoubleArray(aMerged, ad);
+            cRead   += ad.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
+        }
 
     // ----- constants ------------------------------------------------------
 

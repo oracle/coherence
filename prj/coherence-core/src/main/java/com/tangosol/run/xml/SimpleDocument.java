@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,7 +8,6 @@
 package com.tangosol.run.xml;
 
 
-import com.tangosol.io.Utf8Reader;
 import com.tangosol.io.Utf8Writer;
 
 import com.tangosol.io.pof.PofReader;
@@ -17,9 +16,7 @@ import com.tangosol.io.pof.PofWriter;
 import java.io.CharArrayWriter;
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.EOFException;
 import java.io.Externalizable;
-import java.io.InputStream;
 import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.ObjectInput;
@@ -430,24 +427,7 @@ public class SimpleDocument
     public void readExternal(ObjectInput in)
             throws IOException, ClassNotFoundException
         {
-        int    cch = in.readInt();
-        char[] ach = new char[cch];
-
-        Utf8Reader reader = new Utf8Reader((InputStream) in);
-
-        int of = 0;
-        while (of < cch)
-            {
-            int cchBlock = reader.read(ach, of, cch - of);
-            if (cchBlock < 0)
-                {
-                throw new EOFException();
-                }
-            else
-                {
-                of += cchBlock;
-                }
-            }
+        char[] ach = readCharArray(in);
 
         // Bug 31045382 - Do not validate the XML to prevent XXE (XML eXternal Entity) injection
         XmlHelper.loadXml(new String(ach), this, /* fValidate */ false);

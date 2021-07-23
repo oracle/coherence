@@ -8,16 +8,26 @@
 package com.tangosol.util;
 
 
+import data.Person;
 import org.junit.Test;
+
+import com.tangosol.io.Utf8Writer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.Assert.*;
 
@@ -269,5 +279,186 @@ public class ExternalizableHelperLargeArrayTest extends ExternalizableHelper
         dis      = new DataInputStream(inRaw);
         sRead = readUTF(dis);
         assertTrue(s.equals(sRead));
+        }
+
+    /** Test char array with length larger than threshold.
+     */
+    @Test
+    public void testLargeCharArray() throws IOException
+        {
+        // test size equal to threshold
+        char[] ach = new char[CHUNK_THRESHOLD];
+        Arrays.fill(ach, 'a');
+
+        ByteArrayOutputStream outRaw = new ByteArrayOutputStream();
+        DataOutputStream      dos    = new DataOutputStream(outRaw);
+
+        CharArrayWriter cw = new CharArrayWriter(1024);
+        cw.write(ach);
+
+        dos.writeInt(ach.length);
+
+        cw.writeTo(new Utf8Writer(dos));
+
+        dos.flush();
+        cw.flush();
+
+        ByteArrayInputStream inRaw  = new ByteArrayInputStream(outRaw.toByteArray());
+        DataInputStream      dis    = new DataInputStream(inRaw);
+
+        char[] achRead = readCharArray(dis);
+
+        assertTrue(Arrays.equals(ach, achRead));
+
+        outRaw.reset();
+        cw.reset();
+
+        // test size larger than threshold
+        ach = new char[CHUNK_THRESHOLD * 2 + 5];
+        Arrays.fill(ach, 'b');
+        cw.write(ach);
+        dos.writeInt(ach.length);
+        cw.writeTo(new Utf8Writer(dos));
+
+        dos.flush();
+        cw.flush();
+
+        inRaw  = new ByteArrayInputStream(outRaw.toByteArray());
+        dis    = new DataInputStream(inRaw);
+
+        achRead = readCharArray(dis);
+
+        assertTrue(Arrays.equals(ach, achRead));
+        }
+
+    /** Test long array with length larger than threshold.
+     */
+    @Test
+    public void testLargeLongArray() throws IOException
+        {
+        // test size equal to threshold
+        long[] al = new long[CHUNK_THRESHOLD >> 3];
+        Arrays.fill(al,  6666L);
+
+        ByteArrayOutputStream outRaw = new ByteArrayOutputStream();
+        DataOutputStream      dos    = new DataOutputStream(outRaw);
+        dos.writeInt(al.length);
+
+        for (int i = 0; i < al.length; i++)
+            {
+            dos.writeLong(al[i]);
+            }
+
+        dos.flush();
+
+        ByteArrayInputStream inRaw  = new ByteArrayInputStream(outRaw.toByteArray());
+        DataInputStream      dis    = new DataInputStream(inRaw);
+        long[]               alRead = readLongArray(dis);
+
+        assertTrue(Arrays.equals(al, alRead));
+
+        outRaw.reset();
+        // test size larger than threshold
+        al = new long[CHUNK_THRESHOLD >> 3 * 2 + 5];
+        Arrays.fill(al,  8888L);
+
+        dos.writeInt(al.length);
+        for (int i = 0; i < al.length; i++)
+            {
+            dos.writeLong(al[i]);
+            }
+        dos.flush();
+
+        inRaw  = new ByteArrayInputStream(outRaw.toByteArray());
+        dis    = new DataInputStream(inRaw);
+        alRead = readLongArray(dis);
+        assertTrue(Arrays.equals(al, alRead));
+        }
+
+    /** Test long array with length larger than threshold.
+     */
+    @Test
+    public void testLargeObjectArray() throws IOException
+        {
+        // test size equal to threshold
+        Object[] ao = new Object[CHUNK_THRESHOLD >> 4];
+        Arrays.fill(ao,  new TestObject("equal", 1));
+
+        ByteArrayOutputStream outRaw = new ByteArrayOutputStream();
+        DataOutputStream      dos    = new DataOutputStream(outRaw);
+        dos.writeInt(ao.length);
+
+        for (int i = 0; i < ao.length; i++)
+            {
+            ExternalizableHelper.writeObject(dos, ao[i]);
+            }
+
+        dos.flush();
+
+        ByteArrayInputStream inRaw  = new ByteArrayInputStream(outRaw.toByteArray());
+        DataInputStream      dis    = new DataInputStream(inRaw);
+        Object[]             aoRead = readObjectArray(dis);
+
+        assertTrue(Arrays.equals(ao, aoRead));
+
+        outRaw.reset();
+        // test size larger than threshold
+        ao = new Object[CHUNK_THRESHOLD >> 4 * 2 + 5];
+        Arrays.fill(ao,  new TestObject("larger", 2));
+
+        dos.writeInt(ao.length);
+        for (int i = 0; i < ao.length; i++)
+            {
+            ExternalizableHelper.writeObject(dos, ao[i]);
+            }
+
+        dos.flush();
+
+        inRaw  = new ByteArrayInputStream(outRaw.toByteArray());
+        dis    = new DataInputStream(inRaw);
+        aoRead = readObjectArray(dis);
+        assertTrue(Arrays.equals(ao, aoRead));
+        }
+
+    // ---------------------- Test Class ------------------------------------
+
+    public static class TestObject implements Serializable
+        {
+        public TestObject(String sName, int nId)
+            {
+            m_sName = sName;
+            m_nId   = nId;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return  Objects.hash(super.hashCode(), m_sName, m_nId);
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (this == o)
+                {
+                return true;
+                }
+            if (!(o instanceof TestObject))
+                {
+                return false;
+                }
+            TestObject test = (TestObject) o;
+            return m_nId == test.m_nId &&
+                    Objects.equals(m_sName, test.m_sName);
+            }
+
+        @Override
+        public String toString()
+            {
+            return super.toString();
+            }
+        // -----------------  Data members ----------------------------------
+        private String m_sName;
+        private int    m_nId;
         }
     }

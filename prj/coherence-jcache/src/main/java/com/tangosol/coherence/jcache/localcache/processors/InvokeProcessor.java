@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -225,6 +225,7 @@ public class InvokeProcessor<K, V, T>
         m_processor = (EntryProcessor<K, V, T>) ExternalizableHelper.readObject(in);
 
         int cArguments = ExternalizableHelper.readInt(in);
+        azzert(cArguments < 256, "Unexpected number of arguments.");
 
         m_arrArguments = new Object[cArguments];
 
