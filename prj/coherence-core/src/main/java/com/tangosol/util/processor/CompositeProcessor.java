@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -138,6 +138,9 @@ public class CompositeProcessor<K, V>
             throws IOException
         {
         int cProcessors = ExternalizableHelper.readInt(in);
+
+        azzert(cProcessors < 16384, "Unexpected number of composite processors.");
+
         InvocableMap.EntryProcessor[] aProcessor =
             new InvocableMap.EntryProcessor[cProcessors];
 

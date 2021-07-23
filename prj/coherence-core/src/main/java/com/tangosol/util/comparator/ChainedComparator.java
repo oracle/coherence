@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -227,7 +227,11 @@ public class ChainedComparator<T>
     public void readExternal(DataInput in)
             throws IOException
         {
-        int             cComparators = ExternalizableHelper.readInt(in);
+        int cComparators = ExternalizableHelper.readInt(in);
+
+        azzert(cComparators < 16384, "Unexpected number of chained comparators");
+
+
         Comparator<T>[] aComparator  = new Comparator[cComparators];
 
         for (int i = 0; i < cComparators; i++)

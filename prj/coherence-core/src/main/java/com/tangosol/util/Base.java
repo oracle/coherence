@@ -4683,6 +4683,90 @@ public abstract class Base
         }
 
     /**
+     * Merge two long arrays.
+     *
+     * @param al1  first array to merge
+     * @param al2  second array to merge
+     *
+     * @return merged array
+     */
+    public static long[] mergeLongArray(long[] al1, long[] al2)
+        {
+        if (al1 == null || al1.length == 0)
+            {
+            return al2;
+            }
+
+        if (al2 == null || al2.length == 0)
+            {
+            return al1;
+            }
+
+        int nLen1 = al1.length;
+        int nLen2 = al2.length;
+
+        long[] aMerged = Arrays.copyOf(al1, nLen1 + nLen2);
+        System.arraycopy(al2, 0, aMerged, nLen1, nLen2);
+        return aMerged;
+        }
+
+    /**
+     * Merge two int arrays.
+     *
+     * @param ai1  first array to merge
+     * @param ai2  second array to merge
+     *
+     * @return merged array
+     */
+    public static int[] mergeIntArray(int[] ai1, int[] ai2)
+        {
+        if (ai1 == null || ai1.length == 0)
+            {
+            return ai2;
+            }
+
+        if (ai2 == null || ai2.length == 0)
+            {
+            return ai1;
+            }
+
+        int nLen1 = ai1.length;
+        int nLen2 = ai2.length;
+
+        int[] aMerged = Arrays.copyOf(ai1, nLen1 + nLen2);
+        System.arraycopy(ai2, 0, aMerged, nLen1, nLen2);
+        return aMerged;
+        }
+
+    /**
+     * Merge two char arrays.
+     *
+     * @param ac1  first array to merge
+     * @param ac2  second array to merge
+     *
+     * @return merged array
+     */
+    public static char[] mergeCharArray(char[] ac1, char[] ac2)
+        {
+        if (ac1 == null || ac1.length == 0)
+            {
+            return ac2;
+            }
+
+        if (ac2 == null || ac2.length == 0)
+            {
+            return ac1;
+            }
+
+        int nLen1 = ac1.length;
+        int nLen2 = ac2.length;
+
+        char[] aMerged = Arrays.copyOf(ac1, nLen1 + nLen2);
+        System.arraycopy(ac2, 0, aMerged, nLen1, nLen2);
+        return aMerged;
+        }
+
+    /**
      * Merge two array with type T elements.
      *
      * @param a1   first array to merge
