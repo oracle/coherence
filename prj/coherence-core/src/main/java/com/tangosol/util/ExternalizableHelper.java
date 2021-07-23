@@ -1086,15 +1086,9 @@ public abstract class ExternalizableHelper
         else
             {
             int c = readInt(in);
-            af = new boolean[c];
-            for (int of = 0, cb = (c + 7) / 8, i = 0; of < cb; ++of)
-                {
-                int nBits = in.readUnsignedByte();
-                for (int nMask = 1; i < c && nMask <= 0xFF; nMask <<= 1)
-                    {
-                    af[i++] = (nBits & nMask) != 0;
-                    }
-                }
+            af = c < CHUNK_THRESHOLD
+                    ? readBooleanArray(in, c)
+                    : readLargeBooleanArray(in, c);
             }
 
         return af;
@@ -1157,8 +1151,15 @@ public abstract class ExternalizableHelper
         else
             {
             int cb = readInt(in);
+            if (cb < CHUNK_THRESHOLD)
+                {
                 ab = new byte[cb];
-            in.readFully(ab);
+                in.readFully(ab);
+                }
+            else
+                {
+                ab = readLargeByteArray(in, cb);
+                }
             }
 
         return ab;
@@ -1229,8 +1230,16 @@ public abstract class ExternalizableHelper
                 }
 
             // get the "UTF binary"
-            byte[] ab = new byte[cb];
-            in.readFully(ab);
+            byte[] ab;
+            if (cb < CHUNK_THRESHOLD)
+                {
+                ab = new byte[cb];
+                in.readFully(ab);
+                }
+            else
+                {
+                ab = readLargeByteArray(in, cb);
+                }
 
             s = convertUTF(ab, 0, cb, new char[cb]);
             }
@@ -1538,11 +1547,9 @@ public abstract class ExternalizableHelper
         else
             {
             int c = readInt(in);
-            as = new String[c];
-            for (int i = 0; i < c; ++i)
-                {
-                as[i] = readSafeUTF(in);
-                }
+            as = c < CHUNK_THRESHOLD >> 3
+                    ? readStringArray(in, c)
+                    : readLargeStringArray(in, c);
             }
         return as;
         }
@@ -1847,35 +1854,10 @@ public abstract class ExternalizableHelper
         else
             {
             int cfl = in.readInt();
-                afl = new float[cfl];
 
-            if (cfl > 0)
-                {
-                byte[] ab = new byte[cfl << 2];
-                in.readFully(ab);
-
-                for (int i = 0, of = 0; i < cfl; i++)
-                    {
-                    // Unfortunately we cannot win this battle:
-                    // the standard serialization goes native and does not
-                    // do any conversion at all:
-                    //
-                    // ival = ((bytes[srcpos + 0] & 0xFF) << 24) +
-                    //        ((bytes[srcpos + 1] & 0xFF) << 16) +
-                    //        ((bytes[srcpos + 2] & 0xFF) << 8) +
-                    //        ((bytes[srcpos + 3] & 0xFF) << 0);
-                    //  u.i = (long) ival;
-                    //  floats[dstpos] = (jfloat) u.f;
-
-                    int iValue =
-                         ((ab[of++] & 0xff) << 24) +
-                         ((ab[of++] & 0xff) << 16) +
-                         ((ab[of++] & 0xff) <<  8) +
-                         ((ab[of++] & 0xff));
-
-                    afl[i] = Float.intBitsToFloat(iValue);
-                    }
-                }
+            afl = cfl < CHUNK_THRESHOLD >> 2
+                    ? readFloatArray(in, cfl)
+                    : readLargeFloatArray(in, cfl);
             }
 
         return afl;
@@ -1940,29 +1922,16 @@ public abstract class ExternalizableHelper
         else
             {
             int cdfl = in.readInt();
-                adfl = new double[cdfl];
 
             if (cdfl > 0)
                 {
-                byte[] ab = new byte[cdfl << 3];
-                in.readFully(ab);
-
-                for (int i = 0, of = 0; i < cdfl; i++)
-                    {
-                    int iUpper =
-                         ((ab[of++] & 0xff) << 24) +
-                         ((ab[of++] & 0xff) << 16) +
-                         ((ab[of++] & 0xff) <<  8) +
-                         ((ab[of++] & 0xff));
-                    int iLower =
-                         ((ab[of++] & 0xff) << 24) +
-                         ((ab[of++] & 0xff) << 16) +
-                         ((ab[of++] & 0xff) <<  8) +
-                         ((ab[of++] & 0xff));
-
-                    adfl[i] = Double.longBitsToDouble(
-                        (((long) iUpper) << 32) + (iLower & 0xFFFFFFFFL));
-                    }
+                adfl = cdfl < CHUNK_THRESHOLD >> 3
+                        ? readDoubleArray(in, cdfl)
+                        : readLargeDoubleArray(in, cdfl);
+                }
+            else
+                {
+                adfl = new double[0];
                 }
             }
 
@@ -5834,6 +5803,282 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Read byte array with length larger than {@link #CHUNK_THRESHOLD}.
+     *
+     * @param in  a DataInput stream to read from
+     * @param cb  number of bytes to read
+     *
+     * @return a read byte array value
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static byte[] readLargeByteArray(DataInput in, int cb)
+            throws IOException
+        {
+        int    cBatchMax = CHUNK_SIZE;
+        int    cBatch    = cb / cBatchMax + 1;
+        byte[] ab        = new byte[cBatchMax];
+        byte[] abMerged  = null;
+        int    cbRead    = 0;
+        for (int i = 0; i < cBatch && cbRead < cb; i++)
+            {
+            in.readFully(ab);
+            abMerged = mergeByteArray(abMerged, ab);
+            cbRead  += ab.length;
+            ab       = new byte[Math.min(cb - cbRead, cBatchMax)];
+            }
+
+        return abMerged;
+        }
+
+    /**
+     * Read the specified number of booleans from a boolean array.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  the length to read
+     *
+     * @return a boolean array value
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static boolean[] readBooleanArray(DataInput in, int cLength)
+            throws IOException
+        {
+        boolean[] af = new boolean[cLength];
+        for (int of = 0, cb = (cLength + 7) / 8, i = 0; of < cb; ++of)
+            {
+            int nBits = in.readUnsignedByte();
+            for (int nMask = 1; i < cLength && nMask <= 0xFF; nMask <<= 1)
+                {
+                af[i++] = (nBits & nMask) != 0;
+                }
+            }
+        return af;
+        }
+
+    /**
+     * Read a boolean array with length larger than {@link #CHUNK_THRESHOLD}.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return the read boolean array
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static boolean[] readLargeBooleanArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int       cBatchMax = CHUNK_SIZE & ~0x7;
+        int       cBatch    = cLength / cBatchMax + 1;
+        int       cRead     = 0;
+        int       cAllocate = cBatchMax;
+        boolean[] afMerged  = null;
+        boolean[] af;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            af       = readBooleanArray(in, cAllocate);
+            afMerged = mergeBooleanArray(afMerged, af);
+            cRead   += af.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return afMerged;
+        }
+
+    /**
+     * Read an array of the specified number of floats from a DataInput stream.
+     *
+     * @param in   a DataInput stream to read from
+     * @param cfl  the length to read
+     *
+     * @return an array of floats
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static float[] readFloatArray(DataInput in, int cfl)
+            throws IOException
+        {
+        byte[] ab = new byte[cfl << 2];
+        in.readFully(ab);
+
+        float[] afl = new float[cfl];
+        for (int i = 0, of = 0; i < cfl; i++)
+            {
+            // Unfortunately we cannot win this battle:
+            // the standard serialization goes native and does not
+            // do any conversion at all:
+            //
+            // ival = ((bytes[srcpos + 0] & 0xFF) << 24) +
+            //        ((bytes[srcpos + 1] & 0xFF) << 16) +
+            //        ((bytes[srcpos + 2] & 0xFF) << 8) +
+            //        ((bytes[srcpos + 3] & 0xFF) << 0);
+            //  u.i = (long) ival;
+            //  floats[dstpos] = (jfloat) u.f;
+
+            int iValue =
+                    ((ab[of++] & 0xff) << 24) +
+                            ((ab[of++] & 0xff) << 16) +
+                            ((ab[of++] & 0xff) <<  8) +
+                            ((ab[of++] & 0xff));
+
+            afl[i] = Float.intBitsToFloat(iValue);
+            }
+
+        return afl;
+        }
+
+    /**
+     * Read a float array with length larger than {@link #CHUNK_THRESHOLD} >> 2.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return the read float array value
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static float[] readLargeFloatArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int      cBatchMax = CHUNK_SIZE >> 2;
+        int      cBatch    = cLength / cBatchMax + 1;
+        float[]  aflMerged = null;
+        int      cRead     = 0;
+        int      cAllocate = cBatchMax;
+        float[]  afl;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            afl       = readFloatArray(in, cAllocate);
+            aflMerged = mergeFloatArray(aflMerged, afl);
+            cRead    += afl.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aflMerged;
+        }
+
+    /**
+     * Read an array of the specified number of doubles from a DataInput stream.
+     *
+     * @param in  a DataInput stream to read from
+     *
+     * @return an array of doubles
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static double[] readDoubleArray(DataInput in, int cdfl)
+            throws IOException
+        {
+        byte[] ab = new byte[cdfl << 3];
+        in.readFully(ab);
+        double[] adfl = new double[cdfl];
+        for (int i = 0, of = 0; i < cdfl; i++)
+            {
+            int iUpper =
+                    ((ab[of++] & 0xff) << 24) +
+                            ((ab[of++] & 0xff) << 16) +
+                            ((ab[of++] & 0xff) << 8) +
+                            ((ab[of++] & 0xff));
+            int iLower =
+                    ((ab[of++] & 0xff) << 24) +
+                            ((ab[of++] & 0xff) << 16) +
+                            ((ab[of++] & 0xff) << 8) +
+                            ((ab[of++] & 0xff));
+
+            adfl[i] = Double.longBitsToDouble(
+                    (((long) iUpper) << 32) + (iLower & 0xFFFFFFFFL));
+            }
+
+        return adfl;
+        }
+
+    /**
+     * Read a double array with length larger than {@link #CHUNK_THRESHOLD} {@literal >>} 3.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  the length to read
+     *
+     * @return an array of doubles
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static double[] readLargeDoubleArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int      cBatchMax  = CHUNK_SIZE >> 3;
+        int      cBatch     = cLength / cBatchMax + 1;
+        int      cAllocate  = cBatchMax;
+        double[] adflMerged = null;
+        int      cdflRead   = 0;
+        double[] adfl;
+        for (int i = 0; i < cBatch && cdflRead < cLength; i++)
+            {
+            adfl       = readDoubleArray(in, cAllocate);
+            adflMerged = mergeDoubleArray(adflMerged, adfl);
+            cdflRead  += adfl.length;
+
+            cAllocate = Math.min(cLength - cdflRead, cBatchMax);
+            }
+
+        return adflMerged;
+        }
+
+    /**
+     * Read array of string for the specified size.
+     *
+     * @param in  a DataInput stream to read from
+     * @param c   length to read
+     *
+     * @return the read string array value
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static String[] readStringArray(DataInput in, int c)
+            throws IOException
+        {
+        String[] as = new String[c];
+        for (int i = 0; i < c; ++i)
+            {
+            as[i] = readSafeUTF(in);
+            }
+        return as;
+        }
+
+    /**
+     * Read array of string with length larger than threshold {@link #CHUNK_THRESHOLD} {@literal >>} 3.
+     *
+     * @param in  a DataInput stream to read from
+     * @param c   length to read
+     *
+     * @return the read string array value
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static String[] readLargeStringArray(DataInput in, int c)
+            throws IOException
+        {
+        int      cBatchMax = CHUNK_SIZE >> 3;
+        int      cBatch    = c / cBatchMax + 1;
+        int      cRead     = 0;
+        int      cAllocate = cBatchMax;
+        String[] asMerged  = null;
+        String[] as;
+        for (int i = 0; i < cBatch && cRead < c; i++)
+            {
+            as       = readStringArray(in, cAllocate);
+            asMerged = mergeArray(asMerged, as);
+            cRead   += as.length;
+
+            cAllocate = Math.min(c - cRead, cBatchMax);
+            }
+
+        return asMerged;
+        }
+
+    /**
      * Return class for the specified class name; null if not found.
      *
      * @param sClass  the class name
@@ -6502,6 +6747,17 @@ public abstract class ExternalizableHelper
 
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * A threshold used to decide whether to perform deserialization using a chunking
+     * algorithm; default is greater than 128MB.
+     */
+    protected static final int CHUNK_THRESHOLD = 0x7FFFFFF;
+
+    /**
+     * When using the chunking algorithm each chunk is constrained to 64MB by default.
+     */
+    protected static final int CHUNK_SIZE = 0x3FFFFFF;
 
     /**
      * An array of Stats objects, indexed by the modulo of a swizzled class
