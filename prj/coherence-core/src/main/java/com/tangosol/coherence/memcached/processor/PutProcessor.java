@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -126,12 +126,7 @@ public class PutProcessor
     public void readExternal(DataInput in)
             throws IOException
         {
-        int len = in.readInt();
-        if (len > 0)
-            {
-            m_abValue = new byte[len];
-            in.readFully(m_abValue);
-            }
+        m_abValue         = ExternalizableHelper.readByteArray(in);
         m_nFlag           = in.readInt();
         m_lVersion        = in.readLong();
         m_nExpiry         = in.readInt();

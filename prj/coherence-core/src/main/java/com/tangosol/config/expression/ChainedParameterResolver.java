@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 
 import java.io.DataInput;
@@ -101,7 +102,9 @@ public class ChainedParameterResolver
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        int                 cResolver = ExternalizableHelper.readInt(in);
+        int cResolver = ExternalizableHelper.readInt(in);
+        Base.azzert(cResolver < 16384, "Unexpected number of parameter resolvers.");
+
         ParameterResolver[] aResolver = new ParameterResolver[cResolver];
 
         for (int i = 0; i < cResolver; i++)

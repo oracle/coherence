@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package com.oracle.coherence.common.internal.util;
 
 import com.oracle.coherence.common.base.Converter;
+
+import com.tangosol.util.Base;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -335,18 +337,12 @@ public class Histogram
             throws IOException
         {
         int c = dataInput.readInt();
-        long[] alResults = m_alResults = new long[c];
-        for (int i = 0; i < c; )
-            {
-            long n = dataInput.readLong();
-            if (n < 0)
-                {
-                // skip over gaps
-                i += -n;
-                continue;
-                }
-            alResults[i++] = n;
-            }
+
+        m_alResults = c <= 0 ? new long[0] :
+                        c < 0x7FFFFFF >> 3
+                            ? readHistgram(dataInput, c)
+                            : readLargeHistgram(dataInput, c);
+
         }
 
     @Override
@@ -388,6 +384,65 @@ public class Histogram
             {
             dataOutput.writeLong(iSkipStart - c);
             }
+        }
+
+    /**
+     * Read histgram from a DataInput stream.
+     *
+     * @param in  a DataInput stream to read from
+     *
+     * @return an array of longs
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    private long[] readHistgram(DataInput in, int c)
+            throws IOException
+        {
+        long[] alResults = new long[c];
+        for (int i = 0; i < c; )
+            {
+            long n = in.readLong();
+            if (n < 0)
+                {
+                // skip over gaps
+                i += -n;
+                continue;
+                }
+            alResults[i++] = n;
+            }
+
+        return alResults;
+        }
+
+    /**
+     * Read a histogram with large array.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of longs
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    private long[] readLargeHistgram(DataInput in, int cLength)
+            throws IOException
+        {
+        int    cBatchMax = 0x3FFFFFF >> 3;
+        int    cBatch    = cLength / cBatchMax + 1;
+        long[] aMerged   = null;
+        int    cRead     = 0;
+        int    cAllocate = cBatchMax;
+        long[] al;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            al      = readHistgram(in, cAllocate);
+            aMerged = Base.mergeLongArray(aMerged, al);
+            cRead  += al.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
         }
 
     // ----- inner class Snapshot -------------------------------------------

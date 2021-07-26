@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 
 package com.tangosol.run.xml;
 
+
+import com.tangosol.util.ExternalizableHelper;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -352,6 +354,25 @@ public class ArrayAdapter
         // "in" contains an array size and, for each element, a non-null
         // indicator and (if non-null) the object
         int      c  = readInt(in);
+        Object[] ao = c < CHUNK_THRESHOLD >> 4
+                ? readArray(in, c)
+                : readLargeArray(in, c);
+
+        return ao;
+        }
+
+    /**
+     * Read an array of specified length from the passed DataInput object.
+     *
+     * @param in  the DataInput stream to read property data from
+     *
+     * @return   the data read from the DataInput; never null
+     *
+     * @exception IOException   if an I/O exception occurs
+     */
+    protected  Object[] readArray(DataInput in, int c)
+            throws IOException
+        {
         Object[] ao = (Object[]) Array.newInstance(m_clzElement, c);
 
         PropertyAdapter adapter = m_adapterElement;
@@ -363,6 +384,38 @@ public class ArrayAdapter
                 }
             }
         return ao;
+        }
+
+    /**
+     * Read an array of property data with length larger than
+     * {@link #CHUNK_THRESHOLD} {@literal >>} 4.
+     *
+     * @param in  the DataInput stream to read property data from
+     *
+     * @return   the data read from the DataInput; never null
+     *
+     * @exception IOException   if an I/O exception occurs
+     */
+    protected  Object[] readLargeArray(DataInput in, int c)
+            throws IOException
+        {
+        int      cBatchMax = CHUNK_SIZE >> 4;
+        int      cBatch    = c / cBatchMax + 1;
+        Object[] aMerged   = null;
+        int      cRead     = 0;
+        int      cAllocate = cBatchMax;
+
+        Object[] ao;
+        for (int i = 0; i < cBatch && cRead < c; i++)
+            {
+            ao      = readArray(in, cAllocate);
+            aMerged = mergeArray(aMerged, ao);
+            cRead  += ao.length;
+
+            cAllocate = Math.min(c - cRead, cBatchMax);
+            }
+
+        return aMerged;
         }
 
     /**

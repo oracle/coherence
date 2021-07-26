@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 
@@ -117,7 +118,11 @@ public class MethodInvocationProcessor<K, V, R>
         m_supplier    = (Remote.Supplier<V>) ExternalizableHelper.readObject(in);
         m_sMethodName = in.readUTF();
         m_fMutator    = in.readBoolean();
-        m_aoArgs      = new Object[in.readInt()];
+
+        int cArgs = in.readInt();
+        Base.azzert(cArgs < 256, "Unexpected number of method parameters.");
+
+        m_aoArgs = new Object[cArgs];
         for (int i = 0; i < m_aoArgs.length; i++)
             {
             m_aoArgs[i] = ExternalizableHelper.readObject(in);

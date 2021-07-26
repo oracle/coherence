@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -556,11 +556,9 @@ public class ImmutableArrayList
             }
         else if (in.readBoolean()) // fLite
             {
-            Object[] ao = m_ao = new Object[c];
-            for (int i = 0; i < c; ++i)
-                {
-                ao[i] = ExternalizableHelper.readObject(in);
-                }
+            m_ao = c < ExternalizableHelper.CHUNK_THRESHOLD >> 4
+                    ? ExternalizableHelper.readObjectArray(in, c)
+                    : ExternalizableHelper.readLargeObjectArray(in, c);
             }
         else
             {

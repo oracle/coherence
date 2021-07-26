@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,6 +11,8 @@ import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
+
+import com.tangosol.util.ExternalizableHelper;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -91,13 +93,7 @@ public class DataHolder
     public void readExternal(DataInput in)
             throws IOException
         {
-        int cb = in.readInt();
-        if (cb > 0)
-            {
-            m_abValue = new byte[cb];
-            in.readFully(m_abValue);
-            }
-
+        m_abValue  = ExternalizableHelper.readByteArray(in);
         m_nFlag    = in.readInt();
         m_lVersion = in.readLong();
         }

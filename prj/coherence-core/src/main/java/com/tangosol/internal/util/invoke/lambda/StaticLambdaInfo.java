@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -237,7 +237,9 @@ public class StaticLambdaInfo<T>
         m_sImplMethodSignature                = ExternalizableHelper.readSafeUTF(in);
         m_sInstantiatedMethodType             = ExternalizableHelper.readSafeUTF(in);
 
-        int      cCapturedArgs  = ExternalizableHelper.readInt(in);
+        int cCapturedArgs = ExternalizableHelper.readInt(in);
+        Base.azzert(cCapturedArgs < 256, "Unexpected number of captured arguments.");
+
         Object[] aoCapturedArgs = cCapturedArgs == 0 ? EMPTY_OBJECT_ARRAY : new Object[cCapturedArgs];
 
         for (int i = 0; i < cCapturedArgs; i++)

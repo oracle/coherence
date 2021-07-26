@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -21,6 +21,8 @@ import com.tangosol.net.BackingMapManagerContext;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ExternalizableHelper;
+
 import com.tangosol.util.InvocableMap.Entry;
 
 import java.io.DataInput;
@@ -112,12 +114,8 @@ public class AppendPrependProcessor
             throws IOException
         {
         super.readExternal(in);
-        int len = in.readInt();
-        if (len > 0)
-            {
-            m_abDelta = new byte[len];
-            in.readFully(m_abDelta);
-            }
+
+        m_abDelta = ExternalizableHelper.readByteArray(in);
         m_fAppend = in.readBoolean();
         }
 

@@ -32,6 +32,7 @@ import com.tangosol.io.ResolvingObjectOutputStream;
 import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerAware;
+import com.tangosol.io.Utf8Reader;
 import com.tangosol.io.WrapperBufferInput;
 import com.tangosol.io.WrapperBufferOutput;
 import com.tangosol.io.WrapperDataInputStream;
@@ -1913,29 +1914,23 @@ public abstract class ExternalizableHelper
     public static double[] readDoubleArray(DataInput in)
             throws IOException
         {
-        double[] adfl;
+        double[] adbl;
 
         if (in instanceof PofInputStream)
             {
-            adfl = (double[]) ((PofInputStream) in).readObject();
+            adbl = (double[]) ((PofInputStream) in).readObject();
             }
         else
             {
-            int cdfl = in.readInt();
+            int c = in.readInt();
 
-            if (cdfl > 0)
-                {
-                adfl = cdfl < CHUNK_THRESHOLD >> 3
-                        ? readDoubleArray(in, cdfl)
-                        : readLargeDoubleArray(in, cdfl);
-                }
-            else
-                {
-                adfl = new double[0];
-                }
+            adbl = c <= 0 ? new double[0] :
+                        c < CHUNK_THRESHOLD >> 3
+                            ? readDoubleArray(in, c)
+                            : readLargeDoubleArray(in, c);
             }
 
-        return adfl;
+        return adbl;
         }
 
     /**
@@ -5763,6 +5758,89 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Read a char array.
+     *
+     * @param in  a DataInput stream to read from
+     *
+     * @return a char array value
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    public static char[] readCharArray(DataInput in)
+            throws IOException
+        {
+        int cch = in.readInt();
+
+        Utf8Reader reader = new Utf8Reader((InputStream) in);
+
+        return cch < CHUNK_THRESHOLD >> 1
+                ? readCharArray(reader, cch)
+                : readLargeCharArray(reader, cch);
+        }
+
+    /**
+     * Read an array of long numbers from a DataInput stream that use
+     * fixed-length 8-byte Big Endian binary format.
+     *
+     * @param in  a DataInput stream to read from
+     *
+     * @return an array of longs
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    public static long[] readLongArray(DataInput in)
+            throws IOException
+        {
+        int c = in.readInt();
+
+        return c <= 0 ? new long[0] :
+                    c < CHUNK_THRESHOLD >> 3
+                            ? readLongArray(in, c)
+                            : readLargeLongArray(in, c);
+        }
+
+    /**
+     * Read an array of int numbers from a DataInput stream which
+     * use fixed-length 4-byte Big Endian binary format.
+     *
+     * @param in  a DataInput stream to read from
+     *
+     * @return an array of ints
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    public static int[] readIntArray(DataInput in)
+            throws IOException
+        {
+        int c = in.readInt();
+
+        return c <= 0 ?  new int[0] :
+                    c < CHUNK_THRESHOLD >> 2
+                        ? readIntArray(in, c)
+                        : readLargeIntArray(in, c);
+        }
+
+    /**
+     * Read an array of object from a DataInput stream.
+     *
+     * @param in  a DataInput stream to read from
+     *
+     * @return an array of object
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    public static Object[] readObjectArray(DataInput in)
+            throws IOException
+        {
+        int c = in.readInt();
+
+        return c <= 0 ? new Object[0] :
+                    c < CHUNK_THRESHOLD >> 4
+                        ? readObjectArray(in, c)
+                        : readLargeObjectArray(in, c);
+        }
+
+    /**
      * Return true if the provided class is allowed to be deserialized.
      *
      * @param clz  the class to be checked
@@ -5803,6 +5881,220 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Read an array of the specified number of int from a DataInput stream.
+     *
+     * @param in  a DataInput stream to read from
+     * @param c   length to read
+     *
+     * @return an array of ints
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static int[] readIntArray(DataInput in, int c)
+            throws IOException
+        {
+        int[] ai = new int[c];
+        for (int i = 0; i < c; i++)
+            {
+            ai[i] = in.readInt();
+            }
+
+        return ai;
+        }
+
+    /**
+     * Read an array of ints with length larger than {@link #CHUNK_THRESHOLD} {@literal >>} 2.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of ints
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static int[] readLargeIntArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int    cBatchMax = CHUNK_SIZE >> 2;
+        int    cBatch    = cLength / cBatchMax + 1;
+        int[]  aMerged   = null;
+        int    cRead     = 0;
+        int    cAllocate = cBatchMax;
+        int[]  ai;
+
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            ai      = readIntArray(in, cAllocate);
+            aMerged = mergeIntArray(aMerged, ai);
+            cRead  += ai.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
+        }
+
+    /**
+     * Read an array of the specified number of object from a DataInput stream.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of objects
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static Object[] readObjectArray(DataInput in, int cLength)
+            throws IOException
+        {
+        Object[] ao = new Object[cLength];
+        for (int i = 0; i < cLength; i++)
+            {
+            ao[i] = readObject(in);
+            }
+
+        return ao;
+        }
+
+    /**
+     * Read an array of objects with length larger than {@link #CHUNK_THRESHOLD} {@literal >>} 4.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of objects
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static Object[] readLargeObjectArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int      cBatchMax = CHUNK_SIZE >> 4;
+        int      cBatch    = cLength / cBatchMax + 1;
+        Object[] aMerged   = null;
+        int      cRead     = 0;
+        int      cAllocate = cBatchMax;
+
+        Object[] ao;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            ao      = readObjectArray(in, cAllocate);
+            aMerged = mergeArray(aMerged, ao);
+            cRead  += ao.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
+        }
+
+    /**
+     * Read an array of the specified number of longs from a DataInput stream.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of longs
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static long[] readLongArray(DataInput in, int cLength)
+            throws IOException
+        {
+        long[] al = new long[cLength];
+        for (int i = 0; i < cLength; i++)
+            {
+            al[i] = in.readLong();
+            }
+
+        return al;
+        }
+
+    /**
+     * Read an array of longs with length larger than {@link #CHUNK_THRESHOLD} {@literal >>} 3.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of longs
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    protected static long[] readLargeLongArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int    cBatchMax = CHUNK_SIZE >> 3;
+        int    cBatch    = cLength / cBatchMax + 1;
+        long[] aMerged   = null;
+        int    cRead     = 0;
+        int    cAllocate = cBatchMax;
+        long[] al;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            al      = readLongArray(in, cAllocate);
+            aMerged = mergeLongArray(aMerged, al);
+            cRead  += al.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
+        }
+
+    /**
+     * Read an array of char for the specified length from the reader.
+     *
+     * @param reader   the Utf8Reader to read from
+     * @param cLength  the length to read
+     */
+    protected static char[] readCharArray(Utf8Reader reader, int cLength)
+            throws IOException
+        {
+        int of = 0;
+        char[] ach = new char[cLength];
+        while (of < cLength)
+            {
+            int cchBlock = reader.read(ach, of,cLength - of);
+            if (cchBlock < 0)
+                {
+                throw new EOFException();
+                }
+            else
+                {
+                of += cchBlock;
+                }
+            }
+        return ach;
+        }
+
+    /**
+     * Read an array of char for the specified length from the reader.
+     *
+     * @param reader   the Utf8Reader to read from
+     * @param cLength  the length to read
+     */
+    protected static char[] readLargeCharArray(Utf8Reader reader, int cLength)
+            throws IOException
+        {
+        int    cBatchMax = CHUNK_SIZE >> 1;
+        int    cBatch    = cLength / cBatchMax + 1;
+        char[] aMerged   = null;
+        int    cRead     = 0;
+        int    cAllocate = cBatchMax;
+        char[] ach;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            ach     = readCharArray(reader, cAllocate);
+            aMerged = mergeCharArray(aMerged, ach);
+            cRead  += ach.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
+        }
+
+    /**
      * Read byte array with length larger than {@link #CHUNK_THRESHOLD}.
      *
      * @param in  a DataInput stream to read from
@@ -5818,17 +6110,17 @@ public abstract class ExternalizableHelper
         int    cBatchMax = CHUNK_SIZE;
         int    cBatch    = cb / cBatchMax + 1;
         byte[] ab        = new byte[cBatchMax];
-        byte[] abMerged  = null;
+        byte[] aMerged   = null;
         int    cbRead    = 0;
         for (int i = 0; i < cBatch && cbRead < cb; i++)
             {
             in.readFully(ab);
-            abMerged = mergeByteArray(abMerged, ab);
-            cbRead  += ab.length;
-            ab       = new byte[Math.min(cb - cbRead, cBatchMax)];
+            aMerged = mergeByteArray(aMerged, ab);
+            cbRead += ab.length;
+            ab      = new byte[Math.min(cb - cbRead, cBatchMax)];
             }
 
-        return abMerged;
+        return aMerged;
         }
 
     /**
@@ -5873,18 +6165,18 @@ public abstract class ExternalizableHelper
         int       cBatch    = cLength / cBatchMax + 1;
         int       cRead     = 0;
         int       cAllocate = cBatchMax;
-        boolean[] afMerged  = null;
+        boolean[] aMerged   = null;
         boolean[] af;
         for (int i = 0; i < cBatch && cRead < cLength; i++)
             {
             af       = readBooleanArray(in, cAllocate);
-            afMerged = mergeBooleanArray(afMerged, af);
+            aMerged = mergeBooleanArray(aMerged, af);
             cRead   += af.length;
 
             cAllocate = Math.min(cLength - cRead, cBatchMax);
             }
 
-        return afMerged;
+        return aMerged;
         }
 
     /**
@@ -5930,7 +6222,7 @@ public abstract class ExternalizableHelper
         }
 
     /**
-     * Read a float array with length larger than {@link #CHUNK_THRESHOLD} >> 2.
+     * Read a float array with length larger than {@link #CHUNK_THRESHOLD} {@literal >>} 2.
      *
      * @param in       a DataInput stream to read from
      * @param cLength  length to read
@@ -5963,7 +6255,8 @@ public abstract class ExternalizableHelper
     /**
      * Read an array of the specified number of doubles from a DataInput stream.
      *
-     * @param in  a DataInput stream to read from
+     * @param in    a DataInput stream to read from
+     * @param cdfl  length to read
      *
      * @return an array of doubles
      *
