@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 import java.util.function.BiConsumer;
@@ -64,6 +65,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -85,7 +87,12 @@ class AsyncNamedCacheClientTest
 
     <K, V> AsyncNamedCacheClient<K, V> createClient()
         {
-        NamedCacheGrpcClient              client     = createMockService();
+        NamedCacheGrpcClient client = createMockService();
+        return createClient(client);
+        }
+
+    private <K, V> AsyncNamedCacheClient<K, V> createClient(NamedCacheGrpcClient client)
+        {
         Channel                           channel    = mock(Channel.class);
         GrpcCacheLifecycleEventDispatcher dispatcher = mock(GrpcCacheLifecycleEventDispatcher.class);
 
@@ -100,6 +107,95 @@ class AsyncNamedCacheClientTest
         }
 
     // ----- test methods ---------------------------------------------------
+
+    @Test
+    public void shouldHandleInitFailure()
+        {
+        GrpcCacheLifecycleEventDispatcher dispatcher = mock(GrpcCacheLifecycleEventDispatcher.class);
+        Channel                           channel    = mock(Channel.class);
+
+        AsyncNamedCacheClient.DefaultDependencies deps
+                = new  AsyncNamedCacheClient.DefaultDependencies("test", channel, dispatcher);
+
+        deps.setScope(DEFAULT_SCOPE);
+        deps.setSerializer(SERIALIZER, FORMAT);
+
+        NamedCacheGrpcClient client = mock(NamedCacheGrpcClient.class);
+        RuntimeException     ex     = new RuntimeException("Computer says No!");
+
+        when(client.events(any(StreamObserver.class))).thenAnswer(invocation ->
+            {
+            StreamObserver observer = invocation.getArgument(0);
+
+            return new StreamObserver<MapListenerRequest>()
+                {
+                @Override
+                public void onNext(MapListenerRequest request)
+                    {
+                    observer.onError(ex);
+                    }
+
+                @Override
+                public void onError(Throwable throwable)
+                    {
+                    }
+
+                @Override
+                public void onCompleted()
+                    {
+                    }
+                };
+            });
+
+        deps.setClient(client);
+
+        CompletionException result = assertThrows(CompletionException.class, () -> new AsyncNamedCacheClient<>(deps));
+        assertThat(result.getCause(), is(ex));
+        }
+
+    @Test
+    public void shouldHandleInitCompletionWithoutSubscription()
+        {
+        GrpcCacheLifecycleEventDispatcher dispatcher = mock(GrpcCacheLifecycleEventDispatcher.class);
+        Channel                           channel    = mock(Channel.class);
+
+        AsyncNamedCacheClient.DefaultDependencies deps
+                = new  AsyncNamedCacheClient.DefaultDependencies("test", channel, dispatcher);
+
+        deps.setScope(DEFAULT_SCOPE);
+        deps.setSerializer(SERIALIZER, FORMAT);
+
+        NamedCacheGrpcClient client = mock(NamedCacheGrpcClient.class);
+
+        when(client.events(any(StreamObserver.class))).thenAnswer(invocation ->
+            {
+            StreamObserver observer = invocation.getArgument(0);
+
+            return new StreamObserver<MapListenerRequest>()
+                {
+                @Override
+                public void onNext(MapListenerRequest request)
+                    {
+                    observer.onCompleted();
+                    }
+
+                @Override
+                public void onError(Throwable throwable)
+                    {
+                    }
+
+                @Override
+                public void onCompleted()
+                    {
+                    }
+                };
+            });
+
+        deps.setClient(client);
+
+        CompletionException result = assertThrows(CompletionException.class, () -> new AsyncNamedCacheClient<>(deps));
+        assertThat(result.getCause(), is(instanceOf(IllegalStateException.class)));
+        }
 
     @Test
     void shouldInvokeAllWithProcessorOnly() throws Exception

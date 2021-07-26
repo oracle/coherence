@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -2103,7 +2103,7 @@ public class AsyncNamedCacheClient<K, V>
 
     // ----- EventStreamObserver -------------------------------------------
     /**
-     * A {@code EventStreamObserver} that processes {@link MapListenerResponse)s.
+     * A {@code EventStreamObserver} that processes {@link MapListenerResponse}s.
      */
     protected class EventStreamObserver
             implements StreamObserver<MapListenerResponse>
@@ -2227,11 +2227,20 @@ public class AsyncNamedCacheClient<K, V>
         public void onError(Throwable t)
             {
             LOGGER.log(Level.SEVERE, t, () -> "Caught exception handling onError");
+            if (!f_future.isDone())
+                {
+                f_future.completeExceptionally(t);
+                }
             }
 
         @Override
         public void onCompleted()
             {
+            if (!f_future.isDone())
+                {
+                f_future.completeExceptionally(
+                        new IllegalStateException("Event observer completed without subscription"));
+                }
             }
 
         // ----- data members -----------------------------------------------
