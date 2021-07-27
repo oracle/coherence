@@ -69,7 +69,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://oracle.github.io/coherence/14.1.1.0/api/java/index.html"
+              href: "https://oracle.github.io/coherence/${revision}/api/java/index.html"
             - title: "Coherence CE .NET Core API"
               glyph:
                 type: "icon"
