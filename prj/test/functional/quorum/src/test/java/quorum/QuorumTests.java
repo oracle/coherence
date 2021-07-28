@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -661,6 +661,10 @@ public class QuorumTests
         CoherenceCacheServer proxy2 = startCoherenceClusterMember(optionsByType, "testProxy0-2");
         Eventually.assertDeferred(() -> proxy2.isServiceRunning("TcpProxyService"), is(true));
 
+        Eventually.assertDeferred(() -> proxy0.invoke(new GetServiceMemberCount("TcpProxyService")), is(3));
+        Eventually.assertDeferred(() -> proxy1.invoke(new GetServiceMemberCount("TcpProxyService")), is(3));
+        Eventually.assertDeferred(() -> proxy2.invoke(new GetServiceMemberCount("TcpProxyService")), is(3));
+
         // 3 proxy servers are running
         testExtendConnect(proxy0, /*fAllowed*/true);
         testExtendConnect(proxy1, /*fAllowed*/true);
@@ -670,6 +674,7 @@ public class QuorumTests
 
         Eventually.assertDeferred(() -> proxy1.getClusterSize(), is(2));
         Eventually.assertDeferred(() -> proxy1.invoke(new GetServiceMemberCount("TcpProxyService")), is(2));
+        Eventually.assertDeferred(() -> proxy2.invoke(new GetServiceMemberCount("TcpProxyService")), is(2));
 
         // 2 proxy servers are running
         testExtendConnect(proxy1, /*fAllowed*/false);
@@ -677,6 +682,10 @@ public class QuorumTests
 
         CoherenceClusterMember proxy3 = startCoherenceClusterMember(optionsByType, "testProxy0-3");
         Eventually.assertDeferred(() -> proxy3.isServiceRunning("TcpProxyService"), is(true));
+
+        Eventually.assertDeferred(() -> proxy1.invoke(new GetServiceMemberCount("TcpProxyService")), is(3));
+        Eventually.assertDeferred(() -> proxy2.invoke(new GetServiceMemberCount("TcpProxyService")), is(3));
+        Eventually.assertDeferred(() -> proxy3.invoke(new GetServiceMemberCount("TcpProxyService")), is(3));
 
         // 3 proxy servers are running
         testExtendConnect(proxy1, /*fAllowed*/true);
