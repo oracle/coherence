@@ -1519,14 +1519,18 @@ public class PagedTopicSubscriber<V>
 
             if (m_aChannelOwned.length == 1)
                 {
-                if (m_nChannel == m_aChannelOwned[0] && f_aChannel[m_nChannel].m_fEmpty)
+                int nChannel = m_aChannelOwned[0];
+                // only one allocated channel
+                if (f_aChannel[nChannel].m_fEmpty)
                     {
+                    // our single channel is empty
                     m_nChannel = -1;
                     return false;
                     }
                 else
                     {
-                    m_nChannel = m_aChannelOwned[0];
+                    // our single channel is not empty, switch to it
+                    m_nChannel = nChannel;
                     return true;
                     }
                 }
