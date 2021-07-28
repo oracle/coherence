@@ -259,6 +259,16 @@ public interface PersistenceManager<R>
     public void write(String sId, WriteBuffer.BufferOutput out) throws IOException;
 
     /**
+     * Copy the PersistentStore associated with the specified identifier to
+     * the configured safe area.
+     *
+     * @throws IllegalArgumentException if the specified identifier is invalid
+     */
+    public default void writeSafe(String sId)
+        {
+        }
+
+    /**
      * Release all resources held by this manager. Note that the behavior
      * of all other methods on this manager is undefined after this method
      * is called.
