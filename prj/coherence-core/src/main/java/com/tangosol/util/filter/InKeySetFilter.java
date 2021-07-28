@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -35,6 +35,29 @@ import javax.json.bind.annotation.JsonbProperty;
 /**
 * Filter that limits the underlying filter evaluation only to the specified
 * set of keys.
+* <p>
+* When used in the context of
+* {@link com.tangosol.net.NamedMap#addMapListener(com.tangosol.util.MapListener, Filter, boolean)
+* NamedMap.addMapListener},
+* InKeySetFilter is used as a vessel to portray an intent to listen to the
+* provided set of keys, and as such, should not be wrapped by another filter.
+* InKeySetFilter should also not be used as the view filter for a
+* {@link com.tangosol.net.cache.ContinuousQueryCache} or a View Cache. For
+* these use cases, equivalent functionality is possible by using an
+* {@link InFilter} with a {@link com.tangosol.util.extractor.KeyExtractor}.
+* <p>
+* For example:
+* <pre>
+* new InKeySetFilter(Filters.equal(Person::getLastName, "Rabbit"), setKeys)
+* </pre>
+* or
+* <pre>
+* Filters.equal(Person::getLastName, "Rabbit").forKeys(setKeys);
+* </pre>
+* can be converted to:
+* <pre>
+* Filters.in(ValueExtractor.identity().fromKey(), setKeys).and(Filters.equal(Person::getLastName, "Rabbit"))
+* </pre>
 *
 * @author gg 2006.06.12
 */
