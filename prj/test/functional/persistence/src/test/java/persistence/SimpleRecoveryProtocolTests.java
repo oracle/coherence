@@ -635,6 +635,15 @@ public class SimpleRecoveryProtocolTests
          * {@inheritDoc}
          */
         @Override
+        public void writeSafe(String sId)
+            {
+            f_manager.writeSafe(sId);
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public String[] list()
             {
             String[] asGUIDAll = f_manager.list();

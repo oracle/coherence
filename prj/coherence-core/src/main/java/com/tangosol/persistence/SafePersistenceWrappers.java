@@ -630,6 +630,21 @@ public class SafePersistenceWrappers
         /**
          * {@inheritDoc}
          */
+        public void writeSafe(String sId)
+            {
+            try
+                {
+                getManager().writeSafe(sId);
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+            }
+
+        /**
+         * {@inheritDoc}
+         */
         public void read(String sId, ReadBuffer.BufferInput in)
                 throws IOException
             {
