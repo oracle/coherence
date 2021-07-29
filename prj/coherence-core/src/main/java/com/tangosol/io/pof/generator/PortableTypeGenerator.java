@@ -452,11 +452,16 @@ public class PortableTypeGenerator
 
         boolean fDelegateToSuper = isPofType(m_classNode.superName);
 
-        mn.visitVarInsn(ALOAD, 1);
-        mn.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofReader",
-                           "getUserTypeId", "()I", true);
-        mn.visitLdcInsn(m_type.getId());
-        mn.visitJumpInsn(IF_ICMPNE, l0);
+        // -1 suggests the type-id is generated at runtime and therefore it is unnecessary to verify 'id'
+        // value in the annotation is used by the PofConfig
+        if (m_type.getId() != -1)
+            {
+            mn.visitVarInsn(ALOAD, 1);
+            mn.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofReader",
+                               "getUserTypeId", "()I", true);
+            mn.visitLdcInsn(m_type.getId());
+            mn.visitJumpInsn(IF_ICMPNE, l0);
+            }
 
         int cPofFields = 0;
 
@@ -567,11 +572,17 @@ public class PortableTypeGenerator
 
         boolean fDelegateToSuper = isPofType(m_classNode.superName);
 
-        mn.visitVarInsn(ALOAD, 1);
-        mn.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofWriter",
-                           "getUserTypeId", "()I", true);
-        mn.visitLdcInsn(m_type.getId());
-        mn.visitJumpInsn(IF_ICMPNE, l0);
+        // -1 suggests the type-id is generated at runtime and therefore it is unnecessary to verify 'id'
+        // value in the annotation is used by the PofConfig
+        if (m_type.getId() != -1)
+            {
+            mn.visitVarInsn(ALOAD, 1);
+            mn.visitMethodInsn(INVOKEINTERFACE, "com/tangosol/io/pof/PofWriter",
+                               "getUserTypeId", "()I", true);
+            
+            mn.visitLdcInsn(m_type.getId());
+            mn.visitJumpInsn(IF_ICMPNE, l0);
+            }
 
         int cPofFields = 0;
 
