@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
+
 package com.tangosol.io.pof;
 
 import com.tangosol.io.ByteArrayWriteBuffer;
@@ -223,6 +224,33 @@ public class ConfigurablePofContextTest
             assertThat(ctx.getUserTypeIdentifier(PortableTypeTest1.class.getName()), is(1000));
             Class<?> clazz = ctx.getClass(1000);
             assertThat(clazz.getName(), is(PortableTypeTest1.class.getName()));
+            }
+        finally
+            {
+            fileIndex.delete();
+            }
+        }
+
+    /**
+     * Test for Bug 33148085 - ConfigurablePofContext Throws ArrayIndexOutOfBoundsException With PortableType
+     */
+    @Test
+    public void testPortableTypeWithMixedIds()
+            throws IOException
+        {
+        File fileIndex = setupIndex(PortableTypeTestNoId.class, PortableTypeTest1.class);
+
+        try
+            {
+            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config6.xml");
+            ctx.setIndexFileName(fileIndex.getAbsolutePath());
+            ctx.setContextClassLoader(PortableTypeTest1.class.getClassLoader());
+            ctx.ensureInitialized();
+            fail("No exception thrown when one was expected");
+            }
+        catch (Exception e)
+            {
+            // no-op - exception should be thrown due to some types having id and some not
             }
         finally
             {
@@ -603,7 +631,7 @@ public class ConfigurablePofContextTest
             return m_nId;
             }
 
-        public void setM_nId(int nId)
+        public void setId(int nId)
             {
             this.m_nId = nId;
             }
@@ -613,7 +641,7 @@ public class ConfigurablePofContextTest
             return m_sString;
             }
 
-        public void setM_sString(String sString)
+        public void setString(String sString)
             {
             this.m_sString = sString;
             }

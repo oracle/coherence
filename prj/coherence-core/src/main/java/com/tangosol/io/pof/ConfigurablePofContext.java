@@ -1095,7 +1095,7 @@ public class ConfigurablePofContext
 
             // determine the serializer implementation, and register it
             XmlElement    xmlSer     = xmlType.getElement("serializer");
-            PofSerializer serializer;
+            PofSerializer serializer = null;
 
             if (xmlSer == null)
                 {
@@ -1107,7 +1107,7 @@ public class ConfigurablePofContext
                     }
                 else if (clz.getAnnotation(Portable.class) == null)
                     {
-                    throw report(sURI, nTypeId, clz.getName(), null,
+                    report(sURI, nTypeId, clz.getName(), null,
                             "Missing PofSerializer configuration");
                     }
                 else
@@ -1160,6 +1160,14 @@ public class ConfigurablePofContext
             aSerByTypeId[nTypeId] = serializer;
 
             ++cTypeIds;
+            }
+
+        // validate that all classes annotated with PortableType annotation have specified
+        // id's or not. There cannot be a mix of types otherwise this could cause clashes or array bounds errors
+        if (!mapPortableTypes.isEmpty() && nMinPortableTypeId <= 0 && nMaxPortableTypeId > 0)
+            {
+            report(sURI, -1, null, null,
+                    "Mixed mode of specifying 'id' attribute of annotation on some types and not others is not supported");
             }
 
         // look for any classes that implement PortableType and add them automatically
@@ -1219,15 +1227,14 @@ public class ConfigurablePofContext
      */
     private Class<?> loadClass(String sURI, String sClass, int nTypeId)
         {
-        final Class<?> clz;
+        Class<?> clz = null;
         try
             {
             clz = loadClass(sClass);
             }
         catch (RuntimeException e)
             {
-            throw report(sURI, nTypeId, sClass, e,
-                         "Unable to load class for user type");
+            report(sURI, nTypeId, sClass, e, "Unable to load class for user type");
             }
         return clz;
         }
@@ -1250,7 +1257,7 @@ public class ConfigurablePofContext
             {
             if (!fAllowInterfaces)
                 {
-                throw report(sURI, nTypeId, sClass, null,
+                report(sURI, nTypeId, sClass, null,
                         "User Type cannot be an interface (allow-interfaces=false)");
                 }
             }
@@ -1258,7 +1265,7 @@ public class ConfigurablePofContext
             {
             if (!fAllowSubclasses)
                 {
-                throw report(sURI, nTypeId, sClass, null,
+                report(sURI, nTypeId, sClass, null,
                         "User Type cannot be an abstract class (allow-subclasses=false)");
                 }
             }
@@ -1291,20 +1298,20 @@ public class ConfigurablePofContext
                 }
 
             // load the class for the user type, and register it
-            Class clzSer;
+            Class clzSer = null;
             try
                 {
                 clzSer = loadClass(sSerClass);
                 }
             catch (RuntimeException e)
                 {
-                throw report(sURI, nTypeId, clz.getName(), e,
+                report(sURI, nTypeId, clz.getName(), e,
                         "Unable to load PofSerializer class: " + sSerClass);
                 }
 
             if (!PofSerializer.class.isAssignableFrom(clzSer))
                 {
-                throw report(sURI, nTypeId, clz.getName(), null,
+                report(sURI, nTypeId, clz.getName(), null,
                         "Class is not a PofSerializer: " + sSerClass);
                 }
 
@@ -1353,7 +1360,7 @@ public class ConfigurablePofContext
                     // all four failed, so use the exception from this
                     // most recent failure as the basis for reporting
                     // the failure
-                    throw report(sURI, nTypeId, clz.getName(), e,
+                    report(sURI, nTypeId, clz.getName(), e,
                             "Unable to instantiate PofSerializer class using"
                             + " predefined constructors: " + sSerClass);
                     }
@@ -1390,14 +1397,14 @@ public class ConfigurablePofContext
                     };
 
                 // parse the constructor parameters
-                Object[] aoParams;
+                Object[] aoParams = null;
                 try
                     {
                     aoParams = XmlHelper.parseInitParams(xmlParams, resolver);
                     }
                 catch (RuntimeException e)
                     {
-                    throw report(sURI, nTypeId, clz.getName(), e,
+                    report(sURI, nTypeId, clz.getName(), e,
                             "Error parsing constructor parameters for PofSerializer:"
                             + sSerClass);
                     }
@@ -1409,7 +1416,7 @@ public class ConfigurablePofContext
                     }
                 catch (Throwable e)
                     {
-                    throw report(sURI, nTypeId, clz.getName(), e,
+                    report(sURI, nTypeId, clz.getName(), e,
                             "Unable to instantiate PofSerializer class: " + sSerClass);
                     }
                 }
@@ -1450,11 +1457,9 @@ public class ConfigurablePofContext
     * @param e        the underlying exception, if any
     * @param sText    the detailed description of the problem
     *
-    * @return this method does not return; it always throws an exception
-    *
     * @throws IllegalStateException  always thrown
     */
-    protected RuntimeException report(String sURI, int nTypeId, String sClass,
+    protected void report(String sURI, int nTypeId, String sClass,
                                       Throwable e, String sText)
         {
         StringBuffer sb = new StringBuffer();
