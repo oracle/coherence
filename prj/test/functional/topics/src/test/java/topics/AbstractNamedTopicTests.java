@@ -2149,7 +2149,8 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldShareWaitNotificationOnEmptyTopic() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic();
+        NamedTopic<String> topic    = ensureTopic();
+        int                cChannel = topic.getChannelCount();
 
         try(Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("subscriber"));
             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("subscriber")))
@@ -2158,23 +2159,30 @@ public abstract class AbstractNamedTopicTests
             Future<Subscriber.Element<String>> future2 = subscriber2.receive();
 
             // should eventually stop polling when all owned channels have been determined to be empty
-            long start     = Base.getSafeTimeMillis();
-            long polls     = ((PagedTopicSubscriber<String>) subscriber1).getPolls();
-            long pollsPrev = -1;
-            while (polls != pollsPrev)
+            long start      = Base.getSafeTimeMillis();
+            long polls1     = ((PagedTopicSubscriber<String>) subscriber1).getPolls();
+            long polls2     = ((PagedTopicSubscriber<String>) subscriber2).getPolls();
+            long pollsPrev1 = -1;
+            long pollsPrev2 = -1;
+
+            while (polls1 != pollsPrev1 && polls2 != pollsPrev2)
                 {
                 long now = Base.getSafeTimeMillis();
-                assertThat("Timed out waiting for the subscriber to stop polling",
+                assertThat("Timed out waiting for the subscribers to stop polling",
                            now - start, is(lessThan(TimeUnit.MINUTES.toMillis(2))));
                 Thread.sleep(10);
-                pollsPrev = polls;
-                polls = ((PagedTopicSubscriber<String>) subscriber1).getPolls();
+                pollsPrev1 = polls1;
+                polls1 = ((PagedTopicSubscriber<String>) subscriber1).getPolls();
+                pollsPrev2 = polls2;
+                polls2 = ((PagedTopicSubscriber<String>) subscriber2).getPolls();
+                assertThat(polls1, is(lessThanOrEqualTo((long) cChannel)));
+                assertThat(polls2, is(lessThanOrEqualTo((long) cChannel)));
                 }
 
             // publish to all channels so that both subscriber get something
             try (Publisher<String> publisher = topic.createPublisher(OrderBy.roundRobin()))
                 {
-                for (int i = 0; i < topic.getChannelCount(); i++)
+                for (int i = 0; i < cChannel; i++)
                     {
                     publisher.publish("element-" + i).get(1, TimeUnit.MINUTES);
                     }
