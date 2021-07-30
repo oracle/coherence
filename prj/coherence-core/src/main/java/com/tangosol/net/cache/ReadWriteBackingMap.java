@@ -1270,15 +1270,16 @@ public class ReadWriteBackingMap
     */
     protected boolean removeAll(Collection colKeys)
         {
-        StoreWrapper  store      = getCacheStore();
-        ConcurrentMap mapControl = getControlMap();
-        boolean       fRemoved   = false;
+        StoreWrapper  store            = getCacheStore();
+        ConcurrentMap mapControl       = getControlMap();
+        Map           mapInternal      = getInternalCache();
+        Collection    colKeysProcessed = colKeys;
 
         try
             {
             Map        mapMisses   = getMissesCache();
-            Map        mapInternal = getInternalCache();
             Set<Entry> setEntries  = new HashSet<>(colKeys.size());
+            boolean    fReadOnly   = isReadOnly();
 
             BackingMapManagerContext ctx = getContext();
             for (Object oKey : colKeys)
@@ -1302,13 +1303,13 @@ public class ReadWriteBackingMap
                     boolean fOwned = ctx.isKeyOwned(oKey);
 
                     // remove from the store only if is a read/write store
-                    if (!isReadOnly())
+                    if (!fReadOnly)
                         {
                         removeFromWriteQueue(oKey);
 
                         if (fOwned)
                             {
-                            setEntries.add(instantiateEntry(oKey, oValue, mapInternal.get(oKey), 0L));
+                            setEntries.add(instantiateEntry(oKey, null, oValue, 0L));
                             }
                         }
                     }
@@ -1316,8 +1317,8 @@ public class ReadWriteBackingMap
 
             if (!setEntries.isEmpty())
                 {
-                SubSet     setEntriesFailed = new SubSet(setEntries);
-                Set<Entry> setSuccess       = null;
+                SubSet<Entry> setEntriesFailed = new SubSet<>(setEntries);
+                Set<Entry>    setSuccess       = null;
                 try
                     {
                     if (store != null)
@@ -1333,18 +1334,21 @@ public class ReadWriteBackingMap
                     }
                 finally
                     {
-                    fRemoved = !setSuccess.isEmpty();
+                    colKeysProcessed = ConverterCollections.getCollection(
+                            setSuccess, Entry::getBinaryKey, NullImplementation.getConverter());
                     }
                 }
 
-            return fRemoved;
+            return !colKeysProcessed.isEmpty();
             }
         finally
             {
+            for (Object binKey : colKeysProcessed)
+                {
+                mapInternal.remove(binKey);
+                }
             for (Object oKey : colKeys)
                 {
-                getInternalCache().remove(oKey);
-
                 mapControl.unlock(oKey);
                 }
             }

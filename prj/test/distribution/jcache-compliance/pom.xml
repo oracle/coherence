@@ -49,7 +49,7 @@
     <!--       Coherence JCache Properties       -->
     <!--                                         -->
     <!-- valid values: local or partitioned. unspecified also defaults to local -->
-    <impl>local</impl>
+    <impl>partitioned</impl>
 
     <!-- alternative values: coherence-jcache-cache-config.xml.   To test java serialization.  The default test config uses SafePOF. -->
     <cacheconfig>coherence-jcache-tck-cache-config.xml</cacheconfig>

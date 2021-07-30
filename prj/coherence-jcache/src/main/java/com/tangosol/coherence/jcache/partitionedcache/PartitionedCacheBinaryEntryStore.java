@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.coherence.jcache.common.JCacheIdentifier;
 import com.tangosol.coherence.jcache.partitionedcache.processors.BinaryEntryHelper;
 
 import com.tangosol.net.BackingMapManagerContext;
+
 import com.tangosol.net.cache.BinaryEntryStore;
 
 import com.tangosol.util.Binary;
@@ -289,31 +290,42 @@ public class PartitionedCacheBinaryEntryStore<K, V>
         }
 
     @Override
-    public void eraseAll(Set set)
+    public void eraseAll(Set setBinEntries)
         {
-        if (set.isEmpty())
+        if (setBinEntries.isEmpty())
             {
             return;
             }
 
-        CacheWriter writer = getCacheWriter((BinaryEntry) set.iterator().next());
+        CacheWriter writer = getCacheWriter((BinaryEntry) setBinEntries.iterator().next());
 
         if (writer != null)
             {
+            Set<Object> setKeysFailed = new HashSet<Object>();
+
             try
                 {
-                Set<Object> keys = new HashSet<Object>();
-                KeyIterator iter = new KeyIterator((Set<BinaryEntry>) set);
+                KeyIterator iter          = new KeyIterator((Set<BinaryEntry>) setBinEntries);
 
                 while (iter.hasNext())
                     {
-                    keys.add(iter.next());
+                    setKeysFailed.add(iter.next());
                     }
 
-                writer.deleteAll(keys);
+                writer.deleteAll(setKeysFailed);
+                setBinEntries.clear();
                 }
             catch (RuntimeException re)
                 {
+                // remove all entries from parameter setBinEntries that were deleted by deleteAll
+                for (Iterator<? extends BinaryEntry> iter = setBinEntries.iterator(); iter.hasNext();)
+                    {
+                    if (!setKeysFailed.contains(iter.next().getKey()))
+                        {
+                        iter.remove();
+                        }
+                    }
+
                 throw new CacheWriterException("CacheWriter implementation " + writer.getClass().getCanonicalName()
                                                + ".deleteAll(Set) threw an exception", re);
                 }
