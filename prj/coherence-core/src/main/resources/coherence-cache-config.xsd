@@ -1078,6 +1078,7 @@
                 <xsd:element ref="listener" minOccurs="0" />
                 <xsd:element ref="transformer" minOccurs="0" />
                 <xsd:element ref="read-only" minOccurs="0" />
+                <xsd:element ref="cache-values" minOccurs="0" />
                 <xsd:element ref="reconnect-interval" minOccurs="0" />
                 <xsd:element ref="autostart" minOccurs="0" />
                 <xsd:any namespace="##other" processContents="lax"
@@ -3782,6 +3783,23 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+
+  <xsd:element name="cache-values" type="coherence-boolean-type">
+      <xsd:annotation>
+        <xsd:documentation>
+            The cache-values element specifies if the view is to maintain
+            both keys and values (the default; i.e. true), or only keys.
+
+            Valid values are "true" or "false".
+
+            Default value is true.
+
+            Used in: view-scheme
+
+            Since: 12.2.1.4.11
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
 
   <xsd:element name="channel-count" type="coherence-nonNegativeInteger-type">
     <xsd:annotation>
