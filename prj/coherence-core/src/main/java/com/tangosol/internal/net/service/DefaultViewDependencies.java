@@ -129,7 +129,7 @@ public class DefaultViewDependencies
      * @param cReconnectMillis  the reconnect interval that should be used
      *                              by the {@link ContinuousQueryCache}
      *
-     * @see {@link ContinuousQueryCache#setReconnectInterval(long)}.
+     * @see ContinuousQueryCache#setReconnectInterval(long)
      */
     @SuppressWarnings("unused")
     @Injectable("reconnect-interval")
@@ -144,7 +144,7 @@ public class DefaultViewDependencies
      *
      * @return whether the ContinuousQueryCache should be in read-only mode
      *
-     * @see {@link ContinuousQueryCache#isReadOnly()}.
+     * @see ContinuousQueryCache#isReadOnly().
      */
     public boolean isReadOnly()
         {
@@ -158,12 +158,43 @@ public class DefaultViewDependencies
      * @param fReadOnly  true if the ContinuousQueryCache should be in read-only
      *                   mode
      *
-     * @see {@link ContinuousQueryCache#setReadOnly(boolean)}.
+     * @see ContinuousQueryCache#setReadOnly(boolean).
      */
     @Injectable("read-only")
     public void setReadOnly(boolean fReadOnly)
         {
         m_fReadOnly = fReadOnly;
+        }
+
+    /**
+     * Return whether the {@link ContinuousQueryCache} should cache values or only keys.
+     * The default behavior is to cache values.
+     *
+     * @return whether the {@link ContinuousQueryCache} should cache keys and values or only keys
+     *
+     * @see ContinuousQueryCache#isCacheValues()
+     *
+     * @since 12.2.1.4.11
+     */
+    public boolean isCacheValues()
+        {
+        return m_fCacheValues;
+        }
+
+    /**
+     * Set whether the {@link ContinuousQueryCache} should cache values or only keys.
+     *
+     * @param fCacheValues  {@code true} if the {@link ContinuousQueryCache} should cache keys and values
+     *                      or only keys
+     *
+     * @see ContinuousQueryCache#setCacheValues(boolean)
+     *
+     * @since 12.2.1.4.11
+     */
+    @Injectable("cache-values")
+    public void setCacheValues(boolean fCacheValues)
+        {
+        m_fCacheValues = fCacheValues;
         }
 
     /**
@@ -221,4 +252,9 @@ public class DefaultViewDependencies
      * The service backing the {@link ContinuousQueryCache}.
      */
     protected Service m_service;
+
+    /**
+     * Flag controlling the {@link ContinuousQueryCache} storing both keys and values or only keys.
+     */
+    protected boolean m_fCacheValues = true;
     }

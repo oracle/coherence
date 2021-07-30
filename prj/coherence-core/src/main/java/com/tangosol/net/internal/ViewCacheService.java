@@ -327,11 +327,12 @@ public class ViewCacheService
 
             fReadOnly = transformer != null || deps.isReadOnly();
 
+            bldrView = deps.isCacheValues() ? bldrView.values() : bldrView.keys();
+
             bldrView.filter(filter)
                     .map(transformer)
                     .listener(listener)
-                    .withClassLoader(getService().getContextClassLoader())
-                    .values();
+                    .withClassLoader(getService().getContextClassLoader());
             }
 
         NamedCache cacheView = bldrView.build();

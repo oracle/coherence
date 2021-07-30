@@ -36,6 +36,10 @@
       <scheme-name>view-read-only</scheme-name>
     </cache-mapping>
     <cache-mapping>
+      <cache-name>view-keys-only</cache-name>
+      <scheme-name>view-keys-only</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
       <cache-name>view-reconnect-interval</cache-name>
       <scheme-name>view-reconnect-interval</scheme-name>
     </cache-mapping>
@@ -155,6 +159,17 @@
         </distributed-scheme>
       </back-scheme>
       <read-only>true</read-only>
+    </view-scheme>
+
+    <view-scheme>
+      <scheme-name>view-keys-only</scheme-name>
+      <service-name>view-keys-only</service-name>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>distributed</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+      <cache-values>false</cache-values>
     </view-scheme>
 
     <view-scheme>

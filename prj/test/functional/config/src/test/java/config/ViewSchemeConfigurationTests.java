@@ -82,6 +82,7 @@ public class ViewSchemeConfigurationTests
         assertThat(cache.getMapListener(), is(nullValue()));
         assertThat(cache.getReconnectInterval(), is(0L));
         assertThat(cache.isReadOnly(), is(false));
+        assertThat(cache.isCacheValues(), is(true));
         }
 
     /**
@@ -98,6 +99,7 @@ public class ViewSchemeConfigurationTests
         assertThat(cache.getMapListener(), is(nullValue()));
         assertThat(cache.getReconnectInterval(), is(0L));
         assertThat(cache.isReadOnly(), is(false));
+        assertThat(cache.isCacheValues(), is(true));
         }
 
     /**
@@ -113,6 +115,7 @@ public class ViewSchemeConfigurationTests
         assertThat(cache.getMapListener(), is(nullValue()));
         assertThat(cache.getReconnectInterval(), is(0L));
         assertThat(cache.isReadOnly(), is(true)); // use of a transformer overrides xml configuration
+        assertThat(cache.isCacheValues(), is(true));
         }
 
     /**
@@ -128,6 +131,7 @@ public class ViewSchemeConfigurationTests
         assertThat(cache.getMapListener(), is(nullValue()));
         assertThat(cache.getReconnectInterval(), is(0L));
         assertThat(cache.isReadOnly(), is(true)); // use of a transformer overrides xml configuration
+        assertThat(cache.isCacheValues(), is(true));
         }
 
     /**
@@ -143,6 +147,23 @@ public class ViewSchemeConfigurationTests
         assertThat(cache.getMapListener(), is(nullValue()));
         assertThat(cache.getReconnectInterval(), is(0L));
         assertThat(cache.isReadOnly(), is(true));
+        assertThat(cache.isCacheValues(), is(true));
+        }
+
+    /**
+     * Test {@code view-scheme} configuring {@code cache-values}.
+     */
+    @Test
+    public void shouldUseConfiguredCacheValues()
+        {
+        ContinuousQueryCache cache = validateIsCqc(getNamedCache("view-keys-only"));
+        assertThat(cache.getFilter(), is(AlwaysFilter.INSTANCE));
+        assertThat(cache.isTransformed(), is(false));
+        assertThat(cache.getTransformer(), is(nullValue()));
+        assertThat(cache.getMapListener(), is(nullValue()));
+        assertThat(cache.getReconnectInterval(), is(0L));
+        assertThat(cache.isReadOnly(), is(false));
+        assertThat(cache.isCacheValues(), is(false));
         }
 
     /**
@@ -158,6 +179,7 @@ public class ViewSchemeConfigurationTests
         assertThat(cache.getMapListener(), is(nullValue()));
         assertThat(cache.getReconnectInterval(), is(1000L));
         assertThat(cache.isReadOnly(), is(false));
+        assertThat(cache.isCacheValues(), is(true));
         }
 
     /**
@@ -173,6 +195,7 @@ public class ViewSchemeConfigurationTests
         assertThat(cache.getMapListener(), is(new TestListener()));
         assertThat(cache.getReconnectInterval(), is(0L));
         assertThat(cache.isReadOnly(), is(false));
+        assertThat(cache.isCacheValues(), is(true));
         }
 
     /**
@@ -189,6 +212,7 @@ public class ViewSchemeConfigurationTests
         assertThat(cache.getMapListener(), is(nullValue()));
         assertThat(cache.getReconnectInterval(), is(0L));
         assertThat(cache.isReadOnly(), is(false));
+        assertThat(cache.isCacheValues(), is(true));
         }
 
     // ----- helper methods -------------------------------------------------
