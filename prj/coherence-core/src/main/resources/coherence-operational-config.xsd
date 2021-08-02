@@ -238,6 +238,10 @@
             <xsd:sequence>
                 <xsd:element ref="edition-name" minOccurs="0" />
                 <xsd:element ref="license-mode" minOccurs="0" />
+                <xsd:element ref="build-number" minOccurs="0" />
+                <xsd:element ref="build-description" minOccurs="0" />
+                <xsd:element ref="version" minOccurs="0" />
+                <xsd:element ref="version-prefix" minOccurs="0" />
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
@@ -1566,6 +1570,64 @@
                 Valid values are "prod" (Production), and "dev" (Development).
 
                 It is optional to provide a value for this element.
+
+                Used in: license-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="build-number" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Build number provides an internal identifier for the Coherence
+                development team to track the changes included in this version.
+
+                Note: for internal use only and can not be overridden.
+
+                DO NOT MODIFY
+
+                Used in: license-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="build-description" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                A friendly description of this Coherence version. This is
+                empty for official releases.
+
+                Note: for internal use only and can not be overridden.
+
+                DO NOT MODIFY                
+
+                Used in: license-config            
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="version" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The official Coherence version of this distribution.
+
+                Note: for internal use only and can not be overridden.
+
+                DO NOT MODIFY
+
+                Used in: license-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="version-prefix" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                A prefix used for internal version processing.
+
+                Note: for internal use only and can not be overridden.
+
+                DO NOT MODIFY
 
                 Used in: license-config
             </xsd:documentation>

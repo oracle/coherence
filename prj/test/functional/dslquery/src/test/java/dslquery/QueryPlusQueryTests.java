@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -399,7 +399,14 @@ public class QueryPlusQueryTests
      */
     protected ExtractorBuilder m_mapper;
 
+    // COH-23847 - hack to set the required system property outside the bedrock
+    static
+        {
+        System.setProperty("coherence.pof.enabled", "true");
+        }
+
     /**
+     * 
      * JUnit rule to start a Coherence cluster of two storage nodes and a proxy node
      */
     @ClassRule

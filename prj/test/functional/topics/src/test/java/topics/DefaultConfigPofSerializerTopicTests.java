@@ -99,6 +99,12 @@ public class DefaultConfigPofSerializerTopicTests
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(DefaultConfigPofSerializerTopicTests.class);
 
+    // COH-23847 - hack to set the required system property outside the bedrock
+    static
+        {
+        System.setProperty("coherence.pof.enabled", "true");
+        }
+
     @ClassRule
     public static CoherenceClusterOrchestration orchestration =
         new CoherenceClusterOrchestration()

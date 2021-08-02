@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -332,6 +332,12 @@ public class QueryPlusTests
     public static final String CACHE_CONFIG       = "coherence-cache-config.xml";
     public static final String POF_CONFIG         = "dslquery-pof-config.xml";
     public static final String EMPTY_COHQL_PROMPT = "CohQL> ";
+
+    // COH-23847 - hack to set the required system property outside the bedrock
+    static
+        {
+        System.setProperty("coherence.pof.enabled", "true");
+        }
 
     /** JUnit rule to start a Coherence cluster of two storage nodes and a proxy node */
     @ClassRule

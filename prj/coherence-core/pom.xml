@@ -186,6 +186,18 @@
       <!-- include the standard maven resources directory -->
       <resource>
         <directory>src/main/resources</directory>
+        <excludes>
+          <exclude>tangosol-coherence.xml</exclude>
+        </excludes>
+      </resource>
+
+      <!-- include tangosol-coherence.xml with filtering enabled -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>tangosol-coherence.xml</include>
+        </includes>
       </resource>
 
       <!-- include the licenses -->
