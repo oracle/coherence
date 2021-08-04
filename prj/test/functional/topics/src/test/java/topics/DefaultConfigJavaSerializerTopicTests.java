@@ -11,8 +11,10 @@ import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
@@ -28,6 +30,8 @@ import com.tangosol.net.Session;
 
 import com.tangosol.util.Base;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
@@ -51,6 +55,26 @@ public class DefaultConfigJavaSerializerTopicTests
         {
         String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
         System.setProperty("coherence.localhost", sHost);
+        }
+
+    @Before
+    public void logStart()
+        {
+        String sMsg = ">>>>> Starting test: " + m_testName.getMethodName();
+        for (CoherenceClusterMember member : orchestration.getCluster())
+            {
+            member.submit(() -> System.err.println(sMsg)).join();
+            }
+        }
+
+    @After
+    public void logEnd()
+        {
+        String sMsg = ">>>>> Finished test: " + m_testName.getMethodName();
+        for (CoherenceClusterMember member : orchestration.getCluster())
+            {
+            member.submit(() -> System.err.println(sMsg)).join();
+            }
         }
 
     // ----- helpers --------------------------------------------------------
@@ -100,6 +124,7 @@ public class DefaultConfigJavaSerializerTopicTests
             .withOptions(ClusterName.of(DefaultConfigJavaSerializerTopicTests.class.getSimpleName() + "Cluster"),
                 CacheConfig.of(CACHE_CONFIG_FILE),
                 s_testLogs.builder(),
+                Logging.at(9),
                 Pof.disabled(),
                 SystemProperty.of("coherence.management", "all"),
                 SystemProperty.of("coherence.management.remote", "true"),

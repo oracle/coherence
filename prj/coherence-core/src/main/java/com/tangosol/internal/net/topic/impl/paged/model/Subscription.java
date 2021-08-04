@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.util.Primes;
 
 import com.tangosol.io.AbstractEvolvable;
@@ -322,6 +323,16 @@ public class Subscription
         }
 
     /**
+     * Returns the channel allocations.
+     *
+     * @return the channel allocations
+     */
+    public String getAllocations()
+        {
+        return Arrays.toString(m_aChannel);
+        }
+
+    /**
      * Returns the channels allocated to the specified subscriber.
      *
      * @param nSubscriber  the identifier of the subscriber
@@ -386,8 +397,22 @@ public class Subscription
     public static Key createSyncKey(SubscriberGroupId subscriberGroupId, int nChannel, int cParts)
         {
         // we don't just use (0,chan) as that would concentrate extra load on a single partitions when there are many groups
-        int nPart = Math.abs((HashHelper.hash(subscriberGroupId.hashCode(), nChannel) % cParts));
+        int nPart = getSyncPartition(subscriberGroupId, nChannel, cParts);
         return new Subscription.Key(nPart, nChannel, subscriberGroupId);
+        }
+
+    /**
+     * Return the partition used as the sync for the subscriptions global information.
+     *
+     * @param subscriberGroupId  the subscriber group identifier
+     * @param nChannel           the channel identifier
+     * @param cParts             the number of partitions
+     *
+     * @return the partition used as the sync for the subscriptions global information
+     */
+    public static int getSyncPartition(SubscriberGroupId subscriberGroupId, int nChannel, int cParts)
+        {
+        return Math.abs((HashHelper.hash(subscriberGroupId.hashCode(), nChannel) % cParts));
         }
 
     // ----- EvolvablePortableObject interface ------------------------------

@@ -11,8 +11,10 @@ import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
@@ -29,6 +31,8 @@ import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Session;
 import com.tangosol.util.Base;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
@@ -56,6 +60,26 @@ public class DefaultConfigPofSerializerTopicTests
         {
         String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
         System.setProperty("coherence.localhost", sHost);
+        }
+
+    @Before
+    public void logStart()
+        {
+        String sMsg = ">>>>> Starting test: " + m_testName.getMethodName();
+        for (CoherenceClusterMember member : orchestration.getCluster())
+            {
+            member.submit(() -> System.err.println(sMsg)).join();
+            }
+        }
+
+    @After
+    public void logEnd()
+        {
+        String sMsg = ">>>>> Finished test: " + m_testName.getMethodName();
+        for (CoherenceClusterMember member : orchestration.getCluster())
+            {
+            member.submit(() -> System.err.println(sMsg)).join();
+            }
         }
 
     // ----- helpers --------------------------------------------------------
@@ -109,13 +133,15 @@ public class DefaultConfigPofSerializerTopicTests
     public static CoherenceClusterOrchestration orchestration =
         new CoherenceClusterOrchestration()
             .withOptions(ClusterName.of(DefaultConfigPofSerializerTopicTests.class.getSimpleName() + "Cluster"),
-                CacheConfig.of(CACHE_CONFIG_FILE),
-                s_testLogs.builder(),
-                Pof.enabled(),
-                Pof.config("pof-config.xml"),
-                SystemProperty.of("coherence.management", "all"),
-                SystemProperty.of("coherence.management.remote", "true"),
-                SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
-                SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
+                         CacheConfig.of(CACHE_CONFIG_FILE),
+                         s_testLogs.builder(),
+                         Logging.at(9),
+                         Pof.enabled(),
+                         Pof.config("pof-config.xml"),
+                         SystemProperty.of("coherence.localhost", "127.0.0.1"),
+                         SystemProperty.of("coherence.management", "all"),
+                         SystemProperty.of("coherence.management.remote", "true"),
+                         SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
+                         SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
             .setStorageMemberCount(STORAGE_MEMBER_COUNT);
     }

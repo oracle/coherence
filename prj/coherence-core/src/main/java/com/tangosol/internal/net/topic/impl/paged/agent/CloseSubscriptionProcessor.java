@@ -54,7 +54,7 @@ public class CloseSubscriptionProcessor
     @Override
     public long[] process(InvocableMap.Entry<Subscription.Key, Subscription> entry)
         {
-        ensureTopic(entry).closeSubscription(entry.getKey().getGroupId(), m_nSubscriberId);
+        ensureTopic(entry).closeSubscription(entry.getKey(), m_nSubscriberId);
         return null;
         }
 

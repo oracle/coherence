@@ -6,9 +6,10 @@
  */
 package topics;
 
+import com.oracle.bedrock.junit.CoherenceClusterResource;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
@@ -18,6 +19,7 @@ import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
+import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.tangosol.coherence.component.util.SafeService;
 
 import com.tangosol.coherence.config.Config;
@@ -35,7 +37,9 @@ import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Base;
 
+import org.junit.After;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.ClassRule;
 
 import org.junit.Test;
@@ -68,6 +72,26 @@ public class NamedTopicTests
         super(sSerializer);
 
         m_fExtend = fExtend;
+        }
+
+    @Before
+    public void logStart()
+        {
+        String sMsg = ">>>>> Starting test: " + m_testName.getMethodName();
+        for (CoherenceClusterMember member : orchestration.getCluster())
+            {
+            member.submit(() -> System.err.println(sMsg)).join();
+            }
+        }
+
+    @After
+    public void logEnd()
+        {
+        String sMsg = ">>>>> Finished test: " + m_testName.getMethodName();
+        for (CoherenceClusterMember member : orchestration.getCluster())
+            {
+            member.submit(() -> System.err.println(sMsg)).join();
+            }
         }
 
     // ----- test lifecycle methods -----------------------------------------
@@ -178,12 +202,12 @@ public class NamedTopicTests
         {
         if (m_fExtend)
             {
-            return (ExtensibleConfigurableCacheFactory) orchestration.getSessionFor(
+            return (ExtensibleConfigurableCacheFactory) orchestration.createSession(
                     SessionBuilders.extendClient("client-cache-config.xml"));
             }
 
         return (ExtensibleConfigurableCacheFactory) orchestration
-            .getSessionFor(SessionBuilders.storageDisabledMember());
+            .createSession(SessionBuilders.storageDisabledMember());
         }
 
     @Override
@@ -243,17 +267,22 @@ public class NamedTopicTests
     public static final String CACHE_CONFIG_FILE = "topic-cache-config.xml";
 
     @ClassRule
-    public static CoherenceClusterOrchestration orchestration =
-        new CoherenceClusterOrchestration()
-                .withOptions(ClusterName.of("TopicTests"),
-                    CacheConfig.of(CACHE_CONFIG_FILE),
-                        SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
-                        SystemProperty.of("coherence.management", "all"),
-                        SystemProperty.of("coherence.management.remote", "true"),
-                        SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
-                        SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+    public static TestLogs s_testLogs = new TestLogs(NamedTopicTests.class);
+
+    @ClassRule
+    public static CoherenceClusterResource orchestration =
+            new CoherenceClusterResource()
+                    .with(ClusterName.of("TopicTests"),
+                            Logging.at(9),
+                            CacheConfig.of(CACHE_CONFIG_FILE),
+                            SystemProperty.of("coherence.localhost", "127.0.0.1"),
+                            SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
+                            SystemProperty.of("coherence.management", "all"),
+                            SystemProperty.of("coherence.management.remote", "true"),
+                            SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
+                            SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
                             Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
-                .setStorageMemberCount(STORAGE_MEMBER_COUNT);
+                    .include(STORAGE_MEMBER_COUNT, CoherenceClusterMember.class, s_testLogs.builder());
 
     private boolean m_fExtend = false;
     }
