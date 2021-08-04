@@ -7,13 +7,14 @@
 package topics;
 
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
@@ -61,7 +62,7 @@ public class DefaultConfigJavaSerializerTopicTests
     public void logStart()
         {
         String sMsg = ">>>>> Starting test: " + m_testName.getMethodName();
-        for (CoherenceClusterMember member : orchestration.getCluster())
+        for (CoherenceClusterMember member : cluster.getCluster())
             {
             member.submit(() -> System.err.println(sMsg)).join();
             }
@@ -71,7 +72,7 @@ public class DefaultConfigJavaSerializerTopicTests
     public void logEnd()
         {
         String sMsg = ">>>>> Finished test: " + m_testName.getMethodName();
-        for (CoherenceClusterMember member : orchestration.getCluster())
+        for (CoherenceClusterMember member : cluster.getCluster())
             {
             member.submit(() -> System.err.println(sMsg)).join();
             }
@@ -81,8 +82,8 @@ public class DefaultConfigJavaSerializerTopicTests
 
     protected ExtensibleConfigurableCacheFactory getECCF()
         {
-        return (ExtensibleConfigurableCacheFactory) orchestration
-            .getSessionFor(SessionBuilders.storageDisabledMember());
+        return (ExtensibleConfigurableCacheFactory) cluster
+            .createSession(SessionBuilders.storageDisabledMember());
         }
 
     @Override
@@ -94,7 +95,7 @@ public class DefaultConfigJavaSerializerTopicTests
     @Override
     protected void runInCluster(RemoteRunnable runnable)
         {
-        orchestration.getCluster().forEach((member) -> member.submit(runnable));
+        cluster.getCluster().forEach((member) -> member.submit(runnable));
         }
 
     @Override
@@ -119,16 +120,16 @@ public class DefaultConfigJavaSerializerTopicTests
     public static TestLogs s_testLogs = new TestLogs(DefaultConfigPofSerializerTopicTests.class);
 
     @ClassRule
-    public static CoherenceClusterOrchestration orchestration =
-        new CoherenceClusterOrchestration()
-            .withOptions(ClusterName.of(DefaultConfigJavaSerializerTopicTests.class.getSimpleName() + "Cluster"),
-                CacheConfig.of(CACHE_CONFIG_FILE),
-                s_testLogs.builder(),
-                Logging.at(9),
-                Pof.disabled(),
-                SystemProperty.of("coherence.management", "all"),
-                SystemProperty.of("coherence.management.remote", "true"),
-                SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
-                SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
-            .setStorageMemberCount(STORAGE_MEMBER_COUNT);
+    public static CoherenceClusterResource cluster =
+        new CoherenceClusterResource()
+            .with(ClusterName.of(DefaultConfigJavaSerializerTopicTests.class.getSimpleName() + "Cluster"),
+                  CacheConfig.of(CACHE_CONFIG_FILE),
+                  Logging.at(9),
+                  Pof.disabled(),
+                  SystemProperty.of("coherence.localhost", "127.0.0.1"),
+                  SystemProperty.of("coherence.management", "all"),
+                  SystemProperty.of("coherence.management.remote", "true"),
+                  SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
+                  SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
+            .include(STORAGE_MEMBER_COUNT, CoherenceClusterMember.class, s_testLogs.builder(), LocalStorage.enabled());
     }

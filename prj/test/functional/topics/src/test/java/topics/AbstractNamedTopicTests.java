@@ -768,18 +768,6 @@ public abstract class AbstractNamedTopicTests
         }
 
     @Test
-    public void shouldRunTestInLoop() throws Exception
-        {
-        for (int i = 0; i < 100; i++)
-            {
-            System.err.println(">>>>> Iteration " + i);
-            shouldShareWaitNotificationOnEmptyTopic();
-            cleanup();
-            beforeEach();
-            }
-        }
-
-    @Test
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void shouldGetCommits() throws Exception
         {

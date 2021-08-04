@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package topics;
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
@@ -54,8 +56,7 @@ public class TopicRollingRestartTests
     public static void setup()
             throws Exception
         {
-        s_eccf = (ExtensibleConfigurableCacheFactory) s_clusterOrchestration.getSessionFor(
-            SessionBuilders.storageDisabledMember());
+        s_eccf = (ExtensibleConfigurableCacheFactory) s_cluster.createSession(SessionBuilders.storageDisabledMember());
         }
 
     @After
@@ -186,20 +187,20 @@ public class TopicRollingRestartTests
         @Override
         public void run()
             {
-            s_clusterOrchestration.getCluster().filter(m -> m.getRoleName().equals("storage")).unordered().relaunch();
+            s_cluster.getCluster().filter(m -> m.getRoleName().equals("storage")).unordered().relaunch();
             }
         }
 
     private static ExtensibleConfigurableCacheFactory s_eccf;
 
     @ClassRule
-    public static CoherenceClusterOrchestration s_clusterOrchestration = new CoherenceClusterOrchestration()
-            .setStorageMemberCount(3)
-            .withOptions(ClusterName.of("TopicRolling"),
-                         CacheConfig.of("topic-cache-config.xml"),
-                         Pof.config("pof-config.xml"),
-                         OperationalOverride.of("tangosol-coherence-override.xml"),
-                        SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
+    public static CoherenceClusterResource s_cluster = new CoherenceClusterResource()
+            .include(3, CoherenceClusterMember.class, LocalStorage.enabled())
+            .with(ClusterName.of("TopicRolling"),
+                  CacheConfig.of("topic-cache-config.xml"),
+                  Pof.config("pof-config.xml"),
+                  OperationalOverride.of("tangosol-coherence-override.xml"),
+                  SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     private ExecutorService    m_executorService = Executors.newFixedThreadPool(4);
     private NamedTopic<String> m_topic           = null;

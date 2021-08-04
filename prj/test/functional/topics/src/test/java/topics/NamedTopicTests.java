@@ -78,7 +78,7 @@ public class NamedTopicTests
     public void logStart()
         {
         String sMsg = ">>>>> Starting test: " + m_testName.getMethodName();
-        for (CoherenceClusterMember member : orchestration.getCluster())
+        for (CoherenceClusterMember member : cluster.getCluster())
             {
             member.submit(() -> System.err.println(sMsg)).join();
             }
@@ -88,7 +88,7 @@ public class NamedTopicTests
     public void logEnd()
         {
         String sMsg = ">>>>> Finished test: " + m_testName.getMethodName();
-        for (CoherenceClusterMember member : orchestration.getCluster())
+        for (CoherenceClusterMember member : cluster.getCluster())
             {
             member.submit(() -> System.err.println(sMsg)).join();
             }
@@ -181,7 +181,7 @@ public class NamedTopicTests
     public void bounceProxy()
             throws Exception
         {
-        CoherenceCluster       cluster      = orchestration.getCluster();
+        CoherenceCluster       cluster      = NamedTopicTests.cluster.getCluster();
         CoherenceClusterMember memberProxy  = cluster.get("proxy-1");
         String                 sServiceName = Character.toUpperCase(m_sSerializer.charAt(0))
                 + m_sSerializer.substring(1, m_sSerializer.length()) + "Proxy";
@@ -202,18 +202,18 @@ public class NamedTopicTests
         {
         if (m_fExtend)
             {
-            return (ExtensibleConfigurableCacheFactory) orchestration.createSession(
+            return (ExtensibleConfigurableCacheFactory) cluster.createSession(
                     SessionBuilders.extendClient("client-cache-config.xml"));
             }
 
-        return (ExtensibleConfigurableCacheFactory) orchestration
+        return (ExtensibleConfigurableCacheFactory) cluster
             .createSession(SessionBuilders.storageDisabledMember());
         }
 
     @Override
     protected void runInCluster(RemoteRunnable runnable)
         {
-        orchestration.getCluster().forEach((member) -> member.submit(runnable));
+        cluster.getCluster().forEach((member) -> member.submit(runnable));
         }
 
     @Override
@@ -270,7 +270,7 @@ public class NamedTopicTests
     public static TestLogs s_testLogs = new TestLogs(NamedTopicTests.class);
 
     @ClassRule
-    public static CoherenceClusterResource orchestration =
+    public static CoherenceClusterResource cluster =
             new CoherenceClusterResource()
                     .with(ClusterName.of("TopicTests"),
                             Logging.at(9),
