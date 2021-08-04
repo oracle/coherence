@@ -32,6 +32,7 @@ import com.tangosol.persistence.CachePersistenceHelper;
 import com.tangosol.persistence.PersistenceEnvironmentInfo;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.Filters;
 import com.tangosol.util.WrapperException;
 
 import java.io.File;
@@ -44,9 +45,13 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.management.MBeanException;
+
+import static com.tangosol.persistence.CachePersistenceHelper.getMBeanName;
 
 /**
  * Various helper classes to support calling Persistence operations
@@ -385,15 +390,14 @@ public class PersistenceToolsHelper
 
         for (String sServiceName : getPersistenceServices().keySet())
             {
-            Member member = getStorageEnabledMember(sServiceName);
+            String sMBean = getStorageEnabledMember(sServiceName);
 
-            if (member == null)
+            if (sMBean == null)
                 {
                 throw new RuntimeException("Unable to find storage-enabled members for service " + sServiceName);
                 }
 
-            String sEnvironment = (String) getAttribute(
-                getServiceMBean(sServiceName, member), "PersistenceEnvironment");
+            String sEnvironment = (String) getAttribute(sMBean, "PersistenceEnvironment");
 
             listInfo.add(sServiceName + " - " + sEnvironment);
             }
@@ -507,15 +511,14 @@ public class PersistenceToolsHelper
      */
     public String getArchiver(String sServiceName)
         {
-        Member member = getStorageEnabledMember(sServiceName);
+        String sMBean = getStorageEnabledMember(sServiceName);
 
-        if (member == null)
+        if (sMBean == null)
             {
             throw new RuntimeException("Unable to find storage-enabled members for service " + sServiceName);
             }
 
-        return (String) getAttribute(
-            getServiceMBean(sServiceName, member), "PersistenceSnapshotArchiver");
+        return (String) getAttribute(sMBean, "PersistenceSnapshotArchiver");
         }
 
     /**
@@ -718,65 +721,54 @@ public class PersistenceToolsHelper
     private Map<String, String> getPersistenceServices()
         {
         Map<String, String> mapServices = new HashMap<>();
-        Cluster             cluster     = CacheFactory.ensureCluster();
-        Enumeration<String> e           = cluster.getServiceNames();
 
-        while (e.hasMoreElements())
+        String sQuery = COHERENCE + Registry.PARTITION_ASSIGNMENT_TYPE + ",responsibility=DistributionCoordinator,*";
+
+        Set<String> setServiceNames = m_mbsProxy.queryNames(sQuery, null)
+                                        .stream()
+                                        .map(s->s.replaceAll("^.*type=PartitionAssignment", "")
+                                                 .replaceAll(",responsibility=DistributionCoordinator", "")
+                                                 .replaceAll("domainPartition=.*,", "")
+                                                 .replaceAll(",service=", ""))
+                                        .collect(Collectors.toSet());
+
+        setServiceNames.forEach(s ->
             {
-            String sServiceName = e.nextElement();
-
-            String sType        = cluster.getServiceInfo(sServiceName).getServiceType();
-
-            // only include federated or distributed
-            if (isValidServiceType(sType))
+            Optional<String> serviceMBean =
+                    m_mbsProxy.queryNames(COHERENCE + Registry.SERVICE_TYPE + ",name=" + s + ",*", null)
+                         .stream().findAny();
+            if (serviceMBean.isPresent())
                 {
-                // to get the PersistenceMode, we need to query the ServiceMBean
-                // from one of the storage enabled nodes
-                Member member = getStorageEnabledMember(sServiceName);
-
-                if (member == null)
-                    {
-                    throw new RuntimeException("Unable to find storage-enabled members for service " + sServiceName);
-                    }
-
-                String sPersistenceMode = (String) getAttribute(
-                    getServiceMBean(sServiceName, member), "PersistenceMode");
-
-                mapServices.put(sServiceName, sPersistenceMode);
+                String sServiceMbean = serviceMBean.get();
+                Map<String, Object> mapServiceAttr = m_mbsProxy.getAttributes(sServiceMbean, Filters.always());
+                mapServices.put(s, (String) mapServiceAttr.get("PersistenceMode"));
                 }
-
-            }
+            });
 
         return mapServices;
         }
 
     /**
-     * Return a member id of a storage-enable member for the given service.
+     * Return the ObjectName of a storage-enable member for the given service.
      *
-     * @param sServiceName  the service name to retrieve member for
+     * @param sServiceName  the service name to retrieve ObjectName for
      *
-     * @return the member id of a storage-enable member for the service or
-     *         -1 if none found
+     * @return the ObjectName of a storage-enable member for the service an null if none
      */
-    private Member getStorageEnabledMember(String sServiceName)
+    private String getStorageEnabledMember(String sServiceName)
         {
-        Service service = CacheFactory.getCluster().getService(sServiceName);
+        Set<String> setServices = m_mbsProxy.queryNames(COHERENCE + Registry.SERVICE_TYPE + ",name=" + sServiceName + ",*", null);
 
-        if (service instanceof DistributedCacheService)
+        // find the first storage-enabled member
+        for (String sMbean : setServices)
             {
-            Set<Member> setMembers = ((DistributedCacheService) service).getOwnershipEnabledMembers();
-
-            for (Member member : setMembers)
+            if ((Integer) getAttribute(sMbean, "OwnedPartitionsPrimary") > 0)
                 {
-                return member;
+                return sMbean;
                 }
-            return null;
             }
-        else
-            {
-            throw CachePersistenceHelper.ensurePersistenceException(new IllegalArgumentException("Service " + sServiceName +
-                    " is not distributed or federated service."));
-            }
+        
+        return null;
         }
 
     /**
@@ -835,21 +827,23 @@ public class PersistenceToolsHelper
      */
     private String[] getServiceInfo(String sServiceName)
         {
-        Member member = getStorageEnabledMember(sServiceName);
+        String sMBean = getStorageEnabledMember(sServiceName);
 
-        if (member == null)
+        if (sMBean == null)
             {
-            throw new RuntimeException(
-                "Unable to find storage-enabled members for service " + sServiceName);
+            throw new RuntimeException("Unable to find storage-enabled members for service " + sServiceName);
             }
 
-        // the following is not quite correct, since it doesn't call ensureGlobalName(),
-        // which may add "extension" attributes to the original name
-        String sQuorumStatus = (String) getAttribute(
-            getServiceMBean(sServiceName, member), "QuorumStatus");
+        String sQuorumStatus = (String) getAttribute((sMBean), "QuorumStatus");
 
-        String sOperationStatus = (String) getAttribute(
-            getPersistenceMBean(sServiceName), "OperationStatus");
+        String sMBeanName = getMBeanName(sServiceName);
+        if (sMBean.contains("domainPartition"))
+            {
+            String sDomainPartition = sMBean.replaceAll("^.*,domainPartition=", "domainPartition=")
+                                            .replaceAll(",.*$", "");
+            sMBeanName = getMBeanName(sServiceName) + "," + sDomainPartition;
+            }
+        String sOperationStatus = (String) getAttribute(sMBeanName, "OperationStatus");
 
         return new String[] {sQuorumStatus, sOperationStatus};
         }
@@ -863,8 +857,7 @@ public class PersistenceToolsHelper
      */
     public String getPersistenceMBean(String sServiceName)
         {
-        return ensureGlobalName(
-            CachePersistenceHelper.getMBeanName(sServiceName));
+        return ensureGlobalName(getMBeanName(sServiceName));
         }
 
     /**
@@ -994,6 +987,11 @@ public class PersistenceToolsHelper
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Coherence Prefix.
+     */
+    private static final String COHERENCE = "Coherence:";
 
     /**
      * JMX operation to create a snapshot.
