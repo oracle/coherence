@@ -208,7 +208,7 @@ include::src/main/java/com/oracle/coherence/guides/topics/ChatApplication.java[t
 <1> Retrieve the `ChatMessage`
 <2> Call a method to generate a string representation of the message and display it
 <3> Commit the element so that we do not receive the message again
-<3> Receive the next message
+<4> Receive the next message
 
 8. Generate a join message on startup
 +

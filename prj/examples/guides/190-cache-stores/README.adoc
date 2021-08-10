@@ -455,20 +455,20 @@ include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=config]
 
 *Run the Unit Test*
 
-Next we will run the `HSQLDbCacheStoreTest.java` unit test below and observe the behaviour.
+Next we will run the `HSqlDbCacheStoreTest.java` unit test below and observe the behaviour.
 
 1. Start and confirm NamedMap and database contents.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=initial]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=initial]
 ----
 
 2. Issue an initial get on the NamedMap and validate the object is read from the cache store.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load1]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=load1]
 ----
 +
 NOTE: You will see a message similar to the following indicating the time to retrieve a NamedMap entry that is not in the cache.
@@ -478,7 +478,7 @@ NOTE: You will see a message similar to the following indicating the time to ret
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load2]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=load2]
 ----
 +
 NOTE: You will see a message similar to the following indicating the time to retrieve a NamedMap entry is significantly quicker.
@@ -488,28 +488,28 @@ NOTE: You will see a message similar to the following indicating the time to ret
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=remove]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=remove]
 ----
 
 5. Issue a get for another customer and then update the customer details.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=update]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=update]
 ----
 
 6. Add a new customer and ensure it is created in the database. Then remove the same customer.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=addRemove]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=addRemove]
 ----
 
 7. Clear the NamedMap and show how to preload the data from the cache store.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=loadData]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreTest.java[tag=loadData]
 ----
 
 [#expiring-hsqldb-cache-store]
@@ -545,20 +545,20 @@ include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=refresh2]
 
 *Run the Unit Test*
 
-Next we will run the `HSQLDbCacheStoreExpiringTest.java` unit test below and observe the behaviour.
+Next we will run the `HSqlDbCacheStoreExpiringTest.java` unit test below and observe the behaviour.
 
 1. Start and confirm NamedMap and database contents.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=initial]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreExpiringTest.java[tag=initial]
 ----
 
 2. Issue a get for customer 1 and log the time to load
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough1]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreExpiringTest.java[tag=readThrough1]
 ----
 +
 NOTE: Notice the initial read through time similar to the following in the log: `(thread=main, member=1): Time for read-through 19.129 ms`
@@ -567,7 +567,7 @@ NOTE: Notice the initial read through time similar to the following in the log: 
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough2]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreExpiringTest.java[tag=readThrough2]
 ----
 +
 NOTE: The get within the 10 seconds (20s * 0.5), will cause an asynchronous refresh-ahead.
@@ -576,7 +576,7 @@ NOTE: The get within the 10 seconds (20s * 0.5), will cause an asynchronous refr
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough3]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreExpiringTest.java[tag=readThrough3]
 ----
 +
 NOTE: Notice the time to retrieve the entry is significantly reduced: `(thread=main, member=1): Time for after refresh-ahead 1.116 ms`
@@ -598,27 +598,27 @@ include::src/main/resources/hsqldb-cache-store-cache-config.xml[tag=writeBehind]
 
 *Run the Unit Test*
 
-Next we will run the `HSqlDbCacheStoreExpiringTest` unit test below and observe the behaviour.
+Next we will run the `HSqlDbCacheStoreWriteBehindTest` unit test below and observe the behaviour.
 
 1. Start and confirm NamedMap and database contents. In this example we are not preloading the database.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=initial]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreWriteBehindTest.java[tag=initial]
 ----
 
 2. Insert 10 customers using an efficient `putAll` operation and confirm the data is not yet in the cache.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=insert]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreWriteBehindTest.java[tag=insert]
 ----
 
 3. Wait till after the write-delay has passed and confirm that the customers are in the database.
 +
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=wait]
+include::src/test/java/com/oracle/coherence/guides/cachestores/HSqlDbCacheStoreWriteBehindTest.java[tag=wait]
 ----
 +
 NOTE: You will notice that you should see messages indicating 100 entries have been written. You may also see multiple writes as the data will be added in different partitions.
