@@ -379,7 +379,7 @@ public void testDurableEvents()  {
 lang="bash"
 
 >&lt;Info&gt; (thread=main, member=3): Added Map Listener, generating 3 events <span class="conum" data-value="1" />
-ConverterCollections$ConverterMapEvent{SafeNamedCache inserted: key=100,  &lt;2&gt;
+ConverterCollections$ConverterMapEvent{SafeNamedCache inserted: key=100, <span class="conum" data-value="2" />
     value=Customer{id=100, name='Customer 100', address='Address', customerType='GOLD', balance=5000}, partition=20, version=1}
 ConverterCollections$ConverterMapEvent{SafeNamedCache updated: key=100,
     old value=Customer{id=100, name='Customer 100', address='Address', customerType='GOLD', balance=5000},
