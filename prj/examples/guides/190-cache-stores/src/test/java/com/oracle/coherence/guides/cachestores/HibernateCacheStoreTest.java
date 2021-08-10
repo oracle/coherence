@@ -41,14 +41,13 @@ public class HibernateCacheStoreTest
         startupCoherence("hibernate-cache-store-cache-config.xml");
         connection = DriverManager.getConnection("jdbc:hsqldb:mem:test");
     }
-
-    // #tag::test[]
+    // #end::initial[]
+    
     @Test
     public void testHibernateCacheStore() throws SQLException {
         NamedMap<Long, Person> namedMap = getSession()
                 .getMap("Person", TypeAssertion.withTypes(Long.class, Person.class));
 
-        // #end::initial[]
 
         // #tag::put[]
         Person person1 = new Person(1L, 50, "Tom", "Jones");
