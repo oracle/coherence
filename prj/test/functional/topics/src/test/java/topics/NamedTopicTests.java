@@ -8,6 +8,7 @@ package topics;
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.junit.SessionBuilders;
@@ -282,7 +283,10 @@ public class NamedTopicTests
                             SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                             SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
                             Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
-                    .include(STORAGE_MEMBER_COUNT, CoherenceClusterMember.class, s_testLogs.builder());
+                    .include(STORAGE_MEMBER_COUNT,
+                             CoherenceClusterMember.class,
+                             DisplayName.of("NamedTopicTests"),
+                             s_testLogs.builder());
 
     private boolean m_fExtend = false;
     }
