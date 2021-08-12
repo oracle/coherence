@@ -1091,7 +1091,7 @@ lang="xml"
 </ul>
 <p><strong>Run the Unit Test</strong></p>
 
-<p>Next we will run the <code>HSQLDbCacheStoreTest.java</code> unit test below and observe the behaviour.</p>
+<p>Next we will run the <code>HSqlDbCacheStoreTest.java</code> unit test below and observe the behaviour.</p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -1099,7 +1099,23 @@ Start and confirm NamedMap and database contents.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=initial]</markup>
+>@BeforeAll
+public static void startup() throws SQLException {
+    _startup("Customer");
+    reloadCustomersDB();
+}
+
+@Test
+public void testHSqlDbCacheStore() throws SQLException {
+    try {
+        NamedMap&lt;Integer, Customer&gt; namedMap = getSession()
+                .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class)); <span class="conum" data-value="2" />
+
+        // cache should be empty
+        assertEquals(0, namedMap.size());
+
+        // Customer table should contain the correct number of customers
+        assertEquals(MAX_CUSTOMERS, getCustomerDBCount());</markup>
 
 </li>
 <li>
@@ -1107,7 +1123,16 @@ Issue an initial get on the NamedMap and validate the object is read from the ca
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load1]</markup>
+>long start = System.nanoTime();
+// issue a get and it will load the existing customer
+Customer customer = namedMap.get(1);
+long     duration = System.nanoTime() - start;
+Logger.info(getDurationMessage(duration, "read-through"));
+
+assertEquals(1, namedMap.size());
+assertNotNull(customer);
+assertEquals(1, customer.getId());
+assertEquals("Customer 1", customer.getName());</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will see a message similar to the following indicating the time to retrieve a NamedMap entry that is not in the cache.
@@ -1119,7 +1144,11 @@ Issue a second get, the entry will be retrieved directly from memory and not the
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=load2]</markup>
+>// issue a get again and it should be quicker
+start = System.nanoTime();
+customer = namedMap.get(1);
+duration = System.nanoTime() - start;
+Logger.info(getDurationMessage(duration, "no read-through"));</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will see a message similar to the following indicating the time to retrieve a NamedMap entry is significantly quicker.
@@ -1131,7 +1160,15 @@ Remove and entry from the NamedMap and the value should be removed from the unde
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=remove]</markup>
+>// remove a customer number 1
+namedMap.remove(1);
+
+// we should have one less customer in the database
+assertEquals(MAX_CUSTOMERS - 1, getCustomerDBCount());
+assertNull(namedMap.get(1));
+
+// customer should not exist in DB
+assertNull(getCustomerFromDB(1));</markup>
 
 </li>
 <li>
@@ -1139,7 +1176,19 @@ Issue a get for another customer and then update the customer details.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=update]</markup>
+>// Load customer 2
+Customer customer2 = namedMap.get(2);
+assertNotNull(customer2);
+
+// update customer 2 with "New Address"
+namedMap.compute(2, (k, v)-&gt;{
+    v.setAddress("New Address");
+    return v;
+});
+
+// customer should have new address in cache and DB
+assertEquals("New Address", namedMap.get(2).getAddress());
+assertEquals("New Address", getCustomerFromDB(2).getAddress());</markup>
 
 </li>
 <li>
@@ -1147,7 +1196,14 @@ Add a new customer and ensure it is created in the database. Then remove the sam
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=addRemove]</markup>
+>// add a new customer 1010
+namedMap.put(101, new Customer(101, "Customer Name 101", "Customer address 101", 20000));
+assertTrue(namedMap.containsKey(101));
+assertEquals("Customer address 101", getCustomerFromDB(101).getAddress());
+
+namedMap.remove(101);
+assertFalse(namedMap.containsKey(101));
+assertNull(getCustomerFromDB(101));</markup>
 
 </li>
 <li>
@@ -1155,7 +1211,20 @@ Clear the NamedMap and show how to preload the data from the cache store.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreTest.java[tag=loadData]</markup>
+>// clean the cache and reset the database
+namedMap.clear();
+reloadCustomersDB();
+
+assertEquals(0, namedMap.size());
+
+// demonstrate loading the cache from the current contents of the DB
+// this can be done many ways but for this exercise you could fetch all the
+// customer id' from the DB but as we know there are 1..100 we can pretend we have.
+Set&lt;Integer&gt; keySet = IntStream.rangeClosed(1, 100).boxed().collect(Collectors.toSet());
+namedMap.invokeAll(keySet, new PreloadRequest&lt;&gt;());
+
+// cache should be fully primed
+assertEquals(MAX_CUSTOMERS, namedMap.size());</markup>
 
 </li>
 </ol>
@@ -1209,7 +1278,7 @@ lang="xml"
 
 <p><strong>Run the Unit Test</strong></p>
 
-<p>Next we will run the <code>HSQLDbCacheStoreExpiringTest.java</code> unit test below and observe the behaviour.</p>
+<p>Next we will run the <code>HSqlDbCacheStoreExpiringTest.java</code> unit test below and observe the behaviour.</p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -1217,7 +1286,23 @@ Start and confirm NamedMap and database contents.
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=initial]</markup>
+>@BeforeAll
+public static void startup() throws SQLException {
+    _startup("CustomerExpiring");
+    reloadCustomersDB();
+}
+
+@Test
+public void testHSQLDbCacheStore() throws SQLException {
+    try {
+        NamedMap&lt;Integer, Customer&gt; namedMap = getSession()
+                .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class)); <span class="conum" data-value="2" />
+
+        // cache should be empty
+        assertEquals(0, namedMap.size());
+
+        // Customer table should contain the correct number of customers
+        assertEquals(MAX_CUSTOMERS, getCustomerDBCount());</markup>
 
 </li>
 <li>
@@ -1225,7 +1310,14 @@ Issue a get for customer 1 and log the time to load
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough1]</markup>
+>// expiry delay is setup to 20s for the cache and refresh ahead is 0.5 which
+// means that after 10s if the entry is read the old value is returned but after which a
+// refresh is done which means that subsequents reads will be fast as the new value is already present
+long start = System.nanoTime();
+Customer customer = namedMap.get(1);
+long duration = System.nanoTime() - start;
+Logger.info(getDurationMessage(duration, "read-through"));
+assertEquals(1, customer.getId());</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">Notice the initial read through time similar to the following in the log: <code>(thread=main, member=1): Time for read-through 19.129 ms</code></p>
@@ -1236,7 +1328,12 @@ Update the credit limit to 10000 in the database for customer 1 and ensure that 
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough2]</markup>
+>// update the database
+updateCustomerCreditLimitInDB(1, 10000);
+
+// sleep for 11 seconds get the cache entry, we should still get the original value
+Base.sleep(11000L);
+assertEquals(5000, namedMap.get(1).getCreditLimit());</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">The get within the 10 seconds (20s * 0.5), will cause an asynchronous refresh-ahead.</p>
@@ -1247,7 +1344,13 @@ Wait for 10 seconds and then retrieve the customer object which has been updated
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreExpiringTest.java[tag=readThrough3]</markup>
+>// wait for another 10 seconds and the refresh-ahead should have completed
+Base.sleep(10000L);
+
+start = System.nanoTime();
+customer = namedMap.get(1);
+duration = System.nanoTime() - start;
+Logger.info(getDurationMessage(duration, "after refresh-ahead"));</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">Notice the time to retrieve the entry is significantly reduced: <code>(thread=main, member=1): Time for after refresh-ahead 1.116 ms</code></p>
@@ -1281,7 +1384,7 @@ lang="xml"
 
 <p><strong>Run the Unit Test</strong></p>
 
-<p>Next we will run the <code>HSqlDbCacheStoreExpiringTest</code> unit test below and observe the behaviour.</p>
+<p>Next we will run the <code>HSqlDbCacheStoreWriteBehindTest</code> unit test below and observe the behaviour.</p>
 
 <ol style="margin-left: 15px;">
 <li>
@@ -1289,7 +1392,22 @@ Start and confirm NamedMap and database contents. In this example we are not pre
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=initial]</markup>
+>@BeforeAll
+public static void startup() throws SQLException {
+    _startup("CustomerWriteBehind");
+}
+
+@Test
+public void testHsqlDbCacheStore() throws SQLException {
+    try {
+        NamedMap&lt;Integer, Customer&gt; namedMap = getSession()
+                .getMap(getCacheName(), TypeAssertion.withTypes(Integer.class, Customer.class));
+
+        // cache should be empty
+        assertEquals(0, namedMap.size());
+
+        // Customer table should contain no customers
+        assertEquals(0, getCustomerDBCount());</markup>
 
 </li>
 <li>
@@ -1297,7 +1415,15 @@ Insert 10 customers using an efficient <code>putAll</code> operation and confirm
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=insert]</markup>
+>// add 10 customers
+Map&lt;Integer, Customer&gt; map = new HashMap&lt;&gt;();
+for (int i = 1; i &lt;= 100; i++) {
+    map.put(i, new Customer(i, "Name " + i, "Address " + i, i *  1000));
+}
+namedMap.putAll(map);
+
+// initial check of the database should return 0 as we have write-delay set
+assertEquals(0, getCustomerDBCount());</markup>
 
 </li>
 <li>
@@ -1305,7 +1431,11 @@ Wait till after the write-delay has passed and confirm that the customers are in
 <markup
 lang="java"
 
->Unresolved directive in README.adoc - include::src/test/java/com/oracle/coherence/guides/cachestores/HSQLDbCacheStoreWriteBehindTest.java[tag=wait]</markup>
+>// sleep for 15 seconds and the database should be populated as write-delay has elapsed
+Base.sleep(15000L);
+
+// Issuing Eventually assertThat in case of heavily loaded machine
+Eventually.assertThat(invoking(this).getCustomerDBCount(), is(100));</markup>
 
 <div class="admonition note">
 <p class="admonition-inline">You will notice that you should see messages indicating 100 entries have been written. You may also see multiple writes as the data will be added in different partitions.
@@ -1584,12 +1714,7 @@ lang="java"
 public static void startup() throws SQLException {
     startupCoherence("hibernate-cache-store-cache-config.xml");
     connection = DriverManager.getConnection("jdbc:hsqldb:mem:test");
-}
-
-@Test
-public void testHibernateCacheStore() throws SQLException {
-    NamedMap&lt;Long, Person&gt; namedMap = getSession()
-            .getMap("Person", TypeAssertion.withTypes(Long.class, Person.class));</markup>
+}</markup>
 
 </li>
 <li>
