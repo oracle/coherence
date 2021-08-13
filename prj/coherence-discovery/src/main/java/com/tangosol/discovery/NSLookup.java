@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -51,7 +51,7 @@ import javax.management.remote.JMXServiceURL;
  * <ul>
  * <li>Using the NSLookup class for JMX query
  *    <pre>
- *    JMXServiceURL         jmxServiceURL = NSLookup.lookupJMXServiceURL(new InetSocketAddress("127.0.0.1", 8888), 0);
+ *    JMXServiceURL         jmxServiceURL = NSLookup.lookupJMXServiceURL(new InetSocketAddress("127.0.0.1", 8888));
  *    JMXConnector          jmxConnector  = JMXConnectorFactory.connect(jmxServiceURL, null);
  *    MBeanServerConnection conn          = jmxConnector.getMBeanServerConnection();
  *    System.out.println(conn.queryNames(new javax.management.ObjectName("Coherence:type=Cluster,*"), null));
