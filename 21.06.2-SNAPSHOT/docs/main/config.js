@@ -494,6 +494,19 @@ function createRoutes(){
             component: loadPage('examples-guides-460-topics-README', '/examples/guides/460-topics/README', {})
         },
         {
+            path: '/examples/guides/500-status-ha/README',
+            meta: {
+                h1: 'Monitoring StatusHA',
+                title: 'Monitoring StatusHA',
+                h1Prefix: null,
+                description: 'Coherence Guides Monitoring StatusHA',
+                keywords: 'coherence, java, documentation, Monitoring StatusHA',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-guides-500-status-ha-README', '/examples/guides/500-status-ha/README', {})
+        },
+        {
             path: '/examples/tutorials/000-overview',
             meta: {
                 h1: 'Tutorials Overview',
@@ -736,7 +749,8 @@ function createNav(){
                                 { href: '/examples/guides/140-client-events/README', title: 'Client Events' },
                                 { href: '/examples/guides/145-durable-events/README', title: 'Durable Events' },
                                 { href: '/examples/guides/190-cache-stores/README', title: 'Cache Stores' },
-                                { href: '/examples/guides/460-topics/README', title: 'Topics' }
+                                { href: '/examples/guides/460-topics/README', title: 'Topics' },
+                                { href: '/examples/guides/500-status-ha/README', title: 'Monitoring StatusHA' }
                             ]
                         },
                         {
