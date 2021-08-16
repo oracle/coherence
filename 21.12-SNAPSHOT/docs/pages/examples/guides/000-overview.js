@@ -115,6 +115,19 @@ making them simple to build as stand-alone projects without needing to build the
 </v-card-text>
 </v-card>
 </v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/guides/500-status-ha/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Monitoring StatusHA</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>This guide walks you through how to monitor the High Available (HA) Status for Services</p>
+</v-card-text>
+</v-card>
+</v-flex>
 </v-layout>
 </v-container>
 </v-flex>
