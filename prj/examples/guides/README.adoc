@@ -73,6 +73,13 @@ This guide walks you through how to use durable events within Coherence
 This guide walks you through how to use and configure Cache Stores
 --
 
+[CARD]
+.Monitoring StatusHA
+[link=examples/guides/500-status-ha/README.adoc]
+--
+This guide walks you through how to monitor the High Available (HA) Status for Services
+--
+
 ====
 
 // DO NOT ADD CONTENT AFTER THIS LINE

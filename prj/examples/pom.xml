@@ -34,6 +34,7 @@
     <module>guides/145-durable-events</module>
     <module>guides/190-cache-stores</module>
     <module>guides/460-topics</module>
+    <module>guides/500-status-ha</module>
     <module>tutorials/500-graphql/initial</module>
     <module>tutorials/500-graphql/complete</module>
   </modules>
