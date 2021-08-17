@@ -392,10 +392,11 @@ public abstract class AbstractNamedTopicTests
         int     nCount     = 1000;
         Session session    = getSession();
         String  sTopicName = ensureTopicName();
-
+        String  sGroup     = m_testName.getMethodName();
+        
         try (Publisher<String>  publisher     = session.createPublisher(sTopicName);
-             Subscriber<String> subscriberFoo = session.createSubscriber(sTopicName, inGroup("Foo"), Subscriber.CompleteOnEmpty.enabled());
-             Subscriber<String> subscriberBar = session.createSubscriber(sTopicName, inGroup("Bar"), Subscriber.CompleteOnEmpty.enabled()))
+             Subscriber<String> subscriberFoo = session.createSubscriber(sTopicName, inGroup(sGroup + "Foo"), Subscriber.CompleteOnEmpty.enabled());
+             Subscriber<String> subscriberBar = session.createSubscriber(sTopicName, inGroup(sGroup + "Bar"), Subscriber.CompleteOnEmpty.enabled()))
             {
             for (int i = 0; i < nCount; i++)
                 {
@@ -460,10 +461,11 @@ public abstract class AbstractNamedTopicTests
         {
         int                nCount = 1000;
         NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
 
         try (Publisher<String>  publisher     = topic.createPublisher();
-             Subscriber<String> subscriberFoo = topic.createSubscriber(inGroup("Foo"));
-             Subscriber<String> subscriberBar = topic.createSubscriber(inGroup("Bar")))
+             Subscriber<String> subscriberFoo = topic.createSubscriber(inGroup(sGroup + "Foo"));
+             Subscriber<String> subscriberBar = topic.createSubscriber(inGroup(sGroup + "Bar")))
             {
             assertThat(publisher, is(notNullValue()));
             assertThat(subscriberFoo, is(notNullValue()));
@@ -577,9 +579,10 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic   = publisher.getTopic();
         int                nCount  = publisher.getCount();
         String             sPrefix = publisher.getPrefix();
+        String             sGroup  = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("Foo"));
-             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("Bar")))
+        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup(sGroup + "Foo"));
+             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup(sGroup + "Bar")))
             {
             TopicSubscriber    topicSubscriber1 = new TopicSubscriber(subscriber1, sPrefix, nCount, 2, TimeUnit.MINUTES, false, fVerifyOrder);
             TopicSubscriber    topicSubscriber2 = new TopicSubscriber(subscriber2, sPrefix, nCount, 2, TimeUnit.MINUTES, false, fVerifyOrder);
@@ -606,10 +609,11 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldPublishAndReceive() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic();
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriberFoo = topic.createSubscriber(inGroup("Foo"));
-             Subscriber<String> subscriberBar = topic.createSubscriber(inGroup("Bar")))
+        try (Subscriber<String> subscriberFoo = topic.createSubscriber(inGroup(sGroup + "Foo"));
+             Subscriber<String> subscriberBar = topic.createSubscriber(inGroup(sGroup + "Bar")))
             {
             try (Publisher<String> publisher = topic.createPublisher())
                 {
@@ -695,11 +699,12 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldPublishAndReceiveBatch() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic();
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriberOne   = topic.createSubscriber(inGroup("One"));
-             Subscriber<String> subscriberTwo   = topic.createSubscriber(inGroup("Two"));
-             Subscriber<String> subscriberThree = topic.createSubscriber(inGroup("Three")))
+        try (Subscriber<String> subscriberOne   = topic.createSubscriber(inGroup(sGroup + "One"));
+             Subscriber<String> subscriberTwo   = topic.createSubscriber(inGroup(sGroup + "Two"));
+             Subscriber<String> subscriberThree = topic.createSubscriber(inGroup(sGroup + "Three")))
             {
             try (Publisher<String> publisher = topic.createPublisher())
                 {
@@ -721,11 +726,12 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldPublishAndReceiveBatchFromEmptyTopic() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic();
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriberOne   = topic.createSubscriber(inGroup("One"), Subscriber.CompleteOnEmpty.enabled());
-             Subscriber<String> subscriberTwo   = topic.createSubscriber(inGroup("Two"), Subscriber.CompleteOnEmpty.enabled());
-             Subscriber<String> subscriberThree = topic.createSubscriber(inGroup("Three"), Subscriber.CompleteOnEmpty.enabled()))
+        try (Subscriber<String> subscriberOne   = topic.createSubscriber(inGroup(sGroup + "One"), Subscriber.CompleteOnEmpty.enabled());
+             Subscriber<String> subscriberTwo   = topic.createSubscriber(inGroup(sGroup + "Two"), Subscriber.CompleteOnEmpty.enabled());
+             Subscriber<String> subscriberThree = topic.createSubscriber(inGroup(sGroup + "Three"), Subscriber.CompleteOnEmpty.enabled()))
             {
             List<Element<String>> elementsOne   = subscriberOne.receive(1).get(1, TimeUnit.MINUTES);
             List<Element<String>> elementsTwo   = subscriberTwo.receive(2).get(1, TimeUnit.MINUTES);
@@ -740,10 +746,11 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldRejectUnownedCommits() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic();
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("test"));
-             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("test")))
+        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup(sGroup + "test"));
+             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup(sGroup + "test")))
             {
             // publish to all channels so that both subscriber get something
             try (Publisher<String> publisher = topic.createPublisher(OrderBy.roundRobin()))
@@ -773,13 +780,14 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String> topic    = ensureTopic();
         int                cChannel = topic.getChannelCount();
+        String             sGroup   = m_testName.getMethodName();
 
         List<Subscriber<String>> listSubscriber = new ArrayList<>();
         try
             {
             for (int i = 0; i < cChannel; i++)
                 {
-                listSubscriber.add(topic.createSubscriber(inGroup("test-commits"), Subscriber.CompleteOnEmpty.enabled()));
+                listSubscriber.add(topic.createSubscriber(inGroup(sGroup + "test-commits"), Subscriber.CompleteOnEmpty.enabled()));
                 }
 
             long count = listSubscriber.stream()
@@ -849,9 +857,10 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldBeCommitted() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic();
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriberGrouped = topic.createSubscriber(inGroup("test"));
+        try (Subscriber<String> subscriberGrouped = topic.createSubscriber(inGroup(sGroup + "test"));
              Subscriber<String> subscriberAnon    = topic.createSubscriber();
              Publisher<String>  publisher         = topic.createPublisher())
             {
@@ -909,9 +918,10 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldManuallyCommitGroupSubscriberByDefault() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic();
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("test"));
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(sGroup + "test"));
              Publisher<String>  publisher  = topic.createPublisher())
             {
             publisher.publish("value").get(2, TimeUnit.MINUTES);
@@ -1148,8 +1158,9 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String> topic    = ensureTopic();
         int                cChannel = topic.getChannelCount();
+        String             sGroup   = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("test-commits"), CompleteOnEmpty.enabled()))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(sGroup + "test-commits"), CompleteOnEmpty.enabled()))
             {
             int                    nChannel      = subscriber.getChannels()[0];
             Map<Integer, Position> mapHeadsStart = subscriber.getHeads();
@@ -1262,11 +1273,12 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldPublishAndPollUsingJavaSerializationOnly() throws Exception
         {
-        NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-1");
+        NamedTopic<Customer> topic  = ensureCustomerTopic(m_sSerializer + "-customer-1");
+        String               sGroup = m_testName.getMethodName();
 
         try (Publisher<Customer>  publisher     = topic.createPublisher();
-             Subscriber<Customer> subscriberFoo = topic.createSubscriber(inGroup("Foo"));
-             Subscriber<Customer> subscriberBar = topic.createSubscriber(inGroup("Bar")))
+             Subscriber<Customer> subscriberFoo = topic.createSubscriber(inGroup(sGroup + "Foo"));
+             Subscriber<Customer> subscriberBar = topic.createSubscriber(inGroup(sGroup + "Bar")))
             {
             Customer customer = new Customer("Mr Smith", 25, AddressExternalizableLite.getRandomAddress());
             try
@@ -1296,11 +1308,12 @@ public abstract class AbstractNamedTopicTests
     public void shouldOfferAndPollUsingAppropriateSerializer()
         throws Exception
         {
-        NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-2");
+        NamedTopic<Customer> topic  = ensureCustomerTopic(m_sSerializer + "-customer-2");
+        String               sGroup = m_testName.getMethodName();
 
         try (Publisher<Customer>  publisher     = topic.createPublisher();
-             Subscriber<Customer> subscriberFoo = topic.createSubscriber(inGroup("Foo"));
-             Subscriber<Customer> subscriberBar = topic.createSubscriber(inGroup("Bar")))
+             Subscriber<Customer> subscriberFoo = topic.createSubscriber(inGroup(sGroup + "Foo"));
+             Subscriber<Customer> subscriberBar = topic.createSubscriber(inGroup(sGroup + "Bar")))
             {
             Customer customer = m_sSerializer.equals("pof") ?
                     new CustomerPof("Mr Smith", 25, AddressPof.getRandomAddress()) :
@@ -1359,14 +1372,15 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldNotAllowSubscribersToChangeGroupFilter()
         {
-        NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-4");
+        NamedTopic<Customer> topic  = ensureCustomerTopic(m_sSerializer + "-customer-4");
+        String               sGroup = m_testName.getMethodName();
 
         try (@SuppressWarnings("unused")
-             Subscriber<Customer> subscriber = topic.createSubscriber(inGroup("durableSubscriber"), CompleteOnEmpty.enabled(),
+             Subscriber<Customer> subscriber = topic.createSubscriber(inGroup(sGroup + "durableSubscriber"), CompleteOnEmpty.enabled(),
                         Subscriber.Filtered.by(new GreaterEqualsFilter<>(new UniversalExtractor<>("id"), 12))))
             {
             assertThrows(TopicException.class, () ->
-                    topic.createSubscriber(inGroup("durableSubscriber"), CompleteOnEmpty.enabled(),
+                    topic.createSubscriber(inGroup(sGroup + "durableSubscriber"), CompleteOnEmpty.enabled(),
                                Subscriber.Filtered.by(new LessFilter<>(new UniversalExtractor<>("id"), 12))));
             }
         }
@@ -1423,14 +1437,15 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldNotAllowSubscribersToChangeGroupConverter()
         {
-        NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-6");
+        NamedTopic<Customer> topic  = ensureCustomerTopic(m_sSerializer + "-customer-6");
+        String               sGroup = m_testName.getMethodName();
 
         try (@SuppressWarnings("unused")
-             Subscriber<Serializable> subscriber = topic.createSubscriber(inGroup("durable-subscriber-3"),
+             Subscriber<Serializable> subscriber = topic.createSubscriber(inGroup(sGroup + "durable-subscriber-3"),
                         Subscriber.Convert.using(Customer::getAddress)))
             {
             assertThrows(TopicException.class, () ->
-                    topic.createSubscriber(inGroup("durable-subscriber-3"), Subscriber.Convert.using(Customer::getId)));
+                    topic.createSubscriber(inGroup(sGroup + "durable-subscriber-3"), Subscriber.Convert.using(Customer::getId)));
             }
         }
 
@@ -1651,13 +1666,14 @@ public abstract class AbstractNamedTopicTests
     @SuppressWarnings("unchecked")
     public void shouldConsumeAsynchronously() throws Exception
         {
-        NamedTopic<String> topic       = ensureTopic();
-        int                nCount      = 99;
-        String             sPrefix     = "Element-";
-        TopicPublisher     publisher   = new TopicPublisher(topic, sPrefix, nCount, true);
+        NamedTopic<String> topic     = ensureTopic();
+        int                nCount    = 99;
+        String             sPrefix   = "Element-";
+        TopicPublisher     publisher = new TopicPublisher(topic, sPrefix, nCount, true);
+        String             sGroup    = m_testName.getMethodName();
 
         try (@SuppressWarnings("unused") Subscriber<String> subscriberPin = topic.createSubscriber();
-             Subscriber<String> subscriber = topic.createSubscriber(Subscriber.Name.inGroup("Foo")))
+             Subscriber<String> subscriber = topic.createSubscriber(Subscriber.Name.inGroup(sGroup + "Foo")))
             {
             publisher.run();
 
@@ -1761,13 +1777,14 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldShareAndDuplicateConsumption() throws Exception
         {
-        NamedTopic<String> topic       = ensureTopic();
-        int                nCount      = 1000;
-        String             sPrefix     = "Element-";
-        TopicPublisher     publisher   = new TopicPublisher(topic, sPrefix, nCount, true);
+        NamedTopic<String> topic     = ensureTopic();
+        int                nCount    = 1000;
+        String             sPrefix   = "Element-";
+        TopicPublisher     publisher = new TopicPublisher(topic, sPrefix, nCount, true);
+        String             sGroup    = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("Foo"));
-             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("Bar")))
+        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup(sGroup + "Foo"));
+             Subscriber<String> subscriber2 = topic.createSubscriber(inGroup(sGroup + "Bar")))
             {
             TopicSubscriber topicSubscriber1 = new TopicSubscriber(subscriber1, sPrefix, nCount, 3, TimeUnit.MINUTES, true);
             TopicSubscriber topicSubscriber2 = new TopicSubscriber(subscriber2, sPrefix, nCount, 3, TimeUnit.MINUTES, true);
@@ -1828,7 +1845,8 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldRetainElementsForSubscriberGroup() throws Exception
         {
-        NamedTopic<String> topic = ensureTopic(m_sSerializer + "-rewindable");
+        NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable");
+        String             sGroup = m_testName.getMethodName();
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
@@ -1846,7 +1864,7 @@ public abstract class AbstractNamedTopicTests
 
         TopicAssertions.assertPublishedOrder(topic, nCount, "Element-");
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("one")))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(sGroup + "one")))
             {
             for (int i = 0; i<nCount; i++)
                 {
@@ -1858,11 +1876,12 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldStartAtBeginningForSecondSubscriberInGroupWithZeroCommits() throws Exception
         {
-        NamedTopic<String> topic       = ensureTopic();
-        String             sPrefix     = "Element-";
-        int                nCount      = 123;
+        NamedTopic<String> topic   = ensureTopic();
+        String             sPrefix = "Element-";
+        int                nCount  = 123;
+        String             sGroup  = m_testName.getMethodName();
 
-        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("one"));
+        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup(sGroup + "one"));
              Publisher<String> publisher = topic.createPublisher())
             {
             for (int i=0; i<nCount; i++)
@@ -1878,7 +1897,7 @@ public abstract class AbstractNamedTopicTests
                 }
 
             // create subscriber two
-            try (Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("one")))
+            try (Subscriber<String> subscriber2 = topic.createSubscriber(inGroup(sGroup + "one")))
                 {
                 // close subscriber one so that two gets everything
                 subscriber1.close();
@@ -1898,18 +1917,31 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<OrderableMessage<String>>       topic          = ensureRawTopic();
         int                                        cChannel       = topic.getChannelCount();
         List<Subscriber<OrderableMessage<String>>> listSubscriber = new ArrayList<>(cChannel);
+        String                                     sGroup         = m_testName.getMethodName();
 
         try
             {
             // creating the same number of subscribers as channels guarantees that there will be one channel per subscriber
             for (int i = 0; i < cChannel; i ++)
                 {
-                listSubscriber.add(topic.createSubscriber(inGroup("test"), Subscriber.CompleteOnEmpty.enabled()));
+                listSubscriber.add(topic.createSubscriber(inGroup(sGroup), Subscriber.CompleteOnEmpty.enabled()));
                 }
 
-            // Channel allocation is async so we need to wait until all subscribers have one channel and
-            // all channels are allocated to a subscriber
-            Eventually.assertDeferred(() -> subscribersHaveDistinctChannels(listSubscriber), is(true));
+            // Channel allocation changes are notified async so we need to wait until all subscribers have one channel
+            // and all channels are allocated to a subscriber
+            try
+                {
+                Eventually.assertDeferred(() -> subscribersHaveDistinctChannels(listSubscriber), is(true));
+                }
+            catch (AssertionError assertionError)
+                {
+                System.err.println("Not all subscribers have one channel");
+                for (Subscriber<OrderableMessage<String>> subscriber : listSubscriber)
+                    {
+                    System.err.println(subscriber);
+                    }
+                throw assertionError;
+                }
 
             // publish one message per channel
             try (Publisher<OrderableMessage<String>> publisher = topic.createPublisher())
@@ -1946,13 +1978,15 @@ public abstract class AbstractNamedTopicTests
 
         NamedTopic<String> topic        = ensureTopic();
         String             sPrefix      = "Element-";
+        String             sGroup       = m_testName.getMethodName();
         int                nCount       = 300;
         Element<String>    element;
         int                cChannel;
 
-        try (Subscriber<String> subscriber1  = topic.createSubscriber(inGroup("one"));
-             Subscriber<String> subscriber2  = topic.createSubscriber(inGroup("one"));
-             Subscriber<String> subscriber3  = topic.createSubscriber(inGroup("one")))
+        System.err.println("Creating Subscribers for topic " + topic.getName() + " in group " + sGroup);
+        try (Subscriber<String> subscriber1  = topic.createSubscriber(inGroup(sGroup));
+             Subscriber<String> subscriber2  = topic.createSubscriber(inGroup(sGroup));
+             Subscriber<String> subscriber3  = topic.createSubscriber(inGroup(sGroup)))
             {
             Map<Integer, List<String>> mapReceived = new ConcurrentHashMap<>();
             Map<Integer, List<String>> mapSent     = new ConcurrentHashMap<>();
@@ -1990,9 +2024,9 @@ public abstract class AbstractNamedTopicTests
             Map<Integer, Position> commits3  = new HashMap<>();
             int                    cRecieved = 0;
 
-            System.err.println("Subscriber 1 has channels " + Arrays.toString(subscriber1.getChannels()));
-            System.err.println("Subscriber 2 has channels " + Arrays.toString(subscriber2.getChannels()));
-            System.err.println("Subscriber 3 has channels " + Arrays.toString(subscriber3.getChannels()));
+            System.err.println("Subscriber 1 " + subscriber1);
+            System.err.println("Subscriber 2 " + subscriber2);
+            System.err.println("Subscriber 3 " + subscriber3);
 
             // read some messages with all subscribers, but do not commit anything
             for (int i = 0; i<19; i++)
@@ -2034,6 +2068,7 @@ public abstract class AbstractNamedTopicTests
                 listLog.add("Received (1): (No Commit) " + element.getValue() + " from " + element.getPosition());
                 }
 
+            System.err.println("Closing Subscriber 1 " + subscriber1);
             // close subscriber 1 - it's channels will be reallocated
             subscriber1.close();
 
@@ -2042,10 +2077,21 @@ public abstract class AbstractNamedTopicTests
             // this for the test to be stable
             Eventually.assertDeferred(() -> subscriber2.getChannels().length, is(not(0)));
             Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(is(not(0))));
-            Eventually.assertDeferred(() -> subscriber2.getChannels().length + subscriber3.getChannels().length, is(cChannel));
+            System.err.println("Waiting for Subscriber 2 and 3 to have " + cChannel + " channels");
 
-            System.err.println("Subscriber 2 has channels " + Arrays.toString(subscriber2.getChannels()));
-            System.err.println("Subscriber 3 has channels " + Arrays.toString(subscriber3.getChannels()));
+            try
+                {
+                Eventually.assertDeferred(() -> subscriber2.getChannels().length + subscriber3.getChannels().length, is(cChannel));
+                }
+            catch (AssertionError assertionError)
+                {
+                System.err.println("FAILED: Subscriber 2 " + subscriber2);
+                System.err.println("FAILED: Subscriber 3 " + subscriber3);
+                throw assertionError;
+                }
+
+            System.err.println("Subscriber 2 has channels " + subscriber2);
+            System.err.println("Subscriber 3 has channels " + subscriber3);
 
             // read some messages with remaining subscribers, but do not commit anything
             for (int i = 0; i<19; i++)
@@ -2080,14 +2126,16 @@ public abstract class AbstractNamedTopicTests
                 }
 
             // close subscriber 2 - it's channels will be reallocated
+            System.err.println("Closing Subscriber 2 " + subscriber2);
             subscriber2.close();
 
             // Wait for the channels to all be reallocated
             // In real life we don't do this as we do not guarantee once only but we need to do
             // this for the test to be stable
+            System.err.println("Waiting for Subscriber 3 to have " + cChannel + " channels");
             Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(cChannel));
 
-            System.err.println("Subscriber 3 has channels " + Arrays.toString(subscriber3.getChannels()));
+            System.err.println("Subscriber 3 has channels " + subscriber3);
 
             // read all messages left using subscriber 3
             while (cRecieved < cMessages)
@@ -2135,7 +2183,7 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic = ensureTopic();
 
         try (Publisher<String> publisher = topic.createPublisher();
-             Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+             Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             Future<Subscriber.Element<String>> future = subscriber.receive();
             assertThat(future.isDone(), is(false));
@@ -2152,8 +2200,8 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic    = ensureTopic();
         int                cChannel = topic.getChannelCount();
 
-        try(Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("subscriber"));
-            Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("subscriber")))
+        try(PagedTopicSubscriber<String> subscriber1 = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber"));
+            PagedTopicSubscriber<String> subscriber2 = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             Future<Subscriber.Element<String>> future1 = subscriber1.receive();
             Future<Subscriber.Element<String>> future2 = subscriber2.receive();
@@ -2200,7 +2248,7 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic = ensureTopic();
 
         try (Publisher<String> publisher = topic.createPublisher();
-             Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+             Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             publisher.publish("blah");
             assertThat(subscriber.receive().get(1, TimeUnit.MINUTES).getValue(), is("blah"));
@@ -2226,14 +2274,17 @@ public abstract class AbstractNamedTopicTests
             {
             assertThat(topic.getSubscriberGroups().isEmpty(), is(true));
 
-            try (Subscriber<String> subFoo = topic.createSubscriber(Subscriber.Name.inGroup("foo"));
-                 Subscriber<String> subBar = topic.createSubscriber(Subscriber.Name.inGroup("bar")))
+            String sGroup1 = m_testName.getMethodName() + "-one";
+            String sGroup2 = m_testName.getMethodName() + "-two";
+
+            try (Subscriber<String> subFoo = topic.createSubscriber(Subscriber.Name.inGroup(sGroup1));
+                 Subscriber<String> subBar = topic.createSubscriber(Subscriber.Name.inGroup(sGroup2)))
                 {
-                assertThat(topic.getSubscriberGroups(), is(new ImmutableArrayList(new String[]{"foo", "bar"}).getSet()));
+                assertThat(topic.getSubscriberGroups(), is(new ImmutableArrayList(new String[]{sGroup1, sGroup2}).getSet()));
 
-                topic.destroySubscriberGroup("foo");
+                topic.destroySubscriberGroup(sGroup1);
 
-                assertThat(topic.getSubscriberGroups(), is(new ImmutableArrayList(new String[]{"bar"}).getSet()));
+                assertThat(topic.getSubscriberGroups(), is(new ImmutableArrayList(new String[]{sGroup2}).getSet()));
                 }
             }
         }
@@ -2243,7 +2294,7 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String> topic = ensureTopic();
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             Future<Subscriber.Element<String>> future = subscriber.receive();
             Thread.sleep(100); // allow subscriber to enter wait state
@@ -2257,7 +2308,7 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String> topic = ensureTopic();
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"), Subscriber.CompleteOnEmpty.enabled()))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber"), Subscriber.CompleteOnEmpty.enabled()))
             {
             Future<Subscriber.Element<String>> future = subscriber.receive();
 
@@ -2270,7 +2321,7 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String> topic = ensureTopic();
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"), Subscriber.CompleteOnEmpty.enabled()))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber"), Subscriber.CompleteOnEmpty.enabled()))
             {
             try (Publisher<String> publisher = topic.createPublisher())
                 {
@@ -2293,7 +2344,7 @@ public abstract class AbstractNamedTopicTests
         AtomicLong         cReceive = new AtomicLong();
         long               nHigh    = CacheFactory.getCluster().getDependencies().getPublisherCloggedCount();
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             DebouncedFlowControl flowControl = (DebouncedFlowControl) subscriber.getFlowControl();
             long                 nMaxBacklog = flowControl.getExcessiveLimit();
@@ -2359,7 +2410,7 @@ public abstract class AbstractNamedTopicTests
 
         NamedTopic<String> topic = ensureTopic();
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
             long nHigh   = (getDependencies(topic).getMaxBatchSizeBytes() * 3) / cbValue;
@@ -2491,7 +2542,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has per server capacity of " + SERVER_CAPACITY + " configured",
                           getDependencies(topic).getServerCapacity(), is(SERVER_CAPACITY));
 
-        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
             long nHigh   = SERVER_CAPACITY / cbValue; // from config
@@ -2525,7 +2576,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has per server capacity of " + SERVER_CAPACITY + " configured",
                           getDependencies(topic).getServerCapacity(), is(SERVER_CAPACITY));
 
-        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
             long nHigh   = SERVER_CAPACITY / cbValue; // from config
@@ -2570,7 +2621,7 @@ public abstract class AbstractNamedTopicTests
         int                cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
         long               nHigh   = (getDependencies(topic).getMaxBatchSizeBytes() * 3) / cbValue;
 
-        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber")))
+        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             try (Publisher<String> publisher = topic.createPublisher();
                  @SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
@@ -2596,7 +2647,7 @@ public abstract class AbstractNamedTopicTests
         String sPrefix = "Element-";
         int    nCount  = 20;
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("subscriber"), Subscriber.CompleteOnEmpty.enabled()))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber"), Subscriber.CompleteOnEmpty.enabled()))
             {
             try (Publisher<String> publisher  = topic.createPublisher())
                 {
@@ -2624,7 +2675,7 @@ public abstract class AbstractNamedTopicTests
         String             sPrefix = "Element-";
         int                nCount  = 100;
 
-        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("Foo")))
+        try (Subscriber<String> subscriber1 = topic.createSubscriber(inGroup(m_testName.getMethodName() + "Foo")))
             {
 
             try (Publisher<String> publisher = topic.createPublisher())
@@ -2645,7 +2696,7 @@ public abstract class AbstractNamedTopicTests
 
             subscriber1.close();
 
-            try (Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("Foo")))
+            try (Subscriber<String> subscriber2 = topic.createSubscriber(inGroup(m_testName.getMethodName() + "Foo")))
                 {
                 for ( ; i<50; i++)
                     {
@@ -2687,7 +2738,7 @@ public abstract class AbstractNamedTopicTests
             {
             publisher.publish(sPrefix + 1).join();
 
-            try (Subscriber<String> subscriber1 = topic.createSubscriber(Subscriber.Name.inGroup("foo")))
+            try (Subscriber<String> subscriber1 = topic.createSubscriber(Subscriber.Name.inGroup(m_testName.getMethodName() + "foo")))
                 {
                 Future<Subscriber.Element<String>> future = subscriber1.receive();
 
@@ -2707,7 +2758,7 @@ public abstract class AbstractNamedTopicTests
                 // instance can see items created before it joined the group, as position is defined by the group not the
                 // instance
 
-                try (Subscriber<String> subscriber2 = topic.createSubscriber(Subscriber.Name.inGroup("foo")))
+                try (Subscriber<String> subscriber2 = topic.createSubscriber(Subscriber.Name.inGroup(m_testName.getMethodName() + "foo")))
                     {
                     // close subscriber-1, which should reposition back to the last committed element-2, so the next read is element-3
                     subscriber1.close();
@@ -2846,8 +2897,8 @@ public abstract class AbstractNamedTopicTests
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "one"));
+             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "two")))
             {
             Random random = new Random(System.currentTimeMillis());
             for (int nChannel = 0; nChannel < topic.getChannelCount(); nChannel++)
@@ -2887,8 +2938,8 @@ public abstract class AbstractNamedTopicTests
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "-one"));
+             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "-two")))
             {
             // move subscriber two on by receiving pages (we'll then seek subscriber one to the same place)
             CompletableFuture<Element<String>> future = null;
@@ -2953,8 +3004,8 @@ public abstract class AbstractNamedTopicTests
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "one"));
+             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "two")))
             {
             // move subscriber two on by receiving pages (we'll then seek subscriber one to the same place)
             CompletableFuture<Element<String>> future = null;
@@ -3116,8 +3167,8 @@ public abstract class AbstractNamedTopicTests
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "one"));
+             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "two")))
             {
             // move subscriber two on by receiving pages (we'll then seek subscriber one to the same place)
             CompletableFuture<Element<String>> future = null;
@@ -3446,8 +3497,8 @@ public abstract class AbstractNamedTopicTests
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "one"));
+             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "two")))
             {
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
@@ -3518,8 +3569,8 @@ public abstract class AbstractNamedTopicTests
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "one"));
+             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "two")))
             {
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
@@ -3582,8 +3633,8 @@ public abstract class AbstractNamedTopicTests
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("one"));
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("two")))
+        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "one"));
+             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "two")))
             {
             // publish a lot os messages so we have multiple pages spread over all of the partitions
             CompletableFuture<Status> futurePublish = null;
@@ -3967,7 +4018,7 @@ public abstract class AbstractNamedTopicTests
             int             nChannel    = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             Element<String> elementHead;
 
-            try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("test"), CompleteOnEmpty.enabled()))
+            try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "test"), CompleteOnEmpty.enabled()))
                 {
                 elementHead = subscriber.receive().get(2, TimeUnit.MINUTES);
                 assertThat(elementHead, is(notNullValue()));
@@ -3987,7 +4038,7 @@ public abstract class AbstractNamedTopicTests
                 }
 
             // create a new subscriber in the same group, it should be at the head
-            try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("test"), CompleteOnEmpty.enabled()))
+            try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "test"), CompleteOnEmpty.enabled()))
                 {
                 Element<String> elementResult = subscriber.receive().get(2, TimeUnit.MINUTES);
                 assertThat(elementResult, is(notNullValue()));
