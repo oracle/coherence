@@ -73,12 +73,12 @@ public class PagedTopicChannelPublisher
         {
         f_lPublisherId            = lPublisherId;
         f_nChannel                = nChannel;
-        f_caches                  = caches;
+        m_caches                  = caches;
         f_nNotifyPostFull         = nNotifyPostFull;
-        f_keyUsageSync            = f_caches.getUsageSyncKey(nChannel);
-        f_nUsageSyncUnitOfOrder   = f_caches.getUnitOfOrder(f_keyUsageSync.getPartitionId());
-        f_serializer              = f_caches.getSerializer();
-        f_keyPartitioningStrategy = ((PartitionedService) f_caches.getCacheService()).getKeyPartitioningStrategy();
+        f_keyUsageSync            = m_caches.getUsageSyncKey(nChannel);
+        f_nUsageSyncUnitOfOrder   = m_caches.getUnitOfOrder(f_keyUsageSync.getPartitionId());
+        f_serializer              = m_caches.getSerializer();
+        f_keyPartitioningStrategy = ((PartitionedService) m_caches.getCacheService()).getKeyPartitioningStrategy();
 
         BatchingOperationsQueue.Executor executor   = new AssociatedExecutor(pool);
         NamedTopic.ElementCalculator     calculator = caches.getElementCalculator();
@@ -99,7 +99,7 @@ public class PagedTopicChannelPublisher
      */
     public CompletableFuture<Publisher.Status> publish(Binary binValue)
         {
-        f_caches.ensureConnected();
+        m_caches.ensureConnected();
         return f_batchingQueue.add(binValue);
         }
 
@@ -132,7 +132,8 @@ public class PagedTopicChannelPublisher
         {
         if (m_state == State.Closing)
             {
-            m_state = State.Closed;
+            m_state  = State.Closed;
+            m_caches = null;
             }
         }
 
@@ -147,7 +148,7 @@ public class PagedTopicChannelPublisher
      */
     public CompletableFuture<Void> flush(PagedTopicPublisher.FlushMode mode)
         {
-        String sTopicName   = f_caches.getTopicName();
+        String sTopicName   = m_caches.getTopicName();
         String sDescription = null;
 
         switch (mode)
@@ -229,7 +230,7 @@ public class PagedTopicChannelPublisher
             return;
             }
 
-        PagedTopicCaches caches  = f_caches;
+        PagedTopicCaches caches  = m_caches;
 
         Page.Key keyPage = new Page.Key(f_keyUsageSync.getChannelId(), lPageId);
         int      nPart   = f_keyPartitioningStrategy.getKeyPartition(keyPage);
@@ -397,8 +398,8 @@ public class PagedTopicChannelPublisher
         {
         if (futurePageId == null)
             {
-            futurePageId = InvocableMapHelper.invokeAsync(f_caches.Usages, f_keyUsageSync,
-                    f_caches.getUnitOfOrder(f_keyUsageSync.getPartitionId()),
+            futurePageId = InvocableMapHelper.invokeAsync(m_caches.Usages, f_keyUsageSync,
+                    m_caches.getUnitOfOrder(f_keyUsageSync.getPartitionId()),
                     new TopicInitialiseProcessor());
             }
         return futurePageId;
@@ -442,7 +443,7 @@ public class PagedTopicChannelPublisher
             if (futureResult == null)
                 {
                 m_futureMovePage = futureResult = InvocableMapHelper.invokeAsync(
-                        f_caches.Usages, f_keyUsageSync, f_nUsageSyncUnitOfOrder,
+                        m_caches.Usages, f_keyUsageSync, f_nUsageSyncUnitOfOrder,
                         new TailAdvancer(lPage + 1), (result, e) ->
                               {
                               if (e == null)
@@ -498,13 +499,13 @@ public class PagedTopicChannelPublisher
 
         return f_lPublisherId == that.f_lPublisherId
                 && f_nChannel == that.f_nChannel
-                && Objects.equals(f_caches, that.f_caches);
+                && Objects.equals(m_caches, that.m_caches);
         }
 
     @Override
     public int hashCode()
         {
-        return Objects.hash(f_lPublisherId, f_nChannel, f_caches);
+        return Objects.hash(f_lPublisherId, f_nChannel, m_caches);
         }
 
     @Override
@@ -529,7 +530,7 @@ public class PagedTopicChannelPublisher
         m_cNotifyLast   = cNotifyNow;
 
         return getClass().getSimpleName() +
-                "(topic=" + f_caches.getTopicName() +
+                "(topic=" + m_caches.getTopicName() +
                 ", channel=" + f_nChannel +
                 ", state=" + m_state +
                 ", publisher=" + f_lPublisherId +
@@ -635,7 +636,7 @@ public class PagedTopicChannelPublisher
      */
     private final int f_nChannel;
 
-    private final PagedTopicCaches f_caches;
+    private PagedTopicCaches m_caches;
 
     private final Serializer f_serializer;
 

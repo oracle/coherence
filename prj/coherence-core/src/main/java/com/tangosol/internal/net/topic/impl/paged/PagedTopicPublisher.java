@@ -35,6 +35,7 @@ import com.tangosol.io.Serializer;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapListener;
 
@@ -43,11 +44,11 @@ import com.tangosol.util.filter.InKeySetFilter;
 import com.tangosol.util.listener.SimpleMapListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -133,12 +134,15 @@ public class PagedTopicPublisher<V>
                             .synchronous()
                             .versioned();
 
+        f_filterListenerNotification = f_nNotifyPostFull == 0
+                                       ? null
+                                       : new InKeySetFilter<>(/*filter*/ null, pagedTopicCaches.getPartitionNotifierSet(f_nNotifyPostFull));
+
         if (f_nNotifyPostFull != 0)
             {
             // register a publisher listener in each partition, we do this even if the config isn't declared
             // with high-units as the server may have an alternate config
-            pagedTopicCaches.Notifications.addMapListener(f_listenerNotification, new InKeySetFilter<>(/*filter*/ null,
-                    pagedTopicCaches.getPartitionNotifierSet(f_nNotifyPostFull)), /*fLite*/ false);
+            pagedTopicCaches.Notifications.addMapListener(f_listenerNotification, f_filterListenerNotification, /*fLite*/ false);
             }
 
         m_state = State.Active;
@@ -424,8 +428,7 @@ public class PagedTopicPublisher<V>
 
                 if (caches.Notifications.isActive())
                     {
-                    Set<NotificationKey> setKeys = caches.getPartitionNotifierSet(f_nNotifyPostFull);
-                    caches.Notifications.removeMapListener(f_listenerNotification, new InKeySetFilter<>(/*filter*/ null, setKeys));
+                    caches.Notifications.removeMapListener(f_listenerNotification, f_filterListenerNotification);
                     }
                 }
 
@@ -463,6 +466,7 @@ public class PagedTopicPublisher<V>
             {
             // clean up
             m_caches = null;
+            Arrays.fill(f_aChannel, null);
 
             f_listOnCloseActions.forEach(action ->
                 {
@@ -793,6 +797,11 @@ public class PagedTopicPublisher<V>
      * The listener used to notify this publisher that previously full topics now have more space.
      */
     private final MapListener<NotificationKey, int[]> f_listenerNotification;
+
+    /**
+     * Filter used with f_listenerNotification.
+     */
+    private final Filter<int[]> f_filterListenerNotification;
 
     /**
      * A {@link List} of actions to run when this publisher closes.

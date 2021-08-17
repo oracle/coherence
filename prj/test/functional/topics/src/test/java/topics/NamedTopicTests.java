@@ -18,6 +18,7 @@ import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
+import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.tangosol.coherence.component.util.SafeService;
 
 import com.tangosol.coherence.config.Config;
