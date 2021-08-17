@@ -288,7 +288,8 @@ public class PagedTopicSubscriber<V>
     @Override
     public int[] getChannels()
         {
-        if (isActive())
+        // Only have channels when connected
+        if (m_nState == STATE_CONNECTED)
             {
             Gate<?> gate = f_gate;
             gate.enter(-1);
@@ -313,7 +314,7 @@ public class PagedTopicSubscriber<V>
     @Override
     public boolean isOwner(int nChannel)
         {
-        if (isActive())
+        if (m_nState == STATE_CONNECTED)
             {
             return nChannel >= 0 && f_aChannel[nChannel].m_fOwned;
             }
@@ -1209,6 +1210,16 @@ public class PagedTopicSubscriber<V>
     public boolean isDisconnected()
         {
         return m_nState == STATE_DISCONNECTED;
+        }
+
+    /**
+     * Returns {@code true} if this subscriber is initialising.
+     *
+     * @return {@code true} if this subscriber is initialising
+     */
+    public boolean isInitialising()
+        {
+        return m_nState == STATE_INITIAL;
         }
 
     /**
@@ -2532,10 +2543,12 @@ public class PagedTopicSubscriber<V>
                     updateChannelOwnership(list, false);
                     m_latch.countDown();
                     }
-                else if (isActive() && !f_fAnonymous && !isDisconnected())
+                else if (isActive() && !f_fAnonymous && !isDisconnected() && !isInitialising())
                     {
                     Logger.fine("Disconnecting Subscriber due to subscriber timeout "
                                         + PagedTopicSubscriber.this);
+
+                    updateChannelOwnership(Collections.emptyList(), true);
                     disconnect();
                     }
                 }
