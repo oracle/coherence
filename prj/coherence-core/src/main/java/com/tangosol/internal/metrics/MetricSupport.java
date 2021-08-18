@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -243,7 +243,7 @@ public class MetricSupport
                         catch (Exception e)
                             {
                             CacheFactory.log("Caught exception removing metrics for "
-                                             + sMBeanName + " from " + adapter);
+                                             + sMBeanName + " from " + adapter + ": " + e.getLocalizedMessage());
                             }
                         }
                     }
@@ -291,7 +291,7 @@ public class MetricSupport
                     catch (Throwable t)
                         {
                         CacheFactory.log("Caught exception registering metric "
-                                + metric.getIdentifier() + " with " + adapter);
+                                + metric.getIdentifier() + " with " + adapter + ": " + t.getLocalizedMessage());
                         }
                     }
                 }
