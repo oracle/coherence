@@ -5318,6 +5318,21 @@ public abstract class ExternalizableHelper
      */
     public static final Binary[] EMPTY_BINARY_ARRAY = new Binary[0];
 
+    /**
+     * Maximum size of a packed long.
+     */
+    public static final int PACKED_LONG_SIZE = 10;
+
+    /**
+     * Maximum size of a packed int.
+     */
+    public static final int PACKED_INT_SIZE = 5;
+
+    /**
+     * Binary overhead.
+     */
+    public static final int BINARY_SIZE = 5;
+
 
     // ----- converters -----------------------------------------------------
 
