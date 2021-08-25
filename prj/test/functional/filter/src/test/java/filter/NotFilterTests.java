@@ -7,11 +7,18 @@
 package filter;
 
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
+import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
+
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 
 import com.tangosol.coherence.config.Config;
@@ -54,7 +61,7 @@ public class NotFilterTests
     @BeforeClass
     public static void setup() throws Exception
         {
-        ConfigurableCacheFactory ccf = s_clusterRunner.getSessionFor(SessionBuilders.storageDisabledMember());
+        ConfigurableCacheFactory ccf = s_clusterRunner.createSession(SessionBuilders.storageDisabledMember());
 
         s_filterOne   = new EqualsFilter<>(s_extractorOne, true);
         s_filterTwo   = new EqualsFilter<>(s_extractorTwo, true);
@@ -191,19 +198,19 @@ public class NotFilterTests
         Eventually.assertThat(invoking(s_cache).keySet(filter), containsInAnyOrder(0, 1, 6, 7));
         }
 
-    // COH-23847 - hack to set the required system property outside the bedrock
     static
         {
         System.setProperty("coherence.pof.enabled", "true");
         }
 
     @ClassRule
-    public static final CoherenceClusterOrchestration s_clusterRunner = new CoherenceClusterOrchestration()
-            .withOptions(CacheConfig.of("coherence-cache-config.xml"),
-                         Pof.enabled(),
-                         Pof.config("filter-pof-config.xml"),
-                         SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
-                             Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
+    public static final CoherenceClusterResource s_clusterRunner = new CoherenceClusterResource()
+            .include(2, LocalStorage.enabled())
+            .with(ClusterName.of(NotFilterTests.class.getSimpleName() + "Cluster"),
+                  Pof.enabled(),
+                  Pof.config("filter-pof-config.xml"),
+                  SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                                    Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     public static final ValueExtractor<DomainObject,Boolean> s_extractorOne   = DomainObject::isOne;
     public static final ValueExtractor<DomainObject,Boolean> s_extractorTwo   = DomainObject::isTwo;

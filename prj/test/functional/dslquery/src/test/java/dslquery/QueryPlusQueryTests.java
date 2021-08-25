@@ -6,10 +6,11 @@
  */
 package dslquery;
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
@@ -93,7 +94,7 @@ public class QueryPlusQueryTests
     public void startClusterAndPopulateData()
             throws Exception
         {
-        ConfigurableCacheFactory ccf = m_clusterRunner.getSessionFor(SessionBuilders.storageDisabledMember());
+        ConfigurableCacheFactory ccf = m_clusterRunner.createSession(SessionBuilders.storageDisabledMember());
 
         m_queryPlusRunner.setConfigurableCacheFactory(ccf);
 
@@ -410,8 +411,9 @@ public class QueryPlusQueryTests
      * JUnit rule to start a Coherence cluster of two storage nodes and a proxy node
      */
     @ClassRule
-    public static CoherenceClusterOrchestration m_clusterRunner   = new CoherenceClusterOrchestration()
-            .withOptions(CacheConfig.of(CACHE_CONFIG),
+    public static CoherenceClusterResource m_clusterRunner = new CoherenceClusterResource()
+            .include(2, LocalStorage.enabled())
+            .with(CacheConfig.of(CACHE_CONFIG),
                          Pof.config(POF_CONFIG),
                          Pof.enabled(),
                          SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));

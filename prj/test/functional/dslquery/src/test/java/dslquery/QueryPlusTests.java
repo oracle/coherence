@@ -8,10 +8,11 @@ package dslquery;
 
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 
 import com.tangosol.coherence.config.Config;
@@ -58,7 +59,7 @@ public class QueryPlusTests
     public void startClusterAndPopulateData()
             throws Exception
         {
-        m_ccf = m_clusterRunner.getSessionFor(SessionBuilders.storageDisabledMember());
+        m_ccf = m_clusterRunner.createSession(SessionBuilders.storageDisabledMember());
 
         m_queryPlusRunner.setConfigurableCacheFactory(m_ccf);
 
@@ -333,7 +334,6 @@ public class QueryPlusTests
     public static final String POF_CONFIG         = "dslquery-pof-config.xml";
     public static final String EMPTY_COHQL_PROMPT = "CohQL> ";
 
-    // COH-23847 - hack to set the required system property outside the bedrock
     static
         {
         System.setProperty("coherence.pof.enabled", "true");
@@ -341,12 +341,13 @@ public class QueryPlusTests
 
     /** JUnit rule to start a Coherence cluster of two storage nodes and a proxy node */
     @ClassRule
-    public static CoherenceClusterOrchestration m_clusterRunner   = new CoherenceClusterOrchestration()
-            .withOptions(CacheConfig.of(CACHE_CONFIG),
-                         Pof.config(POF_CONFIG),
-                         Pof.enabled(),
-                         SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
-                             Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
+    public static CoherenceClusterResource m_clusterRunner   = new CoherenceClusterResource()
+            .include(2, LocalStorage.enabled())    
+            .with(CacheConfig.of(CACHE_CONFIG),
+                  Pof.config(POF_CONFIG),
+                  Pof.enabled(),
+                  SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                  Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     /** JUnit rule to start a QueryPlus session */
     @ClassRule

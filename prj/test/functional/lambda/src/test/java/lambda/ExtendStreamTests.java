@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package lambda;
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.tangosol.net.ConfigurableCacheFactory;
@@ -35,7 +35,7 @@ public class ExtendStreamTests
         extends StreamTest
     {
     @ClassRule
-    public static CoherenceClusterOrchestration orchestration = new LambdaTestCluster();
+    public static CoherenceClusterResource cluster = new LambdaTestCluster();
 
     @Parameterized.Parameters(name = "serializer={0}, parallel={1}")
     public static Collection<Object[]> parameters()
@@ -58,7 +58,7 @@ public class ExtendStreamTests
 
     protected InvocableMap<String, Person> getPeopleMap()
         {
-        ConfigurableCacheFactory cacheFactory = orchestration.getSessionFor(
+        ConfigurableCacheFactory cacheFactory = cluster.createSession(
             SessionBuilders.extendClient("client-cache-config.xml"));
 
         InvocableMap<String, Person> map = cacheFactory.ensureTypedCache(

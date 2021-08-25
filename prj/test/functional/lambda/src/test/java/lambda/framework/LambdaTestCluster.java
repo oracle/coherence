@@ -6,9 +6,11 @@
  */
 package lambda.framework;
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.tangosol.coherence.config.Config;
@@ -20,21 +22,18 @@ import com.tangosol.internal.util.invoke.Lambdas;
  *
  * @author phfry 2017.05.22
  */
-public class LambdaTestCluster extends CoherenceClusterOrchestration
+public class LambdaTestCluster extends CoherenceClusterResource
     {
     public LambdaTestCluster()
         {
         super();
-        this.withOptions(SystemProperty.of("coherence.nameservice.address",
-                LocalPlatform.get().getLoopbackAddress().getHostAddress()))
-            .withOptions(LocalHost.only())
-            .withBuilderOptions(SystemProperty.of("coherence.lambdas",
-                                                  Config.getProperty("coherence.lambdas")),
-                                SystemProperty.of("coherence.mode",
-                                                  Config.getProperty("coherence.mode", "dev")))
-            .withOptions(SystemProperty.of("coherence.lambdas",
-                                           Config.getProperty("coherence.lambdas")),
-                         SystemProperty.of("coherence.mode",
-                                           Config.getProperty("coherence.mode", "dev")));
+        this.with(ClusterName.of(this.getClass().getSimpleName()),
+                  SystemProperty.of("coherence.nameservice.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
+                  LocalHost.only(),
+                  SystemProperty.of("coherence.lambdas", Config.getProperty("coherence.lambdas")),
+                  SystemProperty.of("coherence.mode", Config.getProperty("coherence.mode", "dev")),
+                  SystemProperty.of("coherence.extend.enabled", "true"),
+                  SystemProperty.of("coherence.clusterport", "7574"));
+        this.include(2, LocalStorage.enabled());
         }
     }

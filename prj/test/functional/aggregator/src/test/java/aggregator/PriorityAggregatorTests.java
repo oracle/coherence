@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,10 +8,12 @@
 package aggregator;
 
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
@@ -88,7 +90,7 @@ public class PriorityAggregatorTests
     @BeforeClass
     public static void setup()
         {
-        NamedCache cache = s_orchestration.getCluster().getCache("dist-test");
+        NamedCache cache = s_cluster.getCluster().getCache("dist-test");
 
         cache.put("Foo1", 19.0d);
         cache.put("Foo2", 19.0d);
@@ -97,7 +99,7 @@ public class PriorityAggregatorTests
     @Test
     public void shouldRunPriorityProcessorWithInvokeAllKeys() throws Exception
         {
-        ConfigurableCacheFactory ccf    = s_orchestration.getSessionFor(m_sessionBuilder);
+        ConfigurableCacheFactory ccf    = s_cluster.createSession(m_sessionBuilder);
         NamedCache               cache  = ccf.ensureCache("dist-test", null);
         String                   sKey   = "Foo1";
         Collection               keys   = Collections.singleton(sKey);
@@ -122,7 +124,7 @@ public class PriorityAggregatorTests
     @Test
     public void shouldRunPriorityProcessorWithInvokeAllFilter() throws Exception
         {
-        ConfigurableCacheFactory ccf    = s_orchestration.getSessionFor(m_sessionBuilder);
+        ConfigurableCacheFactory ccf    = s_cluster.createSession(m_sessionBuilder);
         NamedCache               cache  = ccf.ensureCache("dist-test", null);
         Filter                   filter = AlwaysFilter.INSTANCE;
 
@@ -170,10 +172,15 @@ public class PriorityAggregatorTests
     // ----- data members ---------------------------------------------------
 
     @ClassRule
-    public static CoherenceClusterOrchestration s_orchestration = new CoherenceClusterOrchestration()
-            .withOptions(Logging.at(9),
-                         CacheConfig.of("timeout-server-cache-config.xml"),
-                         SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
+    public static CoherenceClusterResource s_cluster = new CoherenceClusterResource()
+            .with(Logging.at(9),
+                  CacheConfig.of("timeout-server-cache-config.xml"),
+                  SystemProperty.of("coherence.localhost", "127.0.0.1"),
+                  SystemProperty.of("tangosol.coherence.extend.enabled", true),
+                  SystemProperty.of("tangosol.coherence.extend.port", LocalPlatform.get().getAvailablePorts().next()),
+                  SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                                    Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
+            .include(2, LocalStorage.enabled());
 
 
     private SessionBuilder m_sessionBuilder;

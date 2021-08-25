@@ -6,7 +6,7 @@
  */
 package remotable;
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
@@ -40,7 +40,7 @@ public class RemotableTests
         extends RemotableTest
     {
     @ClassRule
-    public static CoherenceClusterOrchestration orchestration = new LambdaTestCluster();
+    public static CoherenceClusterResource cluster = new LambdaTestCluster();
 
     public static SessionBuilder MEMBER = SessionBuilders.storageDisabledMember();
 
@@ -68,10 +68,10 @@ public class RemotableTests
 
     protected NamedCache<Integer, Trade> getCache()
         {
-        ConfigurableCacheFactory cacheFactory = orchestration.getSessionFor(
-                m_bldrSession);
+        ConfigurableCacheFactory cacheFactory = cluster.createSession(m_bldrSession);
 
-        NamedCache<Integer, Trade> cache = cacheFactory.ensureTypedCache(m_sSerializer, null, TypeAssertion.withTypes(Integer.class, Trade.class));
+        NamedCache<Integer, Trade> cache = cacheFactory.ensureTypedCache(m_sSerializer, null,
+                TypeAssertion.withTypes(Integer.class, Trade.class));
         cache.clear();
         return cache;
         }

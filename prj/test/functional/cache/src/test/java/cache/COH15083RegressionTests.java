@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,13 +7,14 @@
 package cache;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
-
+import com.oracle.bedrock.runtime.options.DisplayName;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.Lambdas;
@@ -81,7 +82,7 @@ public class COH15083RegressionTests
 
         try
             {
-            otherMember = orchestration.getCluster().get("storage-1");
+            otherMember = cluster.getCluster().get("storage-1");
 
             proxyCache = otherMember.getCache(sName);
             proxyCache.put(1, 1);
@@ -156,7 +157,7 @@ public class COH15083RegressionTests
         cache.addMapListener(listener);
 
         // update cache in another cache-server and be sure to observe update in local ClientListener.
-        otherMember = orchestration.getCluster().get("storage-1");
+        otherMember = cluster.getCluster().get("storage-1");
         NamedCache proxyCache = otherMember.getCache(sName);
         proxyCache.put(1, 1);
         Eventually.assertThat(invoking(cache).size(), is(1));
@@ -209,7 +210,7 @@ public class COH15083RegressionTests
         NamedCache             cache = getECCF().ensureCache(sName, null);
         CoherenceClusterMember otherMember;
 
-        otherMember = orchestration.getCluster().get("storage-1");
+        otherMember = cluster.getCluster().get("storage-1");
         NamedCache proxyCache = otherMember.getCache(sName);
         proxyCache.put(1, 1);
         Eventually.assertThat(invoking(cache).size(), is(1));
@@ -312,8 +313,8 @@ public class COH15083RegressionTests
         {
         if (m_eccf == null)
             {
-            m_eccf =(ExtensibleConfigurableCacheFactory) orchestration
-                    .getSessionFor(SessionBuilders.storageDisabledMember());
+            m_eccf =(ExtensibleConfigurableCacheFactory) cluster
+                    .createSession(SessionBuilders.storageDisabledMember());
             }
         return m_eccf;
         }
@@ -323,14 +324,14 @@ public class COH15083RegressionTests
     public static final int STORAGE_MEMBER_COUNT = 1;
 
     @ClassRule
-    public static CoherenceClusterOrchestration orchestration =
-            new CoherenceClusterOrchestration()
-                    .withOptions(ClusterName.of(COH15083RegressionTests.class.getSimpleName()),
-                                 SystemProperty.of("coherence.management", "all"),
-                                 JmxFeature.enabled(),
-                                 SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
-                                    Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
-                    .setStorageMemberCount(STORAGE_MEMBER_COUNT);
+    public static CoherenceClusterResource cluster =
+            new CoherenceClusterResource()
+                    .with(ClusterName.of(COH15083RegressionTests.class.getSimpleName()),
+                          SystemProperty.of("coherence.management", "all"),
+                          JmxFeature.enabled(),
+                          SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                                            Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
+                    .include(STORAGE_MEMBER_COUNT, DisplayName.of("storage"), LocalStorage.enabled());
 
     /**
      * A {@link ClassRule} to isolate system properties set between test class

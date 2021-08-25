@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,7 +7,7 @@
 package lambda;
 
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
@@ -37,7 +37,7 @@ public class DoubleStreamTests
         extends DoubleStreamTest
     {
     @ClassRule
-    public static CoherenceClusterOrchestration CLUSTER = new LambdaTestCluster();
+    public static CoherenceClusterResource CLUSTER = new LambdaTestCluster();
 
     public static SessionBuilder MEMBER = SessionBuilders.storageDisabledMember();
 
@@ -72,7 +72,7 @@ public class DoubleStreamTests
 
     protected InvocableMap<String, Person> getPeopleMap()
         {
-        ConfigurableCacheFactory client = CLUSTER.getSessionFor(m_bldrSession);
+        ConfigurableCacheFactory client = CLUSTER.createSession(m_bldrSession);
 
         InvocableMap<String, Person> map = client.ensureTypedCache(
                 m_sSerializer,

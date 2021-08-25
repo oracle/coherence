@@ -6,14 +6,14 @@
  */
 package repository;
 
-import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
+import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
-
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.coherence.repository.AbstractAsyncRepository;
@@ -56,13 +56,15 @@ import org.junit.runners.Parameterized;
 public class AsyncRepositoryTests
         extends AbstractAsyncRepositoryTest
     {
-    @SuppressWarnings("deprecation")
     @ClassRule
-    public static CoherenceClusterOrchestration orchestration = new CoherenceClusterOrchestration()
-            .withOptions(SystemProperty.of("coherence.nameservice.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()))
-            .withOptions(LocalHost.only())
-            .withOptions(SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
-                                           Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
+    public static CoherenceClusterResource cluster = new CoherenceClusterResource()
+            .include(2, LocalStorage.enabled())
+            .with(SystemProperty.of("coherence.nameservice.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
+                  LocalHost.only(),
+                  SystemProperty.of("coherence.extend.enabled", "true"),
+                  SystemProperty.of("coherence.clusterport", "7574"),
+                  SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                                    Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 
     public static SessionBuilder MEMBER = SessionBuilders.storageDisabledMember();
 
@@ -76,7 +78,7 @@ public class AsyncRepositoryTests
 
     public AsyncRepositoryTests(SessionBuilder bldrSession, String sSerializer)
         {
-        ConfigurableCacheFactory cacheFactory = orchestration.getSessionFor(bldrSession);
+        ConfigurableCacheFactory cacheFactory = cluster.createSession(bldrSession);
 
         NamedMap<String, Person> namedMap = cacheFactory.ensureCache(sSerializer, null);
         m_map = namedMap.async();
