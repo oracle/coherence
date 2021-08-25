@@ -4857,7 +4857,7 @@ public abstract class ConverterCollections
      * @param <T> the type that the elements should be converted to
      */
     public static class ConverterComparator<F, T>
-            implements Comparator<T>, Serializable
+            implements Comparator<T>
         {
         // ----- constructors -----------------------------------------------
 
