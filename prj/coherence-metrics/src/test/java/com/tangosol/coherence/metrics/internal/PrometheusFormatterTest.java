@@ -69,7 +69,7 @@ public class PrometheusFormatterTest
         new PrometheusFormatter(false, MetricsResource.Format.DotDelimited, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
-        String expected = "coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
+        String expected = "coherence.cluster.size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
         }
