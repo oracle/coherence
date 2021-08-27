@@ -161,15 +161,22 @@ public class MetricsResource
      */
     static Format defaultFormat()
         {
-        if (Config.getBoolean(PROP_USE_LEGACY_NAMES, true))
-            {
-            return Format.Legacy;
-            }
-        else if (Config.getBoolean(PROP_USE_MP_NAMES, false))
+        if (Config.getBoolean(PROP_USE_MP_NAMES, false))
             {
             return Format.Microprofile;
             }
-        return Format.DotDelimited;
+        else if (Config.getBoolean(PROP_USE_DOT_NAMES, false))
+            {
+            return Format.DotDelimited;
+            }
+        // Legacy names, whilst deprecated, are still the default until two releases after deprecation.
+        // Once we can switch to default names as the real default we can change the line below to use
+        // if (Config.getBoolean(PROP_USE_LEGACY_NAMES, false))
+        else if (Config.getBoolean(PROP_USE_LEGACY_NAMES, true))
+            {
+            return Format.Legacy;
+            }
+        return Format.Default;
         }
 
     private boolean useExtendedFormat(UriInfo uriInfo)
@@ -336,6 +343,8 @@ public class MetricsResource
                     sName = id.getMicroprofileName();
                     break;
                 case DotDelimited:
+                    sName = id.getFormattedName();//.replaceAll("\\.", "_");
+                    break;
                 default:
                     sName = id.getFormattedName().replaceAll("\\.", "_");
                 }
@@ -509,8 +518,12 @@ public class MetricsResource
     /**
      * An enum to represent the format to use for metric names and tag keys.
      */
-    enum Format
+    public enum Format
         {
+        /**
+         * Names will the default format without a scope, e.g. coherence_cluster_size
+         */
+        Default,
         /**
          * Names will be dot delimited without a scope, e.g. coherence.cluster.size
          */
@@ -542,8 +555,7 @@ public class MetricsResource
 
     /**
      * A system property that when true outputs metric names using Coherence legacy
-     * format and when false outputs Prometheus metrics with Microprofile 2.0
-     * compatible metric names.
+     * format.
      */
     public static final String PROP_USE_LEGACY_NAMES = "coherence.metrics.legacy.names";
 
@@ -552,6 +564,11 @@ public class MetricsResource
      * compatible metric names.
      */
     public static final String PROP_USE_MP_NAMES = "coherence.metrics.mp.names";
+
+    /**
+     * A system property that when true outputs metric names as dot delimited metric names.
+     */
+    public static final String PROP_USE_DOT_NAMES = "coherence.metrics.dot.names";
 
     // ----- data members ---------------------------------------------------
 
