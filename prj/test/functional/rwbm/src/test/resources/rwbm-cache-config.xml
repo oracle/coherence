@@ -35,7 +35,22 @@
       <scheme-name>distributed-rwbm-wb</scheme-name>
     </cache-mapping>
     <cache-mapping>
-      <cache-name>dist-rwbm-wb-bin</cache-name>
+      <cache-name>dist-rwbm-wb-expiry</cache-name>
+      <scheme-name>distributed-rwbm-wb</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>internal-cache-expiry</param-name>
+          <param-value>2</param-value>
+        </init-param>
+        <init-param>
+          <param-name>write-delay-seconds</param-name>
+          <param-value>2</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>
+dist-rwbm-wb-bin</cache-name>
       <scheme-name>distributed-rwbm-wb</scheme-name>
       <init-params>
         <init-param>
