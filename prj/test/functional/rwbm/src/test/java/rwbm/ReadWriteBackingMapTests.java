@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -745,6 +745,27 @@ public class ReadWriteBackingMapTests
             {
             throw ensureRuntimeException(e);
             }
+        }
+
+    /**
+     * Test that EvictionTask is scheduled so that expired entries are auto-evicted.
+     */
+    @Test
+    public void testInternalMapEviction()
+        {
+        NamedCache            cache       = getNamedCache("dist-rwbm-wb-expiry");
+        ReadWriteBackingMap   rwbm        = getReadWriteBackingMap(cache);
+        ConfigurableCacheMap  mapInternal = (ConfigurableCacheMap) rwbm.getInternalCache();
+        Map<Integer, Integer> map         = new HashMap<>();
+
+        for (int i = 0; i < 1000; i++)
+            {
+            map.put(i, i);
+            }
+
+        cache.putAll(map);
+
+        Eventually.assertThat(invoking(mapInternal).keySet().size(), is(0));
         }
 
     /**
