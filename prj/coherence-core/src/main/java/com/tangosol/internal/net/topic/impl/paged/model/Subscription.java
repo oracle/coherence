@@ -6,9 +6,6 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
-import com.oracle.coherence.common.base.Logger;
-import com.tangosol.internal.util.Primes;
-
 import com.tangosol.io.AbstractEvolvable;
 
 import com.tangosol.io.pof.EvolvablePortableObject;
@@ -26,13 +23,10 @@ import java.io.IOException;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import java.util.function.Function;
@@ -269,7 +263,7 @@ public class Subscription
 
         if (m_setSubscriber.add(nSubscriber))
             {
-            refresh(m_setSubscriber, cChannel, createRing(cChannel));
+            refresh(m_setSubscriber, cChannel);
             }
         }
 
@@ -290,7 +284,7 @@ public class Subscription
             {
             if (m_setSubscriber.remove(nSubscriber))
                 {
-                refresh(m_setSubscriber, cChannel, createRing(cChannel));
+                refresh(m_setSubscriber, cChannel);
                 }
             }
         else if (m_nOwningSubscriber == nSubscriber)
@@ -475,192 +469,67 @@ public class Subscription
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Returns the number of virtual subscribers for a given channel count.
-     * <p>
-     * Subscriber allocation uses consistent hashing to hash subscribers into
-     * a ring. In order to get better distribution additional virtual copies
-     * of each subscriber are also hashed into the ring.
-     *
-     * @param cChannel  the channel count
-     *
-     * @return the virtual subscriber count for the given channel count
-     */
-    private byte getReplicaCount(int cChannel)
-        {
-        return (byte) Math.min(Byte.MAX_VALUE, Primes.next(cChannel / 2));
-        }
-
-    /**
-     * Create the ring of subscriber hashes that will be used to allocate channels
-     * to subscribers.
-     * <p>
-     * Subscribers are added to the ring using consistent hashing, this gives the same
-     * layout of subscribers (and their virtual copies) in the ring and ensures that
-     * all members create the same channel allocation.
-     *
-     * @param cChannel  the channel count
-     *
-     * @return  a ring of hashes used to allocate subscribers to channels
-     */
-    private SortedMap<Integer, Long> createRing(int cChannel)
-        {
-        byte                     cReplica = getReplicaCount(cChannel);
-        SortedMap<Integer, Long> mapRing  = new TreeMap<>();
-        for (Long nId : m_setSubscriber)
-            {
-            byte[] abId = idToBytes(nId);
-            for (byte i = 0; i < cReplica; i++)
-                {
-                abId[0] = i;
-                mapRing.put(getSubscriberHash(abId, cChannel, cReplica), nId);
-                }
-            }
-        return mapRing;
-        }
-
-    /**
-     * Create the consistent hash of a subscriber identifier.
-     * <p>
-     * The hash is a position in the ring used to allocate channels to subscribers.
-     *
-     * @param abId      the subscriber identifier as a byte array
-     * @param cChannel  the channel count
-     * @param cReplica  the number of virtual copies of the subscriber
-     *
-     * @return Create the consistent hash of a subscriber identifier
-     */
-    private int getSubscriberHash(byte[] abId, int cChannel, byte cReplica)
-        {
-        return Math.abs(java.util.Arrays.hashCode(abId) % (cChannel * cReplica));
-        }
-
-    /**
-     * Convert the {@code long} subscriber identifier into its byte array representation.
-     *
-     * @param id  the subscriber identifier
-     *
-     * @return  the byte array representation of the {@code long} subscriber identifier
-     */
-    private byte[] idToBytes(long id)
-        {
-        byte[] abId = new byte[Long.BYTES + 1];
-        for (int i = Long.BYTES - 1; i >= 0; i--)
-            {
-            abId[i + 1] = (byte) (id & 0xFF);
-            id >>= Byte.SIZE;
-            }
-        return abId;
-        }
-
-    /**
      * Refresh the channel allocations.
      * <p>
-     * A consistent hashing algorithm is used to ensure that the same allocation is
-     * made across cluster members without needing central coordination.
-     * <p>
-     * The algorithm used will ensure that subscribers are allocated at least one channel, apart
-     * from where there are more subscribers than channels, in which case some subscribers will
-     * then be allocated zero channels.
-     * <p>
-     * The allocation is not guaranteed to be evenly balanced (although it should be close enough),
-     * some subscribers may have more or less channels than others, but where possible at least one.
+     * It is <b>vital</b> that this method always returns a consistent allocation for a given
+     * set of subscribers, regardless of the order that those subscribers were added.
      *
      * @param setSubscriber  the set of subscribers
      * @param cChannel       the number of channels to allocate
-     * @param mapRing        the consistent hash ring to use to allocate subscribers
      */
-    private void refresh(SortedSet<Long> setSubscriber, int cChannel, SortedMap<Integer, Long> mapRing)
+    private void refresh(SortedSet<Long> setSubscriber, int cChannel)
         {
-        byte                          cReplica   = getReplicaCount(cChannel);
-        long[]                        aChannel   = new long[cChannel];
-        Map<Long, SortedSet<Integer>> mapAlloc   = new HashMap<>();
-        SortedSet<Long>               setUnused  = new TreeSet<>(setSubscriber);
-        Map<Long,Integer>             mapUsed    = new HashMap<>();
+        long[] aChannel    = new long[cChannel];
+        int    cSubscriber = setSubscriber.size();
 
-        if (!mapRing.isEmpty())
+        if (cSubscriber == 0)
             {
-            for (int i = 0; i < (cChannel * cReplica); i += cReplica)
+            // we have no subscribers
+            Arrays.fill(aChannel, 0L);
+            }
+        else if (cSubscriber >= cChannel)
+            {
+            // we have more subscribers than channels (or an equal number)
+            // so give one channel to each subscriber starting at the beginning
+            // until we run out of channels
+            int nChannel = 0;
+            for (Long id : setSubscriber)
                 {
-                SortedMap<Integer, Long> mapTail = mapRing.tailMap(i);
-                Integer                  key     = mapTail.isEmpty() ? mapRing.firstKey() : mapTail.firstKey();
-                int                      nKey    = i / cReplica;
-                long                     nId     = mapRing.get(key);
-                setUnused.remove(nId);
-                mapUsed.compute(nId, (k, nUsage) -> nUsage == null ? 1 : nUsage + 1);
-                mapAlloc.compute(nId, (k, set) ->
+                aChannel[nChannel++] = id;
+                if (nChannel >= cChannel)
                     {
-                    if (set == null)
+                    break;
+                    }
+                }
+            }
+        else
+            {
+            // we have fewer subscribers than channels
+            int nChannel = 0;
+            int cAlloc   = cChannel / cSubscriber;  // channels per subscriber, rounded down
+
+            // allocate the required number of channels to the subscriber
+            for (Long id : setSubscriber)
+                {
+                for (int i = 0; i < cAlloc; i++)
+                    {
+                    aChannel[nChannel++] = id;
+                    }
+                }
+
+            // assign the remainder round-robin
+            if (nChannel < cChannel)
+                {
+                for (Long id : setSubscriber)
+                    {
+                    aChannel[nChannel++] = id;
+                    if (nChannel >= cChannel)
                         {
-                        set = new TreeSet<>();
+                        break;
                         }
-                    set.add(nKey);
-                    return set;
-                    });
-
-                aChannel[nKey] = nId;
+                    }
                 }
             }
-
-        while (mapUsed.size() < cChannel && !setUnused.isEmpty())
-            {
-            // we have unallocated subscribers and some subscribers with more than one allocation,
-            // we will try to allocate to any subscribers that did not get an allocation
-            //
-            // We do this by taking the lowest channel from the subscriber with the most channels
-            // in a loop until we have allocated to all subscribers. Where multiple subscribers
-            // have the most channels, the lowest channel is taken from the subscriber with the
-            // lowest identifier. We loop until all subscribers have channels or we run out of
-            // channels (i.e. there are more subscribers than channels).
-
-            long nId   = setUnused.first();
-            Long nTake = mapUsed.entrySet()
-                                .stream()
-                                .sorted((e1, e2) ->
-                                        {
-                                        int i = Integer.compare(e2.getValue(), e1.getValue());
-                                        if (i == 0)
-                                            {
-                                            return Long.compare(e1.getKey(), e2.getKey());
-                                            }
-                                        return i;
-                                        })
-                                .map(Map.Entry::getKey) // lowest subscriber with most allocations
-                                .findFirst()
-                                .orElse(-1L);
-
-            if (nTake == -1)
-                {
-                break;
-                }
-
-            Integer c   = mapAlloc.get(nTake).first();
-            aChannel[c] = nId;
-
-            mapUsed.compute(nId, (k, nUsage) -> nUsage == null ? 1 : nUsage + 1);
-            mapUsed.compute(nTake, (k, nUsage) -> nUsage == null ? 0 : nUsage - 1);
-
-            mapAlloc.compute(nId, (k, set) ->
-                {
-                if (set == null)
-                    {
-                    set = new TreeSet<>();
-                    }
-                set.add(c);
-                return set;
-                });
-
-            mapAlloc.compute(nTake, (k, set) ->
-                {
-                if (set == null)
-                    {
-                    set = new TreeSet<>();
-                    }
-                set.remove(c);
-                return set;
-                });
-            setUnused.remove(nId);
-            }
-
         m_aChannel = aChannel;
         }
 
