@@ -70,20 +70,43 @@ public class SubscriptionTest
         int          cChannel      = 17;
         Subscription subscription  = new Subscription();
         Set<Long>    setSubscriber = new TreeSet<>();
+        long[]       alExpected    = new long[cChannel];
+        int          n             = 0;
 
         for (long s = 1; s <= cChannel; s++)
             {
             subscription.addSubscriber(s, cChannel);
             setSubscriber.add(s);
+            alExpected[n++] = s;
             }
 
         assertThat(subscription.getSubscribers(), is(setSubscriber));
-        Set<Long> setAllocation = Arrays.stream(subscription.getChannelAllocations())
-                .boxed()
-                .collect(Collectors.toSet());
-
-        assertThat(setAllocation, is(setSubscriber));
+        assertThat(subscription.getChannelAllocations(), is(alExpected));
         }
+
+    @Test
+    public void shouldAllocateMoreSubscriberThanChannels()
+        {
+        int          cChannel      = 17;
+        Subscription subscription  = new Subscription();
+        Set<Long>    setSubscriber = new TreeSet<>();
+        long[]       alExpected    = new long[cChannel];
+        int          n             = 0;
+
+        for (long s = 1; s <= cChannel * 2; s++)
+            {
+            subscription.addSubscriber(s, cChannel);
+            setSubscriber.add(s);
+            if (n < cChannel)
+                {
+                alExpected[n++] = s;
+                }
+            }
+
+        assertThat(subscription.getSubscribers(), is(setSubscriber));
+        assertThat(subscription.getChannelAllocations(), is(alExpected));
+        }
+
 
     /**
      * This is one of the most important tests!!!
