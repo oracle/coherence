@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -59,7 +59,7 @@ import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 import org.glassfish.jersey.server.spi.ContainerResponseWriter;
 
 /**
- * Implementation of {@link HttpServer} that uses Sun's lightweight HTTP
+ * Implementation of {@link HttpServer} that uses Java's lightweight HTTP
  * server to handle requests.
  * <p>
  * This implementation is not recommended for production environments.
@@ -164,70 +164,13 @@ public class DefaultHttpServer
             HttpHandler handler = (HttpHandler) createContainer(entry.getValue());
             if (isAuthMethodBasic())
                 {
-                handler = new BasicAuthenticationHandler(handler);
+                handler = new BasicAuthenticationHandler(handler, this);
                 }
 
             server.createContext(entry.getKey(), handler);
             }
 
         return server;
-        }
-
-    // ----- inner class: BasicAuthenticationHandler ------------------------
-
-    /**
-     * HTTP basic authenticator.
-     */
-    private class BasicAuthenticationHandler
-            implements HttpHandler
-        {
-
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Construct BasicAuthenticationHandler instance.
-         *
-         * @param handler  request handler to delegate to
-         */
-        public BasicAuthenticationHandler(HttpHandler handler)
-            {
-            m_handler = handler;
-            }
-
-        // ----- HttpHandler methods ----------------------------------------
-
-        /**
-         * Authenticate user based on the credentials specified in the
-         * Authorization request header and delegate request processing to
-         * wrapped HttpHandler if authentication is successful.
-         *
-         * @param exchange  HTTP exchange for the request
-         *
-         * @throws IOException  if an error occurs
-         */
-        public void handle(final HttpExchange exchange)
-                throws IOException
-            {
-            String  sAuth   = exchange.getRequestHeaders().getFirst(HEADER_AUTHORIZATION);
-            Subject subject = authenticate(sAuth);
-            if (subject == null)
-                {
-                exchange.getResponseHeaders().set(HEADER_WWW_AUTHENTICATE, DEFAULT_BASIC_AUTH_HEADER_VALUE);
-                exchange.sendResponseHeaders(401, -1);
-                }
-            else
-                {
-                exchange.setAttribute(ATTR_SUBJECT, subject);
-                m_handler.handle(exchange);
-                }
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * Request handler to delegate to when authentication is successful.
-         */
-        protected final HttpHandler m_handler;
         }
 
     // ----- inner class: HttpServerContainer -------------------------------

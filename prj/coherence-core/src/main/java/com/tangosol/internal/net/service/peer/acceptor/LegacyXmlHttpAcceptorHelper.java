@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,13 +7,14 @@
 package com.tangosol.internal.net.service.peer.acceptor;
 
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
+
 import com.tangosol.coherence.http.HttpServer;
+import com.tangosol.coherence.http.GenericHttpServer;
+
 import com.tangosol.net.OperationalContext;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
-
-import com.tangosol.util.Base;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,7 +44,7 @@ public class LegacyXmlHttpAcceptorHelper
      *
      * @return the DefaultHttpAcceptorDependencies object that was passed in
      */
-    @SuppressWarnings({ })
+    @SuppressWarnings({"rawtypes"})
     public static DefaultHttpAcceptorDependencies fromXml(XmlElement xml,
             DefaultHttpAcceptorDependencies deps, OperationalContext ctx, ClassLoader loader)
         {
@@ -53,14 +54,16 @@ public class LegacyXmlHttpAcceptorHelper
         XmlElement xmlAcceptor = xml.getSafeElement("http-acceptor");
 
         // <class-name> <init-params>
+        GenericHttpServer<?> httpServer;
         if (XmlHelper.isInstanceConfigEmpty(xmlAcceptor))
             {
-            deps.setHttpServer(HttpServer.create());
+            httpServer = HttpServer.create();
             }
         else
             {
-            deps.setHttpServer(XmlHelper.createInstance(xmlAcceptor, loader, null, HttpServer.class));
+            httpServer = (GenericHttpServer) XmlHelper.createInstance(xmlAcceptor, loader, null, GenericHttpServer.class);
             }
+        deps.setHttpServer(httpServer);
 
         // <socket-provider/>
         deps.setSocketProviderBuilder(new SocketProviderBuilder(ctx.getSocketProviderFactory().getSocketProvider(
@@ -78,7 +81,8 @@ public class LegacyXmlHttpAcceptorHelper
         deps.setLocalPort(nPort);
 
         // <resource-config>
-        Map<String, Object> mapConfig = new HashMap<String, Object>();
+        Class<?>            clsResourceConfig = httpServer.getResourceType();
+        Map<String, Object> mapConfig         = new HashMap<String, Object>();
         for (Iterator iter = xmlAcceptor.getElements("resource-config"); iter.hasNext(); )
             {
             XmlElement xmlConfig = (XmlElement) iter.next();
@@ -90,22 +94,14 @@ public class LegacyXmlHttpAcceptorHelper
                 }
 
             String sContext = xmlConfig.getSafeElement("context-path").getString(null);
-            try
+            Object oResourceConfig = XmlHelper.createInstance(xmlConfig, loader, null, clsResourceConfig);
+            if (sContext == null)
                 {
-                Object oResourceConfig = XmlHelper.createInstance(xmlConfig, loader, null,
-                                                    Class.forName("org.glassfish.jersey.server.ResourceConfig"));
-                if (sContext == null)
-                    {
-                    ApplicationPath path = oResourceConfig.getClass().getAnnotation(ApplicationPath.class);
-                    sContext = path == null ? "/" : path.value();
-                    }
+                ApplicationPath path = oResourceConfig.getClass().getAnnotation(ApplicationPath.class);
+                sContext = path == null ? "/" : path.value();
+                }
 
-                mapConfig.put(sContext, oResourceConfig);
-                }
-            catch (ClassNotFoundException e)
-                {
-                throw Base.ensureRuntimeException(e);
-                }
+            mapConfig.put(sContext, oResourceConfig);
             }
 
         if (mapConfig.isEmpty())

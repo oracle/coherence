@@ -1,22 +1,27 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.coherence.metrics.internal;
+package com.tangosol.internal.metrics;
 
 
-import com.tangosol.coherence.metrics.internal.MetricsResource.JsonFormatter;
+import com.tangosol.internal.metrics.MetricsHttpHandler.JsonFormatter;
+
 import com.tangosol.net.metrics.MBeanMetric;
+
 import java.io.IOException;
 import java.io.StringWriter;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.junit.Test;
 
 import static com.tangosol.net.metrics.MBeanMetric.Scope.VENDOR;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 

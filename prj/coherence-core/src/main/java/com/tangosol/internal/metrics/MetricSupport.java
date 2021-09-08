@@ -8,8 +8,10 @@ package com.tangosol.internal.metrics;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.discovery.Discovery;
 
+import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Member;
@@ -128,6 +130,12 @@ public class MetricSupport
         this(supplier, () ->
             {
             List<MetricsRegistryAdapter> list = new ArrayList<>();
+
+            if (Config.getBoolean(MetricsHttpHelper.PROP_METRICS_ENABLED, false))
+                {
+                // add the default Coherence metrics registry
+                list.add(new DefaultMetricRegistry.Adapter());
+                }
 
             ClassLoader[] classLoaders = new ClassLoader[]
                 {

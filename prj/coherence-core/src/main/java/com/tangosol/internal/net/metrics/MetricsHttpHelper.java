@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,8 +12,6 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.grid.LegacyXmlProxyServiceHelper;
 import com.tangosol.internal.net.service.grid.ProxyServiceDependencies;
-
-import com.tangosol.internal.net.service.peer.acceptor.HttpAcceptorDependencies;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
@@ -47,7 +45,7 @@ public abstract class MetricsHttpHelper
      *
      * @return the Metrics over HTTP URL
      *
-     * @throws MalformedURLException
+     * @throws MalformedURLException if the composed URL is invalid
      */
     public static URL composeURL(String sHost, int nPort)
             throws MalformedURLException
@@ -65,7 +63,7 @@ public abstract class MetricsHttpHelper
      *
      * @return the Metrics over HTTP/HTTPS URL
      *
-     * @throws MalformedURLException
+     * @throws MalformedURLException if the composed URL is invalid
      */
     public static URL composeURL(String sHost, int nPort, String sProtocol)
             throws MalformedURLException
@@ -82,14 +80,15 @@ public abstract class MetricsHttpHelper
      */
     public static ProxyServiceDependencies getDependencies(OperationalContext ctx)
         {
-        URL urlConfig = Base.getContextClassLoader().getResource("metrics-http-config.xml");
+        ClassLoader loader = Base.getContextClassLoader();
+        URL         urlConfig = loader.getResource(METRICS_CONFIG);
         if (urlConfig == null)
             {
-            throw new IllegalStateException("Unable to locate metrics-http-config.xml that should be resolvable from the coherence-metrics module on the class path.");
+            throw new IllegalStateException("Unable to locate " + METRICS_CONFIG);
             }
-        XmlElement xml = XmlHelper.loadXml(urlConfig);
+        XmlElement  xml       = XmlHelper.loadXml(urlConfig);
         XmlHelper.replaceSystemProperties(xml, "system-property");
-        return LegacyXmlProxyServiceHelper.fromXml(xml, new DefaultProxyServiceDependencies(), ctx, Base.getContextClassLoader());
+        return LegacyXmlProxyServiceHelper.fromXml(xml, new DefaultProxyServiceDependencies(), ctx, loader);
         }
 
     /**
@@ -103,33 +102,10 @@ public abstract class MetricsHttpHelper
         }
 
     /**
-     * Whether this Coherence node is capable of running the Metrics over HTTP service.
-     *
-     * @return whether this Coherence node is capable of running the Metrics over HTTP service
-     */
-    public static boolean isHttpCapable()
-        {
-        try
-            {
-            // coherence-rest
-            Base.getContextClassLoader().loadClass("com.tangosol.coherence.metrics.internal.MetricsResourceConfig");
-            }
-        catch (Throwable t)
-            {
-            // don't bother logging the stack trace as having a stack trace in the logs can be alarming to administrators
-            Logger.finest("One or more libraries are missing for Metrics over HTTP: " + t);
-
-            return false;
-            }
-
-        return true;
-        }
-
-    /**
      * When pre-conditions are met, ensure start {@link MetricsHttpHelper#getServiceName() MetricsHttpService}.
      * <p>
-     * Pre-conditions for starting service include {@link #PROP_METRICS_ENABLED} set to "true", management being enabled for this member, not "none", and
-     * implementation of MetricsHttpService in classpath.
+     * Pre-conditions for starting service include {@link #PROP_METRICS_ENABLED} set to "true",
+     * management being enabled for this member.
      *
      * @param mapServices  add started MetricsHttpService to this map if it is started.
      */
@@ -147,46 +123,14 @@ public abstract class MetricsHttpHelper
             else
                 {
                 // start metrics service
-                if (MetricsHttpHelper.isHttpCapable())
-                    {
-                    ProxyServiceDependencies deps = MetricsHttpHelper.getDependencies((OperationalContext) cluster);
+                ProxyServiceDependencies deps = MetricsHttpHelper.getDependencies((OperationalContext) cluster);
 
-                    // start the Metrics HTTP acceptor
-                    try
-                        {
-                        ProxyService service = (ProxyService) cluster.ensureService(MetricsHttpHelper.getServiceName(), ProxyService.TYPE_DEFAULT);
-                        service.setDependencies(deps);
-                        service.start();
-                        mapServices.put(service, MetricsHttpHelper.getServiceName());
-
-                        return;
-                        }
-                    catch (Throwable t)
-                        {
-                        Throwable tOriginal = t instanceof RuntimeException ? Base.getOriginalException((RuntimeException) t) : t;
-                        Throwable tCause    = tOriginal.getCause() == null ? tOriginal : tOriginal.getCause();
-
-                        if (tCause instanceof ClassNotFoundException)
-                            {
-                            Logger.err("Metrics over HTTP is not available most likely due to this member missing "
-                                + "the necessary libraries to run the service. Handled exception: " + tCause.getClass().getSimpleName() + ": " + tCause.getLocalizedMessage());
-                            return;
-                            }
-                        else
-                            {
-                            // could be IOException for address in use or SecurityException or IllegalArgumentException for Configuration Errors
-                            HttpAcceptorDependencies depsHttpAcceptor = (HttpAcceptorDependencies) deps.getAcceptorDependencies();
-
-                            Logger.err("failed to start service " + MetricsHttpHelper.getServiceName() + " at address " + depsHttpAcceptor.getLocalAddress() + ":" +
-                                depsHttpAcceptor.getLocalPort() + " due to " + tCause.getClass().getSimpleName() + " : " + Base.getDeepMessage(tCause, ":"));
-                            return;
-                            }
-                        }
-                    }
-                else
-                    {
-                    Logger.err("Metrics over HTTP is not available most likely due to missing the necessary libraries to run the service ");
-                    }
+                // start the Metrics HTTP acceptor
+                ProxyService service = (ProxyService)
+                        cluster.ensureService(MetricsHttpHelper.getServiceName(), ProxyService.TYPE_DEFAULT);
+                service.setDependencies(deps);
+                service.start();
+                mapServices.put(service, MetricsHttpHelper.getServiceName());
                 }
             }
         }
@@ -200,6 +144,11 @@ public abstract class MetricsHttpHelper
      * is {@code false}.
      */
     public static final String PROP_METRICS_ENABLED = "coherence.metrics.http.enabled";
+
+    /**
+     * The name of the metrics configuration file.
+     */
+    public static final String METRICS_CONFIG = "metrics-http-config.xml";
 
     /**
      * Default Prometheus Metrics HTTP port.

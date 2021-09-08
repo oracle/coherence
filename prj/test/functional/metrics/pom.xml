@@ -32,11 +32,10 @@
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-metrics</artifactId>
+      <artifactId>coherence</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
       <artifactId>http</artifactId>
@@ -44,19 +43,25 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-rest</artifactId>
-      <type>test-jar</type>
-      <version>${project.version}</version>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
       <scope>test</scope>
-    </dependency>
+     </dependency>
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <!-- exclude reference to older version than ${jackson.version} -->
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
+
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
@@ -105,6 +110,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
+        <version>${maven.antrun.plugin.version}</version>
         <executions>
           <execution>
             <id>gencerts</id>

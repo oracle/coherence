@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.tangosol.coherence.config.builder.InstanceBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.coherence.http.HttpServer;
+import com.tangosol.coherence.http.GenericHttpServer;
 
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.xml.ElementProcessor;
@@ -42,6 +43,7 @@ public class HttpAcceptorDependenciesProcessor
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public HttpAcceptorDependencies process(ProcessingContext context, XmlElement xmlElement)
             throws ConfigurationException
@@ -52,19 +54,20 @@ public class HttpAcceptorDependenciesProcessor
         // resolve the HTTP server
         ParameterizedBuilder<?> bldr = ElementProcessorHelper.processParameterizedBuilder(context, xmlElement);
 
+        GenericHttpServer httpServer;
         if (bldr == null)
             {
             // no builder has been specified, so let's use a default server
-            dependencies.setHttpServer(HttpServer.create());
+            httpServer = HttpServer.create();
             }
         else
             {
             try
                 {
-                ParameterizedBuilder<Object> bldrHttpServer = (ParameterizedBuilder<Object>) bldr;
+                ParameterizedBuilder<GenericHttpServer> bldrHttpServer = (ParameterizedBuilder<GenericHttpServer>) bldr;
 
-                dependencies.setHttpServer(bldrHttpServer.realize(context.getDefaultParameterResolver(),
-                    context.getContextClassLoader(), null));
+                httpServer = bldrHttpServer.realize(context.getDefaultParameterResolver(),
+                        context.getContextClassLoader(), null);
                 }
             catch (ClassCastException e)
                 {
@@ -75,8 +78,10 @@ public class HttpAcceptorDependenciesProcessor
                 }
             }
 
+        dependencies.setHttpServer(httpServer);
+
         // process each of the <resource-config> definitions
-        Map<String, Object> mapConfig = new HashMap<String, Object>();
+        Map<String, Object> mapConfig = new HashMap<>();
 
         for (Iterator iter = xmlElement.getElements("resource-config"); iter.hasNext(); )
             {
@@ -92,19 +97,16 @@ public class HttpAcceptorDependenciesProcessor
                     new InstanceBuilder<>("com.tangosol.coherence.rest.server.DefaultResourceConfig");
                 }
 
+            Class<?> clzResource = httpServer.getResourceType();
             try
                 {
-                // Backporting note: the following referenced Jersey class is Jersey 2.x.  In Jersey 1.x,
-                // the same class is in different package: com.sun.jersey.api.core.ResourceConfig.
-                // At this time 12.1.3 is still using Jersey 1.x and 12.2.1 is using Jersey 2.x.
-                Class<?> jerseyClz =
-                    context.getContextClassLoader().loadClass("org.glassfish.jersey.server.ResourceConfig");
                 Object oResourceConfig = bldrResourceConfig.realize(context.getDefaultParameterResolver(),
                                              context.getContextClassLoader(), null);
 
-                if (!jerseyClz.isAssignableFrom(oResourceConfig.getClass()))
+                if (!clzResource.isAssignableFrom(oResourceConfig.getClass()))
                     {
-                    throw new IllegalArgumentException("<resource-config> is not an instance of " + jerseyClz.getCanonicalName());
+                    throw new IllegalArgumentException("<resource-config> is not an instance of "
+                            + clzResource.getCanonicalName());
                     }
 
                 if (sContextPath == null)
@@ -114,7 +116,6 @@ public class HttpAcceptorDependenciesProcessor
                     }
 
                 mapConfig.put(sContextPath, oResourceConfig);
-
                 }
             catch (Exception e)
                 {

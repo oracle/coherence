@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <!--
   ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
   ~
@@ -12,6 +11,7 @@ Proxy scheme configuration descriptor for the MetricsHttpProxy used by Coherence
   <service-name>MetricsHttpProxy</service-name>
   <acceptor-config>
     <http-acceptor>
+      <class-name>com.tangosol.coherence.http.JavaHttpServer</class-name>
       <socket-provider system-property="coherence.metrics.http.provider"/>
       <local-address>
         <address system-property="coherence.metrics.http.address"/>
@@ -20,7 +20,7 @@ Proxy scheme configuration descriptor for the MetricsHttpProxy used by Coherence
       <resource-config>
         <context-path>/metrics</context-path>
         <instance>
-          <class-name>com.tangosol.coherence.metrics.internal.MetricsResourceConfig</class-name>
+          <class-name>com.tangosol.internal.metrics.MetricsHttpHandler</class-name>
         </instance>
       </resource-config>
       <auth-method system-property="coherence.metrics.http.auth"/>
