@@ -652,10 +652,7 @@ public class DefaultCacheServer
 
         try
             {
-            if (MetricsHttpHelper.isHttpCapable())
-                {
-                MetricsHttpHelper.ensureMetricsService(mapServices);
-                }
+            MetricsHttpHelper.ensureMetricsService(mapServices);
             }
         catch (Exception e)
             {

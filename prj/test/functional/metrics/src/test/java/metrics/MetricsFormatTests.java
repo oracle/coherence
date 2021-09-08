@@ -13,7 +13,7 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.util.Capture;
-import com.tangosol.coherence.metrics.internal.MetricsResource;
+import com.tangosol.internal.metrics.MetricsHttpHandler;
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,15 +48,15 @@ public class MetricsFormatTests
         ArrayList<Object[]> parameters = new ArrayList<>();
 
         // Run Coherence with no metrics format configured - i.e. use whatever is the current default
-        parameters.add(new Object[]{"None Specified", "foo", false, MetricsResource.Format.Legacy});
+        parameters.add(new Object[]{"None Specified", "foo", false, MetricsHttpHandler.Format.Legacy});
         // Run Coherence with the default metrics format configured
-        parameters.add(new Object[]{"Default", MetricsResource.PROP_USE_LEGACY_NAMES, false, MetricsResource.Format.Default});
+        parameters.add(new Object[]{"Default", MetricsHttpHandler.PROP_USE_LEGACY_NAMES, false, MetricsHttpHandler.Format.Default});
         // Run Coherence with the legacy metrics format configured
-        parameters.add(new Object[]{"Legacy", MetricsResource.PROP_USE_LEGACY_NAMES, true, MetricsResource.Format.Legacy});
+        parameters.add(new Object[]{"Legacy", MetricsHttpHandler.PROP_USE_LEGACY_NAMES, true, MetricsHttpHandler.Format.Legacy});
         // Run Coherence with the MP metrics format configured
-        parameters.add(new Object[]{"MP", MetricsResource.PROP_USE_MP_NAMES, true, MetricsResource.Format.Microprofile});
+        parameters.add(new Object[]{"MP", MetricsHttpHandler.PROP_USE_MP_NAMES, true, MetricsHttpHandler.Format.Microprofile});
         // Run Coherence with the dot delimited metrics format configured
-        parameters.add(new Object[]{"Dot Delimited", MetricsResource.PROP_USE_DOT_NAMES, true, MetricsResource.Format.DotDelimited});
+        parameters.add(new Object[]{"Dot Delimited", MetricsHttpHandler.PROP_USE_DOT_NAMES, true, MetricsHttpHandler.Format.DotDelimited});
 
         return parameters;
         }
@@ -71,7 +71,7 @@ public class MetricsFormatTests
      * @param fValue     the value to set the system property to
      * @param format     the expected metrics format
      */
-    public MetricsFormatTests(String sFormat, String sProperty, boolean fValue, MetricsResource.Format format)
+    public MetricsFormatTests(String sFormat, String sProperty, boolean fValue, MetricsHttpHandler.Format format)
         {
         f_sFormat        = sFormat;
         f_sProperty      = sProperty;
@@ -153,5 +153,5 @@ public class MetricsFormatTests
     /**
      * The expected metrics format.
      */
-    private final MetricsResource.Format f_format;
+    private final MetricsHttpHandler.Format f_format;
     }

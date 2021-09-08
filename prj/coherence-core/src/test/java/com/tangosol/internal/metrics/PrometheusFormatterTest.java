@@ -4,19 +4,20 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.coherence.metrics.internal;
+package com.tangosol.internal.metrics;
 
 
-import com.tangosol.coherence.metrics.internal.MetricsResource.PrometheusFormatter;
-import com.tangosol.internal.metrics.MetricSupport;
+import com.tangosol.internal.metrics.MetricsHttpHandler.PrometheusFormatter;
+
 import com.tangosol.net.metrics.MBeanMetric;
+
 import java.io.IOException;
 import java.io.StringWriter;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
+
 import org.junit.Test;
 
 import static com.tangosol.net.metrics.MBeanMetric.Scope.VENDOR;
@@ -38,7 +39,7 @@ public class PrometheusFormatterTest
         MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", tags(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
 
-        new PrometheusFormatter(false, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+        new PrometheusFormatter(false, MetricsHttpHandler.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
         String expected = "vendor:coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
@@ -52,7 +53,7 @@ public class PrometheusFormatterTest
         MBeanMetric  metric = new TestMetric(VENDOR, "Coherence.ClusterSize", tags(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
 
-        new PrometheusFormatter(false, MetricsResource.Format.Microprofile, Collections.singletonList(metric))
+        new PrometheusFormatter(false, MetricsHttpHandler.Format.Microprofile, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
         String expected = "vendor_Coherence_ClusterSize{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
@@ -66,7 +67,7 @@ public class PrometheusFormatterTest
         MBeanMetric  metric = new TestMetric(VENDOR, "Coherence.ClusterSize", tags(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
 
-        new PrometheusFormatter(false, MetricsResource.Format.DotDelimited, Collections.singletonList(metric))
+        new PrometheusFormatter(false, MetricsHttpHandler.Format.DotDelimited, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
         String expected = "coherence.cluster.size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
@@ -80,7 +81,7 @@ public class PrometheusFormatterTest
         MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", tags(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
 
-        new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+        new PrometheusFormatter(true, MetricsHttpHandler.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
         String expected = "# TYPE vendor:coherence_cluster_size gauge\n"
@@ -96,7 +97,7 @@ public class PrometheusFormatterTest
         MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
 
-        new PrometheusFormatter(false, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+        new PrometheusFormatter(false, MetricsHttpHandler.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
         String expected = "vendor:coherence_cluster_size 3\n";
@@ -110,7 +111,7 @@ public class PrometheusFormatterTest
         MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), "Cluster size", 3);
         StringWriter writer = new StringWriter();
 
-        new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+        new PrometheusFormatter(true, MetricsHttpHandler.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
         String expected = "# TYPE vendor:coherence_cluster_size gauge\n"
@@ -126,7 +127,7 @@ public class PrometheusFormatterTest
         MBeanMetric  metric = new TestMetric(VENDOR, "coherence.clusterSize", Collections.emptyMap(), null, 3);
         StringWriter writer = new StringWriter();
 
-        new PrometheusFormatter(true, MetricsResource.Format.Legacy, Collections.singletonList(metric))
+        new PrometheusFormatter(true, MetricsHttpHandler.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
         String expected = "# TYPE vendor:coherence_cluster_size gauge\n"

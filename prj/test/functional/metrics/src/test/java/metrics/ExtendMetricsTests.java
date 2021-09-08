@@ -14,6 +14,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
+import com.tangosol.internal.metrics.DefaultMetricRegistry;
 import com.tangosol.internal.net.cluster.DefaultMemberIdentity;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
@@ -27,19 +28,13 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.InvocationService;
 
-import com.tangosol.util.InvocableMap;
-import com.tangosol.util.UUID;
-
 import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +50,9 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.tangosol.internal.net.metrics.MetricsHttpHelper.PROP_METRICS_ENABLED;
 import static org.hamcrest.CoreMatchers.is;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-
-import static org.junit.Assert.assertThat;
 
 /**
  * Regression test for COH-22257:
@@ -69,7 +63,7 @@ import static org.junit.Assert.assertThat;
  * @author jf  2018.07.03
  * @since 12.2.1.4.0
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ExtendMetricsTests
     extends AbstractMetricsFunctionalTest
     {
@@ -152,8 +146,8 @@ public class ExtendMetricsTests
         props.put("coherence.distributed.localstorage", "false");
         props.put("coherence.member", "ExtendMetricsTestsProxy");
 
-        s_proxyMember = startCacheServer("ExtendMetricsTestsProxy", "metrics", FILE_SERVER_CFG_CACHE, props);
-        Eventually.assertThat(invoking(s_proxyMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
+        CoherenceClusterMember proxyMember = startCacheServer("ExtendMetricsTestsProxy", "metrics", FILE_SERVER_CFG_CACHE, props);
+        Eventually.assertThat(invoking(proxyMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
         }
 
     /**
@@ -315,10 +309,10 @@ public class ExtendMetricsTests
         {
         InvocationService    service = (InvocationService)CacheFactory.getService("ExtendTcpInvocationService");
         Map<Member, Integer> map     = service.query(new MetricsAgent(), null);
-        Integer              count   = (Integer) map.values().iterator().next();
+        Integer              count   = map.values().iterator().next();
 
         assertThat(map.size(), is(1));
-        assertThat("assert less than or equal to 2 Connection metric in proxy server", count.intValue(), lessThanOrEqualTo(2));
+        assertThat("assert less than or equal to 2 Connection metric in proxy server", count, lessThanOrEqualTo(2));
 
         // ensure only connection in proxy is one for cache so cache metric assertions are correct
         ((SafeService) service).getService().stop();
@@ -332,73 +326,12 @@ public class ExtendMetricsTests
         {
         public void run()
             {
-            List<String> list = com.tangosol.coherence.metrics.internal.DefaultMetricRegistry.getRegistry().stream().
+            List<String> list = DefaultMetricRegistry.getRegistry().stream().
                 filter(e -> e.getKey().toString().contains("Connection.TotalMessagesReceived")).
                 map(e -> "Key: " + e.getKey() + " Value:" + e.getValue()).
                 collect(Collectors.toList());
             setResult(list.size());
             }
-        }
-
-    private static InvocableMap.EntryProcessor<String, String, Void> upperCase()
-        {
-        return entry ->
-            {
-            String s = entry.getValue();
-
-            s.toUpperCase();
-            entry.setValue(s);
-            return null;
-            };
-        }
-
-    private void addData(NamedCache cache, int dataSize, int count, int offset)  throws InterruptedException
-        {
-        String data = getData(dataSize);
-
-        // make UUID the string from ram and flash so it keeps growing
-        boolean isRamOrFlash = cache.getCacheName().startsWith("ram") || cache.getCacheName().startsWith("flash");
-
-        Map map = new HashMap();
-        for (int i = 0; i < count; i++)
-            {
-            Object key = isRamOrFlash ? new UUID().toString() : Integer.valueOf(offset + i).toString();
-            map.put(key, data);
-            cache.get(key);
-             }
-        cache.putAll(map);
-        Thread.sleep(500);
-
-        for (int i = 0; i < count; i++)
-            {
-            cache.get(Integer.valueOf(offset + i).toString());
-            Thread.sleep(50);
-            }
-
-        System.err.println("Cache size for " + cache.getCacheName() + " is: " + cache.size());
-        }
-
-    private void removeData(NamedCache cache, int count, int offset)  throws InterruptedException
-        {
-        int size = cache.size();
-        // randomize the removes a bit so we get some variation in data
-        int realCount = (s_random.nextInt(count)) / 2 + 2;
-        System.err.println("Removing " + realCount + " entries from " + cache.getCacheName());
-        for (int i = 0; i < realCount; i++)
-            {
-            cache.remove(s_random.nextInt(size + 2) + offset);
-            Thread.sleep(50);
-            }
-        System.err.println("After Delete: Cache size for " + cache.getCacheName() + " is: " + cache.size());
-        }
-
-    private String getData(int dataSize) {
-        byte[] data = new byte[dataSize];
-        for (int i =0; i < dataSize; i++)
-            {
-            data[i] = 'X';
-            }
-        return new String(data);
         }
 
     /**
@@ -461,7 +394,7 @@ public class ExtendMetricsTests
     /**
      * The file name of the default cache configuration file used by this test.
      */
-    private static String FILE_SERVER_CFG_CACHE = "proxy-server-cache-config-metrics.xml";
+    private static final String FILE_SERVER_CFG_CACHE = "proxy-server-cache-config-metrics.xml";
 
     /**
      * Number of cache servers in cluster
@@ -471,12 +404,10 @@ public class ExtendMetricsTests
     /**
      * Prometheus port for each cache server by index starting at 1.
      */
-    private static int[]   cacheServerMetricsPorts = new int[N_SERVERS+2];
+    private static final int[] cacheServerMetricsPorts = new int[N_SERVERS+2];
     
     private static File   fileActiveDir;
     private static File   fileSnapshotDir;
     private static File   fileArchiveDir;
-    private static Random s_random = new Random();
-
-    private static CoherenceClusterMember s_proxyMember = null;
+    private static final Random s_random = new Random();
     }
