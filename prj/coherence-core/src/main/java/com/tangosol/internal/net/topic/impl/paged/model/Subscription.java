@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.io.AbstractEvolvable;
 
 import com.tangosol.io.pof.EvolvablePortableObject;
@@ -21,8 +22,11 @@ import com.tangosol.util.ValueExtractor;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -30,6 +34,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Subscriber group data for a particular cache partition.
@@ -272,12 +277,14 @@ public class Subscription
      *
      * @param nSubscriber  the unique identifier of the subscriber to remove
      * @param cChannel     the number of channels to distribute across the subscribers
+     *
+     * @return {@code true} if the subscriber had been allocated channels and was removed
      */
-    public synchronized void removeSubscriber(long nSubscriber, int cChannel)
+    public synchronized boolean removeSubscriber(long nSubscriber, int cChannel)
         {
         if (nSubscriber == 0)
             {
-            return;
+            return false;
             }
 
         if (m_setSubscriber != null)
@@ -285,12 +292,16 @@ public class Subscription
             if (m_setSubscriber.remove(nSubscriber))
                 {
                 refresh(m_setSubscriber, cChannel);
+                return true;
                 }
             }
         else if (m_nOwningSubscriber == nSubscriber)
             {
             m_nOwningSubscriber = 0;
+            return true;
             }
+
+        return false;
         }
 
     /**
@@ -323,7 +334,24 @@ public class Subscription
      */
     public String getAllocations()
         {
-        return Arrays.toString(m_aChannel);
+        Map<Long, List<Integer>> map = new HashMap<>();
+        long[]             alChannel = m_aChannel;
+        for (int i = 0; i < alChannel.length; i++)
+            {
+            if (alChannel[i] != 0)
+                {
+                map.computeIfAbsent(alChannel[i], k -> new ArrayList<>()).add(i);
+                }
+            }
+
+        if (map.isEmpty())
+            {
+            return "[all channels unallocated]";
+            }
+
+        return map.entrySet().stream()
+                .map(e -> e.getValue() + "=" + e.getKey() + "/" + PagedTopicSubscriber.memberIdFromId(e.getKey()))
+                .collect(Collectors.joining(", "));
         }
 
     /**

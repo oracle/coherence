@@ -48,6 +48,7 @@ import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
+import com.tangosol.net.partition.PartitionEvent;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
@@ -2657,9 +2658,18 @@ public class PagedTopicSubscriber<V>
                 String             sTopicName     = PagedTopicCaches.Names.getTopicName(event.getCacheName());
                 String             sSubscriptions = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
 
-                Logger.fine(String.format(
-                        "Subscriber expired after %d ms - groupId=%s, memberId=%d, notificationId=%d, last heartbeat at %s",
-                        info.getTimeoutMillis(), groupId, memberIdFromId(nId), notificationIdFromId(nId), info.getLastHeartbeat()));
+                if (event.getEntry().isSynthetic())
+                    {
+                    Logger.fine(String.format(
+                            "Subscriber expired after %d ms - groupId='%s', memberId=%d, notificationId=%d, last heartbeat at %s",
+                            info.getTimeoutMillis(), groupId.getGroupName(), memberIdFromId(nId), notificationIdFromId(nId), info.getLastHeartbeat()));
+                    }
+                else
+                    {
+                    Logger.fine(String.format(
+                            "Subscriber %d in group '%s' removed due to departure of member %d",
+                            nId, groupId.getGroupName(), memberIdFromId(nId)));
+                    }
 
                 notifyClosed(event.getService().ensureCache(sSubscriptions, null), groupId, nId);
                 }

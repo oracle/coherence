@@ -6,6 +6,7 @@
  */
 package com.tangosol.coherence.config.xml.processor;
 
+import com.tangosol.coherence.config.builder.InstanceBuilder;
 import com.tangosol.coherence.config.scheme.BackingMapScheme;
 import com.tangosol.coherence.config.scheme.CachingScheme;
 import com.tangosol.coherence.config.scheme.PagedTopicScheme;
@@ -17,11 +18,9 @@ import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
 
-import com.tangosol.internal.net.service.DefaultServiceDependencies;
 import com.tangosol.internal.net.service.grid.DefaultPartitionedCacheDependencies;
-import com.tangosol.internal.net.service.grid.PartitionedCacheDependencies;
 
-import com.tangosol.io.DefaultSerializer;
+import com.tangosol.internal.net.topic.impl.paged.SubscriberCleanupListener;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 import com.tangosol.io.pof.PofContext;
@@ -30,6 +29,8 @@ import com.tangosol.io.pof.SafeConfigurablePofContext;
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.ExternalizableHelper;
+
+import java.util.Collections;
 
 /**
  * An {@link ElementProcessor} that parses a &lt;paged-topic-scheme&gt; element;
@@ -55,10 +56,10 @@ public class PagedTopicSchemeProcessor
     public PagedTopicScheme process(ProcessingContext context, XmlElement element)
             throws ConfigurationException
         {
-        PagedTopicScheme             scheme     = super.process(context, element);
-        PartitionedCacheDependencies deps       = new DefaultPartitionedCacheDependencies(scheme.getServiceDependencies());
-        final SerializerFactory      factory    = deps.getSerializerFactory();
-        SerializerFactory            factoryPof = new SerializerFactory()
+        PagedTopicScheme                    scheme     = super.process(context, element);
+        DefaultPartitionedCacheDependencies deps       = new DefaultPartitionedCacheDependencies(scheme.getServiceDependencies());
+        final SerializerFactory             factory    = deps.getSerializerFactory();
+        SerializerFactory                   factoryPof = new SerializerFactory()
             {
             @Override
             public Serializer createSerializer(ClassLoader loader)
@@ -79,9 +80,13 @@ public class PagedTopicSchemeProcessor
                 }
             };
 
+
+        deps.setMemberListenerBuilders(Collections.singletonList(new InstanceBuilder<>(SubscriberCleanupListener.class)));
+        deps.setPartitionListenerBuilders(Collections.singletonList(new InstanceBuilder<>(SubscriberCleanupListener.class)));
+
         // Ensure POF serializer since topic data model and processors are EvolvablePortableObject.
         // Application payload published to topic is serialized using serializer specified in cache configuration.
-        ((DefaultServiceDependencies) deps).setSerializerFactory(factoryPof);
+        deps.setSerializerFactory(factoryPof);
         scheme.setServiceDependencies(deps);
 
         CachingScheme    schemeStorage    = scheme.getStorageScheme(context.getDefaultParameterResolver());

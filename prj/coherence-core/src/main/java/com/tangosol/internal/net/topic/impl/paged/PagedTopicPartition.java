@@ -1148,13 +1148,14 @@ public class PagedTopicPartition
                     {
                     int cChannel     = getChannelCount();
                     subscriptionZero = subscription;
-                    subscriptionZero.removeSubscriber(nSubscriberId, cChannel);
-                    if (fSyncPartition)
+                    boolean fRemoved = subscriptionZero.removeSubscriber(nSubscriberId, cChannel);
+                    if (fSyncPartition && fRemoved)
                         {
                         // we only log the update for the sync partition
                         // (no need to repeat the same message for every partition)
-                        Logger.fine(String.format("Removed subscriber %d in group %s allocations %s",
-                                nSubscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
+                        Logger.fine(String.format("Removed subscriber %d, member=%d from group '%s', remaining allocations %s",
+                                nSubscriberId, PagedTopicSubscriber.memberIdFromId(nSubscriberId),
+                                subscriberGroupId.getGroupName(), subscriptionZero.getAllocations()));
                         }
                     entrySub.setValue(subscription);
                     }
