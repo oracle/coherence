@@ -8,6 +8,7 @@ package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.base.Converter;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.collections.Arrays;
 
 import com.oracle.coherence.common.util.Duration;
@@ -846,8 +847,8 @@ public class PagedTopicPartition
     /**
      * Ensure the subscription within a partition
      *
-     * @param subscriberGroupId  the subscriber group id
-     * @param processor          the {@link EnsureSubscriptionProcessor} containing the subscription attributes
+     * @param key        the subscription key
+     * @param processor  the {@link EnsureSubscriptionProcessor} containing the subscription attributes
      *
      * @return for INQUIRE we return the currently pinned page, or null if unpinned
      *         for PIN we return the pinned page, or tail if the partition is empty and the former tail is known,
@@ -855,7 +856,7 @@ public class PagedTopicPartition
      *         for ADVANCE we return the pinned page
      */
     @SuppressWarnings("unchecked")
-    public long[] ensureSubscription(SubscriberGroupId subscriberGroupId, EnsureSubscriptionProcessor processor)
+    public long[] ensureSubscription(Subscription.Key key, EnsureSubscriptionProcessor processor)
         {
         int                     nPhase                   = processor.getPhase();
         long[]                  alSubscriptionHeadGlobal = processor.getPages();
@@ -866,9 +867,12 @@ public class PagedTopicPartition
         boolean                 fCreateGroupOnly         = processor.isCreateGroupOnly();
         BackingMapContext       ctxSubscriptions         = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
         PagedTopic.Dependencies dependencies             = getDependencies();
+        SubscriberGroupId       subscriberGroupId        = key.getGroupId();
         boolean                 fAnonymous               = subscriberGroupId.getMemberTimestamp() != 0;
         long[]                  alResult                 = new long[getChannelCount()];
-
+        int                     cParts                   = getPartitionCount();
+        int                     nSyncPartition           = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
+        boolean                 fSyncPartition           = key.getPartitionId() == nSyncPartition;
 
         if (fCreateGroupOnly)
             {
@@ -1070,6 +1074,14 @@ public class PagedTopicPartition
                             {
                             // this is a new subscriber and is not an anonymous subscriber (nSubscriberId != 0)
                             subscriptionZero.addSubscriber(nSubscriberId, getChannelCount());
+                            if (fSyncPartition)
+                                {
+                                // we only log the update for the sync partition
+                                // (no need to repeat the same message for every partition)
+                                Logger.fine(String.format("Added subscriber %d in group %s allocations %s",
+                                        nSubscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
+                                }
+
                             fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
                             }
                         }
@@ -1106,16 +1118,19 @@ public class PagedTopicPartition
      * Close a subscription for a specific subscriber in a subscriber group
      * <p>
      * This will trigger a reallocation of channels across any remaining subscribers in the same group.
-     *
-     * @param subscriberGroupId the subscriber group id
-     * @param nSubscriberId     the unique subscriber identifier
+     * @param key            the subscribtion key
+     * @param nSubscriberId  the unique subscriber identifier
      *
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public void closeSubscription(SubscriberGroupId subscriberGroupId, long nSubscriberId)
+    public void closeSubscription(Subscription.Key key, long nSubscriberId)
         {
-        BackingMapContext ctxSubscriptions = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
-        long[]            alResult         = new long[getChannelCount()];
+        BackingMapContext ctxSubscriptions  = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
+        long[]            alResult          = new long[getChannelCount()];
+        SubscriberGroupId subscriberGroupId = key.getGroupId();
+        int               cParts            = getPartitionCount();
+        int               nSyncPartition    = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
+        boolean           fSyncPartition    = key.getPartitionId() == nSyncPartition;
 
         Subscription subscriptionZero = null;
 
@@ -1133,7 +1148,15 @@ public class PagedTopicPartition
                     {
                     int cChannel     = getChannelCount();
                     subscriptionZero = subscription;
-                    subscriptionZero.removeSubscriber(nSubscriberId, cChannel);
+                    boolean fRemoved = subscriptionZero.removeSubscriber(nSubscriberId, cChannel);
+                    if (fSyncPartition && fRemoved)
+                        {
+                        // we only log the update for the sync partition
+                        // (no need to repeat the same message for every partition)
+                        Logger.fine(String.format("Removed subscriber %d, member=%d from group '%s', remaining allocations %s",
+                                nSubscriberId, PagedTopicSubscriber.memberIdFromId(nSubscriberId),
+                                subscriberGroupId.getGroupName(), subscriptionZero.getAllocations()));
+                        }
                     entrySub.setValue(subscription);
                     }
 

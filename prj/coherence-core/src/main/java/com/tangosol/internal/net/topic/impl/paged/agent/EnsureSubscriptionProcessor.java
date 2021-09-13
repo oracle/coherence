@@ -82,7 +82,7 @@ public class EnsureSubscriptionProcessor
         {
         try
             {
-            long[] alPage = ensureTopic(entry).ensureSubscription(entry.getKey().getGroupId(), this);
+            long[] alPage = ensureTopic(entry).ensureSubscription(entry.getKey(), this);
             return new Result(alPage, null);
             }
         catch (Throwable thrown)
