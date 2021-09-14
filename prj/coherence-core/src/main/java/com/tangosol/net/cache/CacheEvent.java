@@ -135,7 +135,7 @@ public class CacheEvent<K, V>
         {
         return super.shouldDispatch(listener) &&
                 (!isPriming() || 
-                 MapListenerSupport.isPrimingListener(listener) ||
+                 MapListenerSupport.isPrimingListener(listener) && !isVersionUpdate() ||
                  listener.isVersionAware());
         }
 
@@ -161,6 +161,18 @@ public class CacheEvent<K, V>
     public boolean isPriming()
         {
         return m_fPriming;
+        }
+
+    /**
+    *  Return true iff this event is caused by a synthetic version update sent
+    *  by the server to notify clients of the current version.
+    *
+    * @return true iff this event is caused by a synthetic version update
+    */
+    public boolean isVersionUpdate()
+        {
+        return isSynthetic() && isPriming() && isUpdate() &&
+                m_key == null && m_valueNew == null && m_valueOld == null;
         }
 
     /**

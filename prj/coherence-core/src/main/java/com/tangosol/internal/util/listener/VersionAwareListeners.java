@@ -9,6 +9,8 @@ package com.tangosol.internal.util.listener;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.PartitionedService;
 
+import com.tangosol.net.cache.CacheEvent;
+
 import com.tangosol.net.partition.DefaultVersionedPartitions;
 import com.tangosol.net.partition.VersionAwareMapListener;
 import com.tangosol.net.partition.VersionedPartitions;
@@ -304,7 +306,13 @@ public class VersionAwareListeners
                 // process the event
                 try
                     {
-                    delegate.accept(event);
+                    // detect a version update and set future expectations
+                    // accordingly, but do not delegate to the user map listener
+                    if (!(event instanceof CacheEvent &&
+                            ((CacheEvent<K, V>) event).isVersionUpdate()))
+                        {
+                        delegate.accept(event);
+                        }
                     }
                 finally
                     {
@@ -360,34 +368,44 @@ public class VersionAwareListeners
          */
         protected void removeProcessed(int iPart, long lEventVersion)
             {
-            long lExpectedVersion     = lEventVersion + 1;
-            long lExpectedPartVersion = encodePartitionVersion(iPart, lExpectedVersion);
+            // Note: if the partition slice had no mutations the server will
+            //       return VAML.ALL as the event version; this allows re-registration
+            //       to request all versions if an event is not received prior
+            //       to disconnect
+            long lExpectedVersion = lEventVersion >= 0
+                    ? lEventVersion + 1
+                    : lEventVersion;
 
-            synchronized (f_laProcessedEvents)
+            if (lExpectedVersion > 0)
                 {
-                long    lMinPartVersion = f_laProcessedEvents.ceilingIndex(encodePartitionVersion(iPart, 0L));
-                boolean fWrap           = lMinPartVersion < lExpectedPartVersion;
-                for (LongArray.Iterator iter = f_laProcessedEvents.iterator(lExpectedPartVersion); iter.hasNext(); )
+                long lExpectedPartVersion = encodePartitionVersion(iPart, lExpectedVersion);
+
+                synchronized (f_laProcessedEvents)
                     {
-                    iter.next();
-
-                    long    lPartVersion = iter.getIndex();
-                    boolean fPartsMatch  = decodePartition(lPartVersion) == iPart;
-                    if (lPartVersion != lExpectedPartVersion || !fPartsMatch)
+                    long    lMinPartVersion = f_laProcessedEvents.ceilingIndex(encodePartitionVersion(iPart, 0L));
+                    boolean fWrap           = lMinPartVersion < lExpectedPartVersion;
+                    for (LongArray.Iterator iter = f_laProcessedEvents.iterator(lExpectedPartVersion); iter.hasNext(); )
                         {
-                        if (!fWrap || fPartsMatch)
-                            {
-                            break;
-                            }
+                        iter.next();
 
-                        iter                 = f_laProcessedEvents.iterator(lMinPartVersion);
-                        lExpectedPartVersion = lMinPartVersion;
-                        fWrap                = false;
+                        long    lPartVersion = iter.getIndex();
+                        boolean fPartsMatch  = decodePartition(lPartVersion) == iPart;
+                        if (lPartVersion != lExpectedPartVersion || !fPartsMatch)
+                            {
+                            if (!fWrap || fPartsMatch)
+                                {
+                                break;
+                                }
+
+                            iter                 = f_laProcessedEvents.iterator(lMinPartVersion);
+                            lExpectedPartVersion = lMinPartVersion;
+                            fWrap                = false;
+                            }
+                        //else
+                        iter.remove();
+                        lExpectedPartVersion++;
+                        lExpectedVersion++; // increment the non truncated version
                         }
-                    //else
-                    iter.remove();
-                    lExpectedPartVersion++;
-                    lExpectedVersion++; // increment the non truncated version
                     }
                 }
 

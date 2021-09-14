@@ -4184,6 +4184,13 @@ public abstract class ConverterCollections
             return m_event.getVersion();
             }
 
+        @Override
+        public boolean isVersionUpdate()
+            {
+            return m_event instanceof CacheEvent &&
+                    ((CacheEvent) m_event).isVersionUpdate();
+            }
+
         // ----- accessors --------------------------------------------------
 
         /**

@@ -18,6 +18,8 @@ import com.tangosol.net.partition.VersionedPartitions.VersionedIterator;
 import com.tangosol.util.filter.InKeySetFilter;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -406,10 +408,10 @@ public class MapListenerSupport
         }
 
     /**
-     * Return the number of listeners registered.
-     *
-     * @return the number of listeners registered
-     */
+    * Return the number of listeners registered.
+    *
+    * @return the number of listeners registered
+    */
     @SuppressWarnings("unchecked")
     public int getListenerCount()
         {
@@ -605,10 +607,10 @@ public class MapListenerSupport
                                     }
                                 else
                                     {
-                                    EventListener[] alistenerCur = listeners.listeners();
-                                    int cListenersCur  = alistenerCur.length;
-                                    int cListenersPrev = alistenerPrev.length;
-                                    boolean fOptimize  = cListenersCur == cListenersPrev;
+                                    EventListener[] alistenerCur   = listeners.listeners();
+                                    int             cListenersCur  = alistenerCur.length;
+                                    int             cListenersPrev = alistenerPrev.length;
+                                    boolean         fOptimize      = cListenersCur == cListenersPrev;
                                     if (fOptimize)
                                         {
                                         for (int i = 0; i < cListenersCur; ++i)
@@ -666,7 +668,7 @@ public class MapListenerSupport
                     return m_listenersCached;
 
                 case PLAN_KEY_LISTENER:
-                    return m_mapKeyListeners.containsKey(event.getKey())
+                    return m_mapKeyListeners.containsKey(event.getKey()) || isVersionUpdate(event)
                             ? m_listenersCached
                             : NO_LISTENERS;
 
@@ -743,13 +745,15 @@ public class MapListenerSupport
         Map mapKeyListeners = m_mapKeyListeners;
         if (mapKeyListeners != null && !isTransformedEvent(event))
             {
-            Listeners lsnrs = (Listeners) mapKeyListeners.get(event.getKey());
-            if (lsnrs != null)
+            Collection<Listeners> colListeners = isVersionUpdate(event)
+                    ? mapKeyListeners.values()
+                    : Collections.singleton((Listeners) mapKeyListeners.get(event.getKey()));
+
+            for (Listeners lsnrs : colListeners)
                 {
                 listeners.addAll(lsnrs);
                 }
             }
-
         return listeners;
         }
 
@@ -769,14 +773,14 @@ public class MapListenerSupport
         }
 
     /**
-     * Return the minimum {@link VersionedPartitions versions} for the provided
-     * {@link Filter}.
-     *
-     * @param filter  the filter the listeners were registered with
-     *
-     * @return the minimum {@link VersionedPartitions versions} for the provided
-     *         {@link Filter}
-     */
+    * Return the minimum {@link VersionedPartitions versions} for the provided
+    * {@link Filter}.
+    *
+    * @param filter  the filter the listeners were registered with
+    *
+    * @return the minimum {@link VersionedPartitions versions} for the provided
+    *         {@link Filter}
+    */
     public VersionedPartitions getMinVersions(Filter filter)
         {
         Listeners listeners = getListeners(filter);
@@ -786,14 +790,14 @@ public class MapListenerSupport
         }
 
     /**
-     * Return the minimum {@link VersionedPartitions versions} for the provided
-     * key.
-     *
-     * @param oKey  the key the listeners were registered with
-     *
-     * @return the minimum {@link VersionedPartitions versions} for the provided
-     *         key
-     */
+    * Return the minimum {@link VersionedPartitions versions} for the provided
+    * key.
+    *
+    * @param oKey  the key the listeners were registered with
+    *
+    * @return the minimum {@link VersionedPartitions versions} for the provided
+    *         key
+    */
     public VersionedPartitions getMinVersions(Object oKey)
         {
         Listeners listeners = getListeners(oKey);
@@ -871,15 +875,15 @@ public class MapListenerSupport
         }
 
     /**
-     * Return the inner MapListener skipping any wrapper listeners.
-     *
-     * @param listener  the listener to check against
-     *
-     * @param <K> key type for the map
-     * @param <V> value type for the map
-     *
-     * @return the inner MapListener skipping any wrapper listeners
-     */
+    * Return the inner MapListener skipping any wrapper listeners.
+    *
+    * @param listener  the listener to check against
+    *
+    * @param <K> key type for the map
+    * @param <V> value type for the map
+    *
+    * @return the inner MapListener skipping any wrapper listeners
+    */
     public static <K, V> MapListener<K, V> unwrap(MapListener<K, V> listener)
         {
         while (listener instanceof WrapperListener)
@@ -920,15 +924,33 @@ public class MapListenerSupport
     // ----- internal helpers -----------------------------------------------
 
     /**
-     * Return true if the provided listener is version aware.
-     *
-     * @param listener  the listener to check
-     *
-     * @return true if the provided listener is version aware
-     */
+    * Return true if the provided listener is version aware.
+    *
+    * @param listener  the listener to check
+    *
+    * @return true if the provided listener is version aware
+    */
     protected boolean isVersionAware(MapListener listener)
         {
         return listener.isVersionAware();
+        }
+
+    /**
+    * Return true if the provided MapEvent is due to a synthetic version
+    * update.
+    *
+    * @param event  the event to test
+    *
+    * @return true if the provided MapEvent is due to a synthetic version
+    *         update
+    */
+    protected boolean isVersionUpdate(MapEvent event)
+        {
+        if (!(event instanceof CacheEvent))
+            {
+            return false;
+            }
+        return ((CacheEvent<?, ?>) event).isVersionUpdate();
         }
 
     /**
@@ -1069,14 +1091,14 @@ public class MapListenerSupport
         }
 
     /**
-     * Return the minimum versions received for all partitions for the provided
-     * listeners.
-     *
-     * @param aListeners  the listeners to interrogate
-     *
-     * @return the minimum versions received for all partitions for the provided
-     *         listeners
-     */
+    * Return the minimum versions received for all partitions for the provided
+    * listeners.
+    *
+    * @param aListeners  the listeners to interrogate
+    *
+    * @return the minimum versions received for all partitions for the provided
+    *         listeners
+    */
     protected static VersionedPartitions getMinVersions(EventListener[] aListeners)
         {
         VersionedPartitions versionsMin = null;
@@ -1094,15 +1116,15 @@ public class MapListenerSupport
         }
 
     /**
-     * Return the minimum versions for the provided two partition versioned
-     * data structures.
-     *
-     * @param versionsLHS  the first partition versioned object
-     * @param versionsRHS  the second partition versioned object
-     *
-     * @return the minimum versions for the provided two partition versioned
-     *         data structures
-     */
+    * Return the minimum versions for the provided two partition versioned
+    * data structures.
+    *
+    * @param versionsLHS  the first partition versioned object
+    * @param versionsRHS  the second partition versioned object
+    *
+    * @return the minimum versions for the provided two partition versioned
+    *         data structures
+    */
     protected static VersionedPartitions min(VersionedPartitions versionsLHS, VersionedPartitions versionsRHS)
         {
         if (versionsLHS == null || versionsRHS == null || versionsLHS.equals(versionsRHS))
@@ -1128,12 +1150,12 @@ public class MapListenerSupport
         }
 
     /**
-     * Return a minimum version for the provided listeners.
-     *
-     * @param aListeners  the listeners to interrogate
-     *                    
-     * @return a minimum version for the provided listeners
-     */
+    * Return a minimum version for the provided listeners.
+    *
+    * @param aListeners  the listeners to interrogate
+    *
+    * @return a minimum version for the provided listeners
+    */
     protected static long getMinVersion(EventListener[] aListeners)
         {
         long lMinVersion = 0L;
@@ -1502,10 +1524,10 @@ public class MapListenerSupport
             }
 
         /**
-         * Return the underlying MapListener.
-         *
-         * @return the underlying MapListener
-         */
+        * Return the underlying MapListener.
+        *
+        * @return the underlying MapListener
+        */
         public MapListener<K, V> getMapListener()
             {
             return f_listener;

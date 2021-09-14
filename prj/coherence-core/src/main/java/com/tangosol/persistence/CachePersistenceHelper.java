@@ -1442,7 +1442,9 @@ public class CachePersistenceHelper
             @Override
             public ReadBuffer visitFromKey()
                 {
-                return convKeyDown.convert(lVersion);
+                return lVersion == VersionAwareMapListener.ALL
+                    ? null
+                    : convKeyDown.convert(lVersion);
                 }
             };
         }
@@ -1501,7 +1503,9 @@ public class CachePersistenceHelper
             @Override
             public ReadBuffer visitFromKey()
                 {
-                return convKeyDown.convert(lVersion);
+                return lVersion == VersionAwareMapListener.ALL
+                    ? null
+                    : convKeyDown.convert(lVersion);
                 }
             };
         }
