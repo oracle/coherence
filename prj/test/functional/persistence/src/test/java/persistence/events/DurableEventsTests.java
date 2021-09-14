@@ -32,7 +32,11 @@ import com.tangosol.util.Filters;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
+
 import com.tangosol.util.filter.MapEventFilter;
+
+import com.tangosol.util.function.Remote.Function;
+
 import com.tangosol.util.listener.SimpleMapListener;
 
 import common.AbstractFunctionalTest;
@@ -299,6 +303,88 @@ public class DurableEventsTests
 
             //
             Eventually.assertDeferred(listEvents::size, is(2 * 5 * 10));
+            }
+        finally
+            {
+            cache.truncate(); // committed to all members
+            cache.destroy();  // sent to the senior synchronously
+            }
+        }
+
+    /**
+     * A test case that ensures events for partitions that occurred during
+     * disconnect, however had no events before the disconnect, are received.
+     */
+    @Test
+    public void testFilterClientWithMutePartition()
+        {
+        assumeThat(s_listServerNames.size(), greaterThanOrEqualTo(1));
+
+        final String CACHE_NAME = "bar";
+
+        NamedMap<Integer, Integer> cache = getNamedCache(CACHE_NAME);
+        try
+            {
+            List<MapEvent> listEvents = Collections.synchronizedList(new ArrayList<>());
+
+            MapListener<Integer, Integer> listener = new SimpleMapListener<Integer, Integer>()
+                    .addEventHandler(listEvents::add)
+                    .versioned();
+
+            cache.addMapListener(listener, new MapEventFilter<>(MapEventFilter.E_ALL,
+                    Filters.greaterEqual(ValueExtractor.identity(), 10)), false);
+
+            CoherenceClusterMember member = findServer();
+
+            Function<Integer, Integer> functionToPartition = ((PartitionedService) cache.getService()).
+                    getKeyPartitioningStrategy()::getKeyPartition;
+
+            int[] anKeys = new int[] {10, 11};
+            int   iPart1 = functionToPartition.apply(anKeys[0]);
+            while (functionToPartition.apply(anKeys[1]) == iPart1)
+                {
+                anKeys[1]++;
+                }
+
+            // insert 5 versions of the same entry on a remote node
+            member.invoke(() ->
+                {
+                NamedMap<Integer, Integer> cacheFoo = CacheFactory.getCache(CACHE_NAME);
+
+                // update nKey1 5 times
+                for (int i = 1; i <= 5; i++)
+                    {
+                    cacheFoo.put(anKeys[0], anKeys[0]);
+                    }
+                return null;
+                });
+            Eventually.assertDeferred(listEvents::size, is(5));
+
+            // cause disconnect
+            causeServiceDisruption(cache);
+
+            // insert 5 more versions of the same entry on a remote node
+            member.invoke(() ->
+                {
+                NamedMap<Integer, Integer> cacheFoo = CacheFactory.getCache(CACHE_NAME);
+
+                // update anKeys 5 times
+                for (int i = 1; i <= 5; i++)
+                    {
+                    for (int j = 0, c = anKeys.length; j < c; ++j)
+                        {
+                        cacheFoo.put(anKeys[j], anKeys[j]);
+                        }
+                    }
+                return null;
+                });
+
+            // invoke an operation on cache that will result in the cache being
+            // restarted and the listener being re-registered
+            assertEquals(anKeys.length, cache.size());
+
+            // 5 updates for key 1 followed by 5 updates to key 1 and 2
+            Eventually.assertDeferred(listEvents::size, is(3 * 5));
             }
         finally
             {
