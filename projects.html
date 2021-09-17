@@ -4,7 +4,7 @@
 <!--[if gt IE 9]><!-->	<html> <!--<![endif]-->
 	<head>
 		<meta charset="utf-8" />
-		<title>Coherence Community: Examples</title>
+		<title>Coherence Community: Projects</title>
 		<meta name="keywords" content="HTML5,CSS3,Template" />
 		<meta name="description" content="Oracle Coherence Examples" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -102,17 +102,20 @@
 									<li>
 										<a href="index.html#quickstart">Quick Start</a>
 									</li>
-									<li class="active">
-										<a href="#">Examples</a>
-									</li>
 									<li>
-										<a href="projects.html">Projects</a>
+										<a href="examples.html">Examples</a>
+									</li>
+
+									<li class="active">
+										<a href="#">Projects</a>
 									</li>
 									<li class="dropdown">
 										<a class="dropdown-toggle" href="#">Documentation</a>
 										<ul class="dropdown-menu">
-											<li><a href="latest/21.06/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 21.06 Documentation</a></li>
-                                            <li><a href="latest/14.1.1.0/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 14.1.1 Documentation</a></li>
+											<li><a href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html" target="_blank"><i class="fa fa-external-link"></i> Official Documentation (all editions)</a></li>
+											<li class="divider"></li>
+											<li><a href="14.1.1.0/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 14.1.1 Documentation</a></li>
+											<li><a href="20.06/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 20.06 Documentation</a></li>
 										</ul>
 									</li>
 									<li>
@@ -133,7 +136,6 @@
 
 			</header>
 
-
 			<!-- REVOLUTION SLIDER -->
 			<div class="slider fullwidthbanner-container roundedcorners">
 				<div class="fullwidthbanner" data-height="650">
@@ -150,7 +152,7 @@
 								data-y="300"
 								data-speed="300"
 								data-start="500"
-								data-easing="easeOutExpo">PREFER TO LEARN FROM
+								data-easing="easeOutExpo">DISCOVER COHERENCE RELATED
 							</div>
 
 							<div class="tp-caption large_bold_white sft stb"
@@ -158,7 +160,7 @@
 								data-y="323"
 								data-speed="300"
 								data-start="1000"
-								data-easing="easeOutExpo">EXAMPLES?
+								data-easing="easeOutExpo">PROJECTS
 							</div>
 
 							   <div class="tp-caption lfl stl medium_light_white"
@@ -166,14 +168,14 @@
 								   data-y="80"
 								   data-speed="3000"
 								   data-start="2000"
-								   data-easing="easeOutExpo"><img src="assets/images/sockshop-ui-2.png" width="400" alt="" />
+								   data-easing="easeOutExpo"><img src="assets/images/coherence-demo.png" width="400" alt="" />
 							   </div>
 							<div class="tp-caption sfb medium_light_white"
 								data-x="620"
 								data-y="220"
 								data-speed="2000"
 								data-start="2000"
-								data-easing="easeOutExpo"><img src="assets/images/coherence-demo.png" width="500" alt="" />
+								data-easing="easeOutExpo"><img src="assets/images/coherence-visualvm.png" width="500" alt="" />
 							</div>
 
 							   <div class="tp-caption medium_light_white sft stb"
@@ -181,7 +183,7 @@
 								   data-y="400"
 								   data-speed="500"
 								   data-start="3000"
-								   data-easing="easeOutExpo">From simple ones, to complete apps
+								   data-easing="easeOutExpo">Clients, integrations and more
 							   </div>
 
 						</li>
@@ -194,190 +196,153 @@
 			</div>
 			<!-- /REVOLUTION SLIDER -->
 
-
 			<!-- CONTENT -->
 			<section>
 				<div class="container">
 
-					<h2>Featured <strong>Examples</strong></h2>
-					<hr/>
-					
-					<div class="row">
-						<div class="col-sm-6 col-md-7">
-							<!-- VIDEO -->
-							<div class="embed-responsive embed-responsive-16by9">
-								<iframe class="embed-responsive-item" width="800" src="https://www.youtube.com/embed/dbegsSXKkoI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-							</div>
-							<!-- /VIDEO -->
+					<header>
+						<a name="overview"></a>
+						<h2>
+							Coherence Related Open Source Projects
+						</h2>
+						<p class="lead">There are many other Coherence related Open Source Projects to explore including clients, management tools,
+							various integrations, development tools for various IDE's
+							and examples.</p>
+					</header>
+
+					<h3>Clients</h3>
+
+					<!-- FEATURED BOXES 3 -->
+					<div class="row featured-box-minimal">
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-js-client" target="_blank"><i class="fa fa-user"></i> JavaScript</a></h4>
+							<p>Coherence JavaScript Client allows Node applications to act as cache clients to a Coherence Cluster using gRPC framework as the network transport.
+							</p>
 						</div>
 
-						<div class="col-sm-6 col-md-5">
-
-							<h3>Helidon <strong>Sock Shop</strong></h3>
-							<p>Our flagship example application shows you not only how easy it is to develop Coherence-based microservices
-							with Helidon, but also how to deploy them to Kubernetes using Coherence Operator, and monitor them using Prometheus, Grafana and Jaeger.</p>
-							
-							<ul class="list-icon star-o">
-								<li>Integration with Helidon</li>
-								<li>Event-driven Processing</li>
-								<li>Deployment to Kubernetes using <a href="https://oracle.github.io/coherence-operator/docs/latest/#/about/01_overview" target="_blank">Coherence Operator</a></li>
-								<li>Monitoring with Prometheus, Grafana and Jaeger</li>
-							</ul>
-
-							<a href="https://github.com/oracle/coherence-helidon-sockshop-sample" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> View on GitHub</a>
-						</div>
-					</div>
-					<hr/>
-
-					<div class="row">
-						<div class="col-sm-6 col-md-7">
-							<!-- VIDEO -->
-							<div class="embed-responsive embed-responsive-16by9">
-								<iframe class="embed-responsive-item" width="800" src="https://www.youtube.com/embed/f9JHafygfUE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-							</div>
-							<!-- /VIDEO -->
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-cpp-extend-client" target="_blank"><i class="fa fa-user"></i> C++</a></h4>
+							<p>Coherence C++ Client allows C++ applications to access Coherence clustered services, including data, data events, and data processing from outside the Coherence cluster.
+							</p>
 						</div>
 
-						<div class="col-sm-6 col-md-5">
-
-							<h3>Coherence <strong>Demo</strong></h3>
-							<p>The main "pure" Coherence demo application showcases many general features, as well as scalability and HA capabilities of Coherence:</p>
-
-							<ul class="list-icon star-o">
-								<li>Clustering and Data Sharding</li>
-								<li>Scalability and High Availability</li>
-								<li>Persistence to Disk</li>
-								<li>Parallel Queries and Aggregation</li>
-								<li>In-Place Processing</li>
-								<li>Multi-Data Center Federation (Grid Edition feature only)</li>
-								<li>OpenTracing Support</li>
-							</ul>
-
-							<a href="https://github.com/coherence-community/coherence-demo/" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> View on GitHub</a>
-						</div>
-					</div>
-					<hr/>
-
-					<div class="row">
-						<div class="col-sm-6 col-md-7">
-							<!-- VIDEO -->
-							<div class="embed-responsive embed-responsive-16by9">
-								<iframe class="embed-responsive-item" width="800" src="https://www.youtube.com/embed/uCTfvCoqMDw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-							</div>
-							<!-- /VIDEO -->
-						</div>
-
-						<div class="col-sm-6 col-md-5">
-
-							<h3>To Do <strong>List</strong></h3>
-							<p>An extension of the <a href="index.html#quickstart">Quick Start</a> that adds various client implementations (React.js, Oracle JET, JavaFX),
-							as well as the additional REST API implementation (Node.js/Express). It demonstrates how the same Web Server
-							that is used to host REST API can be used to serve modern static web front ends.</p>
-							<p>The entire application is documented in detail in a series of articles published in the Java Magazine:</p>
-							<ul>
-								<li><a href="https://medium.com/oracle-coherence/hello-coherence-part-1-6900de3f9ceb" target="_blank">Hello, Coherence (Part 1): REST API</a></li>
-								<li><a href="https://medium.com/oracle-coherence/hello-coherence-part-2-8d26d7840139" target="_blank">Hello, Coherence (Part 2): Clients</a></li>
-								<li><a href="https://medium.com/oracle-coherence/hello-coherence-part-3-2670050925d" target="_blank">Hello, Coherence (Part 3): Deployment and Operations (TBD)</a></li>
-							</ul>
-
-							<ul class="list-icon star-o">
-								<li>Integration with Helidon, Micronaut and Spring Boot</li>
-								<li>Integration with Node.js/Express</li>
-								<li>REST, gRPC and GraphQL endpoints</li>
-								<li>Client-side Events</li>
-								<li>React and Oracle JET Web Front End</li>
-								<li>JavaFX Client</li>
-								<li>Deployment to Kubernetes using <a href="https://oracle.github.io/coherence-operator/docs/latest/#/about/01_overview" target="_blank">Coherence Operator</a></li>
-								<li>Monitoring with Prometheus, Grafana and Jaeger</li>
-							</ul>
-
-							<a href="https://github.com/coherence-community/todo-list-example" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> View on GitHub</a>
-						</div>
-					</div>
-
-					<!--
-
-					<h2>Additional <strong>Examples</strong></h2>
-					<div class="row">
-
-						<div class="col-md-3">
-							<div class="item-box">
-								<figure>
-									<a class="item-hover" href="portfolio-single-basic.html">
-										<span class="overlay color2"></span>
-										<span class="inner">
-											<span class="block fa fa-plus fsize20"></span>
-											<strong>PROJECT</strong> DETAIL
-										</span>
-									</a>
-									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a3.jpg" width="260" height="260" alt="">
-								</figure>
-								<div class="item-box-desc">
-									<h4>To Do List</h4>
-									<small class="styleColor">29 June, 2014</small>
-								</div>
-							</div>
-						</div>
-
-						<div class="col-md-3">
-							<div class="item-box">
-								<figure>
-									<a class="item-hover lightbox" href="http://www.youtube.com/watch?v=W7Las-MJnJo" data-plugin-options='{"type":"iframe"}'>
-										<span class="overlay color2"></span>
-										<span class="inner">
-											<span class="block fa fa-plus fsize20"></span>
-											<strong>VIEW</strong> VIDEO
-										</span>
-									</a>
-									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a4.jpg" width="260" height="260" alt="">
-								</figure>
-								<div class="item-box-desc">
-									<h4>Web Crawler</h4>
-									<small class="styleColor">29 June, 2014</small>
-								</div>
-							</div>
-						</div>
-
-						<div class="col-md-3">
-							<div class="item-box">
-								<figure>
-									<a class="item-hover lightbox" href="assets/images/demo/portfolio/thumb/a5.jpg" data-plugin-options='{"type":"image"}'>
-										<span class="overlay color2"></span>
-										<span class="inner">
-											<span class="block fa fa-plus fsize20"></span>
-											<strong>PROJECT</strong> DETAIL
-										</span>
-									</a>
-									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a5.jpg" width="260" height="260" alt="">
-								</figure>
-								<div class="item-box-desc">
-									<h4>Coherence REST Demo</h4>
-									<small class="styleColor">29 June, 2014</small>
-								</div>
-							</div>
-						</div>
-
-						<div class="col-md-3">
-							<div class="item-box">
-								<figure>
-									<a class="item-hover" href="portfolio-single-basic.html">
-										<span class="overlay color2"></span>
-										<span class="inner">
-											<span class="block fa fa-plus fsize20"></span>
-											<strong>PROJECT</strong> DETAIL
-										</span>
-									</a>
-									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a7.jpg" width="260" height="260" alt="">
-								</figure>
-								<div class="item-box-desc">
-									<h4>Atropos Project</h4>
-									<small class="styleColor">29 June, 2014</small>
-								</div>
-							</div>
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-dotnet-extend-client" target="_blank"><i class="fa fa-user"></i> .NET</a></h4>
+							<p>Coherence .NET Client allows .NET applications to access Coherence clustered services, including data, data events, and data processing from outside the Coherence cluster.</p>
 						</div>
 
 					</div>
-					-->
+
+					<h3>Management</h3>
+
+					<!-- FEATURED BOXES 3 -->
+					<div class="row featured-box-minimal">
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-operator" target="_blank"><i class="fa fa-bar-chart"></i> Coherence Operator</a></h4>
+							<p>The Coherence Kubernetes Operator allows management of Coherence clusters in Kubernetes
+								making tasks such as configuration, installation, safe scaling, management and metrics easier.
+							</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-visualvm" target="_blank"><i class="fa fa-bar-chart"></i> Coherence VisualVM Plugin</a></h4>
+							<p>The Coherence-VisualVM Plugin provides management and monitoring of a single Coherence cluster using the VisualVM management utility.
+							</p>
+						</div>
+
+					</div>
+
+					<h3>Integrations</h3>
+
+					<!-- FEATURED BOXES 3 -->
+					<div class="row featured-box-minimal">
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/coherence-community/coherence-spring" target="_blank"><i class="fa fa-arrows-alt"></i> Spring</a></h4>
+							<p>The Coherence Spring project provides bootstrapping support of Oracle Coherence for Spring Framework and Spring Boot.
+							</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/micronaut-projects/micronaut-coherence/" target="_blank"><i class="fa fa-arrows-alt"></i> Micronaut</a></h4>
+							<p>The Micronaut project provides integrations between Micronaut and Oracle Coherence.
+							</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/coherence-community/coherence-hibernate" target="_blank"><i class="fa fa-arrows-alt"></i> Hibernate</a></h4>
+							<p>The Oracle Coherence Hibernate project implements integration points between Coherence/Coherence CE and the Hibernate
+								Object/Relational Mapping (ORM) framework.
+							</p>
+						</div>
+					</div>
+
+					<h3>Development Tools</h3>
+
+					<!-- FEATURED BOXES 3 -->
+					<div class="row featured-box-minimal">
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/coherence-community/oracle-bedrock" target="_blank"><i class="fa fa-simplybuilt"></i> Oracle Bedrock</a></h4>
+							<p>Oracle Bedrock provides a general purpose Java framework for the development, orchestration and testing of highly concurrent distributed applications.
+							</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-eclipse-plugin/" target="_blank"><i class="fa fa-simplybuilt"></i> Coherence Eclipse Plugin</a></h4>
+							<p>This plugin provides various features to help developer productivity when working with Coherence in Eclipse.
+							</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-idea-plugin" target="_blank"><i class="fa fa-simplybuilt"></i> Coherence Idea Plugin</a></h4>
+							<p>This plugin adds features to IntelliJ to assist in development of applications using Oracle Coherence.
+							</p>
+						</div>
+					</div>
+
+					<h3>Examples</h3>
+
+					<!-- FEATURED BOXES 3 -->
+					<div class="row featured-box-minimal">
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/coherence-community/coherence-demo" target="_blank"><i class="fa fa-laptop"></i> Coherence Demo</a></h4>
+							<p>The Coherence Demo application showcases various Coherence features and can be run standalone or on Kubernetes using the Coherence Operator.
+							</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/coherence-community/todo-list-example" target="_blank"><i class="fa fa-laptop"></i> Coherence ToDo Example</a></h4>
+							<p>This repository contains a set of simple task management examples written in various languages to showcase Coherence CE.
+							</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-helidon-sockshop-sample" target="_blank"><i class="fa fa-laptop"></i> Helidon Sock Shop</a></h4>
+							<p>This project is an implementation of the microservices based "Sock Shop" demo application using Helidon Microservices Framework.
+							</p>
+						</div>
+					</div>
+
+					<!-- FEATURED BOXES 3 -->
+					<div class="row featured-box-minimal">
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/coherence-community/coherence-spring-sockshop-sample" target="_blank"><i class="fa fa-laptop"></i> Spring Sock Shop</a></h4>
+							<p>This project is an implementation of the microservices based "Sock Shop" demo application using Spring Boot Framework.
+							</p>
+						</div>
+
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<h4><a href="https://github.com/oracle/coherence-micronaut-sockshop-sample" target="_blank"><i class="fa fa-laptop"></i> Micronaut Sock Shop</a></h4>
+							<p>This project is an implementation of the microservices based "Sock Shop" demo application using Micronaut Framework.
+							</p>
+						</div>
+
+					</div>
 
 				</div>
 			</section>
@@ -423,7 +388,7 @@
 								    <ul class="list-unstyled nobordered">
 								 	    <li><a class="block" href="https://www.youtube.com/user/OracleCoherence" target="_blank"><i class="fa fa-youtube"></i> Watch our Videos</a></li>
 									    <li><a class="block" href="https://medium.com/oracle-coherence" target="_blank"><i class="fa fa-medium"></i> Read our Blog</a></li>
-									    <li><a class="block" href="https://stackoverflow.com/tags/oracle-coherence" target="_blank"><i class="fa fa-stack-overflow"></i> Find Answers</a></li>
+									    <li><a class="block" href="https://stackoverflow.com/tags/coherence" target="_blank"><i class="fa fa-stack-overflow"></i> Find Answers</a></li>
 									    <li><a class="block" href="https://join.slack.com/t/oraclecoherence/shared_invite/zt-9ufv220y-Leudk0o5ntgNV0xraa8DNw" target="_blank"><i class="fa fa-slack"></i> Chat with Us</a></li>
 								    </ul>
 							    </div>
@@ -465,7 +430,7 @@
 
 				<div class="copyright">
 					<div class="container text-center fsize12">
-						Copyright &copy; 2020, 2021, Oracle and/or its affiliates. All rights reserved &bull; Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.
+						   Copyright &copy; 2020, Oracle and/or its affiliates. All rights reserved &bull; Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.
 					</div>
 				</div>
 			</footer>
