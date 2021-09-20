@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1049,6 +1049,11 @@ public interface RemoteStream<T>
      */
     default <R, A> R collect(Collector<? super T, A, R> collector)
         {
+        if (collector instanceof RemoteCollector)
+            {
+            return collect((RemoteCollector<? super T, A, R>) collector);
+            }
+
         throw new UnsupportedOperationException("java.util.stream.Collector is not supported. "
                                                 + "Please use com.tangosol.util.stream.RemoteCollector instead.");
         }
