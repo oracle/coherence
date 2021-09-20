@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package persistence;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.coherence.persistence.PersistenceManager;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -119,6 +120,7 @@ public abstract class AbstractCohQLPersistenceTests
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
+        props.setProperty("test.persistence.members", "3");
         props.setProperty("tangosol.coherence.management", "all");
         props.setProperty("tangosol.coherence.management.remote", "true");
         props.setProperty("test.start.archiver", "true");
@@ -133,11 +135,16 @@ public abstract class AbstractCohQLPersistenceTests
         final String sSnapshot10000        = "snapshot-10000";
         try
             {
-            startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
-            startCacheServer(sServer + "-2", getProjectName(), getCacheConfigPath(), props);
-            startCacheServer(sServer + "-3", getProjectName(), getCacheConfigPath(), props);
+            CoherenceClusterMember[] arMember = new CoherenceClusterMember[3];
 
+            arMember[0] = startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
+            arMember[1] = startCacheServer(sServer + "-2", getProjectName(), getCacheConfigPath(), props);
+            arMember[2] = startCacheServer(sServer + "-3", getProjectName(), getCacheConfigPath(), props);
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(3));
+            for (CoherenceClusterMember member : arMember)
+                {
+                Eventually.assertThat(invoking(member).isServiceRunning(service.getInfo().getServiceName()), is(true));
+                }
 
             helper = new PersistenceToolsHelper();
             helper.setPrintWriter(new PrintWriter(System.out));
