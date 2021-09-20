@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -148,7 +148,7 @@ public abstract class HttpHelper
                 Throwable tOriginal = t instanceof RuntimeException ? Base.getOriginalException((RuntimeException) t) : t;
                 Throwable tCause    = tOriginal.getCause() == null ? tOriginal : tOriginal.getCause();
 
-                if (tCause instanceof ClassNotFoundException)
+                if (tCause instanceof ClassNotFoundException || tCause instanceof NoClassDefFoundError)
                     {
                     CacheFactory.log("Management over HTTP is not available most likely due to this member missing "
                         + "the necessary libraries to run the service. Handled exception: " + tCause.getClass().getCanonicalName() + ": " + tCause.getLocalizedMessage(), Base.LOG_ERR);
@@ -157,10 +157,19 @@ public abstract class HttpHelper
                 else
                     {
                     // could be IOException for address in use or SecurityException or IllegalArgumentException for Configuration Errors
-                    HttpAcceptorDependencies depsHttpAcceptor = (HttpAcceptorDependencies) deps.getAcceptorDependencies();
+                    StringBuilder sb = new StringBuilder();
 
-                    CacheFactory.log("failed to start service " + HttpHelper.getServiceName() + " at address " + depsHttpAcceptor.getLocalAddress() + ":" +
-                        depsHttpAcceptor.getLocalPort() + " due to " + tCause.getClass().getSimpleName() + " : " + tCause.getLocalizedMessage(), Base.LOG_ERR);
+                    sb.append("failed to start service ").append(HttpHelper.getServiceName());
+                    if (deps != null)
+                        {
+                        HttpAcceptorDependencies depsHttpAcceptor = (HttpAcceptorDependencies) deps.getAcceptorDependencies();
+
+                        sb.append(" at address ").append(depsHttpAcceptor.getLocalAddress())
+                          .append(":").append(depsHttpAcceptor.getLocalPort());
+                        }
+                    sb.append(" due to ").append(tCause.getClass().getSimpleName())
+                      .append(" : ").append(tCause.getLocalizedMessage());
+                    CacheFactory.log(sb.toString(), Base.LOG_ERR);
                     return false;
                     }
                 }
