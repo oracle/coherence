@@ -737,7 +737,7 @@ public class MetricsSupportTests
 
         for (String sMetricName : asMetricName)
             {
-            if (!assertMetric(list, mapTags, sMetricName))
+            if (!assertMetric(list, mapTags, sMetricName) && !LIST_OPTIONAL.contains(sMetricName))
                 {
                 listMissing.add(sMetricName);
                 }
@@ -942,6 +942,14 @@ public class MetricsSupportTests
     private static final String TEST_WRITE_THROUGH_CACHE = "write-through-1234";
 
     private static final String TEST_WRITE_BEHIND_CACHE = "write-behind-1234";
+
+    /**
+     * List of optional metrics that are not reported as a missing metric assertion failure.
+     *
+     * java.lang.OperatingSystem SystemCpuLoad - returns "recent cpu usage".
+     * Reasons for mbean attribute to intermittently be considered not set and corresponding metric not returned are detailed in Bug 33374653.
+     */
+    private static final List<String> LIST_OPTIONAL = Arrays.asList("Coherence.OS.SystemCpuLoad");
 
     /**
      * True iff JVM is for JDK 15 or greater.
