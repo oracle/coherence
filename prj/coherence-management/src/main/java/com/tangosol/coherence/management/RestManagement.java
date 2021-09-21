@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,8 @@ package com.tangosol.coherence.management;
 
 import com.tangosol.coherence.management.internal.ClusterNameSupplier;
 import com.tangosol.coherence.management.internal.MapProvider;
+
+import com.tangosol.coherence.management.internal.filters.DenySniffResponseFilter;
 
 import com.tangosol.coherence.management.internal.resources.ManagementRootResource;
 import com.tangosol.coherence.management.internal.resources.VersionsResource;
@@ -167,6 +169,7 @@ public final class RestManagement
         // common configurations
         resourceConfig.register(MapProvider.class);
         resourceConfig.register(new MBeanServerProxyBinder(Objects.requireNonNull(factory)));
+        resourceConfig.register(DenySniffResponseFilter.class);
         EncodingFilter.enableFor(resourceConfig, GZipEncoder.class);
 
         if (supplierClusters == null)
