@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -133,7 +133,7 @@ public class CoherenceTest
         ConfigurableCacheFactory        ccf        = mock(ConfigurableCacheFactory.class);
         InterceptorRegistry             registry   = mock(InterceptorRegistry.class);
         Coherence                       coherence  = Coherence.clusterMember(EMPTY_CONFIG);
-        CompletableFuture<Void>         future     = coherence.whenStarted();
+        CompletableFuture<Coherence>    future     = coherence.whenStarted();
 
         when(sessionSys.getConfigurableCacheFactory()).thenReturn(ccf);
         when(ccf.getInterceptorRegistry()).thenReturn(registry);
@@ -188,7 +188,7 @@ public class CoherenceTest
                                                                     .withSessions(cfgTwo)
                                                                     .build();
         Coherence                          coherence       = Coherence.clusterMember(configuration);
-        CompletableFuture<Void>            future          = coherence.whenStarted();
+        CompletableFuture<Coherence>       future     = coherence.whenStarted();
 
         when(sessionSys.getConfigurableCacheFactory()).thenReturn(ccfSys);
         when(sessionSys.getInterceptorRegistry()).thenReturn(registrySys);
@@ -250,7 +250,7 @@ public class CoherenceTest
                                                                     .withSessions(cfgTwo)
                                                                     .build();
         Coherence                          coherence       = Coherence.clusterMember(configuration);
-        CompletableFuture<Void>            future          = coherence.whenStarted();
+        CompletableFuture<Coherence>       future     = coherence.whenStarted();
 
         when(sessionSys.getConfigurableCacheFactory()).thenReturn(ccfSys);
         when(sessionSys.getInterceptorRegistry()).thenReturn(registrySys);
@@ -302,7 +302,7 @@ public class CoherenceTest
                                                                     .withSessions(cfgTwo)
                                                                     .build();
         Coherence                          coherence     = Coherence.clusterMember(configuration);
-        CompletableFuture<Void>            future        = coherence.whenStarted();
+        CompletableFuture<Coherence>       future     = coherence.whenStarted();
 
         when(sessionSys.getConfigurableCacheFactory()).thenReturn(ccfSys);
         when(sessionSys.getInterceptorRegistry()).thenReturn(registrySys);
@@ -372,7 +372,7 @@ public class CoherenceTest
                                                                     .withSessions(cfgTwo)
                                                                     .build();
         Coherence                          coherence     = Coherence.clusterMember(configuration);
-        CompletableFuture<Void>            future        = coherence.whenStarted();
+        CompletableFuture<Coherence>       future        = coherence.whenStarted();
 
         when(sessionSys.getConfigurableCacheFactory()).thenReturn(ccfSys);
         when(sessionSys.getInterceptorRegistry()).thenReturn(registrySys);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -444,7 +444,7 @@ public class Coherence
      * @return a {@link CompletableFuture} that will be completed when
      *         this {@link Coherence} instance has started
      */
-    public CompletableFuture<Void> whenStarted()
+    public CompletableFuture<Coherence> whenStarted()
         {
         return f_futureStarted;
         }
@@ -490,7 +490,7 @@ public class Coherence
      * @return a {@link CompletableFuture} that will be completed when
      *         this {@link Coherence} instance has started
      */
-    public CompletableFuture<Void> start()
+    public CompletableFuture<Coherence> start()
         {
         assertNotClosed();
         if (m_fStarted)
@@ -522,7 +522,7 @@ public class Coherence
 
 
                         f_mapServer.values().forEach(holder -> holder.getServer().waitForServiceStart());
-                        f_futureStarted.complete(null);
+                        f_futureStarted.complete(this);
                         f_dispatcher.dispatchStarted();
                         }
                     catch (Throwable thrown)
@@ -1194,7 +1194,7 @@ public class Coherence
      * A {@link CompletableFuture} that will be completed when this {@link Coherence}
      * instance has started.
      */
-    private final CompletableFuture<Void> f_futureStarted = new CompletableFuture<>();
+    private final CompletableFuture<Coherence> f_futureStarted = new CompletableFuture<>();
 
     /**
      * A {@link CompletableFuture} that will be completed when this {@link Coherence}

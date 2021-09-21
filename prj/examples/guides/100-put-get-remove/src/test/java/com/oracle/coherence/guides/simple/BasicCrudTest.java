@@ -34,9 +34,9 @@ class BasicCrudTest {
     // # tag::bootstrap[]
     @BeforeAll
     static void boostrapCoherence() {
-        Coherence coherence = Coherence.clusterMember();      // <1>
-        CompletableFuture<Void> future = coherence.start();   // <2>
-        future.join();                                        // <3>
+        Coherence coherence = Coherence.clusterMember();           // <1>
+        CompletableFuture<Coherence> future = coherence.start();   // <2>
+        future.join();                                             // <3>
     }
     // # end::bootstrap[]
 

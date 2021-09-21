@@ -37,7 +37,7 @@ public class TopicsChatApplicationTest {
     static void boostrapCoherence() {
         setCacheConfig();
         Coherence coherence = Coherence.clusterMember();
-        CompletableFuture<Void> future = coherence.start();
+        CompletableFuture<Coherence> future = coherence.start();
         future.join();
     }
 
