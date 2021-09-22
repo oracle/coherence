@@ -635,6 +635,9 @@
       <xsd:annotation>
           <xsd:documentation>
               The local discovery address element specifies an IP address or DNS name.
+              Used in conjunction with well-known addresses, will bind to a specific IP.
+              With multicast, network traffic will be constrained to the
+              network interface corresponding to the resolved IP address.
 
               The address may be also be represented in CIDR format as a subnet and mask (i.e. 192.168.1.0/24),
               allowing runtime resolution against available local IPs.
