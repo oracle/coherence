@@ -410,9 +410,11 @@ public class SimpleRecoveryProtocolTests
             Eventually.assertThat(invoking(member).isServiceRunning(sServiceName), is(true));
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(4));
 
+            waitForRecoveryAssignments(service, 30000);
+
             reportOwnership(service);
             assertPartitionOwnership(service, new Object[][]
-                    {{0, partsEmpty}, {1, partsEmpty}, {3, partsEmpty}});
+                    {{0, partsEmpty}, {1, partsEmpty}, {3, parts0_20}});
             }
         finally
             {
@@ -627,6 +629,15 @@ public class SimpleRecoveryProtocolTests
         public boolean delete(String sId, boolean fSafe)
             {
             return f_manager.delete(sId, fSafe);
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void writeSafe(String sId)
+            {
+            f_manager.writeSafe(sId);
             }
 
         /**

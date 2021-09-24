@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -601,6 +601,21 @@ public class SafePersistenceWrappers
             catch (IOException e)
                 {
                 throw e;
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void writeSafe(String sId)
+            {
+            try
+                {
+                getManager().writeSafe(sId);
                 }
             catch (Throwable t)
                 {

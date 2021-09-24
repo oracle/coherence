@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -182,6 +182,16 @@ public interface PersistenceManager<R>
      * @throws IllegalArgumentException if the specified identifier is invalid
      */
     public void write(String sId, OutputStream out) throws IOException;
+
+    /**
+     * Copy the PersistentStore associated with the specified identifier to
+     * the configured safe area.
+     *
+     * @throws IllegalArgumentException if the specified identifier is invalid
+     */
+    public default void writeSafe(String sId)
+        {
+        }
 
     /**
      * Release all resources held by this manager. Note that the behavior

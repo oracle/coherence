@@ -593,6 +593,24 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         return instantiatePersistenceTools(info);
         }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void writeSafe(String sId)
+        {
+        ensureActive();
+
+        // validate the store ID
+        sId = validatePersistentStoreId(sId);
+
+        AbstractPersistentStore store = f_mapStores.get(sId);
+        if (store != null)
+            {
+            store.copyToTrash();
+            }
+        }
+
     // ----- Object methods -------------------------------------------------
 
     /**
@@ -752,6 +770,24 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             {
             throw new IllegalStateException(getClass().getSimpleName() + " has been released.");
             }
+        }
+
+    /**
+     * Ensure trash directory is created.
+     *
+     * @return the configured trash directory
+     */
+    protected File ensureTrashDir()
+            throws IOException
+        {
+        if (!f_dirTrash.exists())
+            {
+            CacheFactory.log("Creating persistence trash directory \""
+                    + f_dirTrash.getAbsolutePath() + '"', CacheFactory.LOG_INFO);
+            FileHelper.ensureDir(f_dirTrash);
+            }
+
+        return f_dirTrash;
         }
 
     /**
@@ -1016,7 +1052,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                     synchronized (f_setDeletedIds)
                         {
                         long cMillis = 10_000L;
-                        GuardSupport.heartbeat(cMillis);
+                        GuardSupport.heartbeat(cMillis << 1);
 
                         // wait for deleteExtent tasks to finish
                         try (Timeout t = Timeout.after(cMillis))
@@ -1034,6 +1070,8 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                             // deletion remains pending
                             }
                         }
+                    // reset the guardian timeout to the default
+                    GuardSupport.heartbeat();
                     }
 
                 lockWrite();
@@ -1421,6 +1459,36 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 }
             }
 
+        /**
+         * Copy the store to trash if the meta.properties file exist.
+         */
+        public void copyToTrash()
+            {
+            lockWrite();
+            try
+                {
+                File dirTrash = AbstractPersistenceManager.this.f_dirTrash;
+                if (dirTrash != null)
+                    {
+                    dirTrash = ensureTrashDir();
+
+                    File dirStore = new File(dirTrash, f_sId);
+                    if (!dirStore.exists() && isReady())
+                        {
+                        FileHelper.copyDir(f_dirStore, dirStore);
+                        }
+                    }
+                }
+            catch (Throwable e)
+                {
+                // fall through
+                }
+            finally
+                {
+                unlockWrite();
+                }
+            }
+
         // ----- lifecycle methods ------------------------------------------
 
         /**
@@ -1492,7 +1560,19 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
 
                 copyAndOpenInternal(storeFrom);
 
-                loadExtentIdsInternal(f_setExtentIds);
+                try
+                    {
+                    loadExtentIdsInternal(f_setExtentIds);
+                    }
+                catch (Throwable t)
+                    {
+                    if (storeFrom != null)
+                        {
+                        delete(false);
+                        }
+
+                    throw ensurePersistenceException(t, "Error loading database for extend identifiers in directory \"" + f_dirStore + "\"");
+                    }
 
                 // write metadata
                 try
@@ -1582,12 +1662,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                         if (fSafe && fileTrash != null)
                             {
                             // create the trash directory
-                            if (!fileTrash.exists())
-                                {
-                                CacheFactory.log("Creating persistence trash directory \""
-                                        + fileTrash.getAbsolutePath() + '"', CacheFactory.LOG_INFO);
-                                fileTrash = FileHelper.ensureDir(fileTrash);
-                                }
+                            fileTrash = ensureTrashDir();
 
                             // move the data directory to the trash iff the meta.properties
                             // file exists - a sign of birth
