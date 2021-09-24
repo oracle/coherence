@@ -1976,6 +1976,13 @@
                   <coherence.lambdas>static</coherence.lambdas>
                 </systemPropertyVariables>
                 <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                <excludes>
+                  <!-- io - dynamic lambdas -->
+                  <exclude>**/RemoteFunction*DynamicLambdaTests.java</exclude>
+                  <!-- JVisualVM -->
+                  <exclude>**/RestAggregatedDataRetrieverTests.java</exclude>
+                  <exclude>**/RestDataRetrieverTests.java</exclude>
+                </excludes>
               </configuration>
             </plugin>
             <plugin>
