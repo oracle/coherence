@@ -163,7 +163,15 @@ public abstract class AbstractEntryAggregatorTests
         NamedCache<String, Integer> cache = getNamedCache();
 
         int nSize = cache.aggregate(NullImplementation.getSet(), new Count<>());
-        assertEquals(nSize, cache.size());
+        try
+            {
+            assertEquals("assert empty cache has aggregation count of 0", nSize, cache.size());
+            }
+        catch (Throwable t)
+            {
+            t.printStackTrace();
+            printCache(cache);
+            }
 
         for (int i = 1; i <= 10; ++i)
             {
@@ -746,7 +754,15 @@ public abstract class AbstractEntryAggregatorTests
         ReducerAggregator agent = new ReducerAggregator(new MultiExtractor("getId,getFirstName,getLastName"));
         Map               m     = (Map) cache.aggregate(AlwaysFilter.INSTANCE, agent);
 
-        assertEquals(m.size(), cache.size());
+        try
+            {
+            assertEquals("expect 0 aggregation against an empty cache", m.size(), cache.size());
+            }
+        catch (Throwable t)
+            {
+            t.printStackTrace();
+            printCache(cache);
+            }
         cache.clear();
 
         Person p = new Person("666-22-9999");
@@ -761,7 +777,8 @@ public abstract class AbstractEntryAggregatorTests
 
         m = (Map) cache.aggregate(AlwaysFilter.INSTANCE,agent);
 
-        assertEquals(m.size(), cache.size());
+        assertEquals("assert cache with 2 elements has an aggregation of 2", m.size(), cache.size());
+        printCache(cache);
 
         List results = (List) m.get("P1");
         assertEquals(3, results.size());
@@ -1202,6 +1219,26 @@ public abstract class AbstractEntryAggregatorTests
     public void removeIndexFrom(NamedCache namedCache, ValueExtractor extractor)
         {
         namedCache.removeIndex(extractor);
+        }
+
+    public void printCache(NamedCache cache)
+        {
+        StringBuilder sb = new StringBuilder("cache " + cache.getCacheName());
+        sb.append(", size=").append(cache.size()).append(System.lineSeparator());
+
+        int MAX_ENTRIES = 10;
+        int cEntry = 0;
+        for (Object key: cache.keySet())
+            {
+            cEntry++;
+            sb.append("key=").append(key).append(",value=").append(cache.get(key)).append(System.lineSeparator());
+            if (++cEntry >= MAX_ENTRIES)
+                {
+                sb.append("truncated printing cache " + cache.getCacheName() + " entries after " + MAX_ENTRIES + " entries");
+                break;
+                }
+            }
+        System.out.println(sb.toString());
         }
 
     // ----- accessors ------------------------------------------------------
