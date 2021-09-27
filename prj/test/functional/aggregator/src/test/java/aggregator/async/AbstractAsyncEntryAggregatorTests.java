@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package aggregator.async;
 
 
 import aggregator.AbstractEntryAggregatorTests;
+
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.net.AsyncNamedCache;
@@ -40,6 +42,10 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * A collection of functional tests for the various async
  * {@link InvocableMap.EntryAggregator} implementations.
@@ -69,8 +75,17 @@ public abstract class AbstractAsyncEntryAggregatorTests
     @Override
     protected NamedCache getNamedCache()
         {
-        NamedCache cache = getNamedCache(getCacheName());
-        cache.clear();
+        String     sName         = getCacheName();
+        NamedCache cachePrevious = getNamedCache(sName);
+
+        // ensure no cache context (i.e. index), outstanding async operations pending from previous test scenario
+        getFactory().destroyCache(cachePrevious);
+        Eventually.assertDeferred("ensure cache " + sName + " is destroyed", () -> cachePrevious.isDestroyed(), is(true));
+
+        NamedCache cache = getNamedCache(sName);
+        assertNotEquals("must be different caches since cachePrevious was destroyed", cachePrevious, cache);
+        assertTrue("assert new cache " + sName + " is empty: size=" + cache.size(), cache.isEmpty());
+
         return new AsyncNamedCacheWrapper<>(cache);
         }
 
@@ -346,6 +361,7 @@ public abstract class AbstractAsyncEntryAggregatorTests
         public void clear()
             {
             f_cache.clear();
+            Eventually.assertDeferred("ensure cache " + f_cache.getCacheName() + " is cleared", () -> f_cache.isEmpty(), is(true));
             }
 
         @Override
@@ -500,7 +516,7 @@ public abstract class AbstractAsyncEntryAggregatorTests
         @Override
         public boolean isEmpty()
             {
-            throw new UnsupportedOperationException();
+            return f_cache.isEmpty();
             }
 
         @Override
