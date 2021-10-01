@@ -6,8 +6,6 @@
  */
 package com.tangosol.coherence.dslquery.token;
 
-import com.tangosol.coherence.dsltools.base.BaseToken;
-
 import com.tangosol.coherence.dsltools.precedence.IdentifierOPToken;
 import com.tangosol.coherence.dsltools.precedence.OPException;
 import com.tangosol.coherence.dsltools.precedence.OPParser;
@@ -55,44 +53,6 @@ public class SQLOPToken
      * Check to see if there is an alias and create a Term to hold the alias
      * identifier if one exists
      *
-     * @param p                   The current Parser
-     * @param expectedNextKeyword The next keyword to expect
-     * @return the alias Term
-     */
-    protected Term checkAlias(OPParser p, String expectedNextKeyword)
-        {
-        OPScanner s     = p.getScanner();
-        NodeTerm  alias = new NodeTerm("alias");
-        String    s1    = s.getCurrentAsString();
-        String    s2    = s.peekNextAsString();
-
-        if (s1 != null)
-            {
-            if (s1.equalsIgnoreCase("as"))
-                {
-                if (s2 == null || s2.equalsIgnoreCase(expectedNextKeyword))
-                    {
-                    throw new OPException("Unfullfilled expectation, alias not found");
-                    }
-
-                alias.withChild(AtomicTerm.createString(s2));
-                s.advance();
-                s.advance();
-                }
-            else if (s2 == null || s2.equalsIgnoreCase(expectedNextKeyword))
-                {
-                alias.withChild(AtomicTerm.createString(s1));
-                s.advance();
-                }
-            }
-
-        return alias;
-        }
-
-    /**
-     * Check to see if there is an alias and create a Term to hold the alias
-     * identifier if one exists
-     *
      * @param p                      The current Parser
      * @param expectedNextKeywords   The next keyword to expect
      * @return the alias Term
@@ -102,7 +62,6 @@ public class SQLOPToken
         OPScanner s     = p.getScanner();
         NodeTerm  alias = new NodeTerm("alias");
         String    s1    = s.getCurrentAsString();
-        BaseToken t2    = s.peekNext();
         String    s2    = s.peekNextAsString();
 
         if (s1 != null)
@@ -118,17 +77,11 @@ public class SQLOPToken
                 s.advance();
                 s.advance();
                 }
-            else if (s2 == null || containsIgnoreCase(s2, expectedNextKeywords))
-
-                {
+            else if (!containsIgnoreCase(s1, expectedNextKeywords))
+        	    {
                 alias.withChild(AtomicTerm.createString(s1));
                 s.advance();
-                }
-            else if (t2 == null && (s2 == null || containsIgnoreCase(s2, expectedNextKeywords)))
-                {
-                alias.withChild(AtomicTerm.createString(s1));
-                s.advance();
-                }
+        	    }
             }
 
         return alias;
