@@ -48,7 +48,6 @@ import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
-import com.tangosol.net.partition.PartitionEvent;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
@@ -730,7 +729,7 @@ public class PagedTopicSubscriber<V>
      * @throws InterruptedException if the wait for channel allocation is interrupted
      * @throws ExecutionException if the wait for channel allocation fails
      */
-    protected synchronized void initialise() throws InterruptedException, ExecutionException
+    protected synchronized void initialise() throws InterruptedException, ExecutionException, TimeoutException
         {
         ensureActive();
         if (m_nState == STATE_CONNECTED)
@@ -775,7 +774,18 @@ public class PagedTopicSubscriber<V>
                 }
             else
                 {
-                Subscription subscription = m_caches.Subscriptions.get(f_aChannel[0].subscriberPartitionSync);
+                CompletableFuture<Subscription> future = m_caches.Subscriptions.async().get(f_aChannel[0].subscriberPartitionSync);
+                Subscription subscription = null;
+                try
+                    {
+                    // we use a timout here because a never ending get can cause a deadlock during fail-over scenarios
+                    subscription = future.get(INIT_TIMEOUT_SECS, TimeUnit.SECONDS);
+                    }
+                catch (TimeoutException e)
+                    {
+                    future.cancel(true);
+                    throw e;
+                    }
                 List<Integer> list = Arrays.stream(subscription.getChannels(f_nId, cChannel)).boxed().collect(Collectors.toList());
                 updateChannelOwnership(list, false);
                 }
@@ -2707,6 +2717,11 @@ public class PagedTopicSubscriber<V>
      * Subscriber close timeout on first flush attempt. After this time is exceeded, all outstanding asynchronous operations will be completed exceptionally.
      */
     public static final long CLOSE_TIMEOUT_SECS = TimeUnit.MILLISECONDS.toSeconds(Base.parseTime(Config.getProperty("coherence.topic.subscriber.close.timeout", "30s"), Base.UNIT_S));
+
+    /**
+     * Subscriber initialise timeout.
+     */
+    public static final long INIT_TIMEOUT_SECS = TimeUnit.MILLISECONDS.toSeconds(Base.parseTime(Config.getProperty("coherence.topic.subscriber.init.timeout", "30s"), Base.UNIT_S));
 
     // ----- data members ---------------------------------------------------
 
