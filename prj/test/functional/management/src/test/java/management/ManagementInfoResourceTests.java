@@ -2367,6 +2367,7 @@ public class ManagementInfoResourceTests
             Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
                     .request().post(null);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            response.close();
             ensureServiceStatusIdle();
 
             Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", ARCHIVES), is(true));
@@ -2380,6 +2381,7 @@ public class ManagementInfoResourceTests
             response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries").path("retrieve")
                     .request().post(null);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            response.close();
             ensureServiceStatusIdle();
 
             // check the existence of the local snapshot but delay as a single member could have the snapshot but it not be complete
@@ -2389,6 +2391,7 @@ public class ManagementInfoResourceTests
             response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
                     .request().delete();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            response.close();
             ensureServiceStatusIdle();
 
             Eventually.assertThat(invoking(this).assertSnapshotExists("2-entries", ARCHIVES), is(false));
@@ -2401,6 +2404,7 @@ public class ManagementInfoResourceTests
                     .request().post(null);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+            response.close();
             ensureServiceStatusIdle();
 
             Eventually.assertThat(invoking(this).assertCacheSize(cache, 2), is(true));
@@ -2472,6 +2476,7 @@ public class ManagementInfoResourceTests
         Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path(sSnapshotName)
                 .request().delete();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        response.close();
         }
 
     /**
@@ -2484,6 +2489,7 @@ public class ManagementInfoResourceTests
         Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path(sSnapshotName)
                  .request().post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        response.close();
         }
 
     public boolean assertCacheSize(NamedCache cache, int nSize)
