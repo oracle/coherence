@@ -255,7 +255,10 @@ public class UnavailableTimeTests
          */
         public List<String> collectContaining(String sFilter)
             {
-            return Collections.unmodifiableList(m_listMessages.stream().filter(s -> s.contains(sFilter)).collect(Collectors.toList()));
+            synchronized (m_listMessages)
+                {
+                return Collections.unmodifiableList(m_listMessages.stream().filter(s -> s.contains(sFilter)).collect(Collectors.toList()));
+                }
             }
 
         // ----- data members -----------------------------------------------
