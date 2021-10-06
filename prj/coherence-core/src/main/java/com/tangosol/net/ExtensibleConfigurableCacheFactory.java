@@ -1813,6 +1813,14 @@ public class ExtensibleConfigurableCacheFactory
                 }
             }
 
+        @Override
+        public boolean isReadFromClosest(String sName)
+            {
+            DistributedScheme schemeDist = findDistributedScheme(sName);
+            ParameterResolver resolver   = getResolver(sName);
+            return schemeDist.getBackingMapScheme().isReadFromClosest(resolver);
+            }
+
         /**
          * {@inheritDoc}
          */

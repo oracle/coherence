@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -141,6 +141,30 @@ public interface BackingMapManager
      * @throws RuntimeException if the {@link StorageAccessAuthorizer} was configured, but not able to instantiate
      */
     public StorageAccessAuthorizer getStorageAccessAuthorizer(String sName);
+
+    /**
+     * Determine if the Map that is used by a CacheService to store cached values
+     * for a NamedCache with the specified name enables reading from the closest
+     * member.
+     * <p>
+     * This can result in a stale read such that the primary or other backups
+     * have seen future values but the member that performed the read has not.
+     * There is a latency benefit that can be realized and is the primary reason
+     * to enable this functionality (balancing read requests across primary and
+     * backup nodes may be another reason to counter hot partitions).
+     * Note: 'closeness' is based on the member performing the read being on the
+     * same machine, rack or site as any of the nodes that hold data for the
+     * partition(s) being targeted.
+     *
+     * @param sName  the name of the NamedCache
+     *
+     * @return true if the cache associated with the given name allows reading
+     *         from backup members that are deemed closer
+     */
+    public default boolean isReadFromClosest(String sName)
+        {
+        return false;
+        }
 
     /**
     * Release the specified Map that was created using the

@@ -1367,6 +1367,7 @@
             <xsd:element ref="transient" minOccurs="0" />
             <xsd:element ref="sliding-expiry" minOccurs="0" />
             <xsd:element ref="storage-authorizer" minOccurs="0" />
+            <xsd:element ref="read-from-closest" minOccurs="0" />
             <xsd:choice>
                 <xsd:group ref="standalone-caching-scheme" />
                 <xsd:element ref="read-write-backing-map-scheme" />
@@ -1506,6 +1507,24 @@
 
                 See com.tangosol.net.security.StorageAccessAuthorizer for the
                 details of the authorizer SPI.
+
+                Used in: backing–map-scheme (within a distributed-scheme-type only)
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="read-from-closest" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The read-from-closest element suggests that this cache is allowed
+                to perform a potentially stale read by reading from a
+                backup owner iff the backup owner is 'closer' to the requesting
+                member.
+
+                Being close is derived based on member metadata including machine
+                identity, rack-name and site name.
+
+                Note: this only affects get or getAll requests.
 
                 Used in: backing–map-scheme (within a distributed-scheme-type only)
             </xsd:documentation>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -198,6 +198,29 @@ public class BackingMapScheme
         m_exprSlidingExpiry = expr;
         }
 
+    /**
+     * Return true iff read from closest is enabled.
+     *
+     * @param resolver  the ParameterResolver
+     *
+     * @return true iff read from closest is enabled
+     */
+    public Boolean isReadFromClosest(ParameterResolver resolver)
+        {
+        return m_exprReadClosest.evaluate(resolver);
+        }
+
+    /**
+     * Set the read from closest flag.
+     *
+     * @param expr  true iff read from closest is enabled
+     */
+    @Injectable("read-from-closest")
+    public void setReadFromClosest(Expression<Boolean> expr)
+        {
+        m_exprReadClosest = expr;
+        }
+
 
     /**
      * Return true iff received federated changes should be applied locally as synthetic updates.
@@ -314,6 +337,11 @@ public class BackingMapScheme
      * A flag indicating if sliding expiry is enabled.
      */
     private Expression<Boolean> m_exprSlidingExpiry = new LiteralExpression<Boolean>(Boolean.FALSE);
+
+    /**
+     * A flag indicating if read from closest is enabled.
+     */
+    private Expression<Boolean> m_exprReadClosest = new LiteralExpression<Boolean>(Boolean.FALSE);
 
     /**
      * A flag indicating if received federated changes should be applied locally as synthetic updates.
