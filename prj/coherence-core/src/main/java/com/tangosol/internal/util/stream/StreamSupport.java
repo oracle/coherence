@@ -87,39 +87,4 @@ public abstract class StreamSupport
         {
         return new ReferencePipeline.Head<>(null, true, null, null, Remote.Function.identity());
         }
-
-    /**
-     * Various helper methods that that create collections that delegate stream
-     * operations to a corresponding NamedCache.
-     */
-    public abstract static class Wrappers
-        {
-        /**
-         * Return a delegating set of entries.
-         */
-        public static <K, V> Set<InvocableMap.Entry<K,V>> entries(
-                final NamedCache<K,V> cache,
-                final Set<InvocableMap.Entry<K,V>> setEntries)
-            {
-            return setEntries;
-            }
-
-        /**
-         * Return a delegating set of keys.
-         */
-        public static <K, V> Set<K> keys(
-                final NamedCache<K,V> cache, final Set<K> setKeys)
-            {
-            return setKeys;
-            }
-
-        /**
-         * Return a delegating collection of values.
-         */
-        public static <K, V> Collection<V> values(
-                final NamedCache<K,V> cache, final Collection<V> colValues)
-            {
-            return colValues;
-            }
-        }
     }

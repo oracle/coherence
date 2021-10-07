@@ -1100,6 +1100,11 @@ public interface RemoteStream<T>
      */
     default <R, A> R collect(Collector<? super T, A, R> collector)
         {
+        if (collector instanceof RemoteCollector)
+            {
+            return collect((RemoteCollector<? super T, A, R>) collector);
+            }
+
         throw new UnsupportedOperationException("java.util.stream.Collector is not supported. "
                                                 + "Please use com.tangosol.util.stream.RemoteCollector instead.");
         }
