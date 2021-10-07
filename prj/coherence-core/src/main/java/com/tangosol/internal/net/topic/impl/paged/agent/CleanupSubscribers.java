@@ -194,6 +194,7 @@ public class CleanupSubscribers
     // ----- AbstractEvolvableProcessor methods -----------------------------
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<SubscriberInfo.Key, Boolean> processAll(Set<? extends InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo>> setEntries)
         {
         Map<SubscriberInfo.Key, Boolean> mapResult = new HashMap<>();
@@ -204,9 +205,9 @@ public class CleanupSubscribers
 
         if (binaryEntry != null)
             {
-
             DistributedCacheService service   = (DistributedCacheService) binaryEntry.getContext().getCacheService();
-            Set<Integer>            setMember = service.getOwnershipEnabledMembers()
+            Set<Integer>            setMember = ((Set<Member>) service.getInfo()
+                                                       .getServiceMembers())
                                                        .stream()
                                                        .map(Member::getId)
                                                        .collect(Collectors.toSet());
