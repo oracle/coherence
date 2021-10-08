@@ -10,14 +10,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
-import com.tangosol.coherence.config.scheme.BackingMapScheme;
-import com.tangosol.coherence.config.scheme.ClusteredCachingScheme;
 import com.tangosol.coherence.config.scheme.PagedTopicScheme;
-import com.tangosol.coherence.config.scheme.FlashJournalScheme;
 import com.tangosol.coherence.config.scheme.LocalScheme;
-import com.tangosol.coherence.config.scheme.RamJournalScheme;
-
-import com.tangosol.config.expression.NullParameterResolver;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
@@ -37,7 +31,6 @@ import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
-import com.tangosol.net.partition.ObservableSplittingBackingCache;
 
 import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
 import com.tangosol.run.xml.XmlElement;
@@ -83,9 +76,9 @@ import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
 import static com.tangosol.net.topic.Subscriber.Name.of;
 
 import static org.hamcrest.CoreMatchers.is;
-
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+
+import static org.junit.Assert.fail;
 
 /**
  * @author jk 2015.06.30
@@ -219,6 +212,27 @@ public class LocalNamedTopicTests
         }
 
     @Test
+    public void shouldNotBeAbleToFlushClosedPublisher()
+        {
+        NamedTopic<String> topic     = ensureTopic();
+        try (Publisher<String>  publisher = topic.createPublisher())
+            {
+            publisher.publish("foo").join();
+            publisher.close();
+
+            try
+                {
+                publisher.flush().join();
+                fail("Expected IllegalStateException, publisher is closed");
+                }
+            catch (IllegalStateException e)
+                {
+                // expected
+                }
+            }
+        }
+
+    @Test
     public void shouldHandleErrorWhenPublishing() throws Exception
         {
         Assume.assumeThat(m_sSerializer, is("pof"));
@@ -259,8 +273,7 @@ public class LocalNamedTopicTests
                     }
                 }
 
-            CompletableFuture<Void> futureFlush = publisher.flush();
-            futureFlush.join();
+            publisher.flush().get(5, TimeUnit.MINUTES);
 
             // topic should contain just the first value
             assertThat(subscriber.receive().get(10, TimeUnit.MINUTES).getValue(), is(sPrefix + 0));

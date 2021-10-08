@@ -82,6 +82,7 @@ import com.tangosol.util.filter.InKeySetFilter;
 
 import com.tangosol.util.listener.SimpleMapListener;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import java.util.ArrayList;
@@ -1174,10 +1175,12 @@ public class PagedTopicSubscriber<V>
                 ensureActive();
                 Throwable error   = null;
                 long      backoff = 5000L;
+                long      timeout = System.currentTimeMillis() + Duration.ofMinutes(5).toMillis();
+                long      now     = System.currentTimeMillis();
+                // ToDo: make the timeout and backoff configurable
                 if (m_nState != STATE_CONNECTED)
                     {
-                    // ToDo: make the count and backoff configurable
-                    for (int i = 0; i < 5; i++)
+                    while (now < timeout)
                         {
                         try
                             {
@@ -1194,13 +1197,17 @@ public class PagedTopicSubscriber<V>
                                 break;
                                 }
                             }
-                        try
+                        now = System.currentTimeMillis();
+                        if (now < timeout)
                             {
-                            Thread.sleep(backoff);
-                            }
-                        catch (InterruptedException e)
-                            {
-                            // ignored
+                            try
+                                {
+                                Thread.sleep(backoff);
+                                }
+                            catch (InterruptedException e)
+                                {
+                                // ignored
+                                }
                             }
                         }
                     }
@@ -1272,6 +1279,8 @@ public class PagedTopicSubscriber<V>
      */
     private void onChannelPopulatedNotification(int[] anChannel)
         {
+        boolean fWasEmpty;
+
         // Channel operations are done under a lock
         try (Sentry<?> ignored = f_gate.close())
             {
@@ -1284,20 +1293,20 @@ public class PagedTopicSubscriber<V>
             ++m_cNotify;
 
             int     nChannelCurrent  = m_nChannel;
-            boolean fWasEmpty = nChannelCurrent < 0 || f_aChannel[nChannelCurrent].m_fEmpty;
+            fWasEmpty = nChannelCurrent < 0 || f_aChannel[nChannelCurrent].m_fEmpty;
             for (int nChannel : anChannel)
                 {
                 f_aChannel[nChannel].setPopulated();
                 }
-
-            if (fWasEmpty)
-                {
-                // we were on the empty channel so switch and trigger a request loop
-                switchChannel();
-                f_queueReceiveOrders.triggerOperations();
-                }
-            // else; we weren't waiting so things are already scheduled
             }
+
+        if (fWasEmpty)
+            {
+            // we were on the empty channel so switch and trigger a request loop
+            switchChannel();
+            f_queueReceiveOrders.triggerOperations();
+            }
+        // else; we weren't waiting so things are already scheduled
         }
 
     /**
@@ -2057,7 +2066,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return a subscriber identifier
      */
-    static long createId(long nNotificationId, long nMemberId)
+    public static long createId(long nNotificationId, long nMemberId)
         {
         return (nMemberId << 32) | (nNotificationId & 0xFFFFFFFFL);
         }
