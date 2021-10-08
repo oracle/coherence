@@ -6,7 +6,9 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+
 import com.tangosol.io.AbstractEvolvable;
 
 import com.tangosol.io.pof.EvolvablePortableObject;
@@ -26,14 +28,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import java.util.function.Function;
+
 import java.util.stream.Collectors;
 
 /**
@@ -253,12 +259,15 @@ public class Subscription
      *
      * @param nSubscriber  the unique identifier of the subscriber to add
      * @param cChannel     the number of channels to distribute across the subscribers
+     * @param setMember    the set of current member identifiers
+     *
+     * @return a map of any removed subscribers, keyed by departed member identifier
      */
-    public synchronized void addSubscriber(long nSubscriber, int cChannel)
+    public synchronized Map<Integer, Set<Long>> addSubscriber(long nSubscriber, int cChannel, Set<Integer> setMember)
         {
         if (nSubscriber == 0)
             {
-            return;
+            return Collections.emptyMap();
             }
 
         if (m_setSubscriber == null)
@@ -268,8 +277,10 @@ public class Subscription
 
         if (m_setSubscriber.add(nSubscriber))
             {
-            refresh(m_setSubscriber, cChannel);
+            return refresh(m_setSubscriber, cChannel, setMember);
             }
+
+        return Collections.emptyMap();
         }
 
     /**
@@ -277,31 +288,35 @@ public class Subscription
      *
      * @param nSubscriber  the unique identifier of the subscriber to remove
      * @param cChannel     the number of channels to distribute across the subscribers
+     * @param setMember    the set of current member identifiers
      *
-     * @return {@code true} if the subscriber had been allocated channels and was removed
+     * @return a map of any removed subscribers, keyed by departed member identifier
      */
-    public synchronized boolean removeSubscriber(long nSubscriber, int cChannel)
+    public synchronized Map<Integer, Set<Long>> removeSubscriber(long nSubscriber, int cChannel, Set<Integer> setMember)
         {
         if (nSubscriber == 0)
             {
-            return false;
+            return Collections.emptyMap();
             }
 
         if (m_setSubscriber != null)
             {
             if (m_setSubscriber.remove(nSubscriber))
                 {
-                refresh(m_setSubscriber, cChannel);
-                return true;
+                Map<Integer, Set<Long>> mapRemoved = refresh(m_setSubscriber, cChannel, setMember);
+                int                     nMember    = PagedTopicSubscriber.memberIdFromId(m_nOwningSubscriber);
+                mapRemoved.compute(nMember, (key, set) -> ensureSet(nMember, nSubscriber, set));
+                return mapRemoved;
                 }
             }
         else if (m_nOwningSubscriber == nSubscriber)
             {
+            int nMember = PagedTopicSubscriber.memberIdFromId(m_nOwningSubscriber);
             m_nOwningSubscriber = 0;
-            return true;
+            return Collections.singletonMap(nMember, Collections.singleton(nSubscriber));
             }
 
-        return false;
+        return Collections.emptyMap();
         }
 
     /**
@@ -501,19 +516,45 @@ public class Subscription
      * <p>
      * It is <b>vital</b> that this method always returns a consistent allocation for a given
      * set of subscribers, regardless of the order that those subscribers were added.
+     * <p>
+     * Any subscriber for a member that is not in the {@code setMember} set will be removed
+     * from the allocations.
      *
      * @param setSubscriber  the set of subscribers
      * @param cChannel       the number of channels to allocate
+     * @param setMember      the current set of member identifiers
+     *
+     * @return a map of any removed subscribers, keyed by departed member identifier
      */
-    private void refresh(SortedSet<Long> setSubscriber, int cChannel)
+    private Map<Integer, Set<Long>> refresh(SortedSet<Long> setSubscriber, int cChannel, Set<Integer> setMember)
         {
-        long[] aChannel    = new long[cChannel];
-        int    cSubscriber = setSubscriber.size();
+        Logger.finest("Refreshing subscription current=" + Arrays.toString(m_aChannel));
+        long[]                  aChannel    = new long[cChannel];
+        Map<Integer, Set<Long>> mapRemoved  = new TreeMap<>();
 
+        // remove any departed subscribers
+        Iterator<Long> it = setSubscriber.iterator();
+        while (it.hasNext())
+            {
+            Long      nId     = it.next();
+            int       nMember = PagedTopicSubscriber.memberIdFromId(nId);
+            if (!setMember.contains(nMember))
+                {
+                mapRemoved.compute(nMember, (key, set) -> ensureSet(nMember, nId, set));
+                it.remove();
+                }
+            }
+
+        int cSubscriber = setSubscriber.size();
         if (cSubscriber == 0)
             {
             // we have no subscribers
             Arrays.fill(aChannel, 0L);
+            }
+        else if (cSubscriber == 1L)
+            {
+            // there is one subscriber so it gets everything
+            Arrays.fill(aChannel, setSubscriber.iterator().next());
             }
         else if (cSubscriber >= cChannel)
             {
@@ -559,6 +600,18 @@ public class Subscription
                 }
             }
         m_aChannel = aChannel;
+        Logger.finest("Refreshed subscription current=" + Arrays.toString(m_aChannel));
+        return mapRemoved;
+        }
+
+    private Set<Long> ensureSet(Integer ignored, Long nId, Set<Long> setId)
+        {
+        if (setId == null)
+            {
+            setId = new HashSet<>();
+            }
+        setId.add(nId);
+        return setId;
         }
 
     // ----- Key class ------------------------------------------------------

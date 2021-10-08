@@ -165,7 +165,10 @@ public class CleanupSubscribers
                                 int nMember = entry.getKey();
                                 String sMsg = entry.getValue()
                                             .entrySet().stream()
-                                            .map(e -> "[Group='" + e.getKey().getGroupName() + "' Subscribers=" + e.getValue() + "]")
+                                            .map(e -> "[Group='" + e.getKey().getGroupName()
+                                                    + "' Subscribers="
+                                                    + PagedTopicSubscriber.idToString(e.getValue())
+                                                    + "]")
                                             .collect(Collectors.joining(", "));
 
                                 Logger.info("Removed the following subscribers from topic " + sTopic
@@ -224,14 +227,17 @@ public class CleanupSubscribers
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Boolean process(InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo> entry)
         {
         if (entry.isPresent())
             {
-            DistributedCacheService service = (DistributedCacheService) entry.asBinaryEntry().getContext().getCacheService();
-            Set<Integer> setMember = service.getOwnershipEnabledMembers().stream()
-                    .map(Member::getId)
-                    .collect(Collectors.toSet());
+            DistributedCacheService service   = (DistributedCacheService) entry.asBinaryEntry().getContext().getCacheService();
+            Set<Integer>            setMember = ((Set<Member>) service.getInfo()
+                                                       .getServiceMembers())
+                                                       .stream()
+                                                       .map(Member::getId)
+                                                       .collect(Collectors.toSet());
 
             return process(entry, setMember);
             }

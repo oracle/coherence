@@ -7,8 +7,8 @@
 package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.base.Converter;
-
 import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.common.collections.Arrays;
 
 import com.oracle.coherence.common.util.Duration;
@@ -68,11 +68,13 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import java.util.function.Function;
 
+import java.util.stream.Collectors;
+
 /**
  * This class encapsulates control of a single partition of a paged topic.
  *
  * Note many operations will interact with multiple caches.  Defining a consistent enlistment order proved to be
- * untenable so instead we rely on clients using unit-of-order to ensure all access for a given topic partition
+ * untenable, so instead we rely on clients using unit-of-order to ensure all access for a given topic partition
  * is serial.
  *
  * @author jk/mf 2015.05.27
@@ -126,7 +128,7 @@ public class PagedTopicPartition
         if (usage.getPublicationTail() == Page.NULL_PAGE)
             {
             // Set the initial page to a "random" value based on the partition count, the subscriber uses the same
-            // start page (see TopicCaches.getBasePage().  This is done so that multiple topics hosted by the
+            // start page (see TopicCaches.getBasePage()).  This is done so that multiple topics hosted by the
             // same service can have their load spread over different cache servers
             long lPage = Math.abs(f_sName.hashCode() % getPartitionCount());
 
@@ -173,7 +175,7 @@ public class PagedTopicPartition
             long cbCapServer, int cbCapPage)
         {
         // each time we start to fill a new page we check to see if any non-durable subscribers have leaked, we could
-        // do this at any time but it only really has a negative impact if we allow that to cause us to
+        // do this at any time, but it only really has a negative impact if we allow that to cause us to
         // retain extra pages, thus we only bother to check at the start of a new page.
         cleanupNonDurableSubscribers(peekUsage(nChannel).getAnonymousSubscribers());
 
@@ -210,7 +212,7 @@ public class PagedTopicPartition
                     pageSeal.setSealed(true);
                     notifyAll(pageSeal.resetInsertionNotifiers());
                     }
-                // else; if there are other full pages and we aren't preventing their removal
+                // else; if there are other full pages, and we aren't preventing their removal
                 }
 
             return new OfferProcessor.Result(OfferProcessor.Result.Status.TopicFull, 0, cbCapPage, -1);
@@ -266,7 +268,7 @@ public class PagedTopicPartition
         if (page == null || page.isSealed())
             {
             // The page has been removed or is full so the producer's idea of the tail
-            // is out of date and it needs to re-offer to the correct tail page
+            // is out of date, and it needs to re-offer to the correct tail page
             return new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, 0, 0, -1);
             }
         else if (page.getTail() == Page.EMPTY)
@@ -289,7 +291,7 @@ public class PagedTopicPartition
         int                          cAccepted     = 0;
         long                         lTimestamp    = getClusterTime();
 
-        // Iterate over all of the elements to be offered until they are
+        // Iterate over all the elements to be offered until they are
         // all offered or until the page has reached maximum capacity
         for (Iterator<Binary> iter = listElements.iterator(); iter.hasNext() && cbPage < cbCapPage; ++cAccepted)
             {
@@ -374,7 +376,10 @@ public class PagedTopicPartition
 
         // by setting the value (even to the same value) the partition cache will persist any
         // subsequent changes made to the usage object when the processor completes.
-        entry.setValue(usage);
+        if (entry != null)
+            {
+            entry.setValue(usage);
+            }
 
         return usage;
         }
@@ -415,12 +420,12 @@ public class PagedTopicPartition
 
         if (lPage <= usage.getPartitionMax())
             {
-            // the page has already been created, it doesn't exist so it apparently was
+            // the page has already been created, it doesn't exist, so it apparently was
             // also removed, it cannot be recreated
             return null;
             }
 
-        // create new page page and update links between pages in this partition
+        // create a new page and update links between pages in this partition
         Page page      = new Page();
         long lTailPrev = usage.getPartitionTail();
 
@@ -468,7 +473,7 @@ public class PagedTopicPartition
         // if there is never an insert these registrations would grow and grow as subscriber instances come
         // and go.  The intent of this method is to stem that growth by removing a random few subscriber registrations
         // from each channel.  Note that even in the single channel case we could have had the same leak if we don't
-        // have insertions and we have many subscribers come and go
+        // have insertions, and we have many subscribers come and go
 
         for (int nChannel = 0, cChannel = getChannelCount(); nChannel < cChannel; ++nChannel)
             {
@@ -481,9 +486,9 @@ public class PagedTopicPartition
                 if (anNotifiers != null && anNotifiers.length >= 2)
                     {
                     // remove two random notifiers (this method is called as part of a subscriber
-                    // instance ensuring the subscription, by removing two we ensure we'll eventually
+                    // instance ensuring the subscription) by removing two we ensure we'll eventually
                     // clean out any garbage.  Note if we remove ones which are still in use those
-                    // subscribers will receive the deletion event and reregister.  This is harmless
+                    // subscribers will receive the deletion event and re-register.  This is harmless
                     // as it just looks like a spurious notification.
 
                     int[] anNew = new int[anNotifiers.length - 2];
@@ -583,7 +588,7 @@ public class PagedTopicPartition
         }
 
     /**
-     * Returns the cluster time (see {@link com.tangosol.net.Cluster#getTimeMillis()}.
+     * Returns the cluster time (see {@link com.tangosol.net.Cluster#getTimeMillis()}).
      *
      * @return the cluster time.
      */
@@ -599,7 +604,7 @@ public class PagedTopicPartition
      */
     public long getStorageBytes()
         {
-        // Always ConfigurableCacheMap and always BINARY calculator
+        // We always have a ConfigurableCacheMap and always have a BINARY calculator
         Map mapBack = getBackingMapContext(PagedTopicCaches.Names.CONTENT).getBackingMap();
         if (mapBack instanceof ConfigurableCacheMap)
             {
@@ -627,11 +632,11 @@ public class PagedTopicPartition
 
     /**
      * Returns a read-only copy of the specified page entry or {code null} if the
-     * requested page number is (@link {@link Page#NULL_PAGE}.
+     * requested page number is (@link {@link Page#NULL_PAGE}).
      *
      * @param lPageId  the id of the page
      *
-     * @return  the page entry or or {code null} if the requested page number is (@link {@link Page#NULL_PAGE}
+     * @return  the page entry or {code null} if the requested page number is (@link {@link Page#NULL_PAGE}
      */
     protected BinaryEntry<Page.Key,Page> peekPageEntry(int nChannel, long lPageId)
         {
@@ -797,12 +802,12 @@ public class PagedTopicPartition
                 usage.removeAnonymousSubscriber(subscriberGroupId);
                 }
 
-            // detach the subscriber from it's active page chain
+            // detach the subscriber from its active page chain
             long lPage = subscription.getPage();
             Page page  = lPage == Page.NULL_PAGE ? null : enlistPage(nChannel, lPage);
 
             if (subscription.getPosition() == Integer.MAX_VALUE || // subscriber drained (and detached from) page N before subsequent page was inserted
-                page == null)                                      // partition was empty when the subscriber pinned and it has never re-visited the partition
+                page == null)                                      // partition was empty when the subscriber pinned, and it has never re-visited the partition
                 {
                 // the subscriber is one page behind the head, i.e. it drained this partition before the next page was added
                 // the subscriber had registered interest via usage in the next page, and thus if it has since been
@@ -822,7 +827,7 @@ public class PagedTopicPartition
 
                 if (lPage == Page.NULL_PAGE)
                     {
-                    // the next page does not exist, thus we have nothing to detach from other then removing
+                    // the next page does not exist, thus we have nothing to detach from other than removing
                     // our interest in auto-attaching to the next insert
                     usage.adjustWaitingSubscriberCount(-1);
                     page = null;
@@ -851,7 +856,7 @@ public class PagedTopicPartition
      * @param processor  the {@link EnsureSubscriptionProcessor} containing the subscription attributes
      *
      * @return for INQUIRE we return the currently pinned page, or null if unpinned
-     *         for PIN we return the pinned page, or tail if the partition is empty and the former tail is known,
+     *         for PIN we return the pinned page, or tail if the partition is empty and the former tail is known
      *              if the partition was never used we return null
      *         for ADVANCE we return the pinned page
      */
@@ -880,7 +885,7 @@ public class PagedTopicPartition
                 {
                 throw new IllegalArgumentException("Cannot specify create group only action for an anonymous subscriber");
                 }
-            // cannot be a reconnect and group creation only
+            // cannot be a reconnect request, and group creation only
             fReconnect = false;
             }
 
@@ -998,7 +1003,7 @@ public class PagedTopicPartition
                     // when we pinned the partition was apparently empty but there has been a subsequent insertion
                     // start the evaluation at the inserted page
 
-                    // note: we we're already automatically attached
+                    // note: we're already automatically attached
                     lPage = lHead;
                     page  = enlistPage(nChannel, lPage);
                     subscription.setPage(lPage);
@@ -1066,27 +1071,33 @@ public class PagedTopicPartition
                     {
                     // This is not an anonymous subscriber (i.e. it is part of a group)
                     // Ensure the subscriber is registered and allocated channels. We only do this in channel zero, so as
-                    // not to bloat all of the other entries with the subscriber maps
+                    // not to bloat all the other entries with the subscriber maps
                     if (nChannel == 0)
                         {
                         subscriptionZero = subscription;
                         if (!subscriptionZero.hasSubscriber(nSubscriberId))
                             {
                             // this is a new subscriber and is not an anonymous subscriber (nSubscriberId != 0)
-                            subscriptionZero.addSubscriber(nSubscriberId, getChannelCount());
+                            Map<Integer, Set<Long>> mapRemoved = subscriptionZero
+                                    .addSubscriber(nSubscriberId, getChannelCount(), getMemberSet());
+
                             if (fSyncPartition)
                                 {
                                 // we only log the update for the sync partition
                                 // (no need to repeat the same message for every partition)
                                 Logger.fine(String.format("Added subscriber %d in group %s allocations %s",
                                         nSubscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
+                                if (!mapRemoved.isEmpty())
+                                    {
+                                    logRemoval(mapRemoved, f_sName, subscriberGroupId.getGroupName());
+                                    }
                                 }
 
                             fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
                             }
                         }
 
-                    // Update the subscription/channel owner as it may have chaned if this is a new subscriber
+                    // Update the subscription/channel owner as it may have changed if this is a new subscriber
                     long nOwner = subscriptionZero.getChannelOwner(nChannel);
                     subscription.setOwningSubscriber(nOwner);
 
@@ -1102,7 +1113,7 @@ public class PagedTopicPartition
                     // We do not need to do channel allocation as anonymous subscribers have all channels
                     if (fReconnect)
                         {
-                        // this is a reconnect so rollback
+                        // this is a reconnect request so rollback
                         subscription.rollback();
                         }
                     }
@@ -1118,7 +1129,7 @@ public class PagedTopicPartition
      * Close a subscription for a specific subscriber in a subscriber group
      * <p>
      * This will trigger a reallocation of channels across any remaining subscribers in the same group.
-     * @param key            the subscribtion key
+     * @param key            the subscription key
      * @param nSubscriberId  the unique subscriber identifier
      *
      */
@@ -1131,6 +1142,7 @@ public class PagedTopicPartition
         int               cParts            = getPartitionCount();
         int               nSyncPartition    = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
         boolean           fSyncPartition    = key.getPartitionId() == nSyncPartition;
+        String            sGroup            = subscriberGroupId.getGroupName();
 
         Subscription subscriptionZero = null;
 
@@ -1143,19 +1155,19 @@ public class PagedTopicPartition
             if (subscription != null)
                 {
                 // ensure the subscriber is registered and allocated channels
-                // we only do this in channel zero, so as not to bloat all of the other entries with the subscriber maps
+                // we only do this in channel zero, so as not to bloat all the other entries with the subscriber maps
                 if (subscriptionZero == null)
                     {
                     int cChannel     = getChannelCount();
                     subscriptionZero = subscription;
-                    boolean fRemoved = subscriptionZero.removeSubscriber(nSubscriberId, cChannel);
-                    if (fSyncPartition && fRemoved)
+                    Map<Integer, Set<Long>> mapRemoved =
+                            subscriptionZero.removeSubscriber(nSubscriberId, cChannel, getMemberSet());
+
+                    if (fSyncPartition && !mapRemoved.isEmpty())
                         {
                         // we only log the update for the sync partition
                         // (no need to repeat the same message for every partition)
-                        Logger.fine(String.format("Removed subscriber %d, member=%d from group '%s', remaining allocations %s",
-                                nSubscriberId, PagedTopicSubscriber.memberIdFromId(nSubscriberId),
-                                subscriberGroupId.getGroupName(), subscriptionZero.getAllocations()));
+                        logRemoval(mapRemoved, f_sName, sGroup);
                         }
                     entrySub.setValue(subscription);
                     }
@@ -1165,6 +1177,34 @@ public class PagedTopicPartition
                 entrySub.setValue(subscription);
                 }
             }
+        }
+
+    /**
+     * Log the removal of one or more subscribers.
+     *
+     * @param mapRemoved  the removed subscribers, keyed by member id
+     * @param sTopic      the name of the topic
+     * @param sGroup      the name of the subscriber group
+     */
+    private void logRemoval(Map<Integer, Set<Long>> mapRemoved, String sTopic, String sGroup)
+        {
+        for (Map.Entry<Integer, Set<Long>> entry : mapRemoved.entrySet())
+            {
+            Logger.info("Removed the following subscribers from topic '" + sTopic
+                        + "' due to departure of member " + entry.getKey() + " [Group='" + sGroup
+                        + "' Subscribers=" + PagedTopicSubscriber.idToString(entry.getValue()) + "]");
+            }
+        }
+
+    @SuppressWarnings("unchecked")
+    private Set<Integer> getMemberSet()
+        {
+        return ((Set<Member>) f_ctxManager.getCacheService()
+                                    .getInfo()
+                                    .getServiceMembers())
+                                    .stream()
+                                    .map(Member::getId)
+                                    .collect(Collectors.toSet());
         }
 
     /**
@@ -1206,14 +1246,14 @@ public class PagedTopicPartition
 
         if (subscription == null)
             {
-            // the subscriber is unknown but we're allowing that as the client should handle it
+            // the subscriber is unknown, but we're allowing that as the client should handle it
             return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null);
             }
 
         long nOwner = subscription.getOwningSubscriber();
         if (nOwner != 0 && nOwner != nSubscriberId)
             {
-            // the subscriber does not own this channel, it should not have got here but it probably had out of date state
+            // the subscriber does not own this channel, it should not have got here, but it probably had out of date state
             return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, Integer.MAX_VALUE, null);
             }
 

@@ -6,15 +6,19 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+
 import com.tangosol.util.Base;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -23,7 +27,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.hamcrest.collection.IsArrayContainingInAnyOrder.arrayContainingInAnyOrder;
 
 public class SubscriptionTest
     {
@@ -39,28 +42,54 @@ public class SubscriptionTest
     public void shouldAllocateOneSubscriberToAllChannels()
         {
         int          cChannel     = 17;
+        int          nMember      = 1;
+        long         nId          = PagedTopicSubscriber.createId(19L, nMember);
         Subscription subscription = new Subscription();
-        subscription.addSubscriber(19L, cChannel);
-        assertThat(subscription.getSubscribers(), containsInAnyOrder(19L));
+        subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
+        assertThat(subscription.getSubscribers(), containsInAnyOrder(nId));
 
         for (int i = 0; i < cChannel; i++)
             {
-            assertThat(subscription.getChannelOwner(i), is(19L));
+            assertThat(subscription.getChannelOwner(i), is(nId));
             }
+        }
+
+    @Test
+    public void shouldRemoveDeadSubscriberOnAllocate()
+        {
+        int          cChannel     = 17;
+        int          nMember1     = 1;
+        int          nMember2     = 2;
+        long         nId1         = PagedTopicSubscriber.createId(19L, nMember1);
+        long         nId2         = PagedTopicSubscriber.createId(76L, nMember2);
+        long         nId3         = PagedTopicSubscriber.createId(66L, nMember1);
+        Subscription subscription = new Subscription();
+        Set<Integer> setMember    = new HashSet<>(Arrays.asList(nMember1, nMember2));
+
+        subscription.addSubscriber(nId1, cChannel, setMember);
+        subscription.addSubscriber(nId2, cChannel, setMember);
+        assertThat(subscription.getSubscribers(), containsInAnyOrder(nId1, nId2));
+
+        setMember.remove(nMember2);
+        subscription.addSubscriber(nId3, cChannel, setMember);
+        assertThat(subscription.getSubscribers(), containsInAnyOrder(nId1, nId3));
         }
 
     @Test
     public void shouldAllocateTwoSubscriberToAllChannels()
         {
         int          cChannel     = 17;
+        int          nMember      = 1;
+        long         nId1         = PagedTopicSubscriber.createId(19L, nMember);
+        long         nId2         = PagedTopicSubscriber.createId(66L, nMember);
         Subscription subscription = new Subscription();
-        subscription.addSubscriber(19L, cChannel);
-        subscription.addSubscriber(66L, cChannel);
-        assertThat(subscription.getSubscribers(), containsInAnyOrder(19L, 66L));
+        subscription.addSubscriber(nId1, cChannel, Collections.singleton(nMember));
+        subscription.addSubscriber(nId2, cChannel, Collections.singleton(nMember));
+        assertThat(subscription.getSubscribers(), containsInAnyOrder(nId1, nId2));
 
         for (int i = 0; i < cChannel; i++)
             {
-            assertThat(subscription.getChannelOwner(i), anyOf(is(19L), is(66L)));
+            assertThat(subscription.getChannelOwner(i), anyOf(is(nId1), is(nId2)));
             }
         }
 
@@ -68,16 +97,18 @@ public class SubscriptionTest
     public void shouldAllocateSameNumberOfSubscribersAsChannels()
         {
         int          cChannel      = 17;
+        int          nMember       = 1;
         Subscription subscription  = new Subscription();
         Set<Long>    setSubscriber = new TreeSet<>();
         long[]       alExpected    = new long[cChannel];
         int          n             = 0;
 
-        for (long s = 1; s <= cChannel; s++)
+        for (long id = 1; id <= cChannel; id++)
             {
-            subscription.addSubscriber(s, cChannel);
-            setSubscriber.add(s);
-            alExpected[n++] = s;
+            long nId = PagedTopicSubscriber.createId(id, nMember);
+            subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
+            setSubscriber.add(nId);
+            alExpected[n++] = nId;
             }
 
         assertThat(subscription.getSubscribers(), is(setSubscriber));
@@ -88,6 +119,7 @@ public class SubscriptionTest
     public void shouldAllocateMoreSubscriberThanChannels()
         {
         int          cChannel      = 17;
+        int          nMember       = 1;
         Subscription subscription  = new Subscription();
         Set<Long>    setSubscriber = new TreeSet<>();
         long[]       alExpected    = new long[cChannel];
@@ -95,11 +127,12 @@ public class SubscriptionTest
 
         for (long s = 1; s <= cChannel * 2; s++)
             {
-            subscription.addSubscriber(s, cChannel);
-            setSubscriber.add(s);
+            long nId = PagedTopicSubscriber.createId(s, nMember);
+            subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
+            setSubscriber.add(nId);
             if (n < cChannel)
                 {
-                alExpected[n++] = s;
+                alExpected[n++] = nId;
                 }
             }
 
@@ -117,6 +150,7 @@ public class SubscriptionTest
     public void shouldCreateConsistentAllocationForMultipleIterations()
         {
         int                cChannel    = 17;
+        int                nMember     = 1;
         List<Subscription> list        = new ArrayList<>();
         long               nIdStart    = 100;
         long               cSubscriber = nIdStart + (cChannel * 2); // create more subscribers than channels
@@ -132,7 +166,8 @@ public class SubscriptionTest
             // Allocate a new subscriber identifier to each subscription in turn
             for (Subscription subscription : list)
                 {
-                subscription.addSubscriber(s, cChannel);
+                long nId = PagedTopicSubscriber.createId(s, nMember);
+                subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
                 }
             // assert that all the subscriptions have the same allocation as the first one
             Subscription subscriptionZero = list.get(0);
@@ -152,6 +187,7 @@ public class SubscriptionTest
     public void shouldCreateConsistentAllocationForSameSubscribersInRandomOrders()
         {
         int                cChannel         = 17;
+        int                nMember          = 1;
         List<Subscription> listSubscription = new ArrayList<>();
         List<Long>         listSubscriber   = new ArrayList<>();
         long               nIdStart         = 100;
@@ -175,7 +211,8 @@ public class SubscriptionTest
             for (long s : listSubscriber)
                 {
                 // Allocate a new subscriber identifier to each subscription in turn
-                subscription.addSubscriber(s, cChannel);
+                long nId = PagedTopicSubscriber.createId(s, nMember);
+                subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
                 }
             }
 

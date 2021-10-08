@@ -10,6 +10,7 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
@@ -50,6 +51,7 @@ public class TopicSubscribeCleanupTests
     public static void setup()
         {
         System.setProperty(LocalStorage.PROPERTY, "true");
+        System.setProperty(Logging.PROPERTY_LEVEL, "9");
 
         s_coherence = Coherence.clusterMember();
         s_coherence.start().join();
@@ -83,18 +85,18 @@ public class TopicSubscribeCleanupTests
             topic.ensureSubscriberGroup("group-one");
             topic.ensureSubscriberGroup("group-two");
             int cChannel = topic.getChannelCount();
-            try (Subscriber<String> subscriber = topic.createSubscriber(inGroup("group-one")))
+            try (Subscriber<String> subscriberOne = topic.createSubscriber(inGroup("group-one")))
                 {
                 // there is currently one subscribe that should have all channels
-                Eventually.assertDeferred(() -> subscriber.getChannels().length, is(cChannel));
+                Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(cChannel));
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1));
 
                 // create some more subscribers on the remote member
                 int cNewSubscriber = member.invoke(new CreateSubscriber());
 
                 // there should eventually be the correct number of subscribers
-                // and the local subscriber shoul dnot own all the channels
-                Eventually.assertDeferred(() -> subscriber.getChannels().length, is(not(cChannel)));
+                // and the local subscriber should not own all the channels
+                Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(not(cChannel)));
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1 + cNewSubscriber));
 
                 // close the remote member, which should trigger subscriber clean-up
@@ -102,7 +104,7 @@ public class TopicSubscribeCleanupTests
 
                 // Eventually there will just be the local subscriber owning all channels
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1));
-                Eventually.assertDeferred(() -> subscriber.getChannels().length, is(cChannel));
+                Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(cChannel));
                 }
             }
         }

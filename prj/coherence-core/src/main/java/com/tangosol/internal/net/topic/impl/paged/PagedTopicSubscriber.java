@@ -88,6 +88,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -2082,6 +2083,33 @@ public class PagedTopicSubscriber<V>
         {
         return (int) (nId >> 32);
         }
+
+    /**
+     * Return a string representation of a subscriber identifier.
+     *
+     * @param nId  the subscriber identifier
+     *
+     * @return a string representation of the subscriber identifier
+     */
+    public static String idToString(long nId)
+        {
+        return nId + "/" + memberIdFromId(nId);
+        }
+
+    /**
+     * Return a string representation of a collection of subscriber identifiers.
+     *
+     * @param setId  the collection of subscriber identifiers
+     *
+     * @return a string representation of the collection of subscriber identifiers
+     */
+    public static String idToString(Collection<Long> setId)
+        {
+        return setId.stream()
+                .map(PagedTopicSubscriber::idToString)
+                .collect(Collectors.joining(","));
+        }
+
 
     /**
      * Parse a subscriber notification identifier from a subscriber identifier.
