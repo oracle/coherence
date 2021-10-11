@@ -181,6 +181,7 @@ public class PagedTopicPublisher<V>
     @Override
     public CompletableFuture<Void> flush()
         {
+        ensureActive();
         return flushInternal(FLUSH);
         }
 

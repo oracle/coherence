@@ -27,6 +27,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
@@ -54,8 +55,10 @@ import org.junit.Test;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.File;
 import java.io.IOException;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,7 +67,7 @@ import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
  * This test verifies that topic publishers and subscribers recover from
@@ -81,6 +84,13 @@ public class TopicsStorageRecoveryTests
         System.setProperty(Logging.PROPERTY, "9");
         System.setProperty(OperationalOverride.PROPERTY, "common-tangosol-coherence-override.xml");
         System.setProperty(CacheConfig.PROPERTY, "simple-persistence-bdb-cache-config.xml");
+
+        // make sure persistence files are not left from a previous test
+        File filePersistence = new File("target/store-bdb-active/" + TopicsStorageRecoveryTests.class.getSimpleName());
+        if (filePersistence.exists())
+            {
+            MavenProjectFileUtils.recursiveDelete(filePersistence);
+            }
 
         s_storageCluster = startCluster("initial");
 
@@ -182,7 +192,6 @@ public class TopicsStorageRecoveryTests
             // start the subscriber runnable
             Runnable runSubscriber = () ->
                 {
-                int cMessage = 0;
                 for (int i = 0; i < 10 && fSubscribe.get(); i++)
                     {
                     try (Subscriber<Message> subscriber =  topic.createSubscriber(inGroup(sGroup)))
@@ -191,9 +200,8 @@ public class TopicsStorageRecoveryTests
                             {
                             try
                                 {
-                                Subscriber.Element<Message> element = subscriber.receive().join();
+                                Subscriber.Element<Message> element = subscriber.receive().get(1, TimeUnit.MINUTES);
                                 element.commit();
-                                cMessage++;
                                 cReceived.incrementAndGet();
                                 if (i >= 5)
                                     {
@@ -253,10 +261,11 @@ public class TopicsStorageRecoveryTests
 
             // wait for the publisher and subscriber to finish
             threadPublish.join(600000);
-            threadSubscribe.join(600000);
+            threadSubscribe.join(120000);
             // we should have received at least as many as published (could be more if a commit did not succeed
-            // during fail-over, but that is ok)
-            assertThat(cReceived.get(), is(lessThanOrEqualTo(cPublished.get())));
+            // during fail-over and the messages was re-received, but that is ok)
+            Logger.info("Test complete: published=" + cPublished.get() + " received=" + cReceived.get());
+            assertThat(cReceived.get(), is(greaterThanOrEqualTo(cPublished.get())));
             }
         }
 

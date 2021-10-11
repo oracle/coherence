@@ -8,6 +8,7 @@ package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.base.Associated;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor;
@@ -27,6 +28,7 @@ import com.tangosol.net.partition.KeyPartitioningStrategy;
 
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.TopicException;
 import com.tangosol.net.topic.TopicPublisherException;
 
 import com.tangosol.util.Binary;
@@ -34,6 +36,7 @@ import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SparseArray;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
@@ -99,8 +102,51 @@ public class PagedTopicChannelPublisher
      */
     public CompletableFuture<Publisher.Status> publish(Binary binValue)
         {
-        m_caches.ensureConnected();
+        ensureConnected();
         return f_batchingQueue.add(binValue);
+        }
+
+    private void ensureConnected()
+        {
+        Throwable error   = null;
+        long      backoff = 5000L;
+        long      timeout = System.currentTimeMillis() + Duration.ofMinutes(5).toMillis();
+        long      now     = System.currentTimeMillis();
+        // ToDo: make the count and backoff configurable
+        while (now < timeout)
+            {
+            try
+                {
+                m_caches.ensureConnected();
+                error = null;
+                break;
+                }
+            catch (Throwable thrown)
+                {
+                error = thrown;
+                if (error instanceof TopicException)
+                    {
+                    break;
+                    }
+                }
+            now = System.currentTimeMillis();
+            if (now < timeout)
+                {
+                try
+                    {
+                    Thread.sleep(backoff);
+                    }
+                catch (InterruptedException e)
+                    {
+                    // ignored
+                    }
+                }
+            }
+
+        if (error != null)
+            {
+            throw Exceptions.ensureRuntimeException(error);
+            }
         }
 
     /**
