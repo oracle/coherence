@@ -1,3 +1,0 @@
-nodeId	String	const
-2	Cle	Ora
-4	Cle	Ora

@@ -1,7 +1,0 @@
-foo:
-  bar: "Bar"
-
-coherence:
-  service:
-    name: "Foo"
-

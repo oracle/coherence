@@ -1,6 +1,0 @@
-coherence:
-  sessions:
-    - name: "Foo"
-      type: "ccf"
-      config: "coherence-config.xml"
-

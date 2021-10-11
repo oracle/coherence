@@ -1,9 +1,0 @@
-coherence:
-  sessions:
-    Foo:
-      type: ccf
-      config: coherence-config.xml
-    Bar:
-      scope: bar-scope
-      channel: bar
-      serializer: json

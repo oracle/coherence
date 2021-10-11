@@ -1,4 +1,0 @@
-nodeId	String	const
-1	Ora	Ora
-3	Ora	Ora
-5	Ora	Ora

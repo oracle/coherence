@@ -1,3 +1,0 @@
-String	SumInteger	SumLong	SumDouble
-Cle	-13654.0	-307549.0	0.0
-Ora	-27182.0	-145789.0	0.0
