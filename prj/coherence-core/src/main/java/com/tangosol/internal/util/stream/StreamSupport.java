@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -87,63 +87,5 @@ public abstract class StreamSupport
     public static <K, V> RemotePipeline<Stream<InvocableMap.Entry<K, V>>> emptyPipeline()
         {
         return new ReferencePipeline.Head<>(null, true, null, null, Remote.Function.identity());
-        }
-
-    /**
-     * Various helper methods that that create collections that delegate stream
-     * operations to a corresponding NamedCache.
-     */
-    public abstract static class Wrappers
-        {
-        /**
-         * Return a delegating set of entries.
-         */
-        public static <K, V> Set<InvocableMap.Entry<K,V>> entries(
-                final NamedCache<K,V> cache,
-                final Set<InvocableMap.Entry<K,V>> setEntries)
-            {
-            return new WrapperCollections.AbstractWrapperSet<Entry<K,V>>(setEntries)
-                {
-                @Override
-                public Stream<InvocableMap.Entry<K,V>> stream()
-                    {
-                    return cache.stream();
-                    }
-                };
-            }
-
-        /**
-         * Return a delegating set of keys.
-         */
-        public static <K, V> Set<K> keys(
-                final NamedCache<K,V> cache, final Set<K> setKeys)
-            {
-            return new WrapperCollections.AbstractWrapperSet<K>(setKeys)
-                {
-                @Override
-                public Stream<K> stream()
-                    {
-                    return cache.stream()
-                        .map(Remote.function(InvocableMap.Entry::getKey));
-                    }
-                };
-            }
-
-        /**
-         * Return a delegating collection of values.
-         */
-        public static <K, V> Collection<V> values(
-                final NamedCache<K,V> cache, final Collection<V> colValues)
-            {
-            return new WrapperCollections.AbstractWrapperCollection<V>(colValues)
-                {
-                @Override
-                public Stream<V> stream()
-                    {
-                    return cache.stream()
-                        .map(Remote.function(InvocableMap.Entry::getValue));
-                    }
-                };
-            }
         }
     }

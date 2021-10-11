@@ -75,7 +75,7 @@ public class CacheStreamSupportTests
         cache.put(4, 4);
         cache.put(5, 5);
 
-        listKeys = ((RemoteStream<Integer>) cache.keySet().stream()).filter(x -> x > 3).collect(RemoteCollectors.toList());
+        listKeys = cache.keySet().stream().filter(x -> x > 3).collect(RemoteCollectors.toList());
         assertEquals(2, listKeys.size());
         }
 
