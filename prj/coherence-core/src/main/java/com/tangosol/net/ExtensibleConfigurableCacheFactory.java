@@ -13,6 +13,7 @@ import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.coherence.config.CacheConfig;
 import com.tangosol.coherence.config.CacheMapping;
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ResourceMapping;
 import com.tangosol.coherence.config.ResourceMappingRegistry;
 import com.tangosol.coherence.config.ParameterList;
@@ -748,9 +749,17 @@ public class ExtensibleConfigurableCacheFactory
 
         synchronized (cluster)
             {
-            Service service = bldrService.realizeService(
-                f_cacheConfig.getDefaultParameterResolver(), loader, cluster);
+            ConfigurableCacheFactory factory         = this;
+            ParameterResolver        factoryResolver = new ParameterResolver()
+                {
+                public Parameter resolve(String sName)
+                    {
+                    return new Parameter(CACHE_FACTORY, ConfigurableCacheFactory.class, factory);
+                    }
+                };
 
+            ChainedParameterResolver resolver = new ChainedParameterResolver(f_cacheConfig.getDefaultParameterResolver(), factoryResolver);
+            Service                  service  = bldrService.realizeService(resolver, loader, cluster);
             if (service.isRunning())
                 {
                 if (service instanceof CacheService)
@@ -2385,6 +2394,11 @@ public class ExtensibleConfigurableCacheFactory
      * The name of the replaceable parameter representing a cache reference.
      */
     public static final String CACHE_REF = "{cache-ref}";
+
+    /**
+     * The name of the replaceable parameter representing a cache factory.
+     */
+    public static final String CACHE_FACTORY = "{cache-factory}";
 
     /**
      * The unknown scheme type.
