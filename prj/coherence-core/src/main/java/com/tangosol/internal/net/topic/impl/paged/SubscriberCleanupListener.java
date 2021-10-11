@@ -7,14 +7,17 @@
 package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers;
 
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Member;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
 
 import com.tangosol.net.partition.PartitionEvent;
 import com.tangosol.net.partition.PartitionListener;
+import com.tangosol.net.partition.PartitionSet;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -37,23 +40,25 @@ public class SubscriberCleanupListener
     @Override
     public void onPartitionEvent(PartitionEvent evt)
         {
-        int id = evt.getId();
-        if (id == PartitionEvent.PARTITION_RECEIVE_COMMIT)
+        DistributedCacheService service = (DistributedCacheService) evt.getService();
+        int                     nId     = evt.getId();
+        if (nId == PartitionEvent.PARTITION_RECEIVE_COMMIT)
             {
-            CompletableFuture.runAsync(() ->
+            cleanup(evt);
+            }
+        else if (nId == PartitionEvent.PARTITION_RECOVERED)
+            {
+            int    nLocal = service.getCluster().getLocalMember().getId();
+            Member member = evt.getToMember();
+            int    nTo    = member == null ? -1 : member.getId();
+            if (nTo == nLocal)
                 {
-                DistributedCacheService service = (DistributedCacheService) evt.getService();
-                CleanupSubscribers processor = new CleanupSubscribers();
-                processor.execute(service, evt.getPartitionSet());
-                }).handle((ignored, err) ->
+                PartitionSet parts = evt.getPartitionSet();
+                if (parts != null)
                     {
-                    // don't bother logging the error if the service shutdown
-                    if (err != null && evt.getService().isRunning())
-                        {
-                        Logger.err("Error invoking subscriber clean-up", err);
-                        }
-                    return null;
-                    });
+                    cleanup(evt);
+                    }
+                }
             }
         }
 
@@ -78,5 +83,30 @@ public class SubscriberCleanupListener
     @Override
     public void memberLeaving(MemberEvent evt)
         {
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Run subscriber cleanup.
+     *
+     * @param evt  the triggering pertition event
+     */
+    private void cleanup(PartitionEvent evt)
+        {
+        DistributedCacheService service = (DistributedCacheService) evt.getService();
+        CompletableFuture.runAsync(() ->
+            {
+            CleanupSubscribers processor = new CleanupSubscribers();
+            processor.execute(service, evt.getPartitionSet());
+            }).handle((ignored, err) ->
+                {
+                // don't bother logging the error if the service shutdown
+                if (err != null && evt.getService().isRunning())
+                    {
+                    Logger.err("Error invoking subscriber clean-up", err);
+                    }
+                return null;
+                });
         }
     }
