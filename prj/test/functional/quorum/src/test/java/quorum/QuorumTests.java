@@ -27,7 +27,7 @@ import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
-import com.oracle.coherence.common.base.Blocking;
+
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.CacheFactory;
@@ -51,12 +51,12 @@ import com.tangosol.util.Base;
 import com.tangosol.coherence.component.util.SafeCluster;
 import com.tangosol.coherence.component.util.SafeService;
 
+import com.tangosol.coherence.component.util.collections.WrapperMap;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
 import com.tangosol.util.InvocableMap.EntryProcessor;
 
 import com.tangosol.util.MapListener;
-import com.tangosol.util.ObservableMap;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.aggregator.DoubleSum;
@@ -174,6 +174,8 @@ public class QuorumTests
 
         props.setProperty("tangosol.coherence.override", getOverrideConfig());
 
+        sServer = gePrefix() + sServer;
+
         PartitionedService svc      = (PartitionedService) CacheFactory.getService("PartitionedCacheWithQuorum");
         int                cServers = svc.getOwnershipEnabledMembers().size();
 
@@ -199,6 +201,8 @@ public class QuorumTests
         {
         PartitionedService svc      = (PartitionedService) CacheFactory.getService("PartitionedCacheWithQuorum");
         int                cServers = svc.getOwnershipEnabledMembers().size();
+
+        sServer = gePrefix() + sServer;
 
         stopCacheServer(sServer, fGraceful);
         cacheEvents.put("DISTRIBUTION_ALLOWED", Boolean.valueOf(fDistribution));
@@ -405,19 +409,16 @@ public class QuorumTests
             testCacheReadOperations(cache, /*fAllowed*/true);
             testCacheWriteOperations(cache, /*fAllowed*/true);
             }
+        catch (Throwable t)
+            {
+            Base.log("testPartitionedCache0 failed with exception: \n" + Base.getStackTrace(t));
+            throw t;
+            }
         finally
             {
             // cleanup
-            stopCacheServer("testPartitionedCache0-9");
-            stopCacheServer("testPartitionedCache0-8");
-            stopCacheServer("testPartitionedCache0-7");
-            stopCacheServer("testPartitionedCache0-6");
-            stopCacheServer("testPartitionedCache0-5");
-            stopCacheServer("testPartitionedCache0-4");
-            stopCacheServer("testPartitionedCache0-3"); // no-op in the common case
-            stopCacheServer("testPartitionedCache0-2"); // no-op in the common case
-            stopCacheServer("testPartitionedCache0-1"); // no-op in the common case
-            stopCacheServer("testPartitionedCache0-0"); // no-op in the common case
+            stopAllApplications();
+            CacheFactory.shutdown();
             }
         }
 
@@ -464,11 +465,16 @@ public class QuorumTests
             testCacheReadOperations(cache, /*fAllowed*/true);
             testCacheWriteOperations(cache, /*fAllowed*/true);
             }
+        catch (Throwable t)
+            {
+            Base.log("testPartitionedCache1 failed with exception: \n" + Base.getStackTrace(t));
+            throw t;
+            }
         finally
             {
             // cleanup
-            stopCacheServer("testPartitionedCache1-1");
-            stopCacheServer("testPartitionedCache1-0"); // no-op in the common case
+            stopAllApplications();
+            CacheFactory.shutdown();
             }
         }
 
@@ -523,12 +529,16 @@ public class QuorumTests
             testCacheReadOperations(cache, /*fAllowed*/true);
             testCacheWriteOperations(cache, /*fAllowed*/true);
             }
+        catch (Throwable t)
+            {
+            Base.log("testPartitionedCache2 failed with exception: \n" + Base.getStackTrace(t));
+            throw t;
+            }
         finally
             {
             // cleanup
-            stopCacheServer("testPartitionedCache2-2");
-            stopCacheServer("testPartitionedCache2-1");
-            stopCacheServer("testPartitionedCache2-0");
+            stopAllApplications();
+            CacheFactory.shutdown();
             }
         }
 
@@ -624,7 +634,8 @@ public class QuorumTests
         assertTrue(0 != cOrphans);
 
         // cleanup
-        stopCacheServer("testPartitionedCache3-3");
+        stopAllApplications();
+        CacheFactory.shutdown();
         }
 
     /**
@@ -778,12 +789,12 @@ public class QuorumTests
                 "test.machine.quorum", "3",
                 "coherence.machine", "machine-0",
                 }),
-            new ServerConfig("testMemberQuorum-1-1", new String[]
+            new ServerConfig("testMachineQuorum-1-1", new String[]
                 {
                 "test.machine.quorum", "3",
                 "coherence.machine", "machine-1",
                 }),
-            new ServerConfig("testMemberQuorum-2-1", new String[]
+            new ServerConfig("testMachineQuorum-2-1", new String[]
                 {
                 "test.machine.quorum", "3",
                 "coherence.machine", "machine-2",
@@ -871,7 +882,7 @@ public class QuorumTests
         {
         public ServerConfig(String sName, String[] asProp)
             {
-            Name  = sName;
+            Name  = gePrefix() + sName;
             Props = new Properties();
             Props.setProperty("tangosol.coherence.override", getOverrideConfig());
             Props.setProperty("test.log.level", "3");
@@ -882,7 +893,6 @@ public class QuorumTests
             }
         public final String Name;
         public final Properties Props;
-
         }
 
     /**
@@ -1953,9 +1963,9 @@ public class QuorumTests
             SafeService      serviceSafe = (SafeService) service;
             PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-            ObservableMap      mapConfig;
-            Member             memberThis;
-            int                nMemberThis;
+            WrapperMap mapConfig;
+            Member     memberThis;
+            int        nMemberThis;
 
             try
                 {
@@ -1964,13 +1974,16 @@ public class QuorumTests
                 nMemberThis = memberThis.getId();
                 synchronized (mapConfig)
                     {
-                    for (Iterator iter = mapConfig.entrySet().iterator(); iter.hasNext(); )
+                    synchronized (mapConfig.getMap())
                         {
-                        Entry              entry      = (Entry) iter.next();
-                        int                iPartition = ((Integer) entry.getKey()).intValue();
-                        VersionedOwnership owners     = (VersionedOwnership) entry.getValue();
+                        for (Iterator iter = mapConfig.entrySet().iterator(); iter.hasNext(); )
+                            {
+                            Entry entry = (Entry) iter.next();
+                            int iPartition = ((Integer) entry.getKey()).intValue();
+                            VersionedOwnership owners = (VersionedOwnership) entry.getValue();
 
-                        entry.setValue(new ObservableOwnership(nMemberThis, iPartition, owners));
+                            entry.setValue(new ObservableOwnership(nMemberThis, iPartition, owners));
+                            }
                         }
                     }
                 }
@@ -2278,6 +2291,14 @@ public class QuorumTests
         return FILE_OPERATIONAL_CONFIG;
         }
 
+    /**
+     * The server log name prefix.
+     */
+    protected String gePrefix()
+        {
+        return "";
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -2300,7 +2321,7 @@ public class QuorumTests
     */
     public static final String FILE_OPERATIONAL_CONFIG = "quorum-coherence-override.xml";
 
-    /*
+    /**
      * A {@link TestInfrastructureHelper} instance that we can pass to Bedrock on an invoking().
      */
     protected static TestInfrastructureHelper m_helper = new TestInfrastructureHelper();
