@@ -6,6 +6,7 @@
  */
 package topics;
 
+import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
@@ -67,7 +68,9 @@ import java.util.Collections;
 import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -103,6 +106,7 @@ public class LocalNamedTopicTests
     @BeforeClass
     public static void setup() throws Exception
         {
+        System.setProperty(Logging.PROPERTY_LEVEL, "9");
         System.setProperty("coherence.topic.publisher.close.timeout", "2s");
 
         String      sHost  = LocalPlatform.get().getLoopbackAddress().getHostAddress();
@@ -240,7 +244,8 @@ public class LocalNamedTopicTests
         NamedTopic<String>     topic    = ensureTopic();
         int                    cValues  = 20;
         int                    nError   = 1;
-        CompletableFuture<?>[] aFutures = new CompletableFuture[cValues];
+
+        CompletableFuture<Publisher.Status>[] aFutures = new CompletableFuture[cValues];
 
         final AtomicBoolean fPublisherClosed  = new AtomicBoolean(false);
 
@@ -259,7 +264,14 @@ public class LocalNamedTopicTests
                 try
                     {
                     // validate that exception introduced by addErrorInterceptor call is not thrown at site of async send call
-                    aFutures[i] = publisher.publish(sPrefix + i);
+                    String sMsg = sPrefix + i;
+                    aFutures[i] = publisher.publish(sMsg);
+                    System.err.println("Published message: " + sMsg);
+                    aFutures[i].handle((status, err) ->
+                                       {
+                                       System.err.println("Completed publishing message: " + sMsg + " error=" + err);
+                                       return null;
+                                       });
                     }
                 catch (IllegalStateException e)
                     {
@@ -273,7 +285,20 @@ public class LocalNamedTopicTests
                     }
                 }
 
-            publisher.flush().get(5, TimeUnit.MINUTES);
+            try
+                {
+                publisher.flush().get(5, TimeUnit.MINUTES);
+                }
+            catch (InterruptedException | ExecutionException | TimeoutException e)
+                {
+                for (int i = 0; i < aFutures.length; i++)
+                    {
+                    System.err.println("Future (" + i + ") done=" + aFutures[i].isDone()
+                                               + " exceptionally=" + aFutures[i].isCompletedExceptionally()
+                                               + " cancelled=" + aFutures[i].isCancelled());
+                    }
+                fail("Failed to flush publisher");
+                }
 
             // topic should contain just the first value
             assertThat(subscriber.receive().get(10, TimeUnit.MINUTES).getValue(), is(sPrefix + 0));
