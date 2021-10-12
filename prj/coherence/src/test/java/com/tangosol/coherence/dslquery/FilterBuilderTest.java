@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.extractor.AbstractExtractor;
+import com.tangosol.util.extractor.ChainedExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.PofExtractor;
@@ -807,6 +808,35 @@ public class FilterBuilderTest
 
         assertThat(parameter2.getName(), is("Key-2"));
         assertThat(parameter2.evaluate(new NullParameterResolver()).get(), is((Object) "Value-2"));
+        }
+
+    @Test
+    public void shouldOptimizeUseOfValue()
+        {
+        {
+            Filter expected = new GreaterEqualsFilter(new ReflectionExtractor("getAge"), 20);
+            Filter filter1  = new FilterBuilder(m_language).makeFilter(parse("value().age >= 20"));
+            Filter filter2  = new FilterBuilder(m_language).makeFilter(parse("age >= 20"));
+
+            assertThat(filter1, is(expected));
+            assertThat(filter2, is(expected));
+            assertThat(filter1, is(filter2));
+        }
+        {
+            Filter expected = new AllFilter(new Filter[] {
+                                   new NotEqualsFilter(IdentityExtractor.INSTANCE, null),
+                                   new EqualsFilter(new ReflectionExtractor("getAge"), 20)
+                                 });
+            Filter filter = new FilterBuilder(m_language).makeFilter(parse("value() is not null && value().age is 20"));
+            assertThat(filter, is(expected));
+        }
+        {
+            Filter expected = new EqualsFilter(new ChainedExtractor(new ReflectionExtractor("getAddress"),
+                    new ReflectionExtractor("getCity")), "Boston"); 
+            Filter filter   = new FilterBuilder(m_language).makeFilter(parse("value().address.city == 'Boston'"));
+            assertThat(filter, is(expected));
+        }
+        
         }
 
     private Term parse(String query)

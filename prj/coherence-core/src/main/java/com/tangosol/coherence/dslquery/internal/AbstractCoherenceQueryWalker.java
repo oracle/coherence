@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -32,6 +32,7 @@ import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.extractor.AbstractExtractor;
 import com.tangosol.util.extractor.ChainedExtractor;
+import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
@@ -449,7 +450,17 @@ public abstract class AbstractCoherenceQueryWalker
                 }
             }
 
-        return new ChainedExtractor(list.toArray(new ValueExtractor[list.size()]));
+        ChainedExtractor ce         = new ChainedExtractor(list.toArray(new ValueExtractor[list.size()]));
+        ValueExtractor[] aExtractor = ce.getExtractors();
+
+        if (aExtractor.length > 1 && aExtractor[0] instanceof IdentityExtractor)
+            {
+            ValueExtractor[] aExtractorNew = new ValueExtractor[aExtractor.length - 1];
+            System.arraycopy(aExtractor, 1, aExtractorNew, 0, aExtractorNew.length);
+            return new ChainedExtractor<>(aExtractorNew);
+            }
+
+        return ce;
         }
 
     // ----- accessors  -----------------------------------------------------
