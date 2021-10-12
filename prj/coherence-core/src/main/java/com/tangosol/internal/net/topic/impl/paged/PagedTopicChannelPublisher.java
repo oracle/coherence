@@ -396,7 +396,7 @@ public class PagedTopicChannelPublisher
             synchronized (this)
                 {
                 stop();
-                f_batchingQueue.handleError(TopicPublisherException.createFactory(f_serializer),
+                f_batchingQueue.handleError(TopicPublisherException.createFactory(f_serializer, throwable.getMessage()),
                                             BatchingOperationsQueue.OnErrorAction.CancelAndClose);
                 close();
                 }
