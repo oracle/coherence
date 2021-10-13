@@ -9,6 +9,7 @@ package com.tangosol.internal.net.topic.impl.paged;
 import com.oracle.coherence.common.base.Associated;
 
 import com.oracle.coherence.common.base.Exceptions;
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor;
@@ -36,7 +37,6 @@ import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SparseArray;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
@@ -108,11 +108,11 @@ public class PagedTopicChannelPublisher
 
     private void ensureConnected()
         {
-        Throwable error   = null;
-        long      backoff = 5000L;
-        long      timeout = System.currentTimeMillis() + Duration.ofMinutes(5).toMillis();
-        long      now     = System.currentTimeMillis();
-        // ToDo: make the count and backoff configurable
+        PagedTopic.Dependencies dependencies = m_caches.getDependencies();
+        long                    retry        = dependencies.getReconnectRetryMillis();
+        long                    now          = System.currentTimeMillis();
+        long                    timeout      = now + dependencies.getReconnectTimeoutMillis();
+        Throwable               error        = null;
         while (now < timeout)
             {
             try
@@ -132,9 +132,11 @@ public class PagedTopicChannelPublisher
             now = System.currentTimeMillis();
             if (now < timeout)
                 {
+                Logger.info("Failed to reconnect publisher, will retry in "
+                        + retry + " millis " + this + " due to " + error.getMessage());
                 try
                     {
-                    Thread.sleep(backoff);
+                    Thread.sleep(retry);
                     }
                 catch (InterruptedException e)
                     {

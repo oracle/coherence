@@ -65,8 +65,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -564,15 +567,42 @@ public class PagedTopicCaches
                 setSubKeys.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
                 }
 
-            // outside of any lock discover if pages are already pinned.  Note that since we don't
+            // outside any lock discover if pages are already pinned.  Note that since we don't
             // hold a lock, this is only useful if the group was already fully initialized (under lock) earlier.
-            // Otherwise there is no guarantee that there isn't gaps in our pinned pages.
+            // Otherwise, there is no guarantee that there isn't gaps in our pinned pages.
             // check results to verify if initialization has already completed
-            EnsureSubscriptionProcessor processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_INQUIRE, null, filter,  fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
-            Collection<EnsureSubscriptionProcessor.Result> results = sName == null
-                ? null
-                : InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
-                            key -> getUnitOfOrder(key.getPartitionId()), processor).get().values();
+            EnsureSubscriptionProcessor processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_INQUIRE,
+                    null, filter,  fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
+            Collection<EnsureSubscriptionProcessor.Result> results;
+            if (sName == null)
+                {
+                results = null;
+                }
+            else
+                {
+                CompletableFuture<Map<Subscription.Key, EnsureSubscriptionProcessor.Result>> future
+                        = InvocableMapHelper.invokeAllAsync(Subscriptions,
+                                                            setSubKeys,
+                                                            key -> getUnitOfOrder(key.getPartitionId()), processor);
+
+                try
+                    {
+                    long cMillis = getDependencies().getSubscriberTimeoutMillis();
+                    results = future.get(cMillis, TimeUnit.MILLISECONDS).values();
+                    }
+                catch (TimeoutException e)
+                    {
+                    try
+                        {
+                        future.cancel(true);
+                        }
+                    catch (Throwable ignored)
+                        {
+                        // ignored
+                        }
+                    throw Exceptions.ensureRuntimeException(e);
+                    }
+                }
 
             Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
 
@@ -638,9 +668,30 @@ public class PagedTopicCaches
                     = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_PIN, null,
                                                       filter, fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
 
-            Collection<EnsureSubscriptionProcessor.Result> results = InvocableMapHelper.invokeAllAsync(
-                    Subscriptions, setSubKeys, key -> getUnitOfOrder(key.getPartitionId()), processor)
-                .get().values();
+            CompletableFuture<Map<Subscription.Key, EnsureSubscriptionProcessor.Result>> future
+                    = InvocableMapHelper.invokeAllAsync(Subscriptions,
+                                                        setSubKeys,
+                                                        key -> getUnitOfOrder(key.getPartitionId()),
+                                                        processor);
+
+            Collection<EnsureSubscriptionProcessor.Result> results;
+            try
+                {
+                long cMillis = getDependencies().getSubscriberTimeoutMillis();
+                results = future.get(cMillis, TimeUnit.MILLISECONDS).values();
+                }
+            catch (TimeoutException e)
+                {
+                try
+                    {
+                    future.cancel(true);
+                    }
+                catch (Throwable ignored)
+                    {
+                    // ignored
+                    }
+                throw Exceptions.ensureRuntimeException(e);
+                }
 
             Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
 

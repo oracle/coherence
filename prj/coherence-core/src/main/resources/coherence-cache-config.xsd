@@ -456,6 +456,8 @@
         <xsd:element ref="allow-unowned-commits" minOccurs="0"/>
         <xsd:element ref="subscriber-timeout" minOccurs="0"/>
         <xsd:element ref="element-calculator" minOccurs="0"/>
+        <xsd:element ref="reconnect-timeout" minOccurs="0"/>
+        <xsd:element ref="reconnect-retry" minOccurs="0"/>
 
         <xsd:any namespace="##other" processContents="lax"
                  minOccurs="0" maxOccurs="unbounded" />
@@ -4008,4 +4010,78 @@
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>
+
+  <xsd:element name="reconnect-timeout" type="coherence-time-type">
+      <xsd:annotation>
+          <xsd:documentation>
+              The reconnect-timeout element specifies the maximum
+              time that publishers and subscribers will attempt to
+              reconnect after being disconnected from a topic.
+
+              A value of zero will indicate that reconnect attempts
+              will continue indefinitely.
+
+              The minimum accepted value is one second, values less than 1s will
+              be rounded up to 1s.
+
+              The value of this element must be in the following
+              format:
+
+              (\d)+((.)(\d)+)?(MS|ms|S|s|M|m|H|h|D|d)?
+
+              where the first
+              non-digits (from left to right) indicate the unit of time
+              duration:
+
+              -MS or ms (milliseconds)
+              -S or s (seconds)
+              -M or m (minutes)
+              -H or h
+              (hours)
+              -D or d (days)
+
+              If the value does not contain a unit, a unit of
+              seconds is assumed.
+              The default value is five minutes.
+
+              Used in: paged-topic-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="reconnect-retry" type="coherence-time-type">
+      <xsd:annotation>
+          <xsd:documentation>
+              The reconnect-retry element specifies the amount of
+              time that publishers and subscribers will wait between
+              attempts to reconnect after being disconnected from a topic.
+
+              The minimum accepted value is one second, values less than 1s will
+              be rounded up to 1s.
+
+              The value of this element must be in the following
+              format:
+
+              (\d)+((.)(\d)+)?(MS|ms|S|s|M|m|H|h|D|d)?
+
+              where the first
+              non-digits (from left to right) indicate the unit of time
+              duration:
+
+              -MS or ms (milliseconds)
+              -S or s (seconds)
+              -M or m (minutes)
+              -H or h
+              (hours)
+              -D or d (days)
+
+              If the value does not contain a unit, a unit of
+              seconds is assumed.
+              The default value is five seconds.
+
+              Used in: paged-topic-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
 </xsd:schema>

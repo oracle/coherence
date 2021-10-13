@@ -1174,11 +1174,11 @@ public class PagedTopicSubscriber<V>
             synchronized (this)
                 {
                 ensureActive();
-                Throwable error   = null;
-                long      backoff = 5000L;
-                long      timeout = System.currentTimeMillis() + Duration.ofMinutes(5).toMillis();
-                long      now     = System.currentTimeMillis();
-                // ToDo: make the timeout and backoff configurable
+                PagedTopic.Dependencies dependencies = m_caches.getDependencies();
+                long                    retry        = dependencies.getReconnectRetryMillis();
+                long                    now          = System.currentTimeMillis();
+                long                    timeout      = now + dependencies.getReconnectTimeoutMillis();
+                Throwable               error        = null;
                 if (m_nState != STATE_CONNECTED)
                     {
                     while (now < timeout)
@@ -1201,9 +1201,11 @@ public class PagedTopicSubscriber<V>
                         now = System.currentTimeMillis();
                         if (now < timeout)
                             {
+                            Logger.info("Failed to reconnect subscriber, will retry in "
+                                    + retry + " millis " + this + " due to " + error.getMessage());
                             try
                                 {
-                                Thread.sleep(backoff);
+                                Thread.sleep(retry);
                                 }
                             catch (InterruptedException e)
                                 {
@@ -1280,6 +1282,12 @@ public class PagedTopicSubscriber<V>
      */
     private void onChannelPopulatedNotification(int[] anChannel)
         {
+        if (anChannel == null || anChannel.length == 0)
+            {
+            // we have no channel allocation, so we're still effectively empty
+            return;
+            }
+
         boolean fWasEmpty;
 
         // Channel operations are done under a lock
@@ -1293,7 +1301,7 @@ public class PagedTopicSubscriber<V>
 
             ++m_cNotify;
 
-            int     nChannelCurrent  = m_nChannel;
+            int nChannelCurrent  = m_nChannel;
             fWasEmpty = nChannelCurrent < 0 || f_aChannel[nChannelCurrent].m_fEmpty;
             for (int nChannel : anChannel)
                 {
@@ -1508,8 +1516,9 @@ public class PagedTopicSubscriber<V>
                             }
                         }
 
-                    onChannelPopulatedNotification(m_aChannelOwned);
                     }
+
+                onChannelPopulatedNotification(m_aChannelOwned);
                 }
             }
         }
