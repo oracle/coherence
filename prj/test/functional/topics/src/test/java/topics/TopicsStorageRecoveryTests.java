@@ -88,7 +88,11 @@ public class TopicsStorageRecoveryTests
         System.setProperty(Logging.PROPERTY, "9");
         System.setProperty(OperationalOverride.PROPERTY, "common-tangosol-coherence-override.xml");
         System.setProperty(CacheConfig.PROPERTY, "simple-persistence-bdb-cache-config.xml");
+        }
 
+    @Before
+    public void setupTest()
+        {
         // make sure persistence files are not left from a previous test
         File filePersistence = new File("target/store-bdb-active/" + TopicsStorageRecoveryTests.class.getSimpleName());
         if (filePersistence.exists())
@@ -107,11 +111,7 @@ public class TopicsStorageRecoveryTests
         Cluster cluster = CacheFactory.ensureCluster();
         Eventually.assertDeferred(cluster::isRunning, is(true));
         Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
-        }
 
-    @Before
-    public void setupTest()
-        {
         s_count.incrementAndGet();
         }
 
@@ -129,6 +129,12 @@ public class TopicsStorageRecoveryTests
                 // ignored
                 }
             }
+
+        s_storageCluster.close();
+        s_storageCluster = null;
+        s_ccf.dispose();
+        s_ccf = null;
+        CacheFactory.shutdown();
         }
 
     @Test
@@ -170,7 +176,10 @@ public class TopicsStorageRecoveryTests
                                             {
                                             err.printStackTrace();
                                             }
-                                        cPublished.incrementAndGet();
+                                        else
+                                            {
+                                            cPublished.incrementAndGet();
+                                            }
                                         return null;
                                         });
                         if (i > 5)
@@ -338,26 +347,23 @@ public class TopicsStorageRecoveryTests
             // start the subscriber runnable
             Runnable runSubscriber = () ->
                 {
-                for (int i = 0; i < 10 && fSubscribe.get(); i++)
+                try (Subscriber<Message> subscriber = topic.createSubscriber(inGroup(sGroup)))
                     {
-                    try (Subscriber<Message> subscriber =  topic.createSubscriber(inGroup(sGroup)))
+                    while (fSubscribe.get())
                         {
-                        for (int j = 0; j < 5; j++)
+                        try
                             {
-                            try
+                            Subscriber.Element<Message> element = subscriber.receive().get(30, TimeUnit.SECONDS);
+                            element.commit();
+                            int c = cReceived.incrementAndGet();
+                            if (c >= 5)
                                 {
-                                Subscriber.Element<Message> element = subscriber.receive().get(1, TimeUnit.MINUTES);
-                                element.commit();
-                                cReceived.incrementAndGet();
-                                if (i >= 5)
-                                    {
-                                    fSubscribed.set(true);
-                                    }
+                                fSubscribed.set(true);
                                 }
-                            catch (Throwable t)
-                                {
-                                t.printStackTrace();
-                                }
+                            }
+                        catch (Throwable t)
+                            {
+                            t.printStackTrace();
                             }
                         }
                     }
@@ -392,11 +398,17 @@ public class TopicsStorageRecoveryTests
 
             // wait for the publisher and subscriber to finish
             threadPublish.join(600000);
+
+            // should eventually have received all the messages
+            Eventually.assertDeferred(cReceived::get, is(greaterThanOrEqualTo(cPublished.get())));
+
+            // stop the subscriber
+            fSubscribe.set(false);
             threadSubscribe.join(120000);
+
             // we should have received at least as many as published (could be more if a commit did not succeed
             // during fail-over and the messages was re-received, but that is ok)
             Logger.info("Test complete: published=" + cPublished.get() + " received=" + cReceived.get());
-            assertThat(cReceived.get(), is(greaterThanOrEqualTo(cPublished.get())));
             }
         }
 
