@@ -1,27 +1,38 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package cache;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import common.AbstractFunctionalTest;
 import common.TestHelper;
 
-import com.tangosol.net.NamedCache;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.AbstractEvictionPolicy;
 import com.tangosol.net.cache.ConfigurableCacheMap.Entry;
 import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.SerializationCache;
 import com.tangosol.net.cache.SimpleMemoryCalculator;
+import com.tangosol.net.management.MBeanHelper;
+import com.tangosol.net.NamedCache;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.is;
 
 /**
  * The {@link MapConfigTests} class contains various tests for map configuration, such
@@ -52,6 +63,7 @@ public class MapConfigTests
           {
           // this test requires local storage to be enabled
           System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+          System.setProperty("coherence.management.refresh.expiry", "1s");
 
           AbstractFunctionalTest._startup();
           }
@@ -125,7 +137,51 @@ public class MapConfigTests
         verifyEvictionPolicy("dist-eviction-lru",    LocalCache.INSTANCE_LRU.getClass());
         }
 
+    @Test
+    public void testUnitBytesIntegerOverflow()
+        {
+        String                      sCacheName = "dist-calculator-large-1";
+        NamedCache<Integer, String> cacheDist  = CacheFactory.getCache(sCacheName);
+        Map<Integer, String>        map        = new HashMap<>();
+
+        for (int i = 0 ; i < 1000 ; i++)
+            {
+            map.put(i, "value-" + i);
+            }
+        cacheDist.putAll(map);
+        assertEquals(1000, cacheDist.size());
+
+        MBeanServer mbs = MBeanHelper.findMBeanServer();
+        Eventually.assertDeferred(() -> isUnitsBytesCorrect(mbs, sCacheName), is(true));
+        }
+
     // ----- helpers --------------------------------------------------------
+
+    /**
+     * Returns true if the UnitsBytes attribute is greater than Integer.MAX_VALUE.
+     *
+     * @param mbs         {@link MBeanServer}
+     * @param sCacheName  cache name
+     *
+     * @return the UnitsBytes
+     * @throws Exception if any JMX errors
+     */
+    public boolean isUnitsBytesCorrect(MBeanServer mbs, String sCacheName)
+        {
+        try
+            {
+            Set<ObjectName> setValues = mbs.queryNames(
+                    new ObjectName("Coherence:type=Cache,tier=back,name=" + sCacheName + ",*"), null);
+            for (ObjectName on : setValues)
+                {
+                return (Long) mbs.getAttribute(on, "UnitsBytes") > (long) Integer.MAX_VALUE;
+                }
+            }
+        catch (Exception eIgnore)
+            {
+            }
+        return false;
+        }
 
     /**
      * Verify that the UnitCalculator is the correct class.
@@ -183,6 +239,20 @@ public class MapConfigTests
     public static class CustomUnitCalculator
             extends SimpleMemoryCalculator
         {
+        }
+
+    /**
+     * A unit calculator that will return a value equal to Integer.MAX_VALUE to
+     * test possible integer overflow.
+     */
+    public static class LargeIntegerValueUnitCalculator
+            extends SimpleMemoryCalculator
+        {
+        @Override
+        public int calculateUnits(Object oKey, Object oValue)
+            {
+            return Integer.MAX_VALUE / 10;
+            }
         }
 
     /**
