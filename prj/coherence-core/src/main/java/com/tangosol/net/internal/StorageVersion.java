@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -149,20 +149,15 @@ public class StorageVersion
      * corresponding backing map (see PartitionedCache$Storage#checkIndexConsistency).
      *
      * @param nPartition  the partition to update
+     *
+     * @return the global submitted version
      */
-    public void submit(int nPartition)
+    public long submit(int nPartition)
         {
-        LongArray laPartitionVersion = m_laPartitionVersion;
+        PartitionVersion version = ensurePartitionVersion(nPartition);
 
-        PartitionVersion version = (PartitionVersion) laPartitionVersion.get(nPartition);
-        if (version == null)
-            {
-            // partition not registered, allocate and add to the map
-            laPartitionVersion.set(nPartition, version = new PartitionVersion());
-            }
         version.submissionCounter.incrementAndGet();
-
-        m_atomicSubmittedVersion.incrementAndGet();
+        return m_atomicSubmittedVersion.incrementAndGet();
         }
 
     /**
@@ -287,6 +282,31 @@ public class StorageVersion
     public void dropCommittedVersion(int nPartition)
         {
         m_laPartitionVersion.remove(nPartition);
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Return a PartitionVersion data structure that represents the provided
+     * partition
+     *
+     * @param nPartition  the partition
+     *
+     * @return a PartitionVersion data structure that represents the provided
+     *         partition
+     */
+    protected PartitionVersion ensurePartitionVersion(int nPartition)
+        {
+        LongArray laPartitionVersion = m_laPartitionVersion;
+
+        PartitionVersion version = (PartitionVersion) laPartitionVersion.get(nPartition);
+        if (version == null)
+            {
+            // partition not registered, allocate and add to the map
+            laPartitionVersion.set(nPartition, version = new PartitionVersion());
+            }
+
+        return version;
         }
 
     /**
