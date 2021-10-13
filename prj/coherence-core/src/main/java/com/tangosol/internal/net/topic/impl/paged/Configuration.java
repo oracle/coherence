@@ -305,6 +305,54 @@ public class Configuration
         m_calculator = calculator == null ? BinaryElementCalculator.INSTANCE : calculator;
         }
 
+    /**
+     * Returns the maximum amount of time publishers and subscribers will
+     * attempt to reconnect after being disconnected.
+     *
+     * @return the maximum amount of time publishers and subscribers will
+     *         attempt to reconnect after being disconnected
+     */
+    public long getReconnectTimeoutMillis()
+        {
+        return m_cReconnectTimeoutMillis;
+        }
+
+    /**
+     * Set the maximum amount of time publishers and subscribers will
+     * attempt to reconnect after being disconnected.
+     *
+     * @param cMillis  the maximum amount of time publishers and subscribers will
+     *                 attempt to reconnect after being disconnected
+     */
+    public void setReconnectTimeoutMillis(long cMillis)
+        {
+        m_cReconnectTimeoutMillis = cMillis <= 0 ? 0 : Math.max(1000L, cMillis);
+        }
+
+    /**
+     * Return the amount of time publishers and subscribers will wait between
+     * attempts to reconnect after being disconnected.
+     *
+     * @return the maximum amount of time publishers and subscribers will
+     *         wait between attempts to reconnect after being disconnected
+     */
+    public long getReconnectRetryMillis()
+        {
+        return m_cReconnectRetryMillis;
+        }
+
+    /**
+     * Set the amount of time publishers and subscribers will wait between
+     * attempts to reconnect after being disconnected.
+     *
+     * @param cMillis  the maximum amount of time publishers and subscribers will
+     *                 wait between attempts to reconnect after being disconnected
+     */
+    public void setReconnectRetryMillis(long cMillis)
+        {
+        m_cReconnectRetryMillis = cMillis <= 0 ? 0 : Math.max(1000L, cMillis);
+        }
+
     // ----- Object methods -------------------------------------------------
 
     @Override
@@ -317,6 +365,8 @@ public class Configuration
                 "RetainConsumed=" + m_fRetainConsumed + ", " +
                 "ElementCalculator=" + m_calculator.getName() + ", " +
                 "SubscriberTimeout=" + m_cSubscriberTimeoutMillis + "ms " +
+                "ReconnectTimeout=" + m_cReconnectTimeoutMillis +
+                "ReconnectRetry=" + m_cReconnectRetryMillis +
                 "AllowUnownedCommits=" + m_fAllowUnownedCommits;
         }
 
@@ -375,4 +425,14 @@ public class Configuration
      * The unit calculator used to calculate topic element sizes.
      */
     private NamedTopic.ElementCalculator m_calculator = BinaryElementCalculator.INSTANCE;
+
+    /**
+     * The maximum amount of time that publishers and subscribers will attempt to reconnect.
+     */
+    private long m_cReconnectTimeoutMillis;
+
+    /**
+     * The amount of time that publishers and subscribers will wait between attempts to reconnect.
+     */
+    private long m_cReconnectRetryMillis;
     }

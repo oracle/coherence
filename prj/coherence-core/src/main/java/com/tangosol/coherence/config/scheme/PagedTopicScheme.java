@@ -422,6 +422,64 @@ public class PagedTopicScheme
         return list;
         }
 
+    /**
+     * Returns the maximum amount of time publishers and subscribers will
+     * attempt to reconnect after being disconnected.
+     *
+     * @param resolver  the parameter resolver
+     *
+     * @return the maximum amount of time publishers and subscribers will
+     *         attempt to reconnect after being disconnected
+     */
+    public Seconds getReconnectTimeoutMillis(ParameterResolver resolver)
+        {
+        return m_exprReconnectTimeout.evaluate(resolver);
+        }
+
+    /**
+     * Set the maximum amount of time publishers and subscribers will
+     * attempt to reconnect after being disconnected.
+     *
+     * @param expr  the maximum amount of time publishers and subscribers will
+     *              attempt to reconnect after being disconnected
+     */
+    @Injectable("reconnect-timeout")
+    public void setReconnectTimeoutMillis(Expression<Seconds> expr)
+        {
+        m_exprReconnectTimeout = expr == null
+                ? new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS)
+                : expr;
+        }
+
+    /**
+     * Return the amount of time publishers and subscribers will wait between
+     * attempts to reconnect after being disconnected.
+     *
+     * @param resolver  the parameter resolver
+     *
+     * @return the maximum amount of time publishers and subscribers will
+     *         wait between attempts to reconnect after being disconnected
+     */
+    public Seconds getReconnectRetryMillis(ParameterResolver resolver)
+        {
+        return m_exprReconnectRetry.evaluate(resolver);
+        }
+
+    /**
+     * Set the amount of time publishers and subscribers will wait between
+     * attempts to reconnect after being disconnected.
+     *
+     * @param expr  the maximum amount of time publishers and subscribers will
+     *              wait between attempts to reconnect after being disconnected
+     */
+    @Injectable("reconnect-retry")
+    public void setReconnectRetryMillis(Expression<Seconds> expr)
+        {
+        m_exprReconnectRetry = expr == null
+                ? new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_RETRY_SECONDS)
+                : expr;
+        }
+
     // ----- ServiceScheme methods ------------------------------------------
 
     @Override
@@ -585,6 +643,8 @@ public class PagedTopicScheme
         configuration.setChannelCount(getChannelCount(resolver));
         configuration.setAllowUnownedCommits(isAllowUnownedCommits(resolver));
         configuration.setSubscriberTimeoutMillis(getSubscriberTimeout(resolver).as(Duration.Magnitude.MILLI));
+        configuration.setReconnectTimeoutMillis(getReconnectTimeoutMillis(resolver).as(Duration.Magnitude.MILLI));
+        configuration.setReconnectRetryMillis(getReconnectRetryMillis(resolver).as(Duration.Magnitude.MILLI));
 
         Logger.finer("PagedTopicScheme configuration: " + configuration);
         return configuration;
@@ -680,4 +740,14 @@ public class PagedTopicScheme
      * The {@link ElementCalculatorBuilder}.
      */
     private ElementCalculatorBuilder m_bldrElementCalculator;
+
+    /**
+     * The reconnection timeout value.
+     */
+    private Expression<Seconds> m_exprReconnectTimeout = new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS);
+
+    /**
+     * The reconnection retry value.
+     */
+    private Expression<Seconds> m_exprReconnectRetry = new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_RETRY_SECONDS);
     }

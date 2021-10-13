@@ -324,6 +324,24 @@ public class PagedTopic<V>
          * @return the calculator used to calculate element sizes
          */
         NamedTopic.ElementCalculator getElementCalculator();
+
+        /**
+         * Returns the maximum amount of time publishers and subscribers will
+         * attempt to reconnect after being disconnected.
+         *
+         * @return the maximum amount of time publishers and subscribers will
+         *         attempt to reconnect after being disconnected
+         */
+        long getReconnectTimeoutMillis();
+
+        /**
+         * Return the amount of time publishers and subscribers will wait between
+         * attempts to reconnect after being disconnected.
+         *
+         * @return the maximum amount of time publishers and subscribers will
+         *         wait between attempts to reconnect after being disconnected
+         */
+        long getReconnectRetryMillis();
         }
 
     // ----- constants ------------------------------------------------------
@@ -342,6 +360,16 @@ public class PagedTopic<V>
      * The default subscriber timeout.
      */
     public static final Seconds DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS = new Seconds(300);
+
+    /**
+     * The default reconnect timeout.
+     */
+    public static final Seconds DEFAULT_RECONNECT_TIMEOUT_SECONDS = new Seconds(300);
+
+    /**
+     * The default reconnect retry.
+     */
+    public static final Seconds DEFAULT_RECONNECT_RETRY_SECONDS = new Seconds(5);
 
     // ----- data members ---------------------------------------------------
 
