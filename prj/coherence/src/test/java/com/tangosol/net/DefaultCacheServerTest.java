@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,8 @@ package com.tangosol.net;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.tangosol.application.Context;
+import com.tangosol.application.LifecycleListener;
 import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
 
 import com.tangosol.run.xml.XmlElement;
@@ -21,10 +23,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.mockito.InOrder;
 import util.ThreadHelper;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -295,6 +299,43 @@ public class DefaultCacheServerTest
         assertEquals(1, cache.get("A"));
 
         stopDCS(cacheServer);
+        }
+
+    @Test
+    public void shouldReceiveLifecycleEvents() throws Exception
+        {
+        ExtensibleConfigurableCacheFactory eccf = mock(ExtensibleConfigurableCacheFactory.class);
+        when(eccf.getServiceMap()).thenReturn(Collections.emptyMap());
+
+        LifecycleListener l1 = mock(LifecycleListener.class);
+        LifecycleListener l2 = mock(LifecycleListener.class);
+        LifecycleListener l3 = mock(LifecycleListener.class);
+
+        DefaultCacheServer server = new DefaultCacheServer(eccf);
+        server.addLifecycleListener(l1);
+        server.addLifecycleListener(l2);
+        server.addLifecycleListener(l3);
+        // l3 is now removed so should not receive any events
+        server.removeLifecycleListener(l3);
+
+        // start DCS - l1 and l2 should get events
+        server.startDaemon(5000L);
+
+        // l3 is now removed so should not receive any stop events
+        server.removeLifecycleListener(l2);
+
+        // stop DCS - l1 should get events
+        server.shutdownServer();
+
+        InOrder inOrder = inOrder(l1, l2, l3);
+        inOrder.verify(l1).preStart(any(Context.class));
+        inOrder.verify(l2).preStart(any(Context.class));
+        inOrder.verify(l1).postStart(any(Context.class));
+        inOrder.verify(l2).postStart(any(Context.class));
+        inOrder.verify(l1).preStop(any(Context.class));
+        inOrder.verify(l1).postStop(any(Context.class));
+        verifyZeroInteractions(l3);
+        verifyNoMoreInteractions(l1, l2);
         }
 
     // ----- helpers --------------------------------------------------------

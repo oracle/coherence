@@ -8,6 +8,13 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Blocking;
 
+import com.tangosol.application.ContainerContext;
+
+import com.tangosol.application.Context;
+import com.tangosol.application.LifecycleListener;
+
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.internal.net.service.LegacyXmlServiceHelper;
 
@@ -29,6 +36,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
+
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import java.util.regex.Pattern;
 
 
@@ -59,6 +70,31 @@ public class DefaultCacheServer
         }
 
     // ----- public API -----------------------------------------------------
+
+    /**
+     * Add a {@link LifecycleListener} that will be notified of lifecycle
+     * events for this {@link DefaultCacheServer}.
+     *
+     * @param listener  the listener to add
+     */
+    public void addLifecycleListener(LifecycleListener listener)
+        {
+        ensureLifecycleListeners().add(listener);
+        }
+
+    /**
+     * Remove a {@link LifecycleListener} so that it will no longer be notified
+     * of lifecycle events for this {@link DefaultCacheServer}.
+     * <p>
+     * Listeners are stored in a {@link List} and will be removed based on a
+     * simple object equality check.
+     *
+     * @param listener  the listener to remove
+     */
+    public void removeLifecycleListener(LifecycleListener listener)
+        {
+        ensureLifecycleListeners().remove(listener);
+        }
 
     /**
     * Start the cache server and check the service status periodically,
@@ -148,9 +184,36 @@ public class DefaultCacheServer
     */
     public void shutdownServer()
         {
+        List<LifecycleListener> listListener = ensureLifecycleListeners();
+        Context                 ctx          = new LifecycleContext();
+
+        for (LifecycleListener listener : listListener)
+            {
+            try
+                {
+                listener.preStop(ctx);
+                }
+            catch (Throwable e)
+                {
+                CacheFactory.err(e);
+                }
+            }
+
         stopServiceMonitor();
         CacheFactory.shutdown();
         notifyShutdown();
+
+        for (LifecycleListener listener : listListener)
+            {
+            try
+                {
+                listener.postStop(ctx);
+                }
+            catch (Throwable e)
+                {
+                CacheFactory.err(e);
+                }
+            }
         }
 
     /**
@@ -399,12 +462,65 @@ public class DefaultCacheServer
 
         m_serviceMon = new SimpleServiceMonitor(cWaitMillis);
 
+        List<LifecycleListener> listListener = ensureLifecycleListeners();
+        Context                 ctx          = new LifecycleContext();
+
+        for (LifecycleListener listener : listListener)
+            {
+            try
+                {
+                listener.preStart(ctx);
+                }
+            catch (Throwable e)
+                {
+                CacheFactory.err(e);
+                }
+            }
+
         Map<Service, String> mapServices = startServicesInternal();
 
         m_serviceMon.setConfigurableCacheFactory(m_factory);
         m_serviceMon.registerServices(mapServices);
 
         reportStarted();
+
+        for (LifecycleListener listener : listListener)
+            {
+            try
+                {
+                listener.postStart(ctx);
+                }
+            catch (Throwable e)
+                {
+                CacheFactory.err(e);
+                }
+            }
+        }
+
+    /**
+     * Returns the list of {@link LifecycleListener}s registered for this {@link DefaultCacheServer}.
+     * <p>
+     * If the list of listeners does not yet exist it will be created and initially populated
+     * using the {@link ServiceLoader} to discover and load listeners.
+     *
+     * @return the list of {@link LifecycleListener}s registered for this {@link DefaultCacheServer}
+     */
+    protected List<LifecycleListener> ensureLifecycleListeners()
+        {
+        if (m_listLifecycleListener == null)
+            {
+            synchronized (this)
+                {
+                List<LifecycleListener>          list   = new CopyOnWriteArrayList<>();
+                ServiceLoader<LifecycleListener> loader = ServiceLoader.load(LifecycleListener.class);
+                for (LifecycleListener listener : loader)
+                    {
+                    list.add(listener);
+                    }
+                m_listLifecycleListener = list;
+                }
+            }
+        return m_listLifecycleListener;
         }
 
     /**
@@ -701,4 +817,81 @@ public class DefaultCacheServer
     * Shutdown hook thread.
     */
     protected Thread m_threadShutdown = makeThread(null, this::stopMonitoring, null);
+
+    /**
+     * The {@link LifecycleListener}s to be notified of lifecycle events
+     * for this {@link DefaultCacheServer}.
+     * <p>
+     * The {@link LifecycleListener}s will be discovered and loaded using
+     * the {@link java.util.ServiceLoader}.
+     */
+    protected List<LifecycleListener> m_listLifecycleListener;
+
+    // ----- inner class: LifecycleContext ----------------------------------
+
+    /**
+     * An implementation of {@link Context} that will be passed
+     * to {@link DefaultCacheServer} {@link LifecycleListener}s.
+     */
+    protected class LifecycleContext
+            implements Context
+        {
+        @Override
+        public ConfigurableCacheFactory getConfigurableCacheFactory()
+            {
+            return m_factory;
+            }
+
+        @Override
+        public CacheFactoryBuilder getCacheFactoryBuilder()
+            {
+            return CacheFactory.getCacheFactoryBuilder();
+            }
+
+        @Override
+        public ClassLoader getClassLoader()
+            {
+            if (m_factory instanceof ExtensibleConfigurableCacheFactory)
+                {
+                ((ExtensibleConfigurableCacheFactory) m_factory).getConfigClassLoader();
+                }
+            return m_factory.getClass().getClassLoader();
+            }
+
+        @Override
+        public String getApplicationName()
+            {
+            return "DefaultCacheServer";
+            }
+
+        @Override
+        public ServiceMonitor getServiceMonitor()
+            {
+            return m_serviceMon;
+            }
+
+        @Override
+        public String getPofConfigURI()
+            {
+            return Config.getProperty("coherence.pof.config", "pof-config.xml");
+            }
+
+        @Override
+        public String getCacheConfigURI()
+            {
+            return Config.getProperty("coherence.cacheconfig", "coherence-cache-config.xml");
+            }
+
+        @Override
+        public ContainerContext getContainerContext()
+            {
+            return null;
+            }
+
+        @Override
+        public ExtendedContext getExtendedContext()
+            {
+            return null;
+            }
+        }
     }
