@@ -33,6 +33,12 @@ public class PortableException
         extends RuntimeException
         implements PortableObject, SerializationSupport
     {
+    /**
+    * Bug 33456075 This field was added to fix the backwards compatibility issue when serializing exceptions
+    * to or from Coherence versions older than 12.2.1-4-5
+    */
+    static final long serialVersionUID = -9223304018856031609L;
+
     // ----- constructors -----------------------------------------------------
 
     /**
