@@ -84,10 +84,8 @@ import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
-import org.junit.rules.TemporaryFolder;
 import test.CheckJDK;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -173,6 +171,7 @@ public class ManagementInfoResourceTests
             m_dirActive   = FileHelper.createTempDir();
             m_dirSnapshot = FileHelper.createTempDir();
             m_dirArchive  = FileHelper.createTempDir();
+            s_dirJFR      = FileHelper.createTempDir();
             }
         catch (IOException ioe)
             {
@@ -810,9 +809,9 @@ public class ManagementInfoResourceTests
         assertThat(result.indexOf(SERVER_PREFIX + "-1"), greaterThan(0));
         assertThat(result.indexOf(SERVER_PREFIX + "-2"), greaterThan(0));
 
-        File   folder   = s_tempFolder.newFolder();
-        String sJfr1    = folder.getCanonicalPath() + File.separator + "all1.jfr";
-        String sJfrPath = folder.getCanonicalPath() + File.separator;
+        File   folder   = s_dirJFR;
+        String sJfr1    = folder.getAbsolutePath() + File.separator + "all1.jfr";
+        String sJfrPath = folder.getAbsolutePath() + File.separator;
         response = getBaseTarget().path(DIAGNOSTIC_CMD)
                 .path("jfrDump")
                 .queryParam(OPTIONS, encodeValue("name=all,filename=" + sJfr1))
@@ -849,8 +848,8 @@ public class ManagementInfoResourceTests
                 .post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        assertThat(new File(folder.getCanonicalPath() + File.separator + "1-all1.jfr").exists(), is(true));
-        assertThat(new File(folder.getCanonicalPath() + File.separator + "2-all1.jfr").exists(), is(true));
+        assertThat(new File(folder.getAbsolutePath() + File.separator + "1-all1.jfr").exists(), is(true));
+        assertThat(new File(folder.getAbsolutePath() + File.separator + "2-all1.jfr").exists(), is(true));
         assertThat(new File(sJfrPath + File.separator + "1-all.jfr").exists(), is(true));
         assertThat(new File(sJfrPath + File.separator + "2-all.jfr").exists(), is(true));
         }
@@ -892,18 +891,11 @@ public class ManagementInfoResourceTests
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
-        File     folder   = s_tempFolder.newFolder();
-        String   sJfr1    = folder.getCanonicalPath() + File.separator + "foo1.jfr";
-        String   sJfr2    = folder.getCanonicalPath() + File.separator + "foo2.jfr";
+        String   sJfr1    = s_dirJFR.getAbsolutePath() + File.separator + "foo1.jfr";
+        String   sJfr2    = s_dirJFR.getAbsolutePath() + File.separator + "foo2.jfr";
         File     jfr1     = new File(sJfr1);
         File     jfr2     = new File(sJfr2);
         Response response = getBaseTarget().request().get();
-
-        int i = 0;
-        while (!folder.exists() && i++ < 30)
-            {
-            sleep(1000);
-            }
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
@@ -3174,6 +3166,11 @@ public class ManagementInfoResourceTests
      */
     protected static File m_dirArchive;
 
+    /**
+     * Temporary directory to store JFR files.
+     */
+    protected static File s_dirJFR;
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -3231,12 +3228,6 @@ public class ManagementInfoResourceTests
      * The list of caches used by this test class.
      */
     private String[] CACHES_LIST = {CACHE_NAME, "near-test", "dist-foo"};
-
-    /**
-     * A folder to store temporary files
-     */
-    @ClassRule
-    public static TemporaryFolder s_tempFolder = new TemporaryFolder();
 
     /**
      * Prefix for the spawned processes.
