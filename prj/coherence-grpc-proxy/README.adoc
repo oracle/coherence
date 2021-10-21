@@ -66,7 +66,7 @@ for example `-Dcoherence.grpc.inprocess.name=foo` will set the in-process server
 === Using TLS
 
 By default, the gRPC server runs in plaintext mode.
-The gRPC server can be configured to use TLS. The relevant key, cert and optional CA files must be provided, either on the classpath of file system.
+The gRPC server can be configured to use TLS. The relevant key, cert and optional CA files must be provided, either on the classpath or file system.
 
 Assuming that the TLS key is in a file named `/certs/server.key`, and that the server TLS cert is in a file named `/certs/server.pem` then TLS can be configured with the following system properties.
 

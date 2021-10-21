@@ -62,14 +62,14 @@ the `Carts` session configuration.
 === Running A Coherence Server
 
 The `com.tangol.net.Coherence` contains a `main` method that allows it to be used to run a Coherence server as a
-more powerful to alternative `DefaultCahceServer`.
+more powerful to alternative `DefaultCacheServer`.
 [source,bash]
 ----
 $ java -cp coherence.jar com.tangosol.net.Coherence
 ----
 
 Without any other configuration, the default `Coherence` instance started this way will run an identical server
-to that run using `DefaultCahceServer`.
+to that run using `DefaultCacheServer`.
 
 
 The steps above are covered in more detail below.
