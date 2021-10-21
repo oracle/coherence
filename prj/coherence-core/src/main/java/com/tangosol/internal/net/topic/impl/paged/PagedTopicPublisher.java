@@ -126,7 +126,7 @@ public class PagedTopicPublisher<V>
         for (int nChannel = 0; nChannel < cChannel; ++nChannel)
             {
             f_aChannel[nChannel]
-                    = new PagedTopicChannelPublisher(f_nId, nChannel, m_caches, f_nNotifyPostFull, backlog, f_daemon);
+                    = new PagedTopicChannelPublisher(f_nId, nChannel, m_caches, f_nNotifyPostFull, backlog, f_daemon, this::handlePublishError);
             }
 
         f_listenerNotification = new SimpleMapListener<NotificationKey, int[]>()
@@ -168,7 +168,7 @@ public class PagedTopicPublisher<V>
         ensureActive();
         PagedTopicChannelPublisher channel = ensureChannelPublisher(value);
         CompletableFuture<Status>  future  = channel.publish(f_convValueToBinary.convert(value));
-        future.handleAsync((status, error) -> handlePublished(error, channel.getChannel()));
+        future.handleAsync((status, error) -> handlePublished(channel.getChannel()));
         return future;
         }
 
@@ -303,26 +303,43 @@ public class PagedTopicPublisher<V>
 
 
     /**
-     * Handle a publish request completion
+     * Handle a publish request completion.
+     *
+     * @param nChannel  the channel the message was published to
      */
-    protected Void handlePublished(Throwable error, int nChannel)
+    protected Void handlePublished(int nChannel)
         {
         f_setOfferedChannel.set(nChannel);
+        return null;
+        }
+
+    /**
+     * Handle a publishing error.
+     *
+     * @param error     the error that occurred
+     * @param nChannel  the channel causing the error
+     */
+    protected void handlePublishError(Throwable error, int nChannel)
+        {
         if (error != null)
             {
             switch (f_onFailure)
                 {
                 case Stop:
                     // Stop the publisher.
-                    closeInternal(false);
+                    Logger.info("Closing publisher due to publishing error from channel " + nChannel + ", " + error);
+                    // we need to do the actual close async as we're on the service thread here
+                    // setting the state to OnError will stop us accepting further messages to publish
+                    m_state = State.OnError;
+                    CompletableFuture.runAsync(() -> closeInternal(false));
                     break;
                 case Continue:
                     // Do nothing as the individual errors will
                     // already have been handled
+                    Logger.info("Publisher set to continue on error, ignoring publishing error from channel " + nChannel + ", " + error);
                     break;
                 }
             }
-        return null;
         }
 
     /**
@@ -361,7 +378,7 @@ public class PagedTopicPublisher<V>
                     m_caches.ensureConnected();
                     Logger.info("Restarting publisher for channel " + nChannel + " topic " + m_caches.getTopicName() + " publisher " + f_nId);
                     publisher = f_aChannel[nChannel] = new PagedTopicChannelPublisher(f_nId, nChannel, m_caches,
-                            f_nNotifyPostFull, f_flowControl, f_daemon);
+                            f_nNotifyPostFull, f_flowControl, f_daemon, this::handlePublishError);
                     }
                 }
             }
@@ -645,7 +662,11 @@ public class PagedTopicPublisher<V>
         /**
          * The publisher is disconnected from storage.
          */
-        Disconnected
+        Disconnected,
+        /**
+         * The publisher is closing due to an error.
+         */
+        OnError
         }
 
     // ----- inner class: PublishedMetadata --------------------------------
