@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,9 +13,12 @@ import com.tangosol.coherence.config.builder.ServiceBuilder;
 
 import com.tangosol.config.annotation.Injectable;
 
+import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.net.Cluster;
+import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Service;
 import com.tangosol.net.ServiceDependencies;
 
@@ -73,6 +76,16 @@ public abstract class AbstractServiceScheme<D extends ServiceDependencies>
             else
                 {
                 m_refService = new WeakReference(service);
+                }
+
+            Parameter parameter = resolver.resolve(ExtensibleConfigurableCacheFactory.CACHE_FACTORY);
+            if (parameter != null)
+                {
+                ConfigurableCacheFactory ccf = parameter.evaluate(resolver).as(ConfigurableCacheFactory.class);
+                if (ccf != null)
+                    {
+                    service.getResourceRegistry().registerResource(ConfigurableCacheFactory.class, "ConfigurableCacheFactory", ccf);
+                    }
                 }
 
             service.setDependencies(getServiceDependencies());
