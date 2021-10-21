@@ -42,6 +42,7 @@ import java.util.Objects;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 /**
@@ -67,15 +68,18 @@ public class PagedTopicChannelPublisher
      * @param flowControl      the {@link DebouncedFlowControl} control to use
      * @param pool             the {@link DaemonPool} to execute publish completions
      */
-    public PagedTopicChannelPublisher(long                 lPublisherId,
-                                      int                  nChannel,
-                                      PagedTopicCaches     caches,
-                                      int                  nNotifyPostFull,
-                                      DebouncedFlowControl flowControl,
-                                      DaemonPool           pool)
+    public PagedTopicChannelPublisher(long                           lPublisherId,
+                                      int                            nChannel,
+                                      PagedTopicCaches               caches,
+                                      int                            nNotifyPostFull,
+                                      DebouncedFlowControl           flowControl,
+                                      DaemonPool                     pool,
+                                      BiConsumer<Throwable, Integer> onErrorHandler)
         {
         f_lPublisherId            = lPublisherId;
         f_nChannel                = nChannel;
+        f_sTopicName              = caches.getTopicName();
+        f_onErrorHandler          = onErrorHandler;
         m_caches                  = caches;
         f_nNotifyPostFull         = nNotifyPostFull;
         f_keyUsageSync            = m_caches.getUsageSyncKey(nChannel);
@@ -196,19 +200,18 @@ public class PagedTopicChannelPublisher
      */
     public CompletableFuture<Void> flush(PagedTopicPublisher.FlushMode mode)
         {
-        String sTopicName   = m_caches.getTopicName();
         String sDescription = null;
 
         switch (mode)
             {
             case FLUSH_DESTROY:
-                sDescription = "Topic " + sTopicName + " was destroyed";
+                sDescription = "Topic " + f_sTopicName + " was destroyed";
 
             case FLUSH_CLOSE_EXCEPTIONALLY:
                 String sReason = sDescription != null
                         ? sDescription
                         : "Force Close of Publisher " + f_lPublisherId + " channel "
-                                + f_nChannel + " for topic " + sTopicName;
+                                + f_nChannel + " for topic " + f_sTopicName;
 
                 BiFunction<Throwable, Binary, Throwable> fn  = TopicPublisherException.createFactory(f_serializer, sReason);
                 f_batchingQueue.handleError(fn, BatchingOperationsQueue.OnErrorAction.CompleteWithException);
@@ -398,6 +401,23 @@ public class PagedTopicChannelPublisher
             synchronized (this)
                 {
                 stop();
+                // Inform the error handler of the error, this should be the parent publisher
+                // so that it can close itself if required.
+                // We do this here so that the publisher closes before this channel publisher to catch
+                // any race where a new message is in the middle of being added
+                if (f_onErrorHandler != null)
+                    {
+                    try
+                        {
+                        f_onErrorHandler.accept(throwable, f_nChannel);
+                        }
+                    catch (Throwable t)
+                        {
+                        // shouldn't happen but if we do get an exception we can ignore it
+                        // and carry on with our clean-up
+                        Logger.err(t);
+                        }
+                    }
                 f_batchingQueue.handleError(TopicPublisherException.createFactory(f_serializer, throwable.getMessage()),
                                             BatchingOperationsQueue.OnErrorAction.CancelAndClose);
                 close();
@@ -578,7 +598,7 @@ public class PagedTopicChannelPublisher
         m_cNotifyLast   = cNotifyNow;
 
         return getClass().getSimpleName() +
-                "(topic=" + m_caches.getTopicName() +
+                "(topic=" + f_sTopicName +
                 ", channel=" + f_nChannel +
                 ", state=" + m_state +
                 ", publisher=" + f_lPublisherId +
@@ -684,10 +704,29 @@ public class PagedTopicChannelPublisher
      */
     private final int f_nChannel;
 
+    /**
+     * The name of the topic being published to
+     */
+    private final String f_sTopicName;
+
+    /**
+     * A consumer to be notified on publishing errors.
+     */
+    private final BiConsumer<Throwable, Integer> f_onErrorHandler;
+
+    /**
+     * The topic's underlying caches.
+     */
     private PagedTopicCaches m_caches;
 
+    /**
+     * The serializer to use to serialize message payloads.
+     */
     private final Serializer f_serializer;
 
+    /**
+     * The partitioning strategy used by the topic's caches.
+     */
     private final KeyPartitioningStrategy f_keyPartitioningStrategy;
 
     /**
