@@ -174,7 +174,7 @@
          This is not always possible if we need to bump versions for CVE's -->
     <jersey.version>2.34</jersey.version>
     <jettison.version>1.4.1</jettison.version>
-    <jline.version>2.14.6</jline.version>
+    <jline.version>3.20.0</jline.version>
     <jsonb.version>1.0.2</jsonb.version>
     <jsonp.version>1.1.6</jsonp.version>
     <jsonp-impl.version>1.1.6</jsonp-impl.version>
@@ -522,7 +522,7 @@
 
       <!-- jline -->
       <dependency>
-        <groupId>jline</groupId>
+        <groupId>org.jline</groupId>
         <artifactId>jline</artifactId>
         <version>${jline.version}</version>
       </dependency>

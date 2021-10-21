@@ -45,7 +45,7 @@
     </dependency>
 
     <dependency>
-      <groupId>jline</groupId>
+      <groupId>org.jline</groupId>
       <artifactId>jline</artifactId>
       <scope>test</scope>
     </dependency>

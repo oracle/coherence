@@ -365,21 +365,19 @@ public class QueryPlus
         {
         try
             {
-            Class  clzJLineReader = Class.forName("jline.console.ConsoleReader");
-            final  Object jlineReader = ClassHelper.newInstance(clzJLineReader,
-                    new Object[]{input, output});
+            Class<?> clzJLineReader     = Class.forName("org.jline.reader.LineReader");
+            Class<?> clzJLineReaderBldr = Class.forName("org.jline.reader.LineReaderBuilder");
+            Object   builder            = ClassHelper.invokeStatic(clzJLineReaderBldr, "builder", null);
+            String   fieldHistoryFile   = clzJLineReader.getField("HISTORY_FILE").getName();
 
-                File   fileHistory     = new File(".cohql-history");
+            File fileHistory = new File(".cohql-history");
             if (!fileHistory.exists())
                 {
                 fileHistory.createNewFile();
                 }
 
-            Class  clzJlineHistory = Class.forName("jline.console.history.FileHistory");
-            final Object oHistory = ClassHelper.newInstance(clzJlineHistory, new Object[] {fileHistory});
-
-                ClassHelper.invoke(jlineReader, "setHistory", new Object[] {oHistory});
-            ClassHelper.invoke(jlineReader, "setExpandEvents", new Object[] {Boolean.FALSE});
+            builder = ClassHelper.invoke(builder, "variable", new Object[] {fieldHistoryFile, fileHistory});
+            Object jlineReader = ClassHelper.invoke(builder, "build", null);
 
             return new BufferedReader(new InputStreamReader(input))
                 {
@@ -388,18 +386,19 @@ public class QueryPlus
                     {
                     try
                         {
-                        String sLine = (String) ClassHelper.invoke(jlineReader, "readLine", ClassHelper.VOID);
-                        ClassHelper.invoke(oHistory, "flush", ClassHelper.VOID);
+                        String sLine = (String) ClassHelper.invoke(jlineReader, "readLine", null);
+                        ClassHelper.invoke(jlineReader, "redrawLine", null);
+                        ClassHelper.invoke(jlineReader, "flush", null);
                         return sLine;
-                }
+                        }
                     catch (Throwable e)
-                {
+                        {
                         throw Base.ensureRuntimeException(e);
-                }
-                }
+                        }
+                    }
                 };
             }
-        catch (Exception e) // IOException, ClassNotFoundException, etc.
+        catch (Exception e)
             {
             if (!fSilent)
                 {
@@ -407,6 +406,7 @@ public class QueryPlus
                 writer.println("jline library cannot be loaded, so you cannot "
                         + "use the arrow keys for line editing and history.");
                 }
+
             return null;
             }
         }
@@ -955,7 +955,7 @@ public class QueryPlus
                 ListMap map               = CommandLineTool.parseArguments(asArgs, asValidArgs, false);
                 boolean fExitOnCompletion = map.containsKey("c");
                 boolean fSilent           = map.containsKey("s");
-                BufferedReader reader            = null;
+                BufferedReader reader     = null;
 
                 if (!fExitOnCompletion && !map.containsKey("nojline"))
                     {
