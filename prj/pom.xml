@@ -418,7 +418,7 @@
 
       <!-- jline -->
       <dependency>
-        <groupId>jline</groupId>
+        <groupId>org.jline</groupId>
         <artifactId>jline</artifactId>
         <version>${jline.version}</version>
       </dependency>
@@ -691,7 +691,7 @@
     <jakarta.ws.rs.version>2.1.5</jakarta.ws.rs.version>
     <jersey.version>2.29</jersey.version>
     <jettison.version>1.1</jettison.version>
-    <jline.version>2.14.6</jline.version>
+    <jline.version>3.20.0</jline.version>
     <jsonb.version>1.0</jsonb.version>
     <jsonp.version>1.1.2</jsonp.version>
     <jvisualvm.version>RELEASE138</jvisualvm.version>
