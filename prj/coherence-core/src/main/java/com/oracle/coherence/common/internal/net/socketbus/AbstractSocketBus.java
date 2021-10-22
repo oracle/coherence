@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -2034,14 +2034,17 @@ public abstract class AbstractSocketBus
          */
         public synchronized void migrate(Throwable eReason)
             {
-            if (getProtocolVersion() == 0)
+            SocketBusDriver.Dependencies depsDriver            = f_driver.getDependencies();
+            int                          cSocketReconnectLimit = depsDriver.getSocketReconnectLimit();
+
+            // COH-24389 - a reconnect limit of < 0 indicates that migrations are disabled
+            if (getProtocolVersion() == 0 || cSocketReconnectLimit < 0)
                 {
                 scheduleDisconnect(eReason);
                 }
             else // protocol not yet negotiated or >= 1, in either case we can attempt a migration
                 {
-                if (eReason instanceof ConnectException &&
-                    ++m_cReconnectAttempts > f_driver.getDependencies().getSocketReconnectLimit())
+                if (eReason instanceof ConnectException && ++m_cReconnectAttempts > cSocketReconnectLimit)
                     {
                     // we've exhausted our reconnect attempts, disconnect
                     scheduleDisconnect(eReason);
@@ -2053,7 +2056,7 @@ public abstract class AbstractSocketBus
                 // side's reconnect attempt.
                 long cMillisDelay = eReason instanceof ConnectException ||
                         getLocalEndPoint().getCanonicalName().compareTo(getPeer().getCanonicalName()) > 0
-                        ? f_driver.getDependencies().getSocketReconnectDelayMillis()
+                        ? depsDriver.getSocketReconnectDelayMillis()
                         : 0;
 
                 SocketChannel chan  = m_channel;
