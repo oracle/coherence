@@ -62,9 +62,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
@@ -254,16 +256,15 @@ public class LocalNamedTopicTests
         {
         Assume.assumeThat(m_sSerializer, is("pof"));
 
-        NamedTopic<String>     topic    = ensureTopic();
-        int                    cValues  = 20;
-        int                    nError   = 1;
+        NamedTopic<String>     topic       = ensureTopic();
+        int                    nErrorAfter = 1;
 
-        CompletableFuture<Publisher.Status>[] aFutures = new CompletableFuture[cValues];
+        List<CompletableFuture<Publisher.Status>> listFutures = new ArrayList<>();
 
-        final AtomicBoolean fPublisherClosed  = new AtomicBoolean(false);
+        AtomicBoolean fPublisherClosed  = new AtomicBoolean(false);
 
-        // introduce an error after first asynchronous send succeeds
-        addErrorInterceptor(topic, nError);
+        // introduce an error after first asynchronous publish succeeds
+        addErrorInterceptor(topic, nErrorAfter);
 
         String sPrefix = "Element-";
 
@@ -272,25 +273,22 @@ public class LocalNamedTopicTests
             {
             publisher.onClose(() -> fPublisherClosed.set(true));
 
-            for (int i=0; i<cValues && !fPublisherClosed.get(); i++)
+            int cMessage = 0;
+            while (!fPublisherClosed.get())
                 {
                 try
                     {
                     // validate that exception introduced by addErrorInterceptor call is not thrown at site of async send call
-                    String sMsg = sPrefix + i;
-                    aFutures[i] = publisher.publish(sMsg);
-                    System.err.println("Published message: " + sMsg);
-                    aFutures[i].handle((status, err) ->
-                                       {
-                                       System.err.println("Completed publishing message: " + sMsg + " error=" + err);
-                                       return null;
-                                       });
+                    String sMsg = sPrefix + cMessage;
+                    CompletableFuture<Publisher.Status> future = publisher.publish(sMsg);
+                    listFutures.add(future);
+                    cMessage++;
                     }
                 catch (IllegalStateException e)
                     {
-                    // ignore exception This publisher is no longer active
+                    // Ignore exception, The publisher is no longer active
                     // all it means is that second asynchronous send occurred before loop completed and resulted in publisher closing
-                    assertThat("should not fail on first publish", i, Matchers.greaterThan(0));
+                    assertThat("should not fail on first publish", cMessage, Matchers.greaterThan(0));
                     assertThat(e.getMessage().contains("This publisher is no longer active"), is(true));
                     System.err.println("handled IllegalStateException: " + e.getMessage());
                     System.err.println("Publisher Closed: " + fPublisherClosed.get());
@@ -298,59 +296,39 @@ public class LocalNamedTopicTests
                     }
                 }
 
-            try
-                {
-                publisher.flush().get(5, TimeUnit.MINUTES);
-                }
-            catch (InterruptedException | ExecutionException | TimeoutException e)
-                {
-                for (int i = 0; i < aFutures.length; i++)
-                    {
-                    System.err.println("Future (" + i + ") done=" + aFutures[i].isDone()
-                                               + " exceptionally=" + aFutures[i].isCompletedExceptionally()
-                                               + " cancelled=" + aFutures[i].isCancelled());
-                    }
-                fail("Failed to flush publisher");
-                }
-
             // topic should contain just the first value
             assertThat(subscriber.receive().get(10, TimeUnit.MINUTES).getValue(), is(sPrefix + 0));
             assertThat(subscriber.receive().get(10, TimeUnit.MINUTES) == null, is(true));
             }
 
-        // First add completes as normal
-        assertCompletedNormally(aFutures[0]);
-
-        // All other adds should have not occurred at all or be cancelled
-        for (int i=1; i<cValues; i++)
+        for (int i = 0; i < listFutures.size(); i++)
             {
-            if (aFutures[i] != null)
+            if (i < nErrorAfter)
                 {
-                assertCompletedExceptionally(aFutures[i]);
+                // First nErrorAfter publishes should complete as normal
+                assertCompletedNormally(listFutures.get(i), i);
+                }
+            else
+                {
+                // All other publishes should have completed exceptionally
+                assertCompletedExceptionally(listFutures.get(i), i);
                 }
             }
         }
 
 
-    private void assertCompletedNormally(CompletableFuture<?> future)
+    private void assertCompletedNormally(CompletableFuture<?> future, int n)
         {
-        assertThat(future.isDone(), is(true));
-        assertThat(future.isCompletedExceptionally(), is(false));
-        assertThat(future.isCancelled(), is(false));
+        assertThat("Future (" + n + ") should be done",  future.isDone(), is(true));
+        assertThat("Future (" + n + ") should not have completed exceptionally",  future.isCompletedExceptionally(), is(false));
+        assertThat("Future (" + n + ") should not be cancelled",  future.isCancelled(), is(false));
         }
 
-    private void assertCancelled(CompletableFuture<?> future)
+    private void assertCompletedExceptionally(CompletableFuture<?> future, int n)
         {
-        assertThat(future.isDone(), is(true));
-        assertThat(future.isCompletedExceptionally(), is(true));
-        assertThat(future.isCancelled(), is(true));
-        }
-
-    private void assertCompletedExceptionally(CompletableFuture<?> future)
-        {
-        assertThat(future.isDone(), is(true));
-        assertThat(future.isCompletedExceptionally(), is(true));
-        assertThat(future.isCancelled(), is(false));
+        assertThat("Future (" + n + ") should be done",  future.isDone(), is(true));
+        assertThat("Future (" + n + ") should have completed exceptionally",  future.isCompletedExceptionally(), is(true));
+        assertThat("Future (" + n + ") should not be cancelled", future.isCancelled(), is(false));
         }
 
     @Test
