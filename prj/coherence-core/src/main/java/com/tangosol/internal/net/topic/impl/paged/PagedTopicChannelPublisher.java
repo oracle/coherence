@@ -185,6 +185,8 @@ public class PagedTopicChannelPublisher
         if (m_state == State.Closing)
             {
             m_state  = State.Closed;
+            // belt and braces cancellation of remaining publish requests
+            f_batchingQueue.cancelAllAndClose("Publisher has been closed", null);
             m_caches = null;
             }
         }
