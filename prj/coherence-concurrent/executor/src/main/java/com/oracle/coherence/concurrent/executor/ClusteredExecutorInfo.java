@@ -99,7 +99,7 @@ public class ClusteredExecutorInfo
         m_cFreeMemory   = freeMemory;
         m_executorMBean = new ExecutorMBeanImpl();
         m_cCompleted    = 0;
-        m_cFailed       = 0;
+        m_cRejected = 0;
         m_cInProgress   = 0;
     }
 
@@ -188,13 +188,13 @@ public class ClusteredExecutorInfo
         }
 
     /**
-     * Return the number failed tasks.
+     * Return the number rejected tasks.
      *
-     * @return the number failed tasks
+     * @return the number rejected tasks
      */
-    public long getTasksFailedCount()
+    public long getTasksRejectedCount()
         {
-        return m_cFailed;
+        return m_cRejected;
         }
 
     /**
@@ -264,7 +264,7 @@ public class ClusteredExecutorInfo
      */
     public void setTasksFailedCount(long cTasksFailed)
         {
-        m_cFailed = cTasksFailed;
+        m_cRejected = cTasksFailed;
         }
 
     /**
@@ -374,7 +374,7 @@ public class ClusteredExecutorInfo
 
         mBeanInfo.setFreeMemory(thisInfo.getFreeMemory());
         mBeanInfo.setTasksCompletedCount(thisInfo.getTasksCompletedCount());
-        mBeanInfo.setTasksFailedCount(thisInfo.getTasksFailedCount());
+        mBeanInfo.setTasksFailedCount(thisInfo.getTasksRejectedCount());
         mBeanInfo.setTasksInProgressCount(thisInfo.getTasksInProgressCount());
 
         State newState = thisInfo.getState();
@@ -486,7 +486,7 @@ public class ClusteredExecutorInfo
         m_cTotalMemory  = in.readLong(5);
         m_cFreeMemory   = in.readLong(6);
         m_cCompleted    = in.readLong(7);
-        m_cFailed       = in.readLong(8);
+        m_cRejected = in.readLong(8);
         m_cInProgress   = in.readLong(9);
         m_executorMBean = new ExecutorMBeanImpl();
         }
@@ -502,7 +502,7 @@ public class ClusteredExecutorInfo
         out.writeLong(5,   m_cTotalMemory);
         out.writeLong(6,   m_cFreeMemory);
         out.writeLong(7,   m_cCompleted);
-        out.writeLong(8,   m_cFailed);
+        out.writeLong(8, m_cRejected);
         out.writeLong(9,   m_cInProgress);
         }
 
@@ -740,7 +740,7 @@ public class ClusteredExecutorInfo
         public void resetStatistics()
             {
             m_cCompleted  = 0;
-            m_cFailed     = 0;
+            m_cRejected = 0;
             m_cInProgress = 0;
             }
 
@@ -769,9 +769,9 @@ public class ClusteredExecutorInfo
             }
 
         @Override
-        public long getTasksFailedCount()
+        public long getTasksRejectedCount()
             {
-            return m_cFailed;
+            return m_cRejected;
             }
 
         @Override
@@ -1373,7 +1373,7 @@ public class ClusteredExecutorInfo
                                                      f_monitoredExecutor instanceof ExecutorService
                                                         && ((ExecutorService) f_monitoredExecutor).isTerminated(),
                                                      f_clusteredRegistration.getTasksCompletedCount(),
-                                                     f_clusteredRegistration.getTasksFailedCount(),
+                                                     f_clusteredRegistration.getTasksRejectedCount(),
                                                      f_clusteredRegistration.getTasksInProgressCount()));
                 }
             else
@@ -1474,9 +1474,9 @@ public class ClusteredExecutorInfo
     protected long m_cCompleted;
 
     /**
-     * The failed tasks count.
+     * The rejected tasks count.
      */
-    protected long m_cFailed;
+    protected long m_cRejected;
 
     /**
      * The tasks that are in progress count.

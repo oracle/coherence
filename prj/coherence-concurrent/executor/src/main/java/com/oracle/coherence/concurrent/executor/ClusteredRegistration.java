@@ -101,13 +101,13 @@ class ClusteredRegistration
         }
 
     /**
-     * Return the number of failed tasks.
+     * Return the number of rejected tasks.
      *
-     * @return the number of failed tasks.
+     * @return the number of rejected tasks.
      */
-    public long getTasksFailedCount()
+    public long getTasksRejectedCount()
         {
-        return m_cTasksFailedCount;
+        return m_cTasksRejectedCount;
         }
 
     /**
@@ -604,7 +604,7 @@ class ClusteredRegistration
 
             // set the result the throwable
             taskExecutor.setResult(Result.throwable(e), true);
-            m_cTasksFailedCount++;
+            m_cTasksRejectedCount++;
 
             // update the ExecutorInfo to indicate that is it now rejecting tasks
             f_clusteredExecutorService.getScheduledExecutorService().submit(() ->
@@ -814,9 +814,9 @@ class ClusteredRegistration
     protected long m_cTasksCompletedCount = 0;
 
     /**
-     * The tasks failed count.
+     * The tasks rejected count.
      */
-    protected long m_cTasksFailedCount = 0;
+    protected long m_cTasksRejectedCount = 0;
 
     /**
      * The tasks in progress count.

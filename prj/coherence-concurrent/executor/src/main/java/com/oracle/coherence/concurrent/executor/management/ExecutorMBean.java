@@ -63,12 +63,12 @@ public interface ExecutorMBean
     long getTasksCompletedCount();
 
     /**
-     * Get the failed tasks count for the executor.
+     * Get the number of tasks rejected by the executor.
      *
-     * @return the failed tasks count for the executor
+     * @return the rejected tasks count for the executor
      */
-    @Description("The failed tasks count.")
-    long getTasksFailedCount();
+    @Description("The tasks rejected count.")
+    long getTasksRejectedCount();
 
     /**
      * Get the in progress tasks count for the executor.

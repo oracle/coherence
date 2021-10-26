@@ -63,7 +63,6 @@ import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.net.NamedMap;
 import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.util.Base;
@@ -1327,7 +1326,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             Eventually.assertDeferred(key, () -> deferredExecutorMBean.get().getTasksCompletedCount(), Matchers.is((long) TASK_SIZE));
 
             ExecutorMBean executorMBean = ensure(deferredExecutorMBean);
-            MatcherAssert.assertThat(key, executorMBean.getTasksFailedCount(), Matchers.is(0L));
+            MatcherAssert.assertThat(key, executorMBean.getTasksRejectedCount(), Matchers.is(0L));
             MatcherAssert.assertThat(key, executorMBean.getTasksInProgressCount(), Matchers.is(0L));
             MatcherAssert.assertThat(key, executorMBean.getState(), Matchers.is("RUNNING"));
             }
