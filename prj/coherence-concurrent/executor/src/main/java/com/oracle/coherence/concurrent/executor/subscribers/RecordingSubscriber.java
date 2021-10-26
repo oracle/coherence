@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A {@link Task.Subscriber} that records iteration with a {@link Task.Coordinator}.
  *
- * @param <T>  {@inheritDoc}
+ * @param <T>  the type of result received
  *
  * @author bo
  */

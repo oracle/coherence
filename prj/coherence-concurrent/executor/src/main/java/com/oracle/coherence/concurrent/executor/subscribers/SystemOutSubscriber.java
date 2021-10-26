@@ -12,7 +12,7 @@ import com.oracle.coherence.concurrent.executor.Task;
 /**
  * A {@link Task.Subscriber} that logs interactions to the {@link System#out}.
  *
- * @param <T>  {@inheritDoc}
+ * @param <T>  the type of result received
  *
  * @author bo
  * @since 21.12

@@ -19,8 +19,8 @@ import java.util.function.Supplier;
 /**
  * An abstract {@link Task.Collector}.
  *
- * @param <T>  {@inheritDoc}
- * @param <R>  {@inheritDoc}
+ * @param <T>  the type of input elements to the reduction operation
+ * @param <R>  the result type of the reduction operation
  *
  * @author bo
  * @since 21.12

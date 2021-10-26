@@ -9,7 +9,7 @@ package com.oracle.coherence.concurrent.executor;
 /**
  * A clustered implementation of a {@link Task.Orchestration}.
  *
- * @param <T>  {@inheritDoc}
+ * @param <T>  the type of results produced by a {@link Task}
  *
  * @author phf
  * @since 21.12

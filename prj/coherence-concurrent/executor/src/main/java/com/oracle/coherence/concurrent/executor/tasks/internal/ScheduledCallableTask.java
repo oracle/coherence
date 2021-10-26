@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
 /**
  * A {@link Task} that executes a {@link Callable} at scheduled time.
  *
- * @param <T> {@inheritDoc}
+ * @param <T>  the type of result produced by the {@link Task}
  *
  * @author lh
  * @since 21.12

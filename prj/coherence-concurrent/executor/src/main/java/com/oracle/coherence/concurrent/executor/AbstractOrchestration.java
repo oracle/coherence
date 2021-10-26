@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 /**
  * A base implementation of a {@link Task.Orchestration}.
  *
- * @param <T>  the type of the {@link Task}
+ * @param <T>  the type of results produced by a {@link Task}
  * @param <C>  the {@link TaskExecutorService} that created the {@link Task.Orchestration}
  *
  * @author bo

@@ -9,6 +9,7 @@ package com.oracle.coherence.concurrent.executor.tasks;
 
 import com.oracle.coherence.concurrent.executor.PortableTask;
 
+import com.oracle.coherence.concurrent.executor.Task;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
@@ -19,7 +20,7 @@ import java.util.Objects;
 /**
  * A {@link PortableTask} that provides a constant value as a result.
  *
- * @param <T>  {@inheritDoc}
+ * @param <T>  the type of result produced by the {@link Task}
  *
  * @author bo
  * @since 21.12

@@ -9,6 +9,7 @@ package com.oracle.coherence.concurrent.executor.tasks.internal;
 
 import com.oracle.coherence.concurrent.executor.PortableTask;
 
+import com.oracle.coherence.concurrent.executor.Task;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
@@ -19,7 +20,7 @@ import java.util.concurrent.Callable;
 /**
  * A {@link PortableTask} that calls a {@link Callable}.
  *
- * @param <T>  {@inheritDoc}
+ * @param <T>  the type of result produced by the {@link Task}
  *
  * @author bo, lh
  * @since 21.12

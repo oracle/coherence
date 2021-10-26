@@ -18,7 +18,7 @@ import java.io.IOException;
 /**
  * A {@link PortableTask} that calls a runnable.
  *
- * @param <T>  {@inheritDoc}
+ * @param <T>  the type of result produced by the {@link Task}
  *
  * @author bo, lh
  * @since 21.12

@@ -16,9 +16,10 @@ import java.io.IOException;
  * A portable {@link Task.Collector}; a convenience interface for implementations
  * having no properties to serialize.
  *
- * @param <T>  {@inheritDoc}
- * @param <A>  {@inheritDoc}
- * @param <R>  {@inheritDoc}
+ * @param <T>  the type of input elements to the reduction operation
+ * @param <A>  the mutable accumulation type of the reduction operation
+ *             (often hidden as an implementation detail)
+ * @param <R>  the result type of the reduction operation
  *
  * @author lh
  * @since 21.12
