@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <scope-name>$SYS</scope-name>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>atomic-*</cache-name>
+      <scheme-name>atomics</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+
+    <distributed-scheme>
+      <scheme-name>atomics</scheme-name>
+      <service-name>Atomics</service-name>
+      <serializer>
+        <instance>
+          <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>coherence-atomics-pof-config.xml</param-value>
+            </init-param>
+          </init-params>
+        </instance>
+      </serializer>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+  </caching-schemes>
+</cache-config>

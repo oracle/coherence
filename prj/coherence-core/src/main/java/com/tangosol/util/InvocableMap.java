@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -31,6 +31,7 @@ import java.util.Set;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 
@@ -655,6 +656,32 @@ public interface InvocableMap<K, V>
             {
             V value = getValue();
             return value == null ? defaultValue : value;
+            }
+
+        /**
+         * Return the value corresponding to this entry, or the default value
+         * returned by the {@code defaultValueSupplier}, if the entry value
+         * is {@code null}. To differentiate between a null value and a
+         * non-existent entry, use {@link #isPresent}.
+         * <p>
+         * <b>Note:</b> any modifications to the value retrieved using this
+         * method are not guaranteed to persist unless followed by a {@link
+         * #setValue} or {@link #update} call.
+         *
+         * @param defaultValueSupplier  the default value supplier to use to create
+         *                              the default value if the entry value is
+         *                              {@code null}
+         *
+         * @return the value corresponding to this entry, or the value created
+         *         by the specified {@code defaultValueSupplier}, if the entry
+         *         value is {@code null}
+         *
+         * @since 21.12
+         */
+        public default V getValue(Supplier<V> defaultValueSupplier)
+            {
+            V value = getValue();
+            return value == null ? defaultValueSupplier.get() : value;
             }
 
         /**

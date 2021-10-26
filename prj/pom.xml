@@ -404,6 +404,7 @@
         <module>coherence-grpc-proxy</module>
         <module>coherence-java-client</module>
         <module>coherence-helidon-client</module>
+        <module>coherence-concurrent</module>
       </modules>
     </profile>
 

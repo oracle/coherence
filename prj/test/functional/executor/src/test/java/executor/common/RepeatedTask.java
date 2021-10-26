@@ -1,0 +1,100 @@
+/*
+ * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+package executor.common;
+
+import com.oracle.coherence.concurrent.executor.PortableTask;
+import com.oracle.coherence.concurrent.executor.Task;
+
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+
+import java.io.IOException;
+
+/**
+ * A {@link Task} that repeatedly sets a constant value as result
+ * for the specified duration.
+ *
+ * @author lh
+ * @since 21.12
+ */
+public class RepeatedTask<T>
+        implements PortableTask<T>
+    {
+    // ----- constructors ---------------------------------------------------
+
+    /*
+     * Constructs a {@link RepeatedTask} (required for Serializable)
+     */
+    @SuppressWarnings("unused")
+    public RepeatedTask()
+        {
+        }
+
+    /**
+     * Constructs a {@link RepeatedTask}.
+     *
+     * @param value            the value
+     * @param cDurationMillis  the duration to repeat the task
+     */
+    public RepeatedTask(T value, long cDurationMillis)
+        {
+        m_value           = value;
+        m_cDurationMillis = cDurationMillis;
+        }
+
+    // ----- PortableTask interface -----------------------------------------
+
+    @Override
+    public T execute(Context<T> context)
+        {
+        try
+            {
+            long cEndMillis = System.currentTimeMillis() + m_cDurationMillis;
+
+            while (System.currentTimeMillis() < cEndMillis)
+                {
+                //noinspection BusyWait
+                Thread.sleep(1000);
+                context.setResult(m_value);
+                }
+
+            return null;
+            }
+        catch (InterruptedException e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
+    @Override
+    public void readExternal(PofReader in)
+            throws IOException
+        {
+        m_value           = in.readObject(0);
+        m_cDurationMillis = in.readLong(1);
+        }
+
+    @Override
+    public void writeExternal(PofWriter out)
+            throws IOException
+        {
+        out.writeObject(0, m_value);
+        out.writeLong(1, m_cDurationMillis);
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The value for the {@link Task}.
+     */
+    protected T m_value;
+
+    /**
+     * The duration for repeating the {@link Task}.
+     */
+    protected long m_cDurationMillis;
+    }

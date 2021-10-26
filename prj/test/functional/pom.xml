@@ -117,6 +117,7 @@
         <module>dslquery</module>
         <module>events</module>
         <module>examples</module>
+        <module>executor</module>
         <module>extend</module>
         <module>extractor</module>
         <module>filter</module>

@@ -1,0 +1,964 @@
+/*
+ * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+package com.oracle.coherence.concurrent.executor;
+
+import com.oracle.coherence.concurrent.executor.atomic.AtomicEnum;
+
+import com.oracle.coherence.concurrent.executor.function.Predicates;
+
+import com.oracle.coherence.concurrent.executor.options.Member;
+import com.oracle.coherence.concurrent.executor.options.Role;
+
+import com.oracle.coherence.concurrent.executor.subscribers.internal.AnyFutureSubscriber;
+import com.oracle.coherence.concurrent.executor.subscribers.internal.FutureSubscriber;
+
+import com.oracle.coherence.concurrent.executor.tasks.internal.CallableTask;
+import com.oracle.coherence.concurrent.executor.tasks.internal.RunnableTask;
+import com.oracle.coherence.concurrent.executor.tasks.internal.RunnableWithResultTask;
+import com.oracle.coherence.concurrent.executor.tasks.internal.ScheduledCallableTask;
+import com.oracle.coherence.concurrent.executor.tasks.internal.ScheduledRunnableTask;
+
+import com.oracle.coherence.concurrent.executor.util.OptionsByType;
+
+import com.tangosol.net.CacheService;
+import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Session;
+
+import com.tangosol.util.extractor.ReflectionExtractor;
+
+import com.tangosol.util.function.Remote.Predicate;
+
+import java.time.Duration;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.RunnableScheduledFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
+/**
+ * An Oracle Coherence based {@link TaskExecutorService}.
+ *
+ * @author bo, lh
+ * @since 21.12
+ */
+public class ClusteredExecutorService
+        extends AbstractExecutorService
+        implements TaskExecutorService
+    {
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * Constructs a {@link ClusteredExecutorService} based on the specified {@link CacheService}.
+     *
+     * @param cacheService  the {@link CacheService} to use for orchestration metadata
+     */
+    public ClusteredExecutorService(CacheService cacheService)
+        {
+        init(cacheService);
+        }
+
+    /**
+     * Constructs a {@link ClusteredExecutorService} based on the specified {@link ConfigurableCacheFactory}.
+     *
+     * @param cacheFactory  the {@link ConfigurableCacheFactory}
+     *
+     * @deprecated this method is intended for testing with older versions of
+     *             Coherence and should be avoided
+     */
+    @Deprecated
+    public ClusteredExecutorService(ConfigurableCacheFactory cacheFactory)
+        {
+        init(cacheFactory.ensureCache(ClusteredAssignment.CACHE_NAME, null).getCacheService());
+        }
+
+    /**
+     * Constructs a {@link ClusteredExecutorService} based on the specified {@link Session}.
+     *
+     * @param session  the {@link Session}
+     */
+    public ClusteredExecutorService(Session session)
+        {
+        init(session.getCache(ClusteredAssignment.CACHE_NAME).getCacheService());
+        }
+
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+     * Obtains the internal {@link ScheduledExecutorService} that can be used for scheduling asynchronous local
+     * activities for the {@link TaskExecutorService}.
+     *
+     * @return a {@link ScheduledExecutorService}
+     */
+    public ScheduledExecutorService getScheduledExecutorService()
+        {
+        return f_scheduledExecutorService;
+        }
+
+    /**
+     * Obtains the {@link CacheService} being used by the {@link TaskExecutorService}.
+     *
+     * @return the {@link CacheService}
+     */
+    public CacheService getCacheService()
+        {
+        return m_cacheService;
+        }
+
+    // ----- TaskExecutorService interface ----------------------------------
+
+    @Override
+    public Registration register(Executor executor, Registration.Option... options)
+        {
+        if (isShutdown())
+            {
+            throw new IllegalStateException("ClusteredExecutorService [" + this + "] is "
+                                            + (isTerminated() ? "terminated" : "shutting down") + '.');
+            }
+
+        ClusteredRegistration registration = f_mapLocalRegistrations.get(executor);
+
+        if (registration == null)
+            {
+            // automatically include the Member (when it's not defined)
+            OptionsByType<Registration.Option> optionsByType = OptionsByType.from(Registration.Option.class, options);
+
+            if (optionsByType.get(Member.class, null) == null)
+                {
+                optionsByType.add(Member.autoDetect());
+                }
+
+            // automatically include the Member Role (when Role is not defined)
+            if (optionsByType.get(Role.class, null) == null)
+                {
+                Member member = optionsByType.get(Member.class);
+
+                optionsByType.add(Role.of(member.get().getRoleName()));
+                }
+
+            // establish a unique identity for the registration
+            String sIdentity = UUID.randomUUID().toString();
+
+            // create a local registration for the executor
+            registration = new ClusteredRegistration(this, sIdentity, executor, optionsByType);
+
+            ClusteredRegistration existingRegistration = f_mapLocalRegistrations.putIfAbsent(executor, registration);
+
+            // ensure we use the existing registration if there was one
+            if (existingRegistration != null)
+                {
+                registration = existingRegistration;
+                }
+
+            // start the registration
+            registration.start();
+            }
+
+        return registration;
+        }
+
+    @Override
+    public Registration deregister(Executor executor)
+        {
+        ClusteredRegistration registration = f_mapLocalRegistrations.remove(executor);
+
+        if (registration != null)
+            {
+            // close the registration
+            registration.close();
+            }
+
+        if (isShutdown() && f_mapLocalRegistrations.isEmpty())
+            {
+            f_scheduledExecutorService.shutdown();
+            }
+
+        return registration;
+        }
+
+    @Override
+    public <T> Task.Orchestration<T> orchestrate(Task<T> task)
+        {
+        return new ClusteredOrchestration<>(this, task);
+        }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public <R> Task.Coordinator<R> acquire(String sTaskId)
+        {
+        if (getCacheService().ensureCache(ClusteredTaskManager.CACHE_NAME,
+                                          null).containsKey(sTaskId))
+            {
+            ClusteredTaskManager manager = (ClusteredTaskManager) getCacheService()
+                    .ensureCache(ClusteredTaskManager.CACHE_NAME, null).get(sTaskId);
+
+            ClusteredTaskCoordinator<R> coordinator =
+                    new ClusteredTaskCoordinator<>(m_cacheService, manager, getScheduledExecutorService());
+
+            if (manager.isCompleted() && manager.getRetainDuration() != null)
+                {
+                coordinator.close();
+                }
+            return coordinator;
+            }
+
+        return null;
+        }
+
+    // ----- Executor interface ---------------------------------------------
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public void execute(Runnable command)
+        {
+        Objects.requireNonNull(command);
+
+        if (command instanceof CESRunnableFuture) // constructed from newTaskFor()
+            {
+            CESRunnableFuture<?> futureSubscriber = (CESRunnableFuture) command;
+
+            Task.Coordinator coordinator =
+                    orchestrate(futureSubscriber.isRunnable()
+                            ? new RunnableWithResultTask(futureSubscriber.getRunnable(),
+                                                         futureSubscriber.getRunnableValue())
+                            : new CallableTask(futureSubscriber.getCallable()))
+                    .limit(1)
+                    .subscribe(futureSubscriber)
+                    .submit();
+
+            futureSubscriber.setCoordinator(coordinator);
+            }
+        else
+            {
+            orchestrate(new RunnableTask(command))
+                    .limit(1)
+                    .submit();
+            }
+        }
+
+    // ----- ExecutorService interface --------------------------------------
+
+    @Override
+    public boolean isShutdown()
+        {
+        return f_state.get().compareTo(State.STOPPING_GRACEFULLY) >= 0;
+        }
+
+    @Override
+    public boolean isTerminated()
+        {
+        if (f_state.get().equals(State.TERMINATED))
+            {
+            return true;
+            }
+        else if (f_scheduledExecutorService.isTerminated())
+            {
+            // f_scheduledExecutorService has finished shutting down
+            setState(State.ANY, State.TERMINATED);
+
+            return true;
+            }
+        else
+            {
+            return false;
+            }
+        }
+
+    @Override
+    public boolean awaitTermination(long cTimeout, TimeUnit unit)
+            throws InterruptedException
+        {
+        if (isTerminated())
+            {
+            return true;
+            }
+        else
+            {
+            // wait for f_scheduledExecutorService to terminate
+            return f_scheduledExecutorService.awaitTermination(cTimeout, unit);
+            }
+        }
+
+    @Override
+    public void shutdown()
+        {
+        if (shutdownInternal())
+            {
+            if (f_mapLocalRegistrations.isEmpty())
+                {
+                f_scheduledExecutorService.shutdown();
+                }
+            else
+                {
+                // set local executors to stop accepting tasks, and close() gracefully
+                for (ClusteredRegistration registration : f_mapLocalRegistrations.values())
+                    {
+                    registration.shutdown();
+                    }
+                }
+            }
+        }
+
+    @Override
+    public List<Runnable> shutdownNow()
+        {
+        shutdownNowInternal();
+
+        return Collections.emptyList();
+        }
+
+    // ----- ScheduledExecutorService interface -----------------------------
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public <T> ScheduledFuture<T> schedule(Callable<T> callable, long cDelay, TimeUnit unit)
+        {
+        ScheduledCallableTask<T> callableTask =
+                new ScheduledCallableTask(callable,
+                        cDelay == 0
+                        ? null
+                        : Duration.ofNanos(unit.toNanos(cDelay)));
+
+        CESRunnableFuture futureSubscriber = new CESRunnableFuture<>(callableTask);
+        Task.Coordinator  coordinator      = orchestrate(callableTask).limit(1)
+                .subscribe(futureSubscriber)
+                .submit();
+
+        futureSubscriber.setCoordinator(coordinator);
+
+        return futureSubscriber;
+        }
+
+    @Override
+    public ScheduledFuture<?> schedule(Runnable command, long cDelay, TimeUnit unit)
+        {
+        return scheduleRunnable(command, cDelay, 0, 0, unit);
+        }
+
+    @Override
+    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long cInitialDelay, long cPeriod, TimeUnit unit)
+        {
+        return scheduleRunnable(command, cInitialDelay, cPeriod, 0, unit);
+        }
+
+    @Override
+    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long cInitialDelay, long cDelay, TimeUnit unit)
+        {
+        return scheduleRunnable(command, cInitialDelay, 0, cDelay, unit);
+        }
+
+    // ----- AbstractExecutorService methods --------------------------------
+
+    @Override
+    protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value)
+        {
+        return new CESRunnableFuture<>(runnable, value);
+        }
+
+    @Override
+    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable)
+        {
+        return new CESRunnableFuture<>(callable);
+        }
+
+    /**
+     * Override implementation is required as {@link AbstractExecutorService}'s implementation creates its own {@link
+     * RunnableFuture}s that are passed to {@link #execute(Runnable)}.
+     */
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> colTasks)
+        throws InterruptedException, ExecutionException
+        {
+        try
+            {
+            return doInvokeAny(colTasks, false, 0);
+            }
+        catch (TimeoutException cannotHappen)
+            {
+            assert false;
+            return null;
+            }
+        }
+
+    /**
+     * Override implementation is required as {@link AbstractExecutorService}'s implementation creates its own {@link
+     * RunnableFuture}s that are passed to {@link #execute(Runnable)}.
+     */
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> colTasks, long cTimeout, TimeUnit unit)
+        throws InterruptedException, ExecutionException, TimeoutException
+        {
+        return doInvokeAny(colTasks, true, unit.toNanos(cTimeout));
+        }
+
+    /**
+     * The main mechanics of invokeAny. See AbstractExecutorService#doInvokeAny(Collection, boolean, long) on
+     * which this implementation is based.
+     *
+     * @param colTasks  {@link Collection} of {@link Callable}s
+     * @param fTimed    whether the invokeAny is timed
+     * @param cNanos    nanos to wait if timed
+     * @param <T>       return value type
+     *
+     * @return see {@link #invokeAny(Collection)}
+     *
+     * @throws InterruptedException see {@link #invokeAny(Collection)}
+     * @throws ExecutionException   see {@link #invokeAny(Collection)}
+     * @throws TimeoutException     see {@link #invokeAny(Collection)}
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> T doInvokeAny(Collection<? extends Callable<T>> colTasks, boolean fTimed, long cNanos)
+        throws InterruptedException, ExecutionException, TimeoutException
+        {
+        Objects.requireNonNull(colTasks);
+
+        int cTasks = colTasks.size();
+        if (cTasks == 0)
+            {
+            throw new IllegalArgumentException();
+            }
+
+        // TODO review mapCoordinators - collection not queried
+        //noinspection MismatchedQueryAndUpdateOfCollection
+        final ConcurrentHashMap<Callable<T>, Task.Coordinator<T>> mapCoordinators = new ConcurrentHashMap<>(cTasks);
+
+        List<FutureSubscriber<T>> listSubscribers    = new ArrayList<>(cTasks);
+        Object                    oCompletionMonitor = new Object();
+
+        try
+            {
+            long nStartTime = fTimed ? System.nanoTime() : 0;
+
+            for (Callable<T> task : colTasks)
+                {
+                AnyFutureSubscriber<T> subscriber = new AnyFutureSubscriber<>(oCompletionMonitor);
+
+                listSubscribers.add(subscriber);
+                mapCoordinators.put(task, orchestrate(new CallableTask(task))
+                        .limit(1)
+                        .subscribe(subscriber)
+                        .submit());
+                }
+
+            ExecutionException ee = null;
+            for (;; )
+                {
+                synchronized (oCompletionMonitor)
+                    {
+                    // check all tasks
+                    boolean fTaskStillRunning = false;
+                    for (Iterator<FutureSubscriber<T>> iter = listSubscribers.iterator(); iter.hasNext(); )
+                        {
+                        FutureSubscriber<T> futureSubscriber = iter.next();
+                        if (futureSubscriber.isDone())
+                            {
+                            if (futureSubscriber.getCompleted())
+                                {
+                                return futureSubscriber.get();
+                                }
+                            if (ee == null)
+                                {
+                                // collect an Exception to throw if all tasks fail
+                                try
+                                    {
+                                    futureSubscriber.get();
+                                    }
+                                catch (ExecutionException exception)
+                                    {
+                                    ee = exception;
+                                    }
+                                }
+                            iter.remove(); // don't bother checking this entry again
+                            }
+                        else
+                            {
+                            fTaskStillRunning = true;
+                            }
+                        }
+
+                    if (fTaskStillRunning)
+                        {
+                        if (fTimed)
+                            {
+                            long nRemainingNanos = cNanos - (System.nanoTime() - nStartTime);
+
+                            if (nRemainingNanos > 0)
+                                {
+                                oCompletionMonitor.wait(nRemainingNanos / 1000000, (int) (nRemainingNanos % 1000000));
+                                }
+                            else
+                                {
+                                throw new TimeoutException();
+                                }
+                            }
+                        else
+                            {
+                            oCompletionMonitor.wait();
+                            }
+                        }
+                    else
+                        {
+                        // all tasks failed, ee should never be null
+                        throw ee == null ? new ExecutionException(new IllegalStateException()) : ee;
+                        }
+                    }
+                }
+            }
+        finally
+            {
+            // cancel any still running tasks
+            for (Future future : listSubscribers)
+                {
+                future.cancel(true);
+                }
+            }
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Submit a {@link Task} for execution with the given taskId, {@link ExecutionStrategy}, {@link OptionsByType},
+     * result collector, completion {@link Predicate}, and {@link Task.Subscriber}(s).
+     *
+     * @param task                 the {@link Task} to submit
+     * @param sTaskId              the task ID
+     * @param strategy             the {@link ExecutionStrategy} for this task
+     * @param optionsByType        the {@link OptionsByType} to be used
+     * @param properties           the {@link Task.Properties} for this task
+     * @param collector            the {@link Task.Collector} to be used to collect result
+     * @param completionPredicate  the completion {@link Predicate}
+     * @param completionRunnable   the {@link Task.CompletionRunnable} to call when the task is complete
+     * @param retainDuration       the {@link Duration} to retain a {@link Task} after it is complete
+     * @param subscribers          a list of subscribers
+     * @param <T>                  the type of the task
+     * @param <A>                  the accumulation type of the collectable
+     * @param <R>                  the type of the collected result
+     *
+     * @return a {@link Task.Coordinator}
+     */
+    protected <T, A, R> Task.Coordinator<R> submit(Task<T> task, String sTaskId, ExecutionStrategy strategy,
+            OptionsByType<Task.Option> optionsByType, Task.Properties properties,
+            Task.Collector<? super T, A, R> collector, Predicate<? super R> completionPredicate,
+            Task.CompletionRunnable<? super R> completionRunnable, Duration retainDuration,
+            Iterator<Task.Subscriber<? super R>> subscribers)
+        {
+        if (isShutdown())
+            {
+            throw new RejectedExecutionException("ClusteredExecutorService [" + this + "] is "
+                                                 + (isTerminated() ? "terminated" : "shutting down") + '.');
+            }
+
+        // ensure there's a task identity
+        sTaskId = sTaskId == null || sTaskId.isEmpty() ? "task:" + UUID.randomUUID() : sTaskId;
+
+        // ensure there's an assignment strategy
+        if (strategy == null)
+            {
+            strategy = new ExecutionStrategyBuilder().build();
+            }
+
+        // ensure there's a completion predicate
+        if (completionPredicate == null)
+            {
+            completionPredicate = Predicates.never();
+            }
+
+        // create a task manager for the task
+        final ClusteredTaskManager<T, A, R> manager =
+                new ClusteredTaskManager<>(sTaskId, task, strategy, collector, completionPredicate, completionRunnable,
+                        retainDuration, optionsByType);
+
+        ClusteredProperties clusteredProperties = null;
+        if (properties != null)
+            {
+            clusteredProperties = new ClusteredProperties(sTaskId, m_cacheService, (TaskProperties) properties);
+            }
+
+        return new ClusteredTaskCoordinator<>(m_cacheService, manager, getScheduledExecutorService(),
+                clusteredProperties, subscribers);
+        }
+
+    /**
+     * Responsible for adding indexes for the {@code ClusteredAssignment} cache.
+     *
+     * @param cacheService  the cache service providing the caches used by the
+     *                      executor service
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected void init(CacheService cacheService)
+        {
+        m_cacheService = cacheService;
+
+        if (m_cacheService instanceof DistributedCacheService)
+            {
+            if ((((DistributedCacheService) m_cacheService).isLocalStorageEnabled()))
+                {
+                // establish indexes for Executor assignments
+                cacheService.ensureCache(ClusteredAssignment.CACHE_NAME, null)
+                    .addIndex(new ReflectionExtractor("getExecutorId"), true, null);
+                }
+            }
+        }
+
+    /**
+     * Schedules the specified {@link Runnable}.
+     *
+     * @param command        the {@link Runnable} to schedule
+     * @param cInitialDelay  the initial delay before scheduling occurs
+     * @param cPeriod        the period between execution
+     * @param cDelay         the delay to start the next execution after the completion
+     *                       of the current execution
+     * @param unit           the {@link TimeUnit} to apply
+     *
+     * @return a {@link ScheduledFuture} representing the result from processing the command
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected ScheduledFuture<?> scheduleRunnable(Runnable command, long cInitialDelay, long cPeriod,
+                                                  long cDelay, TimeUnit unit)
+        {
+        Duration initialDelayDur = cInitialDelay == 0
+                ? null
+                : Duration.ofNanos(unit.toNanos(cInitialDelay));
+
+        Duration periodDur = cPeriod == 0
+                ? null
+                : Duration.ofNanos(unit.toNanos(cPeriod));
+
+        Duration delayDur = cDelay == 0
+                ? null
+                : Duration.ofNanos(unit.toNanos(cDelay));
+
+        ScheduledRunnableTask runnableTask = new ScheduledRunnableTask(command, initialDelayDur, periodDur, delayDur);
+
+        CESRunnableFuture futureSubscriber = new CESRunnableFuture(runnableTask, null);
+        Task.Coordinator  coordinator      = orchestrate(runnableTask)
+                .limit(1)
+                .subscribe(futureSubscriber)
+                .submit();
+
+        futureSubscriber.setCoordinator(coordinator);
+        return futureSubscriber;
+        }
+
+    /**
+     * State transition helper.
+     *
+     * @param from  the {@link State} transitioning from
+     * @param to    the {@link State} transitioning to
+     *
+     * @return {@code true} if the state transition was successful
+     */
+    protected boolean setState(State from, State to)
+        {
+        boolean result;
+
+        if (from == State.ANY)
+            {
+            f_state.set(to);
+            result = true;
+            }
+        else
+            {
+            result = f_state.compareAndSet(from, to);
+            }
+
+        return result;
+        }
+
+    /**
+     * Initiate graceful shutdown.
+     *
+     * @return true if shutdown has been initiated; false if the
+     * {@link ClusteredExecutorService} is already shutting down or terminated.
+     */
+    protected boolean shutdownInternal()
+        {
+        return setState(State.READY, State.STOPPING_GRACEFULLY);
+        }
+
+    /**
+     * Initiate immediate shutdown.
+     *
+     * @return true if shutdown has been initiated; false if the
+     * {@link ClusteredExecutorService} is already shutting down or terminated.
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    protected boolean shutdownNowInternal()
+        {
+        if (setState(State.READY, State.STOPPING_IMMEDIATELY)
+            || setState(State.STOPPING_GRACEFULLY, State.STOPPING_IMMEDIATELY))
+            {
+            for (Executor executor : f_mapLocalRegistrations.keySet())
+                {
+                deregister(executor);
+                }
+
+            f_scheduledExecutorService.shutdown();
+
+            return true;
+            }
+        else
+            {
+            return false;
+            }
+        }
+
+    // ----- inner class: CESRunnableFuture ---------------------------------
+
+    /**
+     * {@link RunnableFuture} implementation for use by {@link #newTaskFor(Callable)}, {@link #newTaskFor(Runnable,
+     * Object)}, and {@link #execute(Runnable)}.
+     * <p>
+     * CESRunnableFuture is a holder for the Callable or Runnable which will be executed by {@link
+     * #execute(Runnable)}. Calling {@link #run()} is not supported.
+     *
+     * @param <V>  value type for encapsulated task
+     */
+    protected static class CESRunnableFuture<V>
+            extends FutureSubscriber<V>
+            implements RunnableScheduledFuture<V>
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Construct a {@link CESRunnableFuture} which encapsulates the passed in {@link Callable}.
+         *
+         * @param callable  the {@link Callable} to encapsulate
+         */
+        public CESRunnableFuture(Callable<V> callable)
+            {
+            m_callable  = callable;
+            f_fRunnable = false;
+            }
+
+        /**
+         * Construct a {@link CESRunnableFuture} which encapsulates the passed in {@link Runnable}.
+         *
+         * @param runnable  the {@link Runnable} to encapsulate
+         * @param value     the value to return on completion of the {@link Runnable}; may be null
+         */
+        public CESRunnableFuture(Runnable runnable, V value)
+            {
+            m_runnable      = runnable;
+            m_runnableValue = value;
+            f_fRunnable     = true;
+            }
+
+        // ----- accessors --------------------------------------------------
+
+        /**
+         * Return whether a {@link Runnable} is encapsulated.
+         *
+         * @return whether a {@link Runnable} is encapsulated
+         */
+        public boolean isRunnable()
+            {
+            return f_fRunnable;
+            }
+
+        /**
+         * Return whether a {@link Callable} is encapsulated.
+         *
+         * @return whether a {@link Callable} is encapsulated
+         */
+        public boolean isCallable()
+            {
+            return !f_fRunnable;
+            }
+
+        /**
+         * Get the encapsulated {@link Callable}.
+         *
+         * @return the encapsulated {@link Callable}
+         */
+        public Callable<V> getCallable()
+            {
+            return m_callable;
+            }
+
+        /**
+         * Get the encapsulated {@link Runnable}.
+         *
+         * @return the encapsulated {@link Runnable}
+         */
+        public Runnable getRunnable()
+            {
+            return m_runnable;
+            }
+
+        /**
+         * Get the value to be returned on completion of the encapsulated
+         * {@link Runnable}.  May be {@code null}.
+         *
+         * @return the value to be returned on completion of the
+         *         encapsulated {@link Runnable}
+         */
+        public V getRunnableValue()
+            {
+            return m_runnableValue;
+            }
+
+        @Override
+        public void run()
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        // ----- RunnableScheduledFuture interface --------------------------
+
+        @Override
+        public boolean isPeriodic()
+            {
+            if (isRunnable())
+                {
+                Runnable runnable = getRunnable();
+                return runnable instanceof ScheduledRunnableTask
+                       && ((ScheduledRunnableTask) getRunnable()).getPeriod() != null;
+                }
+            else
+                {
+                return false;
+                }
+            }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public long getDelay(TimeUnit unit)
+            {
+            if (isCallable())
+                {
+                Callable callable = getCallable();
+                return callable instanceof ScheduledCallableTask
+                       ? unit.convert(((ScheduledCallableTask) callable).getInitialDelay().toNanos(),
+                                      TimeUnit.NANOSECONDS)
+                       : 0;
+                }
+            else
+                {
+                Runnable runnable = getRunnable();
+                return runnable instanceof ScheduledRunnableTask
+                       ? unit.convert(((ScheduledRunnableTask) runnable).getInitialDelay().toNanos(),
+                                      TimeUnit.NANOSECONDS)
+                       : 0;
+                }
+            }
+
+        @Override
+        public int compareTo(Delayed o)
+            {
+            if (o == this) // compare zero if same object
+                {
+                return 0;
+                }
+            long diff = getDelay(NANOSECONDS) - o.getDelay(NANOSECONDS);
+            return (diff < 0) ? -1 : (diff > 0) ? 1 : 0;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The encapsulated {@link Callable}. May be {@code null}.
+         */
+        protected Callable<V> m_callable;
+
+        /**
+         * The encapsulated {@link Runnable}. May be {@code null}.
+         */
+        protected Runnable m_runnable;
+
+        /**
+         * The value to return on completion of the encapsulated {@link Runnable}.
+         */
+        protected V m_runnableValue;
+
+        /**
+         * Whether a {@link Callable} or a {@link Runnable} is encapsulated.
+         */
+        protected final boolean f_fRunnable;
+        }
+
+    // ----- enum: State ----------------------------------------------------
+
+    /**
+     * Enumeration representing possible state transitions of the
+     * {@code ClusteredExecutorService}.
+     */
+    protected enum State
+        {
+        /**
+         * {@code ANY} is used for state transitions.
+         */
+        ANY,
+
+        /**
+         * The executor service is ready to process tasks.
+         */
+        READY,
+
+        /**
+         * The executor service is shutting down gracefully.
+         */
+        STOPPING_GRACEFULLY,
+
+        /**
+         * The executor service is stopping immediately.
+         */
+        STOPPING_IMMEDIATELY,
+
+        /**
+         * The executor service has terminated.
+         */
+        TERMINATED
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The {@link CacheService} containing the orchestration metadata caches.
+     */
+    protected CacheService m_cacheService;
+
+    /**
+     * The locally registered {@link Executor} {@link Registration}s, by {@link Executor}s.
+     */
+    protected final ConcurrentHashMap<Executor, ClusteredRegistration> f_mapLocalRegistrations
+            = new ConcurrentHashMap<>();
+
+    /**
+     * The current state of the {@link TaskExecutorService}.
+     */
+    protected final AtomicEnum<State> f_state = AtomicEnum.of(State.READY);
+
+    /**
+     * A {@link ScheduledExecutorService} for performing local asynchronous operations.
+     */
+    protected final ScheduledExecutorService f_scheduledExecutorService =
+            Executors.newSingleThreadScheduledExecutor(
+                    ThreadFactories.createThreadFactory(true, "ClusteredExecutorService", null));
+    }
