@@ -24,6 +24,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
@@ -60,8 +61,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.oracle.coherence.concurrent.executor.Executors.getExecutorSession;
-
 /**
  * A ClusteredTaskManager event interceptor that orders the incoming tasks and put them in pending
  * state when the orchestrated tasks reaches given capacity.  Dispatches the pending tasks in a batch
@@ -82,7 +81,7 @@ public class ClusteredTaskInterceptor
      */
     public ClusteredTaskInterceptor(String sServiceName)
         {
-        f_cacheService       = getCacheServiceInternal(sServiceName);
+        f_cacheService       = (CacheService) CacheFactory.getCluster().getService(sServiceName);
         f_cMaxBatch          = 20;
         f_cMaxAllowedTasks   = 100;
         f_cOrchestratedTasks = new AtomicInteger(0);
@@ -212,7 +211,7 @@ public class ClusteredTaskInterceptor
      *
      * @param nPartitionId  partition ID
      *
-     * @return the resetted {@link Task} sequence number
+     * @return the reset {@link Task} sequence number
      */
     public long resetSequence(int nPartitionId)
         {
@@ -511,37 +510,6 @@ public class ClusteredTaskInterceptor
             }
         }
 
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Removes the scope, if present, prior to looking up the service.
-     * If the scope is present, then it must be removed prior to lookup
-     * otherwise an exception is raised.
-     *
-     * @param sServiceName  the name of the cache service
-     *
-     * @return the {@link CacheService}
-     *
-     * @throws IllegalStateException if no {@link CacheService} is found
-     */
-    protected CacheService getCacheServiceInternal(String sServiceName)
-        {
-        int nIdx = sServiceName.indexOf(':');
-        if (nIdx != -1)
-            {
-            sServiceName = sServiceName.substring(nIdx + 1);
-            }
-
-        CacheService service = (CacheService) getExecutorSession().getService(sServiceName);
-
-        if (service == null)
-            {
-            throw new IllegalStateException("Unable to find service [" + sServiceName + ']');
-            }
-
-        return (CacheService) getExecutorSession().getService(sServiceName);
-        }
-
     // ----- inner class: SequenceComparator --------------------------------
 
     /**
@@ -550,15 +518,6 @@ public class ClusteredTaskInterceptor
     public static class SequenceComparator
             implements Comparator<Object>, Serializable, PortableObject
         {
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Constructs a new {@code SequenceComparator}.
-         */
-        public SequenceComparator()
-            {
-            }
-
         // ----- Comparator interface ---------------------------------------
 
         @Override
