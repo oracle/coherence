@@ -8,7 +8,10 @@ package com.oracle.coherence.concurrent.locks;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
+import com.oracle.coherence.concurrent.locks.internal.ExclusiveLockHolder;
+
 import com.tangosol.net.Coherence;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
 import java.util.Map;
@@ -30,8 +33,7 @@ public class Locks
      */
     public static DistributedLock exclusive(String sName)
         {
-        return f_mapExclusive.computeIfAbsent(sName,
-                                              n -> new DistributedLock(n, session().getMap("locks-exclusive")));
+        return f_mapExclusive.computeIfAbsent(sName, n -> new DistributedLock(n, exclusiveLocksMap()));
         }
 
     /*
@@ -43,8 +45,7 @@ public class Locks
      */
     //public static DistributedReadWriteLock readWrite(String sName)
     //    {
-    //    return f_mapReadWrite.computeIfAbsent(sName,
-    //                                          n -> new DistributedReadWriteLock(n, session().getMap("locks-read-write")));
+    //    return f_mapReadWrite.computeIfAbsent(sName, n -> new DistributedReadWriteLock(n, readWriteLocksMap()));
     //    }
 
     // ----- helper methods -------------------------------------------------
@@ -54,11 +55,31 @@ public class Locks
      *
      * @return Coherence {@link Session} for the Locks module
      */
-    static Session session()
+    protected static Session session()
         {
         return Coherence.findSession(SESSION_NAME)
                         .orElseThrow(() ->
                                 new IllegalStateException(String.format("The session '%s' has not been initialized", SESSION_NAME)));
+        }
+
+    /**
+     * Return Coherence {@link NamedMap} containing the exclusive locks state.
+     *
+     * @return Coherence {@link NamedMap} containing the exclusive locks state
+     */
+    protected static NamedMap<String, ExclusiveLockHolder> exclusiveLocksMap()
+        {
+        return session().getMap("locks-exclusive");
+        }
+
+    /**
+     * Return Coherence {@link NamedMap} containing the read/write locks state.
+     *
+     * @return Coherence {@link NamedMap} containing the read/write locks state
+     */
+    protected static NamedMap<String, ExclusiveLockHolder> readWriteLocksMap()
+        {
+        return session().getMap("locks-read-write");
         }
 
     // ----- constants ------------------------------------------------------
@@ -74,7 +95,7 @@ public class Locks
     public static final String CONFIG_URI = "coherence-locks.xml";
 
     /**
-     * A process-wide cache of exclusive locks, to avoid creating multiple lock
+     * A process-wide map of exclusive locks, to avoid creating multiple lock
      * instances (and thus sync objects) for the same server-side lock.
      */
     private static final Map<String, DistributedLock> f_mapExclusive = new ConcurrentHashMap<>();

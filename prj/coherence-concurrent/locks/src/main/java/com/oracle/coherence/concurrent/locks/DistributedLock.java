@@ -11,8 +11,11 @@ import com.oracle.coherence.concurrent.locks.internal.ExclusiveLockHolder;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedMap;
 
+import com.tangosol.util.MapEvent;
 import com.tangosol.util.Processors;
 import com.tangosol.util.UID;
+
+import com.tangosol.util.listener.SimpleMapListener;
 
 import java.util.Set;
 
@@ -99,17 +102,44 @@ public class DistributedLock
             f_sName    = sName;
             f_locks    = locks;
             f_memberId = localMember.getUid();
+
+            locks.addMapListener(new SimpleMapListener<String, ExclusiveLockHolder>()
+                                         .addInsertHandler(this::onHolderChange)
+                                         .addUpdateHandler(this::onHolderChange),
+                                 sName, false);
+            }
+
+        private void onHolderChange(MapEvent<? extends String, ? extends ExclusiveLockHolder> event)
+            {
+            ExclusiveLockHolder holder = event.getNewValue();
+            if (holder.isLocked() && !holder.isLockedByMember(f_memberId))
+                {
+                acquire(-1);
+                }
+            else if (!holder.isLocked())
+                {
+                release(-1);
+                }
             }
 
         @Override
         protected final boolean tryAcquire(long acquires)
             {
-            final Thread current = Thread.currentThread();
+            final Thread thread = Thread.currentThread();
+            if (acquires == -1)
+                {
+                // we are acquiring this special lock from an event dispatcher thread
+                // because another member has acquired the lock already
+                setState(-1);
+                setExclusiveOwnerThread(thread);
+                return true;
+                }
+
             long c = getState();
             if (c == 0)
                 {
                 // no thread in this process owns the lock; try to obtain it
-                final LockOwner owner = new LockOwner(f_memberId, current.getId());
+                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
                 boolean fLocked = f_locks.invoke(f_sName, entry ->
                         {
                         ExclusiveLockHolder lock = entry.getValue(ExclusiveLockHolder::new);
@@ -121,11 +151,11 @@ public class DistributedLock
                 if (fLocked)
                     {
                     setState(acquires);
-                    setExclusiveOwnerThread(current);
+                    setExclusiveOwnerThread(thread);
                     return true;
                     }
                 }
-            else if (current == getExclusiveOwnerThread())
+            else if (thread == getExclusiveOwnerThread())
                 {
                 // this thread already owns the lock, so no need to make network
                 // call to the server; simply increment local state and return true
@@ -143,9 +173,18 @@ public class DistributedLock
         @Override
         protected final boolean tryRelease(long releases)
             {
-            final Thread current = Thread.currentThread();
+            final Thread thread = Thread.currentThread();
+            if (releases == -1)
+                {
+                // we are releasing this special lock from an event dispatcher thread
+                // because another member has released the lock
+                setState(0);
+                setExclusiveOwnerThread(null);
+                return true;
+                }
+
             long c = getState() - releases;
-            if (current != getExclusiveOwnerThread())
+            if (thread != getExclusiveOwnerThread())
                 {
                 throw new IllegalMonitorStateException();
                 }
@@ -153,7 +192,7 @@ public class DistributedLock
             if (c == 0)
                 {
                 // final release of the lock; we should release the lock on the server
-                final LockOwner owner = new LockOwner(f_memberId, current.getId());
+                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
                 boolean fUnlocked = f_locks.invoke(f_sName, entry ->
                         {
                         ExclusiveLockHolder lock = entry.getValue();

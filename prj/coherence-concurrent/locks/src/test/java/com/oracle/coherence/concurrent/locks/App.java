@@ -6,195 +6,133 @@
  */
 package com.oracle.coherence.concurrent.locks;
 
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.DefaultCacheServer;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedMap;
-import com.tangosol.util.Base;
+import com.tangosol.net.Coherence;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
+
 import java.util.Arrays;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Client app for testing lock support.
  */
 public class App 
     {
-     public static void processCommand(String sCmd, String[] asCmds)
+     public static void processCommand(String sCmd, String[] args)
+             throws Exception
          {
          switch (sCmd.toUpperCase())
              {
              case "SERVER":
-                 DefaultCacheServer.startServerDaemon().waitForServiceStart();
+                 Coherence.clusterMember().start().join();
+                 System.out.println("MEMBER ID: " + Coherence.getInstance().getCluster().getLocalMember().getUid());
                  break;
-             case "MAP":
-                 doMap(asCmds);
+             case "LOCK":
+                 doExclusiveLock(args);
                  break;
-             case "READ":
-                 doReadLock(asCmds);
+             case "UNLOCK":
+                 doExclusiveUnlock(args);
                  break;
-             case "UREAD":
-                 doReadUnlock(asCmds);
-                 break;
-             case "WRITE":
-                 doWriteLock(asCmds);
-                 break;
-             case "UWRITE":
-                 doWriteUnlock(asCmds);
-                 break;
+             //case "READ":
+             //    doReadLock(args);
+             //    break;
+             //case "UREAD":
+             //    doReadUnlock(args);
+             //    break;
+             //case "WRITE":
+             //    doWriteLock(args);
+             //    break;
+             //case "UWRITE":
+             //    doWriteUnlock(args);
+             //    break;
              case "DUMP":
                  doDump();
+                 break;
+             case "EXIT":
+                 System.out.println("Bye...");
+                 Coherence.getInstance().close();
+                 System.exit(0);
                  break;
              }
          }
 
-    protected static void doMap(String[] asCmds)
+    protected static void doExclusiveLock(String[] args)
+            throws InterruptedException
         {
-        if (asCmds.length == 1)
+        if (args.length == 0)
             {
-            s_oSink = CacheFactory.getCache(asCmds[0]);
+            System.out.println("Usage: LOCK <name> [<timeoutInSeconds>]");
+            return;
+            }
+
+        String          name = args[0];
+        DistributedLock lock = Locks.exclusive(name);
+
+        if (args.length == 2)  // LOCK name timeout
+            {
+            long timeout = Long.parseLong(args[1]);
+            System.out.printf("\n%s: tryLock(%d, SECONDS) => ", name, timeout);
+            boolean fLock   = lock.tryLock(timeout, TimeUnit.SECONDS);
+            System.out.printf("acquired: %s, count: %d", fLock, lock.getHoldCount());
             }
         else
             {
-            System.out.println("Unexpected args for queue command: " + Arrays.toString(asCmds));
+            System.out.printf("\n%s: lock() => ", name);
+            lock.lock();
+            System.out.printf("owned: %s, count: %d", lock.isHeldByCurrentThread(), lock.getHoldCount());
             }
+        System.out.printf("\n%s: owner=%s", name, lock.getOwner());
         }
 
-    protected static void doReadLock(String[] asCmds)
+    protected static void doExclusiveUnlock(String[] args)
         {
-        doLock(asCmds, /*fRead*/ true, /*fLock*/ true);
+        if (args.length == 0)
+            {
+            System.out.println("Usage: UNLOCK <name>");
+            return;
+            }
+
+        String          name = args[0];
+        DistributedLock lock = Locks.exclusive(name);
+
+        System.out.printf("\n%s: unlock() => ", name);
+        lock.unlock();
+        System.out.printf("owned: %s, count: %d", lock.isHeldByCurrentThread(), lock.getHoldCount());
+        System.out.printf("\n%s: owner=%s", name, lock.getOwner());
         }
 
-    protected static void doReadUnlock(String[] asCmds)
+    protected static void doReadLock(String[] args)
         {
-        doLock(asCmds, /*fRead*/ true, /*fLock*/ false);
+        doLock(args, /*fRead*/ true, /*fLock*/ true);
         }
 
-    protected static void doWriteLock(String[] asCmds)
+    protected static void doReadUnlock(String[] args)
         {
-        doLock(asCmds, /*fRead*/ false, /*fLock*/ true);
+        doLock(args, /*fRead*/ true, /*fLock*/ false);
         }
 
-    protected static void doWriteUnlock(String[] asCmds)
+    protected static void doWriteLock(String[] args)
         {
-        doLock(asCmds, /*fRead*/ false, /*fLock*/ false);
+        doLock(args, /*fRead*/ false, /*fLock*/ true);
         }
 
-    protected static void doLock(String[] asCmds, boolean fRead, boolean fLock)
+    protected static void doWriteUnlock(String[] args)
         {
-        // Usage: read lock-name ?timeout ?thread-id
+        doLock(args, /*fRead*/ false, /*fLock*/ false);
+        }
 
-        int iArg      = 0;
-        int cCommands = asCmds.length;
-
-        CoherenceReadWriteLock lock;
-        if (s_oSink instanceof CoherenceReadWriteLock)
-            {
-            lock = (CoherenceReadWriteLock) s_oSink;
-            }
-        else
-            {
-            NamedCache cache = (NamedCache) s_oSink;
-            if (cache == null)
-                {
-                System.out.println("Try running map command first");
-                return;
-                }
-
-            if (cCommands == 0)
-                {
-                System.out.println("lock-name is required");
-                return;
-                }
-
-            s_oSink = lock = new CoherenceReadWriteLock(asCmds[0], cache);
-            iArg = 1;
-            }
-
-        long   cTimeout  = -1;
-        long   lThreadId = Thread.currentThread().getId();
-
-        if (cCommands > iArg)
-            {
-            String sCmd = null;
-            try
-                {
-                cTimeout = Long.parseLong(sCmd = asCmds[iArg++]);
-                }
-            catch (RuntimeException e)
-                {
-                System.out.println("Invalid timeout format: " + sCmd);
-                return;
-                }
-            }
-        if (cCommands > iArg)
-            {
-            String sCmd = null;
-            try
-                {
-                lThreadId = Long.parseLong(sCmd = asCmds[iArg]);
-                }
-            catch (RuntimeException e)
-                {
-                System.out.println("Invalid thread-id format: " + sCmd);
-                return;
-                }
-            }
-
-        lock.withThreadId(lThreadId);
-        try
-            {
-            Lock lockReal = (fRead ? lock.readLock() : lock.writeLock());
-            try
-                {
-                if (fLock)
-                    {
-                    lockReal.lock();
-                    }
-                else
-                    {
-                    lockReal.unlock();
-                    }
-                }
-            catch (RuntimeException e)
-                {
-                System.err.println("ERR: " + e.getMessage());
-                }
-            }
-        finally
-            {
-            lock.resetThreadId();
-            }
-
-        System.out.printf("%s lock %s for %s by thread-id %d %s\n",
-                fRead ? "read" : "write",
-                fLock ? "acquired" : "released",
-                lock.getName(), lThreadId,
-                cTimeout >= 0 ? "in " + cTimeout + "ms" : "");
-
-        System.out.println();
+    protected static void doLock(String[] args, boolean fRead, boolean fLock)
+        {
         }
 
     protected static void doDump()
         {
-        NamedMap cache;
-        if (s_oSink instanceof CoherenceReadWriteLock)
-            {
-            cache = ((CoherenceReadWriteLock) s_oSink).getMap();
-            }
-        else
-            {
-            cache = (NamedMap) s_oSink;
-            }
+        System.out.println("EXCLUSIVE:");
+        Locks.exclusiveLocksMap().entrySet().forEach(System.out::println);
 
-        System.out.println(cache.entrySet());
-        }
-
-    protected static void test()
-        {
+        System.out.println("\nREAD/WRITE:");
+        Locks.readWriteLocksMap().entrySet().forEach(System.out::println);
         }
 
     public static void main(String[] asArgs)
@@ -206,18 +144,16 @@ public class App
             System.out.print("> ");
             while ((sLine = reader.readLine()) != null)
                 {
-                String[] asCmds = sLine.split(" ");
+                String[] args = sLine.split(" ");
 
-                processCommand(asCmds[0], Arrays.copyOfRange(asCmds, 1, asCmds.length));
+                processCommand(args[0], Arrays.copyOfRange(args, 1, args.length));
 
-                System.out.print("> ");
+                System.out.print("\n> ");
                 }
             }
-        catch (IOException e)
+        catch (Exception e)
             {
-            throw Base.ensureRuntimeException(e);
+            e.printStackTrace();
             }
         }
-
-    protected static Object s_oSink;
     }

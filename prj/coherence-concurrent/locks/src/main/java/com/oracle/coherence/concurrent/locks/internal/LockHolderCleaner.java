@@ -6,12 +6,9 @@
  */
 package com.oracle.coherence.concurrent.locks.internal;
 
-import com.oracle.coherence.concurrent.locks.CoherenceReadWriteLock.RemoveHoldersProcessor;
+import com.oracle.coherence.concurrent.locks.Locks;
 
-import com.tangosol.net.AsyncNamedMap;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.MemberEvent;
@@ -28,7 +25,6 @@ import com.tangosol.net.events.partition.TransferEvent.Type;
 import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.Base;
-import com.tangosol.util.EnumerationIterator;
 
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.PartitionedFilter;
@@ -36,19 +32,19 @@ import com.tangosol.util.filter.PartitionedFilter;
 import com.tangosol.util.processor.AsynchronousProcessor;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
  * This LockHolderCleaner is triggered by members leaving the service or partitions
- * arriving on this member. In the former case we know which LockHolders need to
+ * arriving at this member. In the former case we know which LockHolders need to
  * be removed whereas on primary transfer we make sure all lock holders represent
  * valid members.
  *
- * @author hr  2021.08.19
+ * @author Harvey Raja  2021.08.19
+ * @author Aleks Seovic  2021.10.26
  */
 public class LockHolderCleaner
+        extends Locks
         implements MemberListener, EventDispatcherAwareInterceptor<TransferEvent>
     {
     // ----- EventInterceptor methods ---------------------------------------
@@ -59,8 +55,7 @@ public class LockHolderCleaner
         if (event.getType() == Type.ARRIVED)
             {
             PartitionedService service = event.getDispatcher().getService();
-
-            enqueueUpdate(event.getPartitionId(), event.getEntries().keySet(), service.getPartitionCount());
+            enqueueUpdate(event.getPartitionId(), service.getPartitionCount());
             }
         }
 
@@ -114,22 +109,12 @@ public class LockHolderCleaner
 
         if (((DistributedCacheService) service).isLocalStorageEnabled())
             {
-            CacheService serviceCache = (CacheService) service;
-            PartitionSet partsOwned   = service.getOwnedPartitions(memberThis);
+            PartitionSet partsOwned = service.getOwnedPartitions(memberThis);
 
-            ConfigurableCacheFactory ccf = ((CacheService) service).getBackingMapManager().getCacheFactory();
-
-            for (Iterator<String> iterNames = new EnumerationIterator<String>(serviceCache.getCacheNames());
-                 iterNames.hasNext(); )
-                {
-                String sCacheName = iterNames.next();
-
-                NamedMap<String, LockReferenceCounter> cacheLocks = ccf.ensureCache(sCacheName, null);
-
-                cacheLocks.async().invokeAll(
+            NamedMap<String, ExclusiveLockHolder> exclusiveLocks = exclusiveLocksMap();
+            exclusiveLocks.async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
-                        new RemoveHoldersProcessor(memberLeft.getId()));
-                }
+                        new ExclusiveLockHolder.RemoveLocks(memberLeft.getUid()));
             }
         }
 
@@ -143,24 +128,20 @@ public class LockHolderCleaner
      * enqueue.
      *
      * @param iPartition     the partition to enqueue
-     * @param setCacheNames  the cache names to check
      * @param cParts         the number of partitions in the associated service
      */
-    protected synchronized void enqueueUpdate(int iPartition, Set<String> setCacheNames, int cParts)
+    protected synchronized void enqueueUpdate(int iPartition, int cParts)
         {
-        Set<String>  setCaches = m_setCacheNames;
-        PartitionSet parts     = m_partsCheck;
+        PartitionSet parts = m_partsCheck;
         if (parts == null)
             {
-            setCaches = m_setCacheNames = new HashSet<>(setCacheNames.size());
-            parts     = m_partsCheck    = new PartitionSet(cParts); // barrier
+            parts = m_partsCheck = new PartitionSet(cParts); // barrier
 
             Base.makeThread(null, new CheckHoldersRunnable(), "CheckLockHolders")
                     .start();
             }
 
         parts.add(iPartition);
-        setCaches.addAll(setCacheNames);
         }
 
     // ----- inner class: CheckHoldersRunnable ------------------------------
@@ -179,26 +160,20 @@ public class LockHolderCleaner
             {
             Base.sleep(1_000L);
 
-            Set<String>  setCaches;
             PartitionSet parts;
 
             synchronized (LockHolderCleaner.this)
                 {
-                setCaches = m_setCacheNames;
-                parts     = m_partsCheck;
-
-                m_setCacheNames = null;
-                m_partsCheck    = null; // barrier done last
+                parts        = m_partsCheck;
+                m_partsCheck = null; // barrier done last
                 }
 
-            for (String sCacheName : setCaches)
-                {
-                AsyncNamedMap<String, LockReferenceCounter> cache =
-                        CacheFactory.<String, LockReferenceCounter>getCache(sCacheName).async();
-
-                cache.invokeAll(new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
-                            new RemoveHoldersProcessor(-1));
-                }
+            // TODO: not sure why we even need this, but it won't work for
+            //       Extend and gRPC clients, as they are not "members", and
+            //       all the locks owned by them would be removed whenever a
+            //       partition is transferred (@hraja)
+            exclusiveLocksMap().async().invokeAll(new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
+                            new ExclusiveLockHolder.RemoveLocks(null));
             }
         }
 
@@ -213,9 +188,4 @@ public class LockHolderCleaner
      * A {@link PartitionSet} to fire the check against.
      */
     protected volatile PartitionSet m_partsCheck;
-
-    /**
-     * The cache names to check against.
-     */
-    protected Set<String> m_setCacheNames;
     }

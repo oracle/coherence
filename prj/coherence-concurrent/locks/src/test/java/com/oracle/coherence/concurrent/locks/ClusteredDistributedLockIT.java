@@ -239,17 +239,15 @@ public class ClusteredDistributedLockIT
         // Acquire the lock on the second member, should block until the first member releases
         member2.submit(new AcquireLock(sLockName, Duration.ofSeconds(1)));
 
-// The following code is commented out because it fails, the second member never acquires the released lock!
-//
-//        // wait for the second member to acquire the lock (should be after member 1 releases the lock)
-//        listener2.awaitAcquired(Duration.ofMinutes(1));
-//        // wait for the second member to release the lock
-//        listener2.awaitReleased(Duration.ofMinutes(1));
-//
-//        // Assert the locks were acquired and released in the order expected
-//        assertThat(listener1.getAcquiredAt().isBefore(listener1.getReleasedAt()), is(true));
-//        assertThat(listener1.getReleasedAt().isBefore(listener2.getAcquiredAt()), is(true));
-//        assertThat(listener2.getAcquiredAt().isBefore(listener2.getReleasedAt()), is(true));
+        // wait for the second member to acquire the lock (should be after member 1 releases the lock)
+        listener2.awaitAcquired(Duration.ofMinutes(1));
+        // wait for the second member to release the lock
+        listener2.awaitReleased(Duration.ofMinutes(1));
+
+        // Assert the locks were acquired and released in the order expected
+        assertThat(listener1.getAcquiredAt().isBefore(listener1.getReleasedAt()), is(true));
+        assertThat(listener1.getReleasedAt().isBefore(listener2.getAcquiredAt()), is(true));
+        assertThat(listener2.getAcquiredAt().isBefore(listener2.getReleasedAt()), is(true));
         }
 
     // ----- inner class: TryLock -------------------------------------------

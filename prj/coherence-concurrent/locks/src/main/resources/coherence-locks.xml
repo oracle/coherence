@@ -25,7 +25,7 @@
 
     <distributed-scheme>
       <scheme-name>locks</scheme-name>
-      <service-name>LocksPartitionedCache</service-name>
+      <service-name>Locks</service-name>
       <member-listener>
         <class-name>com.oracle.coherence.concurrent.locks.internal.LockHolderCleaner</class-name>
       </member-listener>
