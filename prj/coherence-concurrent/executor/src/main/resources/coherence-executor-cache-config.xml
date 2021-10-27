@@ -52,7 +52,9 @@
       <scheme-name>distributed-scheme-for-clustered-executorservice</scheme-name>
       <service-name>DistributedCacheForClusteredExecutorService</service-name>
       <backing-map-scheme>
-        <local-scheme/>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
       </backing-map-scheme>
       <autostart>true</autostart>
       <interceptors>
