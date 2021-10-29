@@ -890,6 +890,7 @@
 
                 <!-- exclude packages using lambdas -->
                 <exclude>com/tangosol/util/function/Remote/*.*</exclude>
+                <exclude>**/com/oracle/coherence/concurrent/locks/*.*</exclude>
 
                 <!-- exclude deprecated features -->
                 <exclude>com/tangosol/io/lh/*.*</exclude>
