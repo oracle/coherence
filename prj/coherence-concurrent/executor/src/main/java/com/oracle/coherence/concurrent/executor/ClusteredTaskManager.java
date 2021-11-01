@@ -427,7 +427,7 @@ public class ClusteredTaskManager<T, A, R>
 
                 if (Logger.isEnabled(debug.getLogLevel()))
                     {
-                    ExecutorTrace.log(String.format("Execution Plan for Task [%s] Z%s",
+                    ExecutorTrace.log(String.format("Execution Plan for Task [%s] %s",
                                              m_sTaskId,
                                              (executionPlanChanged
                                                  ? "was optimized"
@@ -447,7 +447,7 @@ public class ClusteredTaskManager<T, A, R>
                 {
                 if (Logger.isEnabled(debug.getLogLevel()))
                     {
-                    String sMsg = "Skipping Optimization of Execution Plan for Task [{0}] as it is completed,"
+                    String sMsg = "Skipping Optimization of Execution Plan for Task [%s] as it is completed,"
                                  + " cancelled or has no pending optimizations to perform";
                     ExecutorTrace.log(String.format(sMsg, m_sTaskId), debug);
                     }
@@ -1801,8 +1801,8 @@ public class ClusteredTaskManager<T, A, R>
                     {
                     if (Logger.isEnabled(Logger.FINE))
                         {
-                        Logger.fine(String.format("Ignoring result contributed for Task [{0}] as the Task is no longer"
-                                + " present. Executor [{1}]: {2}", entry.getKey(), m_sExecutorId, m_result));
+                        Logger.fine(String.format("Ignoring result contributed for Task [%s] as the Task is no longer"
+                                + " present. Executor [%s]: %s", entry.getKey(), m_sExecutorId, m_result));
                         }
 
                     return false;

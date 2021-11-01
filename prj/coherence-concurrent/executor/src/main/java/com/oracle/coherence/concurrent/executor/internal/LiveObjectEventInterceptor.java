@@ -380,7 +380,7 @@ public class LiveObjectEventInterceptor
                         {
                         Set<Object> set = f_mapMemberAwareObjects.get(uid);
 
-                        ExecutorTrace.log(() -> String.format("Removing [{0}] from ClusterMemberAware table for UID [{1}].",
+                        ExecutorTrace.log(() -> String.format("Removing [%s] from ClusterMemberAware table for UID [%s].",
                                                           oKey, uid));
 
                         if (set != null)
@@ -644,7 +644,7 @@ public class LiveObjectEventInterceptor
                     }
                 else
                     {
-                    ExecutorTrace.log(() -> String.format("MemberAwareProcessor can't call [{0}] as it does not implement ClusterMemberAware.", entry.getKey()));
+                    ExecutorTrace.log(() -> String.format("MemberAwareProcessor can't call [%s] as it does not implement ClusterMemberAware.", entry.getKey()));
                     }
 
                 return false;
