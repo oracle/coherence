@@ -26,7 +26,6 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.concurrent.executor.Executors;
 
 import com.tangosol.net.Coherence;
@@ -40,9 +39,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 import org.junit.experimental.categories.Category;
-
-import static org.hamcrest.core.Is.is;
-
 
 /**
  * Tests will spin up a cluster shared by each test using POF as the serialization
@@ -107,6 +103,7 @@ public class CESPofSingleClusterTests
     public static CoherenceClusterResource s_coherence =
             (CoherenceClusterResource) new CoherenceClusterResource()
                     .with(ClassName.of(Coherence.class),
+                          SystemProperty.of("coherence.serializer", "pof"),
                           SystemProperty.of(Executors.EXECUTOR_CONFIG_OVERRIDE, CACHE_CONFIG),
                           Multicast.ttl(0),
                           LocalHost.only(),

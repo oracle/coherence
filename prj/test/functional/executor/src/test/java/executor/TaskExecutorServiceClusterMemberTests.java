@@ -63,6 +63,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -90,6 +91,7 @@ import static org.hamcrest.core.Is.is;
  * @since 21.12
  */
 @Category(SingleClusterForAllTests.class)
+@Ignore
 public class TaskExecutorServiceClusterMemberTests
     {
     // ----- test lifecycle -------------------------------------------------
@@ -271,14 +273,14 @@ public class TaskExecutorServiceClusterMemberTests
                              LogOutput.to(TaskExecutorServiceClusterMemberTests.class.getSimpleName(), "CacheServer"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),
-                             SystemProperty.of("coherence.executor.extend.enabled", false),
+                             SystemProperty.of("coherence.concurrent.extend.enabled", false),
                              SystemProperty.of("coherence.executor.trace.logging", true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
                              LogOutput.to(TaskExecutorServiceClusterMemberTests.class.getSimpleName(), "ComputeServer"),
                              RoleName.of("compute"),
                              LocalStorage.disabled(),
-                             SystemProperty.of("coherence.executor.extend.enabled", false),
+                             SystemProperty.of("coherence.concurrent.extend.enabled", false),
                              SystemProperty.of("coherence.executor.trace.logging", true));
 
     /**

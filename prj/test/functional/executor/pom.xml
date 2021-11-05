@@ -20,14 +20,10 @@
   <name>Coherence Executor Tests</name>
   <artifactId>executor</artifactId>
 
-  <properties>
-    <oracle.bedrock.version>5.1.2</oracle.bedrock.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-executor</artifactId>
+      <artifactId>coherence-concurrent</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

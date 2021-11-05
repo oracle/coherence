@@ -92,6 +92,7 @@ import static org.hamcrest.core.Is.is;
  * @since 21.12
  */
 @Category(SingleClusterForAllTests.class)
+@Ignore
 public class TaskExecutorServicePersistenceTests
     {
     // ----- test lifecycle -------------------------------------------------
@@ -346,8 +347,8 @@ public class TaskExecutorServicePersistenceTests
                           Logging.at(9),
                           ClusterPort.of(7574),
                           ClusterName.of(TaskExecutorServicePersistenceTests.class.getSimpleName()), // default name is too long
-                          SystemProperty.of("coherence.executor.extend.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
-                          SystemProperty.of("coherence.executor.extend.port", "9099"),
+                          SystemProperty.of("coherence.concurrent.extend.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
+                          SystemProperty.of("coherence.concurrent.extend.port", "9099"),
                           JmxFeature.enabled(),
                           Pof.config("coherence-executor-test-pof-config.xml"),
                           SystemProperty.of("coherence.persistence.active.dir", s_fileActive.getAbsoluteFile()),
@@ -358,21 +359,21 @@ public class TaskExecutorServicePersistenceTests
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "CacheServer"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),
-                             SystemProperty.of("coherence.executor.extend.enabled", false),
+                             SystemProperty.of("coherence.concurrent.extend.enabled", false),
                              SystemProperty.of("coherence.executor.trace.logging", true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "ComputeServer"),
                              RoleName.of("compute"),
                              LocalStorage.disabled(),
-                             SystemProperty.of("coherence.executor.extend.enabled", false),
+                             SystemProperty.of("coherence.concurrent.extend.enabled", false),
                              SystemProperty.of("coherence.executor.trace.logging", true))
                     .include(PROXY_MEMBER_COUNT,
                              DisplayName.of("ProxyServer"),
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "ProxyServer"),
                              RoleName.of("proxy"),
                              LocalStorage.disabled(),
-                             SystemProperty.of("coherence.executor.extend.enabled", true),
+                             SystemProperty.of("coherence.concurrent.extend.enabled", true),
                              SystemProperty.of("coherence.executor.trace.logging", true));
 
     /**

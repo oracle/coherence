@@ -1345,7 +1345,7 @@ public abstract class AbstractClusteredExecutorServiceTests
                 .filter(member -> "proxy".equals(member.getRoleName()))
                 .forEach(member ->
                          {
-                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:TcpProxyService"), is(true));
+                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:ConcurrentServicesProxy"), is(true));
                          });
         }
 
@@ -1360,7 +1360,7 @@ public abstract class AbstractClusteredExecutorServiceTests
                 .filter(member -> "proxy".equals(member.getRoleName()))
                 .forEach(member ->
                          {
-                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:TcpProxyService"), is(true));
+                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:ConcurrentServicesProxy"), is(true));
                          });
         }
 
@@ -1485,17 +1485,17 @@ public abstract class AbstractClusteredExecutorServiceTests
     /**
      * System property for the executor proxy address.
      */
-    protected static final String EXTEND_ADDRESS_PROPERTY = "coherence.executor.extend.address";
+    protected static final String EXTEND_ADDRESS_PROPERTY = "coherence.concurrent.extend.address";
 
     /**
      * System property for the executor proxy port.
      */
-    protected static final String EXTEND_PORT_PROPERTY = "coherence.executor.extend.port";
+    protected static final String EXTEND_PORT_PROPERTY = "coherence.concurrent.extend.port";
 
     /**
      * System property to enable the Executor service proxy.
      */
-    protected static final String EXTEND_ENABLED_PROPERTY = "coherence.executor.extend.enabled";
+    protected static final String EXTEND_ENABLED_PROPERTY = "coherence.concurrent.extend.enabled";
 
     /**
      * The default proxy port.

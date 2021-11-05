@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <scope-name>$SYS</scope-name>
+    <serializer>${coherence.serializer}</serializer>
+  </defaults>
+
+  <interceptors>
+    <interceptor>
+      <instance>
+        <class-name>com.oracle.coherence.concurrent.executor.internal.LifecycleEventInterceptor</class-name>
+      </instance>
+    </interceptor>
+  </interceptors>
+
+  <caching-scheme-mapping>
+
+    <cache-mapping>
+      <cache-name>atomic-*</cache-name>
+      <scheme-name>concurrent-services</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>executor-tasks</cache-name>
+      <scheme-name>concurrent-services</scheme-name>
+      <interceptors>
+        <interceptor>
+          <name>task-interceptor</name>
+          <instance>
+            <class-name>com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor</class-name>
+            <init-params>
+              <init-param>
+                <param-type>String</param-type>
+                <param-value>{service-name}</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>executor-*</cache-name>
+      <scheme-name>concurrent-services</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>locks-*</cache-name>
+      <scheme-name>concurrent-services</scheme-name>
+    </cache-mapping>
+
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+
+    <distributed-scheme>
+      <scheme-name>concurrent-services</scheme-name>
+      <service-name>ConcurrentServices</service-name>
+      <member-listener>
+        <class-name>com.oracle.coherence.concurrent.locks.internal.LockHolderCleaner</class-name>
+      </member-listener>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+      <interceptors>
+        <interceptor>
+          <name>live-object-interceptor</name>
+          <instance>
+            <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor</class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <scheme-name>concurrent-services-proxy</scheme-name>
+      <service-name>ConcurrentServicesProxy</service-name>
+
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.concurrent.extend.address">127.0.0.1</address>
+            <port system-property="coherence.concurrent.extend.port">9099</port>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+
+      <autostart system-property="coherence.concurrent.extend.enabled">false</autostart>
+    </proxy-scheme>
+
+  </caching-schemes>
+</cache-config>
