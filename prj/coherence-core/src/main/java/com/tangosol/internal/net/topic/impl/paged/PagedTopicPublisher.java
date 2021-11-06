@@ -437,16 +437,19 @@ public class PagedTopicPublisher<V>
 
         try
             {
-            if (!fDestroyed && f_nNotifyPostFull != 0)
+            if (!fDestroyed)
                 {
                 unregisterDeactivationListener();
 
-                // unregister the publisher listener in each partition
-                PagedTopicCaches caches = m_caches;
-
-                if (caches.Notifications.isActive())
+                if (f_nNotifyPostFull != 0)
                     {
-                    caches.Notifications.removeMapListener(f_listenerNotification, f_filterListenerNotification);
+                    // unregister the publisher listener in each partition
+                    PagedTopicCaches caches = m_caches;
+
+                    if (caches.Notifications.isActive())
+                        {
+                        caches.Notifications.removeMapListener(f_listenerNotification, f_filterListenerNotification);
+                        }
                     }
                 }
 
