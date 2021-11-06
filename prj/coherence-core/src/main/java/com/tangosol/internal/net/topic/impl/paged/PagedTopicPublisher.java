@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -340,15 +340,18 @@ public class PagedTopicPublisher<V>
 
         try
             {
-            if (!fDestroyed && f_nNotifyPostFull != 0)
+            if (!fDestroyed)
                 {
                 unregisterDeactivationListener();
 
                 // unregister the publisher listener in each partition
                 PagedTopicCaches caches = m_caches;
 
-                caches.Notifications.removeMapListener(this, new InKeySetFilter<>(/*filter*/ null,
-                        caches.getPartitionNotifierSet(f_nNotifyPostFull)));
+                if (f_nNotifyPostFull != 0)
+                    {
+                    caches.Notifications.removeMapListener(this, new InKeySetFilter<>(/*filter*/ null,
+                            caches.getPartitionNotifierSet(f_nNotifyPostFull)));
+                    }
                 }
 
             // close the queues
