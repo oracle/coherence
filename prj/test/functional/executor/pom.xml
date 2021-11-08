@@ -74,6 +74,14 @@
   </build>
 
   <profiles>
+    <!-- This module requires Java 11 -->
+    <profile>
+      <id>test-jdk8</id>
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+    </profile>
+    
     <profile>
       <id>stage6</id>
       <properties>
