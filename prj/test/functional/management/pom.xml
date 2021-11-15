@@ -50,6 +50,13 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-concurrent</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -67,6 +74,13 @@
     <dependency>
       <groupId>org.codehaus.jettison</groupId>
       <artifactId>jettison</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}.tests</groupId>
+      <artifactId>executor</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -359,5 +359,13 @@ public interface Registry
     * an extended global MBean.
     */
     public final static String KEY_SERVICE = "service=";
+
+    /**
+     * String representing the "type" part of <tt>ObjectName</tt> for the
+     * ExecutorMBean.
+     *
+     * @since 21.12
+     */
+    public final static String EXECUTOR_TYPE = "type=Executor";
     }
 

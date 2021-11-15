@@ -63,7 +63,12 @@
     {
       "name": "JMX",
       "description": "The JMX management resource provides a set of endpoints for viewing and changing how Coherence JMX management is configured.",
-      "x-priority": 11
+      "x-priority":11
+    },
+    {
+      "name": "Executor",
+      "description": "The Executor resource provides a set of endpoints for managing executor service. Use this resource to access operational information and performance statistics for executor operations.",
+      "x-priority":12
     }
   ],
   "paths": {
@@ -3196,7 +3201,177 @@
           }
         }
       }
+    },
+    "/management/coherence/cluster/executors": {
+      "get": {
+        "tags": [
+          "Executor"
+        ],
+        "summary": "View Executors",
+        "description": "Use this endpoint to view a list of executors in the cluster. Executor names are often used as parameters when performing other executor resource operations.",
+        "operationId": "/management/coherence/cluster/executors GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns a list of executors",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/executor"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
+    },
+    "/management/coherence/cluster/executors/{executorName}": {
+      "get": {
+        "tags": [
+          "Executor"
+        ],
+        "summary": "View Executor Information",
+        "description": "Use this endpoint to view general statistics for an executor.",
+        "operationId": "/management/coherence/cluster/executors/{executorName} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/executorName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about an executor",
+            "schema": {
+              "$ref": "#/definitions/executor"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Executor"
+        ],
+        "summary": "Update Executor",
+        "description": "Update parameters of an executor",
+        "operationId": "/management/coherence/cluster/executors/{executorName} POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/executorName"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/executor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Executor updated successfully"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/executors/members": {
+      "get": {
+        "tags": [
+          "Executor"
+        ],
+        "summary": "View Executor Members",
+        "description": "Use this endpoint to list the executor members.",
+        "operationId": "/management/coherence/cluster/executors/members GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists executor members",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/executor"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/executors/members/{memberId}": {
+      "get": {
+        "tags": [
+          "Executor"
+        ],
+        "summary": "View Executor Member Information",
+        "description": "Use this endpoint to view detailed operational and performance statistics for executors of a member.",
+        "operationId": "/management/coherence/cluster/executors/members/{memberId} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/memberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about executors of a member",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/executor"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/executors/{executorName}/resetStatistics": {
+      "post": {
+        "tags": [
+          "Executor"
+        ],
+        "summary": "Reset Executor Statistics",
+        "description": "Use this endpoint to clear the current statistics for a specific executor.",
+        "operationId": "/management/coherence/cluster/executors/{executorName}/resetStatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/executorName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    }
   },
   "definitions": {
     "cluster": {
@@ -6457,6 +6632,76 @@
           }
         }
       ]
+    },
+    "executor": {
+      "type": "object",
+      "properties": {
+        "memberId": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The ID of member to which the MBean belongs",
+          "readOnly": true
+        },
+        "tasksRejectedCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The tasks rejected count",
+          "readOnly": true
+        },
+        "state": {
+          "type": "string",
+          "description": "The state of the executor",
+          "enum": [
+            "JOINING",
+            "RUNNING",
+            "CLOSING_GRACEFULLY",
+            "CLOSING",
+            "CLOSED",
+            "REJECTING"
+          ],
+          "readOnly": true
+        },
+        "tasksCompletedCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The tasks completed count",
+          "readOnly": true
+        },
+        "tasksInProgressCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The tasks in progress count",
+          "readOnly": true
+        },
+        "traceLogging": {
+          "default": "false",
+          "type": "boolean",
+          "description": "Indicates whether or not the executor trace logging is enabled."
+        },
+        "location": {
+          "type": "string",
+          "description": "The location where the executor is running",
+          "readOnly": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the executor.",
+          "readOnly": true
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the MBean",
+          "enum": [
+            "Executor"
+          ],
+          "readOnly": true
+        },
+        "nodeId": {
+          "type": "string",
+          "description": "Node ID of the executor.",
+          "readOnly": true
+        }
+      }
     }
   },
   "parameters": {
@@ -6478,6 +6723,13 @@
       "name": "destinationMemberId",
       "in": "path",
       "description": "ID of the destination cluster member.",
+      "required": true,
+      "type": "string"
+    },
+    "memberId": {
+      "name": "memberId",
+      "in": "path",
+      "description": "An identifier of the member, it is the nodeId of the member.",
       "required": true,
       "type": "string"
     },
@@ -6574,6 +6826,13 @@
       "in": "path",
       "required": true,
       "description": "The JFR command with its options. Valid commands are:\njfrStart: start a JFR recording\njfrStop:  stop a JFR recording\njfrDump:  dump the JFR recording to a file\njfrCheck: check the status of a JFR recording\n\nSee the jcmd JFR command for more information.\n\nExample: jfrStart?options=name=myJfr,duration=60s,filename=$jfrFolder/myRecording.jfr\n\nThe $jfrFolder must already exist on the node where the JFR is taken.  If no folder is\nspecified, the JFR recording will be saved in the current directory of the MBeanServer.\nIn the case of role based cluster wide operation, the filename can be a path and if so, \nthe JFR recording will be stored in $name-$nodeId.jfr",
+      "type": "string"
+    },
+    "executorName": {
+      "name": "executorName",
+      "in": "path",
+      "description": "Name of the executor.",
+      "required": true,
       "type": "string"
     }
   }

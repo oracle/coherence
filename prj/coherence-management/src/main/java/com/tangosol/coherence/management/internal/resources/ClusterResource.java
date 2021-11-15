@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -373,6 +373,19 @@ public class ClusterResource
                 new String[]{String.class.getName(), String.class.getName(), String.class.getName()}));
         }
 
+    /**
+     * Sub resource for executors.
+     *
+     * @return the executors sub resource
+     *
+     * @since 21.12
+     */
+    @Path(EXECUTORS)
+    public Object getExecutorsResource()
+        {
+        return new ExecutorsResource(this);
+        }
+
     // ----- ClusterResource methods ----------------------------------------
 
     /**
@@ -428,6 +441,8 @@ public class ClusterResource
             addChildResourceQueryResult(new ReportersResource(this), REPORTERS, mapResponse, mapChildrenQuery, null,
                     uriCurrent);
             addChildResourceQueryResult(new CWebResource(this), WEB_APPS, mapResponse, mapChildrenQuery, null,
+                    uriCurrent);
+            addChildResourceQueryResult(new ExecutorsResource(this), EXECUTORS, mapResponse, mapChildrenQuery, null,
                     uriCurrent);
 
             Object oJournal = mapChildrenQuery.get(JOURNAL);
@@ -497,5 +512,5 @@ public class ClusterResource
      */
     public static final String TRACING_RATIO = "tracingRatio";
 
-    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, REPORTERS, WEB_APPS};
+    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, REPORTERS, WEB_APPS, EXECUTORS};
     }

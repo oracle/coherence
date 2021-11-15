@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1848,6 +1848,20 @@ public abstract class AbstractManagementResource
      */
     public static final String STORAGE_MANAGER_QUERY = ":type=StorageManager,cache=%s,service=%s,nodeId=%s";
 
+    /**
+     * MBean query to filter out all the ExecutorMBean objects.
+     *
+     * @since 21.12
+     */
+    public static final String EXECUTORS_QUERY = ":" + Registry.EXECUTOR_TYPE;
+
+    /**
+     * MBean query to filter out Executor MBeans of a particular name.
+     *
+     * @since 21.12
+     */
+    public static final String EXECUTOR_QUERY = EXECUTORS_QUERY + ",name=";
+
     // ------------------------------ Mbean Query patterns ends ---------------------------------
 
     // ------------------------------ Path param constants --------------------------------------
@@ -1891,6 +1905,7 @@ public abstract class AbstractManagementResource
     public static final String STATISTICS       = "statistics";
     public static final String INCOMING         = "incoming";
     public static final String OUTGOING         = "outgoing";
+    public static final String EXECUTORS        = "executors";
 
     // ------------------------------ URL constants ends ---------------------------------------------
 
