@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,7 +11,6 @@ import com.tangosol.config.xml.DocumentElementPreprocessor.ElementPreprocessor;
 import com.tangosol.config.xml.ProcessingContext;
 
 import com.tangosol.run.xml.XmlElement;
-import com.tangosol.run.xml.XmlHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +35,6 @@ public class SchemeRefPreprocessor implements ElementPreprocessor
             throws ConfigurationException
         {
         XmlElement xmlSchemeRef   = element.getElement("scheme-ref");
-        boolean    fNullSchemeRef = false;
 
         if (xmlSchemeRef == null)
             {
@@ -58,14 +56,12 @@ public class SchemeRefPreprocessor implements ElementPreprocessor
 
                 if (xmlScheme == null)
                     {
-                    String sXmlNullScheme = "<null-scheme-ref/>";
-
-                    xmlScheme      = XmlHelper.loadXml(sXmlNullScheme);
-
-                    fNullSchemeRef = true;
+                    throw new ConfigurationException(String.format(
+                            "The scheme-ref [%s] mentioned in cache configuration does not exist.", sSchemeName),
+                            String.format("Please ensure that the scheme-ref [%s] is declared in the configuration.", sSchemeName));
                     }
 
-                if (fNullSchemeRef || xmlScheme.getName().equals(element.getName()))
+                if (xmlScheme.getName().equals(element.getName()))
                     {
                     // ensure we don't have a cyclic reference (by ensuring we're not referencing ourself)
                     if (element == xmlScheme)

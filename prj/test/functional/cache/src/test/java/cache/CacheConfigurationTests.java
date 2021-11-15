@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,8 +7,11 @@
 package cache;
 
 import com.tangosol.util.Resources;
+import com.tangosol.util.WrapperException;
+
 import common.AbstractFunctionalTest;
 
+import com.tangosol.config.ConfigurationException;
 import com.tangosol.dev.compiler.SyntaxException;
 
 import com.tangosol.io.FileHelper;
@@ -209,6 +212,33 @@ public class CacheConfigurationTests
             }
         }
 
+    /**
+     * Test to verify exception is thrown when cache configuration
+     * is invalid due to missing scheme that referenced thru scheme-ref
+     */
+    @Test
+    public void testInvalidCacheConfigMissingSchemRef()
+        {
+        try
+            {
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_MISSING_SCHEME);
+            AbstractFunctionalTest._startup();
+            CacheFactory.getCache("dist-testCache");
+            fail("Exception should have been thrown!");
+            }
+        catch (Exception e)
+            {
+            assertTrue(e instanceof WrapperException);
+            assertTrue("Expected exception: " + ((WrapperException) e).getOriginalException().getMessage(),
+                       ((WrapperException) e).getOriginalException() instanceof ConfigurationException);
+            }
+        finally
+            {
+            System.clearProperty("coherence.cacheconfig");
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
     // ----- constants and data members -------------------------------------
 
     /**
@@ -240,4 +270,9 @@ public class CacheConfigurationTests
      * Cache configuration file that contains # character in the filename.
      */
     public final static String FILE_CFG_CACHE_HASH_CHAR_IN_FILE_NAME = "COH10679#-cache-config.xml";
+
+    /**
+     * Cache configuration file which has missing scheme that is reference using scheme-ref
+     */
+    public final static String FILE_CFG_CACHE_MISSING_SCHEME = "invalid-scheme-ref-cache-config.xml";
     }
