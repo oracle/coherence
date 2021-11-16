@@ -9,15 +9,16 @@ package com.oracle.coherence.concurrent.executor.internal;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.oracle.coherence.concurrent.executor.TaskExecutorService;
+import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 
+import com.oracle.coherence.concurrent.executor.ThreadFactories;
 import com.oracle.coherence.concurrent.executor.options.ClusterMember;
-import com.oracle.coherence.concurrent.executor.options.Storage;
+import com.oracle.coherence.concurrent.executor.options.Name;
 
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
-import com.oracle.coherence.concurrent.executor.ThreadFactories;
 
+import com.oracle.coherence.concurrent.executor.options.Storage;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
@@ -32,8 +33,10 @@ import com.tangosol.net.events.application.LifecycleEvent;
 import com.tangosol.util.Base;
 import com.tangosol.util.ResourceRegistry;
 
+import com.tangosol.util.function.Remote;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 /**
  * A {@link LifecycleEvent} interceptor to automatically activate and deactivate
@@ -87,23 +90,29 @@ public class LifecycleEventInterceptor
                         ccfRegistry.registerResource(ExecutorService.class,
                                                      "ManagedExecutorService",
                                                      managedExecutorService);
-                        ccfRegistry.registerResource(TaskExecutorService.class,
-                                                     TaskExecutorService.class.getSimpleName(),
+                        ccfRegistry.registerResource(ClusteredExecutorService.class,
+                                                     ClusteredExecutorService.class.getSimpleName(),
                                                      clusteredExecutorService);
 
-                        // register the executor service for this member
-                        if (service instanceof DistributedCacheService)
-                            {
-                            DistributedCacheService distributedCacheService = (DistributedCacheService) service;
+                        // Legacy: register default executor service which will
+                        //         be used for non-named executor submissions
+                        Storage storage = Storage.enabled(service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled());
+                        clusteredExecutorService.register(managedExecutorService, storage, ClusterMember.INSTANCE);
 
-                            clusteredExecutorService.register(
-                                    managedExecutorService,
-                                    Storage.enabled(distributedCacheService.isLocalStorageEnabled()),
-                                    ClusterMember.INSTANCE);
-                            }
-                        else
+                        // For each named ExecutorService registration that has a supplier
+                        // will be registered on this member.
+                        NamedCache<String, ClusteredExecutorInfo> executorInfos = configurableCacheFactory.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+                        for (ClusteredExecutorInfo executorInfo : executorInfos.values())
                             {
-                            clusteredExecutorService.register(managedExecutorService, ClusterMember.INSTANCE);
+                            Remote.Supplier<ExecutorService> supplier = executorInfo.getSupplier();
+                            if (supplier != null)
+                                {
+                                clusteredExecutorService.register(supplier.get(),
+                                                                  supplier,
+                                                                  executorInfo.getOption(Name.class, null),
+                                                                  storage,
+                                                                  ClusterMember.INSTANCE);
+                                }
                             }
                         }
                     else
@@ -138,13 +147,22 @@ public class LifecycleEventInterceptor
             }
         else if (event.getType() == LifecycleEvent.Type.DISPOSING)
             {
-            ExecutorService managedExecutorService =
-                event.getConfigurableCacheFactory()
-                        .getResourceRegistry().getResource(ExecutorService.class, "ManagedExecutorService");
+            ResourceRegistry registry = event.getConfigurableCacheFactory().getResourceRegistry();
+            ExecutorService  managedExecutorService =
+                    registry.getResource(ExecutorService.class, "ManagedExecutorService");
 
             if (managedExecutorService != null)
                 {
                 managedExecutorService.shutdownNow();
+                }
+
+            ClusteredExecutorService clusteredExecutorService =
+                    registry.getResource(ClusteredExecutorService.class,
+                                         ClusteredExecutorService.class.getSimpleName());
+
+            if (clusteredExecutorService != null)
+                {
+                clusteredExecutorService.shutdownNow();
                 }
             }
         }

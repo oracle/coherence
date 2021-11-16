@@ -33,7 +33,7 @@ import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
-import com.oracle.coherence.concurrent.executor.Executors;
+import com.oracle.coherence.concurrent.executor.RemoteExecutors;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
@@ -341,7 +341,7 @@ public class TaskExecutorServicePersistenceTests
             (CoherenceClusterResource) new CoherenceClusterResource()
                     .with(OperationalOverride.of("persistence-override.xml"),
                           ClassName.of(Coherence.class),
-                          SystemProperty.of(Executors.EXECUTOR_CONFIG_OVERRIDE, "coherence-executor-persistence-cache-config.xml"),
+                          SystemProperty.of(RemoteExecutors.EXECUTOR_CONFIG_OVERRIDE, "coherence-executor-persistence-cache-config.xml"),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),

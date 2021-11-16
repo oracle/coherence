@@ -26,6 +26,8 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
+import com.tangosol.util.function.Remote;
+
 import com.tangosol.util.processor.ConditionalPut;
 import com.tangosol.util.processor.ExtractorProcessor;
 
@@ -40,8 +42,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.oracle.coherence.concurrent.executor.TaskExecutorService.ExecutorInfo;
-
 /**
  * A cluster-based implementation of an {@link TaskExecutorService.Registration}.
  *
@@ -49,7 +49,7 @@ import static com.oracle.coherence.concurrent.executor.TaskExecutorService.Execu
  * @since 21.12
  */
 @SuppressWarnings("rawtypes")
-class ClusteredRegistration
+public class ClusteredRegistration
         implements TaskExecutorService.Registration, MapListener
     {
     // ----- constructors ---------------------------------------------------
@@ -59,18 +59,19 @@ class ClusteredRegistration
      *
      * @param clusteredExecutorService  the {@link TaskExecutorService} that owns the
      *                                  {@link TaskExecutorService.Registration}
-     * @param sExecutorId               the identity of the registered {@link Executor}
+     * @param sExecutorId               the identity of the registered {@link ExecutorService}
      * @param executor                  the registered {@link Executor}
      * @param optionsByType             the {@link Option}s for the {@link Executor}
      */
     public ClusteredRegistration(ClusteredExecutorService clusteredExecutorService, String sExecutorId,
-            Executor executor, OptionsByType<Option> optionsByType)
+            ExecutorService executor, OptionsByType<Option> optionsByType, Remote.Supplier<ExecutorService> supplier)
         {
         f_clusteredExecutorService = clusteredExecutorService;
         f_sExecutorId              = sExecutorId;
         f_executor                 = executor;
         f_optionsByType            = optionsByType;
         f_mapTaskExecutors         = new ConcurrentHashMap<>();
+        m_supplier                 = supplier;
         }
 
     // ----- TaskExecutorService.Registration interface ---------------------
@@ -118,6 +119,18 @@ class ClusteredRegistration
     public long getTasksInProgressCount()
         {
         return m_cTasksInProgressCount;
+        }
+
+    /**
+     * Return the {@link Remote.Supplier} used to create {@link ExecutorService}s
+     * across the coherence cluster.
+     *
+     * @return the {@link Remote.Supplier} used to create {@link ExecutorService}s
+     *         across the coherence cluster
+     */
+    public ExecutorService getRegisteredService()
+        {
+        return f_executor;
         }
 
    // ----- MapListener interface -------------------------------------------
@@ -193,7 +206,8 @@ class ClusteredRegistration
             f_clusteredExecutorService.getCacheService()
                     .ensureCache(ClusteredExecutorInfo.CACHE_NAME, null)
                             .invoke(f_sExecutorId,
-                                    new ClusteredExecutorInfo.SetStateProcessor(ExecutorInfo.State.CLOSING_GRACEFULLY));
+                                    new ClusteredExecutorInfo.SetStateProcessor(
+                                            TaskExecutorService.ExecutorInfo.State.CLOSING_GRACEFULLY));
 
             // schedule a callable that will touch the executor every second within the cluster using the
             // local ScheduledExecutorService from the ClusteredExecutorService. This will trigger a check
@@ -611,8 +625,9 @@ class ClusteredRegistration
                 {
                 f_clusteredExecutorService.getCacheService()
                     .ensureCache(ClusteredExecutorInfo.CACHE_NAME, null)
-                            .invoke(sExecId, new ClusteredExecutorInfo.SetStateProcessor(ExecutorInfo.State.RUNNING,
-                                    ExecutorInfo.State.REJECTING));
+                            .invoke(sExecId, new ClusteredExecutorInfo.SetStateProcessor(
+                                    TaskExecutorService.ExecutorInfo.State.RUNNING,
+                                    TaskExecutorService.ExecutorInfo.State.REJECTING));
                 });
 
             // update the execution plan action and notify TaskManager about the change so that the
@@ -627,18 +642,15 @@ class ClusteredRegistration
             f_clusteredExecutorService.getCacheService()
                     .ensureCache(ClusteredTaskManager.CACHE_NAME, null).invoke(sTaskId, chainedProcessor);
 
-            if (f_executor instanceof ExecutorService)
+            ExecutorService executorService = f_executor;
+
+            if (executorService.isShutdown() || executorService.isTerminated())
                 {
-                ExecutorService executorService = (ExecutorService) f_executor;
+                Logger.info(() -> String.format(
+                        "Executor [%s] rejected Task [%s] due to shutdown", sExecId, sTaskId));
 
-                if (executorService.isShutdown() || executorService.isTerminated())
-                    {
-                    Logger.info(() -> String.format(
-                            "Executor [%s] rejected Task [%s] due to shutdown", sExecId, sTaskId));
-
-                    // deregister the service
-                    f_clusteredExecutorService.deregister(f_executor);
-                    }
+                // deregister the service
+                f_clusteredExecutorService.deregister(f_executor);
                 }
             }
         }
@@ -668,7 +680,7 @@ class ClusteredRegistration
                     .build();
 
             // acquire the executor info cache
-            NamedCache cache = service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+            NamedCache<String, ClusteredExecutorInfo> cache = service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
 
             // acquire the Runtime so we can capture local runtime information
             Runtime runtime = Runtime.getRuntime();
@@ -676,7 +688,7 @@ class ClusteredRegistration
             // attempt to create the information for the executor
             ClusteredExecutorInfo info =
                     new ClusteredExecutorInfo(f_sExecutorId, System.currentTimeMillis(), runtime.maxMemory(),
-                            runtime.totalMemory(), runtime.freeMemory(), f_optionsByType);
+                            runtime.totalMemory(), runtime.freeMemory(), f_optionsByType, m_supplier);
 
             // attempt to create the cluster information for the executor
             ClusteredExecutorInfo existingInfo = (ClusteredExecutorInfo)
@@ -693,7 +705,7 @@ class ClusteredRegistration
                                                 service, f_sExecutorId, f_executor, this), INFO_UPDATE_DELAY,
                                                 INFO_UPDATE_DELAY, INFO_UPDATE_DELAY_UNIT);
                 }
-            else if (existingInfo != null)
+            else
                 {
                 // TODO: we need to ensure that the existing registered Executor is actually registered locally!
                 // (if not someone has attempted to register an execution service somewhere else with the same identity)
@@ -705,7 +717,7 @@ class ClusteredRegistration
      * Closes the {@link Executor}.
      */
     @SuppressWarnings("unchecked")
-    protected void close()
+    public void close()
         {
         if (f_fCloseCalled.compareAndSet(false, true))
             {
@@ -740,7 +752,8 @@ class ClusteredRegistration
                 // deregister Executor entry listener
                 esCache.removeMapListener(f_listener, f_sExecutorId);
 
-                esCache.invoke(f_sExecutorId, new ClusteredExecutorInfo.SetStateProcessor(ExecutorInfo.State.CLOSING));
+                esCache.invoke(f_sExecutorId, new ClusteredExecutorInfo.SetStateProcessor(
+                        TaskExecutorService.ExecutorInfo.State.CLOSING));
                 }).start();
 
             // release the assignments cache (as it's a CQC)
@@ -834,9 +847,9 @@ class ClusteredRegistration
     protected final String f_sExecutorId;
 
     /**
-     * The local {@link Executor} that was registered.
+     * The local {@link ExecutorService} that was registered.
      */
-    protected final Executor f_executor;
+    protected final ExecutorService f_executor;
 
     /**
      * The {@link TaskExecutorService.Registration.Option}s for the {@link Executor}.
@@ -867,4 +880,10 @@ class ClusteredRegistration
      * The {@link TaskExecutor}s representing the {@link Task}s scheduled for execution with the {@link Executor}.
      */
     protected final ConcurrentHashMap<String, TaskExecutor> f_mapTaskExecutors;
+
+    /**
+     * The {@link Remote.Supplier} used to create {@link ExecutorService}s
+     * across the coherence cluster.
+     */
+    protected Remote.Supplier<ExecutorService> m_supplier;
     }

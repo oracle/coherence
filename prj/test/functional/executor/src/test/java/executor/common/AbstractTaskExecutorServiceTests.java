@@ -32,6 +32,7 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
+import com.tangosol.util.function.Remote;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -1147,7 +1148,7 @@ public abstract class AbstractTaskExecutorServiceTests
      */
     public void testExceptionsInFutures(boolean fCallable)
         {
-        ExecutorService executorService = m_taskExecutorService;
+        TaskExecutorService executorService = m_taskExecutorService;
 
         // case 1: wait until task fails
         Future future;
@@ -1239,7 +1240,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
     public void shouldHandleTasksFailingInInvokeAny()
         {
-        ExecutorService executorService = m_taskExecutorService;
+        TaskExecutorService executorService = m_taskExecutorService;
 
         Collection colCallables = new ArrayList<>(3);
         colCallables.add(new MyCallable().throwException());
@@ -1302,7 +1303,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
     public void shouldUseDefaultExecutor() throws Exception
         {
-        ExecutorService executorService = m_taskExecutorService;
+        TaskExecutorService executorService = m_taskExecutorService;
 
         executorService.execute(new MyRunnable("hello"));
 
@@ -1455,7 +1456,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
     public void shouldUseScheduledExecutor() throws Exception
         {
-        ScheduledExecutorService executorService = m_taskExecutorService;
+        TaskExecutorService executorService = m_taskExecutorService;
 
         ScheduledFuture<?> result1 = executorService.schedule(new MyRunnable("hello"), 30, TimeUnit.SECONDS);
         Repetitively.assertThat(invoking(result1).isDone(), Matchers.is(false), within(28, TimeUnit.SECONDS));
@@ -2119,7 +2120,7 @@ public abstract class AbstractTaskExecutorServiceTests
         {
         // ----- constructors -----------------------------------------------
 
-        public AwaitTerminationCallable(ExecutorService executorService)
+        public AwaitTerminationCallable(TaskExecutorService executorService)
             {
             f_executorService = executorService;
             }
@@ -2134,14 +2135,14 @@ public abstract class AbstractTaskExecutorServiceTests
 
         // ----- data members -----------------------------------------------
 
-        private final ExecutorService f_executorService;
+        private final TaskExecutorService f_executorService;
         }
 
     // ----- inner class: MyCallable ----------------------------------------
 
     @SuppressWarnings("unchecked")
     public static class MyCallable<T, R>
-            implements Serializable, Callable<R>, PortableObject
+            implements Remote.Callable<R>, PortableObject
         {
         // ----- constructors -----------------------------------------------
 
@@ -2240,7 +2241,7 @@ public abstract class AbstractTaskExecutorServiceTests
     // ----- inner class: MyRunnable ----------------------------------------
 
     public static class MyRunnable<T>
-            implements java.io.Serializable, Runnable, PortableObject
+            implements Remote.Runnable, PortableObject
         {
         // ----- constructors -----------------------------------------------
 

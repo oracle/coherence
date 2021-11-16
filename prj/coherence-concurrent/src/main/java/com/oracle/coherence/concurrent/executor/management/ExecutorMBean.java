@@ -10,6 +10,8 @@ package com.oracle.coherence.concurrent.executor.management;
 import java.util.concurrent.Executor;
 
 import com.tangosol.net.management.annotation.Description;
+import java.util.concurrent.ExecutorService;
+
 
 /**
  * ExecutorMBean provides a monitor interface for the {@link Executor} statistics.
@@ -17,6 +19,7 @@ import com.tangosol.net.management.annotation.Description;
  * @author bo, lh 2016.10.13
  * @since 21.12
  */
+@SuppressWarnings("unused")
 @Description("Provides Executor statistics.")
 public interface ExecutorMBean
     {
@@ -37,6 +40,14 @@ public interface ExecutorMBean
      */
     @Description("The member id where the executor is running.")
     int getMemberId();
+
+    /**
+     * Return the logical name of the registered {@link ExecutorService}.
+     *
+     * @return the logical name of the registered {@link ExecutorService}
+     */
+    @Description("The logical name of this executor.")
+    String getExecutorName();
 
     /**
      * Get the location where the executor is running.
@@ -90,7 +101,7 @@ public interface ExecutorMBean
      * @return whether executor trace logging is enabled (true) or not (false)
      */
     @Description("Indicate the executor traceLogging is enabled (true) or not (false).")
-    public boolean isTraceLogging();
+    boolean isTraceLogging();
 
     /**
      * Set the trace to true to enable executor trace logging; false to
@@ -100,5 +111,5 @@ public interface ExecutorMBean
      *                trace logging or not (false)
      */
     @Description("Set the trace to true to enable executor trace logging; false to disable executor trace logging.")
-    public void setTraceLogging(boolean fTrace);
+    void setTraceLogging(boolean fTrace);
     }

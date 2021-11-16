@@ -20,6 +20,7 @@ import com.oracle.coherence.concurrent.executor.options.Member;
 
 import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
+import com.oracle.coherence.concurrent.executor.options.Name;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
 import com.tangosol.coherence.config.Config;
@@ -37,15 +38,18 @@ import com.tangosol.net.management.AnnotatedStandardEmitterMBean;
 
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
+import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.UID;
 import com.tangosol.util.WrapperException;
 
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
 
+import com.tangosol.util.function.Remote;
 import com.tangosol.util.processor.ConditionalRemove;
 import com.tangosol.util.processor.ExtractorProcessor;
 
+import java.util.function.Supplier;
 import javax.management.NotCompliantMBeanException;
 
 import java.io.IOException;
@@ -87,9 +91,11 @@ public class ClusteredExecutorInfo
      * @param totalMemory     the total memory as reported by {@link Runtime#totalMemory()}
      * @param freeMemory      the free memory as reported by {@link Runtime#freeMemory()}
      * @param optionsByType   the {@link TaskExecutorService.Registration.Option}s for the {@link Executor}
+     * @param supplier        TODO
      */
     public ClusteredExecutorInfo(String sIdentity, long ldtUpdate, long cMaxMemory, long totalMemory,
-                                 long freeMemory, OptionsByType<TaskExecutorService.Registration.Option> optionsByType)
+                                 long freeMemory, OptionsByType<TaskExecutorService.Registration.Option> optionsByType,
+                                 Remote.Supplier<ExecutorService> supplier)
         {
         m_sIdentity     = sIdentity;
         m_optionsByType = optionsByType;
@@ -99,8 +105,9 @@ public class ClusteredExecutorInfo
         m_cFreeMemory   = freeMemory;
         m_executorMBean = new ExecutorMBeanImpl();
         m_cCompleted    = 0;
-        m_cRejected = 0;
+        m_cRejected     = 0;
         m_cInProgress   = 0;
+        m_supplier      = supplier;
     }
 
     // ----- public methods -------------------------------------------------
@@ -277,6 +284,15 @@ public class ClusteredExecutorInfo
         m_cInProgress = cTasksInProgress;
         }
 
+    /**
+     * TODO
+     * @return
+     */
+    public Remote.Supplier<ExecutorService> getSupplier()
+        {
+        return m_supplier;
+        }
+
     // ----- Object methods -------------------------------------------------
 
     @Override
@@ -326,9 +342,11 @@ public class ClusteredExecutorInfo
         {
         ExecutorTrace.log(() -> String.format("Inserted [%s] due to [%s]", this, cause));
 
-        service.getResourceRegistry().registerResource(ClusteredExecutorInfo.class,
-                                                       (String) entry.getKey(),
-                                                       (ClusteredExecutorInfo) entry.getValue());
+        ResourceRegistry registry = service.getResourceRegistry();
+
+        registry.registerResource(ClusteredExecutorInfo.class,
+                                  (String) entry.getKey(),
+                                  (ClusteredExecutorInfo) entry.getValue());
         registerExecutiveServiceMBean(service, (ClusteredExecutorInfo) entry.getValue());
 
         switch (m_state)
@@ -336,7 +354,7 @@ public class ClusteredExecutorInfo
             case JOINING:
 
                 // schedule introducing the Executor to existing (non-completed) Tasks
-                return new JoiningContinuation(m_sIdentity, service);
+                return new JoiningContinuation(m_sIdentity, service, this);
 
             case RUNNING:
 
@@ -486,24 +504,26 @@ public class ClusteredExecutorInfo
         m_cTotalMemory  = in.readLong(5);
         m_cFreeMemory   = in.readLong(6);
         m_cCompleted    = in.readLong(7);
-        m_cRejected = in.readLong(8);
+        m_cRejected     = in.readLong(8);
         m_cInProgress   = in.readLong(9);
+        m_supplier      = in.readObject(10);
         m_executorMBean = new ExecutorMBeanImpl();
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
-        out.writeObject(0, m_state);
-        out.writeString(1, m_sIdentity);
-        out.writeObject(2, m_optionsByType);
-        out.writeLong(3,   m_ldtUpdate);
-        out.writeLong(4,   m_cMaxMemory);
-        out.writeLong(5,   m_cTotalMemory);
-        out.writeLong(6,   m_cFreeMemory);
-        out.writeLong(7,   m_cCompleted);
-        out.writeLong(8, m_cRejected);
-        out.writeLong(9,   m_cInProgress);
+        out.writeObject(0,  m_state);
+        out.writeString(1,  m_sIdentity);
+        out.writeObject(2,  m_optionsByType);
+        out.writeLong(3,    m_ldtUpdate);
+        out.writeLong(4,    m_cMaxMemory);
+        out.writeLong(5,    m_cTotalMemory);
+        out.writeLong(6,    m_cFreeMemory);
+        out.writeLong(7,    m_cCompleted);
+        out.writeLong(8,    m_cRejected);
+        out.writeLong(9,    m_cInProgress);
+        out.writeObject(10, m_supplier);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -740,7 +760,7 @@ public class ClusteredExecutorInfo
         public void resetStatistics()
             {
             m_cCompleted  = 0;
-            m_cRejected = 0;
+            m_cRejected   = 0;
             m_cInProgress = 0;
             }
 
@@ -754,6 +774,12 @@ public class ClusteredExecutorInfo
         public String getLocation()
             {
             return m_optionsByType.get(Member.class, null).get().toString();
+            }
+
+        @Override
+        public String getExecutorName()
+            {
+            return m_optionsByType.get(Name.class, Name.of("UNNAMED")).getName();
             }
 
         @Override
@@ -829,11 +855,15 @@ public class ClusteredExecutorInfo
          *
          * @param cacheService  the {@link CacheService}
          * @param sExecutorId   the {@link Executor} identity to update
+         * @param executorInfo  the {@link ClusteredExecutorInfo}
          */
-        public JoiningContinuation(String sExecutorId, CacheService cacheService)
+        public JoiningContinuation(String sExecutorId,
+                                   CacheService cacheService,
+                                   ClusteredExecutorInfo executorInfo)
             {
-            m_sExecutorId = sExecutorId;
+            m_sExecutorId  = sExecutorId;
             m_cacheService = cacheService;
+            m_executorInfo = executorInfo;
             }
 
         // ----- ComposableContinuation methods -----------------------------
@@ -842,6 +872,23 @@ public class ClusteredExecutorInfo
         @Override
         public void proceed(Object o)
             {
+            // TODO REVIEW
+            ClusteredExecutorInfo                                  executorInfo = m_executorInfo;
+            OptionsByType<TaskExecutorService.Registration.Option> options      = executorInfo.m_optionsByType;
+
+            Name named = options.get(Name.class);
+            if (named != null)
+                {
+                if (!RemoteExecutors.getKnownExecutorNames().contains(named))
+                    {
+                    Remote.Supplier<ExecutorService> supplier = executorInfo.getSupplier();
+                    if (supplier != null)
+                        {
+                        RemoteExecutors.getLocalExecutorService().register(supplier.get(), supplier, named);
+                        }
+                    }
+                }
+
             // change the state of the Executor to be Running
             m_cacheService.ensureCache(CACHE_NAME,
                                        null).invoke(m_sExecutorId, new SetStateProcessor(State.JOINING, State.RUNNING));
@@ -882,6 +929,11 @@ public class ClusteredExecutorInfo
          * The {@link CacheService} for accessing the {@link TaskExecutorService.ExecutorInfo} cache.
          */
         protected CacheService m_cacheService;
+
+        /**
+         * TODO
+         */
+        protected ClusteredExecutorInfo m_executorInfo;
         }
 
     /**
@@ -1482,6 +1534,11 @@ public class ClusteredExecutorInfo
      * The tasks that are in progress count.
      */
     protected long m_cInProgress;
+
+    /**
+     * TODO
+     */
+    protected Remote.Supplier<ExecutorService> m_supplier;
 
     /**
      * The executor attribute to indicate whether trace logging is

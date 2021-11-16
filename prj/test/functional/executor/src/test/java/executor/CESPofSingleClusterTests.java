@@ -6,8 +6,6 @@
  */
 package executor;
 
-import com.oracle.bedrock.runtime.LocalPlatform;
-
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
@@ -26,7 +24,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
-import com.oracle.coherence.concurrent.executor.Executors;
+import com.oracle.coherence.concurrent.executor.RemoteExecutors;
 
 import com.tangosol.net.Coherence;
 
@@ -104,7 +102,7 @@ public class CESPofSingleClusterTests
             (CoherenceClusterResource) new CoherenceClusterResource()
                     .with(ClassName.of(Coherence.class),
                           SystemProperty.of("coherence.serializer", "pof"),
-                          SystemProperty.of(Executors.EXECUTOR_CONFIG_OVERRIDE, CACHE_CONFIG),
+                          SystemProperty.of(RemoteExecutors.EXECUTOR_CONFIG_OVERRIDE, CACHE_CONFIG),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),

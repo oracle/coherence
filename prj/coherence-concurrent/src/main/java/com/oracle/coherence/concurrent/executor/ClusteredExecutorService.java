@@ -31,7 +31,7 @@ import com.tangosol.net.Session;
 
 import com.tangosol.util.extractor.ReflectionExtractor;
 
-import com.tangosol.util.function.Remote.Predicate;
+import com.tangosol.util.function.Remote;
 
 import java.time.Duration;
 
@@ -45,10 +45,12 @@ import java.util.UUID;
 
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
@@ -68,7 +70,6 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
  * @since 21.12
  */
 public class ClusteredExecutorService
-        extends AbstractExecutorService
         implements TaskExecutorService
     {
     // ----- constructors ---------------------------------------------------
@@ -87,11 +88,7 @@ public class ClusteredExecutorService
      * Constructs a {@link ClusteredExecutorService} based on the specified {@link ConfigurableCacheFactory}.
      *
      * @param cacheFactory  the {@link ConfigurableCacheFactory}
-     *
-     * @deprecated this method is intended for testing with older versions of
-     *             Coherence and should be avoided
      */
-    @Deprecated
     public ClusteredExecutorService(ConfigurableCacheFactory cacheFactory)
         {
         init(cacheFactory.ensureCache(ClusteredAssignment.CACHE_NAME, null).getCacheService());
@@ -134,7 +131,13 @@ public class ClusteredExecutorService
     // ----- TaskExecutorService interface ----------------------------------
 
     @Override
-    public Registration register(Executor executor, Registration.Option... options)
+    public Registration register(ExecutorService executor, Registration.Option... options)
+        {
+        return register(executor, null, options);
+        }
+
+    @Override
+    public Registration register(ExecutorService executor, Remote.Supplier<ExecutorService> supplier, Registration.Option... options)
         {
         if (isShutdown())
             {
@@ -166,7 +169,7 @@ public class ClusteredExecutorService
             String sIdentity = UUID.randomUUID().toString();
 
             // create a local registration for the executor
-            registration = new ClusteredRegistration(this, sIdentity, executor, optionsByType);
+            registration = new ClusteredRegistration(this, sIdentity, executor, optionsByType, supplier);
 
             ClusteredRegistration existingRegistration = f_mapLocalRegistrations.putIfAbsent(executor, registration);
 
@@ -184,7 +187,7 @@ public class ClusteredExecutorService
         }
 
     @Override
-    public Registration deregister(Executor executor)
+    public Registration deregister(ExecutorService executor)
         {
         ClusteredRegistration registration = f_mapLocalRegistrations.remove(executor);
 
@@ -231,11 +234,11 @@ public class ClusteredExecutorService
         return null;
         }
 
-    // ----- Executor interface ---------------------------------------------
+    // ----- RemoteExecutorService interface --------------------------------
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public void execute(Runnable command)
+    public void execute(Remote.Runnable command)
         {
         Objects.requireNonNull(command);
 
@@ -261,8 +264,6 @@ public class ClusteredExecutorService
                     .submit();
             }
         }
-
-    // ----- ExecutorService interface --------------------------------------
 
     @Override
     public boolean isShutdown()
@@ -291,7 +292,7 @@ public class ClusteredExecutorService
         }
 
     @Override
-    public boolean awaitTermination(long cTimeout, TimeUnit unit)
+    public boolean awaitTermination(long lcTimeout, TimeUnit unit)
             throws InterruptedException
         {
         if (isTerminated())
@@ -301,7 +302,7 @@ public class ClusteredExecutorService
         else
             {
             // wait for f_scheduledExecutorService to terminate
-            return f_scheduledExecutorService.awaitTermination(cTimeout, unit);
+            return f_scheduledExecutorService.awaitTermination(lcTimeout, unit);
             }
         }
 
@@ -333,17 +334,15 @@ public class ClusteredExecutorService
         return Collections.emptyList();
         }
 
-    // ----- ScheduledExecutorService interface -----------------------------
-
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public <T> ScheduledFuture<T> schedule(Callable<T> callable, long cDelay, TimeUnit unit)
+    public <T> ScheduledFuture<T> schedule(Remote.Callable<T> callable, long lcDelay, TimeUnit unit)
         {
         ScheduledCallableTask<T> callableTask =
                 new ScheduledCallableTask(callable,
-                        cDelay == 0
+                        lcDelay == 0
                         ? null
-                        : Duration.ofNanos(unit.toNanos(cDelay)));
+                        : Duration.ofNanos(unit.toNanos(lcDelay)));
 
         CESRunnableFuture futureSubscriber = new CESRunnableFuture<>(callableTask);
         Task.Coordinator  coordinator      = orchestrate(callableTask).limit(1)
@@ -356,43 +355,25 @@ public class ClusteredExecutorService
         }
 
     @Override
-    public ScheduledFuture<?> schedule(Runnable command, long cDelay, TimeUnit unit)
+    public ScheduledFuture<?> schedule(Remote.Runnable command, long lcDelay, TimeUnit unit)
         {
-        return scheduleRunnable(command, cDelay, 0, 0, unit);
+        return scheduleRunnable(command, lcDelay, 0, 0, unit);
         }
 
     @Override
-    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long cInitialDelay, long cPeriod, TimeUnit unit)
+    public ScheduledFuture<?> scheduleAtFixedRate(Remote.Runnable command, long lcInitialDelay, long lcPeriod, TimeUnit unit)
         {
-        return scheduleRunnable(command, cInitialDelay, cPeriod, 0, unit);
+        return scheduleRunnable(command, lcInitialDelay, lcPeriod, 0, unit);
         }
 
     @Override
-    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long cInitialDelay, long cDelay, TimeUnit unit)
+    public ScheduledFuture<?> scheduleWithFixedDelay(Remote.Runnable command, long cInitialDelay, long cDelay, TimeUnit unit)
         {
         return scheduleRunnable(command, cInitialDelay, 0, cDelay, unit);
         }
 
-    // ----- AbstractExecutorService methods --------------------------------
-
     @Override
-    protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value)
-        {
-        return new CESRunnableFuture<>(runnable, value);
-        }
-
-    @Override
-    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable)
-        {
-        return new CESRunnableFuture<>(callable);
-        }
-
-    /**
-     * Override implementation is required as {@link AbstractExecutorService}'s implementation creates its own {@link
-     * RunnableFuture}s that are passed to {@link #execute(Runnable)}.
-     */
-    @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> colTasks)
+    public <T> T invokeAny(Collection<? extends Remote.Callable<T>> colTasks)
         throws InterruptedException, ExecutionException
         {
         try
@@ -408,22 +389,151 @@ public class ClusteredExecutorService
 
     /**
      * Override implementation is required as {@link AbstractExecutorService}'s implementation creates its own {@link
-     * RunnableFuture}s that are passed to {@link #execute(Runnable)}.
+     * RunnableFuture}s that are passed to {@link #execute(Remote.Runnable)}.
      */
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> colTasks, long cTimeout, TimeUnit unit)
+    public <T> T invokeAny(Collection<? extends Remote.Callable<T>> colTasks, long lcTimeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException
         {
-        return doInvokeAny(colTasks, true, unit.toNanos(cTimeout));
+        return doInvokeAny(colTasks, true, unit.toNanos(lcTimeout));
         }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Remote.Callable<T>> tasks)
+            throws InterruptedException
+        {
+        Objects.requireNonNull(tasks);
+
+        ArrayList<Future<T>> listFutures = new ArrayList<>(tasks.size());
+        try
+            {
+            for (Callable<T> t : tasks)
+                {
+                CESRunnableFuture<T> f = new CESRunnableFuture<>(t);
+                listFutures.add(f);
+                execute(f);
+                }
+            for (int i = 0, size = listFutures.size(); i < size; i++)
+                {
+                Future<T> f = listFutures.get(i);
+                if (!f.isDone())
+                    {
+                    try
+                        {
+                        f.get();
+                        }
+                    catch (CancellationException | ExecutionException ignore)
+                        {
+                        }
+                    }
+                }
+            return listFutures;
+            }
+        catch (Throwable t)
+            {
+            cancelAll(listFutures);
+            throw t;
+            }
+        }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Remote.Callable<T>> tasks, long lcTimeout, TimeUnit unit)
+            throws InterruptedException
+        {
+        Objects.requireNonNull(tasks);
+
+        final long           lcNanos     = unit.toNanos(lcTimeout);
+        final long           lcDeadline  = System.nanoTime() + lcNanos;
+        ArrayList<Future<T>> listFutures = new ArrayList<>(tasks.size());
+        int                  cJ          = 0;
+
+        timedOut:
+        try
+            {
+            for (Callable<T> t : tasks)
+                {
+                listFutures.add(new CESRunnableFuture<>(t));
+                }
+
+            final int size = listFutures.size();
+
+            // Interleave time checks and calls to execute in case
+            // executor doesn't have any/much parallelism.
+            for (int i = 0; i < size; i++)
+                {
+                if (((i == 0) ? lcNanos : lcDeadline - System.nanoTime()) <= 0L)
+                    {
+                    break timedOut;
+                    }
+                execute((Remote.Runnable) listFutures.get(i));
+                }
+
+            for (; cJ < size; cJ++)
+                {
+                Future<T> f = listFutures.get(cJ);
+                if (!f.isDone())
+                    {
+                    try
+                        {
+                        f.get(lcDeadline - System.nanoTime(), NANOSECONDS);
+                        }
+                    catch (CancellationException | ExecutionException ignore)
+                        {
+                        }
+                    catch (TimeoutException timedOut)
+                        {
+                        break timedOut;
+                        }
+                    }
+                }
+            return listFutures;
+            }
+        catch (Throwable t)
+            {
+            cancelAll(listFutures);
+            throw t;
+            }
+        // Timed out before all the tasks could be completed; cancel remaining
+        cancelAll(listFutures, cJ);
+        return listFutures;
+        }
+
+    @Override
+    public <T> Future<T> submit(Remote.Callable<T> task)
+        {
+        if (task == null) throw new NullPointerException();
+        CESRunnableFuture<T> ftask = new CESRunnableFuture<>(task);
+        execute(ftask);
+        return ftask;
+        }
+
+    @Override
+    public <T> Future<T> submit(Remote.Runnable task, T result)
+        {
+        if (task == null) throw new NullPointerException();
+        CESRunnableFuture<T> ftask = new CESRunnableFuture<>(task, result);
+        execute(ftask);
+        return ftask;
+        }
+
+    @Override
+    public Future<?> submit(Remote.Runnable task)
+        {
+        if (task == null) throw new NullPointerException();
+        CESRunnableFuture<Void> ftask = new CESRunnableFuture<>(task, null);
+        execute(ftask);
+        return ftask;
+        }
+
+    // ----- helper methods -------------------------------------------------
 
     /**
      * The main mechanics of invokeAny. See AbstractExecutorService#doInvokeAny(Collection, boolean, long) on
      * which this implementation is based.
      *
-     * @param colTasks  {@link Collection} of {@link Callable}s
+     * @param colTasks  {@link Collection} of {@link Remote.Callable}s
      * @param fTimed    whether the invokeAny is timed
-     * @param cNanos    nanos to wait if timed
+     * @param lcNanos   nanos to wait if timed
      * @param <T>       return value type
      *
      * @return see {@link #invokeAny(Collection)}
@@ -433,8 +543,8 @@ public class ClusteredExecutorService
      * @throws TimeoutException     see {@link #invokeAny(Collection)}
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T> T doInvokeAny(Collection<? extends Callable<T>> colTasks, boolean fTimed, long cNanos)
-        throws InterruptedException, ExecutionException, TimeoutException
+    protected <T> T doInvokeAny(Collection<? extends Remote.Callable<T>> colTasks, boolean fTimed, long lcNanos)
+            throws InterruptedException, ExecutionException, TimeoutException
         {
         Objects.requireNonNull(colTasks);
 
@@ -506,7 +616,7 @@ public class ClusteredExecutorService
                         {
                         if (fTimed)
                             {
-                            long nRemainingNanos = cNanos - (System.nanoTime() - nStartTime);
+                            long nRemainingNanos = lcNanos - (System.nanoTime() - nStartTime);
 
                             if (nRemainingNanos > 0)
                                 {
@@ -540,11 +650,32 @@ public class ClusteredExecutorService
             }
         }
 
-    // ----- helper methods -------------------------------------------------
+    /**
+     * Cancels all provided {@link Future futures}.
+     *
+     * @param futures  list of {@link Future futures}
+     * @param <T>      the future result type
+     */
+    protected static <T> void cancelAll(List<Future<T>> futures) {
+    cancelAll(futures, 0);
+    }
+
+    /**
+     * Cancels provided {@link Future futures} beginning with the specified
+     * index.
+     *
+     * @param futures    list of {@link Future futures}
+     * @param nStartIdx  the start index within the list
+     * @param <T>        the future result type
+     */
+    protected static <T> void cancelAll(List<Future<T>> futures, int nStartIdx) {
+    for (int nSize = futures.size(), nIdx = nStartIdx; nIdx < nSize; nIdx++)
+        futures.get(nIdx).cancel(true);
+    }
 
     /**
      * Submit a {@link Task} for execution with the given taskId, {@link ExecutionStrategy}, {@link OptionsByType},
-     * result collector, completion {@link Predicate}, and {@link Task.Subscriber}(s).
+     * result collector, completion {@link Remote.Predicate}, and {@link Task.Subscriber}(s).
      *
      * @param task                 the {@link Task} to submit
      * @param sTaskId              the task ID
@@ -552,7 +683,7 @@ public class ClusteredExecutorService
      * @param optionsByType        the {@link OptionsByType} to be used
      * @param properties           the {@link Task.Properties} for this task
      * @param collector            the {@link Task.Collector} to be used to collect result
-     * @param completionPredicate  the completion {@link Predicate}
+     * @param completionPredicate  the completion {@link Remote.Predicate}
      * @param completionRunnable   the {@link Task.CompletionRunnable} to call when the task is complete
      * @param retainDuration       the {@link Duration} to retain a {@link Task} after it is complete
      * @param subscribers          a list of subscribers
@@ -564,7 +695,7 @@ public class ClusteredExecutorService
      */
     protected <T, A, R> Task.Coordinator<R> submit(Task<T> task, String sTaskId, ExecutionStrategy strategy,
             OptionsByType<Task.Option> optionsByType, Task.Properties properties,
-            Task.Collector<? super T, A, R> collector, Predicate<? super R> completionPredicate,
+            Task.Collector<? super T, A, R> collector, Remote.Predicate<? super R> completionPredicate,
             Task.CompletionRunnable<? super R> completionRunnable, Duration retainDuration,
             Iterator<Task.Subscriber<? super R>> subscribers)
         {
@@ -714,7 +845,7 @@ public class ClusteredExecutorService
         if (setState(State.READY, State.STOPPING_IMMEDIATELY)
             || setState(State.STOPPING_GRACEFULLY, State.STOPPING_IMMEDIATELY))
             {
-            for (Executor executor : f_mapLocalRegistrations.keySet())
+            for (ExecutorService executor : f_mapLocalRegistrations.keySet())
                 {
                 deregister(executor);
                 }
@@ -732,17 +863,14 @@ public class ClusteredExecutorService
     // ----- inner class: CESRunnableFuture ---------------------------------
 
     /**
-     * {@link RunnableFuture} implementation for use by {@link #newTaskFor(Callable)}, {@link #newTaskFor(Runnable,
-     * Object)}, and {@link #execute(Runnable)}.
-     * <p>
-     * CESRunnableFuture is a holder for the Callable or Runnable which will be executed by {@link
-     * #execute(Runnable)}. Calling {@link #run()} is not supported.
+     * {@code CESRunnableFuture} is a holder for the Callable or Runnable which will be executed by {@link
+     * #execute(Remote.Runnable)}. Calling {@link #run()} is not supported.
      *
      * @param <V>  value type for encapsulated task
      */
     protected static class CESRunnableFuture<V>
             extends FutureSubscriber<V>
-            implements RunnableScheduledFuture<V>
+            implements RunnableScheduledFuture<V>, Remote.Runnable
         {
         // ----- constructors -----------------------------------------------
 
@@ -947,7 +1075,7 @@ public class ClusteredExecutorService
     /**
      * The locally registered {@link Executor} {@link Registration}s, by {@link Executor}s.
      */
-    protected final ConcurrentHashMap<Executor, ClusteredRegistration> f_mapLocalRegistrations
+    protected final ConcurrentHashMap<ExecutorService, ClusteredRegistration> f_mapLocalRegistrations
             = new ConcurrentHashMap<>();
 
     /**

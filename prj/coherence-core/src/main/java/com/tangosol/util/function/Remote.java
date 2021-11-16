@@ -22,6 +22,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
 
 /**
  * Helper interfaces and methods that enable capture of standard JDK
@@ -2715,5 +2717,48 @@ public class Remote
     public static <V> Callable<V> callable(Callable<V> callable)
         {
         return callable;
+        }
+
+    // ----- ThreadFactory --------------------------------------------------
+
+    /**
+     * An object that creates new threads on demand.  Using thread factories
+     * removes hard-wiring of calls to {@link Thread#Thread(java.lang.Runnable) new Thread},
+     * enabling applications to use special thread subclasses, priorities, etc.
+     *
+     * <p>
+     * The simplest implementation of this interface is just:
+     * <pre> {@code
+     * class SimpleThreadFactory implements Remote.ThreadFactory {
+     *   public Thread newThread(Runnable r) {
+     *     return new Thread(r);
+     *   }
+     * }}</pre>
+     *
+     * TODO
+     * The {@link Executors#defaultThreadFactory} method provides a more
+     * useful simple implementation, that sets the created thread context
+     * to known values before returning it.
+     *
+     * @since 21.12
+     */
+    @FunctionalInterface
+    public interface ThreadFactory
+            extends java.util.concurrent.ThreadFactory, Serializable
+        {
+        }
+
+    /**
+     * Capture serializable ThreadFactory.
+     *
+     * @param threadFactory lambda to capture
+     *
+     * @return serializable ThreadFactory
+     *
+     * @since 21.12
+     */
+    public static ThreadFactory threadFactory(ThreadFactory threadFactory)
+        {
+        return threadFactory;
         }
     }

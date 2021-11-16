@@ -27,12 +27,12 @@
 
     <cache-mapping>
       <cache-name>atomic-*</cache-name>
-      <scheme-name>concurrent-services</scheme-name>
+      <scheme-name>concurrent</scheme-name>
     </cache-mapping>
 
     <cache-mapping>
       <cache-name>executor-tasks</cache-name>
-      <scheme-name>concurrent-services</scheme-name>
+      <scheme-name>concurrent</scheme-name>
       <interceptors>
         <interceptor>
           <name>task-interceptor</name>
@@ -46,17 +46,36 @@
             </init-params>
           </instance>
         </interceptor>
+        <interceptor>
+          <name>live-object-interceptor</name>
+          <instance>
+            <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor</class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>executor-executors</cache-name>
+      <scheme-name>concurrent</scheme-name>
+      <interceptors>
+        <interceptor>
+          <name>live-object-interceptor</name>
+          <instance>
+            <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor</class-name>
+          </instance>
+        </interceptor>
       </interceptors>
     </cache-mapping>
 
     <cache-mapping>
       <cache-name>executor-*</cache-name>
-      <scheme-name>concurrent-services</scheme-name>
+      <scheme-name>concurrent</scheme-name>
     </cache-mapping>
 
     <cache-mapping>
       <cache-name>locks-*</cache-name>
-      <scheme-name>concurrent-services</scheme-name>
+      <scheme-name>concurrent</scheme-name>
     </cache-mapping>
 
   </caching-scheme-mapping>
@@ -64,8 +83,8 @@
   <caching-schemes>
 
     <distributed-scheme>
-      <scheme-name>concurrent-services</scheme-name>
-      <service-name>ConcurrentServices</service-name>
+      <scheme-name>concurrent</scheme-name>
+      <service-name>Concurrent</service-name>
       <member-listener>
         <class-name>com.oracle.coherence.concurrent.locks.internal.LockHolderCleaner</class-name>
       </member-listener>
@@ -75,14 +94,6 @@
         </local-scheme>
       </backing-map-scheme>
       <autostart>true</autostart>
-      <interceptors>
-        <interceptor>
-          <name>live-object-interceptor</name>
-          <instance>
-            <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor</class-name>
-          </instance>
-        </interceptor>
-      </interceptors>
     </distributed-scheme>
 
     <proxy-scheme>

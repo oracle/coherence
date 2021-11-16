@@ -6,54 +6,69 @@
  */
 package com.oracle.coherence.concurrent.executor;
 
+import com.tangosol.util.function.Remote;
+
 import java.io.Serializable;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * An {@link ExecutorService} that orchestrates execution of submitted executables, for example {@link Runnable}s,
- * {@link Callable}s and {@link Task}s, across zero or more registered {@link Executor}s. Specifically, {@link
+ * {@link Callable}s and {@link Task}s, across zero or more registered {@link ExecutorService}s. Specifically, {@link
  * TaskExecutorService}s don't execute executables. They simply orchestrate submissions to other registered {@link
- * Executor}s for execution.
+ * ExecutorService}s for execution.
  *
  * @author bo
  * @since 21.06
  */
 public interface TaskExecutorService
-        extends ScheduledExecutorService
+        extends RemoteExecutorService
     {
     /**
-     * Registers an {@link Executor} to commence execution of orchestrated tasks.
+     * Registers an {@link ExecutorService} to commence execution of orchestrated tasks.
      *
-     * @param executor  the {@link Executor}
-     * @param options   the {@link Registration.Option}s for the {@link Executor}
+     * @param executor  the {@link ExecutorService} to register
+     * @param options   the {@link Registration.Option}s for the {@link ExecutorService}
      *
-     * @return the {@link Registration} created for the registered {@link Executor},
-     *         or the existing {@link Registration} when the {@link Executor} is
+     * @return the {@link Registration} created for the registered {@link ExecutorService},
+     *         or the existing {@link Registration} when the {@link ExecutorService} is
      *         already registered
      */
-    Registration register(Executor executor, Registration.Option... options);
+    Registration register(ExecutorService executor, Registration.Option... options);
 
     /**
-     * De-registers a previously registered {@link Executor}.
+     * Registers an {@link ExecutorService} to commence execution of orchestrated tasks.
+     *
+     * @param executor    the {@link ExecutorService} to register
+     * @param esSupplier  the {@link ExecutorService} {@link Remote.Supplier}
+     * @param options     the {@link Registration.Option}s for the {@link ExecutorService}
+     *
+     * @return the {@link Registration} created for the registered {@link ExecutorService},
+     *         or the existing {@link Registration} when the {@link ExecutorService} is
+     *         already registered
+     */
+    Registration register(ExecutorService executor,
+                          Remote.Supplier<ExecutorService> esSupplier,
+                          Registration.Option... options);
+
+    /**
+     * De-registers a previously registered {@link ExecutorService}.
      * <p>
      * Upon execution, all allocated executables are deemed to be suspended.   Any
      * results made towards completing said executables will be ignored. Executables
-     * specifically allocated to the identified {@link Executor} will be lost, unless
+     * specifically allocated to the identified {@link ExecutorService} will be lost, unless
      * they were submitted as being retained.   All other executables will be
      * re-allocated and submitted to other available and appropriate subscribed
-     * {@link Executor}s.
+     * {@link ExecutorService}s.
      *
-     * @param executor  the {@link Executor} to deregister
+     * @param executor  the {@link ExecutorService} to deregister
      *
      * @return the {@link Registration} that was originally created for the registered
-     *         {@link Executor}, or <code>null</code> if the {@link Executor} is
-     *         unknown/not registered
+     *         {@link ExecutorService}, or <code>null</code> if the {@link ExecutorService}
+     *         is unknown/not registered
      */
-    Registration deregister(Executor executor);
+    Registration deregister(ExecutorService executor);
 
     /**
      * Creates a pending {@link Task.Orchestration} for a {@link Task}.
@@ -100,20 +115,21 @@ public interface TaskExecutorService
     // ----- inner interface: ExecutorInfo ----------------------------------
 
     /**
-     * Provides access to the currently available information for a registered {@link Executor}.
+     * Provides access to the currently available information for a registered
+     * {@link ExecutorService}.
      */
     interface ExecutorInfo
         extends Serializable
         {
         /**
-         * Obtains the unique identity for the {@link Executor}.
+         * Obtains the unique identity for the {@link ExecutorService}.
          *
          * @return the unique identity
          */
         String getId();
 
         /**
-         * Obtains the current {@link State} of the {@link Executor}.
+         * Obtains the current {@link State} of the {@link ExecutorService}.
          *
          * @return the current {@link State}
          */
@@ -125,27 +141,30 @@ public interface TaskExecutorService
          *
          * @return the time since the epoch for the last update
          */
+        @SuppressWarnings("unused")
         long getLastUpdateTime();
 
         /**
          * The last reported maximum memory by {@link Runtime#maxMemory()} available to
-         * the {@link Executor}.
+         * the {@link ExecutorService}.
          *
          * @return the maximum memory (in bytes)
          */
+        @SuppressWarnings("unused")
         long getMaxMemory();
 
         /**
          * The last reported total memory by {@link Runtime#totalMemory()} available to
-         * the {@link Executor}.
+         * the {@link ExecutorService}.
          *
          * @return the total memory (in bytes)
          */
+        @SuppressWarnings("unused")
         long getTotalMemory();
 
         /**
          * The last reported free memory by {@link Runtime#freeMemory()} available to
-         * the {@link Executor}.
+         * the {@link ExecutorService}.
          *
          * @return the free memory (in bytes)
          */
@@ -153,7 +172,7 @@ public interface TaskExecutorService
 
         /**
          * Obtains the {@link Registration.Option} of the specified class when the
-         * {@link Executor} was registered, or the default value if not found.
+         * {@link ExecutorService} was registered, or the default value if not found.
          *
          * @param clzOfOption        the class of {@link Registration.Option}
          * @param defaultIfNotFound  the value to return if not found
@@ -165,68 +184,68 @@ public interface TaskExecutorService
 
         // ----- enum: State ------------------------------------------------
         /**
-         * The state of an {@link Executor}.
+         * The state of an {@link ExecutorService}.
          */
         enum State
             {
             /**
-             * The {@link Executor} is the process of joining the orchestration,
-             * including introducing itself to the current {@link Task}s for
-             * assignment.
+             * The {@link ExecutorService} is the process of joining the
+             * orchestration, including introducing itself to the current
+             * {@link Task}s for assignment.
              */
             JOINING,
 
             /**
-             * The {@link Executor} is accepting and executing {@link Task}s.
+             * The {@link ExecutorService} is accepting and executing
+             * {@link Task}s.
              */
             RUNNING,
 
             /**
-             * The {@link Executor} has commenced graceful closing.  No new
-             * {@link Task}s will be accepted, but existing {@link Task}s will
-             * run to completion.
+             * The {@link ExecutorService} has commenced graceful closing.
+             * No new {@link Task}s will be accepted, but existing
+             * {@link Task}s will run to completion.
              * <p>
-             * Once all assigned {@link Task}s are completed, the {@link Executor}
-             * will go to {@link State#CLOSING}.
+             * Once all assigned {@link Task}s are completed, the
+             * {@link ExecutorService} will go to {@link State#CLOSING}.
              * </p>
              */
             CLOSING_GRACEFULLY,
 
             /**
-             * The {@link Executor} has commenced closing, including cleaning up
-             * resources and allocated {@link Task}s.
+             * The {@link ExecutorService} has commenced closing, including
+             * cleaning up resources and allocated {@link Task}s.
              */
             CLOSING,
 
             /**
-             * The {@link Executor} has been closed and no longer has any allocated
-             * {@link Task}s.
+             * The {@link ExecutorService} has been closed and no longer has
+             * any allocated {@link Task}s.
              */
             CLOSED,
 
             /**
-             * The {@link Executor} is rejecting {@link Task}s.
+             * The {@link ExecutorService} is rejecting {@link Task}s.
              */
             REJECTING
             }
         }
 
     /**
-     * Provides registration information about an {@link Executor} that was registered with an {@link
-     * TaskExecutorService} using {@link TaskExecutorService#register(Executor, Option...)}.
+     * Provides registration information about an {@link ExecutorService} registration.
      */
     interface Registration
         {
         /**
-         * Obtains the unique identity for the registered {@link Executor}.
+         * Obtains the unique identity for the registered {@link ExecutorService}.
          *
          * @return the unique identity
          */
         String getId();
 
         /**
-         * Obtains the {@link Registration.Option} of the specified class when the {@link Executor} was registered, or
-         * the default value if not found.
+         * Obtains the {@link Registration.Option} of the specified class when the
+         * {@link ExecutorService} was registered, or the default value if not found.
          *
          * @param classOfOption      the class of {@link Registration.Option}
          * @param defaultIfNotFound  the value to return if not found
@@ -238,7 +257,20 @@ public interface TaskExecutorService
                                                     T defaultIfNotFound);
 
         /**
-         * An {@link Option} for an {@link Executor} when registered.
+         * Return the registered {@link ExecutorService}.
+         *
+         * @return the registered {@link ExecutorService}
+         */
+        ExecutorService getRegisteredService();
+
+        /**
+         * TODO(rl): flesh out contract
+         * Close this registration.
+         */
+        void close();
+
+        /**
+         * An {@link Option} for an {@link ExecutorService} when registered.
          */
         interface Option
             extends Serializable
