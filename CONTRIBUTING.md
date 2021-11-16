@@ -1,6 +1,6 @@
 <!--
 
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -20,7 +20,7 @@ an issue too.
 ## Contributing to the Oracle Coherence Community Edition repository
 
 Pull requests can be made under
-[The Oracle Contributor Agreement](https://www.oracle.com/technetwork/community/oca-486395.html) (OCA).
+[The Oracle Contributor Agreement](https://oca.opensource.oracle.com/) (OCA).
 
 For pull requests to be accepted, the bottom of your commit message must have
 the following line using your name and e-mail address as it appears in the
