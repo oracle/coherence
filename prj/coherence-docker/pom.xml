@@ -56,6 +56,11 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-concurrent</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc-proxy</artifactId>
       <version>${project.version}</version>
     </dependency>
