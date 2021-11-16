@@ -43,9 +43,6 @@ import java.util.ServiceLoader;
 
 import java.util.concurrent.CompletableFuture;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
