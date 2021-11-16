@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package management;
+package executor;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
@@ -36,6 +36,7 @@ import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 import com.oracle.coherence.concurrent.executor.function.Predicates;
 import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 
+import com.tangosol.coherence.management.internal.resources.AbstractManagementResource;
 import com.tangosol.discovery.NSLookup;
 
 import com.tangosol.net.CacheFactory;
@@ -54,6 +55,7 @@ import executor.common.SingleClusterForAllTests;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 
 import org.hamcrest.core.Is;
@@ -91,7 +93,6 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.EXECUTORS;
 import static com.tangosol.util.Base.ensureRuntimeException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -105,7 +106,7 @@ import static org.hamcrest.core.Is.is;
  * @since 21.12
  */
 @Category(SingleClusterForAllTests.class)
-public class ExecutorTests
+public class MBeanTests
     {
     // ----- test lifecycle -------------------------------------------------
 
@@ -144,7 +145,7 @@ public class ExecutorTests
     @Before
     public void setup()
         {
-        System.setProperty("coherence.cluster", "ExecutorTests");
+        System.setProperty("coherence.cluster", "MBeanTests");
         m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
         m_local.start().join();
         m_session = m_local.getSession(Executors.SESSION_NAME);
@@ -173,11 +174,11 @@ public class ExecutorTests
         // run test to generate some activities
         failoverLongRunningTest();
 
-        WebTarget target   = getBaseTarget().path(EXECUTORS);
+        WebTarget target   = getBaseTarget().path(AbstractManagementResource.EXECUTORS);
         Response  response = target.request().get();
 
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
         Map mapResponse = response.readEntity(LinkedHashMap.class);
         assertThat(mapResponse, notNullValue());
@@ -208,7 +209,7 @@ public class ExecutorTests
 
         // .../members
         response = m_client.target(sExecutorLink).request().get();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
         mapResponse = response.readEntity(LinkedHashMap.class);
         listItems   = (List<Map>) mapResponse.get("items");
@@ -218,8 +219,8 @@ public class ExecutorTests
             {
             String sName = (String) item.get("name");
 
-            response = getBaseTarget().path(EXECUTORS).path(sName).request().get();
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sName).request().get();
+            MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
             mapResponse = response.readEntity(LinkedHashMap.class);
 
@@ -230,31 +231,31 @@ public class ExecutorTests
 
         // .../members/<nodeId>
         response = m_client.target(sExecutorLink).path(sNodeId).request().get();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
         mapResponse = response.readEntity(LinkedHashMap.class);
         listItems   = (List<Map>) mapResponse.get("items");
         assertThat(listItems.size(), greaterThan(0));
 
-        response = getBaseTarget().path(EXECUTORS).path(sExecutorName).path("resetStatistics")
+        response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).path("resetStatistics")
                 .request().post(null);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
-        response = getBaseTarget().path(EXECUTORS).path(sExecutorName).request().get();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().get();
+        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
         mapResponse = response.readEntity(LinkedHashMap.class);
 
         listItems = (List<Map>) mapResponse.get("items");
         mapItem   = listItems.get(0);
         assertThat(((Integer) mapItem.get("tasksCompletedCount")).intValue() + ((Integer) mapItem.get("tasksInProgressCount")).intValue(), is(0));
 
-        response = getBaseTarget().path(EXECUTORS).path(sExecutorName).request().post(
+        response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().post(
                     Entity.entity(new LinkedHashMap(){{put("traceLogging", false);}}, MediaType.APPLICATION_JSON_TYPE));
-        assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
         Base.sleep(5000);        // wait for the change to take effect
 
-        response = getBaseTarget().path(EXECUTORS).path(sExecutorName).request().get();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().get();
+        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
         mapResponse = response.readEntity(LinkedHashMap.class);
         listItems   = (List<Map>) mapResponse.get("items");
@@ -390,11 +391,11 @@ public class ExecutorTests
                           LocalHost.only(),
                           Logging.at(9),
                           ClusterPort.of(7574),
-                          ClusterName.of(ExecutorTests.class.getSimpleName()),
+                          ClusterName.of(MBeanTests.class.getSimpleName()),
                           JmxFeature.enabled())
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
-                             LogOutput.to(ExecutorTests.class.getSimpleName(), "CacheServer"),
+                             LogOutput.to(MBeanTests.class.getSimpleName(), "CacheServer"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),
                              JMXManagementMode.ALL,
@@ -404,7 +405,7 @@ public class ExecutorTests
                              SystemProperty.of("coherence.management.http.port", "0"))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
-                             LogOutput.to(ExecutorTests.class.getSimpleName(), "ComputeServer"),
+                             LogOutput.to(MBeanTests.class.getSimpleName(), "ComputeServer"),
                              RoleName.of("compute"),
                              LocalStorage.disabled(),
                              SystemProperty.of("coherence.executor.extend.enabled", false),
