@@ -766,6 +766,10 @@ public class ClusteredRegistration
 
             // de-register in case the close wasn't initiated by the owning ClusteredExecutorService
             f_clusteredExecutorService.deregister(f_executor);
+            if (m_supplier != null)
+                {
+                f_executor.shutdown();
+                }
             }
         }
 
