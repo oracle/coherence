@@ -46,25 +46,6 @@
             </init-params>
           </instance>
         </interceptor>
-        <interceptor>
-          <name>live-object-interceptor</name>
-          <instance>
-            <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor</class-name>
-          </instance>
-        </interceptor>
-      </interceptors>
-    </cache-mapping>
-
-    <cache-mapping>
-      <cache-name>executor-executors</cache-name>
-      <scheme-name>concurrent</scheme-name>
-      <interceptors>
-        <interceptor>
-          <name>live-object-interceptor</name>
-          <instance>
-            <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor</class-name>
-          </instance>
-        </interceptor>
       </interceptors>
     </cache-mapping>
 
@@ -94,6 +75,14 @@
         </local-scheme>
       </backing-map-scheme>
       <autostart>true</autostart>
+      <interceptors>
+        <interceptor>
+          <name>live-object-interceptor</name>
+          <instance>
+            <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor</class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
     </distributed-scheme>
 
     <proxy-scheme>

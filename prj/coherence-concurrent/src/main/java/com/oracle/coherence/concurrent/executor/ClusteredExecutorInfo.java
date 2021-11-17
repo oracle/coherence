@@ -49,7 +49,6 @@ import com.tangosol.util.function.Remote;
 import com.tangosol.util.processor.ConditionalRemove;
 import com.tangosol.util.processor.ExtractorProcessor;
 
-import java.util.function.Supplier;
 import javax.management.NotCompliantMBeanException;
 
 import java.io.IOException;
@@ -91,7 +90,7 @@ public class ClusteredExecutorInfo
      * @param totalMemory     the total memory as reported by {@link Runtime#totalMemory()}
      * @param freeMemory      the free memory as reported by {@link Runtime#freeMemory()}
      * @param optionsByType   the {@link TaskExecutorService.Registration.Option}s for the {@link Executor}
-     * @param supplier        TODO
+     * @param supplier        the supplier used to propagate executors across the cluster
      */
     public ClusteredExecutorInfo(String sIdentity, long ldtUpdate, long cMaxMemory, long totalMemory,
                                  long freeMemory, OptionsByType<TaskExecutorService.Registration.Option> optionsByType,

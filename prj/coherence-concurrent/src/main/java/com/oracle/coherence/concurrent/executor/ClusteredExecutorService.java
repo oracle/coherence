@@ -11,6 +11,7 @@ import com.oracle.coherence.concurrent.executor.atomic.AtomicEnum;
 import com.oracle.coherence.concurrent.executor.function.Predicates;
 
 import com.oracle.coherence.concurrent.executor.options.Member;
+import com.oracle.coherence.concurrent.executor.options.Name;
 import com.oracle.coherence.concurrent.executor.options.Role;
 
 import com.oracle.coherence.concurrent.executor.subscribers.internal.AnyFutureSubscriber;
@@ -163,6 +164,11 @@ public class ClusteredExecutorService
                 Member member = optionsByType.get(Member.class);
 
                 optionsByType.add(Role.of(member.get().getRoleName()));
+                }
+
+            if (optionsByType.get(Name.class, null) != null)
+                {
+                RemoteExecutors.registerExecutorName(optionsByType.get(Name.class, Name.of("UNNAMED")));
                 }
 
             // establish a unique identity for the registration
