@@ -688,7 +688,10 @@ public class ClusteredRegistration
             // attempt to create the information for the executor
             ClusteredExecutorInfo info =
                     new ClusteredExecutorInfo(f_sExecutorId, System.currentTimeMillis(), runtime.maxMemory(),
-                            runtime.totalMemory(), runtime.freeMemory(), f_optionsByType, m_supplier);
+                            runtime.totalMemory(), runtime.freeMemory(), f_optionsByType, getRegisteredService(), m_supplier);
+
+            // register locally with the executor so that it may be shutdown later
+            service.getResourceRegistry().registerResource(ClusteredExecutorInfo.class, f_sExecutorId, info);
 
             // attempt to create the cluster information for the executor
             ClusteredExecutorInfo existingInfo = (ClusteredExecutorInfo)
@@ -766,10 +769,6 @@ public class ClusteredRegistration
 
             // de-register in case the close wasn't initiated by the owning ClusteredExecutorService
             f_clusteredExecutorService.deregister(f_executor);
-            if (m_supplier != null)
-                {
-                f_executor.shutdown();
-                }
             }
         }
 

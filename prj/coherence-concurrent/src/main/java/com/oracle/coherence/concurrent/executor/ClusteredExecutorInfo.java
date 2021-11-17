@@ -85,29 +85,32 @@ public class ClusteredExecutorInfo
     /**
      * Constructs a {@link ClusteredExecutorInfo} with the specified parameters.
      *
-     * @param sIdentity       the identity
-     * @param ldtUpdate       the time since the epoc when the {@link TaskExecutorService.ExecutorInfo} was last updated
-     * @param cMaxMemory      the maximum memory as reported by {@link Runtime#maxMemory()}
-     * @param totalMemory     the total memory as reported by {@link Runtime#totalMemory()}
-     * @param freeMemory      the free memory as reported by {@link Runtime#freeMemory()}
-     * @param optionsByType   the {@link TaskExecutorService.Registration.Option}s for the {@link Executor}
-     * @param supplier        the supplier used to propagate executors across the cluster
+     * @param sIdentity        the identity
+     * @param ldtUpdate        the time since the epoc when the {@link TaskExecutorService.ExecutorInfo} was last updated
+     * @param cMaxMemory       the maximum memory as reported by {@link Runtime#maxMemory()}
+     * @param totalMemory      the total memory as reported by {@link Runtime#totalMemory()}
+     * @param freeMemory       the free memory as reported by {@link Runtime#freeMemory()}
+     * @param optionsByType    the {@link TaskExecutorService.Registration.Option}s for the {@link Executor}
+     * @param executorService  the local {@link ExecutorService}, if any
+     * @param supplier         the supplier used to propagate executors across the cluster
      */
     public ClusteredExecutorInfo(String sIdentity, long ldtUpdate, long cMaxMemory, long totalMemory,
                                  long freeMemory, OptionsByType<TaskExecutorService.Registration.Option> optionsByType,
+                                 ExecutorService executorService,
                                  Remote.Supplier<ExecutorService> supplier)
         {
-        m_sIdentity     = sIdentity;
-        m_optionsByType = optionsByType;
-        m_ldtUpdate     = ldtUpdate;
-        m_cMaxMemory    = cMaxMemory;
-        m_cTotalMemory  = totalMemory;
-        m_cFreeMemory   = freeMemory;
-        m_executorMBean = new ExecutorMBeanImpl();
-        m_cCompleted    = 0;
-        m_cRejected     = 0;
-        m_cInProgress   = 0;
-        m_supplier      = supplier;
+        m_sIdentity       = sIdentity;
+        m_optionsByType   = optionsByType;
+        m_ldtUpdate       = ldtUpdate;
+        m_cMaxMemory      = cMaxMemory;
+        m_cTotalMemory    = totalMemory;
+        m_cFreeMemory     = freeMemory;
+        m_executorMBean   = new ExecutorMBeanImpl();
+        m_cCompleted      = 0;
+        m_cRejected       = 0;
+        m_cInProgress     = 0;
+        m_executorService = executorService;
+        m_supplier        = supplier;
     }
 
     // ----- public methods -------------------------------------------------
@@ -285,8 +288,11 @@ public class ClusteredExecutorInfo
         }
 
     /**
-     * TODO
-     * @return
+     * Return the {@link Remote.Supplier} that will be used to create
+     * {@link ExecutorService}s across the cluster.
+     *
+     * @return the {@link Remote.Supplier} that will be used to create
+     *         {@link ExecutorService}s across the cluster.
      */
     public Remote.Supplier<ExecutorService> getSupplier()
         {
@@ -344,9 +350,14 @@ public class ClusteredExecutorInfo
 
         ResourceRegistry registry = service.getResourceRegistry();
 
-        registry.registerResource(ClusteredExecutorInfo.class,
-                                  (String) entry.getKey(),
-                                  (ClusteredExecutorInfo) entry.getValue());
+        // if the executor info wasn't previously registered
+        if (registry.getResource(ClusteredExecutorInfo.class, (String) entry.getKey()) == null)
+            {
+            registry.registerResource(ClusteredExecutorInfo.class,
+                                      (String) entry.getKey(),
+                                      (ClusteredExecutorInfo) entry.getValue());
+            }
+
         registerExecutiveServiceMBean(service, (ClusteredExecutorInfo) entry.getValue());
 
         switch (m_state)
@@ -439,8 +450,24 @@ public class ClusteredExecutorInfo
         {
         ExecutorTrace.log(() -> String.format("Deleted [%s] due to [%s]", this, cause));
 
-        unregisterExecutiveServiceMBean(service, (String) entry.getKey());
-        service.getResourceRegistry().unregisterResource(ClusteredExecutorInfo.class, (String) entry.getKey());
+        String sExecutorId = (String) entry.getKey();
+
+        unregisterExecutiveServiceMBean(service, sExecutorId);
+
+        ClusteredExecutorInfo info = service.getResourceRegistry()
+                .getResource(ClusteredExecutorInfo.class, sExecutorId);
+
+        if (info != null && info.getSupplier() != null)
+            {
+            ExecutorService executorService = info.m_executorService;
+            if (executorService != null)
+                {
+                executorService.shutdown();
+                }
+            RemoteExecutors.deregisterExecutorName(getOption(Name.class, null));
+            }
+
+        service.getResourceRegistry().unregisterResource(ClusteredExecutorInfo.class, sExecutorId);
 
         // nothing to do when we delete an ExecutorInfo
         return null;
@@ -620,7 +647,6 @@ public class ClusteredExecutorInfo
 
             // remove task assignments for the Executor
             ExecutorTrace.log(() -> String.format("Determining Tasks Assigned to Executor [%s]", f_sExecutorId));
-
 
             // determine all tasks assigned to the executor
             Map<String, String> assignmentMap = f_cacheService.ensureCache(ClusteredAssignment.CACHE_NAME, null)
@@ -1536,9 +1562,16 @@ public class ClusteredExecutorInfo
     protected long m_cInProgress;
 
     /**
-     * TODO
+     * The {@link Remote.Supplier supplier} that will be used
+     * when creating named executors across the cluster.
      */
     protected Remote.Supplier<ExecutorService> m_supplier;
+
+    /**
+     * The associated executor service, if any.  This value will
+     * only be {@code non-null} on the locally registered info.
+     */
+    protected transient ExecutorService m_executorService;
 
     /**
      * The executor attribute to indicate whether trace logging is

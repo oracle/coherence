@@ -394,6 +394,16 @@ public final class RemoteExecutors
         return false;
         }
 
+    static boolean deregisterExecutorName(TaskExecutorService.Registration.Option name)
+        {
+        if (name instanceof Name)
+            {
+            Name nameLocal = (Name) name;
+            return getExecutorNameMap().remove(nameLocal) == null;
+            }
+        return false;
+        }
+
     /**
      * Return the Coherence {@link Session session} for the {@code RemoteExecutors}
      * module.
