@@ -402,7 +402,7 @@ public class DockerImageTests
                                                     ContainerCloseBehaviour.remove()))
                 {
                 DockerContainer container2 = app2.get(DockerContainer.class);
-                assertStarted(platform, container2);
+                Eventually.assertDeferred(() -> tailLogs(platform, container2), containsString(STARTED_MESSAGE));
                 assertThat(tailLogs(platform, container2), containsString("ActualMemberSet=MemberSet(Size=2"));
                 }
             }
