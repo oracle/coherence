@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,9 +13,12 @@ import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.common.internal.net.MultiplexedSocketProvider;
 import com.oracle.coherence.common.util.Duration;
+import com.oracle.coherence.common.util.SafeClock;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import java.io.BufferedReader;
@@ -1034,7 +1037,7 @@ public abstract class InetAddresses
         {
         try
             {
-            return addr.isLoopbackAddress() || addr.isAnyLocalAddress() || NetworkInterface.getByInetAddress(addr) != null;
+            return addr.isLoopbackAddress() || addr.isAnyLocalAddress() || checkLocalAddress(addr);
             }
         catch (SocketException e)
             {
@@ -1154,7 +1157,7 @@ public abstract class InetAddresses
      */
     public static boolean isNatLocalAddress(InetAddress addr, int nPortMin, int nPortMax, int cMillis)
         {
-        if (isLocalAddress(addr))
+        if (cMillis <= 0L || isLocalAddress(addr))
             {
             return false;
             }
@@ -1410,6 +1413,51 @@ public abstract class InetAddresses
                 };
         }
 
+    /**
+     * Return true if the given address is a local address.
+     *
+     * @param addr  the InetAddress to check
+     *
+     * @return true if the given address is a local address
+     *
+     * @throws SocketException
+     */
+    protected static boolean checkLocalAddress(InetAddress addr)
+            throws SocketException
+        {
+        long cTimeout = INETADDRESS_TIMEOUT.get();
+        if (SafeClock.INSTANCE.getSafeTimeMillis() > cTimeout)
+            {
+            try
+                {
+                Set<InetAddress> setAddresses = new HashSet<>();
+                for (Enumeration<NetworkInterface> enmr = NetworkInterface.getNetworkInterfaces(); enmr.hasMoreElements(); )
+                    {
+                    NetworkInterface iface = enmr.nextElement();
+
+                    for (Enumeration<InetAddress> enmrAddr = iface.getInetAddresses(); enmrAddr.hasMoreElements(); )
+                        {
+                        setAddresses.add(enmrAddr.nextElement());
+                        }
+                    }
+
+                if (INETADDRESS_TIMEOUT.compareAndSet(cTimeout, SafeClock.INSTANCE.getSafeTimeMillis() + INETADDRESS_REFRESH))
+                    {
+                    LOCAL_ADDRESSES.clear();
+                    LOCAL_ADDRESSES.addAll(setAddresses);
+                    }
+                }
+            catch (SocketException e)
+                { // denigrates to NI.getByInetAddress
+                }
+            }
+
+        // check our cache of addresses and if not present delegate to the
+        // more expensive check
+        return LOCAL_ADDRESSES.contains(addr) ||
+                NetworkInterface.getByInetAddress(addr) != null;
+        }
+
     // ----- data fields and constants --------------------------------------
 
     /**
@@ -1432,6 +1480,18 @@ public abstract class InetAddresses
      * The wildcard address.
      */
     public static final InetAddress ADDR_ANY = new InetSocketAddress((InetAddress) null, 0).getAddress();
+
+    /**
+     * The absolute time that the cache of InetAddresses should be considered
+     * valid. After this point they are stale and should be refreshed to be
+     * aligned with what the OS reports.
+     */
+    private static final AtomicLong INETADDRESS_TIMEOUT = new AtomicLong();
+
+    /**
+     * The data structure used to hold the InetAddresses.
+     */
+    private static final Set<InetAddress> LOCAL_ADDRESSES = new CopyOnWriteArraySet<>();
 
     /**
      * Cached localhost address.
@@ -1467,4 +1527,17 @@ public abstract class InetAddresses
     protected static final long NAT_CHECK_TIMEOUT = new Duration(
             System.getProperty(InetAddresses.class.getName() + ".natCheckTimeout", "10s"))
             .as(Duration.Magnitude.MILLI);
+
+    /**
+     * The default time the cache of local addresses is assumed to be correct.
+     * Once this threshold is reached the local state is brought back in sync
+     * with all local inet addresses.
+     *
+     * The primary benefit of this is to avoid the horrendously expensive call
+     * to {@link NetworkInterface#getByInetAddress(InetAddress)} on windows which
+     * should have no ill effects on linux.
+     */
+    protected static final long INETADDRESS_REFRESH = new Duration(
+                System.getProperty(InetAddresses.class.getName() + ".localAddressCacheTimeout", "1h"))
+                .as(Duration.Magnitude.MILLI);
     }
