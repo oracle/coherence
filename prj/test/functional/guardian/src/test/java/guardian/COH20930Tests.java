@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,10 +9,8 @@ package guardian;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import common.AbstractFunctionalTest;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.tangosol.io.FileHelper;
 
@@ -26,24 +24,43 @@ import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.Converter;
 import com.tangosol.util.InvocableMap;
-
 import com.tangosol.util.processor.AbstractProcessor;
 
 import java.io.File;
-import java.io.IOException;
 
 import java.util.Properties;
 
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import static org.hamcrest.core.Is.is;
 
+/**
+ * A functional test to validate that the interrupted flag from guardian timeout
+ * is cleared so it does not affect subsequent operations.
+ *
+ * Test setup is as follows:
+ * Two distributed services,  NumberDistributed and ItemDistributed,  both has 30s
+ * task timeout and 60s request timeout. EP from NumberService make calls to ItemService
+ * which should be hang as ItemService is suspended.  As the result, the invoke thread
+ * should be interrupted by guardian in ~30s. Since there are changes made in EP on
+ * other entries, persistChanges should be called following guardian timeout. BDB should
+ * not see interrupted flag on the thread and should not throw.
+ *
+ * @author bbc  2021.11.10
+ */
 public class COH20930Tests
         extends AbstractFunctionalTest
     {
-    public COH20930Tests()
+    // ----- constructors ---------------------------------------------------
 
+    public COH20930Tests()
         {
         super(FILE_CFG_CACHE);
         }
+
+    // ----- test lifecycle -------------------------------------------------
 
     @After
     public void cleanup()
@@ -52,7 +69,9 @@ public class COH20930Tests
         CacheFactory.shutdown();
         }
 
-   @Test
+    // ----- tests ----------------------------------------------------------
+
+    @Test
     public void testCOH20930() throws Exception
         {
         File fileBaseDir = FileHelper.createTempDir();
@@ -68,8 +87,6 @@ public class COH20930Tests
         CoherenceClusterMember clusterMember = startCacheServer("testCOH20930-1", "guardian", FILE_CFG_CACHE);
 
         Eventually.assertThat(clusterMember.getClusterSize(), is(2));
-
-
 
         NamedCache cacheIterm  = getNamedCache("item");
         NamedCache cacheNumber = getNamedCache("number");
@@ -103,7 +120,9 @@ public class COH20930Tests
             }
         }
 
-    public static class TestProcessor extends AbstractProcessor
+    // ----- inner-class: TestProcessor -------------------------------------
+
+    public class TestProcessor extends AbstractProcessor
         {
         @Override
         public Object process(InvocableMap.Entry entry)
@@ -120,6 +139,8 @@ public class COH20930Tests
             return null;
             }
         }
+
+    // ----- constants ------------------------------------------------------
 
     public static String FILE_CFG_CACHE = "coherence-cache-config.xml";
     }
