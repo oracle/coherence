@@ -63,9 +63,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * inspecting the state of the lock.  Some of these methods are only useful for
  * instrumentation and monitoring.
  *
- * <p>Unlike {@link ReentrantLock}, this class does not support serialization.
+ * <p>Unlike {@link ReentrantLock}, this class does not support serialization,
+ * or {@link Condition}s.
  *
- * <p>This lock supports a maximum of 2147483647 recursive locks by
+ * <p>This lock supports a maximum of {@code Long#MAX_VALUE} recursive locks by
  * the same thread. Attempts to exceed this limit result in {@link Error} throws
  * from locking methods.
  *
@@ -76,204 +77,6 @@ public class DistributedLock
         implements Lock
     {
     /**
-     * Synchronizer providing all implementation mechanics
-     */
-    private final Sync f_sync;
-
-    /**
-     * Synchronization control for this lock.
-     *
-     * Uses AQS state to represent the number of holds on the lock, in order
-     * to avoid network calls when incrementing holds.
-     */
-    static class Sync
-            extends AbstractQueuedLongSynchronizer
-        {
-        /**
-         * Construct a {@code Sync} instance.
-         * 
-         * @param sName  the name of the lock
-         * @param locks  the {@link NamedMap} that stores this lock's state
-         */
-        Sync(String sName, NamedMap<String, ExclusiveLockHolder> locks)
-            {
-            Member localMember = locks.getService().getCluster().getLocalMember();
-
-            f_sName    = sName;
-            f_locks    = locks;
-            f_memberId = localMember.getUid();
-
-            locks.addMapListener(new SimpleMapListener<String, ExclusiveLockHolder>()
-                                         .addInsertHandler(this::onHolderChange)
-                                         .addUpdateHandler(this::onHolderChange),
-                                 sName, false);
-            }
-
-        private void onHolderChange(MapEvent<? extends String, ? extends ExclusiveLockHolder> event)
-            {
-            ExclusiveLockHolder holder = event.getNewValue();
-            if (holder.isLocked() && !holder.isLockedByMember(f_memberId))
-                {
-                acquire(-1);
-                }
-            else if (!holder.isLocked())
-                {
-                release(-1);
-                }
-            }
-
-        @Override
-        protected final boolean tryAcquire(long acquires)
-            {
-            final Thread thread = Thread.currentThread();
-            if (acquires == -1)
-                {
-                // we are acquiring this special lock from an event dispatcher thread
-                // because another member has acquired the lock already
-                setState(-1);
-                setExclusiveOwnerThread(thread);
-                return true;
-                }
-
-            long c = getState();
-            if (c == 0)
-                {
-                // no thread in this process owns the lock; try to obtain it
-                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
-                boolean fLocked = f_locks.invoke(f_sName, entry ->
-                        {
-                        ExclusiveLockHolder lock = entry.getValue(ExclusiveLockHolder::new);
-                        boolean fRes = lock.lock(owner);
-                        entry.setValue(lock);
-                        return fRes;
-                        });
-
-                if (fLocked)
-                    {
-                    setState(acquires);
-                    setExclusiveOwnerThread(thread);
-                    return true;
-                    }
-                }
-            else if (thread == getExclusiveOwnerThread())
-                {
-                // this thread already owns the lock, so no need to make network
-                // call to the server; simply increment local state and return true
-                long nextc = c + acquires;
-                if (nextc < 0) // overflow
-                    {
-                    throw new Error("Maximum lock count exceeded");
-                    }
-                setState(nextc);
-                return true;
-                }
-            return false;
-            }
-
-        @Override
-        protected final boolean tryRelease(long releases)
-            {
-            final Thread thread = Thread.currentThread();
-            if (releases == -1)
-                {
-                // we are releasing this special lock from an event dispatcher thread
-                // because another member has released the lock
-                setState(0);
-                setExclusiveOwnerThread(null);
-                return true;
-                }
-
-            long c = getState() - releases;
-            if (thread != getExclusiveOwnerThread())
-                {
-                throw new IllegalMonitorStateException();
-                }
-            boolean free = false;
-            if (c == 0)
-                {
-                // final release of the lock; we should release the lock on the server
-                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
-                boolean fUnlocked = f_locks.invoke(f_sName, entry ->
-                        {
-                        ExclusiveLockHolder lock = entry.getValue();
-                        if (lock != null && lock.unlock(owner))
-                            {
-                            entry.setValue(lock);
-                            return true;
-                            }
-                        return false;
-                        });
-                if (fUnlocked)
-                    {
-                    free = true;
-                    setExclusiveOwnerThread(null);
-                    }
-                else
-                    {
-                    throw new IllegalMonitorStateException();
-                    }
-                }
-            setState(c);
-            return free;
-            }
-
-        @Override
-        protected final boolean isHeldExclusively()
-            {
-            // While we must in general read state before owner,
-            // we don't need to do so to check if current thread is owner
-            return getExclusiveOwnerThread() == Thread.currentThread();
-            }
-
-        // Methods relayed from outer class
-
-        final LockOwner getOwner()
-            {
-            return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::getOwner));
-            }
-
-        final Set<? extends LockOwner> getPendingLocks()
-            {
-            return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::getPendingLocks));
-            }
-
-        final long getHoldCount()
-            {
-            return isHeldExclusively() ? getState() : 0;
-            }
-
-        final boolean isLocked()
-            {
-            return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::isLocked));
-            }
-
-        final boolean isPending(Thread thread)
-            {
-            final LockOwner owner = new LockOwner(f_memberId, thread.getId());
-            return f_locks.invoke(f_sName, entry ->
-                    {
-                    ExclusiveLockHolder lock = entry.getValue();
-                    return lock != null && lock.isPending(owner);
-                    });
-            }
-
-        /**
-         * Local member/current process identifier.
-         */
-        private final UID f_memberId;
-
-        /**
-         * The name of the remote lock; used as a key in the NamedMap containing the locks.
-         */
-        private final String f_sName;
-
-        /**
-         * The NamedMap containing the remote locks.
-         */
-        private final NamedMap<String, ExclusiveLockHolder> f_locks;
-        }
-
-    /**
      * Create an instance of {@code DistributedLock}.
      * 
      * @param sName  the name of the lock
@@ -282,6 +85,10 @@ public class DistributedLock
     DistributedLock(String sName, NamedMap<String, ExclusiveLockHolder> locks)
         {
         f_sync = new Sync(sName, locks);
+        locks.addMapListener(new SimpleMapListener<String, ExclusiveLockHolder>()
+                                     .addInsertHandler(f_sync::onHolderChange)
+                                     .addUpdateHandler(f_sync::onHolderChange),
+                             sName, false);
         }
 
     // ---- Lock interface ---------------------------------------------------
@@ -645,4 +452,211 @@ public class DistributedLock
                                    "[Unlocked]" :
                                    "[Locked by " + o + "]");
         }
+
+    // ---- inner class: Sync -----------------------------------------------
+
+    /**
+     * Synchronization control for this lock.
+     *
+     * Uses AQS state to represent the number of holds on the lock, in order
+     * to avoid network calls when incrementing holds.
+     */
+    static class Sync
+            extends AbstractQueuedLongSynchronizer
+        {
+        /**
+         * Construct a {@code Sync} instance.
+         *
+         * @param sName  the name of the lock
+         * @param locks  the {@link NamedMap} that stores this lock's state
+         */
+        Sync(String sName, NamedMap<String, ExclusiveLockHolder> locks)
+            {
+            Member localMember = locks.getService().getCluster().getLocalMember();
+
+            f_sName    = sName;
+            f_locks    = locks;
+            f_memberId = localMember.getUid();
+            }
+
+        // ---- AbstractQueuedLongSynchronizer methods ----------------------
+
+        @Override
+        protected final boolean tryAcquire(long acquires)
+            {
+            final Thread thread = Thread.currentThread();
+            if (acquires == -1)
+                {
+                // we are acquiring this special lock from an event dispatcher thread
+                // because another member has acquired the lock already
+                setState(-1);
+                setExclusiveOwnerThread(thread);
+                return true;
+                }
+
+            long c = getState();
+            if (c == 0)
+                {
+                // no thread in this process owns the lock; try to obtain it
+                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+                boolean fLocked = f_locks.invoke(f_sName, entry ->
+                        {
+                        ExclusiveLockHolder lock = entry.getValue(ExclusiveLockHolder::new);
+                        boolean fRes = lock.lock(owner);
+                        entry.setValue(lock);
+                        return fRes;
+                        });
+
+                if (fLocked)
+                    {
+                    setState(acquires);
+                    setExclusiveOwnerThread(thread);
+                    return true;
+                    }
+                }
+            else if (thread == getExclusiveOwnerThread())
+                {
+                // this thread already owns the lock, so no need to make network
+                // call to the server; simply increment local state and return true
+                long cNext = c + acquires;
+                if (cNext < 0) // overflow
+                    {
+                    throw new Error("Maximum lock count exceeded");
+                    }
+                setState(cNext);
+                return true;
+                }
+            return false;
+            }
+
+        @Override
+        protected final boolean tryRelease(long releases)
+            {
+            final Thread thread = Thread.currentThread();
+            if (releases == -1)
+                {
+                // we are releasing this special lock from an event dispatcher thread
+                // because another member has released the lock
+                setState(0);
+                setExclusiveOwnerThread(null);
+                return true;
+                }
+
+            long c = getState() - releases;
+            if (thread != getExclusiveOwnerThread())
+                {
+                throw new IllegalMonitorStateException();
+                }
+            boolean fFree = false;
+            if (c == 0)
+                {
+                // final release of the lock; we should release the lock on the server
+                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+                boolean fUnlocked = f_locks.invoke(f_sName, entry ->
+                        {
+                        ExclusiveLockHolder lock = entry.getValue();
+                        if (lock != null && lock.unlock(owner))
+                            {
+                            entry.setValue(lock);
+                            return true;
+                            }
+                        return false;
+                        });
+                if (fUnlocked)
+                    {
+                    fFree = true;
+                    setExclusiveOwnerThread(null);
+                    }
+                else
+                    {
+                    throw new IllegalMonitorStateException();
+                    }
+                }
+            setState(c);
+            return fFree;
+            }
+
+        @Override
+        protected final boolean isHeldExclusively()
+            {
+            // While we must in general read state before owner,
+            // we don't need to do so to check if current thread is owner
+            return getExclusiveOwnerThread() == Thread.currentThread();
+            }
+
+        // ---- helper methods ----------------------------------------------
+
+        /**
+         * Map event handler that changes the status of this sync object when
+         * a lock is acquired or released on the server by another member.
+         *
+         * @param event  a change event to process
+         */
+        private void onHolderChange(MapEvent<? extends String, ? extends ExclusiveLockHolder> event)
+            {
+            ExclusiveLockHolder holder = event.getNewValue();
+            if (holder.isLocked() && !holder.isLockedByMember(f_memberId))
+                {
+                acquire(-1);
+                }
+            else if (!holder.isLocked())
+                {
+                release(-1);
+                }
+            }
+
+        final LockOwner getOwner()
+            {
+            return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::getOwner));
+            }
+
+        final Set<? extends LockOwner> getPendingLocks()
+            {
+            return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::getPendingLocks));
+            }
+
+        final long getHoldCount()
+            {
+            return isHeldExclusively() ? getState() : 0;
+            }
+
+        final boolean isLocked()
+            {
+            return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::isLocked));
+            }
+
+        final boolean isPending(Thread thread)
+            {
+            final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+            return f_locks.invoke(f_sName, entry ->
+                    {
+                    ExclusiveLockHolder lock = entry.getValue();
+                    return lock != null && lock.isPending(owner);
+                    });
+            }
+
+        // ---- data members ------------------------------------------------
+
+        /**
+         * Local member/current process identifier.
+         */
+        private final UID f_memberId;
+
+        /**
+         * The name of the remote lock; used as a key in the NamedMap containing the locks.
+         */
+        private final String f_sName;
+
+        /**
+         * The NamedMap containing the remote locks.
+         */
+        private final NamedMap<String, ExclusiveLockHolder> f_locks;
+        }
+
+    // ---- data members ----------------------------------------------------
+
+    /**
+     * Synchronizer providing all implementation mechanics
+     */
+    private final Sync f_sync;
     }

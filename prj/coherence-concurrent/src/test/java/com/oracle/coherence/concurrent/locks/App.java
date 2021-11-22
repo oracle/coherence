@@ -34,18 +34,18 @@ public class App
              case "UNLOCK":
                  doExclusiveUnlock(args);
                  break;
-             //case "READ":
-             //    doReadLock(args);
-             //    break;
-             //case "UREAD":
-             //    doReadUnlock(args);
-             //    break;
-             //case "WRITE":
-             //    doWriteLock(args);
-             //    break;
-             //case "UWRITE":
-             //    doWriteUnlock(args);
-             //    break;
+             case "READ":
+                 doReadLock(args);
+                 break;
+             case "UREAD":
+                 doReadUnlock(args);
+                 break;
+             case "WRITE":
+                 doWriteLock(args);
+                 break;
+             case "UWRITE":
+                 doWriteUnlock(args);
+                 break;
              case "DUMP":
                  doDump();
                  break;
@@ -67,7 +67,7 @@ public class App
             }
 
         String          name = args[0];
-        DistributedLock lock = Locks.exclusive(name);
+        DistributedLock lock = Locks.exclusiveLock(name);
 
         if (args.length == 2)  // LOCK name timeout
             {
@@ -94,7 +94,7 @@ public class App
             }
 
         String          name = args[0];
-        DistributedLock lock = Locks.exclusive(name);
+        DistributedLock lock = Locks.exclusiveLock(name);
 
         System.out.printf("\n%s: unlock() => ", name);
         lock.unlock();
@@ -102,28 +102,92 @@ public class App
         System.out.printf("\n%s: owner=%s", name, lock.getOwner());
         }
 
-    protected static void doReadLock(String[] args)
+    protected static void doReadLock(String[] args) throws InterruptedException
         {
-        doLock(args, /*fRead*/ true, /*fLock*/ true);
+        if (args.length == 0)
+            {
+            System.out.println("Usage: READ <name> [<timeoutInSeconds>]");
+            return;
+            }
+
+        String                   name = args[0];
+        DistributedReadWriteLock lock = Locks.readWriteLock(name);
+
+        if (args.length == 2)  // READ name timeout
+            {
+            long timeout = Long.parseLong(args[1]);
+            System.out.printf("\n%s: readLock().tryLock(%d, SECONDS) => ", name, timeout);
+            boolean fLock   = lock.readLock().tryLock(timeout, TimeUnit.SECONDS);
+            System.out.printf("acquired: %s, count: %d, holds: %d", fLock, lock.getReadLockCount(), lock.getReadHoldCount());
+            }
+        else
+            {
+            System.out.printf("\n%s: readLock().lock() => ", name);
+            lock.readLock().lock();
+            System.out.printf("count: %d, holds: %d", lock.getReadLockCount(), lock.getReadHoldCount());
+            }
+        System.out.printf("\n%s: owner=%s", name, lock.getOwner());
         }
 
     protected static void doReadUnlock(String[] args)
         {
-        doLock(args, /*fRead*/ true, /*fLock*/ false);
+        if (args.length == 0)
+            {
+            System.out.println("Usage: UREAD <name>");
+            return;
+            }
+
+        String                   name = args[0];
+        DistributedReadWriteLock lock = Locks.readWriteLock(name);
+
+        System.out.printf("\n%s: readLock().unlock() => ", name);
+        lock.readLock().unlock();
+        System.out.printf("count: %d, holds: %d", lock.getReadLockCount(), lock.getReadHoldCount());
+        System.out.printf("\n%s: owner=%s", name, lock.getOwner());
         }
 
-    protected static void doWriteLock(String[] args)
+    protected static void doWriteLock(String[] args) throws InterruptedException
         {
-        doLock(args, /*fRead*/ false, /*fLock*/ true);
+        if (args.length == 0)
+            {
+            System.out.println("Usage: WRITE <name> [<timeoutInSeconds>]");
+            return;
+            }
+
+        String                   name = args[0];
+        DistributedReadWriteLock lock = Locks.readWriteLock(name);
+
+        if (args.length == 2)  // WRITE name timeout
+            {
+            long timeout = Long.parseLong(args[1]);
+            System.out.printf("\n%s: writeLock().tryLock(%d, SECONDS) => ", name, timeout);
+            boolean fLock   = lock.writeLock().tryLock(timeout, TimeUnit.SECONDS);
+            System.out.printf("acquired: %s, count: %d", fLock, lock.getWriteHoldCount());
+            }
+        else
+            {
+            System.out.printf("\n%s: writeLock().lock() => ", name);
+            lock.writeLock().lock();
+            System.out.printf("owned: %s, count: %d", lock.isWriteLockedByCurrentThread(), lock.getWriteHoldCount());
+            }
+        System.out.printf("\n%s: owner=%s", name, lock.getOwner());
         }
 
     protected static void doWriteUnlock(String[] args)
         {
-        doLock(args, /*fRead*/ false, /*fLock*/ false);
-        }
+        if (args.length == 0)
+            {
+            System.out.println("Usage: UWRITE <name>");
+            return;
+            }
 
-    protected static void doLock(String[] args, boolean fRead, boolean fLock)
-        {
+        String                   name = args[0];
+        DistributedReadWriteLock lock = Locks.readWriteLock(name);
+
+        System.out.printf("\n%s: writeLock().unlock() => ", name);
+        lock.writeLock().unlock();
+        System.out.printf("owned: %s, count: %d", lock.isWriteLockedByCurrentThread(), lock.getWriteHoldCount());
+        System.out.printf("\n%s: owner=%s", name, lock.getOwner());
         }
 
     protected static void doDump()

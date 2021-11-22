@@ -13,7 +13,6 @@ import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
-import com.tangosol.net.NamedMap;
 import com.tangosol.net.PartitionedService;
 
 import com.tangosol.net.events.EventDispatcher;
@@ -111,10 +110,13 @@ public class LockHolderCleaner
             {
             PartitionSet partsOwned = service.getOwnedPartitions(memberThis);
 
-            NamedMap<String, ExclusiveLockHolder> exclusiveLocks = exclusiveLocksMap();
-            exclusiveLocks.async().invokeAll(
+            exclusiveLocksMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
                         new ExclusiveLockHolder.RemoveLocks(memberLeft.getUid()));
+
+            readWriteLocksMap().async().invokeAll(
+                        new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
+                        new ReadWriteLockHolder.RemoveLocks(memberLeft.getUid()));
             }
         }
 
@@ -168,12 +170,12 @@ public class LockHolderCleaner
                 m_partsCheck = null; // barrier done last
                 }
 
-            // TODO: not sure why we even need this, but it won't work for
-            //       Extend and gRPC clients, as they are not "members", and
-            //       all the locks owned by them would be removed whenever a
-            //       partition is transferred (@hraja)
-            exclusiveLocksMap().async().invokeAll(new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
-                            new ExclusiveLockHolder.RemoveLocks(null));
+            exclusiveLocksMap().async().invokeAll(
+                    new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
+                    new ExclusiveLockHolder.RemoveLocks(null));
+            readWriteLocksMap().async().invokeAll(
+                    new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
+                    new ReadWriteLockHolder.RemoveLocks(null));
             }
         }
 

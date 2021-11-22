@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.concurrent.RemoteChannel;
 import com.oracle.bedrock.runtime.concurrent.RemoteEvent;
 import com.oracle.bedrock.runtime.concurrent.RemoteEventListener;
 
+import com.oracle.bedrock.runtime.concurrent.callable.RemoteCallableStaticMethod;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 
@@ -64,27 +65,40 @@ public class ClusteredDistributedLockIT
     @BeforeEach
     void beforeEach(TestInfo info)
         {
-        // print a message in the logs of all the cluster member to indicate the name of the test
-        // that is about to start, this make debugging the logs simpler.
+        // print a message in the logs of all the cluster members that are still running
+        // to indicate the name of the test that is about to start
         String sMessage = ">>>>> Starting test method " + info.getDisplayName();
-        coherenceResource.getCluster().forEach(m -> m.invoke(() ->
-                {
-                Logger.info(sMessage);
-                return null;
-                }));
+        logOnEachMember(sMessage);
         }
 
     @AfterEach
     void after(TestInfo info)
         {
-        // print a message in the logs of all the cluster member to indicate the name of the test
-        // that has just finished, this make debugging the logs simpler.
+        // print a message in the logs of all the cluster members that are still running
+        // to indicate the name of the test that has just finished
         String sMessage = "<<<<< Completed test method " + info.getDisplayName();
-        coherenceResource.getCluster().forEach(m -> m.invoke(() ->
-                {
-                Logger.info(sMessage);
-                return null;
-                }));
+        logOnEachMember(sMessage);
+        }
+
+    private void logOnEachMember(String sMessage)
+        {
+        coherenceResource.getCluster()
+                .forEach(m ->
+                         {
+                         try
+                             {
+                             m.invoke(() ->
+                                      {
+                                      Logger.info(sMessage);
+                                      return null;
+                                      });
+                             }
+                         catch (Throwable ignore)
+                             {
+                             // ignoring "RemoteChannel is closed" exception
+                             // from members that were shut down
+                             }
+                         });
         }
 
     @Test
@@ -122,7 +136,7 @@ public class ClusteredDistributedLockIT
     Void shouldAcquireAndReleaseLock()
         {
         Logger.info("In shouldAcquireAndReleaseLock()");
-        DistributedLock lock = Locks.exclusive("foo");
+        DistributedLock lock = Locks.exclusiveLock("foo");
         lock.lock();
         try
             {
@@ -174,15 +188,17 @@ public class ClusteredDistributedLockIT
     void shouldTimeOutIfTheLockIsHeldByAnotherMember(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
         {
         String            sLockName = "foo";
-        LockEventListener listener  = new LockEventListener(sLockName);
+        LockEventListener listener1  = new LockEventListener(sLockName);
+        LockEventListener listener2  = new LockEventListener(sLockName);
 
         // Add the listener to listen for lock events from the first member.
-        member1.addListener(listener);
+        member1.addListener(listener1);
+        member2.addListener(listener2);
 
         // Acquire the lock on first member (the lock will be held for 5 seconds)
         member1.submit(new AcquireLock(sLockName, Duration.ofSeconds(5)));
         // wait for the lock acquired event
-        listener.awaitAcquired(Duration.ofMinutes(1));
+        listener1.awaitAcquired(Duration.ofMinutes(1));
 
         // try and acquire the lock on the second member (should time out after 500 millis)
         TryLock tryLock = new TryLock(sLockName, Duration.ofMillis(500));
@@ -190,13 +206,71 @@ public class ClusteredDistributedLockIT
         assertThat(futureTry.get(), is(false));
 
         // wait for the lock released event from the first member
-        listener.awaitReleased(Duration.ofMinutes(1));
+        listener1.awaitReleased(Duration.ofMinutes(1));
 
         // try again to acquire the lock on the second member (should succeed)
         futureTry = member2.submit(tryLock);
         assertThat(futureTry.get(), is(true));
+        listener2.awaitAcquired(Duration.ofMinutes(1));
+        listener2.awaitReleased(Duration.ofMinutes(1));
         }
 
+    @Test
+    void shouldAcquireLockHeldByFailedStorageMember() throws Exception
+        {
+        // Get storage members from the cluster
+        CoherenceClusterMember member1 = coherenceResource.getCluster().get("storage-3");
+        CoherenceClusterMember member2 = coherenceResource.getCluster().get("storage-2");
+
+        shouldAcquireLockHeldByFailedMember(member1, member2);
+        }
+
+    @Test
+    void shouldAcquireLockHeldByFailedStorageDisabledMember() throws Exception
+        {
+        // Get storage disabled application members from the cluster
+        CoherenceClusterMember member1 = coherenceResource.getCluster().get("application-3");
+        CoherenceClusterMember member2 = coherenceResource.getCluster().get("application-2");
+
+        shouldAcquireLockHeldByFailedMember(member1, member2);
+        }
+
+    /**
+     * This test checks that a lock held by a failed member is automatically released,
+     * and subsequently acquired by another member.
+     *
+     * @param member1  the first member to acquire the lock on and then kill
+     * @param member2  the second member to try to acquire the lock on
+     *
+     * @throws Exception if the test fails
+     */
+    void shouldAcquireLockHeldByFailedMember(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
+        {
+        String            sLockName = "foo";
+        LockEventListener listener1  = new LockEventListener(sLockName);
+        LockEventListener listener2  = new LockEventListener(sLockName);
+
+        // Add the listeners to listen for lock events
+        member1.addListener(listener1);
+        member2.addListener(listener2);
+
+        // Acquire the lock on first member (the lock will be held for 5 minutes)
+        member1.submit(new AcquireLock(sLockName, Duration.ofMinutes(5)));
+
+        // wait for the lock acquired event
+        listener1.awaitAcquired(Duration.ofMinutes(1));
+
+        // Acquire the lock on second member (the lock will be held for 5 seconds)
+        member2.submit(new AcquireLock(sLockName, Duration.ofSeconds(5)));
+
+        // Kill first member
+        RemoteCallable<Void> closeAll = new RemoteCallableStaticMethod<>("com.tangosol.net.Coherence", "closeAll");
+        member1.submit(closeAll);
+
+        // wait for the lock acquired event from the second member
+        listener2.awaitAcquired(Duration.ofMinutes(1));
+        listener2.awaitReleased(Duration.ofMinutes(1));
+        }
 
     @Test
     void shouldAcquireAndReleaseLockInOrderFromMultipleStorageMembers() throws Exception
@@ -204,6 +278,16 @@ public class ClusteredDistributedLockIT
         // Get storage members from the cluster
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("storage-2");
+
+        shouldAcquireAndReleaseLockInOrderFromMultipleMembers(member1, member2);
+        }
+
+    @Test
+    void shouldAcquireAndReleaseLockInOrderFromMultipleStorageDisabledMembers() throws Exception
+        {
+        // Get storage disabled application members from the cluster
+        CoherenceClusterMember member1 = coherenceResource.getCluster().get("application-1");
+        CoherenceClusterMember member2 = coherenceResource.getCluster().get("application-2");
 
         shouldAcquireAndReleaseLockInOrderFromMultipleMembers(member1, member2);
         }
@@ -237,7 +321,7 @@ public class ClusteredDistributedLockIT
         assertThat(member2.invoke(new TryLock(sLockName)), is(false));
 
         // Acquire the lock on the second member, should block until the first member releases
-        member2.submit(new AcquireLock(sLockName, Duration.ofSeconds(1)));
+        member2.submit(new AcquireLock(sLockName, Duration.ofSeconds(5)));
 
         // wait for the second member to acquire the lock (should be after member 1 releases the lock)
         listener2.awaitAcquired(Duration.ofMinutes(1));
@@ -261,6 +345,12 @@ public class ClusteredDistributedLockIT
     static class TryLock
             implements RemoteCallable<Boolean>
         {
+        /**
+         * A remote channel injected by Bedrock and used to fire events back to the test.
+         */
+        @RemoteChannel.Inject
+        private RemoteChannel remoteChannel;
+
         /**
          * The name of the lock to acquire.
          */
@@ -297,7 +387,7 @@ public class ClusteredDistributedLockIT
         @Override
         public Boolean call() throws Exception
             {
-            DistributedLock lock = Locks.exclusive(f_sLockName);
+            DistributedLock lock = Locks.exclusiveLock(f_sLockName);
 
             boolean fAcquired;
             if (f_timeout.isZero())
@@ -313,8 +403,10 @@ public class ClusteredDistributedLockIT
 
             if (fAcquired)
                 {
+                remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.Acquired));
                 Logger.info("Tried and succeeded to acquire lock " + f_sLockName + " within timeout " + f_timeout);
                 lock.unlock();
+                remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.Released));
                 }
             else
                 {
@@ -367,7 +459,7 @@ public class ClusteredDistributedLockIT
         public Void call()
             {
             Logger.info("Acquiring lock " + f_sLockName);
-            DistributedLock lock = Locks.exclusive(f_sLockName);
+            DistributedLock lock = Locks.exclusiveLock(f_sLockName);
             lock.lock();
             try
                 {
@@ -595,11 +687,11 @@ public class ClusteredDistributedLockIT
                           IPv4Preferred.yes(),
                           logs,
                           ClusterPort.automatic())
-                    .include(2,
+                    .include(3,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
                              LocalStorage.enabled())
-                    .include(2,
+                    .include(3,
                              DisplayName.of("application"),
                              RoleName.of("application"),
                              LocalStorage.disabled());

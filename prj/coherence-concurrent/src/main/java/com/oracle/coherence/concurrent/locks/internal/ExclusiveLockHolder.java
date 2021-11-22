@@ -164,7 +164,7 @@ public class ExclusiveLockHolder
      *
      * @return {@code true} if this holder was modified
      */
-    public boolean removeLocksFor(UID memberId)
+    protected boolean removeLocksFor(UID memberId)
         {
         boolean fModified = false;
 
@@ -196,7 +196,7 @@ public class ExclusiveLockHolder
      *
      * @return {@code true} if this holder was modified
      */
-    private boolean retainLocksFor(Set<UID> setMemberIds)
+    protected boolean retainLocksFor(Set<UID> setMemberIds)
         {
         boolean fModified = false;
 
