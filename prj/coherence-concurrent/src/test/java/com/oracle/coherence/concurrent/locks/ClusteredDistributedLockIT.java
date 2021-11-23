@@ -136,23 +136,19 @@ public class ClusteredDistributedLockIT
     Void shouldAcquireAndReleaseLock()
         {
         Logger.info("In shouldAcquireAndReleaseLock()");
-        DistributedLock lock = Locks.exclusiveLock("foo");
+        DistributedLock lock = Locks.remoteLock("foo");
+
         lock.lock();
-        try
-            {
-            System.out.println("Lock acquired by " + lock.getOwner());
-            assertThat(lock.isLocked(), is(true));
-            assertThat(lock.isHeldByCurrentThread(), is(true));
-            assertThat(lock.getHoldCount(), is(1L));
-            }
-        finally
-            {
-            lock.unlock();
-            assertThat(lock.isLocked(), is(false));
-            assertThat(lock.isHeldByCurrentThread(), is(false));
-            assertThat(lock.getHoldCount(), is(0L));
-            System.out.println("Lock released by " + Thread.currentThread());
-            }
+        System.out.println("Lock acquired by " + lock.getOwner());
+        assertThat(lock.isLocked(), is(true));
+        assertThat(lock.isHeldByCurrentThread(), is(true));
+        assertThat(lock.getHoldCount(), is(1L));
+
+        lock.unlock();
+        assertThat(lock.isLocked(), is(false));
+        assertThat(lock.isHeldByCurrentThread(), is(false));
+        assertThat(lock.getHoldCount(), is(0L));
+        System.out.println("Lock released by " + Thread.currentThread());
         return null;
         }
 
@@ -387,7 +383,7 @@ public class ClusteredDistributedLockIT
         @Override
         public Boolean call() throws Exception
             {
-            DistributedLock lock = Locks.exclusiveLock(f_sLockName);
+            DistributedLock lock = Locks.remoteLock(f_sLockName);
 
             boolean fAcquired;
             if (f_timeout.isZero())
@@ -459,7 +455,7 @@ public class ClusteredDistributedLockIT
         public Void call()
             {
             Logger.info("Acquiring lock " + f_sLockName);
-            DistributedLock lock = Locks.exclusiveLock(f_sLockName);
+            DistributedLock lock = Locks.remoteLock(f_sLockName);
             lock.lock();
             try
                 {

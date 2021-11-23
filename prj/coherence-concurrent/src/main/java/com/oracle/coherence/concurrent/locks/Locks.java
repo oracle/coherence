@@ -7,6 +7,7 @@
 package com.oracle.coherence.concurrent.locks;
 
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
 import com.oracle.coherence.concurrent.locks.internal.ExclusiveLockHolder;
 import com.oracle.coherence.concurrent.locks.internal.ReadWriteLockHolder;
 
@@ -15,10 +16,14 @@ import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
 import java.util.Map;
+
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 /**
- * Factory methods for various distributed lock implementations.
+ * Factory methods for various local and remote lock implementations.
  *
  * @author Aleks Seovic  2021.10.20
  * @since 21.12
@@ -26,25 +31,53 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Locks
     {
     /**
-     * Return a singleton instance of an exclusive lock with a specified name.
+     * Return a singleton instance of a local {@link ReentrantLock}
+     * with a specified name.
      *
-     * @param sName  the cluster-wide, unique name of the exclusive lock
+     * @param sName  the process-wide, unique name of the lock
      *
-     * @return an instance of an exclusive lock with a specified name
+     * @return an instance of a local lock with a specified name
      */
-    public static DistributedLock exclusiveLock(String sName)
+    public static ReentrantLock localLock(String sName)
+        {
+        return f_mapExclusiveLocal.computeIfAbsent(sName, n -> new ReentrantLock());
+        }
+
+    /**
+     * Return a singleton instance of a remote {@link DistributedLock}
+     * with a specified name.
+     *
+     * @param sName  the cluster-wide, unique name of the lock
+     *
+     * @return an instance of a remote lock with a specified name
+     */
+    public static DistributedLock remoteLock(String sName)
         {
         return f_mapExclusive.computeIfAbsent(sName, n -> new DistributedLock(n, exclusiveLocksMap()));
         }
 
     /**
-     * Return a singleton instance of a read/write lock with a specified name.
+     * Return a singleton instance of a local {@link ReentrantReadWriteLock}
+     * with a specified name.
      *
-     * @param sName  the cluster-wide, unique name of the read/write lock
+     * @param sName  the process-wide, unique name of the lock
      *
-     * @return an instance of a read/write lock with a specified name
+     * @return an instance of a local read/write lock with a specified name
      */
-    public static DistributedReadWriteLock readWriteLock(String sName)
+    public static ReentrantReadWriteLock localReadWriteLock(String sName)
+        {
+        return f_mapReadWriteLocal.computeIfAbsent(sName, n -> new ReentrantReadWriteLock());
+        }
+
+    /**
+     * Return a singleton instance of a remote {@link DistributedReadWriteLock}
+     * with a specified name.
+     *
+     * @param sName  the cluster-wide, unique name of the lock
+     *
+     * @return an instance of a remote read/write lock with a specified name
+     */
+    public static DistributedReadWriteLock remoteReadWriteLock(String sName)
         {
         return f_mapReadWrite.computeIfAbsent(sName, n -> new DistributedReadWriteLock(n, readWriteLocksMap()));
         }
@@ -91,13 +124,23 @@ public class Locks
     public static final String SESSION_NAME = ConcurrentServicesSessionConfiguration.SESSION_NAME;
 
     /**
-     * A process-wide map of exclusive locks, to avoid creating multiple lock
+     * A process-wide cache of named local locks.
+     */
+    private static final Map<String, ReentrantLock> f_mapExclusiveLocal = new ConcurrentHashMap<>();
+
+    /**
+     * A process-wide cache of named local read/write locks.
+     */
+    private static final Map<String, ReentrantReadWriteLock> f_mapReadWriteLocal = new ConcurrentHashMap<>();
+
+    /**
+     * A process-wide cache of remote locks, to avoid creating multiple lock
      * instances (and thus sync objects) for the same server-side lock.
      */
     private static final Map<String, DistributedLock> f_mapExclusive = new ConcurrentHashMap<>();
 
     /**
-     * A process-wide cache of read/write locks, to avoid creating multiple lock
+     * A process-wide cache of remote read/write locks, to avoid creating multiple lock
      * instances (and thus sync objects) for the same server-side lock.
      */
     private static final Map<String, DistributedReadWriteLock> f_mapReadWrite = new ConcurrentHashMap<>();

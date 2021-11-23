@@ -138,46 +138,38 @@ public class ClusteredDistributedReadWriteLockIT
     Void shouldAcquireAndReleaseWriteLock()
         {
         Logger.info("In shouldAcquireAndReleaseWriteLock()");
-        DistributedReadWriteLock lock = Locks.readWriteLock("foo");
+        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+
         lock.writeLock().lock();
-        try
-            {
-            System.out.println("Write lock acquired by " + lock.getOwner());
-            assertThat(lock.isWriteLocked(), is(true));
-            assertThat(lock.isWriteLockedByCurrentThread(), is(true));
-            assertThat(lock.getWriteHoldCount(), is(1));
-            }
-        finally
-            {
-            lock.writeLock().unlock();
-            assertThat(lock.isWriteLocked(), is(false));
-            assertThat(lock.isWriteLockedByCurrentThread(), is(false));
-            assertThat(lock.getWriteHoldCount(), is(0));
-            System.out.println("Write lock released by " + Thread.currentThread());
-            }
+        System.out.println("Write lock acquired by " + lock.getOwner());
+        assertThat(lock.isWriteLocked(), is(true));
+        assertThat(lock.isWriteLockedByCurrentThread(), is(true));
+        assertThat(lock.getWriteHoldCount(), is(1));
+
+        lock.writeLock().unlock();
+        assertThat(lock.isWriteLocked(), is(false));
+        assertThat(lock.isWriteLockedByCurrentThread(), is(false));
+        assertThat(lock.getWriteHoldCount(), is(0));
+        System.out.println("Write lock released by " + Thread.currentThread());
         return null;
         }
 
     Void shouldAcquireAndReleaseReadLock()
         {
         Logger.info("In shouldAcquireAndReleaseReadLock()");
-        DistributedReadWriteLock lock = Locks.readWriteLock("foo");
+        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+
         lock.readLock().lock();
-        try
-            {
-            System.out.println("Read lock acquired by " + Thread.currentThread());
-            assertThat(lock.isReadLocked(), is(true));
-            assertThat(lock.getReadLockCount(), is(1));
-            assertThat(lock.getReadHoldCount(), is(1));
-            }
-        finally
-            {
-            lock.readLock().unlock();
-            assertThat(lock.isReadLocked(), is(false));
-            assertThat(lock.getReadLockCount(), is(0));
-            assertThat(lock.getReadHoldCount(), is(0));
-            System.out.println("Read lock released by " + Thread.currentThread());
-            }
+        System.out.println("Read lock acquired by " + Thread.currentThread());
+        assertThat(lock.isReadLocked(), is(true));
+        assertThat(lock.getReadLockCount(), is(1));
+        assertThat(lock.getReadHoldCount(), is(1));
+
+        lock.readLock().unlock();
+        assertThat(lock.isReadLocked(), is(false));
+        assertThat(lock.getReadLockCount(), is(0));
+        assertThat(lock.getReadHoldCount(), is(0));
+        System.out.println("Read lock released by " + Thread.currentThread());
         return null;
         }
 
@@ -507,7 +499,7 @@ public class ClusteredDistributedReadWriteLockIT
         @Override
         public Boolean call() throws Exception
             {
-            DistributedReadWriteLock lock = Locks.readWriteLock(f_sLockName);
+            DistributedReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
 
             boolean fAcquired;
             if (f_timeout.isZero())
@@ -590,7 +582,7 @@ public class ClusteredDistributedReadWriteLockIT
         @Override
         public Boolean call() throws Exception
             {
-            DistributedReadWriteLock lock = Locks.readWriteLock(f_sLockName);
+            DistributedReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
 
             boolean fAcquired;
             if (f_timeout.isZero())
@@ -662,7 +654,7 @@ public class ClusteredDistributedReadWriteLockIT
         public Void call()
             {
             Logger.info("Acquiring write lock " + f_sLockName);
-            DistributedReadWriteLock lock = Locks.readWriteLock(f_sLockName);
+            DistributedReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
             lock.writeLock().lock();
             try
                 {
@@ -725,7 +717,7 @@ public class ClusteredDistributedReadWriteLockIT
         public Void call()
             {
             Logger.info("Acquiring read lock " + f_sLockName);
-            DistributedReadWriteLock lock = Locks.readWriteLock(f_sLockName);
+            DistributedReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
             lock.readLock().lock();
             try
                 {
