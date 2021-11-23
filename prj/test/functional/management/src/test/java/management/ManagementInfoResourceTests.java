@@ -927,7 +927,7 @@ public class ManagementInfoResourceTests
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
             // allow flight recorder to record something
-            Thread.sleep(2000);
+            Thread.sleep(5000);
 
             response = getBaseTarget().path("members").path(nMemberId + "")
                     .path(DIAGNOSTIC_CMD)
@@ -942,6 +942,9 @@ public class ManagementInfoResourceTests
                     .queryParam(OPTIONS, encodeValue("name=foo")).request(MediaType.APPLICATION_JSON_TYPE)
                     .post(null);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+            // allow flight recorder to record something
+            Thread.sleep(5000);
 
             response = getBaseTarget().path("members").path(nMemberId + "")
                     .path(DIAGNOSTIC_CMD)
