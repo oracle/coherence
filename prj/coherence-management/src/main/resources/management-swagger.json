@@ -2654,7 +2654,7 @@
         ],
         "summary": "Start Federation",
         "description": "Use this endpoint to start federating data to all federation participants for a specific federated service. The connection is established only when there is data to be replicated.",
-        "operationId": "/management/coherence/cluster/services/{serviceName}/start POST",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/federation/start POST",
         "produces": [
           "application/json"
         ],
