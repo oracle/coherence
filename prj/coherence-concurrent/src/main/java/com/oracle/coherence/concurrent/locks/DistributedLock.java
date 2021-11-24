@@ -45,7 +45,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <pre> {@code
  * class X {
- *   private final DistributedLock lock = Locks.exclusive("myLock");
+ *   private final DistributedLock lock = Locks.remoteLock("myLock");
  *   // ...
  *
  *   public void m() {
@@ -292,7 +292,7 @@ public class DistributedLock
      *
      * <pre> {@code
      * class X {
-     *   DistributedLock lock = Locks.exclusive("myLock");
+     *   DistributedLock lock = Locks.remoteLock("myLock");
      *   // ...
      *   public void m() {
      *     assert lock.getHoldCount() == 0;
@@ -323,7 +323,7 @@ public class DistributedLock
      *
      * <pre> {@code
      * class X {
-     *   DistributedLock lock = Locks.exclusive("myLock");
+     *   DistributedLock lock = Locks.remoteLock("myLock");
      *   // ...
      *
      *   public void m() {
@@ -337,7 +337,7 @@ public class DistributedLock
      *
      * <pre> {@code
      * class X {
-     *   DistributedLock lock = Locks.exclusive("myLock");
+     *   DistributedLock lock = Locks.remoteLock("myLock");
      *   // ...
      *
      *   public void m() {
@@ -507,9 +507,8 @@ public class DistributedLock
                         return fRes;
                         });
 
-                if (fLocked)
+                if (fLocked && compareAndSetState(0, acquires))
                     {
-                    setState(acquires);
                     setExclusiveOwnerThread(thread);
                     return true;
                     }
@@ -545,7 +544,7 @@ public class DistributedLock
             long c = getState() - releases;
             if (thread != getExclusiveOwnerThread())
                 {
-                throw new IllegalMonitorStateException();
+                throw new IllegalMonitorStateException(thread + " != " + getExclusiveOwnerThread());
                 }
             boolean fFree = false;
             if (c == 0)

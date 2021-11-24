@@ -15,7 +15,9 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,9 +41,17 @@ public class DistributedReadWriteLockTest
         Coherence.closeAll();
         }
 
-    @AfterEach
-    void sanityCheck()
+    @BeforeEach
+    void beforeEach(TestInfo info)
         {
+        System.out.println(">>>>> Starting test method " + info.getDisplayName());
+        }
+
+    @AfterEach
+    void afterEach(TestInfo info)
+        {
+        // sanity check: let's make sure the lock is not locked, and there are
+        // no pending locks on it
         DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         assertThat(lock.isReadLocked(), is(false));
         assertThat(lock.isWriteLocked(), is(false));
@@ -49,6 +59,8 @@ public class DistributedReadWriteLockTest
         assertThat(lock.getWriteHoldCount(), is(0));
         assertThat(lock.f_sync.getPendingReadLocks().isEmpty(), is(true));
         assertThat(lock.f_sync.getPendingWriteLocks().isEmpty(), is(true));
+
+        System.out.println("<<<<< Completed test method " + info.getDisplayName());
         }
     
     @Test
@@ -56,7 +68,7 @@ public class DistributedReadWriteLockTest
         {
         DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         lock.writeLock().lock();
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(1));
@@ -84,7 +96,7 @@ public class DistributedReadWriteLockTest
         {
         DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         lock.writeLock().lockInterruptibly();
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(1));
@@ -113,7 +125,7 @@ public class DistributedReadWriteLockTest
         {
         DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         assertThat(lock.writeLock().tryLock(), is(true));
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(1));
@@ -141,7 +153,7 @@ public class DistributedReadWriteLockTest
         {
         DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         assertThat(lock.writeLock().tryLock(1L, TimeUnit.SECONDS), is(true));
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(1));
@@ -171,7 +183,7 @@ public class DistributedReadWriteLockTest
         lock.writeLock().lock();
         lock.writeLock().lock();
         lock.writeLock().lock();
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(3));
@@ -222,7 +234,7 @@ public class DistributedReadWriteLockTest
                lock.writeLock().lock();
                long elapsed = System.currentTimeMillis() - start;
 
-               System.out.println("Write lock acquired by " + lock.getOwner() + " after " + elapsed + "ms");
+               System.out.println("Write lock acquired by " + Thread.currentThread() + " after " + elapsed + "ms");
                assertThat(lock.isWriteLocked(), is(true));
                assertThat(lock.isWriteLockedByCurrentThread(), is(true));
                assertThat(lock.getWriteHoldCount(), is(1));
@@ -238,7 +250,7 @@ public class DistributedReadWriteLockTest
                });
 
         lock.writeLock().lock();
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(1));
@@ -314,7 +326,7 @@ public class DistributedReadWriteLockTest
         final Thread thread = new Thread(() ->
                {
                lock.writeLock().lock();
-               System.out.println("Write lock acquired by " + lock.getOwner());
+               System.out.println("Write lock acquired by " + Thread.currentThread());
 
                s1.release();
                s2.acquireUninterruptibly();
@@ -342,7 +354,7 @@ public class DistributedReadWriteLockTest
         final Thread thread = new Thread(() ->
                {
                lock.writeLock().lock();
-               System.out.println("Write lock acquired by " + lock.getOwner());
+               System.out.println("Write lock acquired by " + Thread.currentThread());
 
                s1.release();
                s2.acquireUninterruptibly();
@@ -383,7 +395,7 @@ public class DistributedReadWriteLockTest
         lock.writeLock().lock();
         thread.start();
 
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(1));
@@ -420,7 +432,7 @@ public class DistributedReadWriteLockTest
         lock.writeLock().lock();
         thread.start();
 
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(1));
@@ -455,7 +467,7 @@ public class DistributedReadWriteLockTest
         lock.writeLock().lock();
         thread.start();
 
-        System.out.println("Write lock acquired by " + lock.getOwner());
+        System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
         assertThat(lock.isWriteLockedByCurrentThread(), is(true));
         assertThat(lock.getWriteHoldCount(), is(1));

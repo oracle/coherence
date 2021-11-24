@@ -91,7 +91,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * class CachedData {
  *   Object data;
  *   boolean cacheValid;
- *   final DistributedReadWriteLock rwl = Locks.readWrite("myRWLock");
+ *   final DistributedReadWriteLock rwl = Locks.remoteReadWriteLock("myRWLock");
  *
  *   void processCachedData() {
  *     rwl.readLock().lock();
@@ -292,13 +292,13 @@ public class DistributedReadWriteLock
                     return fRes;
                     });
 
-            if (fLocked)
+            if (fLocked && compareAndSetState(c, c + acquires))
                 {
-                setState(acquires);
                 setExclusiveOwnerThread(thread);
+                return true;
                 }
 
-            return fLocked;
+            return false;
             }
 
         @Override
