@@ -7,15 +7,21 @@
 package com.oracle.coherence.concurrent.locks;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.net.Coherence;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
+import java.util.concurrent.locks.ReadWriteLock;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -62,7 +68,66 @@ public class DistributedReadWriteLockTest
 
         System.out.println("<<<<< Completed test method " + info.getDisplayName());
         }
-    
+
+    @Test
+    @Disabled("only run manually to debug locking")
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    void stressLocks() throws InterruptedException
+        {
+        ReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        ExecutorService e = Executors.newFixedThreadPool(8);
+        Runnable write = () ->
+                {
+                while (true)
+                    {
+                    try
+                        {
+                        lock.writeLock().lockInterruptibly();
+                        System.out.println(Thread.currentThread().getName() + ": LOCKED (W)");
+                        }
+                    catch (InterruptedException ex)
+                        {
+                        break;
+                        }
+                    finally
+                        {
+                        lock.writeLock().unlock();
+                        System.out.println(Thread.currentThread().getName() + ": UNLOCKED");
+                        }
+                    }
+                };
+
+        Runnable read = () ->
+                {
+                while (true)
+                    {
+                    try
+                        {
+                        lock.readLock().lockInterruptibly();
+                        System.out.println(Thread.currentThread().getName() + ": LOCKED (R)");
+                        }
+                    catch (InterruptedException ex)
+                        {
+                        break;
+                        }
+                    finally
+                        {
+                        lock.readLock().unlock();
+                        System.out.println(Thread.currentThread().getName() + ": UNLOCKED");
+                        }
+                    }
+                };
+
+        for (int i = 0; i < 8; i++)
+            {
+            e.submit(i % 2 == 0 ? read : write);
+            }
+
+        e.awaitTermination(30, TimeUnit.SECONDS);
+        e.shutdownNow();
+        e.awaitTermination(10, TimeUnit.SECONDS);
+        }
+
     @Test
     void shouldAcquireAndReleaseWriteLock()
         {

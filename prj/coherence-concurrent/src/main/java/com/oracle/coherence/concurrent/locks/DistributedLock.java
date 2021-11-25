@@ -536,8 +536,11 @@ public class DistributedLock
                 {
                 // we are releasing this special lock from an event dispatcher thread
                 // because another member has released the lock
-                setState(0);
-                setExclusiveOwnerThread(null);
+                if (thread == getExclusiveOwnerThread())
+                    {
+                    setState(0);
+                    setExclusiveOwnerThread(null);
+                    }
                 return true;
                 }
 

@@ -10,18 +10,18 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.net.Coherence;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
+import java.util.concurrent.locks.Lock;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -65,6 +65,44 @@ public class DistributedLockTest
         assertThat(lock.getPendingLocks().isEmpty(), is(true));
 
         System.out.println("<<<<< Completed test method " + info.getDisplayName());
+        }
+
+    @Test
+    @Disabled("only run manually to debug locking")
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    void stressLocks() throws InterruptedException
+        {
+        Lock lock = Locks.remoteLock("foo");
+        ExecutorService e = Executors.newFixedThreadPool(8);
+        Runnable r = () ->
+                {
+                while (true)
+                    {
+                    try
+                        {
+                        lock.lockInterruptibly();
+                        System.out.println(Thread.currentThread().getName() + ": LOCKED");
+                        }
+                    catch (InterruptedException ex)
+                        {
+                        break;
+                        }
+                    finally
+                        {
+                        lock.unlock();
+                        System.out.println(Thread.currentThread().getName() + ": UNLOCKED");
+                        }
+                    }
+                };
+
+        for (int i = 0; i < 8; i++)
+            {
+            e.submit(r);
+            }
+
+        e.awaitTermination(30, TimeUnit.SECONDS);
+        e.shutdownNow();
+        e.awaitTermination(10, TimeUnit.SECONDS);
         }
 
     @Test
@@ -150,7 +188,7 @@ public class DistributedLockTest
 
     @Test
     void shouldAcquireAndReleaseLockInOrderFromMultipleThreads()
-            throws InterruptedException, ExecutionException
+            throws InterruptedException
         {
         DistributedLock lock = Locks.remoteLock("foo");
         Semaphore s1 = new Semaphore(0);
@@ -158,31 +196,23 @@ public class DistributedLockTest
 
         Thread thread = new Thread(() ->
                {
-               try
-                   {
-                   assertThat(lock.tryLock(), is(false));
-                   long start = System.currentTimeMillis();
-                   lock.lock();
-                   long elapsed = System.currentTimeMillis() - start;
-                   System.out.println("Lock acquired by " + Thread.currentThread() + " after " + elapsed + "ms");
-                   assertThat(lock.isLocked(), is(true));
-                   assertThat(lock.isHeldByCurrentThread(), is(true));
-                   assertThat(lock.getHoldCount(), is(1L));
+               assertThat(lock.tryLock(), is(false));
+               long start = System.currentTimeMillis();
+               lock.lock();
+               long elapsed = System.currentTimeMillis() - start;
+               System.out.println("Lock acquired by " + Thread.currentThread() + " after " + elapsed + "ms");
+               assertThat(lock.isLocked(), is(true));
+               assertThat(lock.isHeldByCurrentThread(), is(true));
+               assertThat(lock.getHoldCount(), is(1L));
 
-                   s1.release();
-                   s2.acquireUninterruptibly();
+               s1.release();
+               s2.acquireUninterruptibly();
 
-                   System.out.println("Lock released by " + Thread.currentThread());
-                   lock.unlock();
-                   assertThat(lock.isLocked(), is(false));
-                   assertThat(lock.isHeldByCurrentThread(), is(false));
-                   assertThat(lock.getHoldCount(), is(0L));
-                   }
-               catch (Throwable e)
-                   {
-                   e.printStackTrace();
-                   System.exit(1);
-                   }
+               System.out.println("Lock released by " + Thread.currentThread());
+               lock.unlock();
+               assertThat(lock.isLocked(), is(false));
+               assertThat(lock.isHeldByCurrentThread(), is(false));
+               assertThat(lock.getHoldCount(), is(0L));
                });
 
         lock.lock();

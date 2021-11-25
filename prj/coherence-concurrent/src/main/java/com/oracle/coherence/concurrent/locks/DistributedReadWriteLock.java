@@ -210,13 +210,16 @@ public class DistributedReadWriteLock
                 {
                 // we are releasing this special lock from an event dispatcher thread
                 // because another member has released the lock
-                setExclusiveOwnerThread(null);
+                if (thread == getExclusiveOwnerThread())
+                    {
+                    setExclusiveOwnerThread(null);
+                    }
                 return true;
                 }
 
-            if (!isHeldExclusively())
+            if (thread != getExclusiveOwnerThread())
                 {
-                throw new IllegalMonitorStateException();
+                throw new IllegalMonitorStateException(thread + " != " + getExclusiveOwnerThread());
                 }
 
             boolean fUnlocked = false;
@@ -283,19 +286,22 @@ public class DistributedReadWriteLock
 
             // no thread in this process owns the exclusive lock and there are no readers
             // try to obtain lock from the server
-            final LockOwner owner = new LockOwner(f_memberId, thread.getId());
-            boolean fLocked = f_locks.invoke(f_sName, entry ->
-                    {
-                    ReadWriteLockHolder lock = entry.getValue(ReadWriteLockHolder::new);
-                    boolean fRes = lock.lockWrite(owner);
-                    entry.setValue(lock);
-                    return fRes;
-                    });
-
-            if (fLocked && compareAndSetState(c, c + acquires))
+            if (!writerShouldBlock())
                 {
-                setExclusiveOwnerThread(thread);
-                return true;
+                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+                boolean fLocked = f_locks.invoke(f_sName, entry ->
+                {
+                ReadWriteLockHolder lock = entry.getValue(ReadWriteLockHolder::new);
+                boolean fRes = lock.lockWrite(owner);
+                entry.setValue(lock);
+                return fRes;
+                });
+
+                if (fLocked && compareAndSetState(c, c + acquires))
+                    {
+                    setExclusiveOwnerThread(thread);
+                    return true;
+                    }
                 }
 
             return false;
@@ -369,9 +375,12 @@ public class DistributedReadWriteLock
             for (; ; )
                 {
                 int c = getState();
-                if (exclusiveCount(c) != 0 && getExclusiveOwnerThread() != thread)
+                if (getExclusiveOwnerThread() != thread)
                     {
-                    return false;
+                    if (exclusiveCount(c) != 0 || readerShouldBlock())
+                        {
+                        return false;
+                        }
                     }
 
                 int r = sharedCount(c);
@@ -392,7 +401,7 @@ public class DistributedReadWriteLock
                             entry.setValue(lock);
                             return fRes;
                             });
-                    
+
                     if (!fLocked)
                         {
                         // unable to obtain read lock on the server; fail
@@ -407,6 +416,26 @@ public class DistributedReadWriteLock
                     return true;
                     }
                 }
+            }
+
+        /**
+         * Returns true if the current thread, when trying to acquire
+         * the read lock, and otherwise eligible to do so, should block
+         * because of policy for overtaking other waiting threads.
+         */
+        boolean readerShouldBlock()
+            {
+            return hasQueuedPredecessors();
+            }
+
+        /**
+         * Returns true if the current thread, when trying to acquire
+         * the write lock, and otherwise eligible to do so, should block
+         * because of policy for overtaking other waiting threads.
+         */
+        boolean writerShouldBlock()
+            {
+            return false;
             }
 
         @Override
