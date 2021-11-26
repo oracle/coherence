@@ -32,12 +32,13 @@ import com.oracle.bedrock.testsupport.junit.AbstractTestLogs;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.concurrent.atomic.Atomics;
+
 import com.tangosol.net.Coherence;
 
 import java.io.Serializable;
 
 import java.time.Duration;
-import java.time.Instant;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -52,6 +53,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.lessThan;
 
 /**
  * Test distributed read/write locks across multiple cluster members.
@@ -357,8 +359,8 @@ public class ClusteredDistributedReadWriteLockIT
         member1.addListener(listener1);
         member2.addListener(listener2);
 
-        // Acquire the lock on first member (the lock will be held for 5 seconds)
-        member1.submit(new AcquireWriteLock(sLockName, Duration.ofSeconds(5)));
+        // Acquire the lock on first member (the lock will be held for 2 seconds)
+        member1.submit(new AcquireWriteLock(sLockName, Duration.ofSeconds(2)));
         // wait for the lock acquired event
         listener1.awaitWriteAcquired(Duration.ofMinutes(1));
 
@@ -366,7 +368,7 @@ public class ClusteredDistributedReadWriteLockIT
         assertThat(member2.invoke(new TryWriteLock(sLockName)), is(false));
 
         // Acquire the lock on the second member, should block until the first member releases
-        member2.submit(new AcquireWriteLock(sLockName, Duration.ofSeconds(5)));
+        member2.submit(new AcquireWriteLock(sLockName, Duration.ofSeconds(1)));
 
         // wait for the second member to acquire the lock (should be after member 1 releases the lock)
         listener2.awaitWriteAcquired(Duration.ofMinutes(1));
@@ -374,9 +376,13 @@ public class ClusteredDistributedReadWriteLockIT
         listener2.awaitWriteReleased(Duration.ofMinutes(1));
 
         // Assert the locks were acquired and released in the order expected
-        assertThat(listener1.getWriteAcquiredAt().isBefore(listener1.getWriteReleasedAt()), is(true));
-        assertThat(listener1.getWriteReleasedAt().isBefore(listener2.getWriteAcquiredAt()), is(true));
-        assertThat(listener2.getWriteAcquiredAt().isBefore(listener2.getWriteReleasedAt()), is(true));
+        System.out.println("Acquired #1: " + listener1.getWriteAcquiredOrder());
+        System.out.println("Released #1: " + listener1.getWriteReleasedOrder());
+        System.out.println("Acquired #2: " + listener2.getWriteAcquiredOrder());
+        System.out.println("Released #2: " + listener2.getWriteReleasedOrder());
+        assertThat(listener1.getWriteAcquiredOrder(), lessThan(listener1.getWriteReleasedOrder()));
+        assertThat(listener1.getWriteReleasedOrder(), lessThan(listener2.getWriteAcquiredOrder()));
+        assertThat(listener2.getWriteAcquiredOrder(), lessThan(listener2.getWriteReleasedOrder()));
         }
 
     @Test
@@ -529,7 +535,7 @@ public class ClusteredDistributedReadWriteLockIT
             }
         }
 
-    // ----- inner class: TryWriteLock --------------------------------------
+    // ----- inner class: TryReadLock ---------------------------------------
 
     /**
      * A Bedrock remote callable that tries to acquire a read lock within a given timeout.
@@ -658,8 +664,8 @@ public class ClusteredDistributedReadWriteLockIT
             lock.writeLock().lock();
             try
                 {
-                Logger.info("Write lock " + f_sLockName + " acquired by " + lock.getOwner());
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.WriteAcquired));
+                Logger.info("Write lock " + f_sLockName + " acquired by " + lock.getOwner());
                 Thread.sleep(f_duration.toMillis());
                 }
             catch (InterruptedException ignore)
@@ -668,8 +674,8 @@ public class ClusteredDistributedReadWriteLockIT
             finally
                 {
                 lock.writeLock().unlock();
-                Logger.info("Write lock " + f_sLockName + " released by " + Thread.currentThread());
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.WriteReleased));
+                Logger.info("Write lock " + f_sLockName + " released by " + Thread.currentThread());
                 }
             return null;
             }
@@ -721,8 +727,8 @@ public class ClusteredDistributedReadWriteLockIT
             lock.readLock().lock();
             try
                 {
-                Logger.info("Read lock " + f_sLockName + " acquired by " + Thread.currentThread());
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.ReadAcquired));
+                Logger.info("Read lock " + f_sLockName + " acquired by " + Thread.currentThread());
                 Thread.sleep(f_duration.toMillis());
                 }
             catch (InterruptedException ignore)
@@ -731,8 +737,8 @@ public class ClusteredDistributedReadWriteLockIT
             finally
                 {
                 lock.readLock().unlock();
-                Logger.info("Read lock " + f_sLockName + " released by " + Thread.currentThread());
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.ReadReleased));
+                Logger.info("Read lock " + f_sLockName + " released by " + Thread.currentThread());
                 }
             return null;
             }
@@ -758,6 +764,11 @@ public class ClusteredDistributedReadWriteLockIT
         private final LockEventType f_type;
 
         /**
+         * The global order of the event.
+         */
+        private final int f_order;
+
+        /**
          * Create a lock event.
          *
          * @param sLockName  the name of the lock
@@ -767,6 +778,7 @@ public class ClusteredDistributedReadWriteLockIT
             {
             f_sLockName = sLockName;
             f_type      = type;
+            f_order     = Atomics.getRemoteAtomicInteger("ClusteredDistributedReadWriteLockIT.eventCounter").incrementAndGet();
             }
 
         /**
@@ -788,6 +800,16 @@ public class ClusteredDistributedReadWriteLockIT
             {
             return f_type;
             }
+
+        /**
+         * Return the global event order.
+         *
+         * @return the global event order
+         */
+        public int getOrder()
+            {
+            return f_order;
+            }
         }
 
     // ----- inner class LockEventListener ----------------------------------
@@ -806,42 +828,22 @@ public class ClusteredDistributedReadWriteLockIT
         /**
          * A future that completes when the read lock acquired event is received.
          */
-        private final CompletableFuture<Void> f_futureReadAcquired = new CompletableFuture<>();
+        private final CompletableFuture<Integer> f_futureReadAcquired = new CompletableFuture<>();
 
         /**
          * A future that completes when the read lock released event is received.
          */
-        private final CompletableFuture<Void> f_futureReadReleased = new CompletableFuture<>();
+        private final CompletableFuture<Integer> f_futureReadReleased = new CompletableFuture<>();
 
         /**
          * A future that completes when the write lock acquired event is received.
          */
-        private final CompletableFuture<Void> f_futureWriteAcquired = new CompletableFuture<>();
+        private final CompletableFuture<Integer> f_futureWriteAcquired = new CompletableFuture<>();
 
         /**
          * A future that completes when the write lock released event is received.
          */
-        private final CompletableFuture<Void> f_futureWriteReleased = new CompletableFuture<>();
-
-        /**
-         * The time the read lock was acquired.
-         */
-        private Instant m_readAcquiredAt;
-
-        /**
-         * The time the read lock was released.
-         */
-        private Instant m_readReleasedAt;
-
-        /**
-         * The time the write lock was acquired.
-         */
-        private Instant m_writeAcquiredAt;
-
-        /**
-         * The time the write lock was released.
-         */
-        private Instant m_writeReleasedAt;
+        private final CompletableFuture<Integer> f_futureWriteReleased = new CompletableFuture<>();
 
         /**
          * Create a {@link LockEventListener}.
@@ -856,26 +858,26 @@ public class ClusteredDistributedReadWriteLockIT
         @Override
         public void onEvent(RemoteEvent event)
             {
-            if (event instanceof LockEvent && f_sLockName.equals(((LockEvent) event).getLockName()))
+            if (event instanceof LockEvent)
                 {
-                switch (((LockEvent) event).getEventType())
+                LockEvent e = (LockEvent) event;
+                if (f_sLockName.equals(e.getLockName()))
                     {
-                    case ReadAcquired:
-                        m_readAcquiredAt = Instant.now();
-                        f_futureReadAcquired.complete(null);
-                        break;
-                    case ReadReleased:
-                        m_readReleasedAt = Instant.now();
-                        f_futureReadReleased.complete(null);
-                        break;
-                    case WriteAcquired:
-                        m_writeAcquiredAt = Instant.now();
-                        f_futureWriteAcquired.complete(null);
-                        break;
-                    case WriteReleased:
-                        m_writeReleasedAt = Instant.now();
-                        f_futureWriteReleased.complete(null);
-                        break;
+                    switch (e.getEventType())
+                        {
+                        case ReadAcquired:
+                            f_futureReadAcquired.complete(e.getOrder());
+                            break;
+                        case ReadReleased:
+                            f_futureReadReleased.complete(e.getOrder());
+                            break;
+                        case WriteAcquired:
+                            f_futureWriteAcquired.complete(e.getOrder());
+                            break;
+                        case WriteReleased:
+                            f_futureWriteReleased.complete(e.getOrder());
+                            break;
+                        }
                     }
                 }
             }
@@ -884,20 +886,24 @@ public class ClusteredDistributedReadWriteLockIT
          * Wait for the read lock acquired event.
          *
          * @param timeout  the maximum amount of time to wait
+         *
+         * @return the global order of the read acquired event
          */
-        public void awaitReadAcquired(Duration timeout) throws Exception
+        public int awaitReadAcquired(Duration timeout) throws Exception
             {
-            f_futureReadAcquired.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return f_futureReadAcquired.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             }
 
         /**
          * Wait for the write lock acquired event.
          *
          * @param timeout  the maximum amount of time to wait
+         *
+         * @return the global order of the write acquired event
          */
-        public void awaitWriteAcquired(Duration timeout) throws Exception
+        public int awaitWriteAcquired(Duration timeout) throws Exception
             {
-            f_futureWriteAcquired.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return f_futureWriteAcquired.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             }
 
         /**
@@ -921,43 +927,47 @@ public class ClusteredDistributedReadWriteLockIT
             }
 
         /**
-         * Returns the time that the read lock was acquired.
+         * Returns the global order of the read lock acquired event.
          *
-         * @return the time that the read lock was acquired
+         * @return the global order of the read lock acquired event
          */
-        public Instant getReadAcquiredAt()
+        public int getReadAcquiredOrder()
             {
-            return m_readAcquiredAt;
+            return f_futureReadAcquired.join();
             }
 
         /**
-         * Returns the time that the write lock was acquired.
+         * Returns the global order of the write lock acquired event.
          *
-         * @return the time that the write lock was acquired
+         * @return the global order of the write lock acquired event
          */
-        public Instant getWriteAcquiredAt()
+        public int getWriteAcquiredOrder()
             {
-            return m_writeAcquiredAt;
+            return f_futureWriteAcquired.join();
             }
 
         /**
          * Wait for the read lock released event.
          *
          * @param timeout  the maximum amount of time to wait
+         *
+         * @return the global order of the read released event
          */
-        public void awaitReadReleased(Duration timeout) throws Exception
+        public int awaitReadReleased(Duration timeout) throws Exception
             {
-            f_futureReadReleased.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return f_futureReadReleased.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             }
 
         /**
          * Wait for the write lock released event.
          *
          * @param timeout  the maximum amount of time to wait
+         *
+         * @return the global order of the write released event
          */
-        public void awaitWriteReleased(Duration timeout) throws Exception
+        public int awaitWriteReleased(Duration timeout) throws Exception
             {
-            f_futureWriteReleased.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return f_futureWriteReleased.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             }
 
         /**
@@ -981,23 +991,23 @@ public class ClusteredDistributedReadWriteLockIT
             }
 
         /**
-         * Returns the time that the write lock was released.
+         * Returns the global order of the read lock released event.
          *
-         * @return the time that the write lock was released
+         * @return the global order of the read lock released event
          */
-        public Instant getReadReleasedAt()
+        public int getReadReleasedOrder()
             {
-            return m_readReleasedAt;
+            return f_futureReadReleased.join();
             }
 
         /**
-         * Returns the time that the write lock was released.
+         * Returns the global order of the write lock released event.
          *
-         * @return the time that the write lock was released
+         * @return the global order of the write lock released event
          */
-        public Instant getWriteReleasedAt()
+        public int getWriteReleasedOrder()
             {
-            return m_writeReleasedAt;
+            return f_futureWriteReleased.join();
             }
         }
 

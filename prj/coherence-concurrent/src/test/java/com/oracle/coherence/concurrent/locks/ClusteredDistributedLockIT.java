@@ -34,6 +34,8 @@ import com.oracle.bedrock.testsupport.junit.AbstractTestLogs;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.concurrent.atomic.Atomics;
+
 import com.tangosol.net.Coherence;
 
 import org.junit.jupiter.api.AfterEach;
@@ -44,14 +46,16 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.Serializable;
+
 import java.time.Duration;
-import java.time.Instant;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.lessThan;
 
 /**
  * Test distributed locks across multiple cluster members.
@@ -308,8 +312,8 @@ public class ClusteredDistributedLockIT
         member1.addListener(listener1);
         member2.addListener(listener2);
 
-        // Acquire the lock on first member (the lock will be held for 5 seconds)
-        member1.submit(new AcquireLock(sLockName, Duration.ofSeconds(5)));
+        // Acquire the lock on first member (the lock will be held for 2 seconds)
+        member1.submit(new AcquireLock(sLockName, Duration.ofSeconds(2)));
         // wait for the lock acquired event
         listener1.awaitAcquired(Duration.ofMinutes(1));
 
@@ -317,7 +321,7 @@ public class ClusteredDistributedLockIT
         assertThat(member2.invoke(new TryLock(sLockName)), is(false));
 
         // Acquire the lock on the second member, should block until the first member releases
-        member2.submit(new AcquireLock(sLockName, Duration.ofSeconds(5)));
+        member2.submit(new AcquireLock(sLockName, Duration.ofSeconds(1)));
 
         // wait for the second member to acquire the lock (should be after member 1 releases the lock)
         listener2.awaitAcquired(Duration.ofMinutes(1));
@@ -325,9 +329,13 @@ public class ClusteredDistributedLockIT
         listener2.awaitReleased(Duration.ofMinutes(1));
 
         // Assert the locks were acquired and released in the order expected
-        assertThat(listener1.getAcquiredAt().isBefore(listener1.getReleasedAt()), is(true));
-        assertThat(listener1.getReleasedAt().isBefore(listener2.getAcquiredAt()), is(true));
-        assertThat(listener2.getAcquiredAt().isBefore(listener2.getReleasedAt()), is(true));
+        System.out.println("Acquired #1: " + listener1.getAcquiredOrder());
+        System.out.println("Released #1: " + listener1.getReleasedOrder());
+        System.out.println("Acquired #2: " + listener2.getAcquiredOrder());
+        System.out.println("Released #2: " + listener2.getReleasedOrder());
+        assertThat(listener1.getAcquiredOrder(), lessThan(listener1.getReleasedOrder()));
+        assertThat(listener1.getReleasedOrder(), lessThan(listener2.getAcquiredOrder()));
+        assertThat(listener2.getAcquiredOrder(), lessThan(listener2.getReleasedOrder()));
         }
 
     // ----- inner class: TryLock -------------------------------------------
@@ -459,8 +467,8 @@ public class ClusteredDistributedLockIT
             lock.lock();
             try
                 {
-                Logger.info("Lock " + f_sLockName + " acquired by " + lock.getOwner());
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.Acquired));
+                Logger.info("Lock " + f_sLockName + " acquired by " + lock.getOwner());
                 Thread.sleep(f_duration.toMillis());
                 }
             catch (InterruptedException ignore)
@@ -469,8 +477,8 @@ public class ClusteredDistributedLockIT
             finally
                 {
                 lock.unlock();
-                Logger.info("Lock " + f_sLockName + " released by " + Thread.currentThread());
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.Released));
+                Logger.info("Lock " + f_sLockName + " released by " + Thread.currentThread());
                 }
             return null;
             }
@@ -496,6 +504,11 @@ public class ClusteredDistributedLockIT
         private final LockEventType f_type;
 
         /**
+         * The global order of the event.
+         */
+        private final int f_order;
+
+        /**
          * Create a lock event.
          *
          * @param sLockName  the name of the lock
@@ -505,6 +518,7 @@ public class ClusteredDistributedLockIT
             {
             f_sLockName = sLockName;
             f_type      = type;
+            f_order     = Atomics.getRemoteAtomicInteger("ClusteredDistributedLockIT.eventCounter").incrementAndGet();
             }
 
         /**
@@ -526,6 +540,16 @@ public class ClusteredDistributedLockIT
             {
             return f_type;
             }
+
+        /**
+         * Return the global event order.
+         *
+         * @return the global event order
+         */
+        public int getOrder()
+            {
+            return f_order;
+            }
         }
 
     // ----- inner class LockEventListener ----------------------------------
@@ -544,22 +568,12 @@ public class ClusteredDistributedLockIT
         /**
          * A future that completes when the lock acquired event is received.
          */
-        private final CompletableFuture<Void> f_futureAcquired = new CompletableFuture<>();
+        private final CompletableFuture<Integer> f_futureAcquired = new CompletableFuture<>();
 
         /**
          * A future that completes when the lock released event is received.
          */
-        private final CompletableFuture<Void> f_futureReleased = new CompletableFuture<>();
-
-        /**
-         * The time the lock was acquired.
-         */
-        private Instant m_acquiredAt;
-
-        /**
-         * The time the lock was released.
-         */
-        private Instant m_releasedAt;
+        private final CompletableFuture<Integer> f_futureReleased = new CompletableFuture<>();
 
         /**
          * Create a {@link LockEventListener}.
@@ -574,18 +588,20 @@ public class ClusteredDistributedLockIT
         @Override
         public void onEvent(RemoteEvent event)
             {
-            if (event instanceof LockEvent && f_sLockName.equals(((LockEvent) event).getLockName()))
+            if (event instanceof LockEvent)
                 {
-                switch (((LockEvent) event).getEventType())
+                LockEvent e = (LockEvent) event;
+                if (f_sLockName.equals(e.getLockName()))
                     {
-                    case Acquired:
-                        m_acquiredAt = Instant.now();
-                        f_futureAcquired.complete(null);
-                        break;
-                    case Released:
-                        m_releasedAt = Instant.now();
-                        f_futureReleased.complete(null);
-                        break;
+                    switch (e.getEventType())
+                        {
+                        case Acquired:
+                            f_futureAcquired.complete(e.getOrder());
+                            break;
+                        case Released:
+                            f_futureReleased.complete(e.getOrder());
+                            break;
+                        }
                     }
                 }
             }
@@ -594,10 +610,12 @@ public class ClusteredDistributedLockIT
          * Wait for the lock acquired event.
          *
          * @param timeout  the maximum amount of time to wait
+         *
+         * @return the global order of the lock acquired event
          */
-        public void awaitAcquired(Duration timeout) throws Exception
+        public int awaitAcquired(Duration timeout) throws Exception
             {
-            f_futureAcquired.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return f_futureAcquired.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             }
 
         /**
@@ -611,23 +629,25 @@ public class ClusteredDistributedLockIT
             }
 
         /**
-         * Returns the time that the lock was acquired.
+         * Returns the global order of the lock acquired event.
          *
-         * @return the time that the lock was acquired
+         * @return the global order of the lock acquired event
          */
-        public Instant getAcquiredAt()
+        public int getAcquiredOrder()
             {
-            return m_acquiredAt;
+            return f_futureAcquired.join();
             }
 
         /**
          * Wait for the lock released event.
          *
          * @param timeout  the maximum amount of time to wait
+         *
+         * @return the global order of the lock released event
          */
-        public void awaitReleased(Duration timeout) throws Exception
+        public int awaitReleased(Duration timeout) throws Exception
             {
-            f_futureReleased.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return f_futureReleased.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             }
 
         /**
@@ -641,13 +661,13 @@ public class ClusteredDistributedLockIT
             }
 
         /**
-         * Returns the time that the lock was released.
+         * Returns the global order of the lock released event.
          *
-         * @return the time that the lock was released
+         * @return the global order of the lock released event
          */
-        public Instant getReleasedAt()
+        public int getReleasedOrder()
             {
-            return m_releasedAt;
+            return f_futureReleased.join();
             }
         }
 
