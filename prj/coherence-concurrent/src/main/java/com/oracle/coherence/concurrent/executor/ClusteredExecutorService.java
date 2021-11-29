@@ -11,7 +11,6 @@ import com.oracle.coherence.concurrent.executor.atomic.AtomicEnum;
 import com.oracle.coherence.concurrent.executor.function.Predicates;
 
 import com.oracle.coherence.concurrent.executor.options.Member;
-import com.oracle.coherence.concurrent.executor.options.Name;
 import com.oracle.coherence.concurrent.executor.options.Role;
 
 import com.oracle.coherence.concurrent.executor.subscribers.internal.AnyFutureSubscriber;
@@ -61,8 +60,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * An Oracle Coherence based {@link TaskExecutorService}.
@@ -134,12 +131,6 @@ public class ClusteredExecutorService
     @Override
     public Registration register(ExecutorService executor, Registration.Option... options)
         {
-        return register(executor, null, options);
-        }
-
-    @Override
-    public Registration register(ExecutorService executor, Remote.Supplier<ExecutorService> supplier, Registration.Option... options)
-        {
         if (isShutdown())
             {
             throw new IllegalStateException("ClusteredExecutorService [" + this + "] is "
@@ -166,16 +157,11 @@ public class ClusteredExecutorService
                 optionsByType.add(Role.of(member.get().getRoleName()));
                 }
 
-            if (optionsByType.get(Name.class, null) != null)
-                {
-                RemoteExecutors.registerExecutorName(optionsByType.get(Name.class, Name.of("UNNAMED")));
-                }
-
             // establish a unique identity for the registration
             String sIdentity = UUID.randomUUID().toString();
 
             // create a local registration for the executor
-            registration = new ClusteredRegistration(this, sIdentity, executor, optionsByType, supplier);
+            registration = new ClusteredRegistration(this, sIdentity, executor, optionsByType);
 
             ClusteredRegistration existingRegistration = f_mapLocalRegistrations.putIfAbsent(executor, registration);
 
@@ -240,7 +226,123 @@ public class ClusteredExecutorService
         return null;
         }
 
-    // ----- RemoteExecutorService interface --------------------------------
+    // ----- lifecycle methods ----------------------------------------------
+
+    /**
+     * Returns {@code true} if this executor has been shut down.
+     *
+     * @return {@code true} if this executor has been shut down
+     */
+    public boolean isShutdown()
+        {
+        return f_state.get().compareTo(State.STOPPING_GRACEFULLY) >= 0;
+        }
+
+    /**
+     * Returns {@code true} if all tasks have completed following shut down.
+     * Note that {@code isTerminated} is never {@code true} unless
+     * either {@code shutdown} or {@code shutdownNow} was called first.
+     *
+     * @return {@code true} if all tasks have completed following shut down
+     */
+    public boolean isTerminated()
+        {
+        if (f_state.get().equals(State.TERMINATED))
+            {
+            return true;
+            }
+        else if (f_scheduledExecutorService.isTerminated())
+            {
+            // f_scheduledExecutorService has finished shutting down
+            setState(State.ANY, State.TERMINATED);
+
+            return true;
+            }
+        else
+            {
+            return false;
+            }
+        }
+
+    /**
+     * Blocks until all tasks have completed execution after a shutdown
+     * request, or the timeout occurs, or the current thread is
+     * interrupted, whichever happens first.
+     *
+     * @param lcTimeout  the maximum time to wait
+     * @param unit       the time unit of the timeout argument
+     *
+     * @return {@code true} if this executor terminated and
+     *         {@code false} if the timeout elapsed before termination
+     *
+     * @throws InterruptedException if interrupted while waiting
+     */
+    public boolean awaitTermination(long lcTimeout, TimeUnit unit)
+            throws InterruptedException
+        {
+        if (isTerminated())
+            {
+            return true;
+            }
+        else
+            {
+            // wait for f_scheduledExecutorService to terminate
+            return f_scheduledExecutorService.awaitTermination(lcTimeout, unit);
+            }
+        }
+
+    /**
+     * Initiates an orderly shutdown in which previously submitted
+     * tasks are executed, but no new tasks will be accepted.
+     * Invocation has no additional effect if already shut down.
+     *
+     * <p>This method does not wait for previously submitted tasks to
+     * complete execution.  Use {@link #awaitTermination awaitTermination}
+     * to do that.
+     */
+    public void shutdown()
+        {
+        if (shutdownInternal())
+            {
+            if (f_mapLocalRegistrations.isEmpty())
+                {
+                f_scheduledExecutorService.shutdown();
+                }
+            else
+                {
+                // set local executors to stop accepting tasks, and close() gracefully
+                for (ClusteredRegistration registration : f_mapLocalRegistrations.values())
+                    {
+                    registration.shutdown();
+                    }
+                }
+            }
+        }
+
+    /**
+     * Attempts to stop all actively executing tasks, halts the
+     * processing of waiting tasks, and returns a list of the tasks
+     * that were awaiting execution.
+     *
+     * <p>This method does not wait for actively executing tasks to
+     * terminate.  Use {@link #awaitTermination awaitTermination} to
+     * do that.
+     *
+     * <p>There are no guarantees beyond best-effort attempts to stop
+     * processing actively executing tasks.  For example, typical
+     * implementations will cancel via {@link Thread#interrupt}, so any
+     * task that fails to respond to interrupts may never terminate.
+     *
+     * @return list of tasks that never commenced execution
+     */
+    public List<Runnable> shutdownNow()
+        {
+        shutdownNowInternal();
+
+        return Collections.emptyList();
+        }
+
+    // ----- RemoteExecutor interface --------------------------------
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
@@ -269,75 +371,6 @@ public class ClusteredExecutorService
                     .limit(1)
                     .submit();
             }
-        }
-
-    @Override
-    public boolean isShutdown()
-        {
-        return f_state.get().compareTo(State.STOPPING_GRACEFULLY) >= 0;
-        }
-
-    @Override
-    public boolean isTerminated()
-        {
-        if (f_state.get().equals(State.TERMINATED))
-            {
-            return true;
-            }
-        else if (f_scheduledExecutorService.isTerminated())
-            {
-            // f_scheduledExecutorService has finished shutting down
-            setState(State.ANY, State.TERMINATED);
-
-            return true;
-            }
-        else
-            {
-            return false;
-            }
-        }
-
-    @Override
-    public boolean awaitTermination(long lcTimeout, TimeUnit unit)
-            throws InterruptedException
-        {
-        if (isTerminated())
-            {
-            return true;
-            }
-        else
-            {
-            // wait for f_scheduledExecutorService to terminate
-            return f_scheduledExecutorService.awaitTermination(lcTimeout, unit);
-            }
-        }
-
-    @Override
-    public void shutdown()
-        {
-        if (shutdownInternal())
-            {
-            if (f_mapLocalRegistrations.isEmpty())
-                {
-                f_scheduledExecutorService.shutdown();
-                }
-            else
-                {
-                // set local executors to stop accepting tasks, and close() gracefully
-                for (ClusteredRegistration registration : f_mapLocalRegistrations.values())
-                    {
-                    registration.shutdown();
-                    }
-                }
-            }
-        }
-
-    @Override
-    public List<Runnable> shutdownNow()
-        {
-        shutdownNowInternal();
-
-        return Collections.emptyList();
         }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -481,7 +514,7 @@ public class ClusteredExecutorService
                     {
                     try
                         {
-                        f.get(lcDeadline - System.nanoTime(), NANOSECONDS);
+                        f.get(lcDeadline - System.nanoTime(), TimeUnit.NANOSECONDS);
                         }
                     catch (CancellationException | ExecutionException ignore)
                         {
@@ -1010,7 +1043,7 @@ public class ClusteredExecutorService
                 {
                 return 0;
                 }
-            long diff = getDelay(NANOSECONDS) - o.getDelay(NANOSECONDS);
+            long diff = getDelay(TimeUnit.NANOSECONDS) - o.getDelay(TimeUnit.NANOSECONDS);
             return (diff < 0) ? -1 : (diff > 0) ? 1 : 0;
             }
 

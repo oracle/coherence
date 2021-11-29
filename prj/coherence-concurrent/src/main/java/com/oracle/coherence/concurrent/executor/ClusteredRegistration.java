@@ -8,12 +8,16 @@ package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.concurrent.executor.management.ExecutorMBean;
+import com.oracle.coherence.concurrent.executor.options.Details;
+import com.oracle.coherence.concurrent.executor.options.Member;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 
 import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
@@ -26,13 +30,12 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
-import com.tangosol.util.function.Remote;
-
 import com.tangosol.util.processor.ConditionalPut;
 import com.tangosol.util.processor.ExtractorProcessor;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -64,14 +67,13 @@ public class ClusteredRegistration
      * @param optionsByType             the {@link Option}s for the {@link Executor}
      */
     public ClusteredRegistration(ClusteredExecutorService clusteredExecutorService, String sExecutorId,
-            ExecutorService executor, OptionsByType<Option> optionsByType, Remote.Supplier<ExecutorService> supplier)
+            ExecutorService executor, OptionsByType<Option> optionsByType)
         {
         f_clusteredExecutorService = clusteredExecutorService;
         f_sExecutorId              = sExecutorId;
         f_executor                 = executor;
         f_optionsByType            = optionsByType;
         f_mapTaskExecutors         = new ConcurrentHashMap<>();
-        m_supplier                 = supplier;
         }
 
     // ----- TaskExecutorService.Registration interface ---------------------
@@ -119,18 +121,6 @@ public class ClusteredRegistration
     public long getTasksInProgressCount()
         {
         return m_cTasksInProgressCount;
-        }
-
-    /**
-     * Return the {@link Remote.Supplier} used to create {@link ExecutorService}s
-     * across the coherence cluster.
-     *
-     * @return the {@link Remote.Supplier} used to create {@link ExecutorService}s
-     *         across the coherence cluster
-     */
-    public ExecutorService getRegisteredService()
-        {
-        return f_executor;
         }
 
    // ----- MapListener interface -------------------------------------------
@@ -226,6 +216,199 @@ public class ClusteredRegistration
                 // ClusteredExecutorService shutting down
                 }
             }
+        }
+
+    // ----- inner class: ExecutorMBeanImpl ---------------------------------
+
+    /**
+     * {@link ExecutorMBean} implementation.
+     */
+    protected class ExecutorMBeanImpl
+            implements ExecutorMBean
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Constructs a {@code ExecutorMBeanImpl}.
+         *
+         * @param sName        the executor name
+         * @param nMemberId    the member ID the executor is running on
+         * @param sLocation    the location details of the executor
+         * @param sExecutorId  the ID of the executor
+         * @param sDetails     the details of the executor type
+         */
+        public ExecutorMBeanImpl(String sName, int nMemberId, String sLocation, String sExecutorId, String sDetails)
+            {
+            f_sName       = sName;
+            f_nMemberId   = nMemberId;
+            f_sDetails    = sDetails;
+            f_sLocation   = sLocation;
+            f_sExecutorId = sExecutorId;
+            }
+
+        // ----- ExecutorMBean interface ------------------------------------
+
+        @Override
+        public void resetStatistics()
+            {
+            m_cTasksCompletedCount  = 0;
+            m_cTasksRejectedCount   = 0;
+            m_cTasksInProgressCount = 0;
+            }
+
+        @Override
+        public int getMemberId()
+            {
+            return f_nMemberId;
+            }
+
+        @Override
+        public String getExecutorName()
+            {
+            return f_sName;
+            }
+
+        @Override
+        public String getExecutorId()
+            {
+            return f_sExecutorId;
+            }
+
+        @Override
+        public String getExecutorDetails()
+            {
+            return f_sDetails;
+            }
+
+        @Override
+        public String getLocation()
+            {
+            return f_sLocation;
+            }
+
+        @Override
+        public String getState()
+            {
+            return m_sState;
+            }
+
+        @Override
+        public long getTasksCompletedCount()
+            {
+            return m_cTasksCompletedCount;
+            }
+
+        @Override
+        public long getTasksRejectedCount()
+            {
+            return m_cTasksRejectedCount;
+            }
+
+        @Override
+        public long getTasksInProgressCount()
+            {
+            return m_cTasksInProgressCount;
+            }
+
+        @Override
+        public boolean isTraceLogging()
+            {
+            return s_fTraceLogging;
+            }
+
+        // ----- setters ----------------------------------------------------
+
+        /**
+         * Set the current executor state.
+         *
+         * @param sState  the current executor state
+         */
+        void setState(String sState)
+            {
+            m_sState = sState;
+            }
+
+        // ----- operations -------------------------------------------------
+
+        @Override
+        public void setTraceLogging(boolean fTrace)
+            {
+            s_fTraceLogging = fTrace;
+            }
+
+        // ----- object methods -------------------------------------------------
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (this == o)
+                {
+                return true;
+                }
+
+            if (!(o instanceof ExecutorMBeanImpl))
+                {
+                return false;
+                }
+
+            ExecutorMBeanImpl that = (ExecutorMBeanImpl) o;
+
+            return f_sExecutorId.equals(that.f_sExecutorId);
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hash(f_sExecutorId);
+            }
+
+        @Override
+        public String toString()
+            {
+            return "ExecutorMBeanImpl{" +
+                   "member-id=" + f_nMemberId +
+                   ", name='" + f_sName + '\'' +
+                   ", id='" + f_sExecutorId + '\'' +
+                   ", details='" + f_sDetails + '\'' +
+                   ", location='" + f_sLocation + '\'' +
+                   ", state='" + m_sState + '\'' +
+                   ", tasks-completed='" + m_cTasksCompletedCount + '\'' +
+                   ", tasks-in-progress='" + m_cTasksInProgressCount + '\'' +
+                   ", tasks-rejected='" + m_cTasksRejectedCount + '\'' +
+                   '}';
+            }
+
+        // ----- data members ---------------------------------------------------
+
+        /**
+         * The member ID which hosts the executor.
+         */
+        protected final int f_nMemberId;
+
+        /**
+         * The logical name of the executor.
+         */
+        protected final String f_sName;
+
+        /**
+         * The details of the executor.
+         */
+        protected final String f_sDetails;
+
+        /**
+         * The location of the executor.
+         */
+        protected final String f_sLocation;
+
+        /**
+         * The executor ID.
+         */
+        protected final String f_sExecutorId;
+
+        /**
+         * The state of the executor.
+         */
+        protected String m_sState;
         }
 
     // ----- inner class TaskExecutor --------------------------------------
@@ -670,7 +853,7 @@ public class ClusteredRegistration
             CacheService service = f_clusteredExecutorService.getCacheService();
 
             // register a listener to detect external closing of the Executor
-            service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null).addMapListener(f_listener, f_sExecutorId, true);
+            service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null).addMapListener(f_listener, f_sExecutorId, false);
 
             // create a view for the task assignments to the Executor
             NamedCache clusteredAssignment = service.ensureCache(ClusteredAssignment.CACHE_NAME, null);
@@ -688,7 +871,7 @@ public class ClusteredRegistration
             // attempt to create the information for the executor
             ClusteredExecutorInfo info =
                     new ClusteredExecutorInfo(f_sExecutorId, System.currentTimeMillis(), runtime.maxMemory(),
-                            runtime.totalMemory(), runtime.freeMemory(), f_optionsByType, getRegisteredService(), m_supplier);
+                            runtime.totalMemory(), runtime.freeMemory(), f_optionsByType);
 
             // register locally with the executor so that it may be shutdown later
             service.getResourceRegistry().registerResource(ClusteredExecutorInfo.class, f_sExecutorId, info);
@@ -699,6 +882,16 @@ public class ClusteredRegistration
 
             if (existingInfo == null)
                 {
+                m_executorMBean = new ExecutorMBeanImpl(info.getExecutorName(),
+                                                        f_optionsByType.get(Member.class, null).get().getId(),
+                                                        f_optionsByType.get(Member.class, null).get().toString(),
+                                                        f_sExecutorId,
+                                                        f_optionsByType.get(Details.class, Details.UNKNOWN).getName());
+
+                //service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null).addMapListener(m_executorMBean, f_sExecutorId, false);
+
+                ExecutorsHelper.registerExecutorMBean(service, m_executorMBean, info);
+
                 // schedule a callable to update the state of the executor in the cluster using the
                 // local ScheduledExecutorService from the ClusteredExecutorService
                 m_scheduledFuture =
@@ -748,15 +941,26 @@ public class ClusteredRegistration
             // be in the process of shutting down
             ThreadFactories.createThreadFactory(true, "Cleanup", null).newThread(() ->
                 {
-                NamedCache esCache =
-                        f_clusteredExecutorService.getCacheService()
-                                .ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+                CacheService      service       = f_clusteredExecutorService.getCacheService();
+                NamedCache        esCache       = service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+                ExecutorMBeanImpl executorMBean = m_executorMBean;
 
-                // deregister Executor entry listener
-                esCache.removeMapListener(f_listener, f_sExecutorId);
+                ExecutorsHelper.unregisterExecutiveServiceMBean(
+                        f_clusteredExecutorService.getCacheService(),
+                        executorMBean.getExecutorName());
 
-                esCache.invoke(f_sExecutorId, new ClusteredExecutorInfo.SetStateProcessor(
-                        TaskExecutorService.ExecutorInfo.State.CLOSING));
+                if (esCache.isActive())
+                    {
+                    // deregister Executor entry listener
+                    esCache.removeMapListener(f_listener, f_sExecutorId);
+                    }
+
+                if (esCache.isActive())
+                    {
+                    esCache.invoke(f_sExecutorId, new ClusteredExecutorInfo.SetStateProcessor(
+                            TaskExecutorService.ExecutorInfo.State.CLOSING));
+                    }
+
                 }).start();
 
             // release the assignments cache (as it's a CQC)
@@ -787,6 +991,17 @@ public class ClusteredRegistration
     // ----- data members ---------------------------------------------------
 
     /**
+     * The executor attribute to indicate whether trace logging is
+     * enabled.
+     *
+     * By default, the executor trace logging is disabled. You can enable
+     * it by either setting the "coherence.executor.trace.logging" system
+     * property or the "TraceLogging" attribute in ExecutorMBean through JMX or
+     * management over REST.
+     */
+    public static boolean s_fTraceLogging = Config.getBoolean("coherence.executor.trace.logging", false);
+
+    /**
      * Listener to detect changes on the cache entry for the {@link Executor}.
      */
     @SuppressWarnings("rawtypes")
@@ -803,7 +1018,13 @@ public class ClusteredRegistration
         @Override
         public void entryUpdated(MapEvent mapEvent)
             {
-            // we ignore updates
+            ClusteredExecutorInfo info = (ClusteredExecutorInfo) mapEvent.getNewValue();
+
+            TaskExecutorService.ExecutorInfo.State stateInfo  = info.getState();
+            if (stateInfo != null && m_executorMBean != null)
+                {
+                m_executorMBean.setState(stateInfo.name());
+                }
             }
 
         @Override
@@ -885,8 +1106,7 @@ public class ClusteredRegistration
     protected final ConcurrentHashMap<String, TaskExecutor> f_mapTaskExecutors;
 
     /**
-     * The {@link Remote.Supplier} used to create {@link ExecutorService}s
-     * across the coherence cluster.
+     * The MBean for the registered executor.
      */
-    protected Remote.Supplier<ExecutorService> m_supplier;
+    protected ExecutorMBeanImpl m_executorMBean;
     }

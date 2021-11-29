@@ -33,7 +33,7 @@ import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
-import com.oracle.coherence.concurrent.executor.RemoteExecutors;
+import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
@@ -265,7 +265,7 @@ public class TaskExecutorServicePersistenceTests
         return (ClusteredExecutorInfo) executorInfoCache.get(executorId);
         }
 
-    protected TaskExecutorService createExecutorService()
+    protected ClusteredExecutorService createExecutorService()
         {
         return new ClusteredExecutorService(m_cacheFactory);
         }
@@ -341,7 +341,7 @@ public class TaskExecutorServicePersistenceTests
             (CoherenceClusterResource) new CoherenceClusterResource()
                     .with(OperationalOverride.of("persistence-override.xml"),
                           ClassName.of(Coherence.class),
-                          SystemProperty.of(RemoteExecutors.EXECUTOR_CONFIG_OVERRIDE, "coherence-executor-persistence-cache-config.xml"),
+                          SystemProperty.of(ExecutorsHelper.EXECUTOR_CONFIG_OVERRIDE, "coherence-executor-persistence-cache-config.xml"),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),
@@ -405,5 +405,5 @@ public class TaskExecutorServicePersistenceTests
     /**
      * The {@link TaskExecutorService}.
      */
-    protected TaskExecutorService m_taskExecutorService;
+    protected ClusteredExecutorService m_taskExecutorService;
     }

@@ -9,11 +9,10 @@ package com.oracle.coherence.concurrent.executor.internal;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
-
+import com.oracle.coherence.concurrent.config.ConcurrentConfiguration;
+import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
 import com.oracle.coherence.concurrent.executor.ThreadFactories;
 import com.oracle.coherence.concurrent.executor.options.ClusterMember;
-import com.oracle.coherence.concurrent.executor.options.Name;
 
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
@@ -33,7 +32,6 @@ import com.tangosol.net.events.application.LifecycleEvent;
 import com.tangosol.util.Base;
 import com.tangosol.util.ResourceRegistry;
 
-import com.tangosol.util.function.Remote;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -99,21 +97,8 @@ public class LifecycleEventInterceptor
                         Storage storage = Storage.enabled(service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled());
                         clusteredExecutorService.register(managedExecutorService, storage, ClusterMember.INSTANCE);
 
-                        // For each named ExecutorService registration that has a supplier
-                        // will be registered on this member.
-                        NamedCache<String, ClusteredExecutorInfo> executorInfos = configurableCacheFactory.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
-                        for (ClusteredExecutorInfo executorInfo : executorInfos.values())
-                            {
-                            Remote.Supplier<ExecutorService> supplier = executorInfo.getSupplier();
-                            if (supplier != null)
-                                {
-                                clusteredExecutorService.register(supplier.get(),
-                                                                  supplier,
-                                                                  executorInfo.getOption(Name.class, null),
-                                                                  storage,
-                                                                  ClusterMember.INSTANCE);
-                                }
-                            }
+                        ConcurrentConfiguration configuration = ConcurrentConfiguration.get();
+                        configuration.setExecutorService(clusteredExecutorService);
                         }
                     else
                         {
@@ -124,7 +109,6 @@ public class LifecycleEventInterceptor
                                           + " or is not running.";
                             Logger.warn(String.format(sMsg, member.getId()));
                             }
-
                         }
                     }
                 else

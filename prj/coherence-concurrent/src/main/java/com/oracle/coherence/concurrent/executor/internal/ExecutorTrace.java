@@ -9,7 +9,8 @@ package com.oracle.coherence.concurrent.executor.internal;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
+import com.oracle.coherence.concurrent.executor.ClusteredRegistration;
+
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 
 import java.util.function.Supplier;
@@ -33,14 +34,14 @@ public class ExecutorTrace
      */
     public static boolean isEnabled(int nSeverity)
         {
-        return ClusteredExecutorInfo.s_fTraceLogging && Logger.isEnabled(nSeverity);
+        return ClusteredRegistration.s_fTraceLogging && Logger.isEnabled(nSeverity);
         }
 
     /**
      * Log the specified message at the Debugging severity level. Default
      * severity level is Logger.FINEST.
      *
-     * @param message  the the message to log
+     * @param message  the message to log
      */
     public static void log(String message)
         {

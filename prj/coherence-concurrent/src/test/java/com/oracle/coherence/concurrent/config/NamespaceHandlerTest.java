@@ -6,16 +6,15 @@
  */
 package com.oracle.coherence.concurrent.config;
 
-import com.oracle.coherence.concurrent.config.builders.ConcurrentConfigurationBuilder;
-import com.oracle.coherence.concurrent.config.builders.ExecutorServiceBuilder;
-
-import com.oracle.coherence.concurrent.config.processors.ConcurrentConfigurationProcessor;
-import com.oracle.coherence.concurrent.config.processors.ExecutorServiceProcessor;
-import com.oracle.coherence.concurrent.config.processors.ExecutorServicesProcessor;
+import com.oracle.coherence.concurrent.config.processors.CachedProcessor;
+import com.oracle.coherence.concurrent.config.processors.FixedProcessor;
+import com.oracle.coherence.concurrent.config.processors.SingleProcessor;
+import com.oracle.coherence.concurrent.config.processors.WorkStealingProcessor;
 
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 
 import com.tangosol.coherence.config.xml.CacheConfigNamespaceHandler;
+
 import com.tangosol.config.xml.DefaultProcessingContext;
 import com.tangosol.config.xml.DocumentProcessor;
 import com.tangosol.config.xml.ElementProcessor;
@@ -23,10 +22,6 @@ import com.tangosol.config.xml.ProcessingContext;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
-
-import java.util.List;
-
-import java.util.concurrent.ExecutorService;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -60,182 +55,194 @@ public class NamespaceHandlerTest
 
     // ----- test methods ---------------------------------------------------
 
-    /**
-     * Validate {@link ExecutorServicesProcessor}.
-     */
     @Test
-    void testExecutorServiceProcessor()
+    void testFixedThreadPool()
         {
-        NamedExecutorService result =
-                realizeNamedExecutorService("<c:executor-service>\n"
-                                          + "  <name>test</name>\n"
-                                          + "  <instance>\n"
-                                          + "    <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
-                                          + "    <method-name>newSingleThreadExecutor</method-name>\n"
-                                          + "  </instance>\n"
-                                          + "</c:executor-service>");
-        assertThat(result, is(notNullValue()));
-        }
+        String sXml = "<e:fixed>\n"
+                    + "  <e:name>test</e:name>\n"
+                    + "  <e:thread-count>5</e:thread-count>\n"
+                    + "</e:fixed>";
 
-    /**
-     * Validate {@link ExecutorServicesProcessor}.
-     */
-    @Test
-    void testExecutorServicesProcessor()
-        {
-        List<ExecutorServiceBuilder> result =
-                realizeExecutorServiceBuilders("<c:executor-services>\n"
-                                               + "  <c:executor-service>\n"
-                                               + "    <name>test</name>\n"
-                                               + "    <instance>\n"
-                                               + "      <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
-                                               + "      <method-name>newSingleThreadExecutor</method-name>\n"
-                                               + "    </instance>\n"
-                                               + "  </c:executor-service>\n"
-                                               + "  <c:executor-service>\n"
-                                               + "    <name>test2</name>\n"
-                                               + "    <instance>\n"
-                                               + "      <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
-                                               + "      <method-name>newFixedThreadPool</method-name>\n"
-                                               + "        <init-params>\n"
-                                               + "          <init-param>\n"
-                                               + "            <param-name>nThreads</param-name>\n"
-                                               + "            <param-type>int</param-type>\n"
-                                               + "            <param-value>5</param-value>\n"
-                                               + "          </init-param>\n"
-                                               + "        </init-params>"
-                                               + "    </instance>\n"
-                                               + "  </c:executor-service>\n"
-                                               + "</c:executor-services>");
-        assertThat(result, is(notNullValue()));
-
-        assertThat(result.size(), is(2));
-
-        validate("test",  result.get(0));
-        validate("test2", result.get(1));
-        }
-
-    /**
-     * Validate {@link ConcurrentConfigurationProcessor}.
-     */
-    @Test
-    void testConcurrentConfigurationProcessorWithMultipleExecutors()
-        {
-        ConcurrentConfiguration result =
-                realizeConcurrentConfiguration("<c:concurrent-config>\n"
-                                             + "  <c:executor-services>\n"
-                                             + "    <c:executor-service>\n"
-                                             + "      <name>test</name>\n"
-                                             + "      <instance>\n"
-                                             + "        <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
-                                             + "        <method-name>newSingleThreadExecutor</method-name>\n"
-                                             + "      </instance>\n"
-                                             + "    </c:executor-service>\n"
-                                             + "    <c:executor-service>\n"
-                                             + "      <name>test2</name>\n"
-                                             + "      <instance>\n"
-                                             + "        <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
-                                             + "        <method-name>newSingleThreadExecutor</method-name>\n"
-                                             + "      </instance>\n"
-                                             + "    </c:executor-service>\n"
-                                             + "  </c:executor-services>\n"
-                                             + "</c:concurrent-config>");
-        assertThat(result, notNullValue());
-
-        List<NamedExecutorService> services = result.getNamedExecutorServices();
-        assertThat(services, is(notNullValue()));
-        assertThat(services.size(), is(2));
-        }
-
-    /**
-     * Validate {@link ConcurrentConfigurationProcessor} when no executors
-     * have been defined.
-     */
-    @Test
-    void testConcurrentConfigurationProcessorWithNoExecutors()
-        {
-        ConcurrentConfiguration result =
-                realizeConcurrentConfiguration("<c:concurrent-config>\n"
-                                             + "</c:concurrent-config>");
-        assertThat(result, is(notNullValue()));
-
-        List<NamedExecutorService> services = result.getNamedExecutorServices();
-        assertThat(services, notNullValue());
-        assertThat(services.size(), is(0));
-        }
-
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Validates the {@link ExecutorServiceBuilder} is configured as expected.
-     *
-     * @param sExpectedName  the expected executor name
-     * @param service        the {@link ExecutorServiceBuilder} to validate
-     */
-    protected void validate(String sExpectedName, ExecutorServiceBuilder service)
-        {
-        NamedExecutorService namedService = service.realize(null, null, null);
-
-        assertThat(namedService.getName(), is(sExpectedName));
-        assertThat(namedService.f_supplier, is(notNullValue()));
-        ExecutorService service1Actual = namedService.getExecutorService();
-        assertThat(service1Actual, is(notNullValue()));
-        }
-
-    /**
-     * Realizes xml content for {@code executor-service} elements.
-     *
-     * @param sXml  the XML to produce a {@link NamedExecutorService}
-     *
-     * @return the realized {@link NamedExecutorService}
-     */
-    protected NamedExecutorService realizeNamedExecutorService(String sXml)
-        {
         XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
         NamespaceHandler    handler   = new NamespaceHandler();
         ElementProcessor<?> processor = handler.getElementProcessor(xml);
 
-        assertThat(processor, instanceOf(ExecutorServiceProcessor.class));
+        assertThat(processor, instanceOf(FixedProcessor.class));
 
-        ExecutorServiceBuilder builder = ((ExecutorServiceProcessor) processor).process(context, xml);
-        return builder.realize(null, null, null);
+        NamedExecutorService result = ((FixedProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDetails(),         is("FixedThreadPool(ThreadCount=5, ThreadFactory=false)"));
         }
 
-    /**
-     * Realizes xml content for {@code executor-services} elements.
-     *
-     * @param sXml  the XML to produce a list of {@link ExecutorServiceBuilder}
-     *
-     * @return the realized list of {@link ExecutorServiceBuilder}
-     */
-    protected List<ExecutorServiceBuilder> realizeExecutorServiceBuilders(String sXml)
+    @Test
+    void testFixedThreadPoolWithThreadFactory()
         {
+        String sXml = "<e:fixed>\n"
+                    + "  <e:name>test1</e:name>\n"
+                    + "  <e:thread-count>5</e:thread-count>\n"
+                    + "  <e:thread-factory>\n"
+                    + "  <instance>\n"
+                    + "    <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
+                    + "    <method-name>defaultThreadFactory</method-name>\n"
+                    + "  </instance>\n"
+                    + "  </e:thread-factory>\n"
+                    + "</e:fixed>";
+
         XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
         NamespaceHandler    handler   = new NamespaceHandler();
         ElementProcessor<?> processor = handler.getElementProcessor(xml);
 
-        assertThat(processor, instanceOf(ExecutorServicesProcessor.class));
+        assertThat(processor, instanceOf(FixedProcessor.class));
 
-        return ((ExecutorServicesProcessor) processor).process(context, xml);
+        NamedExecutorService result = ((FixedProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test1"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDetails(),         is("FixedThreadPool(ThreadCount=5, ThreadFactory=true)"));
         }
 
-    /**
-     * Realizes xml content for {@code concurrent-config} elements.
-     *
-     * @param sXml  the XML to produce a  {@link ConcurrentConfiguration}
-     *
-     * @return the realized {@link ConcurrentConfiguration}
-     */
-    protected ConcurrentConfiguration realizeConcurrentConfiguration(String sXml)
+    @Test
+    void testSingleThreaded()
         {
+        String sXml = "<e:single>\n"
+                    + "  <e:name>test2</e:name>\n"
+                    + "</e:single>";
+
         XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
         NamespaceHandler    handler   = new NamespaceHandler();
         ElementProcessor<?> processor = handler.getElementProcessor(xml);
 
-        assertThat(processor, instanceOf(ConcurrentConfigurationProcessor.class));
+        assertThat(processor, instanceOf(SingleProcessor.class));
 
-        ConcurrentConfigurationBuilder builder = ((ConcurrentConfigurationProcessor) processor).process(context, xml);
-        return builder.realize(null, null, null);
+        NamedExecutorService result = ((SingleProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test2"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDetails(),         is("SingleThreaded(ThreadFactory=false)"));
+        }
+
+    @Test
+    void testSingleThreadedWithThreadFactory()
+        {
+        String sXml = "<e:single>\n"
+                    + "  <e:name>test3</e:name>\n"
+                    + "  <e:thread-factory>\n"
+                    + "  <instance>\n"
+                    + "    <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
+                    + "    <method-name>defaultThreadFactory</method-name>\n"
+                    + "  </instance>\n"
+                    + "  </e:thread-factory>\n"
+                    + "</e:single>";
+
+        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler   = new NamespaceHandler();
+        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+
+        assertThat(processor, instanceOf(SingleProcessor.class));
+
+        NamedExecutorService result = ((SingleProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test3"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDetails(),         is("SingleThreaded(ThreadFactory=true)"));
+        }
+
+    @Test
+    void testCached()
+        {
+        String sXml = "<e:cached>\n"
+                    + "  <e:name>test4</e:name>\n"
+                    + "</e:cached>";
+
+        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler   = new NamespaceHandler();
+        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+
+        assertThat(processor, instanceOf(CachedProcessor.class));
+
+        NamedExecutorService result = ((CachedProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test4"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDetails(),         is("CachedThreadPool(ThreadFactory=false)"));
+        }
+
+    @Test
+    void testCachedWithThreadFactory()
+        {
+        String sXml = "<e:cached>\n"
+                    + "  <e:name>test5</e:name>\n"
+                    + "  <e:thread-factory>\n"
+                    + "  <instance>\n"
+                    + "    <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
+                    + "    <method-name>defaultThreadFactory</method-name>\n"
+                    + "  </instance>\n"
+                    + "  </e:thread-factory>\n"
+                    + "</e:cached>";
+
+        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler   = new NamespaceHandler();
+        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+
+        assertThat(processor, instanceOf(CachedProcessor.class));
+
+        NamedExecutorService result = ((CachedProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test5"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDetails(),         is("CachedThreadPool(ThreadFactory=true)"));
+        }
+
+    @Test
+    void testWorkStealing()
+        {
+        String sXml = "<e:work-stealing>\n"
+                    + "  <e:name>test6</e:name>\n"
+                    + "</e:work-stealing>";
+
+        int                 nProcessors = Runtime.getRuntime().availableProcessors();
+        XmlElement          xml         = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler     = new NamespaceHandler();
+        ElementProcessor<?> processor   = handler.getElementProcessor(xml);
+
+        assertThat(processor, instanceOf(WorkStealingProcessor.class));
+
+        NamedExecutorService result = ((WorkStealingProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test6"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDetails(),         is("WorkStealingThreadPool(Parallelism=" + nProcessors + ')'));
+        }
+
+    @Test
+    void testWorkStealingWithParallelism()
+        {
+        String sXml = "<e:work-stealing>\n"
+                    + "  <e:name>test7</e:name>\n"
+                    + "  <e:parallelism>5</e:parallelism>\n"
+                    + "</e:work-stealing>";
+
+        XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
+        NamespaceHandler    handler   = new NamespaceHandler();
+        ElementProcessor<?> processor = handler.getElementProcessor(xml);
+
+        assertThat(processor, instanceOf(WorkStealingProcessor.class));
+
+        NamedExecutorService result = ((WorkStealingProcessor) processor).process(context, xml);
+
+        assertThat(result,                      is(notNullValue()));
+        assertThat(result.getName(),            is("test7"));
+        assertThat(result.getExecutorService(), is(notNullValue()));
+        assertThat(result.getDetails(),         is("WorkStealingThreadPool(Parallelism=5)"));
         }
 
     // ----- data members ---------------------------------------------------

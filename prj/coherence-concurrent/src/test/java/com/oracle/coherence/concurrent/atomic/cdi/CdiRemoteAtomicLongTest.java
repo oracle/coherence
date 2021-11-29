@@ -56,7 +56,7 @@ public class CdiRemoteAtomicLongTest
     AtomicLong value;
 
     @Inject
-    @SessionName("coherence-concurrent-services")
+    @SessionName("concurrent")
     @Name("atomic-long")
     NamedMap<String, java.util.concurrent.atomic.AtomicLong> longs;
 

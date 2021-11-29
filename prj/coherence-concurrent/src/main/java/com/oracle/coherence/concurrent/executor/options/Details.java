@@ -20,57 +20,59 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 /**
- * An {@link TaskExecutorService.Registration.Option} to specify the {@link Name}
+ * An {@link TaskExecutorService.Registration.Option} to specify the {@link Details}
  * of a registered {@link ExecutorService}.
+ *
+ * This option shouldn't be used for targeting tasks.
  *
  * @author rl 11.12.2021
  * @since 21.12
  */
-public class Name
+public class Details
         implements TaskExecutorService.Registration.Option, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Constructs a {@link Name} (required for Serializable).
+     * Constructs a {@link Details} (required for Serializable).
      */
     @SuppressWarnings("unused")
-    public Name()
+    public Details()
         {
         }
 
     /**
-     * Constructs a {@link Name}.
+     * Constructs a {@link Details} object.
      *
-     * @param sName  the executor name
+     * @param sDetails  the details of the executor
      */
-    protected Name(String sName)
+    protected Details(String sDetails)
         {
-        m_sName = sName;
+        m_sDetails = sDetails;
         }
 
     // ----- accessors ------------------------------------------------------
 
     /**
-     * Obtains the name of the {@link Name}.
+     * Obtains the the {@link Details}.
      *
-     * @return the name of the {@link Name}
+     * @return a {@link Details}
      */
     public String getName()
         {
-        return m_sName;
+        return m_sDetails;
         }
 
     /**
-     * Obtains a {@link Name} with a specific name.
+     * Obtains a {@link Details} with a specific info.
      *
-     * @param sName  the name of the {@link Name}
+     * @param sDetails  the details
      *
-     * @return a {@link Name}
+     * @return a {@link Details}
      */
-    public static Name of(String sName)
+    public static Details of(String sDetails)
         {
-        return new Name(sName);
+        return new Details(sDetails);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -83,27 +85,27 @@ public class Name
             return true;
             }
 
-        if (!(object instanceof Name))
+        if (!(object instanceof Details))
             {
             return false;
             }
 
-        Name name = (Name) object;
+        Details name = (Details) object;
 
-        return Objects.equals(m_sName, name.m_sName);
+        return Objects.equals(m_sDetails, name.m_sDetails);
 
         }
 
     @Override
     public int hashCode()
         {
-        return m_sName != null ? m_sName.hashCode() : 0;
+        return m_sDetails != null ? m_sDetails.hashCode() : 0;
         }
 
     @Override
     public String toString()
         {
-        return "Name{" + m_sName + '}';
+        return "ExecutorDetails{" + m_sDetails + '}';
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -111,26 +113,26 @@ public class Name
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        m_sName = in.readString(0);
+        m_sDetails = in.readString(0);
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
-        out.writeString(0, m_sName);
+        out.writeString(0, m_sDetails);
         }
 
     // ----- constants ------------------------------------------------------
 
     /**
-     * Name group for executors registered without a name.
+     * The details to use when no details have been provided.
      */
-    public static Name UNNAMED = Name.of("UnNamed");
+    public static Details UNKNOWN = Details.of("Unknown");
 
     // ----- data members ---------------------------------------------------
 
     /**
-     * The name of the {@link Name}.
+     * The details of the executor.
      */
-    protected String m_sName;
+    protected String m_sDetails;
     }

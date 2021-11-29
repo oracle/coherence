@@ -32,7 +32,7 @@ import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredProperties;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
-import com.oracle.coherence.concurrent.executor.RemoteExecutors;
+import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
@@ -132,7 +132,7 @@ public class TaskExecutorServiceClusterMemberTests
         System.setProperty("coherence.cluster", "TaskExecutorServiceClusterMemberTests");
         m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
         m_local.start().join();
-        m_session = m_local.getSession(RemoteExecutors.SESSION_NAME);
+        m_session = m_local.getSession(ExecutorsHelper.SESSION_NAME);
         // create a storage disabled member session
         //m_cacheFactory = s_coherence.createSession(new StorageDisabledMember());
 
@@ -314,5 +314,5 @@ public class TaskExecutorServiceClusterMemberTests
     /**
      * The {@link TaskExecutorService}.
      */
-    protected TaskExecutorService m_taskExecutorService;
+    protected ClusteredExecutorService m_taskExecutorService;
     }

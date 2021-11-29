@@ -24,7 +24,6 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.Coherence;
 
 import executor.common.CoherenceClusterResource;

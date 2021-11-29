@@ -58,7 +58,7 @@ public class CdiAsyncRemoteAtomicIntegerTest
     AsyncAtomicInteger value;
 
     @Inject
-    @SessionName("coherence-concurrent-services")
+    @SessionName("concurrent")
     @Name("atomic-int")
     NamedMap<String, AtomicInteger> ints;
 

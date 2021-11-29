@@ -58,7 +58,7 @@ public class CdiAsyncRemoteAtomicStampedReferenceTest
     AsyncAtomicStampedReference<String> value;
 
     @Inject
-    @SessionName("coherence-concurrent-services")
+    @SessionName("concurrent")
     @Name("atomic-stamped-ref")
     NamedMap<String, AtomicStampedReference<String>> refs;
 

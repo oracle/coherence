@@ -6,9 +6,11 @@
  */
 package com.oracle.coherence.concurrent.config;
 
-import com.oracle.coherence.concurrent.config.processors.ConcurrentConfigurationProcessor;
-import com.oracle.coherence.concurrent.config.processors.ExecutorServiceProcessor;
-import com.oracle.coherence.concurrent.config.processors.ExecutorServicesProcessor;
+import com.oracle.coherence.concurrent.config.processors.CachedProcessor;
+import com.oracle.coherence.concurrent.config.processors.FixedProcessor;
+import com.oracle.coherence.concurrent.config.processors.SingleProcessor;
+import com.oracle.coherence.concurrent.config.processors.ThreadFactoryProcessor;
+import com.oracle.coherence.concurrent.config.processors.WorkStealingProcessor;
 
 import com.tangosol.config.xml.AbstractNamespaceHandler;
 
@@ -30,8 +32,10 @@ public class NamespaceHandler
      */
     public NamespaceHandler()
         {
-        registerProcessor(ConcurrentConfigurationProcessor.class);
-        registerProcessor(ExecutorServicesProcessor.class);
-        registerProcessor(ExecutorServiceProcessor.class);
+        registerProcessor(CachedProcessor.class);
+        registerProcessor(FixedProcessor.class);
+        registerProcessor(SingleProcessor.class);
+        registerProcessor(ThreadFactoryProcessor.class);
+        registerProcessor(WorkStealingProcessor.class);
         }
     }

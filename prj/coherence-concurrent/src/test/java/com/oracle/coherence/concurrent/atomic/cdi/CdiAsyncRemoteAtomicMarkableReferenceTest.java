@@ -58,7 +58,7 @@ public class CdiAsyncRemoteAtomicMarkableReferenceTest
     AsyncAtomicMarkableReference<String> value;
 
     @Inject
-    @SessionName("coherence-concurrent-services")
+    @SessionName("concurrent")
     @Name("atomic-markable-ref")
     NamedMap<String, AtomicMarkableReference<String>> refs;
 

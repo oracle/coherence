@@ -11,6 +11,7 @@ import java.util.concurrent.Executor;
 
 import com.tangosol.net.management.annotation.Description;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 
 /**
@@ -48,6 +49,24 @@ public interface ExecutorMBean
      */
     @Description("The logical name of this executor.")
     String getExecutorName();
+
+    /**
+     * Return the unique ID of the registered {@link ExecutorService}.
+     *
+     * @return the unique ID of the registered {@link ExecutorService}
+     */
+    @Description("The unique ID of this executor.")
+    String getExecutorId();
+
+    /**
+     * Return the details of the registered {@link ExecutorService}.
+     * Details will include the type of {@link ExecutorService}, how many
+     * threads (if relevant), and if a {@link ThreadFactory} was defined.
+     *
+     * @return the unique ID of the registered {@link ExecutorService}
+     */
+    @Description("The details of this executor.")
+    String getExecutorDetails();
 
     /**
      * Get the location where the executor is running.

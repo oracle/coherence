@@ -58,7 +58,7 @@ public class CdiAsyncRemoteAtomicBooleanTest
     AsyncAtomicBoolean value;
 
     @Inject
-    @SessionName("coherence-concurrent-services")
+    @SessionName("concurrent")
     @Name("atomic-boolean")
     NamedMap<String, AtomicBoolean> booleans;
 

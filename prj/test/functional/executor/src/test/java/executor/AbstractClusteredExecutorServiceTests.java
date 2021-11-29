@@ -42,6 +42,7 @@ import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
+import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
 import com.oracle.coherence.concurrent.executor.RecoveringTask;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
@@ -98,8 +99,6 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static com.oracle.bedrock.testsupport.deferred.Eventually.delayedBy;
 import static com.oracle.bedrock.testsupport.deferred.Eventually.within;
-
-import static com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo.EXECUTOR_TYPE;
 
 import static com.oracle.coherence.concurrent.executor.TaskExecutorService.ExecutorInfo.State.REJECTING;
 import static com.oracle.coherence.concurrent.executor.TaskExecutorService.ExecutorInfo.State.RUNNING;
@@ -1393,7 +1392,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
             if (jmxFeature != null)
                 {
-                ObjectName name = new ObjectName("Coherence:" + EXECUTOR_TYPE + ",name=" + key + ",*");
+                ObjectName name = new ObjectName("Coherence:" + ExecutorsHelper.EXECUTOR_TYPE + ",name=" + key + ",*");
                 Set setMBeans = jmxFeature.queryMBeans(name, null);
 
                 if (setMBeans != null)
@@ -1434,7 +1433,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         }
 
     @Override
-    protected TaskExecutorService createExecutorService()
+    protected ClusteredExecutorService createExecutorService()
         {
         return new ClusteredExecutorService(m_cacheFactory);
         }

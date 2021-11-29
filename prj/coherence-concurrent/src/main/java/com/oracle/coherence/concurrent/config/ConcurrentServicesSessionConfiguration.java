@@ -7,27 +7,30 @@
 package com.oracle.coherence.concurrent.config;
 
 import com.tangosol.net.Coherence;
+import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
-import java.util.Optional;
 
+import java.util.Optional;
 
 public class ConcurrentServicesSessionConfiguration
         implements SessionConfiguration
     {
     // ----- SessionConfiguration interface ---------------------------------
 
-
+    @Override
     public String getName()
         {
         return SESSION_NAME;
         }
 
+    @Override
     public String getScopeName()
         {
         return Coherence.SYSTEM_SCOPE;
         }
 
+    @Override
     public Optional<String> getConfigUri()
         {
         return Optional.of(CONFIG_URI);
@@ -66,7 +69,14 @@ public class ConcurrentServicesSessionConfiguration
 
     // ----- constants ------------------------------------------------------
 
-    public static String SESSION_NAME = "coherence-concurrent-services";
+    /**
+     * The name of the {@code coherence-concurrent} {@link Session session}.
+     */
+    public static String SESSION_NAME = "concurrent";
 
+    /**
+     * The URI to the default configuration for the {@code coherence-concurrent}
+     * module.
+     */
     public static String CONFIG_URI = "concurrent-services.xml";
     }

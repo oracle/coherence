@@ -51,6 +51,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Concurrent -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-concurrent</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Coherence CDI -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -343,6 +350,10 @@
                     </resource>
 
                     <resource>
+                      <directory>../coherence-concurrent/src/main/java</directory>
+                    </resource>
+
+                    <resource>
                       <directory>../coherence-cdi/src/main/java</directory>
                     </resource>
 
@@ -416,6 +427,8 @@
                     <include>com/oracle/coherence/common/base/*.java</include>
                     <include>com/oracle/coherence/cdi/**/*.java</include>
                     <include>com/oracle/coherence/repository/**/*.java</include>
+
+                    <include>com/oracle/coherence/concurrent/**/*.java</include>
 
                     <include>com/oracle/coherence/mp/**/*.java</include>
 
@@ -564,7 +577,11 @@
                       </packages>
                     </group>
                     <group>
-                      <title>Configuration</title>
+                      <title>Coherence Concurrent</title>
+                      <packages>com.oracle.coherence.concurrent.*</packages>
+                    </group>
+                    <group>
+                      <title>Coherence Configuration</title>
                       <packages>com.tangosol.config*:com.tangosol.coherence.config*</packages>
                     </group>
                     <group>

@@ -6,8 +6,6 @@
  */
 package com.oracle.coherence.concurrent.executor;
 
-import com.tangosol.util.function.Remote;
-
 import java.io.Serializable;
 
 import java.util.concurrent.Callable;
@@ -23,7 +21,7 @@ import java.util.concurrent.ExecutorService;
  * @since 21.06
  */
 public interface TaskExecutorService
-        extends RemoteExecutorService
+        extends RemoteExecutor
     {
     /**
      * Registers an {@link ExecutorService} to commence execution of orchestrated tasks.
@@ -36,21 +34,6 @@ public interface TaskExecutorService
      *         already registered
      */
     Registration register(ExecutorService executor, Registration.Option... options);
-
-    /**
-     * Registers an {@link ExecutorService} to commence execution of orchestrated tasks.
-     *
-     * @param executor    the {@link ExecutorService} to register
-     * @param esSupplier  the {@link ExecutorService} {@link Remote.Supplier}
-     * @param options     the {@link Registration.Option}s for the {@link ExecutorService}
-     *
-     * @return the {@link Registration} created for the registered {@link ExecutorService},
-     *         or the existing {@link Registration} when the {@link ExecutorService} is
-     *         already registered
-     */
-    Registration register(ExecutorService executor,
-                          Remote.Supplier<ExecutorService> esSupplier,
-                          Registration.Option... options);
 
     /**
      * De-registers a previously registered {@link ExecutorService}.
@@ -255,13 +238,6 @@ public interface TaskExecutorService
          */
         <T extends Registration.Option> T getOption(Class<T> classOfOption,
                                                     T defaultIfNotFound);
-
-        /**
-         * Return the registered {@link ExecutorService}.
-         *
-         * @return the registered {@link ExecutorService}
-         */
-        ExecutorService getRegisteredService();
 
         /**
          * TODO(rl): flesh out contract

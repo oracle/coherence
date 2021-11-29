@@ -13,8 +13,6 @@ import com.oracle.coherence.concurrent.executor.internal.ClusterMemberAware;
 import com.oracle.coherence.concurrent.executor.internal.Leased;
 import com.oracle.coherence.concurrent.executor.internal.LiveObject;
 
-import com.oracle.coherence.concurrent.executor.management.ExecutorMBean;
-
 import com.oracle.coherence.concurrent.executor.options.ClusterMember;
 import com.oracle.coherence.concurrent.executor.options.Member;
 
@@ -23,37 +21,25 @@ import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 import com.oracle.coherence.concurrent.executor.options.Name;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
-import com.tangosol.coherence.config.Config;
-
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.Cluster;
 import com.tangosol.net.NamedCache;
-
-import com.tangosol.net.management.AnnotatedStandardEmitterMBean;
 
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
-import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.UID;
-import com.tangosol.util.WrapperException;
 
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
 
-import com.tangosol.util.function.Remote;
-
 import com.tangosol.util.processor.ConditionalRemove;
 import com.tangosol.util.processor.ExtractorProcessor;
 
-import javax.management.NotCompliantMBeanException;
-
 import java.io.IOException;
-import java.io.Serializable;
 
 import java.util.Map;
 
@@ -91,13 +77,9 @@ public class ClusteredExecutorInfo
      * @param totalMemory      the total memory as reported by {@link Runtime#totalMemory()}
      * @param freeMemory       the free memory as reported by {@link Runtime#freeMemory()}
      * @param optionsByType    the {@link TaskExecutorService.Registration.Option}s for the {@link Executor}
-     * @param executorService  the local {@link ExecutorService}, if any
-     * @param supplier         the supplier used to propagate executors across the cluster
      */
     public ClusteredExecutorInfo(String sIdentity, long ldtUpdate, long cMaxMemory, long totalMemory,
-                                 long freeMemory, OptionsByType<TaskExecutorService.Registration.Option> optionsByType,
-                                 ExecutorService executorService,
-                                 Remote.Supplier<ExecutorService> supplier)
+                                 long freeMemory, OptionsByType<TaskExecutorService.Registration.Option> optionsByType)
         {
         m_sIdentity       = sIdentity;
         m_optionsByType   = optionsByType;
@@ -105,12 +87,9 @@ public class ClusteredExecutorInfo
         m_cMaxMemory      = cMaxMemory;
         m_cTotalMemory    = totalMemory;
         m_cFreeMemory     = freeMemory;
-        m_executorMBean   = new ExecutorMBeanImpl();
         m_cCompleted      = 0;
         m_cRejected       = 0;
         m_cInProgress     = 0;
-        m_executorService = executorService;
-        m_supplier        = supplier;
     }
 
     // ----- public methods -------------------------------------------------
@@ -192,6 +171,7 @@ public class ClusteredExecutorInfo
      *
      * @return the number of completed tasks
      */
+    @SuppressWarnings("unused")
     public long getTasksCompletedCount()
         {
         return m_cCompleted;
@@ -202,6 +182,7 @@ public class ClusteredExecutorInfo
      *
      * @return the number rejected tasks
      */
+    @SuppressWarnings("unused")
     public long getTasksRejectedCount()
         {
         return m_cRejected;
@@ -212,19 +193,10 @@ public class ClusteredExecutorInfo
      *
      * @return the number of tasks currently in progress
      */
+    @SuppressWarnings("unused")
     public long getTasksInProgressCount()
         {
         return m_cInProgress;
-        }
-
-    /**
-     * Return the MBean backing this executor.
-     *
-     * @return the MBean backing this executor.
-     */
-    public ExecutorMBeanImpl getMBean()
-        {
-        return m_executorMBean;
         }
 
     /**
@@ -288,15 +260,13 @@ public class ClusteredExecutorInfo
         }
 
     /**
-     * Return the {@link Remote.Supplier} that will be used to create
-     * {@link ExecutorService}s across the cluster.
+     * Return the logical name of this {@code ClusteredExecutorInfo}.
      *
-     * @return the {@link Remote.Supplier} that will be used to create
-     *         {@link ExecutorService}s across the cluster.
+     * @return the logical name of this {@code ClusteredExecutorInfo}
      */
-    public Remote.Supplier<ExecutorService> getSupplier()
+    public String getExecutorName()
         {
-        return m_supplier;
+        return getOption(Name.class, Name.UNNAMED).getName();
         }
 
     // ----- Object methods -------------------------------------------------
@@ -306,7 +276,8 @@ public class ClusteredExecutorInfo
         {
         return "ClusteredExecutorInfo{" + "identity='" + m_sIdentity + '\'' + ", state=" + m_state + ", lastUpdateTime="
                + m_ldtUpdate + ", maxMemory=" + m_cMaxMemory + ", totalMemory=" + m_cTotalMemory + ", freeMemory="
-               + m_cFreeMemory + ", optionsByType=" + m_optionsByType + "}";
+               + m_cFreeMemory + ", optionsByType=" + m_optionsByType + ", completed="
+               + m_cCompleted + ", in-progress=" + m_cInProgress + ", rejected=" + m_cRejected + '}';
         }
 
     // ----- Leased interface -----------------------------------------------
@@ -343,22 +314,11 @@ public class ClusteredExecutorInfo
 
     // ----- LiveObject interface -------------------------------------------
 
+    @SuppressWarnings("rawtypes")
     @Override
     public ComposableContinuation onInserted(CacheService service, Entry entry, final Cause cause)
         {
         ExecutorTrace.log(() -> String.format("Inserted [%s] due to [%s]", this, cause));
-
-        ResourceRegistry registry = service.getResourceRegistry();
-
-        // if the executor info wasn't previously registered
-        if (registry.getResource(ClusteredExecutorInfo.class, (String) entry.getKey()) == null)
-            {
-            registry.registerResource(ClusteredExecutorInfo.class,
-                                      (String) entry.getKey(),
-                                      (ClusteredExecutorInfo) entry.getValue());
-            }
-
-        registerExecutiveServiceMBean(service, (ClusteredExecutorInfo) entry.getValue());
 
         switch (m_state)
             {
@@ -392,26 +352,11 @@ public class ClusteredExecutorInfo
             }
         }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public ComposableContinuation onUpdated(CacheService service, Entry entry, final Cause cause)
         {
         ExecutorTrace.log(() -> String.format("Updated [%s] due to [%s]", this, cause));
-
-        ClusteredExecutorInfo thisInfo  = (ClusteredExecutorInfo) entry.getValue();
-        ClusteredExecutorInfo mBeanInfo = service.getResourceRegistry()
-                .getResource(ClusteredExecutorInfo.class, (String) entry.getKey());
-
-        mBeanInfo.setFreeMemory(thisInfo.getFreeMemory());
-        mBeanInfo.setTasksCompletedCount(thisInfo.getTasksCompletedCount());
-        mBeanInfo.setTasksFailedCount(thisInfo.getTasksRejectedCount());
-        mBeanInfo.setTasksInProgressCount(thisInfo.getTasksInProgressCount());
-
-        State newState = thisInfo.getState();
-
-        if (!mBeanInfo.getState().equals(newState))
-            {
-            mBeanInfo.setState(newState);
-            }
 
         switch (m_state)
             {
@@ -445,27 +390,13 @@ public class ClusteredExecutorInfo
             }
         }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public ComposableContinuation onDeleted(CacheService service, Entry entry, Cause cause)
         {
         ExecutorTrace.log(() -> String.format("Deleted [%s] due to [%s]", this, cause));
 
         String sExecutorId = (String) entry.getKey();
-
-        unregisterExecutiveServiceMBean(service, sExecutorId);
-
-        ClusteredExecutorInfo info = service.getResourceRegistry()
-                .getResource(ClusteredExecutorInfo.class, sExecutorId);
-
-        if (info != null && info.getSupplier() != null)
-            {
-            ExecutorService executorService = info.m_executorService;
-            if (executorService != null)
-                {
-                executorService.shutdown();
-                }
-            RemoteExecutors.deregisterExecutorName(getOption(Name.class, null));
-            }
 
         service.getResourceRegistry().unregisterResource(ClusteredExecutorInfo.class, sExecutorId);
 
@@ -533,8 +464,6 @@ public class ClusteredExecutorInfo
         m_cCompleted    = in.readLong(7);
         m_cRejected     = in.readLong(8);
         m_cInProgress   = in.readLong(9);
-        m_supplier      = in.readObject(10);
-        m_executorMBean = new ExecutorMBeanImpl();
         }
 
     @Override
@@ -550,68 +479,6 @@ public class ClusteredExecutorInfo
         out.writeLong(7,    m_cCompleted);
         out.writeLong(8,    m_cRejected);
         out.writeLong(9,    m_cInProgress);
-        out.writeObject(10, m_supplier);
-        }
-
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Register the {@link ExecutorMBean}.
-     *
-     * @param service      the {@link CacheService} of the {@link ClusteredExecutorInfo}
-     * @param serviceInfo  the {@link ClusteredExecutorInfo}
-     *                     that contains the {@link ExecutorMBean}
-     */
-    protected void registerExecutiveServiceMBean(CacheService service, ClusteredExecutorInfo serviceInfo)
-        {
-        Cluster                              cluster       = service.getCluster();
-        com.tangosol.net.management.Registry registry      = cluster.getManagement();
-        ExecutorMBean                        executorMBean = serviceInfo.getMBean();
-
-        if (registry != null && executorMBean != null)
-            {
-            String sName = registry.ensureGlobalName(getExecutorServiceMBeanName(serviceInfo.getId()));
-
-            try
-                {
-                registry.register(sName, new AnnotatedStandardEmitterMBean(executorMBean, ExecutorMBean.class));
-                }
-            catch (NotCompliantMBeanException e)
-                {
-                throw new WrapperException(e);
-                }
-
-            }
-        }
-
-    /**
-     * Unregister the ExecutorMBean.
-     *
-     * @param service  the {@link CacheService} of the {@link ClusteredExecutorInfo}
-     * @param sId      the {@link ExecutorMBean} ID
-     */
-    protected void unregisterExecutiveServiceMBean(CacheService service, String sId)
-        {
-        com.tangosol.net.management.Registry registry = service.getCluster().getManagement();
-
-        if (registry != null)
-            {
-            String sName = registry.ensureGlobalName(getExecutorServiceMBeanName(sId));
-
-            registry.unregister(sName);
-            }
-        }
-
-    /**
-     * Create a name for the OriginMBean.
-     *
-     * @param sId  executor ID
-     *
-     * @return ExecutorMBean name
-     */
-    protected String getExecutorServiceMBeanName(String sId)
-        {
-        return EXECUTOR_TYPE + ",name=" + sId;
         }
 
     // ----- inner class: ClosingContinuation -------------------------------
@@ -763,100 +630,6 @@ public class ClusteredExecutorInfo
         protected final CacheService f_cacheService;
         }
 
-    // ----- inner class: ExecutorMBeanImpl ---------------------------------
-
-    /**
-     * {@link ExecutorMBean} implementation.
-     */
-    public class ExecutorMBeanImpl
-            implements ExecutorMBean, Serializable, PortableObject
-        {
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Constructs a {@link ExecutorMBeanImpl}.
-         */
-        public ExecutorMBeanImpl()
-            {
-            }
-
-        // ----- ExecutorMBean interface ------------------------------------
-
-        @Override
-        public void resetStatistics()
-            {
-            m_cCompleted  = 0;
-            m_cRejected   = 0;
-            m_cInProgress = 0;
-            }
-
-        @Override
-        public int getMemberId()
-            {
-            return m_optionsByType.get(Member.class, null).get().getId();
-            }
-
-        @Override
-        public String getLocation()
-            {
-            return m_optionsByType.get(Member.class, null).get().toString();
-            }
-
-        @Override
-        public String getExecutorName()
-            {
-            return m_optionsByType.get(Name.class, Name.of("UNNAMED")).getName();
-            }
-
-        @Override
-        public String getState()
-            {
-            return m_state.toString();
-            }
-
-        @Override
-        public long getTasksCompletedCount()
-            {
-            return m_cCompleted;
-            }
-
-        @Override
-        public long getTasksRejectedCount()
-            {
-            return m_cRejected;
-            }
-
-        @Override
-        public long getTasksInProgressCount()
-            {
-            return m_cInProgress;
-            }
-
-        @Override
-        public boolean isTraceLogging()
-            {
-            return s_fTraceLogging;
-            }
-
-        @Override
-        public void setTraceLogging(boolean fTrace)
-            {
-            s_fTraceLogging = fTrace;
-            }
-
-        // ----- PortableObject interface -----------------------------------
-
-        @Override
-        public void readExternal(PofReader in) throws IOException
-            {
-            }
-
-        @Override
-        public void writeExternal(PofWriter out) throws IOException
-            {
-            }
-        }
-
     // ----- JoiningContinuation interface ----------------------------------
 
     /**
@@ -898,23 +671,6 @@ public class ClusteredExecutorInfo
         @Override
         public void proceed(Object o)
             {
-            // TODO REVIEW
-            ClusteredExecutorInfo                                  executorInfo = m_executorInfo;
-            OptionsByType<TaskExecutorService.Registration.Option> options      = executorInfo.m_optionsByType;
-
-            Name named = options.get(Name.class);
-            if (named != null)
-                {
-                if (!RemoteExecutors.getKnownExecutorNames().contains(named))
-                    {
-                    Remote.Supplier<ExecutorService> supplier = executorInfo.getSupplier();
-                    if (supplier != null)
-                        {
-                        RemoteExecutors.getLocalExecutorService().register(supplier.get(), supplier, named);
-                        }
-                    }
-                }
-
             // change the state of the Executor to be Running
             m_cacheService.ensureCache(CACHE_NAME,
                                        null).invoke(m_sExecutorId, new SetStateProcessor(State.JOINING, State.RUNNING));
@@ -1496,11 +1252,6 @@ public class ClusteredExecutorInfo
     public static final String CACHE_NAME = "executor-executors";
 
     /**
-     * String representing the "type" part of <code>ObjectName</code> for the ExecutorMBean.
-     */
-    public static final String EXECUTOR_TYPE = "type=Executor";
-
-    /**
      * The duration of a lease for {@link Executor}s.
      * <p>
      * When {@link TaskExecutorService.ExecutorInfo} for an {@link Executor} has not
@@ -1560,32 +1311,4 @@ public class ClusteredExecutorInfo
      * The tasks that are in progress count.
      */
     protected long m_cInProgress;
-
-    /**
-     * The {@link Remote.Supplier supplier} that will be used
-     * when creating named executors across the cluster.
-     */
-    protected Remote.Supplier<ExecutorService> m_supplier;
-
-    /**
-     * The associated executor service, if any.  This value will
-     * only be {@code non-null} on the locally registered info.
-     */
-    protected transient ExecutorService m_executorService;
-
-    /**
-     * The executor attribute to indicate whether trace logging is
-     * enabled.
-     *
-     * By default, the executor trace logging is disabled. You can enable
-     * it by either setting the "coherence.executor.trace.logging" system
-     * property or the "TraceLogging" attribute in ExecutorMBean through JMX or
-     * management over REST.
-     */
-    public static boolean s_fTraceLogging = Config.getBoolean("coherence.executor.trace.logging", false);
-
-    /**
-     * The {@link ExecutorMBean}.
-     */
-    protected ExecutorMBeanImpl m_executorMBean;
     }

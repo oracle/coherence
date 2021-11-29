@@ -17,6 +17,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.AbstractCollector;
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
+import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 import com.oracle.coherence.concurrent.executor.PortableTask;
 import com.oracle.coherence.concurrent.executor.Task;
@@ -33,8 +34,8 @@ import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
 import com.tangosol.util.function.Remote;
+
 import java.io.IOException;
-import java.io.Serializable;
 
 import java.time.Duration;
 
@@ -53,7 +54,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -125,7 +125,7 @@ public abstract class AbstractTaskExecutorServiceTests
      *
      * @return a new {@link TaskExecutorService}
      */
-    protected abstract TaskExecutorService createExecutorService();
+    protected abstract ClusteredExecutorService createExecutorService();
 
     public void shouldCreateExecutorService()
         {
@@ -1664,7 +1664,7 @@ public abstract class AbstractTaskExecutorServiceTests
         {
         assertThrows(RejectedExecutionException.class, () ->
             {
-            TaskExecutorService testTaskExecutorService = createExecutorService();
+            ClusteredExecutorService testTaskExecutorService = createExecutorService();
 
             testTaskExecutorService.shutdown();
 
@@ -1676,7 +1676,7 @@ public abstract class AbstractTaskExecutorServiceTests
         {
         assertThrows(IllegalStateException.class, () ->
             {
-            TaskExecutorService testTaskExecutorService = createExecutorService();
+            ClusteredExecutorService testTaskExecutorService = createExecutorService();
 
             testTaskExecutorService.shutdown();
 
@@ -1743,7 +1743,7 @@ public abstract class AbstractTaskExecutorServiceTests
     private void testShutdown(boolean graceful, boolean registerExecutors, boolean withTasks)
         {
         final int NUM_CALLABLES = 5;    // number of Callables awaiting ES termination
-        TaskExecutorService testTaskExecutorService = createExecutorService();
+        ClusteredExecutorService testTaskExecutorService = createExecutorService();
         ExecutorService awaitTerminationES = Executors.newFixedThreadPool(NUM_CALLABLES);
         ExecutorService localES = Executors.newSingleThreadExecutor();
 
@@ -1865,7 +1865,7 @@ public abstract class AbstractTaskExecutorServiceTests
                         // task is now waiting for a valid executor - register a new one with a temporary CES
                         localES.shutdown();
                         localES = Executors.newSingleThreadExecutor();
-                        TaskExecutorService registerTaskExecutorService = createExecutorService();
+                        ClusteredExecutorService registerTaskExecutorService = createExecutorService();
                         try
                             {
                             registerTaskExecutorService.register(localES, Role.of("localOnly"));
@@ -1984,8 +1984,8 @@ public abstract class AbstractTaskExecutorServiceTests
 
     public void shouldNotAssignNewTasksDuringGracefulShutdown()
         {
-        TaskExecutorService testTaskExecutorService = createExecutorService();
-        ExecutorService     localES                 = Executors.newSingleThreadExecutor();
+        ClusteredExecutorService testTaskExecutorService = createExecutorService();
+        ExecutorService          localES                 = Executors.newSingleThreadExecutor();
 
         try
             {
@@ -2120,7 +2120,7 @@ public abstract class AbstractTaskExecutorServiceTests
         {
         // ----- constructors -----------------------------------------------
 
-        public AwaitTerminationCallable(TaskExecutorService executorService)
+        public AwaitTerminationCallable(ClusteredExecutorService executorService)
             {
             f_executorService = executorService;
             }
@@ -2135,7 +2135,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
         // ----- data members -----------------------------------------------
 
-        private final TaskExecutorService f_executorService;
+        private final ClusteredExecutorService f_executorService;
         }
 
     // ----- inner class: MyCallable ----------------------------------------
@@ -2558,5 +2558,5 @@ public abstract class AbstractTaskExecutorServiceTests
     /**
      * The {@link TaskExecutorService}.
      */
-    protected TaskExecutorService m_taskExecutorService;
+    protected ClusteredExecutorService m_taskExecutorService;
     }

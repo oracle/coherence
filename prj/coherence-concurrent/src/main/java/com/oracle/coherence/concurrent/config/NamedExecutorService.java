@@ -25,13 +25,15 @@ public class NamedExecutorService
      * around an executor's logical name and a supplier that produces the
      * {@link ExecutorService} itself.
      *
-     * @param sName     the logical {@link ExecutorService} name.
+     * @param sName     the logical {@link ExecutorService} name
+     * @param sDetails  the details of the {@link ExecutorService}
      * @param supplier  the {@link Supplier} that will produce the
      *                  {@link ExecutorService}
      */
-    public NamedExecutorService(String sName, Supplier<ExecutorService> supplier)
+    public NamedExecutorService(String sName, String sDetails, Supplier<ExecutorService> supplier)
         {
         f_sName    = sName;
+        f_sDetails = sDetails;
         f_supplier = supplier;
         }
 
@@ -45,6 +47,16 @@ public class NamedExecutorService
     public String getName()
         {
         return f_sName;
+        }
+
+    /**
+     * Returns the details of this {@link ExecutorService}.
+     *
+     * @return the details of this {@link ExecutorService}
+     */
+    public String getDetails()
+        {
+        return f_sDetails;
         }
 
     /**
@@ -63,6 +75,11 @@ public class NamedExecutorService
      * The {@link ExecutorService} name.
      */
     protected final String f_sName;
+
+    /**
+     * The details of this {@link ExecutorService}.
+     */
+    protected final String f_sDetails;
 
     /**
      * The {@link Supplier} to create the {@link ExecutorService}.

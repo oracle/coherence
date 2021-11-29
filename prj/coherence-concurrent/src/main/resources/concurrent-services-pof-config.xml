@@ -123,211 +123,214 @@
       <type-id>284</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.options.Role</class-name>
     </user-type>
-
     <user-type>
       <type-id>285</type-id>
-      <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo</class-name>
+      <class-name>com.oracle.coherence.concurrent.executor.options.Name</class-name>
     </user-type>
     <user-type>
       <type-id>286</type-id>
-      <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo$SetStateProcessor</class-name>
+      <class-name>com.oracle.coherence.concurrent.executor.options.Details</class-name>
     </user-type>
+
     <user-type>
       <type-id>287</type-id>
-      <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo$UpdateInfoProcessor</class-name>
+      <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo</class-name>
     </user-type>
     <user-type>
       <type-id>288</type-id>
+      <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo$SetStateProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>289</type-id>
+      <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo$UpdateInfoProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>290</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo$TouchProcessor
       </class-name>
     </user-type>
     <user-type>
-      <type-id>289</type-id>
-      <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo$ExecutorMBeanImpl
-      </class-name>
-    </user-type>
-    <user-type>
-      <type-id>290</type-id>
+      <type-id>291</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo$JoiningContinuation
       </class-name>
     </user-type>
     <user-type>
-      <type-id>291</type-id>
+      <type-id>292</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.TaskExecutorService$ExecutorInfo$State</class-name>
       <serializer>
         <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
       </serializer>
     </user-type>
     <user-type>
-      <type-id>292</type-id>
+      <type-id>293</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager</class-name>
     </user-type>
     <user-type>
-      <type-id>293</type-id>
+      <type-id>294</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$NotifyExecutionStrategyProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>294</type-id>
+      <type-id>295</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$ChainedProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>295</type-id>
+      <type-id>296</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$UpdateExecutionPlanProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>296</type-id>
+      <type-id>297</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$OptimizeExecutionPlanProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>297</type-id>
+      <type-id>298</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$UpdateContributedResultProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>298</type-id>
+      <type-id>299</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$UpdateCollectedResultProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>299</type-id>
+      <type-id>821</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$SetActionProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>821</type-id>
+      <type-id>822</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$TerminateProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>822</type-id>
+      <type-id>823</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$State</class-name>
       <serializer>
         <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
       </serializer>
     </user-type>
     <user-type>
-      <type-id>823</type-id>
+      <type-id>824</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.StandardExecutionStrategy</class-name>
     </user-type>
     <user-type>
-      <type-id>824</type-id>
+      <type-id>825</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.MutableExecutionPlan</class-name>
     </user-type>
     <user-type>
-      <type-id>825</type-id>
+      <type-id>826</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.processors.LocalOnlyProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>826</type-id>
+      <type-id>827</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ExecutionPlan$Action</class-name>
       <serializer>
         <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
       </serializer>
     </user-type>
     <user-type>
-      <type-id>827</type-id>
+      <type-id>828</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredAssignment</class-name>
     </user-type>
     <user-type>
-      <type-id>828</type-id>
+      <type-id>829</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredAssignment$AssignmentProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>829</type-id>
+      <type-id>870</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredAssignment$SetStateProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>870</type-id>
+      <type-id>871</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredAssignment$State</class-name>
       <serializer>
         <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
       </serializer>
     </user-type>
     <user-type>
-      <type-id>871</type-id>
+      <type-id>872</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredProperties</class-name>
     </user-type>
     <user-type>
-      <type-id>872</type-id>
+      <type-id>873</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredProperties$PropertyKey</class-name>
     </user-type>
     <user-type>
-      <type-id>873</type-id>
+      <type-id>874</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredProperties$PropertyValue</class-name>
     </user-type>
     <user-type>
-      <type-id>874</type-id>
+      <type-id>875</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor$SetTaskStateProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>875</type-id>
+      <type-id>876</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor$SequenceComparator</class-name>
     </user-type>
 
     <user-type>
-      <type-id>876</type-id>
+      <type-id>877</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$AlwaysPredicate</class-name>
     </user-type>
     <user-type>
-      <type-id>877</type-id>
+      <type-id>878</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$EqualToPredicate</class-name>
     </user-type>
     <user-type>
-      <type-id>878</type-id>
+      <type-id>879</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$IsValuePredicate</class-name>
     </user-type>
     <user-type>
-      <type-id>879</type-id>
+      <type-id>880</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$NegatePredicate</class-name>
     </user-type>
     <user-type>
-      <type-id>880</type-id>
+      <type-id>881</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$NeverPredicate</class-name>
     </user-type>
     <user-type>
-      <type-id>881</type-id>
+      <type-id>882</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$NullValuePredicate</class-name>
     </user-type>
     <user-type>
-      <type-id>882</type-id>
+      <type-id>883</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$OptionPredicate</class-name>
     </user-type>
     <user-type>
-      <type-id>883</type-id>
+      <type-id>884</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$RolePredicate</class-name>
     </user-type>
     <user-type>
-      <type-id>884</type-id>
+      <type-id>885</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$ThrowablePredicate</class-name>
     </user-type>
 
     <user-type>
-      <type-id>885</type-id>
+      <type-id>886</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.TaskCollectors$FirstOfCollector</class-name>
     </user-type>
     <user-type>
-      <type-id>886</type-id>
+      <type-id>887</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.TaskCollectors$LastOfCollector</class-name>
     </user-type>
     <user-type>
-      <type-id>887</type-id>
+      <type-id>888</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.Result</class-name>
     </user-type>
     <user-type>
-      <type-id>888</type-id>
+      <type-id>889</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.TaskCollectors$CountCollector</class-name>
     </user-type>
     <user-type>
-      <type-id>889</type-id>
+      <type-id>890</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.TaskCollectors$ListOfCollector</class-name>
     </user-type>
     <user-type>
-      <type-id>890</type-id>
+      <type-id>891</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.TaskCollectors$SetOfCollector</class-name>
     </user-type>
 
     <user-type>
-      <type-id>891</type-id>
+      <type-id>892</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor$MemberAwareProcessor</class-name>
     </user-type>
     <user-type>
-      <type-id>892</type-id>
+      <type-id>893</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor$ExpiredProcessor</class-name>
     </user-type>
 

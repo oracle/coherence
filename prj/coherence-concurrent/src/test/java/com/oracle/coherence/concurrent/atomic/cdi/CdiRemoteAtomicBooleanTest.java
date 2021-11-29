@@ -57,7 +57,7 @@ public class CdiRemoteAtomicBooleanTest
     AtomicBoolean value;
 
     @Inject
-    @SessionName("coherence-concurrent-services")
+    @SessionName("concurrent")
     @Name("atomic-boolean")
     NamedMap<String, java.util.concurrent.atomic.AtomicBoolean> booleans;
 
