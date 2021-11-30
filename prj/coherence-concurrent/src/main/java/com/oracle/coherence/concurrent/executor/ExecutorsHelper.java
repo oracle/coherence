@@ -115,7 +115,7 @@ public final class ExecutorsHelper
      */
     public static final String EXECUTOR_TYPE = "type=Executor";
 
-    private static final String EXECUTOR_NAME = ", name=";
+    private static final String EXECUTOR_NAME = ",name=";
 
     // ----- data members ---------------------------------------------------
 
