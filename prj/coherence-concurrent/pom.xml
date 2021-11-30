@@ -69,11 +69,17 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Bedrock -->
     <dependency>
-      <groupId>com.oracle.bedrock.coherence</groupId>
-      <artifactId>coherence-14.1.1-testing-support</artifactId>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- CDI -->
