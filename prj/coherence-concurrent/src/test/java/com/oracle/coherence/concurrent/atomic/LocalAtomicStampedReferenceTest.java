@@ -20,6 +20,6 @@ public class LocalAtomicStampedReferenceTest
     @Override
     protected AtomicStampedReference<String> value()
         {
-        return Atomics.getLocalAtomicStampedReference("value");
+        return Atomics.localAtomicStampedReference("value");
         }
     }

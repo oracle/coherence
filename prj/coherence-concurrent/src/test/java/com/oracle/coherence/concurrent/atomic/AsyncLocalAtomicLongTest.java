@@ -20,6 +20,6 @@ public class AsyncLocalAtomicLongTest
     @Override
     protected AsyncAtomicLong asyncValue()
         {
-        return Atomics.getLocalAtomicLong("value").async();
+        return Atomics.localAtomicLong("value").async();
         }
     }

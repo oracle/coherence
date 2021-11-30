@@ -39,6 +39,6 @@ public class RemoteAtomicLongTest
     @Override
     protected AtomicLong value()
         {
-        return Atomics.getRemoteAtomicLong("value");
+        return Atomics.remoteAtomicLong("value");
         }
     }

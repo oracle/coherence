@@ -43,6 +43,6 @@ public class AsyncRemoteAtomicBooleanPofTest
     @Override
     protected AsyncAtomicBoolean asyncValue()
         {
-        return Atomics.getRemoteAtomicBoolean("value").async();
+        return Atomics.remoteAtomicBoolean("value").async();
         }
     }

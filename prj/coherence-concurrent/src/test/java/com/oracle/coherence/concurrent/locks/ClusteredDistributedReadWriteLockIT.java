@@ -778,7 +778,7 @@ public class ClusteredDistributedReadWriteLockIT
             {
             f_sLockName = sLockName;
             f_type      = type;
-            f_order     = Atomics.getRemoteAtomicInteger("ClusteredDistributedReadWriteLockIT.eventCounter").incrementAndGet();
+            f_order     = Atomics.remoteAtomicInteger("ClusteredDistributedReadWriteLockIT.eventCounter").incrementAndGet();
             }
 
         /**

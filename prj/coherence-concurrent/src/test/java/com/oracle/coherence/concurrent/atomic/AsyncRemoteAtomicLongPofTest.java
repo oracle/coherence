@@ -43,6 +43,6 @@ public class AsyncRemoteAtomicLongPofTest
     @Override
     protected AsyncAtomicLong asyncValue()
         {
-        return Atomics.getRemoteAtomicLong("value").async();
+        return Atomics.remoteAtomicLong("value").async();
         }
     }

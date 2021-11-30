@@ -39,6 +39,6 @@ public class AsyncRemoteAtomicLongTest
     @Override
     protected AsyncAtomicLong asyncValue()
         {
-        return Atomics.getRemoteAtomicLong("value").async();
+        return Atomics.remoteAtomicLong("value").async();
         }
     }

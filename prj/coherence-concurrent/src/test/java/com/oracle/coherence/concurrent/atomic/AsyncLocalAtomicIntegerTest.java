@@ -20,6 +20,6 @@ public class AsyncLocalAtomicIntegerTest
     @Override
     protected AsyncAtomicInteger asyncValue()
         {
-        return Atomics.getLocalAtomicInteger("value").async();
+        return Atomics.localAtomicInteger("value").async();
         }
     }

@@ -39,6 +39,6 @@ public class RemoteAtomicBooleanTest
     @Override
     protected AtomicBoolean value()
         {
-        return Atomics.getRemoteAtomicBoolean("value");
+        return Atomics.remoteAtomicBoolean("value");
         }
     }

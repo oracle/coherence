@@ -20,6 +20,6 @@ public class LocalAtomicReferenceTest
     @Override
     protected AtomicReference<String> value()
         {
-        return Atomics.getLocalAtomicReference("value");
+        return Atomics.localAtomicReference("value");
         }
     }

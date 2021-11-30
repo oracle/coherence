@@ -20,6 +20,6 @@ public class LocalAtomicIntegerTest
     @Override
     protected AtomicInteger value()
         {
-        return Atomics.getLocalAtomicInteger("value");
+        return Atomics.localAtomicInteger("value");
         }
     }

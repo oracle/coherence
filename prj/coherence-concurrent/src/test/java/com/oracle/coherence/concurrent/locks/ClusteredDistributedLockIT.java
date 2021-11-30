@@ -518,7 +518,7 @@ public class ClusteredDistributedLockIT
             {
             f_sLockName = sLockName;
             f_type      = type;
-            f_order     = Atomics.getRemoteAtomicInteger("ClusteredDistributedLockIT.eventCounter").incrementAndGet();
+            f_order     = Atomics.remoteAtomicInteger("ClusteredDistributedLockIT.eventCounter").incrementAndGet();
             }
 
         /**

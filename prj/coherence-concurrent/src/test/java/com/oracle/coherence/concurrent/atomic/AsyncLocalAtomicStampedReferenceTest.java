@@ -20,7 +20,7 @@ public class AsyncLocalAtomicStampedReferenceTest
     @Override
     protected AsyncAtomicStampedReference<String> asyncValue()
         {
-        LocalAtomicStampedReference<String> ref = Atomics.getLocalAtomicStampedReference("value");
+        LocalAtomicStampedReference<String> ref = Atomics.localAtomicStampedReference("value");
         return ref.async();
         }
     }

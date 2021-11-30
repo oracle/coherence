@@ -43,6 +43,6 @@ public class AsyncRemoteAtomicIntegerPofTest
     @Override
     protected AsyncAtomicInteger asyncValue()
         {
-        return Atomics.getRemoteAtomicInteger("value").async();
+        return Atomics.remoteAtomicInteger("value").async();
         }
     }

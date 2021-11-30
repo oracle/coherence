@@ -39,6 +39,6 @@ public class RemoteAtomicMarkableReferenceTest
     @Override
     protected AtomicMarkableReference<String> value()
         {
-        return Atomics.getRemoteAtomicMarkableReference("value");
+        return Atomics.remoteAtomicMarkableReference("value");
         }
     }

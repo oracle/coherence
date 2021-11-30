@@ -43,6 +43,6 @@ public class RemoteAtomicIntegerPofTest
     @Override
     protected AtomicInteger value()
         {
-        return Atomics.getRemoteAtomicInteger("value");
+        return Atomics.remoteAtomicInteger("value");
         }
     }

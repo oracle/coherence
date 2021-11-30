@@ -43,6 +43,6 @@ public class RemoteAtomicReferencePofTest
     @Override
     protected AtomicReference<String> value()
         {
-        return Atomics.getRemoteAtomicReference("value");
+        return Atomics.remoteAtomicReference("value");
         }
     }

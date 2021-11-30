@@ -20,7 +20,7 @@ public class AsyncLocalAtomicMarkableReferenceTest
     @Override
     protected AsyncAtomicMarkableReference<String> asyncValue()
         {
-        LocalAtomicMarkableReference<String> ref = Atomics.getLocalAtomicMarkableReference("value");
+        LocalAtomicMarkableReference<String> ref = Atomics.localAtomicMarkableReference("value");
         return ref.async();
         }
     }

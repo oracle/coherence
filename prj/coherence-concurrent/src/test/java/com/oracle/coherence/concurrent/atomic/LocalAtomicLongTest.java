@@ -20,6 +20,6 @@ public class LocalAtomicLongTest
     @Override
     protected AtomicLong value()
         {
-        return Atomics.getLocalAtomicLong("value");
+        return Atomics.localAtomicLong("value");
         }
     }

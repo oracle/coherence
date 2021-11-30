@@ -38,7 +38,7 @@ public class AsyncRemoteAtomicMarkableReferenceTest
 
     protected AsyncAtomicMarkableReference<String> asyncValue()
         {
-        RemoteAtomicMarkableReference<String> ref = Atomics.getRemoteAtomicMarkableReference("value");
+        RemoteAtomicMarkableReference<String> ref = Atomics.remoteAtomicMarkableReference("value");
         return ref.async();
         }
     }

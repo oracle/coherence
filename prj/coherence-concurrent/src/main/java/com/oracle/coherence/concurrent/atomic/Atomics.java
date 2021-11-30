@@ -58,9 +58,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicBoolean} instance for the specified name
      */
-    public static LocalAtomicBoolean getLocalAtomicBoolean(String sName)
+    public static LocalAtomicBoolean localAtomicBoolean(String sName)
         {
-        return getLocalAtomicBoolean(sName, false);
+        return localAtomicBoolean(sName, false);
         }
 
     /**
@@ -75,7 +75,7 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicBoolean} instance for the specified name
      */
-    public static LocalAtomicBoolean getLocalAtomicBoolean(String sName, boolean fInitialValue)
+    public static LocalAtomicBoolean localAtomicBoolean(String sName, boolean fInitialValue)
         {
         return LOCAL_BOOLEANS.computeIfAbsent(sName, name -> new LocalAtomicBoolean(fInitialValue));
         }
@@ -87,9 +87,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicBoolean} instance for the specified name
      */
-    public static RemoteAtomicBoolean getRemoteAtomicBoolean(String sName)
+    public static RemoteAtomicBoolean remoteAtomicBoolean(String sName)
         {
-        return getRemoteAtomicBoolean(sName, false);
+        return remoteAtomicBoolean(sName, false);
         }
 
     /**
@@ -104,7 +104,7 @@ public final class Atomics
      *
      * @return a {@code RemoteAtomicBoolean} instance for the specified name
      */
-    public static RemoteAtomicBoolean getRemoteAtomicBoolean(String sName, boolean fInitialValue)
+    public static RemoteAtomicBoolean remoteAtomicBoolean(String sName, boolean fInitialValue)
         {
         NamedMap<String, AtomicBoolean> map = atomics().getMap("atomic-boolean");
         map.putIfAbsent(sName, new AtomicBoolean(fInitialValue));
@@ -118,9 +118,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicInteger} instance for the specified name
      */
-    public static LocalAtomicInteger getLocalAtomicInteger(String sName)
+    public static LocalAtomicInteger localAtomicInteger(String sName)
         {
-        return getLocalAtomicInteger(sName, 0);
+        return localAtomicInteger(sName, 0);
         }
 
     /**
@@ -135,7 +135,7 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicInteger} instance for the specified name
      */
-    public static LocalAtomicInteger getLocalAtomicInteger(String sName, int nInitialValue)
+    public static LocalAtomicInteger localAtomicInteger(String sName, int nInitialValue)
         {
         return LOCAL_INTS.computeIfAbsent(sName, name -> new LocalAtomicInteger(nInitialValue));
         }
@@ -147,9 +147,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicInteger} instance for the specified name
      */
-    public static RemoteAtomicInteger getRemoteAtomicInteger(String sName)
+    public static RemoteAtomicInteger remoteAtomicInteger(String sName)
         {
-        return getRemoteAtomicInteger(sName, 0);
+        return remoteAtomicInteger(sName, 0);
         }
 
     /**
@@ -164,7 +164,7 @@ public final class Atomics
      *
      * @return a {@code RemoteAtomicInteger} instance for the specified name
      */
-    public static RemoteAtomicInteger getRemoteAtomicInteger(String sName, int nInitialValue)
+    public static RemoteAtomicInteger remoteAtomicInteger(String sName, int nInitialValue)
         {
         NamedMap<String, AtomicInteger> map = atomics().getMap("atomic-int");
         map.putIfAbsent(sName, new AtomicInteger(nInitialValue));
@@ -178,9 +178,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicLong} instance for the specified name
      */
-    public static LocalAtomicLong getLocalAtomicLong(String sName)
+    public static LocalAtomicLong localAtomicLong(String sName)
         {
-        return getLocalAtomicLong(sName, 0);
+        return localAtomicLong(sName, 0);
         }
 
     /**
@@ -195,7 +195,7 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicLong} instance for the specified name
      */
-    public static LocalAtomicLong getLocalAtomicLong(String sName, long lInitialValue)
+    public static LocalAtomicLong localAtomicLong(String sName, long lInitialValue)
         {
         return LOCAL_LONGS.computeIfAbsent(sName, name -> new LocalAtomicLong(lInitialValue));
         }
@@ -207,9 +207,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicLong} instance for the specified name
      */
-    public static RemoteAtomicLong getRemoteAtomicLong(String sName)
+    public static RemoteAtomicLong remoteAtomicLong(String sName)
         {
-        return getRemoteAtomicLong(sName, 0);
+        return remoteAtomicLong(sName, 0);
         }
 
     /**
@@ -224,7 +224,7 @@ public final class Atomics
      *
      * @return a {@code RemoteAtomicLong} instance for the specified name
      */
-    public static RemoteAtomicLong getRemoteAtomicLong(String sName, long lInitialValue)
+    public static RemoteAtomicLong remoteAtomicLong(String sName, long lInitialValue)
         {
         NamedMap<String, AtomicLong> map = atomics().getMap("atomic-long");
         map.putIfAbsent(sName, new AtomicLong(lInitialValue));
@@ -239,9 +239,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicReference} instance for the specified name
      */
-    public static <V> LocalAtomicReference<V> getLocalAtomicReference(String sName)
+    public static <V> LocalAtomicReference<V> localAtomicReference(String sName)
         {
-        return getLocalAtomicReference(sName, null);
+        return localAtomicReference(sName, null);
         }
 
     /**
@@ -257,7 +257,7 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicReference} instance for the specified name
      */
-    public static <V> LocalAtomicReference<V> getLocalAtomicReference(String sName, V initialValue)
+    public static <V> LocalAtomicReference<V> localAtomicReference(String sName, V initialValue)
         {
         return (LocalAtomicReference<V>) LOCAL_REFS.computeIfAbsent(
                 sName, name -> new LocalAtomicReference<>(initialValue));
@@ -271,9 +271,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicLong} instance for the specified name
      */
-    public static <V> RemoteAtomicReference<V> getRemoteAtomicReference(String sName)
+    public static <V> RemoteAtomicReference<V> remoteAtomicReference(String sName)
         {
-        return getRemoteAtomicReference(sName, null);
+        return remoteAtomicReference(sName, null);
         }
 
     /**
@@ -289,7 +289,7 @@ public final class Atomics
      *
      * @return a {@code RemoteAtomicReference} instance for the specified name
      */
-    public static <V> RemoteAtomicReference<V> getRemoteAtomicReference(String sName, V initialValue)
+    public static <V> RemoteAtomicReference<V> remoteAtomicReference(String sName, V initialValue)
         {
         NamedMap<String, AtomicReference<V>> refs = atomics().getMap("atomic-ref");
         refs.putIfAbsent(sName, new AtomicReference<>(initialValue));
@@ -304,9 +304,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicMarkableReference} instance for the specified name
      */
-    public static <V> LocalAtomicMarkableReference<V> getLocalAtomicMarkableReference(String sName)
+    public static <V> LocalAtomicMarkableReference<V> localAtomicMarkableReference(String sName)
         {
-        return getLocalAtomicMarkableReference(sName, null, false);
+        return localAtomicMarkableReference(sName, null, false);
         }
 
     /**
@@ -324,8 +324,8 @@ public final class Atomics
      * @return a {@code LocalAtomicMarkableReference} instance for the specified name
      */
     @SuppressWarnings("unchecked")
-    public static <V> LocalAtomicMarkableReference<V> getLocalAtomicMarkableReference(String sName,
-            V initialValue, boolean fInitialMark)
+    public static <V> LocalAtomicMarkableReference<V> localAtomicMarkableReference(String sName,
+                                                                                   V initialValue, boolean fInitialMark)
         {
         return (LocalAtomicMarkableReference<V>) LOCAL_MARKABLE_REFS.computeIfAbsent(sName,
                 name -> new LocalAtomicMarkableReference<>(initialValue, fInitialMark));
@@ -339,9 +339,9 @@ public final class Atomics
      *
      * @return a {@code RemoteAtomicMarkableReference} instance for the specified name
      */
-    public static <V> RemoteAtomicMarkableReference<V> getRemoteAtomicMarkableReference(String sName)
+    public static <V> RemoteAtomicMarkableReference<V> remoteAtomicMarkableReference(String sName)
         {
-        return getRemoteAtomicMarkableReference(sName, null, false);
+        return remoteAtomicMarkableReference(sName, null, false);
         }
 
     /**
@@ -358,8 +358,8 @@ public final class Atomics
      *
      * @return a {@code RemoteAtomicMarkableReference} instance for the specified name
      */
-    public static <V> RemoteAtomicMarkableReference<V> getRemoteAtomicMarkableReference(String sName,
-            V initialValue, boolean fInitialMark)
+    public static <V> RemoteAtomicMarkableReference<V> remoteAtomicMarkableReference(String sName,
+                                                                                     V initialValue, boolean fInitialMark)
         {
         NamedMap<String, AtomicMarkableReference<V>> refs = atomics().getMap("atomic-markable-ref");
         refs.putIfAbsent(sName, new SerializableAtomicMarkableReference<>(initialValue, fInitialMark));
@@ -374,9 +374,9 @@ public final class Atomics
      *
      * @return a {@code LocalAtomicStampedReference} instance for the specified name
      */
-    public static <V> LocalAtomicStampedReference<V> getLocalAtomicStampedReference(String sName)
+    public static <V> LocalAtomicStampedReference<V> localAtomicStampedReference(String sName)
         {
-        return getLocalAtomicStampedReference(sName, null, 0);
+        return localAtomicStampedReference(sName, null, 0);
         }
 
     /**
@@ -394,9 +394,9 @@ public final class Atomics
      * @return a {@code LocalAtomicStampedReference} instance for the specified name
      */
     @SuppressWarnings("unchecked")
-    public static <V> LocalAtomicStampedReference<V> getLocalAtomicStampedReference(String sName,
-                                                                                    V initialValue,
-                                                                                    int nInitialStamp)
+    public static <V> LocalAtomicStampedReference<V> localAtomicStampedReference(String sName,
+                                                                                 V initialValue,
+                                                                                 int nInitialStamp)
         {
         return (LocalAtomicStampedReference<V>) LOCAL_STAMPED_REFS.computeIfAbsent(sName,
                 name -> new LocalAtomicStampedReference<>(initialValue, nInitialStamp));
@@ -410,9 +410,9 @@ public final class Atomics
      *
      * @return a {@code RemoteAtomicStampedReference} instance for the specified name
      */
-    public static <V> RemoteAtomicStampedReference<V> getRemoteAtomicStampedReference(String sName)
+    public static <V> RemoteAtomicStampedReference<V> remoteAtomicStampedReference(String sName)
         {
-        return getRemoteAtomicStampedReference(sName, null, 0);
+        return remoteAtomicStampedReference(sName, null, 0);
         }
 
     /**
@@ -429,8 +429,8 @@ public final class Atomics
      *
      * @return a {@code RemoteAtomicStampedReference} instance for the specified name
      */
-    public static <V> RemoteAtomicStampedReference<V> getRemoteAtomicStampedReference(String sName,
-            V initialValue, int nInitialStamp)
+    public static <V> RemoteAtomicStampedReference<V> remoteAtomicStampedReference(String sName,
+                                                                                   V initialValue, int nInitialStamp)
         {
         NamedMap<String, AtomicStampedReference<V>> refs = atomics().getMap("atomic-stamped-ref");
         refs.putIfAbsent(sName, new SerializableAtomicStampedReference<>(initialValue, nInitialStamp));
@@ -493,7 +493,7 @@ public final class Atomics
 
     /**
      * Extension to {@link java.util.concurrent.atomic.AtomicMarkableReference}
-     * to allow Java serialization..
+     * to allow Java serialization.
      *
      * @param <V>  the type of object referred to by this reference
      */

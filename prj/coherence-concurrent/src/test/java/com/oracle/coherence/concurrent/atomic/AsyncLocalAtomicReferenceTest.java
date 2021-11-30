@@ -20,7 +20,7 @@ public class AsyncLocalAtomicReferenceTest
     @Override
     protected AsyncAtomicReference<String> asyncValue()
         {
-        LocalAtomicReference<String> ref = Atomics.getLocalAtomicReference("value");
+        LocalAtomicReference<String> ref = Atomics.localAtomicReference("value");
         return ref.async();
         }
     }

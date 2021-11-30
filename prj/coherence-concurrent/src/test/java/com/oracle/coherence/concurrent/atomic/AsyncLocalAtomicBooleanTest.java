@@ -20,6 +20,6 @@ public class AsyncLocalAtomicBooleanTest
     @Override
     protected AsyncAtomicBoolean asyncValue()
         {
-        return Atomics.getLocalAtomicBoolean("value").async();
+        return Atomics.localAtomicBoolean("value").async();
         }
     }

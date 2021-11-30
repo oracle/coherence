@@ -20,6 +20,6 @@ public class LocalAtomicBooleanTest
     @Override
     protected AtomicBoolean value()
         {
-        return Atomics.getLocalAtomicBoolean("value");
+        return Atomics.localAtomicBoolean("value");
         }
     }

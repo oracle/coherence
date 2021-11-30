@@ -39,6 +39,6 @@ public class RemoteAtomicIntegerTest
     @Override
     protected AtomicInteger value()
         {
-        return Atomics.getRemoteAtomicInteger("value");
+        return Atomics.remoteAtomicInteger("value");
         }
     }

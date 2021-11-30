@@ -43,7 +43,7 @@ public class AsyncRemoteAtomicReferencePofTest
     @Override
     protected AsyncAtomicReference<String> asyncValue()
         {
-        RemoteAtomicReference<String> ref = Atomics.getRemoteAtomicReference("value");
+        RemoteAtomicReference<String> ref = Atomics.remoteAtomicReference("value");
         return ref.async();
         }
     }
