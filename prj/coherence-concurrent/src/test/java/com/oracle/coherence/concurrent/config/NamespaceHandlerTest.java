@@ -74,15 +74,15 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDetails(),         is("FixedThreadPool(ThreadCount=5, ThreadFactory=false)"));
+        assertThat(result.getDescription(), is("FixedThreadPool(ThreadCount=5, ThreadFactory=default)"));
         }
 
     @Test
     void testFixedThreadPoolWithThreadFactory()
         {
         String sXml = "<e:fixed>\n"
-                    + "  <e:name>test1</e:name>\n"
-                    + "  <e:thread-count>5</e:thread-count>\n"
+                    + "  <e:name>{foo test1}</e:name>\n"
+                    + "  <e:thread-count>{foo-count 5}</e:thread-count>\n"
                     + "  <e:thread-factory>\n"
                     + "  <instance>\n"
                     + "    <class-factory-name>java.util.concurrent.Executors</class-factory-name>\n"
@@ -102,7 +102,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test1"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDetails(),         is("FixedThreadPool(ThreadCount=5, ThreadFactory=true)"));
+        assertThat(result.getDescription(), is("FixedThreadPool(ThreadCount=5, ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)"));
         }
 
     @Test
@@ -123,7 +123,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test2"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDetails(),         is("SingleThreaded(ThreadFactory=false)"));
+        assertThat(result.getDescription(), is("SingleThreaded(ThreadFactory=default)"));
         }
 
     @Test
@@ -150,7 +150,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test3"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDetails(),         is("SingleThreaded(ThreadFactory=true)"));
+        assertThat(result.getDescription(), is("SingleThreaded(ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)"));
         }
 
     @Test
@@ -171,7 +171,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test4"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDetails(),         is("CachedThreadPool(ThreadFactory=false)"));
+        assertThat(result.getDescription(), is("CachedThreadPool(ThreadFactory=default)"));
         }
 
     @Test
@@ -198,7 +198,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test5"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDetails(),         is("CachedThreadPool(ThreadFactory=true)"));
+        assertThat(result.getDescription(), is("CachedThreadPool(ThreadFactory=java.util.concurrent.Executors$DefaultThreadFactory)"));
         }
 
     @Test
@@ -220,7 +220,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test6"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDetails(),         is("WorkStealingThreadPool(Parallelism=" + nProcessors + ')'));
+        assertThat(result.getDescription(), is("WorkStealingThreadPool(Parallelism=" + nProcessors + ')'));
         }
 
     @Test
@@ -228,7 +228,7 @@ public class NamespaceHandlerTest
         {
         String sXml = "<e:work-stealing>\n"
                     + "  <e:name>test7</e:name>\n"
-                    + "  <e:parallelism>5</e:parallelism>\n"
+                    + "  <e:parallelism>{foo 5}</e:parallelism>\n"
                     + "</e:work-stealing>";
 
         XmlElement          xml       = XmlHelper.loadXml(sXml).getRoot();
@@ -242,7 +242,7 @@ public class NamespaceHandlerTest
         assertThat(result,                      is(notNullValue()));
         assertThat(result.getName(),            is("test7"));
         assertThat(result.getExecutorService(), is(notNullValue()));
-        assertThat(result.getDetails(),         is("WorkStealingThreadPool(Parallelism=5)"));
+        assertThat(result.getDescription(), is("WorkStealingThreadPool(Parallelism=5)"));
         }
 
     // ----- data members ---------------------------------------------------

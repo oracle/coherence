@@ -25,16 +25,16 @@ public class NamedExecutorService
      * around an executor's logical name and a supplier that produces the
      * {@link ExecutorService} itself.
      *
-     * @param sName     the logical {@link ExecutorService} name
-     * @param sDetails  the details of the {@link ExecutorService}
-     * @param supplier  the {@link Supplier} that will produce the
-     *                  {@link ExecutorService}
+     * @param sName         the logical {@link ExecutorService} name
+     * @param sDescription  the description of the {@link ExecutorService}
+     * @param supplier      the {@link Supplier} that will produce the
+     *                      {@link ExecutorService}
      */
-    public NamedExecutorService(String sName, String sDetails, Supplier<ExecutorService> supplier)
+    public NamedExecutorService(String sName, String sDescription, Supplier<ExecutorService> supplier)
         {
-        f_sName    = sName;
-        f_sDetails = sDetails;
-        f_supplier = supplier;
+        f_sName        = sName;
+        f_sDescription = sDescription;
+        f_supplier     = supplier;
         }
 
     // ----- accessors ------------------------------------------------------
@@ -50,13 +50,13 @@ public class NamedExecutorService
         }
 
     /**
-     * Returns the details of this {@link ExecutorService}.
+     * Returns the description of this {@link ExecutorService}.
      *
-     * @return the details of this {@link ExecutorService}
+     * @return the description of this {@link ExecutorService}
      */
-    public String getDetails()
+    public String getDescription()
         {
-        return f_sDetails;
+        return f_sDescription;
         }
 
     /**
@@ -77,9 +77,9 @@ public class NamedExecutorService
     protected final String f_sName;
 
     /**
-     * The details of this {@link ExecutorService}.
+     * The description of this {@link ExecutorService}.
      */
-    protected final String f_sDetails;
+    protected final String f_sDescription;
 
     /**
      * The {@link Supplier} to create the {@link ExecutorService}.

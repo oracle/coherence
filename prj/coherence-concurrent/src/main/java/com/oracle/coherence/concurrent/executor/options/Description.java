@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 /**
- * An {@link TaskExecutorService.Registration.Option} to specify the {@link Details}
+ * An {@link TaskExecutorService.Registration.Option} to specify the {@link Description}
  * of a registered {@link ExecutorService}.
  *
  * This option shouldn't be used for targeting tasks.
@@ -28,51 +28,51 @@ import java.util.concurrent.ExecutorService;
  * @author rl 11.12.2021
  * @since 21.12
  */
-public class Details
+public class Description
         implements TaskExecutorService.Registration.Option, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Constructs a {@link Details} (required for Serializable).
+     * Constructs a {@link Description} (required for Serializable).
      */
     @SuppressWarnings("unused")
-    public Details()
+    public Description()
         {
         }
 
     /**
-     * Constructs a {@link Details} object.
+     * Constructs a {@link Description} object.
      *
-     * @param sDetails  the details of the executor
+     * @param sDescription  the description of the executor
      */
-    protected Details(String sDetails)
+    protected Description(String sDescription)
         {
-        m_sDetails = sDetails;
+        m_sDescription = sDescription;
         }
 
     // ----- accessors ------------------------------------------------------
 
     /**
-     * Obtains the the {@link Details}.
+     * Obtains the the {@link Description}.
      *
-     * @return a {@link Details}
+     * @return a {@link Description}
      */
     public String getName()
         {
-        return m_sDetails;
+        return m_sDescription;
         }
 
     /**
-     * Obtains a {@link Details} with a specific info.
+     * Obtains a {@link Description} based on the provided argument.
      *
-     * @param sDetails  the details
+     * @param sDescription  the description
      *
-     * @return a {@link Details}
+     * @return a {@link Description}
      */
-    public static Details of(String sDetails)
+    public static Description of(String sDescription)
         {
-        return new Details(sDetails);
+        return new Description(sDescription);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -85,27 +85,27 @@ public class Details
             return true;
             }
 
-        if (!(object instanceof Details))
+        if (!(object instanceof Description))
             {
             return false;
             }
 
-        Details name = (Details) object;
+        Description name = (Description) object;
 
-        return Objects.equals(m_sDetails, name.m_sDetails);
+        return Objects.equals(m_sDescription, name.m_sDescription);
 
         }
 
     @Override
     public int hashCode()
         {
-        return m_sDetails != null ? m_sDetails.hashCode() : 0;
+        return m_sDescription != null ? m_sDescription.hashCode() : 0;
         }
 
     @Override
     public String toString()
         {
-        return "ExecutorDetails{" + m_sDetails + '}';
+        return "Description{" + m_sDescription + '}';
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -113,26 +113,26 @@ public class Details
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        m_sDetails = in.readString(0);
+        m_sDescription = in.readString(0);
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
-        out.writeString(0, m_sDetails);
+        out.writeString(0, m_sDescription);
         }
 
     // ----- constants ------------------------------------------------------
 
     /**
-     * The details to use when no details have been provided.
+     * The description to use when no description has been provided.
      */
-    public static Details UNKNOWN = Details.of("Unknown");
+    public static Description UNKNOWN = Description.of("None");
 
     // ----- data members ---------------------------------------------------
 
     /**
      * The details of the executor.
      */
-    protected String m_sDetails;
+    protected String m_sDescription;
     }

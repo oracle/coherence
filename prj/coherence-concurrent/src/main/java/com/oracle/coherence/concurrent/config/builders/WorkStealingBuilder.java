@@ -11,11 +11,16 @@ import com.oracle.coherence.concurrent.config.NamedExecutorService;
 import com.tangosol.coherence.config.ParameterList;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
+
 import com.tangosol.config.annotation.Injectable;
 
+import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.ParameterResolver;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import java.util.function.Supplier;
 
 /**
  * A {@link ParameterizedBuilder} for constructing a {@link NamedExecutorService}
@@ -29,12 +34,12 @@ public class WorkStealingBuilder
     {
     public NamedExecutorService realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
         {
-        NamedExecutorService service;
-
-        int nParallelism = m_nParallelism;
-
-        service = new NamedExecutorService(m_sName, "WorkStealingThreadPool(Parallelism=" + nParallelism + ')',
-                    () -> Executors.newWorkStealingPool(nParallelism));
+        String                    sName        = m_name.evaluate(resolver);
+        int                       nParallelism = m_parallelism == null
+                                                     ? Runtime.getRuntime().availableProcessors()
+                                                     : m_parallelism.evaluate(resolver);
+        Supplier<ExecutorService> supplier     = () -> Executors.newWorkStealingPool(nParallelism);
+        NamedExecutorService      service      = new NamedExecutorService(sName, description(nParallelism), supplier);
 
         register(service);
 
@@ -46,17 +51,27 @@ public class WorkStealingBuilder
     /**
      * Set the number of threads to be used by this executor.
      *
-     * @param nParallelism  the parallelism of this executor
+     * @param parallelism  the parallelism of this executor
      */
     @SuppressWarnings("unused")
     @Injectable("parallelism")
-    public void setParallelism(int nParallelism)
+    public void setParallelism(Expression<Integer> parallelism)
         {
-        if (nParallelism <= 0)
-            {
-            throw new IllegalArgumentException("parallelism must be greater than or equal to zero");
-            }
-        m_nParallelism = nParallelism;
+        m_parallelism = parallelism;
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Creates the description for this executor.
+     *
+     * @param nParallelism  the parallelism for the executor
+     *
+     * @return the description for this executor
+     */
+    protected String description(int nParallelism)
+        {
+        return String.format("WorkStealingThreadPool(Parallelism=%s)", nParallelism);
         }
 
     // ----- data members ---------------------------------------------------
@@ -64,5 +79,5 @@ public class WorkStealingBuilder
     /**
      * The parallelism of the executor.
      */
-    protected int m_nParallelism = Runtime.getRuntime().availableProcessors();
+    protected Expression<Integer> m_parallelism;
     }

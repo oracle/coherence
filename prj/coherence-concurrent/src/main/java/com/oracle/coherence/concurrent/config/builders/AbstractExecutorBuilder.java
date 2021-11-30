@@ -14,6 +14,8 @@ import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.config.annotation.Injectable;
+import com.tangosol.config.expression.Expression;
+
 
 /**
  * Base {@link ParameterizedBuilder} fpr named executors.
@@ -31,12 +33,12 @@ public abstract class AbstractExecutorBuilder<T>
     /**
      * Sets the logical name of this executor.
      *
-     * @param sName  the logical name of this executor
+     * @param name  the logical name of this executor
      */
     @Injectable("name")
-    public void setsName(String sName)
+    public void setsName(Expression<String> name)
         {
-        m_sName = sName;
+        m_name = name;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -55,5 +57,5 @@ public abstract class AbstractExecutorBuilder<T>
     /**
      * The name of the executor.
      */
-    protected String m_sName;
+    protected Expression<String> m_name;
     }

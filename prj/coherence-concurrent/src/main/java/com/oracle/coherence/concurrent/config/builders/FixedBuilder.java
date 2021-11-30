@@ -14,9 +14,14 @@ import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.config.annotation.Injectable;
 
+import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.ParameterResolver;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
+import java.util.function.Supplier;
 
 /**
  * A {@link ParameterizedBuilder} for constructing a {@link NamedExecutorService}
@@ -33,23 +38,15 @@ public class FixedBuilder
     @Override
     public NamedExecutorService realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
         {
-        int nThreadCount = m_threadCount;
-
-        NamedExecutorService service;
-
-        if (m_bldr == null)
-            {
-            service = new NamedExecutorService(m_sName,
-                    "FixedThreadPool(ThreadCount=" + nThreadCount + ", ThreadFactory=false)",
-                    () -> Executors.newFixedThreadPool(nThreadCount));
-            }
-        else
-            {
-            service = new NamedExecutorService(m_sName,
-                    "FixedThreadPool(ThreadCount=" + nThreadCount + ", ThreadFactory=true)",
-                    () -> Executors.newFixedThreadPool(
-                            m_threadCount, m_bldr.realize(resolver, loader, listParameters)));
-            }
+        String                    sName        = m_name.evaluate(resolver);
+        int                       cThreadCount = m_threadCount.evaluate(resolver);
+        ThreadFactory             factory      = m_bldr == null
+                                                     ? null
+                                                     : m_bldr.realize(resolver, loader, listParameters);
+        Supplier<ExecutorService> supplier     = factory == null
+                                                     ? () -> Executors.newFixedThreadPool(cThreadCount)
+                                                     : () -> Executors.newFixedThreadPool(cThreadCount, factory);
+        NamedExecutorService      service      = new NamedExecutorService(sName, description(cThreadCount, factory), supplier);
 
         register(service);
 
@@ -61,17 +58,29 @@ public class FixedBuilder
     /**
      * Set the number of threads to be used by this executor.
      *
-     * @param cThreadCount  the number of threads to be used by this executor
+     * @param threadCount  the number of threads to be used by this executor
      */
     @SuppressWarnings("unused")
     @Injectable("thread-count")
-    public void setThreadCount(int cThreadCount)
+    public void setThreadCount(Expression<Integer> threadCount)
         {
-        if (cThreadCount <= 0)
-            {
-            throw new IllegalArgumentException("thread count must be greater than or equal to zero");
-            }
-        m_threadCount = cThreadCount;
+        m_threadCount = threadCount;
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Creates the description for this executor.
+     *
+     * @param factory  the {@link ThreadFactory}, if any
+     *
+     * @return the description for this executor
+     */
+    protected String description(int cThreadCount, ThreadFactory factory)
+        {
+        String sFactory = factory == null ? "default" : factory.getClass().getName();
+
+        return String.format("FixedThreadPool(ThreadCount=%s, ThreadFactory=%s)", cThreadCount, sFactory);
         }
 
     // ----- data members ---------------------------------------------------
@@ -79,5 +88,5 @@ public class FixedBuilder
     /**
      * The number of threads;
      */
-    protected int m_threadCount;
+    protected Expression<Integer> m_threadCount;
     }

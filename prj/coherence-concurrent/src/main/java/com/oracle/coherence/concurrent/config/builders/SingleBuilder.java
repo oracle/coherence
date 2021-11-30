@@ -14,7 +14,11 @@ import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.config.expression.ParameterResolver;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
+import java.util.function.Supplier;
 
 /**
  * A {@link ParameterizedBuilder} for constructing a {@link NamedExecutorService}
@@ -31,20 +35,33 @@ public class SingleBuilder
     @Override
     public NamedExecutorService realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
         {
-        NamedExecutorService service;
-
-        if (m_bldr == null)
-            {
-            service = new NamedExecutorService(m_sName, "SingleThreaded(ThreadFactory=false)", Executors::newSingleThreadExecutor);
-            }
-        else
-            {
-            service = new NamedExecutorService(m_sName, "SingleThreaded(ThreadFactory=true)",
-                    () -> Executors.newSingleThreadExecutor(m_bldr.realize(resolver, loader, listParameters)));
-            }
+        String                    sName    = m_name.evaluate(resolver);
+        ThreadFactory             factory  = m_bldr == null
+                                                 ? null
+                                                 : m_bldr.realize(resolver, loader, listParameters);
+        Supplier<ExecutorService> supplier = factory == null
+                                                 ? Executors::newSingleThreadExecutor
+                                                 : () -> Executors.newSingleThreadExecutor(factory);
+        NamedExecutorService      service  = new NamedExecutorService(sName, description(factory), supplier);
 
         register(service);
 
         return service;
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Creates the description for this executor.
+     *
+     * @param factory  the {@link ThreadFactory}, if any
+     *
+     * @return the description for this executor
+     */
+    protected String description(ThreadFactory factory)
+        {
+        String sFactory = factory == null ? "default" : factory.getClass().getName();
+
+        return String.format("SingleThreaded(ThreadFactory=%s)", sFactory);
         }
     }

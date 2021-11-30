@@ -129,7 +129,7 @@
     </user-type>
     <user-type>
       <type-id>286</type-id>
-      <class-name>com.oracle.coherence.concurrent.executor.options.Details</class-name>
+      <class-name>com.oracle.coherence.concurrent.executor.options.Description</class-name>
     </user-type>
 
     <user-type>

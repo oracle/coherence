@@ -7,11 +7,10 @@
 
 package com.oracle.coherence.concurrent.executor.management;
 
-import java.util.concurrent.Executor;
-
 import com.tangosol.net.management.annotation.Description;
+
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
 
 
 /**
@@ -48,7 +47,7 @@ public interface ExecutorMBean
      * @return the logical name of the registered {@link ExecutorService}
      */
     @Description("The logical name of this executor.")
-    String getExecutorName();
+    String getName();
 
     /**
      * Return the unique ID of the registered {@link ExecutorService}.
@@ -56,17 +55,15 @@ public interface ExecutorMBean
      * @return the unique ID of the registered {@link ExecutorService}
      */
     @Description("The unique ID of this executor.")
-    String getExecutorId();
+    String getId();
 
     /**
-     * Return the details of the registered {@link ExecutorService}.
-     * Details will include the type of {@link ExecutorService}, how many
-     * threads (if relevant), and if a {@link ThreadFactory} was defined.
+     * Return the description of the registered {@link ExecutorService}.
      *
-     * @return the unique ID of the registered {@link ExecutorService}
+     * @return the unique description of the registered {@link ExecutorService}
      */
-    @Description("The details of this executor.")
-    String getExecutorDetails();
+    @Description("The description of this executor.")
+    String getDescription();
 
     /**
      * Get the location where the executor is running.

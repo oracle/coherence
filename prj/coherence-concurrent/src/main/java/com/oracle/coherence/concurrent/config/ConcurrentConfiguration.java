@@ -8,7 +8,7 @@ package com.oracle.coherence.concurrent.config;
 
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 
-import com.oracle.coherence.concurrent.executor.options.Details;
+import com.oracle.coherence.concurrent.executor.options.Description;
 import com.oracle.coherence.concurrent.executor.options.Name;
 
 import java.util.ArrayList;
@@ -83,7 +83,7 @@ public final class ConcurrentConfiguration
         for (NamedExecutorService service : f_mapNamedExecutorServices.values())
             {
             executorService.register(service.getExecutorService(),
-                    Name.of(service.getName()), Details.of(service.getDetails()));
+                                     Name.of(service.getName()), Description.of(service.getDescription()));
             }
         }
 

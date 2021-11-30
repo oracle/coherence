@@ -9,8 +9,10 @@ package com.oracle.coherence.concurrent.executor;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.management.ExecutorMBean;
-import com.oracle.coherence.concurrent.executor.options.Details;
+
+import com.oracle.coherence.concurrent.executor.options.Description;
 import com.oracle.coherence.concurrent.executor.options.Member;
+
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 
 import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
@@ -18,6 +20,7 @@ import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
 import com.tangosol.coherence.config.Config;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
@@ -263,19 +266,19 @@ public class ClusteredRegistration
             }
 
         @Override
-        public String getExecutorName()
+        public String getName()
             {
             return f_sName;
             }
 
         @Override
-        public String getExecutorId()
+        public String getId()
             {
             return f_sExecutorId;
             }
 
         @Override
-        public String getExecutorDetails()
+        public String getDescription()
             {
             return f_sDetails;
             }
@@ -886,7 +889,7 @@ public class ClusteredRegistration
                                                         f_optionsByType.get(Member.class, null).get().getId(),
                                                         f_optionsByType.get(Member.class, null).get().toString(),
                                                         f_sExecutorId,
-                                                        f_optionsByType.get(Details.class, Details.UNKNOWN).getName());
+                                                        f_optionsByType.get(Description.class, Description.UNKNOWN).getName());
 
                 //service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null).addMapListener(m_executorMBean, f_sExecutorId, false);
 
@@ -947,7 +950,7 @@ public class ClusteredRegistration
 
                 ExecutorsHelper.unregisterExecutiveServiceMBean(
                         f_clusteredExecutorService.getCacheService(),
-                        executorMBean.getExecutorName());
+                        executorMBean.getName());
 
                 if (esCache.isActive())
                     {
