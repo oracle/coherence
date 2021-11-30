@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
@@ -263,6 +264,13 @@ public class TopicsStorageRecoveryTests
             Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
             Logger.info("Restarted storage. published=" + cPublished.get());
 
+            IsServiceRunning isRunning = new IsServiceRunning(sServiceName);
+            for (CoherenceClusterMember m : s_storageCluster)
+                {
+                Eventually.assertDeferred(() -> m.invoke(isRunning), is(true));
+                }
+            Logger.info("Restarted service " + sServiceName + " on all members");
+
             // The cache service should still be suspended so resume it via a storage member like the operator would
             Logger.info("Resuming service " + sServiceName + " published=" + cPublished.get());
             member = s_storageCluster.stream().findAny().orElse(null);
@@ -396,6 +404,13 @@ public class TopicsStorageRecoveryTests
             Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
             Logger.info("Restarted storage. published=" + cPublished.get());
 
+            IsServiceRunning isRunning = new IsServiceRunning(sServiceName);
+            for (CoherenceClusterMember m : s_storageCluster)
+                {
+                Eventually.assertDeferred(() -> m.invoke(isRunning), is(true));
+                }
+            Logger.info("Restarted service " + sServiceName + " on all members");
+
             // wait for the publisher and subscriber to finish
             threadPublish.join(600000);
 
@@ -469,6 +484,13 @@ public class TopicsStorageRecoveryTests
             // we should eventually have three cluster members
             Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
             Logger.info("Restarted storage.");
+
+            IsServiceRunning isRunning = new IsServiceRunning(sServiceName);
+            for (CoherenceClusterMember m : s_storageCluster)
+                {
+                Eventually.assertDeferred(() -> m.invoke(isRunning), is(true));
+                }
+            Logger.info("Restarted service " + sServiceName + " on all members");
 
             // futures should not be completed
             assertThat(futureOne.isDone(), is(false));
@@ -567,6 +589,13 @@ public class TopicsStorageRecoveryTests
             // we should eventually have three cluster members
             Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
             Logger.info("Restarted storage.");
+
+            IsServiceRunning isRunning = new IsServiceRunning(sServiceName);
+            for (CoherenceClusterMember m : s_storageCluster)
+                {
+                Eventually.assertDeferred(() -> m.invoke(isRunning), is(true));
+                }
+            Logger.info("Restarted service " + sServiceName + " on all members");
 
             // futures should not be completed
             assertThat(futureOne.isDone(), is(false));
