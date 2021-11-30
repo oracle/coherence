@@ -409,8 +409,8 @@ public class ClusteredDistributedLockIT
                 {
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.Acquired));
                 Logger.info("Tried and succeeded to acquire lock " + f_sLockName + " within timeout " + f_timeout);
-                lock.unlock();
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.Released));
+                lock.unlock();
                 }
             else
                 {
@@ -476,8 +476,8 @@ public class ClusteredDistributedLockIT
                 }
             finally
                 {
-                lock.unlock();
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.Released));
+                lock.unlock();
                 Logger.info("Lock " + f_sLockName + " released by " + Thread.currentThread());
                 }
             return null;

@@ -523,8 +523,8 @@ public class ClusteredDistributedReadWriteLockIT
                 {
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.WriteAcquired));
                 Logger.info("Tried and succeeded to acquire write lock " + f_sLockName + " within timeout " + f_timeout);
-                lock.writeLock().unlock();
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.WriteReleased));
+                lock.writeLock().unlock();
                 }
             else
                 {
@@ -606,8 +606,8 @@ public class ClusteredDistributedReadWriteLockIT
                 {
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.ReadAcquired));
                 Logger.info("Tried and succeeded to acquire read lock " + f_sLockName + " within timeout " + f_timeout);
-                lock.readLock().unlock();
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.ReadReleased));
+                lock.readLock().unlock();
                 }
             else
                 {
@@ -673,8 +673,8 @@ public class ClusteredDistributedReadWriteLockIT
                 }
             finally
                 {
-                lock.writeLock().unlock();
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.WriteReleased));
+                lock.writeLock().unlock();
                 Logger.info("Write lock " + f_sLockName + " released by " + Thread.currentThread());
                 }
             return null;
@@ -736,8 +736,8 @@ public class ClusteredDistributedReadWriteLockIT
                 }
             finally
                 {
-                lock.readLock().unlock();
                 remoteChannel.raise(new LockEvent(f_sLockName, LockEventType.ReadReleased));
+                lock.readLock().unlock();
                 Logger.info("Read lock " + f_sLockName + " released by " + Thread.currentThread());
                 }
             return null;
