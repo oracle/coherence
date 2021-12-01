@@ -445,6 +445,11 @@
                     <include>com/tangosol/coherence/config/xml/preprocessor/*.java</include>
                     <include>com/tangosol/coherence/config/xml/processor/*.java</include>
 
+                    <include>com/oracle/coherence/concurrent/atomic/*.java</include>
+                    <include>com/oracle/coherence/concurrent/cdi/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/RemoteExecutor.java</include>
+                    <include>com/oracle/coherence/concurrent/locks/*.java</include>
+
                     <include>com/tangosol/coherence/dslquery/*.java</include>
                     <include>com/tangosol/coherence/dslquery/function/*.java</include>
                     <include>com/tangosol/coherence/dslquery/internal/*.java</include>
@@ -559,6 +564,42 @@
                     <exclude>com/tangosol/run/xml/XmlToken.java</exclude>
                     <exclude>com/tangosol/run/xml/XmlTokenizer.java</exclude>
 
+                    <exclude>com/oracle/coherence/concurrent/executor/AbstractCollectable.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/AbstractCollector.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/AbstractOrchestration.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/AbstractTaskCoordinator.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredAssignment.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredCollectable.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorInfo.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredOrchestration.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredProperties.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredRegistration.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredTaskCoordinator.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredTaskManager.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ComposableContinuation.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ConditionalCollector.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ContinuationService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionPlan.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionStrategy.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionStrategyBuilder.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ExecutorsHelper.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/MutableExecutionPlan.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/NamedClusteredExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/PortableAbstractProcessor.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/PortableCollector.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/PortableTask.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/RecoveringTask.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/RemoteExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/Result.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/StandardExecutionStrategy.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/Task.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/TaskCollectors.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/TaskExecutorService.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/TaskProperties.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/ThreadFactories.java</exclude>
+
                     <exclude>com/tangosol/util/CheckedWrapperException.java</exclude>
                     <exclude>com/tangosol/util/CommandLine.java</exclude>
                     <exclude>com/tangosol/util/ErrorList.java</exclude>
@@ -578,7 +619,7 @@
                     </group>
                     <group>
                       <title>Coherence Concurrent</title>
-                      <packages>com.oracle.coherence.concurrent.*</packages>
+                      <packages>com.oracle.coherence.concurrent:com.oracle.coherence.concurrent.atomic:com.oracle.coherence.concurrent.cdi:com.oracle.coherence.concurrent.executor:com.oracle.coherence.concurrent.locks</packages>
                     </group>
                     <group>
                       <title>Coherence Configuration</title>
