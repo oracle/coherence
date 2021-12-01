@@ -1,0 +1,124 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2021, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Distributed Concurrency
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Distributed Concurrency
+
+Coherence Concurrent module provides distributed implementations of the concurrency primitives from the `java.util.concurrent` package that you are already familiar with, such as executors, atomics, locks, semaphores and latches.
+
+This allows you to implement concurrent applications using the constructs you are already familiar with, but to expand the scope of "concurrency" from a single process to potentially hundreds of processes within a Coherence cluster. You can use executors to submit tasks to be executed somewhere in the cluster; you can use locks, latches and semaphores to synchronize execution across many processes; you can use atomics to implement global counters across many processes, etc.
+
+Please keep in mind that while these features are extremely powerful and allow you to reuse the knowledge you already have, they may have detrimental effect on scalability and/or performance. Whenever you synchronize execution via locks, latches or semaphores, you are introducing a potential bottleneck into the architecture. Whenever you use a distributed atomic to implement a global counter, you are turning very simple operations that take mere nanoseconds locally, such as increment and decrement, into fairly expensive network calls that could take milliseconds (and potentially block even longer under heavy load).
+
+So, use these features when you really need them, but don't go overboard: in many cases there is a better, faster and more scalable way to accomplish the same goal using Coherence primitives such as entry processors, aggregators and events, which were designed to perform and scale well in a distributed environment from the get go.
+
+=== Factory Classes
+
+Each of the features above is backed by one or more Coherence caches, possibly with preconfigured interceptors, but for the most part you shouldn't care about that: all interaction with lower level Coherence primitives is hidden behind various factory classes that allow you to get the instances of the classes you need.
+
+For example, you will use factory methods within `Atomics` class to get instances of various atomic types, `Locks` to get lock instances, `Latches` and `Semaphores` to get, well, latches and semaphores.
+
+=== Local vs Remote
+
+In many cases the factory classes will allow you to get both the *local* and the *remote* instances of various constructs. For example, `Locks.localLock` will give you an instance of a standard `java.util.concurrent.locks.ReentrantLock`, while `Locks.remoteLock` will return an instance of a `DistributedLock`.
+
+The main advantage of using factory classes to construct both the local and the remote lock instances (in this case) is that it allows you to name local locks the same way you have to name distributed locks: calling `Locks.localLock("foo")` will always return the same `Lock` instance, as the `Locks` class internally caches both the local and the remote instances it created. Of course, in the case of remote locks, every locally cached remote lock instance is ultimately backed by a shared lock instance somewhere in the cluster, which is used to synchronize lock state across the processes.
+
+=== Serialization
+
+Coherence Concurrent supports both Java serialization and POF out-of-the-box, with Java serialization being the default.
+
+If you want to use POF instead, you will need to specify that by setting `coherence.concurrent.serializer` system property to `pof`. You will also need to include `coherence-concurrent-pof-config.xml` into your own POF configuration file, in order to register built-in Coherence Concurrent types.
+
+=== Persistence
+
+Coherence Concurrent supports both active and on-demand persistence, but just like in the rest of Coherence it is set to `on-demand` by default.
+
+In order to use active persistence you should set `coherence.concurrent.persistence` system property to `active`.
+
+== Usage
+
+In order to use Coherence Concurrent features, you need to declare it as a dependency in your `pom.xml`:
+
+[source,xml,subs="attributes+"]
+----
+    <dependency>
+        <groupId>{coherence-maven-group-id}</groupId>
+        <artifactId>coherence-concurrent</artifactId>
+        <version>{version-coherence-maven}</version>
+    </dependency>
+----
+
+Once the necessary dependency is in place, you can start using the features it provides, as the following sections describe.
+
+* <<executors,Executors>>
+ ** <<executors-tbd,TBD (Ryan to expand/add sections)>>
+ ** <<cdi-executors,CDI Support for Executors>>
+* <<atomics,Atomics>>
+ ** <<atomics-primitive,Primitive Types>>
+ ** <<atomics-reference,Reference Types>>
+ ** <<atomics-async,Asynchronous Implementations>>
+ ** <<cdi-atomics,CDI Support for Atomics>>
+* <<locks,Locks>>
+ ** <<exclusive-locks,Exclusive Locks>>
+ ** <<read-write-locks,Read/Write Locks>>
+ ** <<cdi-locks,CDI Support for Locks>>
+* <<latches-semaphores,Latches and Semaphores>>
+ ** <<count-down-latch,Count Down Latch>>
+ ** <<semaphore,Semaphore>>
+ ** <<cdi-latches-semaphores,CDI Support for Latches and Semaphores>>
+
+[#executors]
+=== Executors
+
+[#executors-tbd]
+==== TBD (Ryan to expand/add sections)
+
+[#cdi-executors]
+==== CDI Support
+
+[#atomics]
+=== Atomics
+
+[#atomics-primitive]
+==== Primitive Types
+
+[#atomics-reference]
+==== Reference Types
+
+[#atomics-async]
+==== Asynchronous Implementations
+
+[#cdi-atomics]
+==== CDI Support
+
+[#locks]
+=== Locks
+
+[#exclusive-locks]
+==== Exclusive Locks
+
+[#read-write-locks]
+==== Read/Write Locks
+
+[#cdi-locks]
+==== CDI Support
+
+[#latches-semaphores]
+=== Latches and Semaphores
+
+[#count-down-latch]
+==== Count Down Latch
+
+[#semaphore]
+==== Semaphore
+
+[#cdi-latches-semaphores]
+==== CDI Support
+

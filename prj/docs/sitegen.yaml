@@ -82,6 +82,14 @@ backend:
               items:
                 - includes:
                     - "docs/topics/*.adoc"
+            - title: "Distributed Concurrency"
+              pathprefix: "/coherence-concurrent"
+              glyph:
+                type: "icon"
+                value: "fa-bolt"
+              items:
+                - includes:
+                    - "coherence-concurrent/README.adoc"
             - title: "CDI Support"
               pathprefix: "/coherence-cdi-server"
               glyph:

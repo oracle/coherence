@@ -88,6 +88,13 @@ Coherence Topics (Messaging, Streams) Improvements.
 --
 
 [CARD]
+.Distributed Concurrency
+[icon=fa-bolt,link=coherence-concurrent/README.adoc]
+--
+Distributed implementations of executors, locks, atomics, etc.
+--
+
+[CARD]
 .CDI
 [icon=extension,link=coherence-cdi-server/README.adoc]
 --
