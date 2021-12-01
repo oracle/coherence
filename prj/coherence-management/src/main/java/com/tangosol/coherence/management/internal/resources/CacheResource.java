@@ -81,7 +81,7 @@ public class CacheResource extends AbstractManagementResource
 
         if (setObjectNames == null || setObjectNames.isEmpty())
             {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Response.status(Response.Status.NOT_FOUND).build();
             }
 
         EntityMBeanResponse responseEntity = createResponse(getParentUri(), getCurrentUri(), getLinksFilter());

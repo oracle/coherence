@@ -133,7 +133,7 @@ public abstract class AbstractManagementResource
 
                 if (mapUpdatedMBeans.isEmpty())
                     {
-                    throw new WebApplicationException(Response.Status.NOT_FOUND);
+                    return Response.status(Response.Status.NOT_FOUND).build();
                     }
 
                 for (Map.Entry<String,  Map<String, Object>> entry : mapUpdatedMBeans.entrySet())
@@ -298,7 +298,7 @@ public abstract class AbstractManagementResource
 
             if (mapMBeans.isEmpty())
                 {
-                throw new WebApplicationException(Response.Status.NOT_FOUND);
+                return Response.status(Response.Status.NOT_FOUND).build();
                 }
             }
         catch (RuntimeException e)
@@ -1158,9 +1158,10 @@ public abstract class AbstractManagementResource
      */
     protected Response response(EntityMBeanResponse responseEntity)
         {
-        if (responseEntity == null)
+        if (responseEntity == null ||
+              (!responseEntity.hasFailures() && responseEntity.getEntities().isEmpty() && responseEntity.getEntity().isEmpty()))
             {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Response.status(Response.Status.NOT_FOUND).build();
             }
         
         // check if there are failures, and if so, should be classified as bad request
@@ -1978,8 +1979,9 @@ public abstract class AbstractManagementResource
      * Set of attributes to be converted to Long.
      */
     private static final Set<String> SET_LONG = new HashSet<>(Arrays.asList(
-            "intervalSeconds", "currentBatch",
-            "maxQueryThresholdMillis", "batchFactor", "transportRetainedBytes"));
+            "intervalSeconds", "currentBatch", "taskHungThresholdMillis",
+            "maxQueryThresholdMillis", "transportRetainedBytes",
+            "requestTimeoutMillis", "taskTimeoutMillis"));
 
     /**
      * Set of attributes to be converted to Integer.

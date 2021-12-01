@@ -1183,6 +1183,9 @@ public class ManagementInfoResourceTests
         {
         LinkedHashMap mapEntity = new LinkedHashMap();
         mapEntity.put("threadCountMin", 5);
+        mapEntity.put("taskHungThresholdMillis", 10);
+        mapEntity.put("taskTimeoutMillis", 100000);
+        mapEntity.put("requestTimeoutMillis", 200000);
         WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members").path(SERVER_PREFIX + "-1");
         Response  response = target.request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
 
@@ -1196,6 +1199,9 @@ public class ManagementInfoResourceTests
 
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("threadCountMin"), is(5));
+        assertThat(mapResponse.get("taskHungThresholdMillis"), is(10));
+        assertThat(mapResponse.get("taskTimeoutMillis"), is(100000));
+        assertThat(mapResponse.get("requestTimeoutMillis"), is(200000));
         }
 
     @Test
@@ -1857,12 +1863,22 @@ public class ManagementInfoResourceTests
         {
         Response response = getBaseTarget().path(CACHES).path("nonexistent").request().get();
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+
+        // Tests for Bug 33541445
+        response = getBaseTarget().path(CACHES).path("nonexistent").path(MEMBERS).request().get();
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         }
 
     @Test
     public void testNonExistentService()
         {
         Response response = getBaseTarget().path(SERVICES).path("nonexistent").request().get();
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+
+        // Tests for Bug 33541445
+        response = getBaseTarget().path(SERVICES).path("DistributedCacheInvalid").path(MEMBERS).request().get();
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         }
@@ -1880,6 +1896,11 @@ public class ManagementInfoResourceTests
     public void testNonExistentServiceCaches()
         {
         Response response = getBaseTarget().path(SERVICES).path("nonexistent").path(CACHES).request().get();
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+
+        // Tests for Bug 33541445
+        response = getBaseTarget().path(SERVICES).path("nonexistent").path(CACHES).path(MEMBERS).request().get();
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         }
