@@ -79,7 +79,7 @@ public class ServicesResource extends AbstractManagementResource
 
         if (response == null && getService() != null)
             {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Response.status(Response.Status.NOT_FOUND).build();
             }
 
         return response == null

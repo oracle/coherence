@@ -151,7 +151,7 @@ public class ClusterResource
                 sBaseQuery = MAP_PLATFORM_G1_URL_TO_MBEAN_QUERY.get(sPlatformMBeanType);
                 if (sBaseQuery == null)
                     {
-                    throw new WebApplicationException(Response.Status.NOT_FOUND);
+                    return Response.status(Response.Status.NOT_FOUND).build();
                     }
                 }
             }
