@@ -23,12 +23,17 @@ import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.WrapperException;
 
+import java.util.Objects;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.management.NotCompliantMBeanException;
 
 /**
- * TODO
+ * Executor service utility class.
+ *
+ * @author rl  11.20.21
+ * @since 21.12
  */
 public final class ExecutorsHelper
     {
@@ -50,8 +55,21 @@ public final class ExecutorsHelper
                         String.format("The session '%s' has not been initialized", SESSION_NAME)));
         }
 
+    /**
+     * Obtain a RemoteExecutor for the specified {@code name}.  If no registered
+     * executor exists, this method will return {@code null}.
+     *
+     * @param sName  the executor name
+     *
+     * @return the {@link RemoteExecutor}, if registered, or {@code null} if
+     *         not
+     *
+     * @throws NullPointerException if {@code sName} is {@code null}
+     */
     static RemoteExecutor ensureRemoteExecutor(String sName)
         {
+        Objects.requireNonNull(sName);
+
         if (ConcurrentConfiguration.get().isExecutorNameRegistered(sName))
             {
             return f_mapLiveExecutors.computeIfAbsent(sName, s -> new NamedClusteredExecutorService(Name.of(sName)));
@@ -59,19 +77,32 @@ public final class ExecutorsHelper
         return null;
         }
 
-    static void registerExecutorMBean(CacheService service, ExecutorMBean mbean, ClusteredExecutorInfo info)
+    /**
+     * Registers the provided MBean for the specified executor.
+     *
+     * @param service  the cache service
+     * @param mbean    the mbean to register
+     * @param sName    the executor name
+     *
+     * @throws NullPointerException if any of {@code service}, {@code mbean},
+     *                              or {@code sName} is {@code null}
+     */
+    static void registerExecutorMBean(CacheService service, ExecutorMBean mbean, String sName)
         {
-        Cluster           cluster       = service.getCluster();
-        Registry          registry      = cluster.getManagement();
-        String            sExecutorName = info.getExecutorName();
+        Objects.requireNonNull(service, "service cannot be null");
+        Objects.requireNonNull(mbean,   "mbean cannot be null");
+        Objects.requireNonNull(sName,   "sName cannot be null");
+
+        Cluster  cluster  = service.getCluster();
+        Registry registry = cluster.getManagement();
 
         if (registry != null)
             {
-            String sName = getExecutorServiceMBeanName(registry, sExecutorName);
+            String sMbeanName = getExecutorServiceMBeanName(registry, sName);
 
             try
                 {
-                registry.register(sName, new AnnotatedStandardEmitterMBean(mbean, ExecutorMBean.class));
+                registry.register(sMbeanName, new AnnotatedStandardEmitterMBean(mbean, ExecutorMBean.class));
                 }
             catch (NotCompliantMBeanException e)
                 {
@@ -80,8 +111,20 @@ public final class ExecutorsHelper
             }
         }
 
+    /**
+     * Unregisters the MBean for the specified executor.
+     *
+     * @param service  the cache service
+     * @param sName    the executor name
+     *
+     * @throws NullPointerException if either {@code service} or
+     *                             {@code sName} is {@code null}
+     */
     static void unregisterExecutiveServiceMBean(CacheService service, String sName)
         {
+        Objects.requireNonNull(service, "service cannot be null");
+        Objects.requireNonNull(sName,   "sName cannot be null");
+
         Registry registry = service.getCluster().getManagement();
 
         if (registry != null)
@@ -92,8 +135,22 @@ public final class ExecutorsHelper
             }
         }
 
-    private static String getExecutorServiceMBeanName(Registry registry, String sName)
+    /**
+     * Get the MBean name for the {@code named} executor.
+     *
+     * @param registry  the management registry
+     * @param sName     the executor name
+     *
+     * @return the MBean name for the {@code named} executor
+     *
+     * @throws NullPointerException if either {@code registry} or
+     *                             {@code sName} is {@code null}
+     */
+    static String getExecutorServiceMBeanName(Registry registry, String sName)
         {
+        Objects.requireNonNull(registry, "registry cannot be null");
+        Objects.requireNonNull(sName,    "sName cannot be null");
+
         return registry.ensureGlobalName(EXECUTOR_TYPE + EXECUTOR_NAME + sName);
         }
 
@@ -105,20 +162,20 @@ public final class ExecutorsHelper
     public static final String SESSION_NAME = ConcurrentServicesSessionConfiguration.SESSION_NAME;
 
     /**
-     * System property that may be set to override the default executor configuration
-     * with the configuration specified by the value of the property.
-     */
-    public static final String EXECUTOR_CONFIG_OVERRIDE = "coherence.executor.config.override";
-
-    /**
      * String representing the "type" part of <code>ObjectName</code> for the ExecutorMBean.
      */
     public static final String EXECUTOR_TYPE = "type=Executor";
 
+    /**
+     * The executor name.
+     */
     private static final String EXECUTOR_NAME = ",name=";
 
     // ----- data members ---------------------------------------------------
 
+    /**
+     * Current executors in use, keyed by name.
+     */
     private static final ConcurrentHashMap<String, NamedClusteredExecutorService> f_mapLiveExecutors =
             new ConcurrentHashMap<>();
     }

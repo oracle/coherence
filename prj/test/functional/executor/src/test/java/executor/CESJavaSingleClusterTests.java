@@ -87,7 +87,7 @@ public class CESJavaSingleClusterTests
 
     // ----- constants ------------------------------------------------------
 
-    protected static final String EXTEND_CONFIG = "proxy-cache-config-default-serializer.xml";
+    protected static final String EXTEND_CONFIG = "coherence-concurrent-client-config.xml";
 
     // ----- data members ---------------------------------------------------
 
@@ -113,20 +113,20 @@ public class CESJavaSingleClusterTests
                              RoleName.of(STORAGE_ENABLED_MEMBER_ROLE),
                              LocalStorage.enabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
-                             SystemProperty.of("coherence.executor.trace.logging", true))
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
                              LogOutput.to(CESJavaSingleClusterTests.class.getSimpleName(), "ComputeServer"),
                              RoleName.of(STORAGE_DISABLED_MEMBER_ROLE),
                              LocalStorage.disabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
-                             SystemProperty.of("coherence.executor.trace.logging", true))
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(PROXY_MEMBER_COUNT,
                              DisplayName.of("ProxyServer"),
                              LogOutput.to(CESJavaSingleClusterTests.class.getSimpleName(), "ProxyServer"),
                              RoleName.of(PROXY_MEMBER_ROLE),
                              LocalStorage.disabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, true),
-                             SystemProperty.of("coherence.executor.trace.logging", true));
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true));
     }
 

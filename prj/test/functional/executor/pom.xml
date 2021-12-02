@@ -96,7 +96,7 @@
     <profile>
       <id>stage6</id>
       <properties>
-        <skipTests>true</skipTests>
+        <skipTests>false</skipTests>
       </properties>
       <build>
         <plugins>
@@ -114,7 +114,7 @@
     <profile>
       <id>stage12</id>
       <properties>
-        <skipTests>true</skipTests>
+        <skipTests>false</skipTests>
       </properties>
       <build>
         <plugins>

@@ -86,9 +86,7 @@ public class CESPofSingleClusterTests
 
     // ----- constants ------------------------------------------------------
 
-    protected static final String CACHE_CONFIG = "coherence-executor-pof-cache-config.xml";
-
-    protected static final String EXTEND_CONFIG = "proxy-cache-config.xml";
+    protected static final String EXTEND_CONFIG = "coherence-concurrent-client-config.xml";
 
     protected static final String POF_CONFIG = "coherence-executor-test-pof-config.xml";
 
@@ -101,8 +99,7 @@ public class CESPofSingleClusterTests
     public static CoherenceClusterResource s_coherence =
             (CoherenceClusterResource) new CoherenceClusterResource()
                     .with(ClassName.of(Coherence.class),
-                          SystemProperty.of("coherence.serializer", "pof"),
-                          SystemProperty.of(ExecutorsHelper.EXECUTOR_CONFIG_OVERRIDE, CACHE_CONFIG),
+                          SystemProperty.of(SERIALIZER_PROPERTY, "pof"),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),
@@ -118,20 +115,20 @@ public class CESPofSingleClusterTests
                              RoleName.of(STORAGE_ENABLED_MEMBER_ROLE),
                              LocalStorage.enabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
-                            SystemProperty.of("coherence.executor.trace.logging", true))
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
                              LogOutput.to(CESPofSingleClusterTests.class.getSimpleName(), "ComputeServer"),
                              RoleName.of(STORAGE_DISABLED_MEMBER_ROLE),
                              LocalStorage.disabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
-                             SystemProperty.of("coherence.executor.trace.logging", true))
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(PROXY_MEMBER_COUNT,
                              DisplayName.of("ProxyServer"),
-                             SystemProperty.of("coherence.messaging.debug", true),
+                             SystemProperty.of(EXTEND_DEBUG_PROPERTY, true),
                              LogOutput.to(CESPofSingleClusterTests.class.getSimpleName(), "ProxyServer"),
                              RoleName.of(PROXY_MEMBER_ROLE),
                              LocalStorage.disabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, true),
-                             SystemProperty.of("coherence.executor.trace.logging", true));
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true));
     }

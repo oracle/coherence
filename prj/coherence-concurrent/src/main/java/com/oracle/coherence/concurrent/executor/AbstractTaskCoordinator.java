@@ -363,9 +363,12 @@ public abstract class AbstractTaskCoordinator<T>
     // ----- abstract methods -----------------------------------------------
 
     /**
-     * TODO - documentation.
+     * Subscribes to a retained task (a task that has completed execution, but
+     * it still held in memory).
      *
-     * @param subscriber  TODO - documentation
+     * @param subscriber  the subscriber
+     *
+     * @throws IllegalStateException if there is no task to subscribe to
      */
     protected abstract void subscribeRetainedTask(Task.Subscriber<?> subscriber);
 

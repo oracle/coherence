@@ -61,6 +61,7 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
+import com.tangosol.io.Serializer;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -1344,7 +1345,7 @@ public abstract class AbstractClusteredExecutorServiceTests
                 .filter(member -> "proxy".equals(member.getRoleName()))
                 .forEach(member ->
                          {
-                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:ConcurrentServicesProxy"), is(true));
+                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:ConcurrentProxy"), is(true));
                          });
         }
 
@@ -1359,7 +1360,7 @@ public abstract class AbstractClusteredExecutorServiceTests
                 .filter(member -> "proxy".equals(member.getRoleName()))
                 .forEach(member ->
                          {
-                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:ConcurrentServicesProxy"), is(true));
+                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:ConcurrentProxy"), is(true));
                          });
         }
 
@@ -1375,8 +1376,7 @@ public abstract class AbstractClusteredExecutorServiceTests
     @SuppressWarnings("unchecked")
     public <K, V> NamedCache<K, V> getNamedCache(String sName)
         {
-        return ((ClusteredExecutorService) m_taskExecutorService)
-                .getCacheService().ensureCache(sName, null);
+        return m_taskExecutorService.getCacheService().ensureCache(sName, null);
         }
 
     /**
@@ -1495,6 +1495,21 @@ public abstract class AbstractClusteredExecutorServiceTests
      * System property to enable the Executor service proxy.
      */
     protected static final String EXTEND_ENABLED_PROPERTY = "coherence.concurrent.extend.enabled";
+
+    /**
+     * System property to configure the {@link Serializer} used by the concurrent module.
+     */
+    protected static final String SERIALIZER_PROPERTY = "coherence.concurrent.serializer";
+
+    /**
+     * System property to configure executor logging.
+     */
+    protected static final String EXECUTOR_LOGGING_PROPERTY = "coherence.executor.trace.logging";
+
+    /**
+     * System property to configure extend message debugging.
+     */
+    protected static final String EXTEND_DEBUG_PROPERTY = "coherence.messaging.debug";
 
     /**
      * The default proxy port.

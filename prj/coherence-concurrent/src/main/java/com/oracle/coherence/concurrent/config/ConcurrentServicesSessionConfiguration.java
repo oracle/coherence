@@ -36,7 +36,7 @@ public class ConcurrentServicesSessionConfiguration
         return Optional.of(CONFIG_URI);
         }
 
-    // ----- inner class: AtomicsSessionProvider ----------------------------
+    // ----- inner class: ConcurrentServicesSessionProvider -----------------
 
     /**
      * The custom Atomics session provider.
@@ -53,13 +53,18 @@ public class ConcurrentServicesSessionConfiguration
                 {
                 if (context.getMode() == Coherence.Mode.ClusterMember)
                     {
-                    // we only add this Atomics session on a cluster member
                     return context.createSession(configuration);
                     }
                 else
                     {
-                    // there is no Atomics session on an Extend client.
-                    return context.complete();
+                    return context.createSession(
+                            new ConcurrentServicesSessionConfiguration()
+                                {
+                                public Optional<String> getConfigUri()
+                                    {
+                                    return Optional.of(CLIENT_CONFIG_URI);
+                                    }
+                                });
                     }
                 }
             // the request was not for the Atomics session
@@ -78,5 +83,11 @@ public class ConcurrentServicesSessionConfiguration
      * The URI to the default configuration for the {@code coherence-concurrent}
      * module.
      */
-    public static String CONFIG_URI = "concurrent-services.xml";
+    public static String CONFIG_URI = "coherence-concurrent-config.xml";
+
+    /**
+     * The URI to the default configuration for the {@code coherence-concurrent}
+     * module.
+     */
+    public static String CLIENT_CONFIG_URI = "coherence-concurrent-client-config.xml";
     }

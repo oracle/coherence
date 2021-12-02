@@ -12,7 +12,7 @@
 
   <defaults>
     <scope-name>$SYS</scope-name>
-    <serializer>${coherence.serializer}</serializer>
+    <serializer>${coherence.concurrent.serializer ${coherence.serializer java}}</serializer>
   </defaults>
 
   <interceptors>
@@ -59,6 +59,11 @@
       <scheme-name>concurrent</scheme-name>
     </cache-mapping>
 
+    <cache-mapping>
+      <cache-name>latches-*</cache-name>
+      <scheme-name>concurrent</scheme-name>
+    </cache-mapping>
+
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -74,6 +79,9 @@
           <unit-calculator>BINARY</unit-calculator>
         </local-scheme>
       </backing-map-scheme>
+      <persistence>
+        <environment>${coherence.concurrent.persistence.environment ${coherence.persistence.environment default-on-demand}}</environment>
+      </persistence>
       <autostart>true</autostart>
       <interceptors>
         <interceptor>
@@ -86,9 +94,8 @@
     </distributed-scheme>
 
     <proxy-scheme>
-      <scheme-name>concurrent-services-proxy</scheme-name>
-      <service-name>ConcurrentServicesProxy</service-name>
-
+      <scheme-name>concurrent-proxy</scheme-name>
+      <service-name>ConcurrentProxy</service-name>
       <acceptor-config>
         <tcp-acceptor>
           <local-address>

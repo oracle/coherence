@@ -71,7 +71,7 @@ public class CESJavaClusterPerTests
 
     protected static final String CACHE_CONFIG = ConcurrentServicesSessionConfiguration.CONFIG_URI;
 
-    protected static final String EXTEND_CONFIG = "proxy-cache-config-default-serializer.xml";
+    protected static final String EXTEND_CONFIG = "coherence-concurrent-client-config.xml";
 
     // ----- data members ---------------------------------------------------
 
@@ -89,27 +89,27 @@ public class CESJavaClusterPerTests
                           CacheConfig.of(CACHE_CONFIG),
                           ClusterPort.of(7574),
                           ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName()), // default name is too long
-                          SystemProperty.of("coherence.concurrent.extend.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
-                          SystemProperty.of("coherence.concurrent.extend.port", "9099"),
+                          SystemProperty.of(EXTEND_ADDRESS_PROPERTY, LocalPlatform.get().getLoopbackAddress().getHostAddress()),
+                          SystemProperty.of(EXTEND_PORT_PROPERTY, "9099"),
                           JmxFeature.enabled())
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(getLabel(), "CacheServer"),
                              RoleName.of(STORAGE_ENABLED_MEMBER_ROLE),
                              LocalStorage.enabled(),
-                             SystemProperty.of("coherence.concurrent.extend.enabled", false),
-                             SystemProperty.of("coherence.executor.trace.logging", true))
+                             SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
                              LogOutput.to(getLabel(), "ComputeServer"),
                              RoleName.of(STORAGE_DISABLED_MEMBER_ROLE),
                              LocalStorage.disabled(),
-                             SystemProperty.of("coherence.concurrent.extend.enabled", false),
-                             SystemProperty.of("coherence.executor.trace.logging", true))
+                             SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(PROXY_MEMBER_COUNT,
                              DisplayName.of("ProxyServer"),
                              LogOutput.to(getLabel(), "ProxyServer"),
                              RoleName.of(PROXY_MEMBER_ROLE),
                              LocalStorage.disabled(),
-                             SystemProperty.of("coherence.concurrent.extend.enabled", true));
+                             SystemProperty.of(EXTEND_ENABLED_PROPERTY, true));
     }

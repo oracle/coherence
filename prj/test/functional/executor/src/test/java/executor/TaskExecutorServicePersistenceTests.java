@@ -16,7 +16,6 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
-import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
@@ -33,7 +32,6 @@ import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
-import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
@@ -81,6 +79,10 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import static executor.AbstractClusteredExecutorServiceTests.EXECUTOR_LOGGING_PROPERTY;
+import static executor.AbstractClusteredExecutorServiceTests.EXTEND_ADDRESS_PROPERTY;
+import static executor.AbstractClusteredExecutorServiceTests.EXTEND_ENABLED_PROPERTY;
+import static executor.AbstractClusteredExecutorServiceTests.EXTEND_PORT_PROPERTY;
 import static executor.AbstractClusteredExecutorServiceTests.ensureExecutorProxyAvailable;
 
 import static org.hamcrest.core.Is.is;
@@ -92,7 +94,6 @@ import static org.hamcrest.core.Is.is;
  * @since 21.12
  */
 @Category(SingleClusterForAllTests.class)
-@Ignore
 public class TaskExecutorServicePersistenceTests
     {
     // ----- test lifecycle -------------------------------------------------
@@ -124,7 +125,7 @@ public class TaskExecutorServicePersistenceTests
     public void setup()
         {
         // connect as an *Extend client
-        m_cacheFactory = s_coherence.createSession(new ExtendClient("proxy-cache-config.xml",
+        m_cacheFactory = s_coherence.createSession(new ExtendClient(EXTEND_CONFIG,
                 TaskExecutorServicePersistenceTests.class.getSimpleName()));
 
         // establish an ExecutorService based on the *Extend client
@@ -243,10 +244,9 @@ public class TaskExecutorServicePersistenceTests
 
     // ----- helper methods -------------------------------------------------
 
-    public <K, V> NamedCache<K, V> getNamedCache(String sName)
+    public <K, V> NamedCache getNamedCache(String sName)
         {
-        return ((ClusteredExecutorService) m_taskExecutorService)
-                .getCacheService().ensureCache(sName, null);
+        return m_taskExecutorService.getCacheService().ensureCache(sName, null);
         }
 
     /**
@@ -327,6 +327,10 @@ public class TaskExecutorServicePersistenceTests
      */
     protected final static int PROXY_MEMBER_COUNT = 1;
 
+    // ----- constants ------------------------------------------------------
+
+    protected static final String EXTEND_CONFIG = "coherence-concurrent-client-config.xml";
+
     // ----- data members ---------------------------------------------------
 
     protected static File s_fileActive   = createTempDir();
@@ -339,16 +343,15 @@ public class TaskExecutorServicePersistenceTests
     @ClassRule
     public static CoherenceClusterResource s_coherence =
             (CoherenceClusterResource) new CoherenceClusterResource()
-                    .with(OperationalOverride.of("persistence-override.xml"),
-                          ClassName.of(Coherence.class),
-                          SystemProperty.of(ExecutorsHelper.EXECUTOR_CONFIG_OVERRIDE, "coherence-executor-persistence-cache-config.xml"),
+                    .with(ClassName.of(Coherence.class),
+                          SystemProperty.of("coherence.concurrent.persistence.environment", "default-active"),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),
                           ClusterPort.of(7574),
                           ClusterName.of(TaskExecutorServicePersistenceTests.class.getSimpleName()), // default name is too long
-                          SystemProperty.of("coherence.concurrent.extend.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
-                          SystemProperty.of("coherence.concurrent.extend.port", "9099"),
+                          SystemProperty.of(EXTEND_ADDRESS_PROPERTY, LocalPlatform.get().getLoopbackAddress().getHostAddress()),
+                          SystemProperty.of(EXTEND_PORT_PROPERTY, "9099"),
                           JmxFeature.enabled(),
                           Pof.config("coherence-executor-test-pof-config.xml"),
                           SystemProperty.of("coherence.persistence.active.dir", s_fileActive.getAbsoluteFile()),
@@ -359,22 +362,22 @@ public class TaskExecutorServicePersistenceTests
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "CacheServer"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),
-                             SystemProperty.of("coherence.concurrent.extend.enabled", false),
-                             SystemProperty.of("coherence.executor.trace.logging", true))
+                             SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "ComputeServer"),
                              RoleName.of("compute"),
                              LocalStorage.disabled(),
-                             SystemProperty.of("coherence.concurrent.extend.enabled", false),
-                             SystemProperty.of("coherence.executor.trace.logging", true))
+                             SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(PROXY_MEMBER_COUNT,
                              DisplayName.of("ProxyServer"),
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "ProxyServer"),
                              RoleName.of("proxy"),
                              LocalStorage.disabled(),
-                             SystemProperty.of("coherence.concurrent.extend.enabled", true),
-                             SystemProperty.of("coherence.executor.trace.logging", true));
+                             SystemProperty.of(EXTEND_ENABLED_PROPERTY, true),
+                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true));
 
     /**
      * Rule to demarcate tests in a single-log test run.

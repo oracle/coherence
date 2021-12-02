@@ -325,7 +325,7 @@ public class ClusteredExecutorInfo
             case JOINING:
 
                 // schedule introducing the Executor to existing (non-completed) Tasks
-                return new JoiningContinuation(m_sIdentity, service, this);
+                return new JoiningContinuation(m_sIdentity, service);
 
             case RUNNING:
 
@@ -654,15 +654,11 @@ public class ClusteredExecutorInfo
          *
          * @param cacheService  the {@link CacheService}
          * @param sExecutorId   the {@link Executor} identity to update
-         * @param executorInfo  the {@link ClusteredExecutorInfo}
          */
-        public JoiningContinuation(String sExecutorId,
-                                   CacheService cacheService,
-                                   ClusteredExecutorInfo executorInfo)
+        public JoiningContinuation(String sExecutorId, CacheService cacheService)
             {
             m_sExecutorId  = sExecutorId;
             m_cacheService = cacheService;
-            m_executorInfo = executorInfo;
             }
 
         // ----- ComposableContinuation methods -----------------------------
@@ -711,11 +707,6 @@ public class ClusteredExecutorInfo
          * The {@link CacheService} for accessing the {@link TaskExecutorService.ExecutorInfo} cache.
          */
         protected CacheService m_cacheService;
-
-        /**
-         * TODO
-         */
-        protected ClusteredExecutorInfo m_executorInfo;
         }
 
     /**

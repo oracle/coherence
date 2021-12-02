@@ -891,9 +891,7 @@ public class ClusteredRegistration
                                                         f_sExecutorId,
                                                         f_optionsByType.get(Description.class, Description.UNKNOWN).getName());
 
-                //service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null).addMapListener(m_executorMBean, f_sExecutorId, false);
-
-                ExecutorsHelper.registerExecutorMBean(service, m_executorMBean, info);
+                ExecutorsHelper.registerExecutorMBean(service, m_executorMBean, info.getExecutorName());
 
                 // schedule a callable to update the state of the executor in the cluster using the
                 // local ScheduledExecutorService from the ClusteredExecutorService

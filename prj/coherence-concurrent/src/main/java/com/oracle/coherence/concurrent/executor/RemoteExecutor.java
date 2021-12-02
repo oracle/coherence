@@ -6,13 +6,18 @@
  */
 package com.oracle.coherence.concurrent.executor;
 
+import com.tangosol.config.xml.NamespaceHandler;
+import com.tangosol.util.ThreadFactory;
 import com.tangosol.util.function.Remote;
+
+import java.io.Closeable;
 
 import java.util.Collection;
 import java.util.List;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
@@ -21,12 +26,140 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Similar to {@link java.util.concurrent.ExecutorService}, a
- * {@code RemoteExecutor} allows the execution of asynchronous tasks, but
- * unlike {@link java.util.concurrent.ExecutorService}, these tasks dispatched
- * and executed across members of the Coherence cluster.
+ * A RemoteExecutor allows submitting and/or scheduling {@link Remote.Runnable runnables}
+ * and {@link Remote.Callable callables} for execution within a Coherence cluster.
+ * <p>
+ * <p>
+ * <h2>Using a RemoteExecutor</h2>
+ * A RemoteExecutor may be obtained by a known name:
+ *   {@link #get(String) RemoteExecutor.get(“executorName”}
  *
- * TODO - discuss lifecycle
+ * Once a reference to a {@code RemoteExecutor} has been obtained,
+ * similar to an {@link ExecutorService}, tasks may be submitted:
+ * {@code
+ * <pre>
+ *     // obtain the named RemoteExecutor (defined in xml configuration; see below)
+ *     RemoteExecutor executor = RemoteExecutor.get("MyExecutor");
+ *
+ *     // submit a simple runnable to the cluster but only to the executors
+ *     // named "MyExecutor"
+ *     Future future = executor.submit(() -> System.out.println("EXECUTED));
+ *
+ *     // block until completed
+ *     future.get();
+ * </pre>
+ * }
+ * <p>
+ * A {@code RemoteExecutor} allows scheduling of tasks independent of the
+ * underlying thread pool (more about that below); See:
+ * <ul>
+ *   <li>{@link #schedule(Remote.Runnable, long, TimeUnit)}</li>
+ *   <li>{@link #schedule(Remote.Callable, long, TimeUnit)}</li>
+ *   <li>{@link #scheduleAtFixedRate(Remote.Runnable, long, long, TimeUnit)}</li>
+ *   <li>{@link #scheduleWithFixedDelay(Remote.Runnable, long, long, TimeUnit)}</li>
+ * </ul>
+ * <p>
+ * In order to use an executor, it must first be configured within
+ * the application's cache configuration.  To begin configuring
+ * executors, developers <em>must</em> include a reference
+ * to the {@code coherence-concurrent} module's {@link NamespaceHandler}:
+ * <p>
+ * <p>
+ * <h2>Configuring RemoteExecutors</h2>
+ * {@code
+ * <pre>
+ * &lt;cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ *               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+ *               xmlns:c="class://com.oracle.coherence.concurrent.config.NamespaceHandler">
+ * </pre>
+ * }
+ * In this case, the arbitrary namespace of {@code c} was chosen and will be used
+ * for the examples below.
+ * <p>
+ * The configuration supports multiple executor types and their related configuration.
+ * See this DTD for details:
+ *
+ * <pre>
+ *   &lt;!ELEMENT single (name, thread-pool?)>                       &lt;-- See {@link Executors#newSingleThreadExecutor()} -->
+ *   &lt;!ELEMENT fixed (name, thread-count, thread-pool?)>          &lt;-- See {@link Executors#newFixedThreadPool(int)}   -->
+ *   &lt;!ELEMENT cached (name, thread-pool?>)>                      &lt;-- See {@link Executors#newCachedThreadPool()}     -->
+ *   &lt;!ELEMENT work-stealing (name, parallelism?, thread-pool?>   &lt;-- See {@link Executors#newWorkStealingPool()}     -->
+ *   &lt;!ELEMENT name (#PCDATA)>                                    &lt;-- Expected type: {@link String}                   -->
+ *   &lt;!ELEMENT thread-count (#PCDATA)>                            &lt;-- Expected type: {@link Integer}                  -->
+ *   &lt;!ELEMENT parallelism (#PCDATA)>                             &lt;-- Expected type: {@link Integer}                  -->
+ *   &lt;!ELEMENT thread-factory (instance)>                         &lt;-- Expected type: {@link ThreadFactory}            -->
+ * </pre>
+ *
+ * Review the <a href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/cache-configuration-elements.html#GUID-D81B8574-CC8F-4AF1-BD0F-7068BC6432FD">documentation</a>
+ * for details on the {@code instance} element.
+ * <p>
+ * It should be noted, that it will be normal to have the same executor configured
+ * on multiple Coherence cluster members.  When dispatching a task, it will be
+ * sent to one of the executors matching the configured name for processing.  Thus,
+ * if a member fails, the tasks will fail over to the remaining named executors
+ * still present in the cluster.
+ * <p>
+ * The lifecycle of registered executors is tied to that of the owning
+ * Coherence cluster member, thus if a cluster member is brought down
+ * gracefully, the remaining tasks running on the executor local to that member
+ * will continue to completion.
+ * <p>
+ * <p>
+ * <h2>Example configurations</h2>
+ *
+ * {@code
+ * <pre>
+ * &lt;!-- creates a single-threaded executor named <em>Single</em> -->
+ * &lt;c:single>
+ *   &lt;c:name>Single&lt;/c:name>
+ * &lt;/c:single>
+ * </pre>
+ * }
+ *
+ * {@code
+ * <pre>
+ * &lt;!-- creates a fixed thread pool executor named <em>Fixed5</em> with five threads -->
+ * &lt;c:fixed>
+ *   &lt;c:name>Fixed5&lt;/c:name>
+ *   &lt;c:thread-count>5&lt;/c:thread-count>
+ * &lt;/c:fixed>
+ * </pre>
+ * }
+ *
+ * {@code
+ * <pre>
+ * &lt;!-- creates a cached thread pool executor named <em>Cached</em> -->
+ * &lt;c:cached>
+ *   &lt;c:name>Cached&lt;/c:name>
+ * &lt;/c:cached>
+ * </pre>
+ * }
+ *
+ * {@code
+ * <pre>
+ * &lt;!-- creates a work-stealing thread pool executor named <em>Stealing</em> with a parallelism of five-->
+ * &lt;c:work-stealing>
+ *   &lt;c:name>Stealing&lt;/c:name>
+ *   &lt;c:parallelism>5&lt;/c:parallelism>
+ * &lt;/c:work-stealing>
+ * </pre>
+ * }
+ *
+ * An example defining a {@link ThreadFactory}.
+ * {@code
+ * <pre>
+ * &lt;!-- creates a fixed thread pool executor named <em>Fixed5</em> with five threads and a custom thread factory -->
+ * &lt;c:fixed>
+ *   &lt;c:name>Fixed5&lt;/c:name>
+ *   &lt;c:thread-count>5&lt;/c:thread-count>
+ *   &lt;c:thread-factory>
+ *     &lt;instance>
+ *       &lt;class-name>my.custom.ThreadFactory&lt;/class-name>
+ *     &lt;/instance>
+ *   &lt;/c:thread-factory>
+ * &lt;/c:fixed>
+ * </pre>
+ * }
  *
  * @author rlubke 11.15.2021
  * @since 21.12
@@ -339,6 +472,13 @@ public interface RemoteExecutor
      * @throws NullPointerException        if command is {@code null}
      */
     void execute(Remote.Runnable command);
+
+    ///**
+    // * Closing a RemoteExecutor will clean up local resources it may
+    // * be using to dispatch tasks.  It will not have any impact
+    // * on the actual executor services running within the cluster.
+    // */
+    //void close();
 
     /**
      * Return the {@code RemoteExecutor} for the given name.  Will
