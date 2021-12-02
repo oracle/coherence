@@ -5223,9 +5223,9 @@ public abstract class ExternalizableHelper
     public static final int DECO_PUSHREP = 4;
 
     /**
-     * Decoration: Reserved for future use by Coherence; do not use.
+     * Decoration: Suggests the backup is not in sync.
      */
-    public static final int DECO_RSVD_2  = 5;
+    public static final int DECO_BACKUP  = 5;
 
     /**
      * Decoration: Reserved for future use by Coherence; do not use.

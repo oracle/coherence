@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.grid;
+
+import com.oracle.coherence.common.util.Duration;
 
 import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.builder.ActionPolicyBuilder;
@@ -70,7 +72,7 @@ public class DefaultPartitionedServiceDependencies
             m_bldrsPartitionListener          = deps.getPartitionListenerBuilders();
             m_bldrAssignmentStrategy          = deps.getPartitionAssignmentStrategyBuilder();
             m_cbTransferThreshold             = deps.getTransferThreshold();
-            m_fAsyncBackup                    = deps.isAsyncBackupEnabled();
+            m_asyncBackupInterval             = deps.getAsyncBackupInterval();
 
             // copy PersistenceDependencies independent of OwnershipCapable.
             m_depsPersistence                 = deps.getPersistenceDependencies();
@@ -221,18 +223,27 @@ public class DefaultPartitionedServiceDependencies
     @Override
     public boolean isAsyncBackupEnabled()
         {
-        return m_fAsyncBackup;
+        return getAsyncBackupInterval() != null;
         }
 
     /**
-     * Set the async-backup enabled flag.
+     * {@inheritDoc}
+     */
+    @Override
+    public Duration getAsyncBackupInterval()
+        {
+        return m_asyncBackupInterval;
+        }
+
+    /**
+     * Set the async backup duration.
      *
-     * @param fEnabled  true if async-backup is enabled
+     * @param duration  the duration
      */
     @Injectable("async-backup")
-    public void setAsyncBackupEnabled(boolean fEnabled)
+    public void setAsyncBackupInterval(Duration duration)
         {
-        m_fAsyncBackup = fEnabled;
+        m_asyncBackupInterval = duration;
         }
 
     /**
@@ -385,7 +396,7 @@ public class DefaultPartitionedServiceDependencies
                 + ", PartitionListenerBuilders="          + getPartitionListenerBuilders()
                 + ", PartitionAssignmentStrategyBuilder=" + getPartitionAssignmentStrategyBuilder()
                 + ", TransferThreshold="                  + getTransferThreshold()
-                + ", AsyncBackupEnabled="                 + isAsyncBackupEnabled()
+                + ", AsyncBackupInterval="                + getAsyncBackupInterval()
                 + ", PersistenceDependencies="            + getPersistenceDependencies()
                 + "}";
         }
@@ -423,9 +434,9 @@ public class DefaultPartitionedServiceDependencies
     private boolean m_fOwnershipCapable = true;
 
     /**
-     * The async backup flag.
+     * The async backup duration.
      */
-    private boolean m_fAsyncBackup = false;
+    private Duration m_asyncBackupInterval;
 
     /**
      * The partition count.

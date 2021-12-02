@@ -47,6 +47,7 @@ import com.tangosol.coherence.config.xml.preprocessor.TCPAcceptorPreprocessor;
 
 import com.tangosol.coherence.config.xml.processor.AcceptorDependenciesProcessor;
 import com.tangosol.coherence.config.xml.processor.AddressProviderBuilderProcessor;
+import com.tangosol.coherence.config.xml.processor.AsyncBackupProcessor;
 import com.tangosol.coherence.config.xml.processor.AuthorizedHostsProcessor;
 import com.tangosol.coherence.config.xml.processor.BackingMapSchemeProcessor;
 import com.tangosol.coherence.config.xml.processor.BufferTypeProcessor;
@@ -202,6 +203,7 @@ public class CacheConfigNamespaceHandler
 
         // register the type-based ElementProcessors (in alphabetical order)
         registerProcessor(AcceptorDependenciesProcessor.class);
+        registerProcessor(AsyncBackupProcessor.class);
         registerProcessor(AuthorizedHostsProcessor.class);
         registerProcessor(BackingMapSchemeProcessor.class);
         registerProcessor(BufferTypeProcessor.class);

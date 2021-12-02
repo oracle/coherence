@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.grid;
+
+import com.oracle.coherence.common.util.Duration;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.PartitionAssignmentStrategyBuilder;
@@ -74,7 +76,15 @@ public interface PartitionedServiceDependencies
      *
      * @return true if async backup is enabled
      */
-     public boolean isAsyncBackupEnabled();
+    public boolean isAsyncBackupEnabled();
+
+    /**
+     * Return zero if this member is configured to do async backup, or a duration
+     * between scheduled backups. If null, async or scheduled backups are disabled.
+     *
+     * @return Duration of scheduled backups, zero if async backups are to be enabled
+     */
+    public Duration getAsyncBackupInterval();
 
     /**
      * Return the PartitionAssignmentStrategyBuilder is a pluggable strategy used by a

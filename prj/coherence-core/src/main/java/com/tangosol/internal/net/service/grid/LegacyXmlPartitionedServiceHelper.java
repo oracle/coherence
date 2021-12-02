@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.grid;
+
+import com.oracle.coherence.common.util.Duration;
 
 import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
@@ -81,7 +83,15 @@ public class LegacyXmlPartitionedServiceHelper
             }
 
         // configure async-backup
-        deps.setAsyncBackupEnabled(xml.getSafeElement("async-backup").getBoolean(deps.isAsyncBackupEnabled()));
+        XmlElement xmlAsyncBackup = xml.getSafeElement("async-backup");
+        if (xmlAsyncBackup != null)
+            {
+            Boolean FAsync = xml.getBoolean();
+
+            deps.setAsyncBackupInterval(
+                    FAsync == null ? new Duration(xmlAsyncBackup.getString()) :
+                    FAsync         ? new Duration(0L) : null);
+            }
 
         // configure partition-count
         deps.setPreferredPartitionCount(xml.getSafeElement("partition-count").getInt(
