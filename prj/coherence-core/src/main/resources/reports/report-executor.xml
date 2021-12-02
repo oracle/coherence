@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2021, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+  <report>
+    <file-name>{date}-executors.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=Executor,*</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>Report Time</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="Name">
+        <name>Name</name>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>Node Id</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="Id">
+        <name>Id</name>
+        <header>Executor Id</header>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="MemberId">
+        <name>MemberId</name>
+        <header>Member Id</header>
+      </column>
+
+      <column id="State">
+        <name>State</name>
+      </column>
+
+      <column id="Description">
+        <name>Description</name>
+      </column>
+
+      <column id="NodeTS">
+        <name>Timestamp</name>
+        <header>Timestamp</header>
+        <query>
+          <pattern>Coherence:type=Node,nodeId={MemberId}</pattern>
+        </query>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TasksInProgressCount">
+        <name>TasksInProgressCount</name>
+        <header>Tasks In Progress</header>
+      </column>
+
+      <column id="TasksCompletedCount">
+        <name>TasksCompletedCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="TasksRejectedCount">
+        <name>TasksRejectedCount</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaTasksCompletedCount">
+        <type>function</type>
+        <name>DeltaTasksCompletedCount</name>
+        <header>Tasks Completed</header>
+        <column-ref>TasksCompletedCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+
+      <column id="DeltaTasksRejectedCount">
+        <type>function</type>
+        <name>DeltaTasksRejectedCount</name>
+        <header>Tasks Rejected</header>
+        <column-ref>TasksRejectedCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+        </params>
+      </column>
+    </row>
+  </report>
+</report-config>
