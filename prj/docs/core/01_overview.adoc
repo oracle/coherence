@@ -62,7 +62,14 @@ Logging of events that render partitions unavailable.
 .Non-Blocking Data Sources
 [icon=extension,link=docs/core/08_non_blocking.adoc]
 --
-Integration with data sources with non-blocking APIs
+Integration with data sources with non-blocking APIs.
+--
+
+[CARD]
+.Partition Backup Enhancements
+[icon=fa-cubes,link=docs/core/09_backup.adoc]
+--
+Changes to partition backup management.
 --
 
 ====
